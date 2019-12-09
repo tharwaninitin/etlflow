@@ -12,15 +12,13 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     "ratings_output_path" -> s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test1",
     "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet",
-    //"parse_mode" -> "PERMISSIVE",
-    "debug" -> "false",
-    "test"-> "true"
+    "ratings_output_file_name" -> "ratings.parquet"
+    //"parse_mode" -> "PERMISSIVE"
   )
 
   val etljob = new EtlJobDefinition(props)
-  etljob.printJobInfo()
-  etljob.execute()
+  etljob.getJobInfo().foreach(println(_))
+  etljob.execute(props)
 
   // can use Hlist here for easy management
   //  EtlJobDefinition(job_properties)(spark_test).filter(etl => etl.name == "LoadRatings").foreach{ etl =>

@@ -9,21 +9,22 @@ import scala.util.{Failure, Success, Try}
 trait EtlJob {
   val etl_job_logger : Logger = Logger.getLogger(getClass.getName)
   var job_state : Map[String, Map[String,String]] = Map.empty
-  val spark : SparkSession
-  val bq : BigQuery
-  val job_properties : Map[String,String]
 
   def apply() : List[EtlStep[Unit,Unit]]
 
   def printJobInfo() : Unit = {
-    println("Here 00")
     apply().foreach{ etl =>
       etl.getStepProperties.foreach(println)
     }
-
   }
 
-  def execute() : Unit = {
+  def getJobInfo() : List[Map[String,String]] = {
+    apply().map{ etl =>
+      etl.getStepProperties
+    }
+  }
+
+  def execute(job_properties : Map[String,String] = Map()) : Unit = {
     val t0 = System.nanoTime()
     apply().foreach { etl =>
 

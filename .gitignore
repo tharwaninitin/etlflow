@@ -1,0 +1,9 @@
+*.class
+*.log
+.idea
+.metals
+.bloop
+.vscode
+target
+project
+src/test/resources/output

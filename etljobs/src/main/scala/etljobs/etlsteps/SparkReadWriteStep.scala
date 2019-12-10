@@ -57,19 +57,19 @@ extends EtlStep[Unit,Unit]
     */
   }
 
-  override def showPlan(): Unit = {
+  def showPlan(): Unit = {
     etl_logger.info(s"Plan for job $name is as below:")
     dataset.explain()
   }
 
-  override def showSchema(): Unit = {
+  def showSchema(): Unit = {
     etl_logger.info(s"Schema for job $name is as below:")
     etl_logger.info(dataset.schema.toDDL.split(",").mkString(",\n  "))
     //etl_logger.info(s"Schema for this job is: ${dataset.schema.foreach(println(_))}")
     //etl_logger.info(dataset.schema.prettyJson)
   }
 
-  override def showSampleData(): Unit = {
+  def showSampleData(): Unit = {
     etl_logger.info(s"Sample data for job $name:")
     dataset.show(10, truncate = false)
   }

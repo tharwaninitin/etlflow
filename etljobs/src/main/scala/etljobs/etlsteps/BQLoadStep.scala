@@ -23,10 +23,16 @@ class BQLoadStep(
       etl_logger.info("#################################################################################################")
       etl_logger.info(s"Starting BQ Data Load Step : $name")
 
-      LoadApi.loadIntoBQFromGCS(
-        bq,source_path,source_dirs,source_format
-        ,destination_dataset,destination_table,write_disposition,create_disposition
-      )
+      if (etl_metadata.getOrElse("test","false") == "true")
+        LoadApi.loadIntoBQShell(
+          source_path,source_dirs,source_format
+          ,destination_dataset,destination_table,write_disposition,create_disposition
+        )
+      else
+        LoadApi.loadIntoBQFromGCS(
+          bq,source_path,source_dirs,source_format
+          ,destination_dataset,destination_table,write_disposition,create_disposition
+        )
     }
   }
 

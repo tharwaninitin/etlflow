@@ -27,13 +27,9 @@ trait EtlJob {
   def execute(job_properties : Map[String,String] = Map()) : Unit = {
     val t0 = System.nanoTime()
     apply().foreach { etl =>
-
-      val results = etl.process()
-
-      results match {
-        case Success(_) =>
-          etl_job_logger.info(s"Step ${etl.name} ran successfully")
-          etl_job_logger.info("#################################################################################################")
+      
+      etl.process() match {
+        case Success(_) => etl_job_logger.info(s"Step ${etl.name} ran successfully")
         case Failure(exception) => {
           etl_job_logger.error(s"Step ${etl.name} failed with exception $exception")
           if (job_properties.getOrElse("throw_exception_on_error","true") == "true")

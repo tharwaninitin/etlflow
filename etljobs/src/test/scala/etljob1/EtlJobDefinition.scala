@@ -11,6 +11,7 @@ import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
 import etljobs.functions.SparkUDF
 import etljobs.utils.{CSV, PARQUET, Settings}
 import org.apache.log4j.{Level, Logger}
+import etljobs.utils.SessionManager
 
 /**
 * In first step it reads ratings data from ratings_input_path mentioned in input parameters
@@ -19,13 +20,13 @@ import org.apache.log4j.{Level, Logger}
 * In second step it reads PARQUET data stored by step1 and writes it to BigQuery table
 */
 
-class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF {
+class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF with SessionManager {
   var output_date_paths : Seq[String] = Seq()
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val spark  = SparkSession.builder().master("local[*]").getOrCreate()
-  lazy val bq = BigQueryOptions.getDefaultInstance.getService
+  // lazy val spark  = SparkSession.builder().master("local[*]").getOrCreate()
+  // lazy val bq = BigQueryOptions.getDefaultInstance.getService
   val canonical_path = new java.io.File(".").getCanonicalPath
-  val ss_test =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata_test.properties")
+  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
 
   val step1 = SparkReadWriteStateStep[Rating , Unit, RatingOutput, Unit](
     name                    = "LoadRatingsParquet",
@@ -69,9 +70,7 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
   }
 
   def apply() : List[EtlStep[Unit,Unit]] = {
-    etl_job_logger.info("Here 1")
     val list = List(step1,step2)
-    etl_job_logger.info("Here 2")
     list
   }
 }

@@ -8,9 +8,6 @@ trait EtlStep[IPSTATE,OPSTATE] {
   val etl_logger : Logger = Logger.getLogger(getClass.getName)
 
   def process(input_state: IPSTATE) : Try[OPSTATE]
-  def showPlan() : Unit = {}
-  def showSchema(): Unit = {}
-  def showSampleData(): Unit = {}
   def getExecutionMetrics : Map[String,Map[String,String]] = Map()
   def getStepProperties : Map[String,String] = Map()
 }

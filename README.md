@@ -18,13 +18,20 @@ __Maven__
     <version>0.1.0</version>
 </dependency>
 ```
-__sbt__
+__SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.1.0"
 ```
 
+## Documentation
+
+__API__ https://tharwaninitin.github.io/etljobs/api/
+
+__Scala Test Coverage Report__  https://tharwaninitin.github.io/etljobs/testcovrep/
+
+
 ## Built With/For
-* [Spark](https://spark.apache.org/) - The in-memory data processing framework
+* [Spark](https://spark.apache.org/) - Using spark as in-memory data processing framework
 * [Scala](https://www.scala-lang.org/) - Functional JVM Programming Language
 * [Sbt](https://www.scala-sbt.org/download.html) - Amazing Build Tool
 * [BigQuery](https://cloud.google.com/bigquery/) - Cloud Data Warehouse

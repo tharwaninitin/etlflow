@@ -1,12 +1,14 @@
 # ETL Pipeline
 
 ## Getting Started
-1. To get a copy of this project use below git clone command and download a copy
+To get a copy of this project use below git clone command and download a copy
 on your local machine:
+```shell
 git clone https://github.com/tharwaninitin/etljobs.git
+```
 
 ## Requirements and Installation
-ETLJobs is known to work with Apache Spark versions 2.2.x to 2.4.x.
+This project is compiled with scala 2.11.12 and works with Apache Spark versions 2.4.x.
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etljobs). 
 Add the latest release as a dependency to your project
 

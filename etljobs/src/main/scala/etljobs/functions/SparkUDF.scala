@@ -7,7 +7,7 @@ import org.apache.spark.sql.Column
 
 trait SparkUDF {
 
-  def get_12hr_formatted(startTime:String) : Option[String] = {
+  def get_24hr_formatted_from_12hr (startTime:String) : Option[String] = {
     val StartTime = Option(startTime).getOrElse(return None).toString
     val meridiem = StartTime.split(" ")(1)
     val time = StartTime.split(" ")(0).replace(":","")
@@ -40,7 +40,7 @@ trait SparkUDF {
     from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
   }
 
-  val get_12hr_formatted_udf  = udf[Option[String],String](get_12hr_formatted)
+  val get_24hr_formatted_from_12hr_udf  = udf[Option[String],String](get_24hr_formatted_from_12hr)
   val get_24hr_formatted_udf  = udf[Option[String],String](get_24hr_formatted)
 
 

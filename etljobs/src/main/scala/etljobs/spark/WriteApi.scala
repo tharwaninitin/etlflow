@@ -22,6 +22,7 @@ object WriteApi {
       case ORC => df_writer.format("orc")
       case JSON => df_writer.format("json")
       case TEXT => df_writer.format("text")
+      case _ => df_writer.format("text")
     }
 
     df_writer_options.mode(SaveMode.Overwrite).save(output_path)
@@ -55,6 +56,7 @@ object WriteApi {
       case ORC => df_writer.format("orc")
       case JSON => df_writer.format("json")
       case TEXT => df_writer.format("text")
+      case _ => df_writer.format("text")
     }
 
     df_writer_options.mode(SaveMode.Overwrite).save(output_location)
@@ -83,6 +85,7 @@ object WriteApi {
       case ORC => df_writer.format("orc")
       case JSON => df_writer.format("json")
       case TEXT => df_writer.format("text")
+      case _ => df_writer.format("text")
     }
 
     df_writer_options.mode(save_mode).partitionBy(partition_by).save(output_path)

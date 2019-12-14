@@ -22,6 +22,7 @@ object ReadApi {
       case ORC => df_reader.format("orc")
       case JSON => df_reader.format("json")
       case MCSV(_,_) | TEXT => df_reader.format("text")
+      case _ => df_reader.format("text")
     }
 
     val df = fileType match {
@@ -46,7 +47,7 @@ object ReadApi {
     )
   }
 
-  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*"))(implicit spark: SparkSession) : Dataset[T] = {
+  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*"))(spark: SparkSession) : Dataset[T] = {
     val mapping = Encoders.product[T]
 
     val df_reader = spark.read
@@ -61,6 +62,7 @@ object ReadApi {
       case JDBC(url, user, password) => df_reader.format("jdbc").schema(mapping.schema)
         .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password)
       case BQ => df_reader.format("bigquery").schema(mapping.schema).option("table", location.mkString)
+      case _ => df_reader.format("text")
     }
 
     val df = input_type match {

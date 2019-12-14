@@ -6,6 +6,7 @@ import etljobs.spark.ReadApi
 import etljob1.EtlJobSchemas.Rating
 import etljobs.utils.SessionManager
 import etljobs.utils.{CSV, PARQUET, Settings}
+import etljobs.etlsteps.SparkReadWriteStateStep
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input,Output}
 import etljobs.bigquery.QueryApi
 import etljob1.EtlJobSchemas.RatingOutput
@@ -30,14 +31,16 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   etljob.execute(props)
 
   // can use Hlist here for easy management
-  //  EtlJobDefinition(job_properties)(spark_test).filter(etl => etl.name == "LoadRatings").foreach{ etl =>
-  //    etl.asInstanceOf[SparkWriteEtlStepTyped[Rating]].showCorruptedData()
+  // To get errors in CSV if any, run single step like this
+  // etljob.apply().filter(etl => etl.name == "LoadRatingsParquet").foreach{ etl =>
+  //    etl.asInstanceOf[SparkReadWriteStateStep[Rating , Unit, RatingOutput, Unit]].showCorruptedData()
   //  }
+
   override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
   val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](
                                   Seq(props("ratings_input_path")), 
                                   CSV(",", true, props.getOrElse("parse_mode","FAILFAST"))
-                                )
+                                )(spark)
   val op : Output[RatingOutput, Unit] = etljob.enrichRatingData(spark, props)(Input[Rating, Unit](raw,()))
   val Row(sum_ratings: Double, count_ratings: Long) = op.ds.selectExpr("sum(rating)","count(*)").first()
 

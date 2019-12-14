@@ -33,17 +33,17 @@ extends EtlStep[IPSTATE,OPSTATE]
       })
       etl_logger.info("#################################################################################################")
       etl_logger.info(s"Starting ETL Step : $name")
-      val ds = ReadApi.LoadDS[T](input_location,input_type)
+      val ds = ReadApi.LoadDS[T](input_location,input_type)(sp)
       
       transform_function match {
         case Some(tf) => {
           val output = tf(Input[T, IPSTATE](ds, input_state))
-          WriteApi.WriteDS[O](output_type,output_location,output_filename)(output.ds,spark)
+          WriteApi.WriteDS[O](output_type,output_location,output_filename)(output.ds,sp)
           etl_logger.info("#################################################################################################")
           output.ops
         }
         case None => {
-          WriteApi.WriteDS[T](output_type,output_location,output_filename)(ds,spark)
+          WriteApi.WriteDS[T](output_type,output_location,output_filename)(ds,sp)
           etl_logger.info("#################################################################################################")
           input_state.asInstanceOf[OPSTATE]
         }
@@ -66,7 +66,7 @@ extends EtlStep[IPSTATE,OPSTATE]
   
   def showCorruptedData(): Unit = {
     etl_logger.info(s"Corrupted data for job $name:")
-    val ds = ReadApi.LoadDS[T](input_location,input_type)
+    val ds = ReadApi.LoadDS[T](input_location,input_type)(sp)
     ds.filter("_corrupt_record is not null").show(100,truncate = false)
   }
 }

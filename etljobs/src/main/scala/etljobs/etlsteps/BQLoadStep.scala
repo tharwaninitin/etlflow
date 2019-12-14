@@ -36,25 +36,25 @@ class BQLoadStep(
     }
   }
 
-  def map(func: Unit => Unit): Unit = {
-    etl_logger.info("Executing inside map")
-    val output = Try(process()) match {
-      case Success(value) => value
-      case Failure(exception) => throw exception
-    }
-    func(output)
-  }
+  // def map(func: Unit => Unit): Unit = {
+  //   etl_logger.info("Executing inside map")
+  //   val output = Try(process()) match {
+  //     case Success(value) => value
+  //     case Failure(exception) => throw exception
+  //   }
+  //   func(output)
+  // }
 
-  def flatMap(func: Unit => Unit): Unit = {
-    etl_logger.info("Executing inside flatMap")
-    val output = Try(process()) match {
-      case Success(value) => value
-      case Failure(exception) =>
-        etl_logger.info(s"Got Error: $exception")
-        throw exception
-    }
-    func(output)
-  }
+  // def flatMap(func: Unit => Unit): Unit = {
+  //   etl_logger.info("Executing inside flatMap")
+  //   val output = Try(process()) match {
+  //     case Success(value) => value
+  //     case Failure(exception) =>
+  //       etl_logger.info(s"Got Error: $exception")
+  //       throw exception
+  //   }
+  //   func(output)
+  // }
 
   override def getExecutionMetrics : Map[String, Map[String,String]] = {
     Map()

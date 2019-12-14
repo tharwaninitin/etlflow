@@ -62,7 +62,6 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
     val ratings_df = in.ds
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
         .withColumn("date_int", get_formatted_date("date","yyyy-MM-dd","yyyyMMdd"))
-        .withColumn("barc_year" , get_barc_year_udf(col("date")))
 
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
 

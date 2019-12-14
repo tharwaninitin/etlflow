@@ -5,18 +5,27 @@
 on your local machine:
 git clone https://github.com/tharwaninitin/etljobs.git
 
-### Prerequisites
-1. Install scala plugin for modifying existing code.
-2. GCS authentication: Get service account google credentials json file and place it under etljobs folder with name gcsCred.json
+## Requirements and Installation
+ETLJobs is known to work with Apache Spark versions 2.2.x to 2.4.x.
+Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etljobs). 
+Add the latest release as a dependency to your project
 
-## Running the tests
-Automated test suites are created for each job covering all the functionality.
-Use below command on command line to run all the test cases at once:
-sbt test
+__Maven__
+```
+<dependency>
+    <groupId>com.github.tharwaninitin</groupId>
+    <artifactId>etljobs_2.11</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+__sbt__
+```
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.1.0"
+```
 
-## Built With
-* [Spark](https://spark.apache.org/) - The in-memory computation framework used
-* [Scala](https://www.scala-lang.org/) - Language used with spark jobs
-* [Sbt](https://www.scala-sbt.org/download.html) - Dependency Management
-* [GCP](https://cloud.google.com/) - Used to store batch data in many forms
+## Built With/For
+* [Spark](https://spark.apache.org/) - The in-memory data processing framework
+* [Scala](https://www.scala-lang.org/) - Functional JVM Programming Language
+* [Sbt](https://www.scala-sbt.org/download.html) - Amazing Build Tool
+* [BigQuery](https://cloud.google.com/bigquery/) - Cloud Data Warehouse
 

@@ -1,0 +1,312 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/utils/Settings.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import java.io.FileInputStream
+</span>4 <span style=''>import java.util.Properties
+</span>5 <span style=''>
+</span>6 <span style=''>class Settings(filepath:String) {
+</span>7 <span style=''>  private val file_path = </span><span style='background: #AEF1AE'>filepath</span><span style=''>
+</span>8 <span style=''>  private val file_stream = </span><span style='background: #AEF1AE'>new FileInputStream(file_path)</span><span style=''>
+</span>9 <span style=''>  private val config = </span><span style='background: #AEF1AE'>new Properties()</span><span style=''>
+</span>10 <span style=''>
+</span>11 <span style=''>  </span><span style='background: #AEF1AE'>config.load(file_stream)</span><span style=''>
+</span>12 <span style=''>
+</span>13 <span style=''>  lazy val spark_concurrent_threads               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_concurrent_threads&quot;)</span><span style=''>
+</span>14 <span style=''>  lazy val spark_shuffle_partitions               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_shuffle_partitions&quot;)</span><span style=''>
+</span>15 <span style=''>  lazy val spark_output_partition_overwrite_mode  = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)</span><span style=''>
+</span>16 <span style=''>  lazy val running_environment                    = </span><span style='background: #AEF1AE'>config.getProperty(&quot;running_environment&quot;)</span><span style=''>
+</span>17 <span style=''>  lazy val gcp_project                            = </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project&quot;)</span><span style=''>
+</span>18 <span style=''>  lazy val gcp_project_key_name                   = </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project_key_name&quot;)</span><span style=''>
+</span>19 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          7
+        </td>
+        <td>
+          783
+        </td>
+        <td>
+          149
+          -
+          157
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.Settings.filepath
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.filepath
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          785
+        </td>
+        <td>
+          187
+          -
+          217
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.io.FileInputStream.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.io.FileInputStream(Settings.this.file_path)
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          784
+        </td>
+        <td>
+          207
+          -
+          216
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.Settings.file_path
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.file_path
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          786
+        </td>
+        <td>
+          242
+          -
+          258
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.util.Properties()
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          788
+        </td>
+        <td>
+          264
+          -
+          288
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.load
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.config.load(Settings.this.file_stream)
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          787
+        </td>
+        <td>
+          276
+          -
+          287
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.Settings.file_stream
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.file_stream
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          344
+          -
+          390
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #F0ADAD">
+          Settings.this.config.getProperty(&quot;spark_concurrent_threads&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          790
+        </td>
+        <td>
+          444
+          -
+          490
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #F0ADAD">
+          Settings.this.config.getProperty(&quot;spark_shuffle_partitions&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          791
+        </td>
+        <td>
+          544
+          -
+          603
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #F0ADAD">
+          Settings.this.config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          792
+        </td>
+        <td>
+          657
+          -
+          698
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.config.getProperty(&quot;running_environment&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          793
+        </td>
+        <td>
+          752
+          -
+          785
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #F0ADAD">
+          Settings.this.config.getProperty(&quot;gcp_project&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          794
+        </td>
+        <td>
+          839
+          -
+          881
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #F0ADAD">
+          Settings.this.config.getProperty(&quot;gcp_project_key_name&quot;)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,1008 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/EtlJob.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs
+</span>2 <span style=''>
+</span>3 <span style=''>import com.google.cloud.bigquery.BigQuery
+</span>4 <span style=''>import etljobs.etlsteps.EtlStep
+</span>5 <span style=''>import org.apache.log4j.Logger
+</span>6 <span style=''>import org.apache.spark.sql.SparkSession
+</span>7 <span style=''>import scala.util.{Failure, Success, Try}
+</span>8 <span style=''>
+</span>9 <span style=''>trait EtlJob {
+</span>10 <span style=''>  val etl_job_logger : Logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>11 <span style=''>  var job_state : Map[String, Map[String,String]] = </span><span style='background: #AEF1AE'>Map.empty</span><span style=''>
+</span>12 <span style=''>
+</span>13 <span style=''>  def apply() : List[EtlStep[Unit,Unit]]
+</span>14 <span style=''>
+</span>15 <span style=''>  def printJobInfo() : Unit = {
+</span>16 <span style=''>    </span><span style='background: #F0ADAD'>apply().foreach{ etl =&gt;
+</span>17 <span style=''></span><span style='background: #F0ADAD'>      etl.getStepProperties.foreach(println)
+</span>18 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>19 <span style=''>  }
+</span>20 <span style=''>
+</span>21 <span style=''>  def getJobInfo() : List[Map[String,String]] = {
+</span>22 <span style=''>    </span><span style='background: #AEF1AE'>apply().map{ etl =&gt;
+</span>23 <span style=''></span><span style='background: #AEF1AE'>      etl.getStepProperties
+</span>24 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>25 <span style=''>  }
+</span>26 <span style=''>
+</span>27 <span style=''>  def execute(job_properties : Map[String,String] = Map()) : Unit = {
+</span>28 <span style=''>    val t0 = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
+</span>29 <span style=''>    </span><span style='background: #AEF1AE'>apply().foreach { etl =&gt;
+</span>30 <span style=''></span><span style='background: #AEF1AE'>      
+</span>31 <span style=''></span><span style='background: #AEF1AE'>      etl.process() match {
+</span>32 <span style=''></span><span style='background: #AEF1AE'>        case Success(_) =&gt; etl_job_logger.info(s&quot;Step ${etl.name} ran successfully&quot;)
+</span>33 <span style=''></span><span style='background: #AEF1AE'>        case Failure(exception) =&gt; {
+</span>34 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>etl_job_logger.error(s&quot;Step ${etl.name} failed with exception $exception&quot;)</span><span style='background: #AEF1AE'>
+</span>35 <span style=''></span><span style='background: #AEF1AE'>          if (</span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;throw_exception_on_error&quot;,&quot;true&quot;) == &quot;true&quot;</span><span style='background: #AEF1AE'>)
+</span>36 <span style=''></span><span style='background: #AEF1AE'>            </span><span style='background: #F0ADAD'>throw exception</span><span style='background: #AEF1AE'>
+</span>37 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>38 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>39 <span style=''></span><span style='background: #AEF1AE'>
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      job_state ++= etl.getExecutionMetrics
+</span>41 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>42 <span style=''>    val t1 = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
+</span>43 <span style=''>
+</span>44 <span style=''>    </span><span style='background: #AEF1AE'>etl_job_logger.info(&quot;Job completed in : &quot; + (t1 - t0) / 1000000000.0 / 60.0 + &quot; mins&quot;)</span><span style=''>
+</span>45 <span style=''>    </span><span style='background: #AEF1AE'>etl_job_logger.info(&quot;Steps details are as belows: &quot;)</span><span style=''>
+</span>46 <span style=''>    </span><span style='background: #AEF1AE'>job_state.foreach(mp =&gt; etl_job_logger.info(s&quot;Step name =&gt; ${mp._1} Step properties =&gt; ${mp._2}&quot;))</span><span style=''>
+</span>47 <span style=''>  }
+</span>48 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          253
+          -
+          287
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(EtlJob.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          1
+        </td>
+        <td>
+          270
+          -
+          286
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          340
+          -
+          349
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.Map.empty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.Map.empty[String, Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          429
+          -
+          503
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; etl.getStepProperties.foreach[Unit]({
+  ((x: Any) =&gt; scala.this.Predef.println(x))
+})))
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          459
+          -
+          497
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          etl.getStepProperties.foreach[Unit]({
+  ((x: Any) =&gt; scala.this.Predef.println(x))
+})
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          489
+          -
+          496
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.println(x)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          574
+          -
+          574
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.List.canBuildFrom[Map[String,String]]
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          563
+          -
+          616
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.immutable.List.map
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.apply().map[Map[String,String], List[Map[String,String]]](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; etl.getStepProperties))(immutable.this.List.canBuildFrom[Map[String,String]])
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          589
+          -
+          610
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.getStepProperties
+        </td>
+        <td style="background: #AEF1AE">
+          etl.getStepProperties
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          705
+          -
+          722
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.nanoTime
+        </td>
+        <td style="background: #AEF1AE">
+          java.this.lang.System.nanoTime()
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          727
+          -
+          1175
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
+  etl.process(()) match {
+    case (value: Unit)scala.util.Success[Unit](_) =&gt; EtlJob.this.etl_job_logger.info(scala.StringContext.apply(&quot;Step &quot;, &quot; ran successfully&quot;).s(etl.name))
+    case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
+      EtlJob.this.etl_job_logger.error(scala.StringContext.apply(&quot;Step &quot;, &quot; failed with exception &quot;, &quot;&quot;).s(etl.name, exception));
+      if (job_properties.getOrElse[String](&quot;throw_exception_on_error&quot;, &quot;true&quot;).==(&quot;true&quot;))
+        throw exception
+      else
+        ()
+    }
+  };
+  EtlJob.this.job_state_=(EtlJob.this.job_state.++[Map[String,String]](etl.getExecutionMetrics))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          765
+          -
+          778
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.process
+        </td>
+        <td style="background: #AEF1AE">
+          etl.process(())
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          843
+          -
+          851
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #AEF1AE">
+          etl.name
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          852
+          -
+          870
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; ran successfully&quot;
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          814
+          -
+          871
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.etl_job_logger.info(scala.StringContext.apply(&quot;Step &quot;, &quot; ran successfully&quot;).s(etl.name))
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          836
+          -
+          842
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Step &quot;
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          834
+          -
+          870
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Step &quot;, &quot; ran successfully&quot;).s(etl.name)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          942
+          -
+          948
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Step &quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          949
+          -
+          957
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          etl.name
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          919
+          -
+          993
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.error
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJob.this.etl_job_logger.error(scala.StringContext.apply(&quot;Step &quot;, &quot; failed with exception &quot;, &quot;&quot;).s(etl.name, exception))
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          991
+          -
+          992
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          958
+          -
+          982
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; failed with exception &quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          940
+          -
+          992
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Step &quot;, &quot; failed with exception &quot;, &quot;&quot;).s(etl.name, exception)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1008
+          -
+          1077
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          job_properties.getOrElse[String](&quot;throw_exception_on_error&quot;, &quot;true&quot;).==(&quot;true&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          1004
+          -
+          1004
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          1004
+          -
+          1004
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          1091
+          -
+          1106
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw exception
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          1091
+          -
+          1106
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw exception
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          1132
+          -
+          1169
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.MapLike.++
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.job_state.++[Map[String,String]](etl.getExecutionMetrics)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          28
+        </td>
+        <td>
+          1146
+          -
+          1169
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.getExecutionMetrics
+        </td>
+        <td style="background: #AEF1AE">
+          etl.getExecutionMetrics
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          1132
+          -
+          1169
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.EtlJob.job_state_=
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.job_state_=(EtlJob.this.job_state.++[Map[String,String]](etl.getExecutionMetrics))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          1189
+          -
+          1206
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.nanoTime
+        </td>
+        <td style="background: #AEF1AE">
+          java.this.lang.System.nanoTime()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          34
+        </td>
+        <td>
+          1212
+          -
+          1298
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.etl_job_logger.info(&quot;Job completed in : &quot;.+(t1.-(t0)./(1.0E9)./(60.0)).+(&quot; mins&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          1232
+          -
+          1297
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Job completed in : &quot;.+(t1.-(t0)./(1.0E9)./(60.0)).+(&quot; mins&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          35
+        </td>
+        <td>
+          1303
+          -
+          1355
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.etl_job_logger.info(&quot;Steps details are as belows: &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          41
+        </td>
+        <td>
+          1404
+          -
+          1456
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Step name =&gt; &quot;, &quot; Step properties =&gt; &quot;, &quot;&quot;).s(mp._1, mp._2)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          38
+        </td>
+        <td>
+          1455
+          -
+          1456
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          40
+        </td>
+        <td>
+          1449
+          -
+          1454
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #AEF1AE">
+          mp._2
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          43
+        </td>
+        <td>
+          1360
+          -
+          1458
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.job_state.foreach[Unit](((mp: (String, Map[String,String])) =&gt; EtlJob.this.etl_job_logger.info(scala.StringContext.apply(&quot;Step name =&gt; &quot;, &quot; Step properties =&gt; &quot;, &quot;&quot;).s(mp._1, mp._2))))
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          1427
+          -
+          1448
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; Step properties =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          36
+        </td>
+        <td>
+          1406
+          -
+          1420
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Step name =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          39
+        </td>
+        <td>
+          1421
+          -
+          1426
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #AEF1AE">
+          mp._1
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          42
+        </td>
+        <td>
+          1384
+          -
+          1457
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.etl_job_logger.info(scala.StringContext.apply(&quot;Step name =&gt; &quot;, &quot; Step properties =&gt; &quot;, &quot;&quot;).s(mp._1, mp._2))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

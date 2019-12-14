@@ -1,0 +1,232 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/functions/BusinessUDF.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.functions
+</span>2 <span style=''>
+</span>3 <span style=''>trait BusinessUDF {
+</span>4 <span style=''>  def parser(args: Array[String]): Map[String, String] = {
+</span>5 <span style=''>    </span><span style='background: #F0ADAD'>args.map {
+</span>6 <span style=''></span><span style='background: #F0ADAD'>      case arg =&gt; {
+</span>7 <span style=''></span><span style='background: #F0ADAD'>        val keyValue = arg.split(&quot;==&quot;);
+</span>8 <span style=''></span><span style='background: #F0ADAD'>        keyValue(0) -&gt; keyValue(1)
+</span>9 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>10 <span style=''></span><span style='background: #F0ADAD'>    }.toMap</span><span style=''>
+</span>11 <span style=''>  }
+</span>12 <span style=''>
+</span>13 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          5
+        </td>
+        <td>
+          439
+        </td>
+        <td>
+          119
+          -
+          119
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.Array.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
+        </td>
+      </tr><tr>
+        <td>
+          5
+        </td>
+        <td>
+          440
+        </td>
+        <td>
+          110
+          -
+          229
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.refArrayOps[String](args).map[(String, String), Array[(String, String)]](((x0$1: String) =&gt; x0$1 match {
+  case (arg @ _) =&gt; {
+    val keyValue: Array[String] = arg.split(&quot;==&quot;);
+    scala.this.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+  }
+}))(scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)])))
+        </td>
+      </tr><tr>
+        <td>
+          7
+        </td>
+        <td>
+          435
+        </td>
+        <td>
+          164
+          -
+          179
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.split
+        </td>
+        <td style="background: #F0ADAD">
+          arg.split(&quot;==&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          436
+        </td>
+        <td>
+          189
+          -
+          200
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(0)
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          189
+          -
+          215
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          437
+        </td>
+        <td>
+          204
+          -
+          215
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          442
+        </td>
+        <td>
+          110
+          -
+          235
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toMap
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.refArrayOps[(String, String)](scala.this.Predef.refArrayOps[String](args).map[(String, String), Array[(String, String)]](((x0$1: String) =&gt; x0$1 match {
+  case (arg @ _) =&gt; {
+    val keyValue: Array[String] = arg.split(&quot;==&quot;);
+    scala.this.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+  }
+}))(scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)])))).toMap[String, String](scala.this.Predef.$conforms[(String, String)])
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          441
+        </td>
+        <td>
+          230
+          -
+          230
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.$conforms[(String, String)]
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

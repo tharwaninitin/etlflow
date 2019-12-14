@@ -1,0 +1,1891 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/spark/WriteApi.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.spark
+</span>2 <span style=''>
+</span>3 <span style=''>import etljobs.utils._
+</span>4 <span style=''>import org.apache.hadoop.fs.{FileSystem, Path}
+</span>5 <span style=''>import org.apache.log4j.Logger
+</span>6 <span style=''>import org.apache.spark.sql.functions.col
+</span>7 <span style=''>import org.apache.spark.sql._
+</span>8 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>9 <span style=''>
+</span>10 <span style=''>object WriteApi {
+</span>11 <span style=''>
+</span>12 <span style=''>  private val write_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>13 <span style=''>  </span><span style='background: #AEF1AE'>write_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>14 <span style=''>
+</span>15 <span style=''>  def Write(fileType: IOType, output_path: String, output_filename: Option[String] = None, n : Int = 1, compression : String = &quot;none&quot;)(source: DataFrame, spark : SparkSession) : Unit = {
+</span>16 <span style=''>    val df_writer = </span><span style='background: #F0ADAD'>source.repartition(n).write.option(&quot;compression&quot;,compression)</span><span style=''>//(&quot;compression&quot;, &quot;gzip&quot;,&quot;snappy&quot;)
+</span>17 <span style=''>
+</span>18 <span style=''>    val df_writer_options = fileType match {
+</span>19 <span style=''>      case CSV(delimiter,header_present,_) =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)</span><span style=''>
+</span>20 <span style=''>      case EXCEL =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;com.crealytics.spark.excel&quot;).option(&quot;useHeader&quot;,&quot;true&quot;)</span><span style=''>
+</span>21 <span style=''>      case PARQUET =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;parquet&quot;)</span><span style=''>
+</span>22 <span style=''>      case ORC =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;orc&quot;)</span><span style=''>
+</span>23 <span style=''>      case JSON =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;json&quot;)</span><span style=''>
+</span>24 <span style=''>      case TEXT =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;text&quot;)</span><span style=''>
+</span>25 <span style=''>      case _ =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;text&quot;)</span><span style=''>
+</span>26 <span style=''>    }
+</span>27 <span style=''>
+</span>28 <span style=''>    </span><span style='background: #F0ADAD'>df_writer_options.mode(SaveMode.Overwrite).save(output_path)</span><span style=''>
+</span>29 <span style=''>    </span><span style='background: #F0ADAD'>write_logger.info(s&quot;Successfully wrote $fileType sparkjobs.output in path $output_path&quot;)</span><span style=''>
+</span>30 <span style=''>
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>output_filename.foreach { output_file =&gt;
+</span>32 <span style=''></span><span style='background: #F0ADAD'>      val path = s&quot;$output_path/&quot;
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
+</span>34 <span style=''></span><span style='background: #F0ADAD'>      val fileName = fs.globStatus(new Path(path + &quot;part*&quot;))(0).getPath.getName
+</span>35 <span style=''></span><span style='background: #F0ADAD'>      fs.rename(new Path(path + fileName), new Path(path + output_file))
+</span>36 <span style=''></span><span style='background: #F0ADAD'>      write_logger.info(s&quot;Renamed file path $path$fileName to $path$output_file&quot;)
+</span>37 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>
+</span>40 <span style=''>  def WriteDSHelper[T &lt;: Product : TypeTag](output_type: IOType, output_location: String, output_filename: Option[String] = None, n : Int = 1, compression : String = &quot;none&quot;) : Map[String,String] = {
+</span>41 <span style=''>    val mapping = </span><span style='background: #AEF1AE'>Encoders.product[T]</span><span style=''>
+</span>42 <span style=''>    </span><span style='background: #AEF1AE'>Map(&quot;output_location&quot;-&gt;output_location
+</span>43 <span style=''></span><span style='background: #AEF1AE'>      , &quot;output_filename&quot;-&gt;output_filename.getOrElse(&quot;&quot;)
+</span>44 <span style=''></span><span style='background: #AEF1AE'>      , &quot;output_type&quot;-&gt;output_type.toString
+</span>45 <span style=''></span><span style='background: #AEF1AE'>      , &quot;output_class&quot; -&gt; mapping.schema.toDDL
+</span>46 <span style=''></span><span style='background: #AEF1AE'>    )</span><span style=''>
+</span>47 <span style=''>  }
+</span>48 <span style=''>
+</span>49 <span style=''>  def WriteDS[T &lt;: Product : TypeTag](output_type: IOType, output_location: String, output_filename: Option[String] = None, n : Int = 1, compression : String = &quot;none&quot;)(source: Dataset[T], spark : SparkSession) : Unit = {
+</span>50 <span style=''>    val df_writer = </span><span style='background: #AEF1AE'>source.repartition(n).write.option(&quot;compression&quot;,compression)</span><span style=''>//(&quot;compression&quot;, &quot;gzip&quot;,&quot;snappy&quot;)
+</span>51 <span style=''>
+</span>52 <span style=''>    val df_writer_options = output_type match {
+</span>53 <span style=''>      case CSV(delimiter,header_present,_) =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)</span><span style=''>
+</span>54 <span style=''>      case EXCEL =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;com.crealytics.spark.excel&quot;).option(&quot;useHeader&quot;,&quot;true&quot;)</span><span style=''>
+</span>55 <span style=''>      case PARQUET =&gt; </span><span style='background: #AEF1AE'>df_writer.format(&quot;parquet&quot;)</span><span style=''>
+</span>56 <span style=''>      case ORC =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;orc&quot;)</span><span style=''>
+</span>57 <span style=''>      case JSON =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;json&quot;)</span><span style=''>
+</span>58 <span style=''>      case TEXT =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;text&quot;)</span><span style=''>
+</span>59 <span style=''>      case _ =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;text&quot;)</span><span style=''>
+</span>60 <span style=''>    }
+</span>61 <span style=''>
+</span>62 <span style=''>    </span><span style='background: #AEF1AE'>df_writer_options.mode(SaveMode.Overwrite).save(output_location)</span><span style=''>
+</span>63 <span style=''>    </span><span style='background: #AEF1AE'>write_logger.info(s&quot;Successfully written data in $output_type in location $output_location&quot;)</span><span style=''>
+</span>64 <span style=''>
+</span>65 <span style=''>    </span><span style='background: #AEF1AE'>output_filename.foreach { output_file =&gt;
+</span>66 <span style=''></span><span style='background: #AEF1AE'>      val path = s&quot;$output_location/&quot;
+</span>67 <span style=''></span><span style='background: #AEF1AE'>      val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
+</span>68 <span style=''></span><span style='background: #AEF1AE'>      val fileName = fs.globStatus(new Path(path + &quot;part*&quot;))(0).getPath.getName
+</span>69 <span style=''></span><span style='background: #AEF1AE'>      fs.rename(new Path(path + fileName), new Path(path + output_file))
+</span>70 <span style=''></span><span style='background: #AEF1AE'>      write_logger.info(s&quot;Renamed file path $path$fileName to $path$output_file&quot;)
+</span>71 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>72 <span style=''>  }
+</span>73 <span style=''>
+</span>74 <span style=''>  def WritePartitioned(fileType: IOType, output_path: String, partition_by: String, n : Int = 1, compression : String = &quot;none&quot;, save_mode : SaveMode = SaveMode.Append, repartition : Boolean = false)(source: DataFrame, spark : SparkSession) : Unit = {
+</span>75 <span style=''>    var repartitioned_source = source
+</span>76 <span style=''>
+</span>77 <span style=''>    if (repartition)
+</span>78 <span style=''>      </span><span style='background: #F0ADAD'>repartitioned_source = source.repartition(col(s&quot;$partition_by&quot;))</span><span style=''>
+</span>79 <span style=''>
+</span>80 <span style=''>    val df_writer = </span><span style='background: #F0ADAD'>repartitioned_source.write.option(&quot;compression&quot;,compression)</span><span style=''>
+</span>81 <span style=''>
+</span>82 <span style=''>    val df_writer_options = fileType match {
+</span>83 <span style=''>      case CSV(delimiter,header_present,_) =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)</span><span style=''>
+</span>84 <span style=''>      case PARQUET =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;parquet&quot;)</span><span style=''>
+</span>85 <span style=''>      case ORC =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;orc&quot;)</span><span style=''>
+</span>86 <span style=''>      case JSON =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;json&quot;)</span><span style=''>
+</span>87 <span style=''>      case TEXT =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;text&quot;)</span><span style=''>
+</span>88 <span style=''>      case _ =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;text&quot;)</span><span style=''>
+</span>89 <span style=''>    }
+</span>90 <span style=''>
+</span>91 <span style=''>    </span><span style='background: #F0ADAD'>df_writer_options.mode(save_mode).partitionBy(partition_by).save(output_path)</span><span style=''>
+</span>92 <span style=''>    </span><span style='background: #F0ADAD'>write_logger.info(s&quot;Successfully wrote $fileType sparkjobs.output in path $output_path partitioned by $partition_by&quot;)</span><span style=''>
+</span>93 <span style=''>  }
+</span>94 <span style=''>
+</span>95 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          582
+        </td>
+        <td>
+          308
+          -
+          324
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          583
+        </td>
+        <td>
+          291
+          -
+          325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(WriteApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          585
+        </td>
+        <td>
+          374
+          -
+          375
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          588
+        </td>
+        <td>
+          328
+          -
+          376
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          584
+        </td>
+        <td>
+          348
+          -
+          356
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Loaded &quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          587
+        </td>
+        <td>
+          346
+          -
+          375
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          586
+        </td>
+        <td>
+          357
+          -
+          373
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          589
+        </td>
+        <td>
+          585
+          -
+          646
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          source.repartition(n).write.option(&quot;compression&quot;, compression)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          590
+        </td>
+        <td>
+          773
+          -
+          860
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          591
+        </td>
+        <td>
+          881
+          -
+          954
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;com.crealytics.spark.excel&quot;).option(&quot;useHeader&quot;, &quot;true&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          592
+        </td>
+        <td>
+          977
+          -
+          1004
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;parquet&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          593
+        </td>
+        <td>
+          1023
+          -
+          1046
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;orc&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          594
+        </td>
+        <td>
+          1066
+          -
+          1090
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;json&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          595
+        </td>
+        <td>
+          1110
+          -
+          1134
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          596
+        </td>
+        <td>
+          1151
+          -
+          1175
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          597
+        </td>
+        <td>
+          1187
+          -
+          1247
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.save
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer_options.mode(Overwrite).save(output_path)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          599
+        </td>
+        <td>
+          1252
+          -
+          1340
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully wrote &quot;, &quot; sparkjobs.output in path &quot;, &quot;&quot;).s(fileType, output_path))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          598
+        </td>
+        <td>
+          1270
+          -
+          1339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Successfully wrote &quot;, &quot; sparkjobs.output in path &quot;, &quot;&quot;).s(fileType, output_path)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          612
+        </td>
+        <td>
+          1346
+          -
+          1755
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          output_filename.foreach[Unit](((output_file: String) =&gt; {
+  val path: String = scala.StringContext.apply(&quot;&quot;, &quot;/&quot;).s(output_path);
+  val fs: org.apache.hadoop.fs.FileSystem = org.apache.hadoop.fs.FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration);
+  val fileName: String = fs.globStatus(new org.apache.hadoop.fs.Path(path.+(&quot;part*&quot;))).apply(0).getPath().getName();
+  fs.rename(new org.apache.hadoop.fs.Path(path.+(fileName)), new org.apache.hadoop.fs.Path(path.+(output_file)));
+  WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          600
+        </td>
+        <td>
+          1404
+          -
+          1420
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;/&quot;).s(output_path)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          603
+        </td>
+        <td>
+          1436
+          -
+          1514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.FileSystem.get
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.hadoop.fs.FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          602
+        </td>
+        <td>
+          1475
+          -
+          1513
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.hadoopConfiguration
+        </td>
+        <td style="background: #F0ADAD">
+          spark.sparkContext.hadoopConfiguration
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          601
+        </td>
+        <td>
+          1451
+          -
+          1473
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.net.URI.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new java.net.URI(path)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          604
+        </td>
+        <td>
+          1536
+          -
+          1594
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.getName
+        </td>
+        <td style="background: #F0ADAD">
+          fs.globStatus(new org.apache.hadoop.fs.Path(path.+(&quot;part*&quot;))).apply(0).getPath().getName()
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          609
+        </td>
+        <td>
+          1601
+          -
+          1667
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.FileSystem.rename
+        </td>
+        <td style="background: #F0ADAD">
+          fs.rename(new org.apache.hadoop.fs.Path(path.+(fileName)), new org.apache.hadoop.fs.Path(path.+(output_file)))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          606
+        </td>
+        <td>
+          1611
+          -
+          1636
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.apache.hadoop.fs.Path(path.+(fileName))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          608
+        </td>
+        <td>
+          1638
+          -
+          1666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.apache.hadoop.fs.Path(path.+(output_file))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          605
+        </td>
+        <td>
+          1620
+          -
+          1635
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          path.+(fileName)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          607
+        </td>
+        <td>
+          1647
+          -
+          1665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          path.+(output_file)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          611
+        </td>
+        <td>
+          1674
+          -
+          1749
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file))
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          610
+        </td>
+        <td>
+          1692
+          -
+          1748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          613
+        </td>
+        <td>
+          1978
+          -
+          1997
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.apache.spark.sql.Encoders.product
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.Encoders.product[T](evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          624
+        </td>
+        <td>
+          2002
+          -
+          2194
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.Map.apply[String, String](scala.this.Predef.ArrowAssoc[String](&quot;output_location&quot;).-&gt;[String](output_location), scala.this.Predef.ArrowAssoc[String](&quot;output_filename&quot;).-&gt;[String](output_filename.getOrElse[String](&quot;&quot;)), scala.this.Predef.ArrowAssoc[String](&quot;output_type&quot;).-&gt;[String](output_type.toString()), scala.this.Predef.ArrowAssoc[String](&quot;output_class&quot;).-&gt;[String](mapping.schema.toDDL))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          614
+        </td>
+        <td>
+          2006
+          -
+          2040
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.ArrowAssoc[String](&quot;output_location&quot;).-&gt;[String](output_location)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          615
+        </td>
+        <td>
+          2049
+          -
+          2066
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;output_filename&quot;
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          617
+        </td>
+        <td>
+          2049
+          -
+          2097
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.ArrowAssoc[String](&quot;output_filename&quot;).-&gt;[String](output_filename.getOrElse[String](&quot;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          616
+        </td>
+        <td>
+          2068
+          -
+          2097
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          output_filename.getOrElse[String](&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          618
+        </td>
+        <td>
+          2106
+          -
+          2119
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;output_type&quot;
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          620
+        </td>
+        <td>
+          2106
+          -
+          2141
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.ArrowAssoc[String](&quot;output_type&quot;).-&gt;[String](output_type.toString())
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          619
+        </td>
+        <td>
+          2121
+          -
+          2141
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #AEF1AE">
+          output_type.toString()
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          621
+        </td>
+        <td>
+          2150
+          -
+          2164
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;output_class&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          623
+        </td>
+        <td>
+          2150
+          -
+          2188
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.ArrowAssoc[String](&quot;output_class&quot;).-&gt;[String](mapping.schema.toDDL)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          622
+        </td>
+        <td>
+          2168
+          -
+          2188
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.types.StructType.toDDL
+        </td>
+        <td style="background: #AEF1AE">
+          mapping.schema.toDDL
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          625
+        </td>
+        <td>
+          2441
+          -
+          2502
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #AEF1AE">
+          source.repartition(n).write.option(&quot;compression&quot;, compression)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          626
+        </td>
+        <td>
+          2632
+          -
+          2719
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          627
+        </td>
+        <td>
+          2740
+          -
+          2813
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;com.crealytics.spark.excel&quot;).option(&quot;useHeader&quot;, &quot;true&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          628
+        </td>
+        <td>
+          2836
+          -
+          2863
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #AEF1AE">
+          df_writer.format(&quot;parquet&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          629
+        </td>
+        <td>
+          2882
+          -
+          2905
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;orc&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          630
+        </td>
+        <td>
+          2925
+          -
+          2949
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;json&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          631
+        </td>
+        <td>
+          2969
+          -
+          2993
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          632
+        </td>
+        <td>
+          3010
+          -
+          3034
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          633
+        </td>
+        <td>
+          3046
+          -
+          3110
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.save
+        </td>
+        <td style="background: #AEF1AE">
+          df_writer_options.mode(Overwrite).save(output_location)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          635
+        </td>
+        <td>
+          3115
+          -
+          3207
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot;&quot;).s(output_type, output_location))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          634
+        </td>
+        <td>
+          3133
+          -
+          3206
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot;&quot;).s(output_type, output_location)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          3213
+          -
+          3626
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          output_filename.foreach[Unit](((output_file: String) =&gt; {
+  val path: String = scala.StringContext.apply(&quot;&quot;, &quot;/&quot;).s(output_location);
+  val fs: org.apache.hadoop.fs.FileSystem = org.apache.hadoop.fs.FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration);
+  val fileName: String = fs.globStatus(new org.apache.hadoop.fs.Path(path.+(&quot;part*&quot;))).apply(0).getPath().getName();
+  fs.rename(new org.apache.hadoop.fs.Path(path.+(fileName)), new org.apache.hadoop.fs.Path(path.+(output_file)));
+  WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          636
+        </td>
+        <td>
+          3271
+          -
+          3291
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/&quot;).s(output_location)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          639
+        </td>
+        <td>
+          3307
+          -
+          3385
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.FileSystem.get
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.hadoop.fs.FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          638
+        </td>
+        <td>
+          3346
+          -
+          3384
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.hadoopConfiguration
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.hadoopConfiguration
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          637
+        </td>
+        <td>
+          3322
+          -
+          3344
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.net.URI.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.net.URI(path)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          3407
+          -
+          3465
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.getName
+        </td>
+        <td style="background: #AEF1AE">
+          fs.globStatus(new org.apache.hadoop.fs.Path(path.+(&quot;part*&quot;))).apply(0).getPath().getName()
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          645
+        </td>
+        <td>
+          3472
+          -
+          3538
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.FileSystem.rename
+        </td>
+        <td style="background: #AEF1AE">
+          fs.rename(new org.apache.hadoop.fs.Path(path.+(fileName)), new org.apache.hadoop.fs.Path(path.+(output_file)))
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          3482
+          -
+          3507
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new org.apache.hadoop.fs.Path(path.+(fileName))
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          641
+        </td>
+        <td>
+          3491
+          -
+          3506
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          path.+(fileName)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          644
+        </td>
+        <td>
+          3509
+          -
+          3537
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new org.apache.hadoop.fs.Path(path.+(output_file))
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          643
+        </td>
+        <td>
+          3518
+          -
+          3536
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          path.+(output_file)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          647
+        </td>
+        <td>
+          3545
+          -
+          3620
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          646
+        </td>
+        <td>
+          3563
+          -
+          3619
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          654
+        </td>
+        <td>
+          3926
+          -
+          3926
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          3926
+          -
+          3926
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          651
+        </td>
+        <td>
+          3972
+          -
+          4013
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.repartition
+        </td>
+        <td style="background: #F0ADAD">
+          source.repartition(org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(partition_by)))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          3991
+          -
+          4012
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.functions.col
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(partition_by))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          3995
+          -
+          4011
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(partition_by)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          3949
+          -
+          4013
+        </td>
+        <td>
+          Assign
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          repartitioned_source = source.repartition(org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(partition_by)))
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          655
+        </td>
+        <td>
+          4035
+          -
+          4095
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          repartitioned_source.write.option(&quot;compression&quot;, compression)
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          656
+        </td>
+        <td>
+          4188
+          -
+          4275
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          657
+        </td>
+        <td>
+          4298
+          -
+          4325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;parquet&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          658
+        </td>
+        <td>
+          4344
+          -
+          4367
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;orc&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          659
+        </td>
+        <td>
+          4387
+          -
+          4411
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;json&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          660
+        </td>
+        <td>
+          4431
+          -
+          4455
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          661
+        </td>
+        <td>
+          4472
+          -
+          4496
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          662
+        </td>
+        <td>
+          4508
+          -
+          4585
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.save
+        </td>
+        <td style="background: #F0ADAD">
+          df_writer_options.mode(save_mode).partitionBy(partition_by).save(output_path)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          663
+        </td>
+        <td>
+          4608
+          -
+          4706
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Successfully wrote &quot;, &quot; sparkjobs.output in path &quot;, &quot; partitioned by &quot;, &quot;&quot;).s(fileType, output_path, partition_by)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          664
+        </td>
+        <td>
+          4590
+          -
+          4707
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully wrote &quot;, &quot; sparkjobs.output in path &quot;, &quot; partitioned by &quot;, &quot;&quot;).s(fileType, output_path, partition_by))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

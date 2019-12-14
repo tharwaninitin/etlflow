@@ -1,0 +1,403 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/bigquery/QueryApi.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.bigquery
+</span>2 <span style=''>
+</span>3 <span style=''>import org.apache.log4j.Logger
+</span>4 <span style=''>import java.util.UUID
+</span>5 <span style=''>import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, FieldValueList, Job, JobId, JobInfo, QueryJobConfiguration, TableResult}
+</span>6 <span style=''>
+</span>7 <span style=''>object QueryApi {
+</span>8 <span style=''>    private val query_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>9 <span style=''>    </span><span style='background: #AEF1AE'>query_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>10 <span style=''>    
+</span>11 <span style=''>    def getDataFromBQ(bq: BigQuery, query: String): Iterable[FieldValueList] = {
+</span>12 <span style=''>        val queryConfig: QueryJobConfiguration = </span><span style='background: #AEF1AE'>QueryJobConfiguration.newBuilder(query)
+</span>13 <span style=''></span><span style='background: #AEF1AE'>            .setUseLegacySql(false)
+</span>14 <span style=''></span><span style='background: #AEF1AE'>            .build()</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>        val jobId: JobId = </span><span style='background: #AEF1AE'>JobId.of(UUID.randomUUID().toString())</span><span style=''>
+</span>17 <span style=''>        val queryJob: Job = </span><span style='background: #AEF1AE'>bq.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build())</span><span style=''>
+</span>18 <span style=''>
+</span>19 <span style=''>        // Wait for the query to complete.
+</span>20 <span style=''>        </span><span style='background: #AEF1AE'>queryJob.waitFor()</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>        import scala.collection.JavaConverters._
+</span>23 <span style=''>        val result: TableResult = </span><span style='background: #AEF1AE'>queryJob.getQueryResults()</span><span style=''>
+</span>24 <span style=''>        </span><span style='background: #AEF1AE'>result.iterateAll().asScala</span><span style=''>
+</span>25 <span style=''>    }
+</span>26 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          187
+        </td>
+        <td>
+          263
+          -
+          297
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(QueryApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          186
+        </td>
+        <td>
+          280
+          -
+          296
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          QueryApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          191
+        </td>
+        <td>
+          320
+          -
+          349
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          190
+        </td>
+        <td>
+          331
+          -
+          347
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          QueryApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          189
+        </td>
+        <td>
+          348
+          -
+          349
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          302
+          -
+          350
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          188
+        </td>
+        <td>
+          322
+          -
+          330
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Loaded &quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          193
+        </td>
+        <td>
+          486
+          -
+          582
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.QueryJobConfiguration.Builder.build
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.QueryJobConfiguration.newBuilder(query).setUseLegacySql(scala.this.Predef.boolean2Boolean(false)).build()
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          194
+        </td>
+        <td>
+          620
+          -
+          648
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.UUID.toString
+        </td>
+        <td style="background: #AEF1AE">
+          java.util.UUID.randomUUID().toString()
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          195
+        </td>
+        <td>
+          611
+          -
+          649
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.JobId.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.JobId.of(java.util.UUID.randomUUID().toString())
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          196
+        </td>
+        <td>
+          688
+          -
+          743
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.JobInfo.Builder.build
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.JobInfo.newBuilder(queryConfig).setJobId(jobId).build()
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          197
+        </td>
+        <td>
+          678
+          -
+          744
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.BigQuery.create
+        </td>
+        <td style="background: #AEF1AE">
+          bq.create(com.google.cloud.bigquery.JobInfo.newBuilder(queryConfig).setJobId(jobId).build())
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          198
+        </td>
+        <td>
+          797
+          -
+          815
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.Job.waitFor
+        </td>
+        <td style="background: #AEF1AE">
+          queryJob.waitFor()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          199
+        </td>
+        <td>
+          900
+          -
+          926
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.Job.getQueryResults
+        </td>
+        <td style="background: #AEF1AE">
+          queryJob.getQueryResults()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          200
+        </td>
+        <td>
+          935
+          -
+          954
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableResult.iterateAll
+        </td>
+        <td style="background: #AEF1AE">
+          result.iterateAll()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          935
+          -
+          962
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.convert.Decorators.AsScala.asScala
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.JavaConverters.iterableAsScalaIterableConverter[com.google.cloud.bigquery.FieldValueList](result.iterateAll()).asScala
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

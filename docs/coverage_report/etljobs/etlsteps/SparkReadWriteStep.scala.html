@@ -1,0 +1,1333 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/etlsteps/SparkReadWriteStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
+</span>4 <span style=''>import org.apache.spark.sql.{Dataset, Row, SparkSession}
+</span>5 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>6 <span style=''>import scala.util.Try
+</span>7 <span style=''>
+</span>8 <span style=''>class SparkReadWriteStep[T &lt;: Product: TypeTag](
+</span>9 <span style=''>          val name : String
+</span>10 <span style=''>          ,val etl_metadata : Map[String, String] = Map[String, String]()
+</span>11 <span style=''>          ,source_dataset : =&gt; Dataset[T]
+</span>12 <span style=''>          ,transform_function : Option[Dataset[T] =&gt; Dataset[Row]] = None
+</span>13 <span style=''>          ,write_function : (Dataset[Row],SparkSession) =&gt; Unit
+</span>14 <span style=''>        )(implicit spark : SparkSession)
+</span>15 <span style=''>extends EtlStep[Unit,Unit]
+</span>16 <span style=''>{
+</span>17 <span style=''>  lazy val dataset : Dataset[Row] = </span><span style='background: #F0ADAD'>transform_function</span><span style=''> match {
+</span>18 <span style=''>    case Some(tf) =&gt; </span><span style='background: #F0ADAD'>source_dataset.transform(tf)</span><span style=''>
+</span>19 <span style=''>    case None =&gt; </span><span style='background: #F0ADAD'>source_dataset.toDF()</span><span style=''>
+</span>20 <span style=''>  }
+</span>21 <span style=''>  private var recordsWrittenCount = </span><span style='background: #F0ADAD'>0L</span><span style=''>
+</span>22 <span style=''>  </span><span style='background: #F0ADAD'>spark.sparkContext.addSparkListener(new SparkListener() {
+</span>23 <span style=''></span><span style='background: #F0ADAD'>    override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+</span>24 <span style=''></span><span style='background: #F0ADAD'>      synchronized {
+</span>25 <span style=''></span><span style='background: #F0ADAD'>        recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    }
+</span>28 <span style=''></span><span style='background: #F0ADAD'>  })</span><span style=''>
+</span>29 <span style=''>
+</span>30 <span style=''>  def process(input_state : Unit): Try[Unit] = {
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>Try{
+</span>32 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(&quot;#################################################################################################&quot;)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(s&quot;Starting ETL Step : $name&quot;)
+</span>34 <span style=''></span><span style='background: #F0ADAD'>      write_function(dataset,spark)
+</span>35 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(&quot;#################################################################################################&quot;)
+</span>36 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>37 <span style=''>  }
+</span>38 <span style=''>
+</span>39 <span style=''>  override def getExecutionMetrics : Map[String, Map[String,String]] = {
+</span>40 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Number of records written: $recordsWrittenCount&quot;)</span><span style=''>
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>Map(name -&gt;
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      Map(&quot;Number of records written&quot; -&gt; recordsWrittenCount.toString)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>
+</span>44 <span style=''>    /*
+</span>45 <span style=''>    spark.sharedState.statusStore
+</span>46 <span style=''>      .executionsList
+</span>47 <span style=''>      .foreach { execution =&gt;
+</span>48 <span style=''>        println(&quot;Job ID: &quot; + execution.executionId)
+</span>49 <span style=''>        println(&quot;Job Stages: &quot; + execution.stages)
+</span>50 <span style=''>        println(&quot;Job Details: &quot;)
+</span>51 <span style=''>        val mp = execution.metricValues
+</span>52 <span style=''>        val joined_metrics = execution.metrics.flatMap{ case SQLPlanMetric(name, accumulatorId, metricType) =&gt;
+</span>53 <span style=''>          mp.get(accumulatorId).map(value =&gt; (accumulatorId,name,value.trim,metricType))
+</span>54 <span style=''>        }
+</span>55 <span style=''>        joined_metrics.sortBy(_._1).foreach(println(_))
+</span>56 <span style=''>      }
+</span>57 <span style=''>    */
+</span>58 <span style=''>  }
+</span>59 <span style=''>
+</span>60 <span style=''>  def showPlan(): Unit = {
+</span>61 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Plan for job $name is as below:&quot;)</span><span style=''>
+</span>62 <span style=''>    </span><span style='background: #F0ADAD'>dataset.explain()</span><span style=''>
+</span>63 <span style=''>  }
+</span>64 <span style=''>
+</span>65 <span style=''>  def showSchema(): Unit = {
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Schema for job $name is as below:&quot;)</span><span style=''>
+</span>67 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(dataset.schema.toDDL.split(&quot;,&quot;).mkString(&quot;,\n  &quot;))</span><span style=''>
+</span>68 <span style=''>    //etl_logger.info(s&quot;Schema for this job is: ${dataset.schema.foreach(println(_))}&quot;)
+</span>69 <span style=''>    //etl_logger.info(dataset.schema.prettyJson)
+</span>70 <span style=''>  }
+</span>71 <span style=''>
+</span>72 <span style=''>  def showSampleData(): Unit = {
+</span>73 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Sample data for job $name:&quot;)</span><span style=''>
+</span>74 <span style=''>    </span><span style='background: #F0ADAD'>dataset.show(10, truncate = false)</span><span style=''>
+</span>75 <span style=''>  }
+</span>76 <span style=''>
+</span>77 <span style=''>  def showCorruptedData(): Unit = {
+</span>78 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Corrupted data for job $name:&quot;)</span><span style=''>
+</span>79 <span style=''>    </span><span style='background: #F0ADAD'>source_dataset.filter(&quot;_corrupt_record is not null&quot;).show(100,truncate = false)</span><span style=''>
+</span>80 <span style=''>  }
+</span>81 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          661
+          -
+          679
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.transform_function
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.transform_function
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          343
+        </td>
+        <td>
+          709
+          -
+          737
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.transform
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.source_dataset.transform[org.apache.spark.sql.Row](tf)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          344
+        </td>
+        <td>
+          755
+          -
+          776
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.toDF
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.source_dataset.toDF()
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          345
+        </td>
+        <td>
+          817
+          -
+          819
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0L
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          351
+        </td>
+        <td>
+          822
+          -
+          1059
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.SparkContext.addSparkListener
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.spark.sparkContext.addSparkListener({
+  final class $anon extends org.apache.spark.scheduler.SparkListener {
+    def &lt;init&gt;(): &lt;$anon: org.apache.spark.scheduler.SparkListener&gt; = {
+      $anon.super.&lt;init&gt;();
+      ()
+    };
+    override def onTaskEnd(taskEnd: org.apache.spark.scheduler.SparkListenerTaskEnd): Unit = $anon.this.synchronized[Unit](SparkReadWriteStep.this.recordsWrittenCount_=(SparkReadWriteStep.this.recordsWrittenCount.+(taskEnd.taskMetrics.outputMetrics.recordsWritten)))
+  };
+  new $anon()
+})
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          350
+        </td>
+        <td>
+          858
+          -
+          861
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.$anon.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anon()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          349
+        </td>
+        <td>
+          946
+          -
+          1048
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.synchronized
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.synchronized[Unit](SparkReadWriteStep.this.recordsWrittenCount_=(SparkReadWriteStep.this.recordsWrittenCount.+(taskEnd.taskMetrics.outputMetrics.recordsWritten)))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          346
+        </td>
+        <td>
+          992
+          -
+          1040
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.executor.OutputMetrics.recordsWritten
+        </td>
+        <td style="background: #F0ADAD">
+          taskEnd.taskMetrics.outputMetrics.recordsWritten
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          348
+        </td>
+        <td>
+          969
+          -
+          1040
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.recordsWrittenCount_=
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.recordsWrittenCount_=(SparkReadWriteStep.this.recordsWrittenCount.+(taskEnd.taskMetrics.outputMetrics.recordsWritten))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          347
+        </td>
+        <td>
+          969
+          -
+          1040
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Long.+
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.recordsWrittenCount.+(taskEnd.taskMetrics.outputMetrics.recordsWritten)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          361
+        </td>
+        <td>
+          1114
+          -
+          1458
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[Unit]({
+  SparkReadWriteStep.this.etl_logger.info(&quot;#################################################################################################&quot;);
+  SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting ETL Step : &quot;, &quot;&quot;).s(SparkReadWriteStep.this.name));
+  SparkReadWriteStep.this.write_function.apply(SparkReadWriteStep.this.dataset, SparkReadWriteStep.this.spark);
+  SparkReadWriteStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+})
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          352
+        </td>
+        <td>
+          1125
+          -
+          1241
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          355
+        </td>
+        <td>
+          1287
+          -
+          1291
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          354
+        </td>
+        <td>
+          1291
+          -
+          1292
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          1248
+          -
+          1293
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting ETL Step : &quot;, &quot;&quot;).s(SparkReadWriteStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          353
+        </td>
+        <td>
+          1266
+          -
+          1287
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Starting ETL Step : &quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          356
+        </td>
+        <td>
+          1264
+          -
+          1292
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Starting ETL Step : &quot;, &quot;&quot;).s(SparkReadWriteStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          358
+        </td>
+        <td>
+          1323
+          -
+          1328
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.spark
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.spark
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          359
+        </td>
+        <td>
+          1300
+          -
+          1329
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.write_function.apply(SparkReadWriteStep.this.dataset, SparkReadWriteStep.this.spark)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          1336
+          -
+          1452
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          364
+        </td>
+        <td>
+          1587
+          -
+          1606
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.recordsWrittenCount
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.recordsWrittenCount
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          363
+        </td>
+        <td>
+          1606
+          -
+          1607
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          1541
+          -
+          1608
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Number of records written: &quot;, &quot;&quot;).s(SparkReadWriteStep.this.recordsWrittenCount))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          1559
+          -
+          1587
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Number of records written: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          1557
+          -
+          1607
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Number of records written: &quot;, &quot;&quot;).s(SparkReadWriteStep.this.recordsWrittenCount)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          373
+        </td>
+        <td>
+          1613
+          -
+          1701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.Map.apply[String, scala.collection.immutable.Map[String,String]](scala.this.Predef.ArrowAssoc[String](SparkReadWriteStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.this.Predef.Map.apply[String, String](scala.this.Predef.ArrowAssoc[String](&quot;Number of records written&quot;).-&gt;[String](SparkReadWriteStep.this.recordsWrittenCount.toString()))))
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          1617
+          -
+          1621
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          1617
+          -
+          1695
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.ArrowAssoc[String](SparkReadWriteStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.this.Predef.Map.apply[String, String](scala.this.Predef.ArrowAssoc[String](&quot;Number of records written&quot;).-&gt;[String](SparkReadWriteStep.this.recordsWrittenCount.toString())))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          370
+        </td>
+        <td>
+          1635
+          -
+          1694
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.ArrowAssoc[String](&quot;Number of records written&quot;).-&gt;[String](SparkReadWriteStep.this.recordsWrittenCount.toString())
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          1666
+          -
+          1694
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.recordsWrittenCount.toString()
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          1635
+          -
+          1662
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Number of records written&quot;
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          1631
+          -
+          1695
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.Map.apply[String, String](scala.this.Predef.ArrowAssoc[String](&quot;Number of records written&quot;).-&gt;[String](SparkReadWriteStep.this.recordsWrittenCount.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          376
+        </td>
+        <td>
+          2320
+          -
+          2324
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          378
+        </td>
+        <td>
+          2288
+          -
+          2339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Plan for job &quot;, &quot; is as below:&quot;).s(SparkReadWriteStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          375
+        </td>
+        <td>
+          2324
+          -
+          2338
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; is as below:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          377
+        </td>
+        <td>
+          2304
+          -
+          2338
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Plan for job &quot;, &quot; is as below:&quot;).s(SparkReadWriteStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          374
+        </td>
+        <td>
+          2306
+          -
+          2320
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Plan for job &quot;
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          2344
+          -
+          2361
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.explain
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.dataset.explain()
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          2434
+          -
+          2438
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          381
+        </td>
+        <td>
+          2438
+          -
+          2452
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; is as below:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          2400
+          -
+          2453
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Schema for job &quot;, &quot; is as below:&quot;).s(SparkReadWriteStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          2416
+          -
+          2452
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Schema for job &quot;, &quot; is as below:&quot;).s(SparkReadWriteStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          2418
+          -
+          2434
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Schema for job &quot;
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          385
+        </td>
+        <td>
+          2474
+          -
+          2523
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.refArrayOps[String](SparkReadWriteStep.this.dataset.schema.toDDL.split(&quot;,&quot;)).mkString(&quot;,\n  &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          2458
+          -
+          2524
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.this.Predef.refArrayOps[String](SparkReadWriteStep.this.dataset.schema.toDDL.split(&quot;,&quot;)).mkString(&quot;,\n  &quot;))
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          391
+        </td>
+        <td>
+          2704
+          -
+          2750
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Sample data for job &quot;, &quot;:&quot;).s(SparkReadWriteStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          388
+        </td>
+        <td>
+          2747
+          -
+          2749
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          2722
+          -
+          2743
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Sample data for job &quot;
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          390
+        </td>
+        <td>
+          2720
+          -
+          2749
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Sample data for job &quot;, &quot;:&quot;).s(SparkReadWriteStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          2743
+          -
+          2747
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          392
+        </td>
+        <td>
+          2755
+          -
+          2789
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.show
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.dataset.show(10, false)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          394
+        </td>
+        <td>
+          2881
+          -
+          2883
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          397
+        </td>
+        <td>
+          2835
+          -
+          2884
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.etl_logger.info(scala.StringContext.apply(&quot;Corrupted data for job &quot;, &quot;:&quot;).s(SparkReadWriteStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          396
+        </td>
+        <td>
+          2851
+          -
+          2883
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Corrupted data for job &quot;, &quot;:&quot;).s(SparkReadWriteStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          393
+        </td>
+        <td>
+          2853
+          -
+          2877
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Corrupted data for job &quot;
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          395
+        </td>
+        <td>
+          2877
+          -
+          2881
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          398
+        </td>
+        <td>
+          2889
+          -
+          2968
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.show
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStep.this.source_dataset.filter(&quot;_corrupt_record is not null&quot;).show(100, false)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -17,19 +17,23 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.11</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.1.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.2.0"
 ```
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.2.0
+
 
 ## Documentation
 
-__API__ https://tharwaninitin.github.io/etljobs/api/
+__Scala API Docs__ https://tharwaninitin.github.io/etljobs/api/
 
 __Scala Test Coverage Report__  https://tharwaninitin.github.io/etljobs/testcovrep/
+
+__Examples__ https://github.com/tharwaninitin/etljobs/tree/master/examples/src/main
 
 
 ## Built With/For

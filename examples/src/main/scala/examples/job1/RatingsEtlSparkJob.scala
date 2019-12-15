@@ -1,8 +1,7 @@
 package examples.job1
 
 import org.apache.spark.sql.{SparkSession}
-import etljobs.etlsteps.{SparkReadWriteStateStep}
-import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
+import etljobs.etlsteps.{SparkReadWriteStep}
 import etljobs.utils.{CSV,PARQUET}
 import org.apache.log4j.{Level, Logger}
 
@@ -23,7 +22,7 @@ object RatingsEtlSparkJob extends App {
 
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
 
-  val step1 = new SparkReadWriteStateStep[Rating , Unit, Rating, Unit](
+  val step1 = new SparkReadWriteStep[Rating, Rating](
     name                    = "ConvertRatingsCSVtoParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
@@ -34,4 +33,6 @@ object RatingsEtlSparkJob extends App {
   val try_output = step1.process()
 
   try_output.get
+
+  spark.stop
 }

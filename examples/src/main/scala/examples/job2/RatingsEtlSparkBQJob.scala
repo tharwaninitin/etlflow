@@ -2,8 +2,7 @@ package examples.job2
 
 import org.apache.spark.sql.{SparkSession}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
-import etljobs.etlsteps.{SparkReadWriteStateStep, BQLoadStep}
-import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
+import etljobs.etlsteps.{SparkReadWriteStep, BQLoadStep}
 import etljobs.utils.{CSV,PARQUET}
 import org.apache.log4j.{Level, Logger}
 
@@ -18,14 +17,15 @@ object RatingsEtlSparkBQJob extends App {
     "job_name" -> "EtlJobMovieRatings",
     "ratings_input_path" -> s"$canonical_path/examples/src/main/resources/input/movies/ratings/*",
     "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings",
-    "ratings_output_dataset" -> "test1",
+    "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet"
+    "ratings_output_file_name" -> "ratings.parquet",
+    "test"-> "true"
   )
 
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
 
-  val step1 = new SparkReadWriteStateStep[Rating , Unit, Rating, Unit](
+  val step1 = new SparkReadWriteStep[Rating, Rating](
     name                    = "ConvertRatingsCSVtoParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
@@ -43,9 +43,11 @@ object RatingsEtlSparkBQJob extends App {
   )(bq,job_properties)
 
   val opt = for {
-    x <- step1.process()
+    _ <- step1.process()
     _ <- step2.process()
-  } yield x
+  } yield ()
 
   opt.get
+
+  spark.stop
 }

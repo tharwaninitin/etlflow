@@ -1,12 +1,13 @@
-package etljobs.etlsteps
+package etljobs.etlsteps.oldapi
 
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SparkSession}
-import etljobs.etlsteps.ReadWriteTypedStateSparkStep.{Input,Output}
+import etljobs.etlsteps.oldapi.SparkReadWriteStateStep.{Input,Output}
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
+import etljobs.etlsteps.EtlStep
 
-class ReadWriteTypedStateSparkStep[T, IPSTATE, O, OPSTATE](
+class SparkReadWriteStateStep[T, IPSTATE, O, OPSTATE](
           val name : String
           ,input_dataset : => Dataset[T]
           ,transform_function : Input[T, IPSTATE] => Output[O, OPSTATE]
@@ -77,7 +78,7 @@ extends EtlStep[IPSTATE,OPSTATE]
   }
 }
 
-object ReadWriteTypedStateSparkStep {
+object SparkReadWriteStateStep {
   case class Input[T, S](ds: Dataset[T], ips: S)
   case class Output[T, S](ds: Dataset[T], ops: S)
 
@@ -86,7 +87,7 @@ object ReadWriteTypedStateSparkStep {
    , input_dataset : => Dataset[T]
    , transform_function: Input[T, IPSTATE] => Output[O, OPSTATE]
    , write_function: (Dataset[O], SparkSession) => Unit
-  ) (implicit spark: SparkSession, etl_metadata : Map[String, String]): ReadWriteTypedStateSparkStep[T,IPSTATE,O,OPSTATE] = {
-    new ReadWriteTypedStateSparkStep[T,IPSTATE,O,OPSTATE](name, input_dataset, transform_function, write_function)
+  ) (implicit spark: SparkSession, etl_metadata : Map[String, String]): SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE] = {
+    new SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE](name, input_dataset, transform_function, write_function)
   }
 }

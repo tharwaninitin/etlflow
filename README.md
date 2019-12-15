@@ -17,14 +17,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.11</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.2.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.3.0"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.2.0
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.3.0
 
 
 ## Documentation

@@ -1,4 +1,4 @@
-package examples.job3
+package examples.job4
 
 import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStateStep}
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
@@ -11,18 +11,17 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Encoders, SparkSession}
 
 /**
+* This example contains two steps and uses SessionManager for SparkSession and Bigquery
 * In first step it reads ratings data from ratings_input_path mentioned in input parameters
 * then enrich it using function enrichRatingData and writes in PARQUET format at given output path
 *
 * In second step it reads PARQUET data stored by step1 and writes it to BigQuery table
 */
 
-object RatingsEtlFinalJob extends App with SparkUDF with SessionManager {
+object RatingsEtlSparkBQStateJob extends App with SparkUDF with SessionManager {
   // Use this logger level to change log information
   Logger.getLogger("org").setLevel(Level.WARN)
 
-  //  private lazy val spark : SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
-  //  private lazy val bq : BigQuery  = BigQueryOptions.getDefaultInstance.getService
   private val canonical_path : String = new java.io.File(".").getCanonicalPath
   private val etl_job_logger = Logger.getLogger(getClass.getName)
   override lazy implicit val settings: Settings = new Settings(s"$canonical_path/configurations/loaddata.properties")
@@ -35,7 +34,6 @@ object RatingsEtlFinalJob extends App with SparkUDF with SessionManager {
     "ratings_output_table_name" -> "ratings",
     "ratings_output_file_name" -> "ratings.parquet",
     //"parse_mode" -> "PERMISSIVE",
-    "debug" -> "false",
     "test"-> "true"
   )
 
@@ -109,5 +107,6 @@ object RatingsEtlFinalJob extends App with SparkUDF with SessionManager {
   println(step1.getExecutionMetrics.foreach(println))
   println(step2.getExecutionMetrics.foreach(println))
   println("##################################RUN TIME PROPERTIES########################################")
+  
   spark.stop()
 }

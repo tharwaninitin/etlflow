@@ -1,81 +1,83 @@
 package etljobs.etlsteps
 
+import etljobs.spark.{ReadApi, WriteApi}
+import etljobs.utils.IOType
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
-import org.apache.spark.sql.{Dataset, Row, SparkSession}
-import scala.reflect.runtime.universe.TypeTag
+import org.apache.spark.sql.{Dataset, SparkSession}
 import scala.util.Try
+import scala.reflect.runtime.universe.TypeTag
 
-class SparkReadWriteStep[T <: Product: TypeTag](
+class SparkReadWriteStep[T <: Product: TypeTag, O <: Product: TypeTag](
           val name : String
-          ,val etl_metadata : Map[String, String] = Map[String, String]()
-          ,source_dataset : => Dataset[T]
-          ,transform_function : Option[Dataset[T] => Dataset[Row]] = None
-          ,write_function : (Dataset[Row],SparkSession) => Unit
-        )(implicit spark : SparkSession)
+          ,input_location: Seq[String]
+          ,input_type: IOType
+          ,output_location: String
+          ,output_type: IOType
+          ,output_filename: Option[String] = None
+          ,transform_function : Option[Dataset[T] => Dataset[O]] = None
+        )(spark : => SparkSession, etl_metadata : Map[String, String])
 extends EtlStep[Unit,Unit]
 {
-  lazy val dataset : Dataset[Row] = transform_function match {
-    case Some(tf) => source_dataset.transform(tf)
-    case None => source_dataset.toDF()
-  }
   private var recordsWrittenCount = 0L
-  spark.sparkContext.addSparkListener(new SparkListener() {
-    override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
-      synchronized {
-        recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
-      }
-    }
-  })
+  implicit lazy val sp = spark
 
-  def process(input_state : Unit): Try[Unit] = {
+  def process(input_state: Unit): Try[Unit] = {
     Try{
+      spark.sparkContext.addSparkListener(new SparkListener() {
+        override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+          synchronized {
+            recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
+          }
+        }
+      })
       etl_logger.info("#################################################################################################")
       etl_logger.info(s"Starting ETL Step : $name")
-      write_function(dataset,spark)
-      etl_logger.info("#################################################################################################")
+      val ds = ReadApi.LoadDS[T](input_location,input_type)(sp)
+      
+      transform_function match {
+        case Some(tf) => {
+          val output = tf(ds)
+          WriteApi.WriteDS[O](output_type,output_location,output_filename)(output,sp)
+          etl_logger.info("#################################################################################################")
+        }
+        case None => {
+          WriteApi.WriteDS[T](output_type,output_location,output_filename)(ds,sp)
+          etl_logger.info("#################################################################################################")
+        }
+      }
     }
+
+  }
+
+  override def getStepProperties : Map[String,String] = {
+    val in_map = ReadApi.LoadDSHelper[T](input_location,input_type).toList
+    val out_map = WriteApi.WriteDSHelper[O](output_type,output_location,output_filename).toList
+    (in_map ++ out_map).toMap
   }
 
   override def getExecutionMetrics : Map[String, Map[String,String]] = {
-    etl_logger.info(s"Number of records written: $recordsWrittenCount")
     Map(name ->
       Map("Number of records written" -> recordsWrittenCount.toString)
     )
-    /*
-    spark.sharedState.statusStore
-      .executionsList
-      .foreach { execution =>
-        println("Job ID: " + execution.executionId)
-        println("Job Stages: " + execution.stages)
-        println("Job Details: ")
-        val mp = execution.metricValues
-        val joined_metrics = execution.metrics.flatMap{ case SQLPlanMetric(name, accumulatorId, metricType) =>
-          mp.get(accumulatorId).map(value => (accumulatorId,name,value.trim,metricType))
-        }
-        joined_metrics.sortBy(_._1).foreach(println(_))
-      }
-    */
   }
-
-  def showPlan(): Unit = {
-    etl_logger.info(s"Plan for job $name is as below:")
-    dataset.explain()
-  }
-
-  def showSchema(): Unit = {
-    etl_logger.info(s"Schema for job $name is as below:")
-    etl_logger.info(dataset.schema.toDDL.split(",").mkString(",\n  "))
-    //etl_logger.info(s"Schema for this job is: ${dataset.schema.foreach(println(_))}")
-    //etl_logger.info(dataset.schema.prettyJson)
-  }
-
-  def showSampleData(): Unit = {
-    etl_logger.info(s"Sample data for job $name:")
-    dataset.show(10, truncate = false)
-  }
-
+  
   def showCorruptedData(): Unit = {
     etl_logger.info(s"Corrupted data for job $name:")
-    source_dataset.filter("_corrupt_record is not null").show(100,truncate = false)
+    val ds = ReadApi.LoadDS[T](input_location,input_type)(sp)
+    ds.filter("_corrupt_record is not null").show(100,truncate = false)
+  }
+}
+
+object SparkReadWriteStep {
+  def apply[T <: Product: TypeTag, O <: Product: TypeTag](
+             name: String
+             ,input_location: Seq[String]
+             ,input_type: IOType
+             ,output_location: String
+             ,output_type: IOType
+             ,output_filename: Option[String] = None
+             ,transform_function : Option[Dataset[T] => Dataset[O]] = None
+           ) (spark: => SparkSession, etl_metadata : Map[String, String]): SparkReadWriteStep[T,O] = {
+    new SparkReadWriteStep[T,O](name,input_location,input_type,output_location,output_type,output_filename,transform_function)(spark,etl_metadata)
   }
 }

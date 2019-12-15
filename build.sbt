@@ -7,7 +7,7 @@ val sparkSql =  "org.apache.spark" %% "spark-sql" % SparkVersion
 val gcloudBQ = "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
-version in ThisBuild := "0.2.0"
+version in ThisBuild := "0.3.0"
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin"

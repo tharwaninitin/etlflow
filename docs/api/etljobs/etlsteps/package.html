@@ -100,23 +100,6 @@
       </a>
     </span>
       
-    </li><li name="etljobs.etlsteps.ReadWriteTypedStateSparkStep" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ReadWriteTypedStateSparkStep[T,IPSTATE,O,OPSTATE]extendsEtlStep[IPSTATE,OPSTATE]"></a>
-      <a id="ReadWriteTypedStateSparkStep[T,IPSTATE,O,OPSTATE]:ReadWriteTypedStateSparkStep[T,IPSTATE,O,OPSTATE]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="ReadWriteTypedStateSparkStep.html"><span class="name">ReadWriteTypedStateSparkStep</span></a><span class="tparams">[<span name="T">T</span>, <span name="IPSTATE">IPSTATE</span>, <span name="O">O</span>, <span name="OPSTATE">OPSTATE</span>]</span><span class="result"> extends <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="etljobs.etlsteps.ReadWriteTypedStateSparkStep.IPSTATE">IPSTATE</span>, <span class="extype" name="etljobs.etlsteps.ReadWriteTypedStateSparkStep.OPSTATE">OPSTATE</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.package@ReadWriteTypedStateSparkStep[T,IPSTATE,O,OPSTATE]extendsEtlStep[IPSTATE,OPSTATE]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="etljobs.etlsteps.SparkETLStep" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SparkETLStepextendsEtlStep[Unit,Unit]"></a>
       <a id="SparkETLStep:SparkETLStep"></a>
@@ -152,18 +135,18 @@
     </span>
       
     </li><li name="etljobs.etlsteps.SparkReadWriteStep" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="SparkReadWriteStep[T&lt;:Product]extendsEtlStep[Unit,Unit]"></a>
-      <a id="SparkReadWriteStep[T&lt;:Product]:SparkReadWriteStep[T]"></a>
+      <a id="SparkReadWriteStep[T&lt;:Product,O&lt;:Product]extendsEtlStep[Unit,Unit]"></a>
+      <a id="SparkReadWriteStep[T&lt;:Product,O&lt;:Product]:SparkReadWriteStep[T,O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="SparkReadWriteStep.html"><span class="name">SparkReadWriteStep</span></a><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="scala.Product">Product</span></span>]</span><span class="result"> extends <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>
+        <a href="SparkReadWriteStep.html"><span class="name">SparkReadWriteStep</span></a><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="scala.Product">Product</span></span>, <span name="O">O &lt;: <span class="extype" name="scala.Product">Product</span></span>]</span><span class="result"> extends <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.package@SparkReadWriteStep[T&lt;:Product]extendsEtlStep[Unit,Unit]" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.etlsteps.package@SparkReadWriteStep[T&lt;:Product,O&lt;:Product]extendsEtlStep[Unit,Unit]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -192,23 +175,6 @@
       </a>
     </span>
       
-    </li><li name="etljobs.etlsteps.ReadWriteTypedStateSparkStep" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ReadWriteTypedStateSparkStep"></a>
-      <a id="ReadWriteTypedStateSparkStep:ReadWriteTypedStateSparkStep"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ReadWriteTypedStateSparkStep$.html"><span class="name">ReadWriteTypedStateSparkStep</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.package@ReadWriteTypedStateSparkStep" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="etljobs.etlsteps.SparkReadWriteStateStep" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SparkReadWriteStateStep"></a>
       <a id="SparkReadWriteStateStep:SparkReadWriteStateStep"></a>
@@ -222,6 +188,40 @@
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#etljobs.etlsteps.package@SparkReadWriteStateStep" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="etljobs.etlsteps.SparkReadWriteStep" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SparkReadWriteStep"></a>
+      <a id="SparkReadWriteStep:SparkReadWriteStep"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="SparkReadWriteStep$.html"><span class="name">SparkReadWriteStep</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.etlsteps.package@SparkReadWriteStep" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="etljobs.etlsteps.oldapi" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="oldapi"></a>
+      <a id="oldapi:oldapi"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="oldapi/package.html"><span class="name">oldapi</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.etlsteps.package@oldapi" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

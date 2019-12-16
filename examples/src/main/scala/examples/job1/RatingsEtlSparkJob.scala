@@ -30,6 +30,11 @@ object RatingsEtlSparkJob extends App {
     output_type             = PARQUET
   )(spark,job_properties)
 
+  println("##################################JOB PROPERTIES########################################")
+  println(step1.name)
+  step1.getStepProperties.foreach(println)
+  println("##################################JOB PROPERTIES########################################")
+
   val try_output = step1.process()
 
   try_output.get

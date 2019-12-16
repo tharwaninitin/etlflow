@@ -20,12 +20,12 @@ import etljobs.utils.SessionManager
 * In second step it reads PARQUET data stored by step1 and writes it to BigQuery table
 */
 
-class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF with SessionManager {
+class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF {
   var output_date_paths : Seq[String] = Seq()
   Logger.getLogger("org").setLevel(Level.WARN)
 
-  val canonical_path = new java.io.File(".").getCanonicalPath
-  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
+  // Overriding Settings object to take local loaddata.properties
+  override lazy val settings =  new Settings(new java.io.File(".").getCanonicalPath + "/etljobs/src/test/resources/loaddata.properties")
 
   /**
   * Enriches ratings dataset by adding columns date, date_int
@@ -59,15 +59,20 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
   )(spark,job_properties)
   
   val step2 = new BQLoadStep(
-    name                = "LoadRatingBQInsideFor",
+    name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name"),
     source_format       = PARQUET
   )(bq,job_properties)
 
-  def apply() : List[EtlStep[Unit,Unit]] = {
-    val list = List(step1,step2)
-    list
-  }
+  val step3 = new BQLoadStep(
+    name                = "LoadRatingBQ",
+    source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
+    destination_dataset = job_properties("ratings_output_dataset"),
+    destination_table   = job_properties("ratings_output_table_name"),
+    source_format       = PARQUET
+  )(bq,job_properties)
+
+  def apply() : List[EtlStep[Unit,Unit]] = List(step1,step2,step3)
 }

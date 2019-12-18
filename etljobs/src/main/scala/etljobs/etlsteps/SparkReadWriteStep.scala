@@ -3,7 +3,7 @@ package etljobs.etlsteps
 import etljobs.spark.{ReadApi, WriteApi}
 import etljobs.utils.IOType
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.{Dataset, SparkSession, SaveMode}
 import scala.util.Try
 import scala.reflect.runtime.universe.TypeTag
 
@@ -14,6 +14,9 @@ class SparkReadWriteStep[T <: Product: TypeTag, O <: Product: TypeTag](
           ,output_location: String
           ,output_type: IOType
           ,output_filename: Option[String] = None
+          ,output_partition_col: Option[String] = None
+          ,output_save_mode: SaveMode = SaveMode.Append
+          ,output_repartitioning: Boolean = false
           ,transform_function : Option[Dataset[T] => Dataset[O]] = None
         )(spark : => SparkSession, etl_metadata : Map[String, String])
 extends EtlStep[Unit,Unit]
@@ -37,11 +40,11 @@ extends EtlStep[Unit,Unit]
       transform_function match {
         case Some(tf) => {
           val output = tf(ds)
-          WriteApi.WriteDS[O](output_type,output_location,output_filename)(output,sp)
+          WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output,sp)
           etl_logger.info("#################################################################################################")
         }
         case None => {
-          WriteApi.WriteDS[T](output_type,output_location,output_filename)(ds,sp)
+          WriteApi.WriteDS[T](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(ds,sp)
           etl_logger.info("#################################################################################################")
         }
       }
@@ -51,7 +54,10 @@ extends EtlStep[Unit,Unit]
 
   override def getStepProperties : Map[String,String] = {
     val in_map = ReadApi.LoadDSHelper[T](input_location,input_type).toList
-    val out_map = WriteApi.WriteDSHelper[O](output_type,output_location,output_filename).toList
+    val out_map = transform_function match {
+      case Some(_) => WriteApi.WriteDSHelper[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList
+      case None => WriteApi.WriteDSHelper[T](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList
+    }
     (in_map ++ out_map).toMap
   }
 
@@ -76,8 +82,11 @@ object SparkReadWriteStep {
              ,output_location: String
              ,output_type: IOType
              ,output_filename: Option[String] = None
+             ,output_partition_col: Option[String] = None
+             ,output_save_mode: SaveMode = SaveMode.Append
+             ,output_repartitioning: Boolean = false
              ,transform_function : Option[Dataset[T] => Dataset[O]] = None
            ) (spark: => SparkSession, etl_metadata : Map[String, String]): SparkReadWriteStep[T,O] = {
-    new SparkReadWriteStep[T,O](name,input_location,input_type,output_location,output_type,output_filename,transform_function)(spark,etl_metadata)
+    new SparkReadWriteStep[T,O](name,input_location,input_type,output_location,output_type,output_filename,output_partition_col,output_save_mode,output_repartitioning,transform_function)(spark,etl_metadata)
   }
 }

@@ -12,32 +12,7 @@ object WriteApi {
   private val write_logger = Logger.getLogger(getClass.getName)
   write_logger.info(s"Loaded ${getClass.getName}")
 
-  def Write(fileType: IOType, output_path: String, output_filename: Option[String] = None, n : Int = 1, compression : String = "none")(source: DataFrame, spark : SparkSession) : Unit = {
-    val df_writer = source.repartition(n).write.option("compression",compression)//("compression", "gzip","snappy")
-
-    val df_writer_options = fileType match {
-      case CSV(delimiter,header_present,_) => df_writer.format("csv").option("delimiter", delimiter).option("header", header_present)
-      case EXCEL => df_writer.format("com.crealytics.spark.excel").option("useHeader","true")
-      case PARQUET => df_writer.format("parquet")
-      case ORC => df_writer.format("orc")
-      case JSON => df_writer.format("json")
-      case TEXT => df_writer.format("text")
-      case _ => df_writer.format("text")
-    }
-
-    df_writer_options.mode(SaveMode.Overwrite).save(output_path)
-    write_logger.info(s"Successfully wrote $fileType sparkjobs.output in path $output_path")
-
-    output_filename.foreach { output_file =>
-      val path = s"$output_path/"
-      val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
-      val fileName = fs.globStatus(new Path(path + "part*"))(0).getPath.getName
-      fs.rename(new Path(path + fileName), new Path(path + output_file))
-      write_logger.info(s"Renamed file path $path$fileName to $path$output_file")
-    }
-  }
-
-  def WriteDSHelper[T <: Product : TypeTag](output_type: IOType, output_location: String, output_filename: Option[String] = None, n : Int = 1, compression : String = "none") : Map[String,String] = {
+  def WriteDSHelper[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None, save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None, n : Int = 1, compression : String = "none", repartition : Boolean = false) : Map[String,String] = {
     val mapping = Encoders.product[T]
     Map("output_location"->output_location
       , "output_filename"->output_filename.getOrElse("")
@@ -46,8 +21,17 @@ object WriteApi {
     )
   }
 
-  def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, output_filename: Option[String] = None, n : Int = 1, compression : String = "none")(source: Dataset[T], spark : SparkSession) : Unit = {
-    val df_writer = source.repartition(n).write.option("compression",compression)//("compression", "gzip","snappy")
+  def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None
+                                      , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
+                                      , n : Int = 1, compression : String = "none", repartition : Boolean = false)
+                                      (source: Dataset[T], spark : SparkSession) : Unit = {
+                                        
+    val df_writer = partition_by match {
+      case Some(pbc) => if (repartition) 
+                        source.repartition(n, col(s"$pbc")).write.option("compression",compression) //("compression", "gzip","snappy")
+                      else source.write.option("compression",compression) 
+      case None => source.repartition(n).write.option("compression",compression) 
+    }
 
     val df_writer_options = output_type match {
       case CSV(delimiter,header_present,_) => df_writer.format("csv").option("delimiter", delimiter).option("header", header_present)
@@ -59,8 +43,12 @@ object WriteApi {
       case _ => df_writer.format("text")
     }
 
-    df_writer_options.mode(SaveMode.Overwrite).save(output_location)
-    write_logger.info(s"Successfully written data in $output_type in location $output_location")
+    partition_by match {
+      case Some(partition_by_clause) => df_writer_options.partitionBy(partition_by_clause).mode(save_mode).save(output_location)
+      case None => df_writer_options.mode(save_mode).save(output_location)
+    }
+
+    write_logger.info(s"Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc => "Partitioned by " + pbc).getOrElse("")}")
 
     output_filename.foreach { output_file =>
       val path = s"$output_location/"
@@ -70,26 +58,4 @@ object WriteApi {
       write_logger.info(s"Renamed file path $path$fileName to $path$output_file")
     }
   }
-
-  def WritePartitioned(fileType: IOType, output_path: String, partition_by: String, n : Int = 1, compression : String = "none", save_mode : SaveMode = SaveMode.Append, repartition : Boolean = false)(source: DataFrame, spark : SparkSession) : Unit = {
-    var repartitioned_source = source
-
-    if (repartition)
-      repartitioned_source = source.repartition(col(s"$partition_by"))
-
-    val df_writer = repartitioned_source.write.option("compression",compression)
-
-    val df_writer_options = fileType match {
-      case CSV(delimiter,header_present,_) => df_writer.format("csv").option("delimiter", delimiter).option("header", header_present)
-      case PARQUET => df_writer.format("parquet")
-      case ORC => df_writer.format("orc")
-      case JSON => df_writer.format("json")
-      case TEXT => df_writer.format("text")
-      case _ => df_writer.format("text")
-    }
-
-    df_writer_options.mode(save_mode).partitionBy(partition_by).save(output_path)
-    write_logger.info(s"Successfully wrote $fileType sparkjobs.output in path $output_path partitioned by $partition_by")
-  }
-
 }

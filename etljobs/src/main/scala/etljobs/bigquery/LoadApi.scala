@@ -27,15 +27,11 @@ object LoadApi {
             if (source_dirs.nonEmpty) {
                 load_logger.info("BQ file paths: " + source_dirs.toList)
                 source_dirs.foreach { src_path =>
-                    val table_partition = destination_table + "$" + src_path.split("=").last
-                    val path = src_path + "/"
-                    // val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
-                    // val file_name = fs.globStatus(new Path(path + "part*"))(0).getPath.getName
-                    // val full_path = path + file_name
-                    val full_path = path + "sdfsfsdfsfsfsfsfdsf"
+                    val table_partition = destination_table + "$" + src_path.split("=").last.split("/").head
                     val full_table_name = destination_dataset + "." + table_partition
-                    val bq_load_cmd =s"""bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format_bq.getType} $full_table_name $full_path""".stripMargin
-                    load_logger.info(s"Loading data from path: $full_path")
+                    val mofified_path = src_path
+                    val bq_load_cmd =s"""bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format_bq.getType} $full_table_name $mofified_path""".stripMargin
+                    load_logger.info(s"Loading data from path: $src_path")
                     load_logger.info(s"Destination table: $full_table_name")
                     load_logger.info(s"BQ Load command is: $bq_load_cmd")
                     val x = s"$bq_load_cmd".!

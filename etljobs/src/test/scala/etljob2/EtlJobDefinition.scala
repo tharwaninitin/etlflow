@@ -22,7 +22,7 @@ import etljobs.spark.ReadApi
 */
 
 class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF {
-  var output_date_paths : Seq[String] = Seq()
+  var output_date_paths : Seq[(String,String)] = Seq()
   Logger.getLogger("org").setLevel(Level.WARN)
 
   // Overriding Settings object to take local loaddata.properties
@@ -59,8 +59,8 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
       .distinct()
       .as[(String,String)]
       .collect()
-      .map((date) => job_properties("ratings_output_path") + "/date_int=" + date._1 + "/" + date._2.split("/").last)
-    
+      .map((date) => (job_properties("ratings_output_path") + "/date_int=" + date._1 + "/" + date._2.split("/").last, date._1))
+
     etl_job_logger.info("Filepaths generated are: ")
     output_date_paths.foreach(path => println(path))
   }
@@ -83,11 +83,11 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
   )(spark,job_properties)
 
   val step3 = new BQLoadStep(
-    name                = "LoadRatingBQ",
-    source_dirs         = output_date_paths,
-    destination_dataset = job_properties("ratings_output_dataset"),
-    destination_table   = job_properties("ratings_output_table_name"),
-    source_format       = PARQUET
+    name                    = "LoadRatingBQ",
+    source_paths_partitions = output_date_paths,
+    destination_dataset     = job_properties("ratings_output_dataset"),
+    destination_table       = job_properties("ratings_output_table_name"),
+    source_format           = PARQUET
   )(bq,job_properties)
 
   def apply() : List[EtlStep[Unit,Unit]] = List(step1,step2,step3)

@@ -4,7 +4,8 @@ import etljobs.etlsteps.EtlStep
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.entity.StringEntity
 
 /** Object SlackManager contains the information regarding
  *       - Slack message template
@@ -58,8 +59,9 @@ object SlackManager{
 
   /** Sends the slack notification to slack channels*/
   def sendSlackNotification(result: String, start_time: Long) : Unit = {
-    //val slackApi = new HttpPost(slack_webhook_url)
-    //val client = new DefaultHttpClient
+    val client = HttpClients.createDefault
+    val slackApi = new HttpPost(webhook_url)
+
     val execution_date_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now)
 
     if (result == "Pass") {
@@ -69,7 +71,10 @@ object SlackManager{
         execution_date_time,
         final_slack_message
       )
-      println(data)
+      val json_data = f""" { "text" : "$data" } """
+      val entity = new StringEntity(json_data)
+      slackApi.setEntity(entity);
+      client.execute(slackApi);
     }
     else {
       val data = SlackManager.ingestionSlackFailureMessage(
@@ -78,7 +83,10 @@ object SlackManager{
         execution_date_time,
         final_slack_message
       )
-      println(data)
+      val json_data = f""" { "text" : "$data" } """
+      val entity = new StringEntity(json_data)
+      slackApi.setEntity(entity);
+      client.execute(slackApi);
     }
   }
 }

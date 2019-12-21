@@ -64,7 +64,13 @@ trait SessionManager {
       spark
     }
     else if (ss.running_environment == "local") {
-      val spark = SparkSession.builder().master("local[*]").getOrCreate()
+      val spark = SparkSession.builder().master("local[*]")
+        .config("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
+        .config("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+        .config("fs.gs.project.id", ss.gcp_project)
+        .config("fs.gs.auth.service.account.enable", "true")
+        .config("google.cloud.auth.service.account.json.keyfile",ss.gcp_project_key_name)
+        .getOrCreate()
 
       ic_logger.info("##################### Created SparkSession ##########################")
       ic_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
@@ -85,8 +91,8 @@ trait SessionManager {
 
   def createBigQuerySession(implicit ss:Settings): BigQuery = {
     ic_logger.info(s"Job is running on env: ${ss.running_environment}")
-    if (ss.running_environment == "gcp" || ss.running_environment == "local")       BigQueryOptions.getDefaultInstance.getService
-    else if (ss.running_environment == "aws")  {
+    if (ss.running_environment == "gcp") BigQueryOptions.getDefaultInstance.getService
+    else if (ss.running_environment == "aws" || ss.running_environment == "local")  {
       val credentials: GoogleCredentials  = ServiceAccountCredentials.fromStream(new FileInputStream(ss.gcp_project_key_name))
       BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
     }

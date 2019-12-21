@@ -1,4 +1,4 @@
-package etljob1
+package etljob2
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.apache.spark.sql.{Dataset,Row}
@@ -13,26 +13,28 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
 
   val canonical_path = new java.io.File(".").getCanonicalPath
 
+  val create_table_script = """
+  CREATE TABLE test.ratings_par (
+    user_id INT64
+  , movie_id INT64
+  , rating FLOAT64
+  , timestamp INT64
+  , date DATE
+  ) PARTITION BY date
+  """
+
   val props : Map[String,String] = Map(
     "job_name" -> "EtlJobMovieRatings",
     "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     "ratings_output_path" -> s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",
-    "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet",
+    "ratings_output_table_name" -> "ratings_par",
     "test" -> "true"
-    //,"aggregate_error" -> "true"
-    //"parse_mode" -> "PERMISSIVE"
   )
 
   val etljob = new EtlJobDefinition(props)
-  etljob.execute(props)
-
-  // Could use Hlist here for getting single step out of job
-  // To get errors in CSV if any, run single step like this
-  // etljob.apply().filter(etl => etl.name == "LoadRatingsParquet").foreach{ etl =>
-  //    etl.asInstanceOf[SparkReadWriteStep[Rating , Unit, RatingOutput, Unit]].showCorruptedData()
-  //  }
+  val state = etljob.execute(props)
+  println(state)
 
   override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
   val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](

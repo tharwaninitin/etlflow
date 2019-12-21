@@ -14,7 +14,6 @@ object RatingsEtlSparkBQJob extends App {
   private val canonical_path : String = new java.io.File(".").getCanonicalPath
 
   val job_properties : Map[String,String] = Map(
-    "job_name" -> "EtlJobMovieRatings",
     "ratings_input_path" -> s"$canonical_path/examples/src/main/resources/input/movies/ratings/*",
     "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",

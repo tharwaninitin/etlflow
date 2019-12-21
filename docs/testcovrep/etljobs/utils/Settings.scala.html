@@ -38,9 +38,13 @@
 </span>14 <span style=''>  lazy val spark_shuffle_partitions               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_shuffle_partitions&quot;)</span><span style=''>
 </span>15 <span style=''>  lazy val spark_output_partition_overwrite_mode  = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)</span><span style=''>
 </span>16 <span style=''>  lazy val running_environment                    = </span><span style='background: #AEF1AE'>config.getProperty(&quot;running_environment&quot;)</span><span style=''>
-</span>17 <span style=''>  lazy val gcp_project                            = </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project&quot;)</span><span style=''>
-</span>18 <span style=''>  lazy val gcp_project_key_name                   = </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project_key_name&quot;)</span><span style=''>
-</span>19 <span style=''>}
+</span>17 <span style=''>  
+</span>18 <span style=''>  lazy val gcp_project                            = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCP_PROJECT&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''> 
+</span>19 <span style=''>  lazy val gcp_project_key_name                   = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCP_PROJECT_KEY_NAME&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project_key_name&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>20 <span style=''>  
+</span>21 <span style=''>  lazy val slack_webhook_url                      = </span><span style='background: #AEF1AE'>config.getProperty(&quot;slack_webhook_url&quot;)</span><span style=''>
+</span>22 <span style=''>  lazy val slack_env                              = </span><span style='background: #AEF1AE'>config.getProperty(&quot;slack_env&quot;)</span><span style=''>
+</span>23 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -57,7 +61,7 @@
           7
         </td>
         <td>
-          858
+          760
         </td>
         <td>
           149
@@ -78,7 +82,7 @@
           8
         </td>
         <td>
-          860
+          762
         </td>
         <td>
           187
@@ -99,7 +103,7 @@
           8
         </td>
         <td>
-          859
+          761
         </td>
         <td>
           207
@@ -120,7 +124,7 @@
           9
         </td>
         <td>
-          861
+          763
         </td>
         <td>
           242
@@ -141,7 +145,7 @@
           11
         </td>
         <td>
-          863
+          765
         </td>
         <td>
           264
@@ -162,7 +166,7 @@
           11
         </td>
         <td>
-          862
+          764
         </td>
         <td>
           276
@@ -183,7 +187,7 @@
           13
         </td>
         <td>
-          864
+          766
         </td>
         <td>
           344
@@ -204,7 +208,7 @@
           14
         </td>
         <td>
-          865
+          767
         </td>
         <td>
           444
@@ -225,7 +229,7 @@
           15
         </td>
         <td>
-          866
+          768
         </td>
         <td>
           544
@@ -246,7 +250,7 @@
           16
         </td>
         <td>
-          867
+          769
         </td>
         <td>
           657
@@ -264,15 +268,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          18
         </td>
         <td>
-          868
+          771
         </td>
         <td>
-          752
+          789
           -
-          785
+          822
         </td>
         <td>
           Apply
@@ -288,12 +292,54 @@
           18
         </td>
         <td>
-          869
+          770
         </td>
         <td>
-          839
+          774
           -
-          881
+          787
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;GCP_PROJECT&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          772
+        </td>
+        <td>
+          756
+          -
+          823
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;GCP_PROJECT&quot;, Settings.this.config.getProperty(&quot;gcp_project&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          774
+        </td>
+        <td>
+          920
+          -
+          962
         </td>
         <td>
           Apply
@@ -303,6 +349,90 @@
         </td>
         <td style="background: #F0ADAD">
           Settings.this.config.getProperty(&quot;gcp_project_key_name&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          773
+        </td>
+        <td>
+          896
+          -
+          918
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;GCP_PROJECT_KEY_NAME&quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          775
+        </td>
+        <td>
+          878
+          -
+          963
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;GCP_PROJECT_KEY_NAME&quot;, Settings.this.config.getProperty(&quot;gcp_project_key_name&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          776
+        </td>
+        <td>
+          1021
+          -
+          1060
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.config.getProperty(&quot;slack_webhook_url&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          777
+        </td>
+        <td>
+          1114
+          -
+          1145
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #AEF1AE">
+          Settings.this.config.getProperty(&quot;slack_env&quot;)
         </td>
       </tr>
     </table>

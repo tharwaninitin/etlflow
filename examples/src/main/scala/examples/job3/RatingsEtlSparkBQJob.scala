@@ -27,7 +27,6 @@ object RatingsEtlSparkBQJob extends App with SparkUDF with SessionManager {
   override lazy implicit val settings: Settings = new Settings(s"$canonical_path/configurations/loaddata.properties")
 
   val job_properties : Map[String,String] = Map(
-    "job_name" -> "EtlJobMovieRatings",
     "ratings_input_path" -> s"$canonical_path/examples/src/main/resources/input/movies/ratings/*",
     "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",

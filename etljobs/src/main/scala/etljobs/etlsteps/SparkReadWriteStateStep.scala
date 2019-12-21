@@ -4,7 +4,7 @@ import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
 import etljobs.spark.{ReadApi, WriteApi}
 import etljobs.utils.IOType
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.{Dataset, SparkSession, SaveMode}
 import scala.util.Try
 import scala.reflect.runtime.universe.TypeTag
 
@@ -15,6 +15,9 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
           ,output_location: String
           ,output_type: IOType
           ,output_filename: Option[String] = None
+          ,output_partition_col: Option[String] = None
+          ,output_save_mode: SaveMode = SaveMode.Append
+          ,output_repartitioning: Boolean = false
           ,transform_function : Option[Input[T, IPSTATE] => Output[O, OPSTATE]] = None
         )(spark : => SparkSession, etl_metadata : Map[String, String])
 extends EtlStep[IPSTATE,OPSTATE]
@@ -38,12 +41,12 @@ extends EtlStep[IPSTATE,OPSTATE]
       transform_function match {
         case Some(tf) => {
           val output = tf(Input[T, IPSTATE](ds, input_state))
-          WriteApi.WriteDS[O](output_type,output_location,output_filename)(output.ds,sp)
+          WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output.ds,sp)
           etl_logger.info("#################################################################################################")
           output.ops
         }
         case None => {
-          WriteApi.WriteDS[T](output_type,output_location,output_filename)(ds,sp)
+          WriteApi.WriteDS[T](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(ds,sp)
           etl_logger.info("#################################################################################################")
           input_state.asInstanceOf[OPSTATE]
         }
@@ -54,7 +57,7 @@ extends EtlStep[IPSTATE,OPSTATE]
 
   override def getStepProperties : Map[String,String] = {
     val in_map = ReadApi.LoadDSHelper[T](input_location,input_type).toList
-    val out_map = WriteApi.WriteDSHelper[O](output_type,output_location,output_filename).toList
+    val out_map = WriteApi.WriteDSHelper[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList
     (in_map ++ out_map).toMap
   }
 
@@ -82,8 +85,11 @@ object SparkReadWriteStateStep {
              ,output_location: String
              ,output_type: IOType
              ,output_filename: Option[String] = None
+             ,output_partition_col: Option[String] = None
+             ,output_save_mode: SaveMode = SaveMode.Append
+             ,output_repartitioning: Boolean = false
              ,transform_function : Option[Input[T, IPSTATE] => Output[O, OPSTATE]] = None
            ) (spark: => SparkSession, etl_metadata : Map[String, String]): SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE] = {
-    new SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE](name,input_location,input_type,output_location,output_type,output_filename,transform_function)(spark,etl_metadata)
+    new SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE](name,input_location,input_type,output_location,output_type,output_filename,output_partition_col,output_save_mode,output_repartitioning,transform_function)(spark,etl_metadata)
   }
 }

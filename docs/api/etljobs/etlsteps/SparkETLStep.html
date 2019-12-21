@@ -89,7 +89,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="etljobs.etlsteps.SparkETLStep#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(name:String,etl_metadata:Map[String,String],transform_function:()=&gt;Unit)(implicitspark:org.apache.spark.sql.SparkSession):etljobs.etlsteps.SparkETLStep"></a>
+      <a id="&lt;init&gt;(name:String,transform_function:()=&gt;Unit)(spark:=&gt;org.apache.spark.sql.SparkSession,etl_metadata:Map[String,String]):etljobs.etlsteps.SparkETLStep"></a>
       <a id="&lt;init&gt;:SparkETLStep"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +97,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">SparkETLStep</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="etl_metadata">etl_metadata: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Map[String, String]()</span></span>, <span name="transform_function">transform_function: () ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="spark">spark: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>)</span>
+        <span class="name">SparkETLStep</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="transform_function">transform_function: () ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span name="spark">spark: ⇒ <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>, <span name="etl_metadata">etl_metadata: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.SparkETLStep@&lt;init&gt;(name:String,etl_metadata:Map[String,String],transform_function:()=&gt;Unit)(implicitspark:org.apache.spark.sql.SparkSession):etljobs.etlsteps.SparkETLStep" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.etlsteps.SparkETLStep@&lt;init&gt;(name:String,transform_function:()=&gt;Unit)(spark:=&gt;org.apache.spark.sql.SparkSession,etl_metadata:Map[String,String]):etljobs.etlsteps.SparkETLStep" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -256,23 +256,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
-    </li><li name="etljobs.etlsteps.SparkETLStep#etl_metadata" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="etl_metadata:Map[String,String]"></a>
-      <a id="etl_metadata:Map[String,String]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">etl_metadata</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.SparkETLStep@etl_metadata:Map[String,String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>

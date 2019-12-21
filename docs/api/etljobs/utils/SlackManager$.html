@@ -1,22 +1,22 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>SparkReadWriteStateStep - etljobs.etlsteps.oldapi.SparkReadWriteStateStep</title>
-          <meta name="description" content="SparkReadWriteStateStep - etljobs.etlsteps.oldapi.SparkReadWriteStateStep" />
-          <meta name="keywords" content="SparkReadWriteStateStep etljobs.etlsteps.oldapi.SparkReadWriteStateStep" />
+          <title>SlackManager - etljobs.utils.SlackManager</title>
+          <meta name="description" content="SlackManager - etljobs.utils.SlackManager" />
+          <meta name="keywords" content="SlackManager etljobs.utils.SlackManager" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
-      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
-      <script type="text/javascript" src="../../../lib/template.js"></script>
-      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
       
       <script type="text/javascript">
          if(top === self) {
-            var url = '../../../index.html';
-            var hash = 'etljobs.etlsteps.oldapi.SparkReadWriteStateStep$';
+            var url = '../../index.html';
+            var hash = 'etljobs.utils.SlackManager$';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -28,15 +28,13 @@
         </head>
         <body class="value">
       <div id="definition">
-        <a href="SparkReadWriteStateStep.html" title="See companion class"><img alt="Object/Class" src="../../../lib/object_to_class_big.png" /></a>
-        <p id="owner"><a href="../../package.html" class="extype" name="etljobs">etljobs</a>.<a href="../package.html" class="extype" name="etljobs.etlsteps">etlsteps</a>.<a href="package.html" class="extype" name="etljobs.etlsteps.oldapi">oldapi</a></p>
-        <h1><a href="SparkReadWriteStateStep.html" title="See companion class">SparkReadWriteStateStep</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="SparkReadWriteStateStep.html" title="See companion class">class SparkReadWriteStateStep</a>
-            | <a href="package.html" class="extype" name="etljobs.etlsteps.oldapi">package oldapi</a>
+        <img alt="Object" src="../../lib/object_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="etljobs">etljobs</a>.<a href="package.html" class="extype" name="etljobs.utils">utils</a></p>
+        <h1>SlackManager</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="etljobs.utils">package utils</a>
           </div></span></h3><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -47,11 +45,12 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">SparkReadWriteStateStep</span>
+        <span class="name">SlackManager</span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Object SlackManager have below functionality</p><ul><li>Create Success and Failure Slack message templates</li><li>Send the slack message to appropriate channels
+</li></ul></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -71,7 +70,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep"><span>SparkReadWriteStateStep</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="etljobs.utils.SlackManager"><span>SlackManager</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -90,44 +89,7 @@
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Input" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Input[T,S]extendsProductwithSerializable"></a>
-      <a id="Input[T,S]:Input[T,S]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="SparkReadWriteStateStep$$Input.html"><span class="name">Input</span></a><span class="tparams">[<span name="T">T</span>, <span name="S">S</span>]</span><span class="params">(<span name="ds">ds: <span class="extype" name="org.apache.spark.sql.Dataset">Dataset</span>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Input.T">T</span>]</span>, <span name="ips">ips: <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Input.S">S</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@Input[T,S]extendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Output" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Output[T,S]extendsProductwithSerializable"></a>
-      <a id="Output[T,S]:Output[T,S]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="SparkReadWriteStateStep$$Output.html"><span class="name">Output</span></a><span class="tparams">[<span name="T">T</span>, <span name="S">S</span>]</span><span class="params">(<span name="ds">ds: <span class="extype" name="org.apache.spark.sql.Dataset">Dataset</span>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Output.T">T</span>]</span>, <span name="ops">ops: <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Output.S">S</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@Output[T,S]extendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -145,8 +107,8 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -162,8 +124,8 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@##():Int" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@##():Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -179,28 +141,11 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@==(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[T&lt;:Product,IPSTATE,O&lt;:Product,OPSTATE](name:String,input_dataset:=&gt;org.apache.spark.sql.Dataset[T],transform_function:etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Input[T,IPSTATE]=&gt;etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Output[O,OPSTATE],write_function:(org.apache.spark.sql.Dataset[O],org.apache.spark.sql.SparkSession)=&gt;Unit)(implicitevidence$1:reflect.runtime.universe.TypeTag[T],implicitevidence$2:reflect.runtime.universe.TypeTag[O],implicitspark:org.apache.spark.sql.SparkSession,implicitetl_metadata:Map[String,String]):etljobs.etlsteps.oldapi.SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE]"></a>
-      <a id="apply[T&lt;:Product,IPSTATE,O&lt;:Product,OPSTATE](String,⇒Dataset[T],(Input[T,IPSTATE])⇒Output[O,OPSTATE],(Dataset[O],SparkSession)⇒Unit)(scala.reflect.api.JavaUniverse.TypeTag[T],scala.reflect.api.JavaUniverse.TypeTag[O],SparkSession,Map[String,String]):SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="scala.Product">Product</span></span>, <span name="IPSTATE">IPSTATE</span>, <span name="O">O &lt;: <span class="extype" name="scala.Product">Product</span></span>, <span name="OPSTATE">OPSTATE</span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="input_dataset">input_dataset: ⇒ <span class="extype" name="org.apache.spark.sql.Dataset">Dataset</span>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.T">T</span>]</span>, <span name="transform_function">transform_function: (<a href="SparkReadWriteStateStep$$Input.html" class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Input">Input</a>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.T">T</span>, <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.IPSTATE">IPSTATE</span>]) ⇒ <a href="SparkReadWriteStateStep$$Output.html" class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Output">Output</a>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.O">O</span>, <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.OPSTATE">OPSTATE</span>]</span>, <span name="write_function">write_function: (<span class="extype" name="org.apache.spark.sql.Dataset">Dataset</span>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.O">O</span>], <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.T">T</span>]</span>, <span name="arg1">arg1: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.O">O</span>]</span>, <span name="spark">spark: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>, <span name="etl_metadata">etl_metadata: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="SparkReadWriteStateStep.html" class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep">SparkReadWriteStateStep</a>[<span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.T">T</span>, <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.IPSTATE">IPSTATE</span>, <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.O">O</span>, <span class="extype" name="etljobs.etlsteps.oldapi.SparkReadWriteStateStep.apply.OPSTATE">OPSTATE</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@apply[T&lt;:Product,IPSTATE,O&lt;:Product,OPSTATE](name:String,input_dataset:=&gt;org.apache.spark.sql.Dataset[T],transform_function:etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Input[T,IPSTATE]=&gt;etljobs.etlsteps.oldapi.SparkReadWriteStateStep.Output[O,OPSTATE],write_function:(org.apache.spark.sql.Dataset[O],org.apache.spark.sql.SparkSession)=&gt;Unit)(implicitevidence$1:reflect.runtime.universe.TypeTag[T],implicitevidence$2:reflect.runtime.universe.TypeTag[O],implicitspark:org.apache.spark.sql.SparkSession,implicitetl_metadata:Map[String,String]):etljobs.etlsteps.oldapi.SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -213,8 +158,8 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -230,17 +175,34 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@clone():Object" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@clone():Object" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="etljobs.utils.SlackManager#env" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="env:String"></a>
+      <a id="env:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">env</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SlackManager$@env:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -253,8 +215,8 @@
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -270,11 +232,28 @@
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="etljobs.utils.SlackManager#error_occured" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="error_occured:Boolean"></a>
+      <a id="error_occured:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">error_occured</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SlackManager$@error_occured:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -287,11 +266,11 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@finalize():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -310,8 +289,8 @@
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -327,8 +306,8 @@
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@hashCode():Int" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -344,11 +323,28 @@
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="etljobs.utils.SlackManager#job_properties" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="job_properties:Map[String,String]"></a>
+      <a id="job_properties:Map[String,String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">job_properties</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SlackManager$@job_properties:Map[String,String]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -361,8 +357,8 @@
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -378,8 +374,8 @@
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@notify():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@notify():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -395,11 +391,28 @@
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@notifyAll():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="etljobs.utils.SlackManager#sendSlackNotification" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sendSlackNotification(result:String,start_time:Long):Unit"></a>
+      <a id="sendSlackNotification(String,Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sendSlackNotification</span><span class="params">(<span name="result">result: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start_time">start_time: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SlackManager$@sendSlackNotification(result:String,start_time:Long):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Sends the slack notification to slack channels</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -412,8 +425,8 @@
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -429,11 +442,28 @@
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@toString():String" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@toString():String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="etljobs.utils.SlackManager#updateStepLevelInformation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="updateStepLevelInformation(execution_start_time:Long,etlstep:etljobs.etlsteps.EtlStep[Unit,Unit],state_status:String,error_message:Option[String]):String"></a>
+      <a id="updateStepLevelInformation(Long,EtlStep[Unit,Unit],String,Option[String]):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">updateStepLevelInformation</span><span class="params">(<span name="execution_start_time">execution_start_time: <span class="extype" name="scala.Long">Long</span></span>, <span name="etlstep">etlstep: <a href="../etlsteps/EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>, <span name="state_status">state_status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="error_message">error_message: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SlackManager$@updateStepLevelInformation(execution_start_time:Long,etlstep:etljobs.etlsteps.EtlStep[Unit,Unit],state_status:String,error_message:Option[String]):String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Get the step level information and update the variable finalSlackMessage</p>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -446,8 +476,8 @@
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@wait():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@wait():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -469,8 +499,8 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -492,8 +522,8 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#etljobs.etlsteps.oldapi.SparkReadWriteStateStep$@wait(x$1:Long):Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
+      <a href="../../index.html#etljobs.utils.SlackManager$@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -503,6 +533,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="etljobs.utils.SlackManager#webhook_url" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="webhook_url:String"></a>
+      <a id="webhook_url:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">webhook_url</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SlackManager$@webhook_url:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li></ol>
             </div>
 

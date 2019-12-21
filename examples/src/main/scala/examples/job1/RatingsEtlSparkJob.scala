@@ -12,12 +12,8 @@ object RatingsEtlSparkJob extends App {
   private val canonical_path : String = new java.io.File(".").getCanonicalPath
 
   val job_properties : Map[String,String] = Map(
-    "job_name" -> "EtlJobMovieRatings",
     "ratings_input_path" -> s"$canonical_path/examples/src/main/resources/input/movies/ratings/*",
-    "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings",
-    "ratings_output_dataset" -> "test1",
-    "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet"
+    "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings"
   )
 
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
@@ -25,10 +21,15 @@ object RatingsEtlSparkJob extends App {
   val step1 = new SparkReadWriteStep[Rating, Rating](
     name                    = "ConvertRatingsCSVtoParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
-    input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
+    input_type              = CSV(),
     output_location         = job_properties("ratings_output_path"),
     output_type             = PARQUET
   )(spark,job_properties)
+
+  println("##################################JOB PROPERTIES########################################")
+  println(step1.name)
+  step1.getStepProperties.foreach(println)
+  println("##################################JOB PROPERTIES########################################")
 
   val try_output = step1.process()
 

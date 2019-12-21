@@ -6,10 +6,10 @@ import java.time.format.DateTimeFormatter
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.entity.StringEntity
+import scala.util.Try
 
-/** Object SlackManager contains the information regarding
- *       - Slack message template
- *       - Update the slack message
+/** Object SlackManager have below functionality
+ *       - Create Success and Failure Slack message templates
  *       - Send the slack message to appropriate channels
  */
 object SlackManager{
@@ -20,22 +20,24 @@ object SlackManager{
   var webhook_url: String = ""
   var env: String = ""
 
-  /** Template for slack success message */
-  private def ingestionSlackSuccessMessage(run_env:String, event:String, exec_date:String, message:String): String= {
-    f"""
-    :large_blue_circle: $run_env - $event Process *Success!*
-    *Time of Execution*: $exec_date
-    *Steps (Task - Duration)*: $message
-    """
-  }
-
-  /** Template for slack failure message */
-  private def ingestionSlackFailureMessage(run_env:String, event:String, exec_date:String, message:String): String= {
-    f"""
-    :red_circle: $run_env - $event Process *Failed!*
-    *Time of Execution*: $exec_date
-    *Steps (Task - Duration)*: $message
-    """
+  /** Slack message templates */
+  private def SlackMessageTemplate(run_env: String, event: String, exec_date: String, message: String, result: String): String= {
+    if (result == "Pass") {
+      /** Template for slack success message */
+      return f"""
+      :large_blue_circle: $run_env - $event Process *Success!*
+      *Time of Execution*: $exec_date
+      *Steps (Task - Duration)*: $message
+      """
+    }
+    else {
+      /** Template for slack failure message **/
+      return f"""
+      :red_circle: $run_env - $event Process *Failed!*
+      *Time of Execution*: $exec_date
+      *Steps (Task - Duration)*: $message
+      """
+    }
   }
 
   /** Get the step level information and update the variable finalSlackMessage */
@@ -59,30 +61,20 @@ object SlackManager{
 
   /** Sends the slack notification to slack channels*/
   def sendSlackNotification(result: String, start_time: Long) : Unit = {
-    val client = HttpClients.createDefault
-    val slackApi = new HttpPost(webhook_url)
-
     val execution_date_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now)
-
-    if (result == "Pass") {
-      val data = SlackManager.ingestionSlackSuccessMessage(
-        env,
-        job_properties("job_name"),
-        execution_date_time,
-        final_slack_message
-      )
-      val json_data = f""" { "text" : "$data" } """
-      val entity = new StringEntity(json_data)
-      slackApi.setEntity(entity);
-      client.execute(slackApi);
-    }
-    else {
-      val data = SlackManager.ingestionSlackFailureMessage(
-        env,
-        job_properties("job_name"),
-        execution_date_time,
-        final_slack_message
-      )
+    
+    val data = SlackManager.SlackMessageTemplate(
+      env,
+      job_properties("job_name"),
+      execution_date_time,
+      final_slack_message,
+      result
+    )
+    println(data)
+    
+    Try {
+      val client = HttpClients.createDefault
+      val slackApi = new HttpPost(webhook_url)
       val json_data = f""" { "text" : "$data" } """
       val entity = new StringEntity(json_data)
       slackApi.setEntity(entity);

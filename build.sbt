@@ -1,10 +1,12 @@
 val ScalaVersion = "2.11.12"
 val SparkVersion = "2.4.0"
 val GCloudVersion = "1.80.0"
+val HadoopGCSVersion = "1.6.1-hadoop2"
 
 val sparkCore =  "org.apache.spark" %% "spark-core" % SparkVersion
 val sparkSql =  "org.apache.spark" %% "spark-sql" % SparkVersion
 val gcloudBQ = "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
+val hadoopGCS = "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
 version in ThisBuild := "0.3.0"
@@ -19,6 +21,7 @@ lazy val etljobsSettings = Seq(
   , libraryDependencies ++= Seq( 
     sparkCore % Provided, sparkSql % Provided,  // For Spark jobs in SparkSteps
     gcloudBQ % Provided,                        // For using Big-query java API in BQLoadStep
+    hadoopGCS % Provided,                       // For saving and reading from GCS
     scalaTest % Test
   )
 )
@@ -28,6 +31,7 @@ lazy val examplesSettings = Seq(
   , libraryDependencies ++= Seq(
     sparkCore, sparkSql,  // For Spark jobs in SparkSteps
     gcloudBQ,             // For using Big-query java API in BQLoadStep
+    hadoopGCS,            // For saving and reading from GCS
     scalaTest % Test
   )
 )

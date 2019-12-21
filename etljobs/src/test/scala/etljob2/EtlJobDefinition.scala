@@ -23,6 +23,7 @@ import etljobs.spark.ReadApi
 
 class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF {
   var output_date_paths : Seq[(String,String)] = Seq()
+  val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
 
   // Overriding Settings object to take local loaddata.properties
@@ -42,24 +43,22 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
 
     val ratings_df = in
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
-        .withColumn("date_int", get_formatted_date("date","yyyy-MM-dd","yyyyMMdd"))
-        .where("date_int in ('20160101', '20160102')")
+        .withColumn(temp_date_col, get_formatted_date("date","yyyy-MM-dd","yyyyMMdd"))
+        .where(f"$temp_date_col in ('20160101', '20160102')")
 
-    val ratings_ds = ratings_df.as[RatingOutput](mapping)
-
-    ratings_ds
+    ratings_df.as[RatingOutput](mapping)
   }
 
   def addFilePaths(spark: SparkSession, job_properties : Map[String, String])() = {
     import spark.implicits._
 
     output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(job_properties("ratings_output_path")),PARQUET)(spark)
-      .select("date_int")
+      .select(f"$temp_date_col")
       .withColumn("filename", input_file_name)
       .distinct()
       .as[(String,String)]
       .collect()
-      .map((date) => (job_properties("ratings_output_path") + "/date_int=" + date._1 + "/" + date._2.split("/").last, date._1))
+      .map((date) => (job_properties("ratings_output_path") + f"/$temp_date_col=" + date._1 + "/" + date._2.split("/").last, date._1))
 
     etl_job_logger.info("Filepaths generated are: ")
     output_date_paths.foreach(path => println(path))
@@ -72,9 +71,9 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
     transform_function      = Some(enrichRatingData(spark, job_properties)),
     output_type             = PARQUET,
     output_location         = job_properties("ratings_output_path"),
-    output_partition_col    = Some("date_int"),
+    output_partition_col    = Some(f"$temp_date_col"),
     output_save_mode        = SaveMode.Overwrite,
-    output_repartitioning   = true      // So that there is just one file for every partition
+    output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
   )(spark,job_properties)
   
   val step2 = new SparkETLStep(

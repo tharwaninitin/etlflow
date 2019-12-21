@@ -2,13 +2,13 @@ package etljobs.etlsteps
 
 import etljobs.utils.{IOType, ORC, PARQUET}
 import org.apache.spark.sql.SparkSession
-import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo}
+import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo, StandardTableDefinition, TableId}
 import etljobs.bigquery.LoadApi
 import scala.util.{Failure, Success, Try}
 
 class BQLoadStep(
             val name: String
-            ,source_path: String = ""
+            ,source_path: => String = ""
             ,source_paths_partitions: => Seq[(String,String)] = Seq()
             ,source_format: IOType
             ,destination_dataset: String
@@ -69,10 +69,14 @@ class BQLoadStep(
   // }
 
   override def getExecutionMetrics : Map[String, Map[String,String]] = {
-    Map()
-    //bq_logger.info("Loaded rows: " + destinationTable.getNumRows)
-    //bq_logger.info(s"Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB")
-    //bq_logger.info("#################################################################################################")
+    val tableId = TableId.of(destination_dataset, destination_table)
+    val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
+    Map(name ->
+      Map(
+        "num_rows" -> destinationTable.getNumRows.toString,
+        "size_mb" -> f"${destinationTable.getNumBytes / 1000000.0} MB"
+      )
+    )
   }
 
   override def getStepProperties : Map[String,String] = {

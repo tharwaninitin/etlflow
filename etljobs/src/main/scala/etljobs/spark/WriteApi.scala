@@ -12,7 +12,10 @@ object WriteApi {
   private val write_logger = Logger.getLogger(getClass.getName)
   write_logger.info(s"Loaded ${getClass.getName}")
 
-  def WriteDSHelper[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None, save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None, n : Int = 1, compression : String = "none", repartition : Boolean = false) : Map[String,String] = {
+  def WriteDSHelper[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None
+                                            , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
+                                            , n : Int = 1, compression : String = "none", repartition : Boolean = false
+                                           ) : Map[String,String] = {
     val mapping = Encoders.product[T]
     Map("output_location"->output_location
       , "output_filename"->output_filename.getOrElse("")

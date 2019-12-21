@@ -20,8 +20,8 @@ import etljobs.utils.{CSV,PARQUET}
 2. Define Job input and ouput locations:
 ```scala
 val job_properties: Map[String,String] = Map(
-    "ratings_input_path" -> "examples/src/main/resources/input/movies/ratings/*",
-    "ratings_output_path" -> "examples/src/main/resources/output/movies/ratings",
+    "ratings_input_path" -> "gs://<some_bucket>/input/ratings/*",
+    "ratings_output_path" -> "gs://<some_bucket>/output/ratings",
   )
 ```
 3. Create spark session:
@@ -73,19 +73,18 @@ case class RatingOutput(user_id:Int, movie_id: Int, rating: Double, timestamp: L
 ```scala
 // Adding two new properties for Bigquery table and Dataset
 val job_properties: Map[String,String] = Map(
-    "ratings_input_path" -> "examples/src/main/resources/input/movies/ratings/*",
-    "ratings_output_path" -> "examples/src/main/resources/output/movies/ratings",
-    "ratings_output_dataset" -> "test",
+    "ratings_input_path" -> "gs://<some_bucket>/input/ratings/*",
+    "ratings_output_path" -> "gs://<some_bucket>/output/ratings",
+    "ratings_output_dataset" -> "some_dataset",
     "ratings_output_table_name" -> "ratings"
   )
 
 val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
-    source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
-    destination_dataset = job_properties("ratings_output_dataset"),
-    destination_table   = job_properties("ratings_output_table_name"),
+    source_path         = job_properties("ratings_output_path"),
     source_format       = PARQUET,
-    create_disposition  = JobInfo.CreateDisposition.CREATE_IF_NEEDED
+    destination_dataset = job_properties("ratings_output_dataset"),
+    destination_table   = job_properties("ratings_output_table_name")
   )(bq,job_properties)
 ```
 Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. Find full code [here](etljobs/src/test/scala/etljob1) along with **tests**

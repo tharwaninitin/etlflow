@@ -6,6 +6,7 @@ import etljobs.spark.ReadApi
 import etljobs.utils.SessionManager
 import etljobs.utils.{CSV, PARQUET, Settings}
 import etljobs.etlsteps.SparkReadWriteStateStep
+import etljobs.etlsteps.SparkReadWriteStateStep.{Input,Output}
 import etljobs.bigquery.QueryApi
 import EtlJobSchemas.{Rating,RatingOutput}
 
@@ -26,7 +27,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   val props : Map[String,String] = Map(
     "job_name" -> "EtlJobMovieRatings",
     "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
-    "ratings_output_path" -> "gs://star-dl-temp-mint/output/ratings",
+    "ratings_output_path" -> "gs://<gcs_bucket_name>/output/ratings",
     "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings_par"
   )
@@ -40,8 +41,8 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
                                   Seq(props("ratings_input_path")), 
                                   CSV(",", true, props.getOrElse("parse_mode","FAILFAST"))
                                 )(spark)
-  val op : Dataset[RatingOutput] = etljob.enrichRatingData(spark, props)(raw)
-  val Row(sum_ratings: Double, count_ratings: Long) = op.selectExpr("sum(rating)","count(*)").first()
+  val op : Output[RatingOutput,Unit] = etljob.enrichRatingData(spark, props)(Input[Rating,Unit](raw,()))
+  val Row(sum_ratings: Double, count_ratings: Long) = op.ds.selectExpr("sum(rating)","count(*)").first()
 
   val destination_dataset = props("ratings_output_dataset")
   val destination_table = props("ratings_output_table_name")

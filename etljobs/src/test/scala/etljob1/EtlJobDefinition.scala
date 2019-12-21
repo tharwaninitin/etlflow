@@ -8,7 +8,7 @@ import org.apache.spark.sql.{Encoders, SparkSession, Dataset}
 import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
 import etljobs.functions.SparkUDF
-import etljobs.utils.{CSV, PARQUET, Settings}
+import etljobs.utils.{CSV, ORC, Settings}
 import org.apache.log4j.{Level, Logger}
 import etljobs.utils.SessionManager
 import com.google.cloud.bigquery.{JobInfo}
@@ -51,17 +51,17 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
     transform_function      = Some(enrichRatingData(spark, job_properties)),
-    output_type             = PARQUET,
+    output_type             = ORC,
     output_location         = job_properties("ratings_output_path"),
     output_filename         = Some(job_properties("ratings_output_file_name"))
   )(spark,job_properties)
   
-  val step2 = new BQLoadStep(
+  val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name"),
-    source_format       = PARQUET,
+    source_format       = ORC,
     create_disposition  = JobInfo.CreateDisposition.CREATE_IF_NEEDED
   )(bq,job_properties)
 

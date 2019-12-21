@@ -9,7 +9,15 @@ val gcloudBQ = "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
 val hadoopGCS = "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
-version in ThisBuild := "0.3.0"
+version in ThisBuild := "0.4.0"
+
+// To run test sequentially instead of default parallel execution
+Global / concurrentRestrictions := Seq(
+  Tags.limit(Tags.CPU, 2),
+  Tags.limit(Tags.Network, 10),
+  Tags.limit(Tags.Test, 1),
+  Tags.limitAll( 15 )
+)
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin"

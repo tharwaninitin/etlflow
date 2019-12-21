@@ -32,8 +32,8 @@
 </span>8 <span style=''>  val etl_logger : Logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
 </span>9 <span style=''>
 </span>10 <span style=''>  def process(input_state: IPSTATE) : Try[OPSTATE]
-</span>11 <span style=''>  def getExecutionMetrics : Map[String,Map[String,String]] = </span><span style='background: #F0ADAD'>Map()</span><span style=''>
-</span>12 <span style=''>  def getStepProperties : Map[String,String] = </span><span style='background: #F0ADAD'>Map()</span><span style=''>
+</span>11 <span style=''>  def getExecutionMetrics : Map[String,Map[String,String]] = </span><span style='background: #AEF1AE'>Map()</span><span style=''>
+</span>12 <span style=''>  def getStepProperties : Map[String,String] = </span><span style='background: #AEF1AE'>Map()</span><span style=''>
 </span>13 <span style=''>}
 </span></pre>
           </div>
@@ -51,28 +51,7 @@
           8
         </td>
         <td>
-          250
-        </td>
-        <td>
-          177
-          -
-          193
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #AEF1AE">
-          EtlStep.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
-          8
-        </td>
-        <td>
-          251
+          243
         </td>
         <td>
           160
@@ -90,10 +69,31 @@
         </td>
       </tr><tr>
         <td>
+          8
+        </td>
+        <td>
+          242
+        </td>
+        <td>
+          177
+          -
+          193
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          EtlStep.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
           11
         </td>
         <td>
-          252
+          244
         </td>
         <td>
           308
@@ -106,7 +106,7 @@
         <td>
           scala.collection.generic.GenMapFactory.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.this.Predef.Map.apply[String, Nothing]()
         </td>
       </tr><tr>
@@ -114,7 +114,7 @@
           12
         </td>
         <td>
-          253
+          245
         </td>
         <td>
           361
@@ -127,7 +127,7 @@
         <td>
           scala.collection.generic.GenMapFactory.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.this.Predef.Map.apply[String, Nothing]()
         </td>
       </tr>

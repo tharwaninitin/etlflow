@@ -80,7 +80,7 @@
 </span>56 <span style=''>
 </span>57 <span style=''>    val df_reader_options = input_type match {
 </span>58 <span style=''>      case CSV(delimiter,header_present,parse_mode) =&gt; </span><span style='background: #AEF1AE'>df_reader.format(&quot;csv&quot;).schema(mapping.schema).option(&quot;columnNameOfCorruptRecord&quot;,&quot;_corrupt_record&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present).option(&quot;mode&quot;, parse_mode)</span><span style=''>
-</span>59 <span style=''>      case PARQUET =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;parquet&quot;).schema(mapping.schema)</span><span style=''>
+</span>59 <span style=''>      case PARQUET =&gt; </span><span style='background: #AEF1AE'>df_reader.format(&quot;parquet&quot;).schema(mapping.schema)</span><span style=''>
 </span>60 <span style=''>      case ORC =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;orc&quot;).schema(mapping.schema)</span><span style=''>
 </span>61 <span style=''>      case JSON =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;json&quot;).schema(mapping.schema)</span><span style=''>
 </span>62 <span style=''>      case JDBC(url, user, password) =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;jdbc&quot;).schema(mapping.schema)
@@ -114,7 +114,7 @@
           11
         </td>
         <td>
-          588
+          519
         </td>
         <td>
           268
@@ -135,7 +135,7 @@
           11
         </td>
         <td>
-          589
+          520
         </td>
         <td>
           251
@@ -156,7 +156,28 @@
           12
         </td>
         <td>
-          594
+          523
+        </td>
+        <td>
+          316
+          -
+          332
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          525
         </td>
         <td>
           288
@@ -177,7 +198,7 @@
           12
         </td>
         <td>
-          591
+          522
         </td>
         <td>
           333
@@ -198,7 +219,7 @@
           12
         </td>
         <td>
-          590
+          521
         </td>
         <td>
           307
@@ -219,7 +240,7 @@
           12
         </td>
         <td>
-          593
+          524
         </td>
         <td>
           305
@@ -237,31 +258,10 @@
         </td>
       </tr><tr>
         <td>
-          12
-        </td>
-        <td>
-          592
-        </td>
-        <td>
-          316
-          -
-          332
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #AEF1AE">
-          ReadApi.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
           15
         </td>
         <td>
-          595
+          526
         </td>
         <td>
           528
@@ -282,7 +282,7 @@
           17
         </td>
         <td>
-          597
+          528
         </td>
         <td>
           584
@@ -303,7 +303,7 @@
           17
         </td>
         <td>
-          599
+          530
         </td>
         <td>
           544
@@ -324,7 +324,7 @@
           17
         </td>
         <td>
-          596
+          527
         </td>
         <td>
           561
@@ -345,7 +345,7 @@
           17
         </td>
         <td>
-          598
+          529
         </td>
         <td>
           561
@@ -366,7 +366,7 @@
           20
         </td>
         <td>
-          600
+          531
         </td>
         <td>
           690
@@ -387,7 +387,7 @@
           21
         </td>
         <td>
-          601
+          532
         </td>
         <td>
           800
@@ -408,7 +408,7 @@
           22
         </td>
         <td>
-          602
+          533
         </td>
         <td>
           846
@@ -429,7 +429,7 @@
           23
         </td>
         <td>
-          603
+          534
         </td>
         <td>
           889
@@ -450,7 +450,7 @@
           24
         </td>
         <td>
-          604
+          535
         </td>
         <td>
           945
@@ -471,7 +471,7 @@
           25
         </td>
         <td>
-          605
+          536
         </td>
         <td>
           986
@@ -492,7 +492,28 @@
           30
         </td>
         <td>
-          609
+          541
+        </td>
+        <td>
+          1195
+          -
+          1199
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.+
+        </td>
+        <td style="background: #F0ADAD">
+          id.+(1)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          540
         </td>
         <td>
           1200
@@ -513,7 +534,7 @@
           30
         </td>
         <td>
-          612
+          543
         </td>
         <td>
           1165
@@ -534,7 +555,7 @@
           30
         </td>
         <td>
-          606
+          537
         </td>
         <td>
           1136
@@ -555,7 +576,7 @@
           30
         </td>
         <td>
-          608
+          539
         </td>
         <td>
           1188
@@ -576,7 +597,7 @@
           30
         </td>
         <td>
-          611
+          542
         </td>
         <td>
           1186
@@ -597,7 +618,7 @@
           30
         </td>
         <td>
-          614
+          545
         </td>
         <td>
           1136
@@ -618,7 +639,7 @@
           30
         </td>
         <td>
-          613
+          544
         </td>
         <td>
           1158
@@ -639,7 +660,7 @@
           30
         </td>
         <td>
-          607
+          538
         </td>
         <td>
           1169
@@ -657,31 +678,10 @@
         </td>
       </tr><tr>
         <td>
-          30
-        </td>
-        <td>
-          610
-        </td>
-        <td>
-          1195
-          -
-          1199
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.+
-        </td>
-        <td style="background: #F0ADAD">
-          id.+(1)
-        </td>
-      </tr><tr>
-        <td>
           32
         </td>
         <td>
-          615
+          546
         </td>
         <td>
           1268
@@ -702,7 +702,7 @@
           32
         </td>
         <td>
-          617
+          548
         </td>
         <td>
           1278
@@ -723,7 +723,7 @@
           32
         </td>
         <td>
-          616
+          547
         </td>
         <td>
           1284
@@ -744,7 +744,7 @@
           33
         </td>
         <td>
-          618
+          549
         </td>
         <td>
           1212
@@ -765,7 +765,7 @@
           35
         </td>
         <td>
-          619
+          550
         </td>
         <td>
           1365
@@ -786,7 +786,7 @@
           43
         </td>
         <td>
-          620
+          551
         </td>
         <td>
           1759
@@ -807,7 +807,7 @@
           44
         </td>
         <td>
-          621
+          552
         </td>
         <td>
           1787
@@ -828,7 +828,7 @@
           44
         </td>
         <td>
-          630
+          561
         </td>
         <td>
           1783
@@ -849,7 +849,7 @@
           44
         </td>
         <td>
-          623
+          554
         </td>
         <td>
           1787
@@ -870,7 +870,7 @@
           44
         </td>
         <td>
-          622
+          553
         </td>
         <td>
           1805
@@ -891,7 +891,7 @@
           45
         </td>
         <td>
-          624
+          555
         </td>
         <td>
           1836
@@ -912,7 +912,7 @@
           45
         </td>
         <td>
-          626
+          557
         </td>
         <td>
           1836
@@ -933,7 +933,7 @@
           45
         </td>
         <td>
-          625
+          556
         </td>
         <td>
           1850
@@ -954,7 +954,28 @@
           46
         </td>
         <td>
-          627
+          559
+        </td>
+        <td>
+          1895
+          -
+          1915
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.types.StructType.toDDL
+        </td>
+        <td style="background: #AEF1AE">
+          mapping.schema.toDDL
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          558
         </td>
         <td>
           1878
@@ -975,7 +996,7 @@
           46
         </td>
         <td>
-          629
+          560
         </td>
         <td>
           1878
@@ -993,31 +1014,10 @@
         </td>
       </tr><tr>
         <td>
-          46
-        </td>
-        <td>
-          628
-        </td>
-        <td>
-          1895
-          -
-          1915
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.sql.types.StructType.toDDL
-        </td>
-        <td style="background: #AEF1AE">
-          mapping.schema.toDDL
-        </td>
-      </tr><tr>
-        <td>
           51
         </td>
         <td>
-          631
+          562
         </td>
         <td>
           2135
@@ -1038,7 +1038,7 @@
           53
         </td>
         <td>
-          632
+          563
         </td>
         <td>
           2176
@@ -1059,7 +1059,7 @@
           55
         </td>
         <td>
-          636
+          567
         </td>
         <td>
           2192
@@ -1080,7 +1080,7 @@
           55
         </td>
         <td>
-          633
+          564
         </td>
         <td>
           2209
@@ -1101,7 +1101,7 @@
           55
         </td>
         <td>
-          635
+          566
         </td>
         <td>
           2209
@@ -1122,7 +1122,7 @@
           55
         </td>
         <td>
-          634
+          565
         </td>
         <td>
           2230
@@ -1143,7 +1143,7 @@
           58
         </td>
         <td>
-          637
+          568
         </td>
         <td>
           2350
@@ -1164,7 +1164,7 @@
           59
         </td>
         <td>
-          639
+          570
         </td>
         <td>
           2599
@@ -1177,7 +1177,7 @@
         <td>
           org.apache.spark.sql.Encoder.schema
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           mapping.schema
         </td>
       </tr><tr>
@@ -1185,7 +1185,7 @@
           59
         </td>
         <td>
-          638
+          569
         </td>
         <td>
           2581
@@ -1198,7 +1198,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;parquet&quot;
         </td>
       </tr><tr>
@@ -1206,7 +1206,7 @@
           59
         </td>
         <td>
-          640
+          571
         </td>
         <td>
           2564
@@ -1219,7 +1219,7 @@
         <td>
           org.apache.spark.sql.DataFrameReader.schema
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           df_reader.format(&quot;parquet&quot;).schema(mapping.schema)
         </td>
       </tr><tr>
@@ -1227,7 +1227,7 @@
           60
         </td>
         <td>
-          642
+          573
         </td>
         <td>
           2664
@@ -1248,7 +1248,7 @@
           60
         </td>
         <td>
-          641
+          572
         </td>
         <td>
           2650
@@ -1269,7 +1269,7 @@
           60
         </td>
         <td>
-          643
+          574
         </td>
         <td>
           2633
@@ -1290,7 +1290,28 @@
           61
         </td>
         <td>
-          645
+          577
+        </td>
+        <td>
+          2699
+          -
+          2746
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.schema
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;json&quot;).schema(mapping.schema)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          576
         </td>
         <td>
           2731
@@ -1311,7 +1332,7 @@
           61
         </td>
         <td>
-          644
+          575
         </td>
         <td>
           2716
@@ -1329,31 +1350,10 @@
         </td>
       </tr><tr>
         <td>
-          61
-        </td>
-        <td>
-          646
-        </td>
-        <td>
-          2699
-          -
-          2746
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.spark.sql.DataFrameReader.schema
-        </td>
-        <td style="background: #F0ADAD">
-          df_reader.format(&quot;json&quot;).schema(mapping.schema)
-        </td>
-      </tr><tr>
-        <td>
           63
         </td>
         <td>
-          647
+          578
         </td>
         <td>
           2787
@@ -1374,7 +1374,7 @@
           64
         </td>
         <td>
-          648
+          579
         </td>
         <td>
           2984
@@ -1395,7 +1395,7 @@
           64
         </td>
         <td>
-          651
+          582
         </td>
         <td>
           3035
@@ -1416,7 +1416,7 @@
           64
         </td>
         <td>
-          650
+          581
         </td>
         <td>
           3026
@@ -1437,7 +1437,7 @@
           64
         </td>
         <td>
-          649
+          580
         </td>
         <td>
           3003
@@ -1458,7 +1458,7 @@
           64
         </td>
         <td>
-          652
+          583
         </td>
         <td>
           2967
@@ -1479,7 +1479,7 @@
           65
         </td>
         <td>
-          653
+          584
         </td>
         <td>
           3070
@@ -1500,7 +1500,7 @@
           69
         </td>
         <td>
-          654
+          585
         </td>
         <td>
           3165
@@ -1521,7 +1521,7 @@
           70
         </td>
         <td>
-          655
+          586
         </td>
         <td>
           3256
@@ -1542,7 +1542,7 @@
           73
         </td>
         <td>
-          656
+          587
         </td>
         <td>
           3354

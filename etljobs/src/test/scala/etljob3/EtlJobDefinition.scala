@@ -6,7 +6,8 @@ import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SparkSession, Dataset, SaveMode}
 import etljobs.EtlJob
-import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep, SparkETLStep}
+import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStateStep}
+import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
 import etljobs.functions.SparkUDF
 import etljobs.utils.{CSV, PARQUET, Settings}
 import org.apache.log4j.{Level, Logger}
@@ -38,10 +39,10 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
   * @param in raw dataset which needs to be enriched
   * @return ratings enriched dataframe
   */
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
+  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Input[Rating,Unit]) : Output[RatingOutput,Unit] = {
     val mapping = Encoders.product[RatingOutput]
 
-    val ratings_df = in
+    val ratings_df = in.ds
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
         .withColumn(temp_date_col, get_formatted_date("date","yyyy-MM-dd","yyyyMMdd"))
         .where(f"$temp_date_col in ('20160101', '20160102')")
@@ -57,10 +58,12 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
 
     ratings_df.drop(f"$temp_date_col")
 
-    ratings_df.as[RatingOutput](mapping)
+    val ratings_ds = ratings_df.as[RatingOutput](mapping)
+
+    Output[RatingOutput,Unit](ratings_ds,())
   }
 
-  val step1 = SparkReadWriteStep[Rating, RatingOutput](
+  val step1 = SparkReadWriteStateStep[Rating, Unit, RatingOutput, Unit](
     name                    = "LoadRatingsParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),

@@ -15,7 +15,7 @@ The project contains the following sub-modules:
 1. Import core packages:
 ```scala
 import etljobs.etlsteps.SparkReadWriteStep
-import etljobs.utils.{CSV,PARQUET}
+import etljobs.utils.{CSV,ORC}
 ```
 2. Define Job input and ouput locations:
 ```scala
@@ -37,7 +37,7 @@ val step1 = new SparkReadWriteStep[Rating, Rating](
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(),
     output_location         = job_properties("ratings_output_path"),
-    output_type             = PARQUET
+    output_type             = ORC
  )(spark,job_properties)
 ```
 5. Run this step individually as below:
@@ -65,12 +65,17 @@ case class RatingOutput(user_id:Int, movie_id: Int, rating: Double, timestamp: L
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(),
     transform_function      = Some(enrichRatingData(spark, job_properties)),
-    output_type             = PARQUET,
+    output_type             = ORC,
     output_location         = job_properties("ratings_output_path"),
   )(spark,job_properties)
 ```
 6. Lets add another step which will copy this transformed data in Bigquery table
 ```scala
+import etljobs.etlsteps.BQLoadStep
+import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
+  
+val bq: BigQuery = BigQueryOptions.getDefaultInstance.getService
+
 // Adding two new properties for Bigquery table and Dataset
 val job_properties: Map[String,String] = Map(
     "ratings_input_path" -> "gs://<some_bucket>/input/ratings/*",
@@ -82,7 +87,7 @@ val job_properties: Map[String,String] = Map(
 val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path"),
-    source_format       = PARQUET,
+    source_format       = ORC,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
   )(bq,job_properties)

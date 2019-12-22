@@ -20,6 +20,7 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
   Logger.getLogger("org").setLevel(Level.WARN)
 
   // Overriding Settings object to take local loaddata.properties
+  // Only required while testing on local, in production this file should be provided to spark using spark-submit
   override lazy val settings =  new Settings(new java.io.File(".").getCanonicalPath + "/etljobs/src/test/resources/loaddata.properties")
 
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {

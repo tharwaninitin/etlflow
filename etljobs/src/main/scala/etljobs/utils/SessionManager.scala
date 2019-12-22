@@ -84,7 +84,7 @@ trait SessionManager {
       spark
     }
     else {
-      throw new Exception("Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcs or aws or local")
+      throw new Exception("Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local")
     }
 
   }

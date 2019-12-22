@@ -2,27 +2,28 @@ Etljobs
 ====
 
 **Etljobs** is a library that help with faster ETL development using **Apache Spark**. At a very high level,
-the library provides abstraction on top of Spark that makes it easier to develop ETL applications which can be easily tested and composed. This library has **Google Bigquery** support as both ETL source and destination.
+the library provides abstraction on top of Spark that makes it easier to develop ETL applications which can be easily **Tested** and **Composed**. This library has **Google Bigquery** support as both ETL source and destination.
 
-The project contains the following sub-modules:
+This project contains following sub-modules:
 
 1. **etljobs**:
  This module contains core library which defines Scala internal **dsl** that assists with writing **ETL Job** which can be composed as multiple **ETL steps** in a concise manner which facilitates easier **Testing** and reasoning about the entire job. This module also conatins many [test jobs](etljobs/src/test/scala) which conatins multiple steps. This core library also contains tests and all jobs uses EtlJob API. To run all test successfully some properties needs to be set in [loaddata.properties](etljobs/src/test/resources/loaddata.properties) or set these properties as ENVIRONMENT variables.
  ```shell
  export GCS_OUTPUT_BUCKET=<...>
  export GCP_PROJECT=<...>
- export GCP_PROJECT_KEY_NAME=<...>
+ export GCP_PROJECT_KEY_NAME=<...> # this should be full path to Service Account Key Json which should have GCS and Biguery Read/Write access
  ```
  Now run tests using below sbt command
  ```shell
 sbt "project etljobs" test
 ```
-
-2. **examples**:
+2. **etlsteps**:
+ This package contains all type of ETL Steps that can be created with this library, click [here](etljobs/src/main/scala/etljobs/etlsteps) to see.
+3. **examples**:
  This module provides examples of diffferent types of ETL Jobs which can be created with this library, click [here](examples/src/main/scala/examples) to see code.
 
 ## Getting Started
-Clone this git repo and go inside repo root folder, enter below command (make sure you have sbt and scala installed)
+Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)
 ```shell
 sbt "project etljobs" console
 ```
@@ -44,6 +45,7 @@ val job_properties: Map[String,String] = Map(
 ```scala
 import org.apache.spark.sql.SparkSession
 org.apache.log4j.Logger.getLogger("org").setLevel(org.apache.log4j.Level.WARN)
+
 lazy val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
 ```
 4. Define ETL Step which will load ratings data with below schema as specified from CSV to PARQUET:
@@ -73,7 +75,7 @@ import org.apache.spark.sql.functions._
 
 case class RatingOutput(user_id:Int, movie_id: Int, rating: Double, timestamp: Long, date: java.sql.Date)
 
-def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
+def enrichRatingData()(in : Dataset[Rating]) : Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in
@@ -88,7 +90,7 @@ Now our step would change to something like this:
     name                    = "ConvertRatingsCSVtoORC",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(),
-    transform_function      = Some(enrichRatingData(spark, job_properties)),
+    transform_function      = Some(enrichRatingData()),
     output_type             = ORC,
     output_save_mode        = SaveMode.Overwrite,
     output_location         = job_properties("ratings_output_path"),
@@ -97,7 +99,7 @@ Now our step would change to something like this:
 
   step1.process()
 ```
-6. Lets add another step which will copy this transformed data in Bigquery table. For this step to work correctly [Google Cloud SDK](https://cloud.google.com/sdk/install) needs to be installed and configured 
+6. Lets add another step which will copy this transformed data in Bigquery table. For this step to work correctly [Google Cloud SDK](https://cloud.google.com/sdk/install) needs to be installed and configured as in this library upload from local file to Bigquery uses [bq command](https://cloud.google.com/bigquery/docs/bq-command-line-tool) which is only recommended to be used in testing environments as in production files should be present on **Google Cloud Storage** when uploading to Bigquery, see this [page](etljobs/src/main/scala/etljobs/etlsteps) for more details on each Step
 ```scala
 import etljobs.etlsteps.BQLoadStep
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}

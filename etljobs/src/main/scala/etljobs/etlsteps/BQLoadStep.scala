@@ -1,6 +1,6 @@
 package etljobs.etlsteps
 
-import etljobs.utils.{IOType, ORC, PARQUET}
+import etljobs.utils.{IOType, ORC, PARQUET, FSType, LOCAL, GCS}
 import org.apache.spark.sql.SparkSession
 import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo, StandardTableDefinition, TableId}
 import etljobs.bigquery.LoadApi
@@ -11,6 +11,7 @@ class BQLoadStep(
             ,source_path: => String = ""
             ,source_paths_partitions: => Seq[(String,String)] = Seq()
             ,source_format: IOType
+            ,source_file_system: FSType = LOCAL
             ,destination_dataset: String
             ,destination_table: String
             ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
@@ -29,21 +30,27 @@ class BQLoadStep(
         case _ => FormatOptions.parquet
       }
 
-      if (etl_metadata.getOrElse("test","false") == "true")
+      if (source_file_system == LOCAL) {
+        etl_logger.info(s"FileSystem: $source_file_system")
         LoadApi.loadIntoBQFromLocalFile(
           source_path,source_paths_partitions,source_format_bq
           ,destination_dataset,destination_table,write_disposition,create_disposition
         )
-      else if (source_paths_partitions.nonEmpty)
+      }
+      else if (source_paths_partitions.nonEmpty && source_file_system == GCS) {
+        etl_logger.info(s"FileSystem: $source_file_system")
         LoadApi.loadIntoPartitionedBQTableFromGCS(
           bq,source_paths_partitions,source_format_bq
           ,destination_dataset,destination_table,write_disposition,create_disposition
         )
-      else if (source_path != "") 
-      LoadApi.loadIntoUnpartitionedBQTableFromGCS(
-        bq,source_path,source_format_bq
-        ,destination_dataset,destination_table,write_disposition,create_disposition
-      )
+      }
+      else if (source_path != "" && source_file_system == GCS) {
+        etl_logger.info(s"FileSystem: $source_file_system")
+        LoadApi.loadIntoUnpartitionedBQTableFromGCS(
+          bq,source_path,source_format_bq
+          ,destination_dataset,destination_table,write_disposition,create_disposition
+        )
+      }
       etl_logger.info("#################################################################################################")
     }
   }
@@ -73,8 +80,8 @@ class BQLoadStep(
     val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
     Map(name ->
       Map(
-        "num_rows" -> destinationTable.getNumRows.toString,
-        "size_mb" -> f"${destinationTable.getNumBytes / 1000000.0} MB"
+        "Total number of Rows" -> destinationTable.getNumRows.toString,
+        "Total size in MB" -> f"${destinationTable.getNumBytes / 1000000.0} MB"
       )
     )
   }
@@ -96,11 +103,12 @@ object BQLoadStep {
            ,source_path: String = ""
            ,source_paths_partitions: => Seq[(String,String)] = Seq()
            ,source_format: IOType
+           ,source_file_system: FSType = LOCAL
            ,destination_dataset: String
            ,destination_table: String
            ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
            ,create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
            )(bq: => BigQuery,etl_metadata : Map[String, String]): BQLoadStep = {
-    new BQLoadStep(name, source_path, source_paths_partitions, source_format, destination_dataset, destination_table, write_disposition, create_disposition)(bq,etl_metadata)
+    new BQLoadStep(name, source_path, source_paths_partitions, source_format, source_file_system, destination_dataset, destination_table, write_disposition, create_disposition)(bq,etl_metadata)
   }
 }

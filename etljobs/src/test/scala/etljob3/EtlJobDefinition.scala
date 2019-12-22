@@ -9,7 +9,7 @@ import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStateStep}
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
 import etljobs.functions.SparkUDF
-import etljobs.utils.{CSV, PARQUET, Settings}
+import etljobs.utils.{CSV, PARQUET, Settings, FSType, GCS}
 import org.apache.log4j.{Level, Logger}
 import etljobs.utils.SessionManager
 import etljobs.spark.ReadApi
@@ -75,12 +75,13 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
     output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
   )(spark,job_properties)
 
-  val step2 = new BQLoadStep(
+  val step2 = BQLoadStep(
     name                    = "LoadRatingBQ",
     source_paths_partitions = output_date_paths,
+    source_format           = PARQUET,
+    source_file_system      = GCS,
     destination_dataset     = job_properties("ratings_output_dataset"),
-    destination_table       = job_properties("ratings_output_table_name"),
-    source_format           = PARQUET
+    destination_table       = job_properties("ratings_output_table_name")
   )(bq,job_properties)
 
   def apply() : List[EtlStep[Unit,Unit]] = List(step1,step2)

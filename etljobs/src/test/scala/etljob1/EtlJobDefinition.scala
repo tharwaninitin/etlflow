@@ -16,12 +16,6 @@ import etljobs.utils.SessionManager
 import EtlJobSchemas.{Rating, RatingOutput}
 import org.apache.log4j.{Level, Logger}
 
-/**
-* This example contains two steps and uses SessionManager for SparkSession and Bigquery 
-* In first step it reads ratings data from ratings_input_path mentioned in input parameters
-* then enrich it using function enrichRatingData and writes in ORC format at given output path
-* In second step it reads ORC data stored by step1 and writes it to BigQuery table
-*/
 
 class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob {
   var output_date_paths : Seq[String] = Seq()
@@ -30,14 +24,6 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob {
   // Overriding Settings object to take local loaddata.properties
   override lazy val settings =  new Settings(new java.io.File(".").getCanonicalPath + "/etljobs/src/test/resources/loaddata.properties")
 
-  /**
-  * Enriches ratings dataset by adding column date
-  * and casting column date to date type
-  * @param spark spark session
-  * @param job_properties map of key value containing input parameters
-  * @param in raw dataset which needs to be enriched
-  * @return ratings enriched dataframe
-  */
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 

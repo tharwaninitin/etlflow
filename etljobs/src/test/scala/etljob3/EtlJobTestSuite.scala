@@ -13,7 +13,8 @@ import EtlJobSchemas.{Rating,RatingOutput}
 class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
 
   val canonical_path = new java.io.File(".").getCanonicalPath
-
+  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
+  
   val create_table_script = """
   CREATE TABLE test.ratings_par (
     user_id INT64
@@ -25,9 +26,9 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   """
 
   val props : Map[String,String] = Map(
-    "job_name" -> "EtlJobMovieRatings",
-    "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
-    "ratings_output_path" -> "gs://<gcs_bucket_name>/output/ratings",
+    "job_name" -> "EtlJob3CSVtoPARQUETtoBQGcsWith2Steps",
+    "ratings_input_path" -> f"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
+    "ratings_output_path" -> f"gs://${settings.gcs_output_bucket}/output/ratings",
     "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings_par"
   )
@@ -36,7 +37,6 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   val state = etljob.execute(props)
   println(state)
 
-  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
   val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](
                                   Seq(props("ratings_input_path")), 
                                   CSV(",", true, props.getOrElse("parse_mode","FAILFAST"))

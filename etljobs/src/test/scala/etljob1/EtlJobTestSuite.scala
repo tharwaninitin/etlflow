@@ -14,19 +14,18 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   val canonical_path = new java.io.File(".").getCanonicalPath
 
   val props : Map[String,String] = Map(
-    "job_name" -> "EtlJobMovieRatings",
+    "job_name" -> "EtlJob1CSVtoORCtoBQLocalWith2StepsWithSlack",
     "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     "ratings_output_path" -> s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet",
-    "test" -> "true"
+    "ratings_output_file_name" -> "ratings.parquet"
     //,"aggregate_error" -> "true"
     //"parse_mode" -> "PERMISSIVE"
   )
 
   val etljob = new EtlJobDefinition(props)
-  etljob.execute(props)
+  etljob.execute(props,send_slack_notification = true)
 
   // Could use Hlist here for getting single step out of job
   // To get errors in CSV if any, run single step like this

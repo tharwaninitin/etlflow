@@ -24,12 +24,11 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   """
 
   val props : Map[String,String] = Map(
-    "job_name" -> "EtlJobMovieRatings",
+    "job_name" -> "EtlJob2CSVtoPARQUETtoBQLocalWith3Steps",
     "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     "ratings_output_path" -> s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",
-    "ratings_output_table_name" -> "ratings_par",
-    "test" -> "true"
+    "ratings_output_table_name" -> "ratings_par"
   )
 
   val etljob = new EtlJobDefinition(props)

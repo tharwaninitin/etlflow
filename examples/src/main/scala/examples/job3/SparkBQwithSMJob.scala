@@ -3,22 +3,14 @@ package examples.job3
 import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStep}
 import etljobs.utils.{CSV, PARQUET, SessionManager, Settings}
 import etljobs.functions.SparkUDF
-import examples.job3.RatingsSchemas.{Rating, RatingOutput}
+import RatingsSchemas.{Rating, RatingOutput}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Encoders, SparkSession}
 import org.apache.spark.sql.Dataset
 
-/**
-* This example contains two steps and uses SessionManager for SparkSession and Bigquery
-* In first step it reads ratings data from ratings_input_path mentioned in input parameters
-* then enrich it using function enrichRatingData and writes in PARQUET format at given output path
-*
-* In second step it reads PARQUET data stored by step1 and writes it to BigQuery table
-*/
-
-object RatingsEtlSparkBQJob extends App with SparkUDF with SessionManager {
+object SparkBQwithSMJob extends App with SparkUDF with SessionManager {
   // Use this logger level to change log information
   Logger.getLogger("org").setLevel(Level.WARN)
 
@@ -31,20 +23,9 @@ object RatingsEtlSparkBQJob extends App with SparkUDF with SessionManager {
     "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet",
-    //"parse_mode" -> "PERMISSIVE",
-    "test"-> "true"
+    "ratings_output_file_name" -> "ratings.parquet"
   )
 
-  /**
-    * RatingsEtlJob Enriches ratings dataset by adding columns year, date, date_int
-    * and casting column date to date type
-
-    * @param spark spark session
-    * @param job_properties map of key value containing input parameters
-    * @param in raw dataset which needs to be enriched with input state
-    * @return ratings enriched dataset with output state
-  */
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 

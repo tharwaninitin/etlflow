@@ -17,7 +17,8 @@ class Settings(filepath:String) {
   
   lazy val gcp_project                            = sys.env.getOrElse("GCP_PROJECT", config.getProperty("gcp_project")) 
   lazy val gcp_project_key_name                   = sys.env.getOrElse("GCP_PROJECT_KEY_NAME", config.getProperty("gcp_project_key_name"))
+  lazy val gcs_output_bucket                      = sys.env.getOrElse("GCS_OUTPUT_BUCKET", config.getProperty("gcs_output_bucket"))
   
-  lazy val slack_webhook_url                      = config.getProperty("slack_webhook_url")
-  lazy val slack_env                              = config.getProperty("slack_env")
+  lazy val slack_webhook_url                      = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getProperty("slack_webhook_url"))
+  lazy val slack_env                              = sys.env.getOrElse("SLACK_ENV", config.getProperty("slack_env"))
 }

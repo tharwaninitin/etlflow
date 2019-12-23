@@ -5,7 +5,7 @@ import etljobs.etlsteps.{SparkReadWriteStep}
 import etljobs.utils.{CSV,PARQUET}
 import org.apache.log4j.{Level, Logger}
 
-object RatingsEtlSparkJob extends App {
+object SparkJob extends App {
   Logger.getLogger("org").setLevel(Level.WARN)
   
   private lazy val spark : SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()

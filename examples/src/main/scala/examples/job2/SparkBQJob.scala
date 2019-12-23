@@ -6,7 +6,7 @@ import etljobs.etlsteps.{SparkReadWriteStep, BQLoadStep}
 import etljobs.utils.{CSV,PARQUET}
 import org.apache.log4j.{Level, Logger}
 
-object RatingsEtlSparkBQJob extends App {
+object SparkBQJob extends App {
   Logger.getLogger("org").setLevel(Level.WARN)
   
   private lazy val spark : SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
@@ -18,8 +18,7 @@ object RatingsEtlSparkBQJob extends App {
     "ratings_output_path" -> s"$canonical_path/examples/src/main/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings",
-    "ratings_output_file_name" -> "ratings.parquet",
-    "test"-> "true"
+    "ratings_output_file_name" -> "ratings.parquet"
   )
 
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )

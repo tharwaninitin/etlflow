@@ -80,9 +80,9 @@
 </span>56 <span style=''>  }
 </span>57 <span style=''>
 </span>58 <span style=''>  override def getStepProperties : Map[String,String] = {
-</span>59 <span style=''>    val in_map = </span><span style='background: #AEF1AE'>ReadApi.LoadDSHelper[T](input_location,input_type).toList</span><span style=''>
-</span>60 <span style=''>    val out_map = </span><span style='background: #AEF1AE'>WriteApi.WriteDSHelper[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList</span><span style=''>
-</span>61 <span style=''>    (</span><span style='background: #AEF1AE'>in_map ++ out_map).toMap</span><span style=''>
+</span>59 <span style=''>    val in_map = </span><span style='background: #F0ADAD'>ReadApi.LoadDSHelper[T](input_location,input_type).toList</span><span style=''>
+</span>60 <span style=''>    val out_map = </span><span style='background: #F0ADAD'>WriteApi.WriteDSHelper[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList</span><span style=''>
+</span>61 <span style=''>    (</span><span style='background: #F0ADAD'>in_map ++ out_map).toMap</span><span style=''>
 </span>62 <span style=''>  }
 </span>63 <span style=''>
 </span>64 <span style=''>  override def getExecutionMetrics : Map[String, Map[String,String]] = {
@@ -133,7 +133,7 @@
           25
         </td>
         <td>
-          255
+          305
         </td>
         <td>
           1060
@@ -154,7 +154,7 @@
           26
         </td>
         <td>
-          256
+          306
         </td>
         <td>
           1088
@@ -175,7 +175,7 @@
           29
         </td>
         <td>
-          303
+          353
         </td>
         <td>
           1153
@@ -247,7 +247,7 @@
           30
         </td>
         <td>
-          262
+          312
         </td>
         <td>
           1164
@@ -277,7 +277,7 @@
           30
         </td>
         <td>
-          261
+          311
         </td>
         <td>
           1200
@@ -298,7 +298,7 @@
           32
         </td>
         <td>
-          260
+          310
         </td>
         <td>
           1296
@@ -319,7 +319,28 @@
           33
         </td>
         <td>
-          259
+          307
+        </td>
+        <td>
+          1346
+          -
+          1394
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.executor.OutputMetrics.recordsWritten
+        </td>
+        <td style="background: #AEF1AE">
+          taskEnd.taskMetrics.outputMetrics.recordsWritten
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          309
         </td>
         <td>
           1323
@@ -340,7 +361,7 @@
           33
         </td>
         <td>
-          258
+          308
         </td>
         <td>
           1323
@@ -358,31 +379,10 @@
         </td>
       </tr><tr>
         <td>
-          33
-        </td>
-        <td>
-          257
-        </td>
-        <td>
-          1346
-          -
-          1394
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.executor.OutputMetrics.recordsWritten
-        </td>
-        <td style="background: #AEF1AE">
-          taskEnd.taskMetrics.outputMetrics.recordsWritten
-        </td>
-      </tr><tr>
-        <td>
           37
         </td>
         <td>
-          263
+          313
         </td>
         <td>
           1432
@@ -403,28 +403,28 @@
           38
         </td>
         <td>
-          265
+          316
         </td>
         <td>
-          1598
+          1594
           -
-          1599
+          1598
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          etljobs.etlsteps.SparkReadWriteStateStep.name
         </td>
         <td style="background: #AEF1AE">
-          &quot;&quot;
+          SparkReadWriteStateStep.this.name
         </td>
       </tr><tr>
         <td>
           38
         </td>
         <td>
-          268
+          318
         </td>
         <td>
           1555
@@ -445,7 +445,28 @@
           38
         </td>
         <td>
-          267
+          315
+        </td>
+        <td>
+          1598
+          -
+          1599
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          317
         </td>
         <td>
           1571
@@ -466,7 +487,7 @@
           38
         </td>
         <td>
-          264
+          314
         </td>
         <td>
           1573
@@ -484,31 +505,52 @@
         </td>
       </tr><tr>
         <td>
-          38
+          39
         </td>
         <td>
-          266
+          322
         </td>
         <td>
-          1594
+          1630
           -
-          1598
+          1630
         </td>
         <td>
-          Select
+          TypeApply
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.name
+          etljobs.spark.ReadApi.LoadDS$default$4
         </td>
         <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.name
+          etljobs.spark.ReadApi.LoadDS$default$4[T]
         </td>
       </tr><tr>
         <td>
           39
         </td>
         <td>
-          271
+          319
+        </td>
+        <td>
+          1634
+          -
+          1648
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.input_location
+        </td>
+        <td style="background: #AEF1AE">
+          SparkReadWriteStateStep.this.input_location
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          321
         </td>
         <td>
           1630
@@ -529,7 +571,7 @@
           39
         </td>
         <td>
-          274
+          324
         </td>
         <td>
           1616
@@ -550,28 +592,7 @@
           39
         </td>
         <td>
-          270
-        </td>
-        <td>
-          1649
-          -
-          1659
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.input_type
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.input_type
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          273
+          323
         </td>
         <td>
           1660
@@ -592,49 +613,28 @@
           39
         </td>
         <td>
-          272
+          320
         </td>
         <td>
-          1630
+          1649
           -
-          1630
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.ReadApi.LoadDS$default$4
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.ReadApi.LoadDS$default$4[T]
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          269
-        </td>
-        <td>
-          1634
-          -
-          1648
+          1659
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.input_location
+          etljobs.etlsteps.SparkReadWriteStateStep.input_type
         </td>
         <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.input_location
+          SparkReadWriteStateStep.this.input_type
         </td>
       </tr><tr>
         <td>
           41
         </td>
         <td>
-          275
+          325
         </td>
         <td>
           1678
@@ -655,7 +655,7 @@
           43
         </td>
         <td>
-          277
+          327
         </td>
         <td>
           1755
@@ -676,7 +676,7 @@
           43
         </td>
         <td>
-          276
+          326
         </td>
         <td>
           1758
@@ -697,154 +697,7 @@
           44
         </td>
         <td>
-          286
-        </td>
-        <td>
-          1946
-          -
-          1955
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.Output.ds
-        </td>
-        <td style="background: #AEF1AE">
-          output.ds
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          280
-        </td>
-        <td>
-          1854
-          -
-          1874
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_partition_col
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_partition_col
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          283
-        </td>
-        <td>
-          1923
-          -
-          1944
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_repartitioning
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_repartitioning
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          285
-        </td>
-        <td>
-          1820
-          -
-          1820
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.WriteApi.WriteDS$default$7
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.WriteApi.WriteDS$default$7[O]
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          288
-        </td>
-        <td>
-          1804
-          -
-          1959
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.spark.WriteApi.WriteDS
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.WriteApi.WriteDS[O](x$1, x$2, x$3, x$4, x$5, x$7, x$8, x$6)(x$9, x$10)(SparkReadWriteStateStep.this.evidence$2)
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          279
-        </td>
-        <td>
-          1837
-          -
-          1852
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_location
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_location
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          282
-        </td>
-        <td>
-          1894
-          -
-          1909
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_filename
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_filename
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          281
+          331
         </td>
         <td>
           1876
@@ -865,7 +718,7 @@
           44
         </td>
         <td>
-          284
+          334
         </td>
         <td>
           1820
@@ -886,7 +739,7 @@
           44
         </td>
         <td>
-          287
+          337
         </td>
         <td>
           1945
@@ -907,7 +760,7 @@
           44
         </td>
         <td>
-          278
+          328
         </td>
         <td>
           1824
@@ -925,10 +778,157 @@
         </td>
       </tr><tr>
         <td>
+          44
+        </td>
+        <td>
+          336
+        </td>
+        <td>
+          1946
+          -
+          1955
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.Output.ds
+        </td>
+        <td style="background: #AEF1AE">
+          output.ds
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          330
+        </td>
+        <td>
+          1854
+          -
+          1874
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_partition_col
+        </td>
+        <td style="background: #AEF1AE">
+          SparkReadWriteStateStep.this.output_partition_col
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          333
+        </td>
+        <td>
+          1923
+          -
+          1944
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_repartitioning
+        </td>
+        <td style="background: #AEF1AE">
+          SparkReadWriteStateStep.this.output_repartitioning
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          332
+        </td>
+        <td>
+          1894
+          -
+          1909
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_filename
+        </td>
+        <td style="background: #AEF1AE">
+          SparkReadWriteStateStep.this.output_filename
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          335
+        </td>
+        <td>
+          1820
+          -
+          1820
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          etljobs.spark.WriteApi.WriteDS$default$7
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.spark.WriteApi.WriteDS$default$7[O]
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          1804
+          -
+          1959
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.spark.WriteApi.WriteDS
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.spark.WriteApi.WriteDS[O](x$1, x$2, x$3, x$4, x$5, x$7, x$8, x$6)(x$9, x$10)(SparkReadWriteStateStep.this.evidence$2)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          329
+        </td>
+        <td>
+          1837
+          -
+          1852
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_location
+        </td>
+        <td style="background: #AEF1AE">
+          SparkReadWriteStateStep.this.output_location
+        </td>
+      </tr><tr>
+        <td>
           45
         </td>
         <td>
-          289
+          339
         </td>
         <td>
           1970
@@ -949,7 +949,7 @@
           46
         </td>
         <td>
-          290
+          340
         </td>
         <td>
           2097
@@ -970,154 +970,28 @@
           49
         </td>
         <td>
-          295
+          346
         </td>
         <td>
-          2241
+          2270
           -
-          2256
+          2291
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_filename
+          etljobs.etlsteps.SparkReadWriteStateStep.output_repartitioning
         </td>
         <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.output_filename
+          SparkReadWriteStateStep.this.output_repartitioning
         </td>
       </tr><tr>
         <td>
           49
         </td>
         <td>
-          298
-        </td>
-        <td>
-          2167
-          -
-          2167
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.WriteApi.WriteDS$default$7
-        </td>
-        <td style="background: #F0ADAD">
-          etljobs.spark.WriteApi.WriteDS$default$7[T]
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          292
-        </td>
-        <td>
-          2184
-          -
-          2199
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_location
-        </td>
-        <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.output_location
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          300
-        </td>
-        <td>
-          2151
-          -
-          2299
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.spark.WriteApi.WriteDS
-        </td>
-        <td style="background: #F0ADAD">
-          etljobs.spark.WriteApi.WriteDS[T](x$11, x$12, x$13, x$14, x$15, x$17, x$18, x$16)(x$19, x$20)(SparkReadWriteStateStep.this.evidence$1)
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          294
-        </td>
-        <td>
-          2223
-          -
-          2239
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_save_mode
-        </td>
-        <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.output_save_mode
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          297
-        </td>
-        <td>
-          2167
-          -
-          2167
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.WriteApi.WriteDS$default$6
-        </td>
-        <td style="background: #F0ADAD">
-          etljobs.spark.WriteApi.WriteDS$default$6[T]
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          291
-        </td>
-        <td>
-          2171
-          -
-          2182
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_type
-        </td>
-        <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.output_type
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          299
+          349
         </td>
         <td>
           2292
@@ -1138,7 +1012,7 @@
           49
         </td>
         <td>
-          293
+          343
         </td>
         <td>
           2201
@@ -1159,28 +1033,154 @@
           49
         </td>
         <td>
-          296
+          345
         </td>
         <td>
-          2270
+          2241
           -
-          2291
+          2256
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_repartitioning
+          etljobs.etlsteps.SparkReadWriteStateStep.output_filename
         </td>
         <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.output_repartitioning
+          SparkReadWriteStateStep.this.output_filename
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          348
+        </td>
+        <td>
+          2167
+          -
+          2167
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          etljobs.spark.WriteApi.WriteDS$default$7
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.spark.WriteApi.WriteDS$default$7[T]
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          2184
+          -
+          2199
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_location
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_location
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          341
+        </td>
+        <td>
+          2171
+          -
+          2182
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_type
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_type
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          350
+        </td>
+        <td>
+          2151
+          -
+          2299
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.spark.WriteApi.WriteDS
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.spark.WriteApi.WriteDS[T](x$11, x$12, x$13, x$14, x$15, x$17, x$18, x$16)(x$19, x$20)(SparkReadWriteStateStep.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          344
+        </td>
+        <td>
+          2223
+          -
+          2239
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_save_mode
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_save_mode
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          347
+        </td>
+        <td>
+          2167
+          -
+          2167
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          etljobs.spark.WriteApi.WriteDS$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.spark.WriteApi.WriteDS$default$6[T]
         </td>
       </tr><tr>
         <td>
           50
         </td>
         <td>
-          301
+          351
         </td>
         <td>
           2310
@@ -1201,7 +1201,7 @@
           51
         </td>
         <td>
-          302
+          352
         </td>
         <td>
           2437
@@ -1222,112 +1222,7 @@
           59
         </td>
         <td>
-          304
-        </td>
-        <td>
-          2600
-          -
-          2614
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.input_location
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.input_location
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          307
-        </td>
-        <td>
-          2596
-          -
-          2596
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.ReadApi.LoadDSHelper$default$4
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.ReadApi.LoadDSHelper$default$4[T]
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          309
-        </td>
-        <td>
-          2576
-          -
-          2633
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.TraversableOnce.toList
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.ReadApi.LoadDSHelper[T](SparkReadWriteStateStep.this.input_location, SparkReadWriteStateStep.this.input_type, etljobs.spark.ReadApi.LoadDSHelper$default$3[T], etljobs.spark.ReadApi.LoadDSHelper$default$4[T])(SparkReadWriteStateStep.this.evidence$1).toList
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          306
-        </td>
-        <td>
-          2596
-          -
-          2596
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.ReadApi.LoadDSHelper$default$3
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.ReadApi.LoadDSHelper$default$3[T]
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          308
-        </td>
-        <td>
-          2599
-          -
-          2599
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.evidence$1
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.evidence$1
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          305
+          355
         </td>
         <td>
           2615
@@ -1340,162 +1235,141 @@
         <td>
           etljobs.etlsteps.SparkReadWriteStateStep.input_type
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           SparkReadWriteStateStep.this.input_type
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          313
+          358
         </td>
         <td>
-          2730
+          2599
           -
-          2746
+          2599
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_save_mode
+          etljobs.etlsteps.SparkReadWriteStateStep.evidence$1
         </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_save_mode
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.evidence$1
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          316
+          354
         </td>
         <td>
-          2674
+          2600
           -
-          2674
+          2614
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.input_location
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.input_location
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          2596
+          -
+          2596
         </td>
         <td>
           TypeApply
         </td>
         <td>
-          etljobs.spark.WriteApi.WriteDSHelper$default$6
+          etljobs.spark.ReadApi.LoadDSHelper$default$4
         </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.WriteApi.WriteDSHelper$default$6[O]
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          319
-        </td>
-        <td>
-          2652
-          -
-          2799
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.spark.WriteApi.WriteDSHelper
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.spark.WriteApi.WriteDSHelper[O](x$21, x$22, x$23, x$24, x$25, x$27, x$28, x$26)(SparkReadWriteStateStep.this.evidence$2)
+        <td style="background: #F0ADAD">
+          etljobs.spark.ReadApi.LoadDSHelper$default$4[T]
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          310
+          359
         </td>
         <td>
-          2678
+          2576
           -
-          2689
+          2633
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_type
+          scala.collection.TraversableOnce.toList
         </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_type
+        <td style="background: #F0ADAD">
+          etljobs.spark.ReadApi.LoadDSHelper[T](SparkReadWriteStateStep.this.input_location, SparkReadWriteStateStep.this.input_type, etljobs.spark.ReadApi.LoadDSHelper$default$3[T], etljobs.spark.ReadApi.LoadDSHelper$default$4[T])(SparkReadWriteStateStep.this.evidence$1).toList
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          356
+        </td>
+        <td>
+          2596
+          -
+          2596
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          etljobs.spark.ReadApi.LoadDSHelper$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.spark.ReadApi.LoadDSHelper$default$3[T]
         </td>
       </tr><tr>
         <td>
           60
         </td>
         <td>
-          318
+          364
         </td>
         <td>
-          2677
+          2748
           -
-          2677
+          2763
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.evidence$2
+          etljobs.etlsteps.SparkReadWriteStateStep.output_filename
         </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.evidence$2
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          312
-        </td>
-        <td>
-          2708
-          -
-          2728
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_partition_col
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_partition_col
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_filename
         </td>
       </tr><tr>
         <td>
           60
         </td>
         <td>
-          315
-        </td>
-        <td>
-          2777
-          -
-          2798
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_repartitioning
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_repartitioning
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          317
+          367
         </td>
         <td>
           2674
@@ -1508,7 +1382,7 @@
         <td>
           etljobs.spark.WriteApi.WriteDSHelper$default$7
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           etljobs.spark.WriteApi.WriteDSHelper$default$7[O]
         </td>
       </tr><tr>
@@ -1516,7 +1390,7 @@
           60
         </td>
         <td>
-          320
+          370
         </td>
         <td>
           2652
@@ -1529,7 +1403,7 @@
         <td>
           scala.collection.TraversableOnce.toList
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           {
   &lt;artifact&gt; val x$21: etljobs.utils.IOType = SparkReadWriteStateStep.this.output_type;
   &lt;artifact&gt; val x$22: String = SparkReadWriteStateStep.this.output_location;
@@ -1547,7 +1421,7 @@
           60
         </td>
         <td>
-          311
+          361
         </td>
         <td>
           2691
@@ -1560,7 +1434,7 @@
         <td>
           etljobs.etlsteps.SparkReadWriteStateStep.output_location
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           SparkReadWriteStateStep.this.output_location
         </td>
       </tr><tr>
@@ -1568,70 +1442,154 @@
           60
         </td>
         <td>
-          314
+          369
         </td>
         <td>
-          2748
+          2652
           -
-          2763
+          2799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.spark.WriteApi.WriteDSHelper
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.spark.WriteApi.WriteDSHelper[O](x$21, x$22, x$23, x$24, x$25, x$27, x$28, x$26)(SparkReadWriteStateStep.this.evidence$2)
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          2678
+          -
+          2689
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.output_filename
+          etljobs.etlsteps.SparkReadWriteStateStep.output_type
         </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.output_filename
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_type
         </td>
       </tr><tr>
         <td>
-          61
+          60
         </td>
         <td>
-          322
+          363
         </td>
         <td>
-          2831
+          2730
           -
-          2831
+          2746
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_save_mode
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_save_mode
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          2674
+          -
+          2674
         </td>
         <td>
           TypeApply
         </td>
         <td>
-          scala.Predef.$conforms
+          etljobs.spark.WriteApi.WriteDSHelper$default$6
         </td>
-        <td style="background: #AEF1AE">
-          scala.this.Predef.$conforms[(String, String)]
+        <td style="background: #F0ADAD">
+          etljobs.spark.WriteApi.WriteDSHelper$default$6[O]
         </td>
       </tr><tr>
         <td>
-          61
+          60
         </td>
         <td>
-          321
+          368
         </td>
         <td>
-          2819
+          2677
           -
-          2819
+          2677
         </td>
         <td>
-          TypeApply
+          Select
         </td>
         <td>
-          scala.collection.immutable.List.canBuildFrom
+          etljobs.etlsteps.SparkReadWriteStateStep.evidence$2
         </td>
-        <td style="background: #AEF1AE">
-          immutable.this.List.canBuildFrom[(String, String)]
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.evidence$2
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          2708
+          -
+          2728
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_partition_col
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_partition_col
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          2777
+          -
+          2798
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.output_repartitioning
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.output_repartitioning
         </td>
       </tr><tr>
         <td>
           61
         </td>
         <td>
-          323
+          373
         </td>
         <td>
           2812
@@ -1644,15 +1602,78 @@
         <td>
           scala.collection.TraversableOnce.toMap
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           in_map.++[(String, String), List[(String, String)]](out_map)(immutable.this.List.canBuildFrom[(String, String)]).toMap[String, String](scala.this.Predef.$conforms[(String, String)])
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          2831
+          -
+          2831
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Predef.$conforms[(String, String)]
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          2819
+          -
+          2819
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          immutable.this.List.canBuildFrom[(String, String)]
         </td>
       </tr><tr>
         <td>
           65
         </td>
         <td>
-          330
+          379
+        </td>
+        <td>
+          2923
+          -
+          3001
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.ArrowAssoc[String](SparkReadWriteStateStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.this.Predef.Map.apply[String, String](scala.this.Predef.ArrowAssoc[String](&quot;Number of records written&quot;).-&gt;[String](SparkReadWriteStateStep.this.recordsWrittenCount.toString())))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          380
         </td>
         <td>
           2919
@@ -1673,7 +1694,7 @@
           65
         </td>
         <td>
-          324
+          374
         </td>
         <td>
           2923
@@ -1691,52 +1712,31 @@
         </td>
       </tr><tr>
         <td>
-          65
+          66
         </td>
         <td>
-          329
+          376
         </td>
         <td>
-          2923
+          2972
           -
-          3001
+          3000
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Predef.ArrowAssoc.-&gt;
+          scala.Any.toString
         </td>
         <td style="background: #AEF1AE">
-          scala.this.Predef.ArrowAssoc[String](SparkReadWriteStateStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.this.Predef.Map.apply[String, String](scala.this.Predef.ArrowAssoc[String](&quot;Number of records written&quot;).-&gt;[String](SparkReadWriteStateStep.this.recordsWrittenCount.toString())))
+          SparkReadWriteStateStep.this.recordsWrittenCount.toString()
         </td>
       </tr><tr>
         <td>
           66
         </td>
         <td>
-          325
-        </td>
-        <td>
-          2941
-          -
-          2968
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Number of records written&quot;
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          328
+          378
         </td>
         <td>
           2937
@@ -1757,7 +1757,28 @@
           66
         </td>
         <td>
-          327
+          375
+        </td>
+        <td>
+          2941
+          -
+          2968
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Number of records written&quot;
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          377
         </td>
         <td>
           2941
@@ -1775,94 +1796,10 @@
         </td>
       </tr><tr>
         <td>
-          66
-        </td>
-        <td>
-          326
-        </td>
-        <td>
-          2972
-          -
-          3000
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Any.toString
-        </td>
-        <td style="background: #AEF1AE">
-          SparkReadWriteStateStep.this.recordsWrittenCount.toString()
-        </td>
-      </tr><tr>
-        <td>
           71
         </td>
         <td>
-          331
-        </td>
-        <td>
-          3073
-          -
-          3097
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Corrupted data for job &quot;
-        </td>
-      </tr><tr>
-        <td>
-          71
-        </td>
-        <td>
-          334
-        </td>
-        <td>
-          3071
-          -
-          3103
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;Corrupted data for job &quot;, &quot;:&quot;).s(SparkReadWriteStateStep.this.name)
-        </td>
-      </tr><tr>
-        <td>
-          71
-        </td>
-        <td>
-          333
-        </td>
-        <td>
-          3097
-          -
-          3101
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.name
-        </td>
-        <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.name
-        </td>
-      </tr><tr>
-        <td>
-          71
-        </td>
-        <td>
-          332
+          382
         </td>
         <td>
           3101
@@ -1883,7 +1820,7 @@
           71
         </td>
         <td>
-          335
+          385
         </td>
         <td>
           3055
@@ -1901,94 +1838,73 @@
         </td>
       </tr><tr>
         <td>
-          72
+          71
         </td>
         <td>
-          340
+          381
         </td>
         <td>
-          3162
+          3073
           -
-          3162
+          3097
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Corrupted data for job &quot;
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          3071
+          -
+          3103
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Corrupted data for job &quot;, &quot;:&quot;).s(SparkReadWriteStateStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          3097
+          -
+          3101
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.evidence$1
+          etljobs.etlsteps.SparkReadWriteStateStep.name
         </td>
         <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.evidence$1
+          SparkReadWriteStateStep.this.name
         </td>
       </tr><tr>
         <td>
           72
         </td>
         <td>
-          337
-        </td>
-        <td>
-          3151
-          -
-          3161
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.input_type
-        </td>
-        <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.input_type
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          336
-        </td>
-        <td>
-          3136
-          -
-          3150
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkReadWriteStateStep.input_location
-        </td>
-        <td style="background: #F0ADAD">
-          SparkReadWriteStateStep.this.input_location
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          339
-        </td>
-        <td>
-          3132
-          -
-          3132
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          etljobs.spark.ReadApi.LoadDS$default$4
-        </td>
-        <td style="background: #F0ADAD">
-          etljobs.spark.ReadApi.LoadDS$default$4[T]
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          341
+          391
         </td>
         <td>
           3118
@@ -2009,7 +1925,7 @@
           72
         </td>
         <td>
-          338
+          388
         </td>
         <td>
           3132
@@ -2027,10 +1943,94 @@
         </td>
       </tr><tr>
         <td>
+          72
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          3151
+          -
+          3161
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.input_type
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.input_type
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          390
+        </td>
+        <td>
+          3162
+          -
+          3162
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          3136
+          -
+          3150
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkReadWriteStateStep.input_location
+        </td>
+        <td style="background: #F0ADAD">
+          SparkReadWriteStateStep.this.input_location
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          3132
+          -
+          3132
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          etljobs.spark.ReadApi.LoadDS$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.spark.ReadApi.LoadDS$default$4[T]
+        </td>
+      </tr><tr>
+        <td>
           73
         </td>
         <td>
-          342
+          392
         </td>
         <td>
           3171
@@ -2051,7 +2051,7 @@
           93
         </td>
         <td>
-          343
+          393
         </td>
         <td>
           4070

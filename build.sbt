@@ -1,5 +1,5 @@
 val ScalaVersion = "2.11.12"
-val SparkVersion = "2.4.0"
+val SparkVersion = "2.4.4"
 val GCloudVersion = "1.80.0"
 val HadoopGCSVersion = "1.6.1-hadoop2"
 
@@ -9,7 +9,7 @@ val gcloudBQ = "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
 val hadoopGCS = "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
-version in ThisBuild := "0.4.0"
+version in ThisBuild := "0.5.0"
 
 // To run test sequentially instead of default parallel execution
 Global / concurrentRestrictions := Seq(

@@ -14,8 +14,7 @@ import scala.util.Try
  */
 object SlackManager{
 
-  private var final_slack_message = ""
-  var error_occured : Boolean = false
+  var final_slack_message = ""
   var job_properties : Map[String,String] = Map()
   var webhook_url: String = ""
   var env: String = ""

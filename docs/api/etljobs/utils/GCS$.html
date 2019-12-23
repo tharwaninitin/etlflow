@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>BQLoadStep - etljobs.etlsteps.BQLoadStep</title>
-          <meta name="description" content="BQLoadStep - etljobs.etlsteps.BQLoadStep" />
-          <meta name="keywords" content="BQLoadStep etljobs.etlsteps.BQLoadStep" />
+          <title>GCS - etljobs.utils.GCS</title>
+          <meta name="description" content="GCS - etljobs.utils.GCS" />
+          <meta name="keywords" content="GCS etljobs.utils.GCS" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'etljobs.etlsteps.BQLoadStep';
+            var hash = 'etljobs.utils.GCS$';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -26,16 +26,14 @@
    	  </script>
     
         </head>
-        <body class="type">
+        <body class="value">
       <div id="definition">
-        <a href="BQLoadStep$.html" title="See companion object"><img alt="Class/Object" src="../../lib/class_to_object_big.png" /></a>
-        <p id="owner"><a href="../package.html" class="extype" name="etljobs">etljobs</a>.<a href="package.html" class="extype" name="etljobs.etlsteps">etlsteps</a></p>
-        <h1><a href="BQLoadStep$.html" title="See companion object">BQLoadStep</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="BQLoadStep$.html" title="See companion object">object BQLoadStep</a>
-            | <a href="package.html" class="extype" name="etljobs.etlsteps">package etlsteps</a>
+        <img alt="Object" src="../../lib/object_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="etljobs">etljobs</a>.<a href="package.html" class="extype" name="etljobs.utils">utils</a></p>
+        <h1>GCS</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="etljobs.utils">package utils</a>
           </div></span></h3><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -44,16 +42,16 @@
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">BQLoadStep</span><span class="result"> extends <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">GCS</span><span class="result"> extends <a href="FSType.html" class="extype" name="etljobs.utils.FSType">FSType</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="FSType.html" class="extype" name="etljobs.utils.FSType">FSType</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -71,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="etljobs.etlsteps.BQLoadStep"><span>BQLoadStep</span></li><li class="in" name="etljobs.etlsteps.EtlStep"><span>EtlStep</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="etljobs.utils.GCS"><span>GCS</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="etljobs.utils.FSType"><span>FSType</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -88,27 +86,7 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="etljobs.etlsteps.BQLoadStep#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(name:String,source_path:=&gt;String,source_paths_partitions:=&gt;Seq[(String,String)],source_format:etljobs.utils.IOType,source_file_system:etljobs.utils.FSType,destination_dataset:String,destination_table:String,write_disposition:com.google.cloud.bigquery.JobInfo.WriteDisposition,create_disposition:com.google.cloud.bigquery.JobInfo.CreateDisposition)(bq:=&gt;com.google.cloud.bigquery.BigQuery,etl_metadata:Map[String,String]):etljobs.etlsteps.BQLoadStep"></a>
-      <a id="&lt;init&gt;:BQLoadStep"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">BQLoadStep</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="source_path">source_path: ⇒ <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="source_paths_partitions">source_paths_partitions: ⇒ <span class="extype" name="scala.Seq">Seq</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)] = <span class="symbol">Seq()</span></span>, <span name="source_format">source_format: <a href="../utils/IOType.html" class="extype" name="etljobs.utils.IOType">IOType</a></span>, <span name="source_file_system">source_file_system: <a href="../utils/FSType.html" class="extype" name="etljobs.utils.FSType">FSType</a> = <span class="symbol"><span class="name"><a href="../package.html">LOCAL</a></span></span></span>, <span name="destination_dataset">destination_dataset: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="destination_table">destination_table: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="write_disposition">write_disposition: <span class="extype" name="com.google.cloud.bigquery.JobInfo.WriteDisposition">WriteDisposition</span> = <span class="defval" name="JobInfo.WriteDisposition.WRITE_TRUNCATE">...</span></span>, <span name="create_disposition">create_disposition: <span class="extype" name="com.google.cloud.bigquery.JobInfo.CreateDisposition">CreateDisposition</span> = <span class="defval" name="JobInfo.CreateDisposition.CREATE_NEVER">...</span></span>)</span><span class="params">(<span name="bq">bq: ⇒ <span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span></span>, <span name="etl_metadata">etl_metadata: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@&lt;init&gt;(name:String,source_path:=&gt;String,source_paths_partitions:=&gt;Seq[(String,String)],source_format:etljobs.utils.IOType,source_file_system:etljobs.utils.FSType,destination_dataset:String,destination_table:String,write_disposition:com.google.cloud.bigquery.JobInfo.WriteDisposition,create_disposition:com.google.cloud.bigquery.JobInfo.CreateDisposition)(bq:=&gt;com.google.cloud.bigquery.BigQuery,etl_metadata:Map[String,String]):etljobs.etlsteps.BQLoadStep" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -128,7 +106,7 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -145,7 +123,7 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@##():Int" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@##():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -162,7 +140,7 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -179,7 +157,7 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -196,7 +174,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@clone():Object" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@clone():Object" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -219,7 +197,7 @@
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -236,28 +214,11 @@
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.etlsteps.EtlStep#etl_logger" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="etl_logger:org.apache.log4j.Logger"></a>
-      <a id="etl_logger:Logger"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.apache.log4j.Logger">Logger</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@etl_logger:org.apache.log4j.Logger" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -270,7 +231,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@finalize():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -293,58 +254,7 @@
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.etlsteps.BQLoadStep#getExecutionMetrics" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getExecutionMetrics:Map[String,Map[String,String]]"></a>
-      <a id="getExecutionMetrics:Map[String,Map[String,String]]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getExecutionMetrics</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@getExecutionMetrics:Map[String,Map[String,String]]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.etlsteps.BQLoadStep">BQLoadStep</a> → <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
-    </li><li name="etljobs.etlsteps.BQLoadStep#getStepProperties" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getStepProperties:Map[String,String]"></a>
-      <a id="getStepProperties:Map[String,String]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getStepProperties</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@getStepProperties:Map[String,String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.etlsteps.BQLoadStep">BQLoadStep</a> → <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <a id="hashCode():Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -361,28 +271,11 @@
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="etljobs.etlsteps.BQLoadStep#name" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="name:String"></a>
-      <a id="name:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@name:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.etlsteps.BQLoadStep">BQLoadStep</a> → <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -395,7 +288,7 @@
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -412,7 +305,7 @@
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@notify():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@notify():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -429,28 +322,11 @@
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="etljobs.etlsteps.BQLoadStep#process" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="process(input_state:Unit):scala.util.Try[Unit]"></a>
-      <a id="process(Unit):Try[Unit]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">process</span><span class="params">(<span name="input_state">input_state: <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@process(input_state:Unit):scala.util.Try[Unit]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.etlsteps.BQLoadStep">BQLoadStep</a> → <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -463,28 +339,11 @@
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
-      <a id="toString():String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@toString():String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -497,7 +356,7 @@
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@wait():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@wait():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -520,7 +379,7 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -543,7 +402,7 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.etlsteps.BQLoadStep@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.GCS$@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -563,8 +422,16 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="etljobs.etlsteps.EtlStep">
-              <h3>Inherited from <a href="EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</h3>
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="etljobs.utils.FSType">
+              <h3>Inherited from <a href="FSType.html" class="extype" name="etljobs.utils.FSType">FSType</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

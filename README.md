@@ -138,14 +138,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.11</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.4.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.5.0"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.4.0
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.5.0
 
 
 ## Documentation

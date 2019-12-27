@@ -14,6 +14,7 @@ trait EtlJob extends SessionManager {
   val etl_job_logger : Logger = Logger.getLogger(getClass.getName)
   var job_execution_state : Map[String, Map[String,String]] = Map.empty
   var error_occured : Boolean = false
+  val job_properties : Map[String,String]
 
   def apply() : List[EtlStep[Unit,Unit]]
 
@@ -29,10 +30,8 @@ trait EtlJob extends SessionManager {
     }
   }
 
-  def execute(job_properties : Map[String,String] = Map(), send_slack_notification: Boolean = false) : Map[String, Map[String,String]] = {
-    
+  def execute(send_slack_notification: Boolean = false) : Map[String, Map[String,String]] = {
     val job_start_time = System.nanoTime()
-    
     if (send_slack_notification) 
     {
       SlackManager.final_slack_message = ""
@@ -96,7 +95,7 @@ trait EtlJob extends SessionManager {
       }
     }
     val job_end_time = System.nanoTime()
-    etl_job_logger.info("Job completed in : " + (job_end_time - job_start_time) / 1000000000.0 / 60.0 + " mins")
+    etl_job_logger.info("Job completed successfully in : " + (job_end_time - job_start_time) / 1000000000.0 / 60.0 + " mins")
     job_execution_state
   }
 }

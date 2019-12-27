@@ -56,17 +56,17 @@ object ReadApi {
 
     val df_reader_options = input_type match {
       case CSV(delimiter,header_present,parse_mode) => df_reader.format("csv").schema(mapping.schema).option("columnNameOfCorruptRecord","_corrupt_record").option("delimiter", delimiter).option("header", header_present).option("mode", parse_mode)
-      case PARQUET => df_reader.format("parquet").schema(mapping.schema)
-      case ORC => df_reader.format("orc").schema(mapping.schema)
       case JSON => df_reader.format("json").schema(mapping.schema)
-      case JDBC(url, user, password) => df_reader.format("jdbc").schema(mapping.schema)
-        .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password)
-      case BQ => df_reader.format("bigquery").schema(mapping.schema).option("table", location.mkString)
+      case PARQUET => df_reader.format("parquet")
+      case ORC => df_reader.format("orc")
+      case JDBC(url, user, password, driver) => df_reader.format("jdbc")
+        .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password).option("driver", driver)
+      case BQ => df_reader.format("bigquery").option("table", location.mkString)
       case _ => df_reader.format("text")
     }
 
     val df = input_type match {
-      case JDBC(_,_,_) | BQ => df_reader_options.load().where(where_clause).selectExpr(select_clause: _*)
+      case JDBC(_,_,_,_) | BQ => df_reader_options.load().where(where_clause).selectExpr(select_clause: _*)
       case _ => df_reader_options.load(location: _*).where(where_clause).selectExpr(select_clause: _*)
     }
 

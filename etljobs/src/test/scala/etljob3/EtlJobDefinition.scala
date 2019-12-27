@@ -9,7 +9,7 @@ import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStateStep}
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
 import etljobs.functions.SparkUDF
-import etljobs.utils.{CSV, PARQUET, Settings, FSType, GCS}
+import etljobs.utils.{CSV, PARQUET, Settings, FSType}
 import org.apache.log4j.{Level, Logger}
 import etljobs.utils.SessionManager
 import etljobs.spark.ReadApi
@@ -22,14 +22,10 @@ import etljobs.spark.ReadApi
 * In second step it reads PARQUET data stored by step1 and writes it to BigQuery table
 */
 
-class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob with SparkUDF {
+class EtlJobDefinition(val job_properties : Map[String,String], val settings: Settings) extends EtlJob with SparkUDF {
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
-
-  // Overriding Settings object to take local loaddata.properties
-  // Only required while testing on local, in production this file should be provided to spark using spark-submit
-  override lazy val settings =  new Settings(new java.io.File(".").getCanonicalPath + "/etljobs/src/test/resources/loaddata.properties")
 
   /**
   * Enriches ratings dataset by adding columns date, date_int
@@ -80,7 +76,6 @@ class EtlJobDefinition(val job_properties : Map[String,String]) extends EtlJob w
     name                    = "LoadRatingBQ",
     source_paths_partitions = output_date_paths,
     source_format           = PARQUET,
-    source_file_system      = GCS,
     destination_dataset     = job_properties("ratings_output_dataset"),
     destination_table       = job_properties("ratings_output_table_name")
   )(bq,job_properties)

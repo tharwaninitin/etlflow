@@ -103,6 +103,7 @@ Now our step would change to something like this:
 ```scala
 import etljobs.etlsteps.BQLoadStep
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
+import etljobs.utils.LOCAL
 
 val bq: BigQuery = BigQueryOptions.getDefaultInstance.getService
 
@@ -119,6 +120,7 @@ val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     source_format       = ORC,
+    source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
   )(bq,job_properties)
@@ -138,14 +140,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.11</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.5.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.6.0"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.5.0
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.6.0
 
 
 ## Documentation

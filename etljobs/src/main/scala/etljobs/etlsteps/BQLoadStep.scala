@@ -11,7 +11,7 @@ class BQLoadStep(
             ,source_path: => String = ""
             ,source_paths_partitions: => Seq[(String,String)] = Seq()
             ,source_format: IOType
-            ,source_file_system: FSType = LOCAL
+            ,source_file_system: FSType = GCS
             ,destination_dataset: String
             ,destination_table: String
             ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
@@ -103,7 +103,7 @@ object BQLoadStep {
            ,source_path: String = ""
            ,source_paths_partitions: => Seq[(String,String)] = Seq()
            ,source_format: IOType
-           ,source_file_system: FSType = LOCAL
+           ,source_file_system: FSType = GCS
            ,destination_dataset: String
            ,destination_table: String
            ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE

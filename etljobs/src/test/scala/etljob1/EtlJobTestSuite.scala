@@ -4,10 +4,10 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.apache.spark.sql.{Dataset,Row}
 import etljobs.spark.ReadApi
 import etljobs.utils.SessionManager
-import etljobs.utils.{CSV, PARQUET, Settings}
+import etljobs.utils.{CSV, ORC, PARQUET, Settings}
 import etljobs.etlsteps.SparkReadWriteStateStep
 import etljobs.bigquery.QueryApi
-import EtlJobSchemas.{Rating,RatingOutput}
+import EtlJobSchemas.RatingOutput
 
 class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
 
@@ -15,7 +15,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
 
   val props : Map[String,String] = Map(
     "job_name" -> "EtlJob1CSVtoORCtoBQLocalWith2StepsWithSlack",
-    "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
+    "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_orc/*",
     "ratings_output_path" -> s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     "ratings_output_dataset" -> "test",
     "ratings_output_table_name" -> "ratings",
@@ -24,8 +24,11 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
     //"parse_mode" -> "PERMISSIVE"
   )
 
-  val etljob = new EtlJobDefinition(props)
-  etljob.execute(props,send_slack_notification = true)
+  // Overriding Settings object to take local loaddata.properties
+  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
+
+  val etljob = new EtlJobDefinition(props, settings)
+  etljob.execute(send_slack_notification = true)
 
   // Could use Hlist here for getting single step out of job
   // To get errors in CSV if any, run single step like this
@@ -33,13 +36,11 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   //    etl.asInstanceOf[SparkReadWriteStep[Rating , Unit, RatingOutput, Unit]].showCorruptedData()
   //  }
 
-  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
-  val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](
+  val raw : Dataset[RatingOutput] = ReadApi.LoadDS[RatingOutput](
                                   Seq(props("ratings_input_path")), 
-                                  CSV(",", true, props.getOrElse("parse_mode","FAILFAST"))
+                                  PARQUET
                                 )(spark)
-  val op : Dataset[RatingOutput] = etljob.enrichRatingData(spark, props)(raw)
-  val Row(sum_ratings: Double, count_ratings: Long) = op.selectExpr("sum(rating)","count(*)").first()
+  val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
 
   val destination_dataset = props("ratings_output_dataset")
   val destination_table = props("ratings_output_table_name")

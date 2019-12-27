@@ -24,11 +24,11 @@ trait SessionManager {
     def columnCount: Int = column_count
   }
 
-  lazy implicit val settings: Settings = new Settings("loaddata.properties")
-  lazy implicit val spark: SparkSession = createSparkSession
-  lazy implicit val bq: BigQuery = createBigQuerySession
+  val settings: Settings
+  lazy implicit val spark: SparkSession = createSparkSession(settings)
+  lazy implicit val bq: BigQuery = createBigQuerySession(settings)
 
-  def createSparkSession(implicit ss: Settings): SparkSession = {
+  def createSparkSession(ss: Settings): SparkSession = {
     if (ss.running_environment =="gcp") {
       val spark = SparkSession.builder()
         .config("spark.default.parallelism", ss.spark_concurrent_threads)
@@ -89,7 +89,7 @@ trait SessionManager {
 
   }
 
-  def createBigQuerySession(implicit ss:Settings): BigQuery = {
+  def createBigQuerySession(ss:Settings): BigQuery = {
     ic_logger.info(s"Job is running on env: ${ss.running_environment}")
     if (ss.running_environment == "gcp") BigQueryOptions.getDefaultInstance.getService
     else if (ss.running_environment == "aws" || ss.running_environment == "local")  {

@@ -14,14 +14,14 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
   val canonical_path = new java.io.File(".").getCanonicalPath
 
   val create_table_script = """
-  CREATE TABLE test.ratings_par (
-    user_id INT64
-  , movie_id INT64
-  , rating FLOAT64
-  , timestamp INT64
-  , date DATE
-  ) PARTITION BY date
-  """
+    CREATE TABLE test.ratings_par (
+      user_id INT64
+    , movie_id INT64
+    , rating FLOAT64
+    , timestamp INT64
+    , date DATE
+    ) PARTITION BY date
+    """
 
   val props : Map[String,String] = Map(
     "job_name" -> "EtlJob2CSVtoPARQUETtoBQLocalWith3Steps",
@@ -31,11 +31,13 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
     "ratings_output_table_name" -> "ratings_par"
   )
 
-  val etljob = new EtlJobDefinition(props)
-  val state = etljob.execute(props)
+  // Overriding Settings object to take local loaddata.properties
+  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
+
+  val etljob = new EtlJobDefinition(props, settings)
+  val state = etljob.execute()
   println(state)
 
-  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
   val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](
                                   Seq(props("ratings_input_path")), 
                                   CSV(",", true, props.getOrElse("parse_mode","FAILFAST"))

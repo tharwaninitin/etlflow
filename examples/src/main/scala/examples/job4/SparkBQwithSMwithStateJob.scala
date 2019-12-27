@@ -2,7 +2,7 @@ package examples.job4
 
 import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStateStep}
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
-import etljobs.utils.{CSV, PARQUET, SessionManager, Settings}
+import etljobs.utils.{CSV, PARQUET, SessionManager, Settings, LOCAL}
 import etljobs.functions.SparkUDF
 import RatingsSchemas.{Rating, RatingOutput}
 import org.apache.log4j.{Level, Logger}
@@ -55,9 +55,10 @@ object SparkBQwithSMwithStateJob extends App with SparkUDF with SessionManager {
   val step2 = new BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
+    source_format       = PARQUET,
+    source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
-    destination_table   = job_properties("ratings_output_table_name"),
-    source_format       = PARQUET
+    destination_table   = job_properties("ratings_output_table_name")
   )(bq,job_properties)
 
   //    step1.map(enrichRatingData(spark, job_properties))

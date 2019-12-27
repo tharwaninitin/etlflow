@@ -6,7 +6,7 @@ final case class CSV(delimiter : String = ",", header_present : Boolean = true, 
   override def toString: String = s"CSV with delimiter => $delimiter header_present => $header_present parse_mode => $parse_mode"
 }
 final case class MCSV(delimiter : String, no_of_columns : Int) extends IOType
-final case class JDBC(url: String, user: String, password: String) extends IOType {
+final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
   override def toString: String = s"JDBC with url => $url"
 }
 case object BQ extends IOType

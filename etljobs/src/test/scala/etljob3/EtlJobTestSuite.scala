@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.apache.spark.sql.{Dataset,Row}
 import etljobs.spark.ReadApi
 import etljobs.utils.SessionManager
-import etljobs.utils.{CSV, PARQUET, Settings}
+import etljobs.utils.{CSV, PARQUET}
 import etljobs.etlsteps.SparkReadWriteStateStep
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input,Output}
 import etljobs.bigquery.QueryApi
@@ -13,7 +13,7 @@ import EtlJobSchemas.{Rating,RatingOutput}
 class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
 
   val canonical_path = new java.io.File(".").getCanonicalPath
-  override lazy val settings =  new Settings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
+  override lazy val settings =  new MySettings(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
   
   val create_table_script = """
   CREATE TABLE test.ratings_par (
@@ -33,8 +33,8 @@ class EtlJobTestSuite extends FlatSpec with Matchers with SessionManager {
     "ratings_output_table_name" -> "ratings_par"
   )
 
-  val etljob = new EtlJobDefinition(props)
-  val state = etljob.execute(props)
+  val etljob = new EtlJobDefinition(props, settings)
+  val state = etljob.execute()
   println(state)
 
   val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](

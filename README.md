@@ -25,7 +25,7 @@ sbt "project etljobs" test
 ## Getting Started
 Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)
 ```shell
-sbt "project etljobs" console
+SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project etljobs" console
 ```
 1. Import core packages:
 ```scala
@@ -127,7 +127,7 @@ val step2 = BQLoadStep(
 
 step2.process()
 ```
-Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. Find full code [here](etljobs/src/test/scala/etljob1) along with **tests**
+Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. You can find similar code [here](etljobs/src/test/scala/etljob1) along with **tests**
 
 
 ## Requirements and Installation

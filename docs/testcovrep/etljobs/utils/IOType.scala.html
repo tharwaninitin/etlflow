@@ -27,10 +27,10 @@
 </span>3 <span style=''>sealed trait IOType
 </span>4 <span style=''>
 </span>5 <span style=''>final case class CSV(delimiter : String = &quot;,&quot;, header_present : Boolean = true, parse_mode : String = &quot;FAILFAST&quot;) extends IOType {
-</span>6 <span style=''>  override def toString: String = </span><span style='background: #AEF1AE'>s&quot;CSV with delimiter =&gt; $delimiter header_present =&gt; $header_present parse_mode =&gt; $parse_mode&quot;</span><span style=''>
+</span>6 <span style=''>  override def toString: String = </span><span style='background: #F0ADAD'>s&quot;CSV with delimiter =&gt; $delimiter header_present =&gt; $header_present parse_mode =&gt; $parse_mode&quot;</span><span style=''>
 </span>7 <span style=''>}
 </span>8 <span style=''>final case class MCSV(delimiter : String, no_of_columns : Int) extends IOType
-</span>9 <span style=''>final case class JDBC(url: String, user: String, password: String) extends IOType {
+</span>9 <span style=''>final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
 </span>10 <span style=''>  override def toString: String = </span><span style='background: #F0ADAD'>s&quot;JDBC with url =&gt; $url&quot;</span><span style=''>
 </span>11 <span style=''>}
 </span>12 <span style=''>case object BQ extends IOType
@@ -55,91 +55,7 @@
           6
         </td>
         <td>
-          696
-        </td>
-        <td>
-          234
-          -
-          243
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.utils.CSV.delimiter
-        </td>
-        <td style="background: #AEF1AE">
-          CSV.this.delimiter
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          699
-        </td>
-        <td>
-          209
-          -
-          304
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;CSV with delimiter =&gt; &quot;, &quot; header_present =&gt; &quot;, &quot; parse_mode =&gt; &quot;, &quot;&quot;).s(CSV.this.delimiter, CSV.this.header_present, CSV.this.parse_mode)
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          693
-        </td>
-        <td>
-          243
-          -
-          263
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot; header_present =&gt; &quot;
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          692
-        </td>
-        <td>
-          211
-          -
-          234
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;CSV with delimiter =&gt; &quot;
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          695
+          720
         </td>
         <td>
           303
@@ -152,7 +68,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           &quot;&quot;
         </td>
       </tr><tr>
@@ -160,7 +76,7 @@
           6
         </td>
         <td>
-          698
+          723
         </td>
         <td>
           293
@@ -173,7 +89,7 @@
         <td>
           etljobs.utils.CSV.parse_mode
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           CSV.this.parse_mode
         </td>
       </tr><tr>
@@ -181,28 +97,28 @@
           6
         </td>
         <td>
-          697
+          717
         </td>
         <td>
-          263
+          211
           -
-          277
+          234
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          etljobs.utils.CSV.header_present
+          &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          CSV.this.header_present
+        <td style="background: #F0ADAD">
+          &quot;CSV with delimiter =&gt; &quot;
         </td>
       </tr><tr>
         <td>
           6
         </td>
         <td>
-          694
+          719
         </td>
         <td>
           277
@@ -215,41 +131,104 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           &quot; parse_mode =&gt; &quot;
         </td>
       </tr><tr>
         <td>
-          10
+          6
         </td>
         <td>
-          702
+          722
         </td>
         <td>
-          523
+          263
           -
-          526
+          277
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.utils.JDBC.url
+          etljobs.utils.CSV.header_present
         </td>
         <td style="background: #F0ADAD">
-          JDBC.this.url
+          CSV.this.header_present
+        </td>
+      </tr><tr>
+        <td>
+          6
+        </td>
+        <td>
+          724
+        </td>
+        <td>
+          209
+          -
+          304
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;CSV with delimiter =&gt; &quot;, &quot; header_present =&gt; &quot;, &quot; parse_mode =&gt; &quot;, &quot;&quot;).s(CSV.this.delimiter, CSV.this.header_present, CSV.this.parse_mode)
+        </td>
+      </tr><tr>
+        <td>
+          6
+        </td>
+        <td>
+          718
+        </td>
+        <td>
+          243
+          -
+          263
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; header_present =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          6
+        </td>
+        <td>
+          721
+        </td>
+        <td>
+          234
+          -
+          243
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.CSV.delimiter
+        </td>
+        <td style="background: #F0ADAD">
+          CSV.this.delimiter
         </td>
       </tr><tr>
         <td>
           10
         </td>
         <td>
-          701
+          726
         </td>
         <td>
-          526
+          542
           -
-          527
+          543
         </td>
         <td>
           Literal
@@ -265,12 +244,33 @@
           10
         </td>
         <td>
-          700
+          728
         </td>
         <td>
-          505
+          519
           -
-          523
+          543
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;JDBC with url =&gt; &quot;, &quot;&quot;).s(JDBC.this.url)
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          725
+        </td>
+        <td>
+          521
+          -
+          539
         </td>
         <td>
           Literal
@@ -286,21 +286,21 @@
           10
         </td>
         <td>
-          703
+          727
         </td>
         <td>
-          503
+          539
           -
-          527
+          542
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          scala.StringContext.s
+          etljobs.utils.JDBC.url
         </td>
         <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;JDBC with url =&gt; &quot;, &quot;&quot;).s(JDBC.this.url)
+          JDBC.this.url
         </td>
       </tr>
     </table>

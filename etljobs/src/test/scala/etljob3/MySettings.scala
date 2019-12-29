@@ -1,13 +1,10 @@
 package etljob3
 
-import etljobs.utils.Settings
+import etljobs.utils.GlobalProperties
 import java.io.FileInputStream
 import java.util.Properties
 
-class MySettings(file_path: String) extends Settings(file_path) {
-    private val file_stream = new FileInputStream(file_path)
-    private val config = new Properties()
-    config.load(file_stream)
+class MyGlobalProperties(val global_properties_file_path: String) extends GlobalProperties(global_properties_file_path) {
     
     lazy val gcs_output_bucket = sys.env.getOrElse("GCS_OUTPUT_BUCKET", config.getProperty("gcs_output_bucket"))
 }

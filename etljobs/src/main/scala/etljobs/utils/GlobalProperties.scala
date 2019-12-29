@@ -3,9 +3,12 @@ package etljobs.utils
 import java.io.FileInputStream
 import java.util.Properties
 
-class Settings(file_path:String) {
-  private val file_stream = new FileInputStream(file_path)
-  private val config = new Properties()
+abstract class GlobalProperties(global_properties_file_path: String) {
+  println(f"======> Loaded Settings(${getClass.getName})")
+  println(f"======> settings_file_path: $global_properties_file_path")
+  
+  val file_stream = new FileInputStream(global_properties_file_path)
+  val config = new Properties()
   config.load(file_stream)
 
   lazy val spark_concurrent_threads               = config.getProperty("spark_concurrent_threads")

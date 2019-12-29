@@ -55,26 +55,6 @@ class BQLoadStep(
     }
   }
 
-  // def map(func: Unit => Unit): Unit = {
-  //   etl_logger.info("Executing inside map")
-  //   val output = Try(process()) match {
-  //     case Success(value) => value
-  //     case Failure(exception) => throw exception
-  //   }
-  //   func(output)
-  // }
-
-  // def flatMap(func: Unit => Unit): Unit = {
-  //   etl_logger.info("Executing inside flatMap")
-  //   val output = Try(process()) match {
-  //     case Success(value) => value
-  //     case Failure(exception) =>
-  //       etl_logger.info(s"Got Error: $exception")
-  //       throw exception
-  //   }
-  //   func(output)
-  // }
-
   override def getExecutionMetrics : Map[String, Map[String,String]] = {
     val tableId = TableId.of(destination_dataset, destination_table)
     val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
@@ -100,7 +80,7 @@ class BQLoadStep(
 
 object BQLoadStep {
   def apply( name : String
-           ,source_path: String = ""
+           ,source_path: => String = ""
            ,source_paths_partitions: => Seq[(String,String)] = Seq()
            ,source_format: IOType
            ,source_file_system: FSType = GCS

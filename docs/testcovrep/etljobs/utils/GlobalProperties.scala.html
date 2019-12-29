@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          etljobs/utils/Settings.scala.html
+          etljobs/utils/GlobalProperties.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -27,21 +27,21 @@
 </span>3 <span style=''>import java.io.FileInputStream
 </span>4 <span style=''>import java.util.Properties
 </span>5 <span style=''>
-</span>6 <span style=''>class Settings(filepath:String) {
-</span>7 <span style=''>  private val file_path = </span><span style='background: #AEF1AE'>filepath</span><span style=''>
-</span>8 <span style=''>  private val file_stream = </span><span style='background: #AEF1AE'>new FileInputStream(file_path)</span><span style=''>
-</span>9 <span style=''>  private val config = </span><span style='background: #AEF1AE'>new Properties()</span><span style=''>
-</span>10 <span style=''>
-</span>11 <span style=''>  </span><span style='background: #AEF1AE'>config.load(file_stream)</span><span style=''>
-</span>12 <span style=''>
-</span>13 <span style=''>  lazy val spark_concurrent_threads               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_concurrent_threads&quot;)</span><span style=''>
-</span>14 <span style=''>  lazy val spark_shuffle_partitions               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_shuffle_partitions&quot;)</span><span style=''>
-</span>15 <span style=''>  lazy val spark_output_partition_overwrite_mode  = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)</span><span style=''>
-</span>16 <span style=''>  lazy val running_environment                    = </span><span style='background: #AEF1AE'>config.getProperty(&quot;running_environment&quot;)</span><span style=''>
-</span>17 <span style=''>  
-</span>18 <span style=''>  lazy val gcp_project                            = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCP_PROJECT&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''> 
-</span>19 <span style=''>  lazy val gcp_project_key_name                   = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCP_PROJECT_KEY_NAME&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project_key_name&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>20 <span style=''>  lazy val gcs_output_bucket                      = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCS_OUTPUT_BUCKET&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcs_output_bucket&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>6 <span style=''>abstract class GlobalProperties(global_properties_file_path: String) {
+</span>7 <span style=''>  </span><span style='background: #AEF1AE'>println(f&quot;======&gt; Loaded Settings(${getClass.getName})&quot;)</span><span style=''>
+</span>8 <span style=''>  </span><span style='background: #AEF1AE'>println(f&quot;======&gt; settings_file_path: $global_properties_file_path&quot;)</span><span style=''>
+</span>9 <span style=''>  
+</span>10 <span style=''>  val file_stream = </span><span style='background: #AEF1AE'>new FileInputStream(global_properties_file_path)</span><span style=''>
+</span>11 <span style=''>  val config = </span><span style='background: #AEF1AE'>new Properties()</span><span style=''>
+</span>12 <span style=''>  </span><span style='background: #AEF1AE'>config.load(file_stream)</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  lazy val spark_concurrent_threads               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_concurrent_threads&quot;)</span><span style=''>
+</span>15 <span style=''>  lazy val spark_shuffle_partitions               = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_shuffle_partitions&quot;)</span><span style=''>
+</span>16 <span style=''>  lazy val spark_output_partition_overwrite_mode  = </span><span style='background: #F0ADAD'>config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)</span><span style=''>
+</span>17 <span style=''>  lazy val running_environment                    = </span><span style='background: #AEF1AE'>config.getProperty(&quot;running_environment&quot;)</span><span style=''>
+</span>18 <span style=''>  
+</span>19 <span style=''>  lazy val gcp_project                            = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCP_PROJECT&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''> 
+</span>20 <span style=''>  lazy val gcp_project_key_name                   = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GCP_PROJECT_KEY_NAME&quot;, </span><span style='background: #F0ADAD'>config.getProperty(&quot;gcp_project_key_name&quot;)</span><span style='background: #AEF1AE'>)</span><span style=''>
 </span>21 <span style=''>  
 </span>22 <span style=''>  lazy val slack_webhook_url                      = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;SLACK_WEBHOOK_URL&quot;, config.getProperty(&quot;slack_webhook_url&quot;))</span><span style=''>
 </span>23 <span style=''>  lazy val slack_env                              = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;SLACK_ENV&quot;, config.getProperty(&quot;slack_env&quot;))</span><span style=''>
@@ -62,33 +62,81 @@
           7
         </td>
         <td>
-          810
+          694
         </td>
         <td>
-          149
+          162
           -
-          157
+          218
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          etljobs.utils.Settings.filepath
+          scala.Predef.println
         </td>
         <td style="background: #AEF1AE">
-          Settings.this.filepath
+          scala.this.Predef.println(({
+  val arg$macro$2: Any = GlobalProperties.this.getClass().getName();
+  new scala.collection.immutable.StringOps(&quot;======&gt; Loaded Settings(%s)&quot;).format(arg$macro$2)
+}: String))
         </td>
       </tr><tr>
         <td>
           8
         </td>
         <td>
-          812
+          695
         </td>
         <td>
-          187
+          222
           -
-          217
+          290
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #AEF1AE">
+          scala.this.Predef.println(({
+  val arg$macro$3: Any = GlobalProperties.this.global_properties_file_path;
+  new scala.collection.immutable.StringOps(&quot;======&gt; settings_file_path: %s&quot;).format(arg$macro$3)
+}: String))
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          696
+        </td>
+        <td>
+          336
+          -
+          363
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.GlobalProperties.global_properties_file_path
+        </td>
+        <td style="background: #AEF1AE">
+          GlobalProperties.this.global_properties_file_path
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          316
+          -
+          364
         </td>
         <td>
           Apply
@@ -97,40 +145,19 @@
           java.io.FileInputStream.&lt;init&gt;
         </td>
         <td style="background: #AEF1AE">
-          new java.io.FileInputStream(Settings.this.file_path)
+          new java.io.FileInputStream(GlobalProperties.this.global_properties_file_path)
         </td>
       </tr><tr>
         <td>
-          8
+          11
         </td>
         <td>
-          811
+          698
         </td>
         <td>
-          207
+          381
           -
-          216
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.utils.Settings.file_path
-        </td>
-        <td style="background: #AEF1AE">
-          Settings.this.file_path
-        </td>
-      </tr><tr>
-        <td>
-          9
-        </td>
-        <td>
-          813
-        </td>
-        <td>
-          242
-          -
-          258
+          397
         </td>
         <td>
           Apply
@@ -143,15 +170,36 @@
         </td>
       </tr><tr>
         <td>
-          11
+          12
         </td>
         <td>
-          815
+          699
         </td>
         <td>
-          264
+          413
           -
-          288
+          424
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.GlobalProperties.file_stream
+        </td>
+        <td style="background: #AEF1AE">
+          GlobalProperties.this.file_stream
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          700
+        </td>
+        <td>
+          401
+          -
+          425
         </td>
         <td>
           Apply
@@ -160,61 +208,19 @@
           java.util.Properties.load
         </td>
         <td style="background: #AEF1AE">
-          Settings.this.config.load(Settings.this.file_stream)
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          814
-        </td>
-        <td>
-          276
-          -
-          287
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.utils.Settings.file_stream
-        </td>
-        <td style="background: #AEF1AE">
-          Settings.this.file_stream
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          816
-        </td>
-        <td>
-          344
-          -
-          390
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.Properties.getProperty
-        </td>
-        <td style="background: #F0ADAD">
-          Settings.this.config.getProperty(&quot;spark_concurrent_threads&quot;)
+          GlobalProperties.this.config.load(GlobalProperties.this.file_stream)
         </td>
       </tr><tr>
         <td>
           14
         </td>
         <td>
-          817
+          701
         </td>
         <td>
-          444
+          481
           -
-          490
+          527
         </td>
         <td>
           Apply
@@ -223,19 +229,19 @@
           java.util.Properties.getProperty
         </td>
         <td style="background: #F0ADAD">
-          Settings.this.config.getProperty(&quot;spark_shuffle_partitions&quot;)
+          GlobalProperties.this.config.getProperty(&quot;spark_concurrent_threads&quot;)
         </td>
       </tr><tr>
         <td>
           15
         </td>
         <td>
-          818
+          702
         </td>
         <td>
-          544
+          581
           -
-          603
+          627
         </td>
         <td>
           Apply
@@ -244,61 +250,19 @@
           java.util.Properties.getProperty
         </td>
         <td style="background: #F0ADAD">
-          Settings.this.config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)
+          GlobalProperties.this.config.getProperty(&quot;spark_shuffle_partitions&quot;)
         </td>
       </tr><tr>
         <td>
           16
         </td>
         <td>
-          819
+          703
         </td>
         <td>
-          657
+          681
           -
-          698
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.Properties.getProperty
-        </td>
-        <td style="background: #AEF1AE">
-          Settings.this.config.getProperty(&quot;running_environment&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          822
-        </td>
-        <td>
-          756
-          -
-          823
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.MapLike.getOrElse
-        </td>
-        <td style="background: #AEF1AE">
-          scala.sys.`package`.env.getOrElse[String](&quot;GCP_PROJECT&quot;, Settings.this.config.getProperty(&quot;gcp_project&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          821
-        </td>
-        <td>
-          789
-          -
-          822
+          740
         </td>
         <td>
           Apply
@@ -307,19 +271,40 @@
           java.util.Properties.getProperty
         </td>
         <td style="background: #F0ADAD">
-          Settings.this.config.getProperty(&quot;gcp_project&quot;)
+          GlobalProperties.this.config.getProperty(&quot;spark_output_partition_overwrite_mode&quot;)
         </td>
       </tr><tr>
         <td>
-          18
+          17
         </td>
         <td>
-          820
+          704
         </td>
         <td>
-          774
+          794
           -
-          787
+          835
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #AEF1AE">
+          GlobalProperties.this.config.getProperty(&quot;running_environment&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          705
+        </td>
+        <td>
+          911
+          -
+          924
         </td>
         <td>
           Literal
@@ -335,12 +320,33 @@
           19
         </td>
         <td>
-          824
+          707
         </td>
         <td>
-          920
+          893
           -
-          962
+          960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;GCP_PROJECT&quot;, GlobalProperties.this.config.getProperty(&quot;gcp_project&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          706
+        </td>
+        <td>
+          926
+          -
+          959
         </td>
         <td>
           Apply
@@ -349,19 +355,19 @@
           java.util.Properties.getProperty
         </td>
         <td style="background: #F0ADAD">
-          Settings.this.config.getProperty(&quot;gcp_project_key_name&quot;)
+          GlobalProperties.this.config.getProperty(&quot;gcp_project&quot;)
         </td>
       </tr><tr>
         <td>
-          19
+          20
         </td>
         <td>
-          823
+          708
         </td>
         <td>
-          896
+          1033
           -
-          918
+          1055
         </td>
         <td>
           Literal
@@ -374,15 +380,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          20
         </td>
         <td>
-          825
+          710
         </td>
         <td>
-          878
+          1015
           -
-          963
+          1100
         </td>
         <td>
           Apply
@@ -391,40 +397,19 @@
           scala.collection.MapLike.getOrElse
         </td>
         <td style="background: #AEF1AE">
-          scala.sys.`package`.env.getOrElse[String](&quot;GCP_PROJECT_KEY_NAME&quot;, Settings.this.config.getProperty(&quot;gcp_project_key_name&quot;))
+          scala.sys.`package`.env.getOrElse[String](&quot;GCP_PROJECT_KEY_NAME&quot;, GlobalProperties.this.config.getProperty(&quot;gcp_project_key_name&quot;))
         </td>
       </tr><tr>
         <td>
           20
         </td>
         <td>
-          828
+          709
         </td>
         <td>
-          1017
+          1057
           -
-          1096
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.MapLike.getOrElse
-        </td>
-        <td style="background: #AEF1AE">
-          scala.sys.`package`.env.getOrElse[String](&quot;GCS_OUTPUT_BUCKET&quot;, Settings.this.config.getProperty(&quot;gcs_output_bucket&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          827
-        </td>
-        <td>
-          1056
-          -
-          1095
+          1099
         </td>
         <td>
           Apply
@@ -433,82 +418,19 @@
           java.util.Properties.getProperty
         </td>
         <td style="background: #F0ADAD">
-          Settings.this.config.getProperty(&quot;gcs_output_bucket&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          826
-        </td>
-        <td>
-          1035
-          -
-          1054
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;GCS_OUTPUT_BUCKET&quot;
+          GlobalProperties.this.config.getProperty(&quot;gcp_project_key_name&quot;)
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          831
+          711
         </td>
         <td>
-          1154
+          1176
           -
-          1233
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.MapLike.getOrElse
-        </td>
-        <td style="background: #AEF1AE">
-          scala.sys.`package`.env.getOrElse[String](&quot;SLACK_WEBHOOK_URL&quot;, Settings.this.config.getProperty(&quot;slack_webhook_url&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          830
-        </td>
-        <td>
-          1193
-          -
-          1232
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.Properties.getProperty
-        </td>
-        <td style="background: #AEF1AE">
-          Settings.this.config.getProperty(&quot;slack_webhook_url&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          829
-        </td>
-        <td>
-          1172
-          -
-          1191
+          1195
         </td>
         <td>
           Literal
@@ -521,15 +443,36 @@
         </td>
       </tr><tr>
         <td>
-          23
+          22
         </td>
         <td>
-          833
+          713
         </td>
         <td>
-          1318
+          1158
           -
-          1349
+          1237
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;SLACK_WEBHOOK_URL&quot;, GlobalProperties.this.config.getProperty(&quot;slack_webhook_url&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          712
+        </td>
+        <td>
+          1197
+          -
+          1236
         </td>
         <td>
           Apply
@@ -538,19 +481,19 @@
           java.util.Properties.getProperty
         </td>
         <td style="background: #AEF1AE">
-          Settings.this.config.getProperty(&quot;slack_env&quot;)
+          GlobalProperties.this.config.getProperty(&quot;slack_webhook_url&quot;)
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          832
+          714
         </td>
         <td>
-          1305
+          1309
           -
-          1316
+          1320
         </td>
         <td>
           Literal
@@ -566,12 +509,12 @@
           23
         </td>
         <td>
-          834
+          716
         </td>
         <td>
-          1287
+          1291
           -
-          1350
+          1354
         </td>
         <td>
           Apply
@@ -580,7 +523,28 @@
           scala.collection.MapLike.getOrElse
         </td>
         <td style="background: #AEF1AE">
-          scala.sys.`package`.env.getOrElse[String](&quot;SLACK_ENV&quot;, Settings.this.config.getProperty(&quot;slack_env&quot;))
+          scala.sys.`package`.env.getOrElse[String](&quot;SLACK_ENV&quot;, GlobalProperties.this.config.getProperty(&quot;slack_env&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          715
+        </td>
+        <td>
+          1322
+          -
+          1353
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Properties.getProperty
+        </td>
+        <td style="background: #AEF1AE">
+          GlobalProperties.this.config.getProperty(&quot;slack_env&quot;)
         </td>
       </tr>
     </table>

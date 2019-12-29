@@ -9,33 +9,16 @@ import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStateStep}
 import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
 import etljobs.functions.SparkUDF
-import etljobs.utils.{CSV, PARQUET, Settings, FSType}
+import etljobs.utils.{CSV, PARQUET, GlobalProperties, FSType}
 import org.apache.log4j.{Level, Logger}
 import etljobs.utils.SessionManager
 import etljobs.spark.ReadApi
 
-/**
-* This example contains two steps and uses SessionManager for SparkSession and Bigquery 
-* In first step it reads ratings data from ratings_input_path mentioned in input parameters
-* then enrich it using function enrichRatingData and writes in PARQUET format at given output path
-*
-* In second step it reads PARQUET data stored by step1 and writes it to BigQuery table
-*/
-
-class EtlJobDefinition(val job_properties : Map[String,String], val settings: Settings) extends EtlJob with SparkUDF {
+class EtlJobDefinition(job_properties: Map[String,String], global_properties: GlobalProperties) extends EtlJob(job_properties, global_properties) with SparkUDF {
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
 
-  /**
-  * Enriches ratings dataset by adding columns date, date_int
-  * and casting column date to date type
-
-  * @param spark spark session
-  * @param job_properties map of key value containing input parameters
-  * @param in raw dataset which needs to be enriched
-  * @return ratings enriched dataframe
-  */
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Input[Rating,Unit]) : Output[RatingOutput,Unit] = {
     val mapping = Encoders.product[RatingOutput]
 

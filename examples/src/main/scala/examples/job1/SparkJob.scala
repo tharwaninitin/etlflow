@@ -2,11 +2,14 @@ package examples.job1
 
 import org.apache.spark.sql.{SparkSession}
 import etljobs.etlsteps.{SparkReadWriteStep}
-import etljobs.utils.{CSV,PARQUET}
+import etljobs.utils.{CSV, PARQUET, AppLogger}
 import org.apache.log4j.{Level, Logger}
 
 object SparkJob extends App {
+  AppLogger.initialize
+  private val job_logger = Logger.getLogger(getClass.getName)
   Logger.getLogger("org").setLevel(Level.WARN)
+  Logger.getLogger("io").setLevel(Level.WARN)
   
   private lazy val spark : SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
   private val canonical_path : String = new java.io.File(".").getCanonicalPath
@@ -26,10 +29,10 @@ object SparkJob extends App {
     output_type             = PARQUET
   )(spark,job_properties)
 
-  println("##################################JOB PROPERTIES########################################")
-  println(step1.name)
-  step1.getStepProperties.foreach(println)
-  println("##################################JOB PROPERTIES########################################")
+  job_logger.info("##################################JOB PROPERTIES########################################")
+  job_logger.info(step1.name)
+  step1.getStepProperties.foreach(x => job_logger.info(x))
+  job_logger.info("##################################JOB PROPERTIES########################################")
 
   val try_output = step1.process()
 

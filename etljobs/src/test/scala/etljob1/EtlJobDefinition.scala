@@ -10,14 +10,13 @@ import org.apache.spark.sql.{Encoders, SparkSession, Dataset}
 // ETLJOB library specific Imports
 import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
-import etljobs.utils.{CSV, ORC, PARQUET, Settings, LOCAL}
-import etljobs.utils.SessionManager
+import etljobs.utils.{CSV, ORC, PARQUET, GlobalProperties, LOCAL}
 // Job specific imports
 import EtlJobSchemas.RatingOutput
 import org.apache.log4j.{Level, Logger}
 
 
-class EtlJobDefinition(val job_properties: Map[String,String], val settings: Settings) extends EtlJob {
+class EtlJobDefinition(job_properties: Map[String,String], global_properties: GlobalProperties) extends EtlJob(job_properties, global_properties) {
   var output_date_paths : Seq[String] = Seq()
   Logger.getLogger("org").setLevel(Level.WARN)
 
@@ -40,5 +39,5 @@ class EtlJobDefinition(val job_properties: Map[String,String], val settings: Set
     create_disposition  = JobInfo.CreateDisposition.CREATE_IF_NEEDED
   )(bq,job_properties)
 
-  def apply() : List[EtlStep[Unit,Unit]] = List(step1,step2)
+  def apply(): List[EtlStep[Unit,Unit]] = List(step1,step2)
 }

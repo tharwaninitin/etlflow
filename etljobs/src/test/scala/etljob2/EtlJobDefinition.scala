@@ -8,13 +8,13 @@ import org.apache.spark.sql.{Encoders, SparkSession, Dataset, SaveMode}
 import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep, SparkETLStep}
 import etljobs.functions.SparkUDF
-import etljobs.utils.{CSV, PARQUET, Settings, LOCAL}
+import etljobs.utils.{CSV, PARQUET, GlobalProperties, LOCAL}
 import org.apache.log4j.{Level, Logger}
 import etljobs.utils.SessionManager
 import etljobs.spark.ReadApi
 
 
-class EtlJobDefinition(val job_properties : Map[String,String], val settings: Settings) extends EtlJob with SparkUDF {
+class EtlJobDefinition(job_properties : Map[String,String], global_properties: GlobalProperties) extends EtlJob(job_properties, global_properties) with SparkUDF {
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)

@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          etljobs/etlsteps/EtlStep.scala.html
+          etljobs/utils/AppLogger.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -22,19 +22,21 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.etlsteps
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.utils
 </span>2 <span style=''>
-</span>3 <span style=''>import org.apache.log4j.Logger
-</span>4 <span style=''>import scala.util.Try
-</span>5 <span style=''>
-</span>6 <span style=''>trait EtlStep[IPSTATE,OPSTATE] {
-</span>7 <span style=''>  val name: String
-</span>8 <span style=''>  val etl_logger : Logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
-</span>9 <span style=''>
-</span>10 <span style=''>  def process(input_state: IPSTATE) : Try[OPSTATE]
-</span>11 <span style=''>  def getExecutionMetrics : Map[String,Map[String,String]] = </span><span style='background: #AEF1AE'>Map()</span><span style=''>
-</span>12 <span style=''>  def getStepProperties : Map[String,String] = </span><span style='background: #F0ADAD'>Map()</span><span style=''>
-</span>13 <span style=''>}
+</span>3 <span style=''>import org.apache.log4j.{Level, Logger, BasicConfigurator, ConsoleAppender, PatternLayout}
+</span>4 <span style=''>
+</span>5 <span style=''>object AppLogger {
+</span>6 <span style=''>    def initialize(): Unit = {
+</span>7 <span style=''>        // https://stackoverflow.com/questions/8965946/configuring-log4j-loggers-programmatically
+</span>8 <span style=''>        // https://github.com/apache/spark/blob/master/core/src/main/resources/org/apache/spark/log4j-defaults.properties
+</span>9 <span style=''>        val console: ConsoleAppender = </span><span style='background: #F0ADAD'>new ConsoleAppender()</span><span style=''>; 
+</span>10 <span style=''>        </span><span style='background: #F0ADAD'>console.setLayout(new PatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;))</span><span style=''>; 
+</span>11 <span style=''>        // console.setThreshold(Level.FATAL); // Setting LEVEL at this level will set logging for all since we are adding this as root logger
+</span>12 <span style=''>        </span><span style='background: #F0ADAD'>console.activateOptions()</span><span style=''>;
+</span>13 <span style=''>        </span><span style='background: #F0ADAD'>Logger.getRootLogger().addAppender(console)</span><span style=''>
+</span>14 <span style=''>    }  
+</span>15 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -48,87 +50,108 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          8
+          9
         </td>
         <td>
-          294
+          689
         </td>
         <td>
-          160
+          424
           -
-          194
+          445
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Logger.getLogger
+          org.apache.log4j.ConsoleAppender.&lt;init&gt;
         </td>
-        <td style="background: #AEF1AE">
-          org.apache.log4j.Logger.getLogger(EtlStep.this.getClass().getName())
+        <td style="background: #F0ADAD">
+          new org.apache.log4j.ConsoleAppender()
         </td>
       </tr><tr>
         <td>
-          8
+          10
         </td>
         <td>
-          293
+          690
         </td>
         <td>
-          177
+          474
           -
-          193
+          531
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Class.getName
+          org.apache.log4j.PatternLayout.&lt;init&gt;
         </td>
-        <td style="background: #AEF1AE">
-          EtlStep.this.getClass().getName()
+        <td style="background: #F0ADAD">
+          new org.apache.log4j.PatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;)
         </td>
       </tr><tr>
         <td>
-          11
+          10
         </td>
         <td>
-          295
+          691
         </td>
         <td>
-          308
+          456
           -
-          313
+          532
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.generic.GenMapFactory.apply
+          org.apache.log4j.AppenderSkeleton.setLayout
         </td>
-        <td style="background: #AEF1AE">
-          scala.this.Predef.Map.apply[String, Nothing]()
+        <td style="background: #F0ADAD">
+          console.setLayout(new org.apache.log4j.PatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;))
         </td>
       </tr><tr>
         <td>
           12
         </td>
         <td>
-          296
+          692
         </td>
         <td>
-          361
+          685
           -
-          366
+          710
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.generic.GenMapFactory.apply
+          org.apache.log4j.ConsoleAppender.activateOptions
         </td>
         <td style="background: #F0ADAD">
-          scala.this.Predef.Map.apply[String, Nothing]()
+          console.activateOptions()
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          693
+        </td>
+        <td>
+          720
+          -
+          763
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.addAppender
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.log4j.Logger.getRootLogger().addAppender(console)
         </td>
       </tr>
     </table>

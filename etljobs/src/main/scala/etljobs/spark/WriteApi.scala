@@ -59,6 +59,7 @@ object WriteApi {
       val fileName = fs.globStatus(new Path(path + "part*"))(0).getPath.getName
       fs.rename(new Path(path + fileName), new Path(path + output_file))
       write_logger.info(s"Renamed file path $path$fileName to $path$output_file")
+      fs.close()
     }
   }
 }

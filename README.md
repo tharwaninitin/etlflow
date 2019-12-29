@@ -25,7 +25,7 @@ sbt "project etljobs" test
 ## Getting Started
 Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)
 ```shell
-sbt "project etljobs" console
+SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project etljobs" console
 ```
 1. Import core packages:
 ```scala
@@ -103,6 +103,7 @@ Now our step would change to something like this:
 ```scala
 import etljobs.etlsteps.BQLoadStep
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
+import etljobs.utils.LOCAL
 
 val bq: BigQuery = BigQueryOptions.getDefaultInstance.getService
 
@@ -119,13 +120,14 @@ val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     source_format       = ORC,
+    source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
   )(bq,job_properties)
 
 step2.process()
 ```
-Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. Find full code [here](etljobs/src/test/scala/etljob1) along with **tests**
+Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. You can find similar code [here](etljobs/src/test/scala/etljob1) along with **tests**
 
 
 ## Requirements and Installation
@@ -138,14 +140,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.11</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.5.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.6.0"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.5.0
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.6.0
 
 
 ## Documentation

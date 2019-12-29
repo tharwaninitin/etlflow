@@ -3,7 +3,7 @@ package examples.job2
 import org.apache.spark.sql.{SparkSession}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
 import etljobs.etlsteps.{SparkReadWriteStep, BQLoadStep}
-import etljobs.utils.{CSV,PARQUET}
+import etljobs.utils.{CSV,PARQUET,LOCAL}
 import org.apache.log4j.{Level, Logger}
 
 object SparkBQJob extends App {
@@ -35,9 +35,10 @@ object SparkBQJob extends App {
   val step2 = new BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
+    source_format       = PARQUET,
+    source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
-    destination_table   = job_properties("ratings_output_table_name"),
-    source_format       = PARQUET
+    destination_table   = job_properties("ratings_output_table_name")
   )(bq,job_properties)
 
   val opt = for {

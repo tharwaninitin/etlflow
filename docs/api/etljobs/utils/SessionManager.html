@@ -28,7 +28,7 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img alt="Trait" src="../../lib/trait_big.png" />
+        <img alt="Class" src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="etljobs">etljobs</a>.<a href="package.html" class="extype" name="etljobs.utils">utils</a></p>
         <h1>SessionManager</h1><h3><span class="morelinks"><div>Related Doc:
             <a href="package.html" class="extype" name="etljobs.utils">package utils</a>
@@ -41,8 +41,8 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
         <span class="name">SessionManager</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
@@ -89,7 +89,27 @@
 
       <div id="template">
         <div id="allMembers">
-        
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="etljobs.utils.SessionManager#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(global_properties:etljobs.utils.GlobalProperties):etljobs.utils.SessionManager"></a>
+      <a id="&lt;init&gt;:SessionManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SessionManager</span><span class="params">(<span name="global_properties">global_properties: <a href="GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#etljobs.utils.SessionManager@&lt;init&gt;(global_properties:etljobs.utils.GlobalProperties):etljobs.utils.SessionManager" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
@@ -226,35 +246,35 @@
               
         </dd></dl></div>
     </li><li name="etljobs.utils.SessionManager#createBigQuerySession" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="createBigQuerySession(implicitss:etljobs.utils.Settings):com.google.cloud.bigquery.BigQuery"></a>
-      <a id="createBigQuerySession(Settings):BigQuery"></a>
+      <a id="createBigQuerySession(ss:etljobs.utils.GlobalProperties):com.google.cloud.bigquery.BigQuery"></a>
+      <a id="createBigQuerySession(GlobalProperties):BigQuery"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">createBigQuerySession</span><span class="params">(<span class="implicit">implicit </span><span name="ss">ss: <a href="Settings.html" class="extype" name="etljobs.utils.Settings">Settings</a></span>)</span><span class="result">: <span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span></span>
+        <span class="name">createBigQuerySession</span><span class="params">(<span name="ss">ss: <a href="GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a></span>)</span><span class="result">: <span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.utils.SessionManager@createBigQuerySession(implicitss:etljobs.utils.Settings):com.google.cloud.bigquery.BigQuery" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.SessionManager@createBigQuerySession(ss:etljobs.utils.GlobalProperties):com.google.cloud.bigquery.BigQuery" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="etljobs.utils.SessionManager#createSparkSession" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="createSparkSession(implicitss:etljobs.utils.Settings):org.apache.spark.sql.SparkSession"></a>
-      <a id="createSparkSession(Settings):SparkSession"></a>
+      <a id="createSparkSession(ss:etljobs.utils.GlobalProperties):org.apache.spark.sql.SparkSession"></a>
+      <a id="createSparkSession(GlobalProperties):SparkSession"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">createSparkSession</span><span class="params">(<span class="implicit">implicit </span><span name="ss">ss: <a href="Settings.html" class="extype" name="etljobs.utils.Settings">Settings</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>
+        <span class="name">createSparkSession</span><span class="params">(<span name="ss">ss: <a href="GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#etljobs.utils.SessionManager@createSparkSession(implicitss:etljobs.utils.Settings):org.apache.spark.sql.SparkSession" title="Permalink" target="_top">
+      <a href="../../index.html#etljobs.utils.SessionManager@createSparkSession(ss:etljobs.utils.GlobalProperties):org.apache.spark.sql.SparkSession" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -418,23 +438,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="etljobs.utils.SessionManager#settings" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="settings:etljobs.utils.Settings"></a>
-      <a id="settings:Settings"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">lazy val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">settings</span><span class="result">: <a href="Settings.html" class="extype" name="etljobs.utils.Settings">Settings</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#etljobs.utils.SessionManager@settings:etljobs.utils.Settings" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="etljobs.utils.SessionManager#spark" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="spark:org.apache.spark.sql.SparkSession"></a>
       <a id="spark:SparkSession"></a>

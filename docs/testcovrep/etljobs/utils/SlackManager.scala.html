@@ -121,7 +121,7 @@
           17
         </td>
         <td>
-          835
+          846
         </td>
         <td>
           511
@@ -142,7 +142,7 @@
           18
         </td>
         <td>
-          836
+          847
         </td>
         <td>
           558
@@ -163,7 +163,7 @@
           19
         </td>
         <td>
-          837
+          848
         </td>
         <td>
           592
@@ -184,7 +184,7 @@
           20
         </td>
         <td>
-          838
+          849
         </td>
         <td>
           615
@@ -205,7 +205,7 @@
           24
         </td>
         <td>
-          839
+          850
         </td>
         <td>
           790
@@ -226,7 +226,7 @@
           26
         </td>
         <td>
-          840
+          851
         </td>
         <td>
           864
@@ -241,11 +241,11 @@
         </td>
         <td style="background: #AEF1AE">
           return ({
-  val arg$macro$2: Any = run_env;
-  val arg$macro$3: Any = event;
-  val arg$macro$4: Any = exec_date;
-  val arg$macro$5: Any = message;
-  new scala.collection.immutable.StringOps(&quot;\n      :large_blue_circle: %s - %s Process *Success!*\n      *Time of Execution*: %s\n      *Steps (Task - Duration)*: %s\n      &quot;).format(arg$macro$2, arg$macro$3, arg$macro$4, arg$macro$5)
+  val arg$macro$5: Any = run_env;
+  val arg$macro$6: Any = event;
+  val arg$macro$7: Any = exec_date;
+  val arg$macro$8: Any = message;
+  new scala.collection.immutable.StringOps(&quot;\n      :large_blue_circle: %s - %s Process *Success!*\n      *Time of Execution*: %s\n      *Steps (Task - Duration)*: %s\n      &quot;).format(arg$macro$5, arg$macro$6, arg$macro$7, arg$macro$8)
 }: String)
         </td>
       </tr><tr>
@@ -253,7 +253,7 @@
           34
         </td>
         <td>
-          841
+          852
         </td>
         <td>
           1101
@@ -268,11 +268,11 @@
         </td>
         <td style="background: #F0ADAD">
           return ({
-  val arg$macro$6: Any = run_env;
-  val arg$macro$7: Any = event;
-  val arg$macro$8: Any = exec_date;
-  val arg$macro$9: Any = message;
-  new scala.collection.immutable.StringOps(&quot;\n      :red_circle: %s - %s Process *Failed!*\n      *Time of Execution*: %s\n      *Steps (Task - Duration)*: %s\n      &quot;).format(arg$macro$6, arg$macro$7, arg$macro$8, arg$macro$9)
+  val arg$macro$9: Any = run_env;
+  val arg$macro$10: Any = event;
+  val arg$macro$11: Any = exec_date;
+  val arg$macro$12: Any = message;
+  new scala.collection.immutable.StringOps(&quot;\n      :red_circle: %s - %s Process *Failed!*\n      *Time of Execution*: %s\n      *Steps (Task - Duration)*: %s\n      &quot;).format(arg$macro$9, arg$macro$10, arg$macro$11, arg$macro$12)
 }: String)
         </td>
       </tr><tr>
@@ -280,7 +280,7 @@
           44
         </td>
         <td>
-          842
+          853
         </td>
         <td>
           1544
@@ -301,7 +301,7 @@
           45
         </td>
         <td>
-          843
+          854
         </td>
         <td>
           1576
@@ -322,7 +322,7 @@
           46
         </td>
         <td>
-          844
+          855
         </td>
         <td>
           1616
@@ -343,7 +343,7 @@
           47
         </td>
         <td>
-          846
+          857
         </td>
         <td>
           1754
@@ -364,7 +364,7 @@
           47
         </td>
         <td>
-          848
+          860
         </td>
         <td>
           1785
@@ -372,7 +372,7 @@
           1812
         </td>
         <td>
-          Literal
+          Block
         </td>
         <td>
           &lt;nosymbol&gt;
@@ -385,7 +385,7 @@
           47
         </td>
         <td>
-          845
+          856
         </td>
         <td>
           1716
@@ -406,7 +406,28 @@
           47
         </td>
         <td>
-          847
+          859
+        </td>
+        <td>
+          1785
+          -
+          1812
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_orange_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          858
         </td>
         <td>
           1754
@@ -424,31 +445,10 @@
         </td>
       </tr><tr>
         <td>
-          47
-        </td>
-        <td>
-          849
-        </td>
-        <td>
-          1785
-          -
-          1812
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n :small_orange_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
           50
         </td>
         <td>
-          850
+          861
         </td>
         <td>
           1949
@@ -469,7 +469,52 @@
           53
         </td>
         <td>
-          855
+          864
+        </td>
+        <td>
+          2228
+          -
+          2286
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          error_message.map[String](((msg: String) =&gt; ({
+  val arg$macro$13: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$13)
+}: String))).getOrElse[String](&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          863
+        </td>
+        <td>
+          2185
+          -
+          2225
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #AEF1AE">
+          etlstep.getStepProperties.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          866
         </td>
         <td>
           2143
@@ -484,8 +529,8 @@
         </td>
         <td style="background: #AEF1AE">
           slackMessageForSteps.concat(&quot;\n\t\t\t &quot;.+(etlstep.getStepProperties.mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
-  val arg$macro$10: Any = msg;
-  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$10)
+  val arg$macro$13: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$13)
 }: String))).getOrElse[String](&quot;&quot;)))
         </td>
       </tr><tr>
@@ -493,7 +538,7 @@
           53
         </td>
         <td>
-          851
+          862
         </td>
         <td>
           2171
@@ -514,7 +559,7 @@
           53
         </td>
         <td>
-          854
+          865
         </td>
         <td>
           2171
@@ -529,61 +574,16 @@
         </td>
         <td style="background: #AEF1AE">
           &quot;\n\t\t\t &quot;.+(etlstep.getStepProperties.mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
-  val arg$macro$10: Any = msg;
-  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$10)
+  val arg$macro$13: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$13)
 }: String))).getOrElse[String](&quot;&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          853
-        </td>
-        <td>
-          2228
-          -
-          2286
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.getOrElse
-        </td>
-        <td style="background: #AEF1AE">
-          error_message.map[String](((msg: String) =&gt; ({
-  val arg$macro$10: Any = msg;
-  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$10)
-}: String))).getOrElse[String](&quot;&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          852
-        </td>
-        <td>
-          2185
-          -
-          2225
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.TraversableOnce.mkString
-        </td>
-        <td style="background: #AEF1AE">
-          etlstep.getStepProperties.mkString(&quot;, &quot;)
         </td>
       </tr><tr>
         <td>
           56
         </td>
         <td>
-          857
+          868
         </td>
         <td>
           2352
@@ -604,7 +604,7 @@
           56
         </td>
         <td>
-          856
+          867
         </td>
         <td>
           2374
@@ -625,7 +625,7 @@
           58
         </td>
         <td>
-          858
+          869
         </td>
         <td>
           2428
@@ -646,7 +646,28 @@
           63
         </td>
         <td>
-          860
+          872
+        </td>
+        <td>
+          2611
+          -
+          2687
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.format.DateTimeFormatter.format
+        </td>
+        <td style="background: #AEF1AE">
+          java.time.format.DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;).format(java.time.LocalDateTime.now())
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          871
         </td>
         <td>
           2669
@@ -667,7 +688,7 @@
           63
         </td>
         <td>
-          859
+          870
         </td>
         <td>
           2639
@@ -685,31 +706,10 @@
         </td>
       </tr><tr>
         <td>
-          63
-        </td>
-        <td>
-          861
-        </td>
-        <td>
-          2611
-          -
-          2687
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.format.DateTimeFormatter.format
-        </td>
-        <td style="background: #AEF1AE">
-          java.time.format.DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;).format(java.time.LocalDateTime.now())
-        </td>
-      </tr><tr>
-        <td>
           65
         </td>
         <td>
-          865
+          876
         </td>
         <td>
           2708
@@ -730,7 +730,7 @@
           66
         </td>
         <td>
-          862
+          873
         </td>
         <td>
           2749
@@ -751,7 +751,7 @@
           67
         </td>
         <td>
-          863
+          874
         </td>
         <td>
           2760
@@ -772,7 +772,7 @@
           69
         </td>
         <td>
-          864
+          875
         </td>
         <td>
           2821
@@ -793,7 +793,7 @@
           72
         </td>
         <td>
-          866
+          877
         </td>
         <td>
           2865
@@ -814,7 +814,7 @@
           74
         </td>
         <td>
-          873
+          884
         </td>
         <td>
           2888
@@ -832,8 +832,8 @@
   val client: org.apache.http.impl.client.CloseableHttpClient = org.apache.http.impl.client.HttpClients.createDefault();
   val slackApi: org.apache.http.client.methods.HttpPost = new org.apache.http.client.methods.HttpPost(SlackManager.this.webhook_url);
   val json_data: String = ({
-    val arg$macro$11: Any = data;
-    new scala.collection.immutable.StringOps(&quot; { \&quot;text\&quot; : \&quot;%s\&quot; } &quot;).format(arg$macro$11)
+    val arg$macro$14: Any = data;
+    new scala.collection.immutable.StringOps(&quot; { \&quot;text\&quot; : \&quot;%s\&quot; } &quot;).format(arg$macro$14)
   }: String);
   val entity: org.apache.http.entity.StringEntity = new org.apache.http.entity.StringEntity(json_data);
   slackApi.setEntity(entity);
@@ -845,7 +845,7 @@
           74
         </td>
         <td>
-          874
+          885
         </td>
         <td>
           2892
@@ -866,7 +866,7 @@
           75
         </td>
         <td>
-          867
+          878
         </td>
         <td>
           2913
@@ -887,7 +887,7 @@
           76
         </td>
         <td>
-          869
+          880
         </td>
         <td>
           2960
@@ -908,7 +908,7 @@
           76
         </td>
         <td>
-          868
+          879
         </td>
         <td>
           2973
@@ -929,7 +929,7 @@
           78
         </td>
         <td>
-          870
+          881
         </td>
         <td>
           3057
@@ -950,7 +950,7 @@
           79
         </td>
         <td>
-          871
+          882
         </td>
         <td>
           3091
@@ -971,7 +971,7 @@
           80
         </td>
         <td>
-          872
+          883
         </td>
         <td>
           3125

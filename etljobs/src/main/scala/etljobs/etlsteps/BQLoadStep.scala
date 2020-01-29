@@ -16,7 +16,7 @@ class BQLoadStep(
             ,destination_table: String
             ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
             ,create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-            )(bq : => BigQuery, etl_metadata : Map[String, String])
+            )(bq : => BigQuery)
   extends EtlStep[Unit,Unit]
 {
   def process(input_state : Unit): Try[Unit] = {
@@ -66,15 +66,30 @@ class BQLoadStep(
     )
   }
 
-  override def getStepProperties : Map[String,String] = {
-    Map(
-      "source_dirs" -> source_paths_partitions.mkString(",")
-      ,"source_path" -> source_path
-      ,"destination_dataset" -> destination_dataset
-      ,"destination_table" -> destination_table
-      ,"write_disposition" -> write_disposition.toString
-      ,"create_disposition" -> create_disposition.toString
-    )
+  override def getStepProperties(level: String) : Map[String,String] = {
+    if (level.equalsIgnoreCase("info"))
+    {
+      Map(
+         "destination_dataset" -> destination_dataset
+        ,"destination_table" -> destination_table
+        ,"source_format" -> source_format.toString
+        ,"source_path" -> source_path
+        ,"source_dirs_count" -> source_paths_partitions.length.toString
+        ,"write_disposition" -> write_disposition.toString
+        ,"create_disposition" -> create_disposition.toString
+      )
+    } else
+    {
+      Map(
+        "source_dirs" -> source_paths_partitions.mkString(",")
+        ,"source_path" -> source_path
+        ,"source_format" -> source_format.toString
+        ,"destination_dataset" -> destination_dataset
+        ,"destination_table" -> destination_table
+        ,"write_disposition" -> write_disposition.toString
+        ,"create_disposition" -> create_disposition.toString
+      )
+    }
   }
 }
 
@@ -88,7 +103,7 @@ object BQLoadStep {
            ,destination_table: String
            ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
            ,create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-           )(bq: => BigQuery,etl_metadata : Map[String, String]): BQLoadStep = {
-    new BQLoadStep(name, source_path, source_paths_partitions, source_format, source_file_system, destination_dataset, destination_table, write_disposition, create_disposition)(bq,etl_metadata)
+           )(bq: => BigQuery): BQLoadStep = {
+    new BQLoadStep(name, source_path, source_paths_partitions, source_format, source_file_system, destination_dataset, destination_table, write_disposition, create_disposition)(bq)
   }
 }

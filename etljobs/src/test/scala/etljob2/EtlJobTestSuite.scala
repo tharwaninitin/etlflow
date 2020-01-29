@@ -32,12 +32,12 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     """
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(props, global_properties)
-  val state = etljob.execute()
+  val etljob = new EtlJobDefinition(props, Some(global_properties))
+  val state = etljob.execute(send_slack_notification = true, slack_notification_level = "info")
   println(state)
   
   // STEP 3: Run tests
-  val sm = new SessionManager(global_properties) {}
+  val sm = new SessionManager(Some(global_properties)) {}
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](
                                   Seq(props("ratings_input_path")), 
                                   CSV(",", true, props.getOrElse("parse_mode","FAILFAST"))

@@ -40,7 +40,7 @@ object SlackManager{
   }
 
   /** Get the step level information and update the variable finalSlackMessage */
-  def updateStepLevelInformation(execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String, error_message: Option[String] = None): String = {
+  def updateStepLevelInformation(execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String, slack_notification_level:String, error_message: Option[String] = None): String = {
     var slackMessageForSteps = ""
     val execution_end_time = System.nanoTime()
     val elapsedTime = (execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + " mins"
@@ -50,7 +50,7 @@ object SlackManager{
     slackMessageForSteps = step_icon + "*" + etlstep.name + "*" + " - (" + elapsedTime + ")"
     
     // Update the slackMessageForSteps variable and get the information of etl steps properties
-    slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties.mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
+    slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties(slack_notification_level).mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
 
     // Concatenate all the messages with finalSlackMessage
     final_slack_message = final_slack_message.concat(slackMessageForSteps)

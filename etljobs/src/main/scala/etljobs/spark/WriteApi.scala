@@ -12,28 +12,38 @@ object WriteApi {
   private val write_logger = Logger.getLogger(getClass.getName)
   write_logger.info(s"Loaded ${getClass.getName}")
 
-  def WriteDSHelper[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None
+  def WriteDSHelper[T <: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Option[String] = None
                                             , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
-                                            , n : Int = 1, compression : String = "none", repartition : Boolean = false
+                                            , recordsWrittenCount:Long,n : Int = 1, compression : String = "none", repartition : Boolean = false
                                            ) : Map[String,String] = {
     val mapping = Encoders.product[T]
+
+    if (level.equalsIgnoreCase("info")){
     Map("output_location"->output_location
-      , "output_filename"->output_filename.getOrElse("")
+      , "output_filename"->output_filename.getOrElse("NA")
       , "output_type"->output_type.toString
-      , "output_class" -> mapping.schema.toDDL
-    )
+      , "output_rows" -> recordsWrittenCount.toString
+    )}else{
+      Map("output_location"->output_location
+        , "output_filename"->output_filename.getOrElse("NA")
+        , "output_type"->output_type.toString
+        , "output_class" -> mapping.schema.toDDL
+        , "output_rows" -> recordsWrittenCount.toString
+
+      )
+    }
   }
 
   def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None
                                       , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
                                       , n : Int = 1, compression : String = "none", repartition : Boolean = false)
-                                      (source: Dataset[T], spark : SparkSession) : Unit = {
-                                        
+                                     (source: Dataset[T], spark : SparkSession) : Unit = {
+
     val df_writer = partition_by match {
-      case Some(pbc) => if (repartition) 
-                        source.repartition(n, col(s"$pbc")).write.option("compression",compression) //("compression", "gzip","snappy")
-                      else source.write.option("compression",compression) 
-      case None => source.repartition(n).write.option("compression",compression) 
+      case Some(pbc) => if (repartition)
+        source.repartition(n, col(s"$pbc")).write.option("compression",compression) //("compression", "gzip","snappy")
+      else source.write.option("compression",compression)
+      case None => source.repartition(n).write.option("compression",compression)
     }
 
     val df_writer_options = output_type match {
@@ -41,7 +51,7 @@ object WriteApi {
       case EXCEL => df_writer.format("com.crealytics.spark.excel").option("useHeader","true")
       case PARQUET => df_writer.format("parquet")
       case ORC => df_writer.format("orc")
-      case JSON => df_writer.format("json")
+      case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
       case TEXT => df_writer.format("text")
       case _ => df_writer.format("text")
     }

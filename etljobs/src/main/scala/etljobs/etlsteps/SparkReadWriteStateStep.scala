@@ -19,7 +19,7 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
           ,output_save_mode: SaveMode = SaveMode.Append
           ,output_repartitioning: Boolean = false
           ,transform_function : Option[Input[T, IPSTATE] => Output[O, OPSTATE]] = None
-        )(spark : => SparkSession, etl_metadata : Map[String, String])
+        )(spark : => SparkSession)
 extends EtlStep[IPSTATE,OPSTATE]
 {
   private var recordsWrittenCount = 0L
@@ -55,9 +55,9 @@ extends EtlStep[IPSTATE,OPSTATE]
 
   }
 
-  override def getStepProperties : Map[String,String] = {
-    val in_map = ReadApi.LoadDSHelper[T](input_location,input_type).toList
-    val out_map = WriteApi.WriteDSHelper[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList
+  override def getStepProperties(level: String) : Map[String,String] = {
+    val in_map = ReadApi.LoadDSHelper[T](level,input_location,input_type).toList
+    val out_map = WriteApi.WriteDSHelper[O](level,output_type, output_location, output_partition_col, output_save_mode, output_filename, recordsWrittenCount,repartition=output_repartitioning).toList
     (in_map ++ out_map).toMap
   }
 
@@ -89,7 +89,7 @@ object SparkReadWriteStateStep {
              ,output_save_mode: SaveMode = SaveMode.Append
              ,output_repartitioning: Boolean = false
              ,transform_function : Option[Input[T, IPSTATE] => Output[O, OPSTATE]] = None
-           ) (spark: => SparkSession, etl_metadata : Map[String, String]): SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE] = {
-    new SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE](name,input_location,input_type,output_location,output_type,output_filename,output_partition_col,output_save_mode,output_repartitioning,transform_function)(spark,etl_metadata)
+           ) (spark: => SparkSession): SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE] = {
+    new SparkReadWriteStateStep[T,IPSTATE,O,OPSTATE](name,input_location,input_type,output_location,output_type,output_filename,output_partition_col,output_save_mode,output_repartitioning,transform_function)(spark)
   }
 }

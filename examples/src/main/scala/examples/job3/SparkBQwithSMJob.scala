@@ -27,10 +27,10 @@ object SparkBQwithSMJob extends App {
     "ratings_output_table_name" -> "ratings",
     "ratings_output_file_name" -> "ratings.parquet"
   )
-  val etljob = new SparkBQwithSMJob(job_properties, global_properties)
+  val etljob = new SparkBQwithSMJob(job_properties, Some(global_properties))
 }
 
-class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: GlobalProperties) extends SessionManager(global_properties) with SparkUDF {
+class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: Option[GlobalProperties]) extends SessionManager(global_properties) with SparkUDF {
   import RatingsSchemas._
 
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
@@ -53,7 +53,7 @@ class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: Gl
     output_type             = PARQUET,
     output_location         = job_properties("ratings_output_path"),
     output_filename         = Some(job_properties("ratings_output_file_name"))
-  )(spark,job_properties)
+  )(spark)
 
   val step2 = new BQLoadStep(
     name                = "LoadRatingBQ",
@@ -62,13 +62,13 @@ class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: Gl
     source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
-  )(bq,job_properties)
+  )(bq)
 
   SparkBQwithSMJob.etl_job_logger.info("##################JOB PROPERTIES##################")
   SparkBQwithSMJob.etl_job_logger.info(step1.name)
-  step1.getStepProperties.foreach(x => SparkBQwithSMJob.etl_job_logger.info("==> " + x))
+  step1.getStepProperties().foreach(x => SparkBQwithSMJob.etl_job_logger.info("==> " + x))
   SparkBQwithSMJob.etl_job_logger.info(step2.name)
-  step2.getStepProperties.foreach(x => SparkBQwithSMJob.etl_job_logger.info("==> " + x))
+  step2.getStepProperties().foreach(x => SparkBQwithSMJob.etl_job_logger.info("==> " + x))
   SparkBQwithSMJob.etl_job_logger.info("##################JOB PROPERTIES##################")
 
   // This below for comprehension is not lazy, it will run here only

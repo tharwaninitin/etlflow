@@ -1,41 +1,45 @@
 package etljobs
 
-import com.google.cloud.bigquery.BigQuery
 import etljobs.etlsteps.EtlStep
 import etljobs.utils.{SessionManager, SlackManager, GlobalProperties}
 import org.apache.log4j.Logger
-import org.apache.spark.sql.SparkSession
 import scala.util.{Failure, Success, Try}
 
 case class EtlJobException(msg : String) extends Exception
 
-abstract class EtlJob(job_properties : Map[String,String], global_properties: GlobalProperties) extends SessionManager(global_properties) {
+abstract class EtlJob(job_properties : Map[String,String], global_properties: Option[GlobalProperties] = None, etl_props: EtlProps = new EtlProps {}) extends SessionManager(global_properties) {
   val etl_job_logger : Logger = Logger.getLogger(getClass.getName)
   var job_execution_state : Map[String, Map[String,String]] = Map.empty
   var error_occured : Boolean = false
-  
+  var slack_notification_level : String = "info"
   def apply() : List[EtlStep[Unit,Unit]]
 
-  def printJobInfo() : Unit = {
+  def printJobInfo(): Unit = {
     apply().foreach{ etl =>
-      etl.getStepProperties.foreach(println)
+      etl.getStepProperties(slack_notification_level).foreach(println)
     }
   }
 
-  def getJobInfo() : List[Map[String,String]] = {
+  def getJobInfo: List[Map[String,String]] = {
     apply().map{ etl =>
-      etl.getStepProperties
+      etl.getStepProperties(slack_notification_level)
     }
   }
 
-  def execute(send_slack_notification: Boolean = false) : Map[String, Map[String,String]] = {
+  def execute(send_slack_notification: Boolean = false, slack_notification_level:String) : Map[String, Map[String,String]] = {
     val job_start_time = System.nanoTime()
     if (send_slack_notification) 
     {
       SlackManager.final_slack_message = ""
       SlackManager.job_properties = job_properties
-      SlackManager.webhook_url = global_properties.slack_webhook_url
-      SlackManager.env = global_properties.slack_env
+      SlackManager.webhook_url = global_properties match {
+        case Some(x) => x.slack_webhook_url
+        case None => "<use_global_properties>"
+      }
+      SlackManager.env = global_properties match {
+        case Some(x) => x.slack_env
+        case None => "<use_global_properties>"
+      }
 
       // Catch job result(Success/Failure) in Try so that it can be used further
       val job_result = Try{
@@ -43,10 +47,10 @@ abstract class EtlJob(job_properties : Map[String,String], global_properties: Gl
           val step_start_time = System.nanoTime()
           etl.process() match {
             case Success(_) => 
-              SlackManager.updateStepLevelInformation(step_start_time, etl, "Pass")
+              SlackManager.updateStepLevelInformation(step_start_time, etl, "Pass", slack_notification_level)
               job_execution_state ++= etl.getExecutionMetrics
             case Failure(exception) => 
-              SlackManager.updateStepLevelInformation(step_start_time, etl, "Failed", Some(exception.getMessage()));
+              SlackManager.updateStepLevelInformation(step_start_time, etl, "Failed", slack_notification_level,Some(exception.getMessage()));
               job_execution_state ++= etl.getExecutionMetrics 
               etl_job_logger.error("Error Occured: " + exception.getMessage())
               

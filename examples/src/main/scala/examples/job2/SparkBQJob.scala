@@ -30,7 +30,7 @@ object SparkBQJob extends App {
     output_location         = job_properties("ratings_output_path"),
     output_type             = PARQUET,
     output_filename         = Some(job_properties("ratings_output_file_name"))
-  )(spark,job_properties)
+  )(spark)
 
   val step2 = new BQLoadStep(
     name                = "LoadRatingBQ",
@@ -39,7 +39,7 @@ object SparkBQJob extends App {
     source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
-  )(bq,job_properties)
+  )(bq)
 
   val opt = for {
     _ <- step1.process()

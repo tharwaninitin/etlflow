@@ -30,7 +30,7 @@
 </span>6 <span style=''>class SparkETLStep(
 </span>7 <span style=''>                  val name : String
 </span>8 <span style=''>                  ,transform_function : () =&gt; Unit
-</span>9 <span style=''>                  )(spark : =&gt; SparkSession, etl_metadata : Map[String, String])
+</span>9 <span style=''>                  )(spark : =&gt; SparkSession)
 </span>10 <span style=''>extends EtlStep[Unit,Unit]
 </span>11 <span style=''>{
 </span>12 <span style=''>  def process(input_state : Unit): Try[Unit] = {
@@ -58,12 +58,12 @@
           13
         </td>
         <td>
-          305
+          340
         </td>
         <td>
-          360
+          324
           -
-          695
+          659
         </td>
         <td>
           Apply
@@ -84,12 +84,12 @@
           14
         </td>
         <td>
-          297
+          332
         </td>
         <td>
-          371
+          335
           -
-          487
+          451
         </td>
         <td>
           Apply
@@ -105,75 +105,12 @@
           15
         </td>
         <td>
-          298
+          334
         </td>
         <td>
-          512
+          501
           -
-          533
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Starting ETL Step : &quot;
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          301
-        </td>
-        <td>
-          510
-          -
-          538
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Starting ETL Step : &quot;, &quot;&quot;).s(SparkETLStep.this.name)
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          300
-        </td>
-        <td>
-          533
-          -
-          537
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.etlsteps.SparkETLStep.name
-        </td>
-        <td style="background: #AEF1AE">
-          SparkETLStep.this.name
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          299
-        </td>
-        <td>
-          537
-          -
-          538
+          502
         </td>
         <td>
           Literal
@@ -189,12 +126,12 @@
           15
         </td>
         <td>
-          302
+          337
         </td>
         <td>
-          494
+          458
           -
-          539
+          503
         </td>
         <td>
           Apply
@@ -207,15 +144,78 @@
         </td>
       </tr><tr>
         <td>
+          15
+        </td>
+        <td>
+          336
+        </td>
+        <td>
+          474
+          -
+          502
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Starting ETL Step : &quot;, &quot;&quot;).s(SparkETLStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          333
+        </td>
+        <td>
+          476
+          -
+          497
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Starting ETL Step : &quot;
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          335
+        </td>
+        <td>
+          497
+          -
+          501
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.SparkETLStep.name
+        </td>
+        <td style="background: #AEF1AE">
+          SparkETLStep.this.name
+        </td>
+      </tr><tr>
+        <td>
           16
         </td>
         <td>
-          303
+          338
         </td>
         <td>
-          546
+          510
           -
-          566
+          530
         </td>
         <td>
           Apply
@@ -231,12 +231,12 @@
           17
         </td>
         <td>
-          304
+          339
         </td>
         <td>
-          573
+          537
           -
-          689
+          653
         </td>
         <td>
           Apply

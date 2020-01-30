@@ -9,7 +9,7 @@ Open sbt shell and run below command
 exit the shell and copy generated docs
 ```
 rm -rf docs/testcovrep
-cp -r etljobs/target/scala-2.11/scoverage-report/ docs/testcovrep
+cp -r etljobs/target/scala-2.12/scoverage-report/ docs/testcovrep
 ```
 ## To generate Scala API Documentation
 
@@ -20,5 +20,5 @@ Open sbt shell and run below command
 exit the shell and copy generated docs
 ```
 rm -rf docs/api
-cp -r etljobs/target/scala-2.11/api/ docs/api
+cp -r etljobs/target/scala-2.12/api/ docs/api
 ```

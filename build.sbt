@@ -24,12 +24,6 @@ Global / concurrentRestrictions := Seq(
   Tags.limitAll( 15 )
 )
 
-lazy val commonSettings = Seq(
-  organization := "com.github.tharwaninitin"
-  , scalaVersion := ScalaVersion
-  ,crossScalaVersions := Nil
-)
-
 lazy val etljobsSettings = Seq(
   name := "etljobs"
   , libraryDependencies ++= Seq( 
@@ -47,6 +41,7 @@ val livyClientCommon = "org.apache.livy" % "livy-client-common" % LivyVersion
 
 lazy val examplesSettings = Seq(
   name := "examples"
+  , scalaVersion := ScalaVersion
   , libraryDependencies ++= Seq(
     sparkCore, sparkSql,  // For Spark jobs in SparkSteps
     gcloudBQ,             // For using Big-query java API in BQLoadStep
@@ -60,17 +55,20 @@ lazy val examplesSettings = Seq(
 )
 
 lazy val root = (project in file("."))
-  .settings(commonSettings: _*)
+  .settings(
+    crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
+    publish / skip := true)
   .aggregate(etljobs, examples)
 
 lazy val etljobs = (project in file("etljobs"))
-  .settings(commonSettings,etljobsSettings)
+  .settings(etljobsSettings)
   .settings(
+    organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
     initialCommands := "import etljobs._"
   )
 
 lazy val examples = (project in file("examples"))
-  .settings(commonSettings,examplesSettings)
+  .settings(examplesSettings)
   .dependsOn(etljobs)
 

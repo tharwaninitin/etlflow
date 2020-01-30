@@ -27,11 +27,11 @@
 </span>3 <span style=''>import java.io.FileInputStream
 </span>4 <span style=''>import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 </span>5 <span style=''>import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
-</span>6 <span style=''>import org.apache.log4j.{Level, Logger}
+</span>6 <span style=''>import org.apache.log4j.Logger
 </span>7 <span style=''>import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 </span>8 <span style=''>import scala.util.Try
 </span>9 <span style=''>
-</span>10 <span style=''>abstract class SessionManager(global_properties: GlobalProperties) {
+</span>10 <span style=''>abstract class SessionManager(global_properties: Option[GlobalProperties]) {
 </span>11 <span style=''>
 </span>12 <span style=''>  private val ic_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
 </span>13 <span style=''>  </span><span style='background: #AEF1AE'>println(f&quot;======&gt; Loaded SessionManager(${getClass.getName})&quot;)</span><span style=''>
@@ -47,100 +47,109 @@
 </span>23 <span style=''>    def columnCount: Int = </span><span style='background: #F0ADAD'>column_count</span><span style=''>
 </span>24 <span style=''>  }
 </span>25 <span style=''>  
-</span>26 <span style=''>  lazy implicit val spark: SparkSession = </span><span style='background: #AEF1AE'>createSparkSession(global_properties)</span><span style=''>
-</span>27 <span style=''>  lazy implicit val bq: BigQuery = </span><span style='background: #AEF1AE'>createBigQuerySession(global_properties)</span><span style=''>
+</span>26 <span style=''>  lazy implicit val spark: SparkSession = createSparkSession(global_properties)
+</span>27 <span style=''>  lazy implicit val bq: BigQuery = createBigQuerySession(global_properties)
 </span>28 <span style=''>
-</span>29 <span style=''>  def createSparkSession(ss: GlobalProperties): SparkSession = {
-</span>30 <span style=''>    if (</span><span style='background: #AEF1AE'>ss.running_environment ==&quot;gcp&quot;</span><span style=''>) {
-</span>31 <span style=''>      </span><span style='background: #F0ADAD'>if (SparkSession.getActiveSession.isDefined) {
-</span>32 <span style=''></span><span style='background: #F0ADAD'>        val spark = SparkSession.getActiveSession.get
-</span>33 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;)
-</span>34 <span style=''></span><span style='background: #F0ADAD'>        spark
-</span>35 <span style=''></span><span style='background: #F0ADAD'>      }
-</span>36 <span style=''></span><span style='background: #F0ADAD'>      else {
-</span>37 <span style=''></span><span style='background: #F0ADAD'>        val spark = SparkSession.builder()
-</span>38 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads)
-</span>39 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions)
-</span>40 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode)
-</span>41 <span style=''></span><span style='background: #F0ADAD'>          .enableHiveSupport()
-</span>42 <span style=''></span><span style='background: #F0ADAD'>          .getOrCreate()
-</span>43 <span style=''></span><span style='background: #F0ADAD'>        
-</span>44 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
-</span>45 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot; + spark.sparkContext.uiWebUrl)
-</span>46 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;spark.sparkContext.applicationId = &quot; + spark.sparkContext.applicationId)
-</span>47 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot; + spark.sparkContext.sparkUser)
-</span>48 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;spark.eventLog.dir = &quot; + spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
-</span>49 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;spark.eventLog.enabled = &quot; + spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
-</span>50 <span style=''></span><span style='background: #F0ADAD'>        spark.conf.getAll.filter(m1 =&gt; m1._1.contains(&quot;yarn&quot;)).foreach(kv =&gt; ic_logger.info(kv._1 + &quot; = &quot; + kv._2))
-</span>51 <span style=''></span><span style='background: #F0ADAD'>        ic_logger.info(&quot;#####################################################################&quot;)
-</span>52 <span style=''></span><span style='background: #F0ADAD'>
-</span>53 <span style=''></span><span style='background: #F0ADAD'>        spark
-</span>54 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>55 <span style=''>      
-</span>56 <span style=''>    }
-</span>57 <span style=''>    else </span><span style='background: #AEF1AE'>if (ss.running_environment ==&quot;aws&quot;) {
-</span>58 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>if (SparkSession.getActiveSession.isDefined) {
-</span>59 <span style=''></span><span style='background: #F0ADAD'>        SparkSession.getActiveSession.get
-</span>60 <span style=''></span><span style='background: #F0ADAD'>      }
-</span>61 <span style=''></span><span style='background: #F0ADAD'>      else {
-</span>62 <span style=''></span><span style='background: #F0ADAD'>        val spark = SparkSession.builder()
-</span>63 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads)
-</span>64 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions)
-</span>65 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode)
-</span>66 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
-</span>67 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
-</span>68 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;fs.gs.project.id&quot;, ss.gcp_project)
-</span>69 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;)
-</span>70 <span style=''></span><span style='background: #F0ADAD'>          .config(&quot;google.cloud.auth.service.account.json.keyfile&quot;,ss.gcp_project_key_name)
-</span>71 <span style=''></span><span style='background: #F0ADAD'>          .enableHiveSupport()
-</span>72 <span style=''></span><span style='background: #F0ADAD'>          .getOrCreate()
-</span>73 <span style=''></span><span style='background: #F0ADAD'>
-</span>74 <span style=''></span><span style='background: #F0ADAD'>        spark
-</span>75 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style='background: #AEF1AE'>
-</span>76 <span style=''></span><span style='background: #AEF1AE'>    }
-</span>77 <span style=''></span><span style='background: #AEF1AE'>    else if (ss.running_environment == &quot;local&quot;) {
-</span>78 <span style=''></span><span style='background: #AEF1AE'>      if (SparkSession.getActiveSession.isDefined) {
-</span>79 <span style=''></span><span style='background: #AEF1AE'>        SparkSession.getActiveSession.get
-</span>80 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>81 <span style=''></span><span style='background: #AEF1AE'>      else {
-</span>82 <span style=''></span><span style='background: #AEF1AE'>        val spark = SparkSession.builder().master(&quot;local[*]&quot;)
-</span>83 <span style=''></span><span style='background: #AEF1AE'>          .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
-</span>84 <span style=''></span><span style='background: #AEF1AE'>          .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
-</span>85 <span style=''></span><span style='background: #AEF1AE'>          .config(&quot;fs.gs.project.id&quot;, ss.gcp_project)
-</span>86 <span style=''></span><span style='background: #AEF1AE'>          .config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;)
-</span>87 <span style=''></span><span style='background: #AEF1AE'>          .config(&quot;google.cloud.auth.service.account.json.keyfile&quot;,ss.gcp_project_key_name)
-</span>88 <span style=''></span><span style='background: #AEF1AE'>          .getOrCreate()
-</span>89 <span style=''></span><span style='background: #AEF1AE'>
-</span>90 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
-</span>91 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot; + spark.sparkContext.uiWebUrl)
-</span>92 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;spark.sparkContext.applicationId = &quot; + spark.sparkContext.applicationId)
-</span>93 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot; + spark.sparkContext.sparkUser)
-</span>94 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;spark.eventLog.dir = &quot; + spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
-</span>95 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;spark.eventLog.enabled = &quot; + spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
-</span>96 <span style=''></span><span style='background: #AEF1AE'>        spark.conf.getAll.filter(m1 =&gt; m1._1.contains(&quot;yarn&quot;)).foreach(kv =&gt; </span><span style='background: #F0ADAD'>ic_logger.info(kv._1 + &quot; = &quot; + kv._2)</span><span style='background: #AEF1AE'>)
-</span>97 <span style=''></span><span style='background: #AEF1AE'>        ic_logger.info(&quot;#####################################################################&quot;)
-</span>98 <span style=''></span><span style='background: #AEF1AE'>
-</span>99 <span style=''></span><span style='background: #AEF1AE'>        spark
-</span>100 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>101 <span style=''></span><span style='background: #AEF1AE'>    }
-</span>102 <span style=''></span><span style='background: #AEF1AE'>    else {
-</span>103 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
-</span>104 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>105 <span style=''>
-</span>106 <span style=''>  }
-</span>107 <span style=''>
-</span>108 <span style=''>  def createBigQuerySession(ss: GlobalProperties): BigQuery = {
-</span>109 <span style=''>    </span><span style='background: #AEF1AE'>ic_logger.info(s&quot;Job is running on env: ${ss.running_environment}&quot;)</span><span style=''>
-</span>110 <span style=''>    if (</span><span style='background: #AEF1AE'>ss.running_environment == &quot;gcp&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
-</span>111 <span style=''>    else </span><span style='background: #AEF1AE'>if (ss.running_environment == &quot;aws&quot; || ss.running_environment == &quot;local&quot;)  {
-</span>112 <span style=''></span><span style='background: #AEF1AE'>      val credentials: GoogleCredentials  = ServiceAccountCredentials.fromStream(new FileInputStream(ss.gcp_project_key_name))
-</span>113 <span style=''></span><span style='background: #AEF1AE'>      BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
-</span>114 <span style=''></span><span style='background: #AEF1AE'>    }
-</span>115 <span style=''></span><span style='background: #AEF1AE'>    else {
-</span>116 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
-</span>117 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>118 <span style=''>  }
-</span>119 <span style=''>}
+</span>29 <span style=''>  def createSparkSession(gp: Option[GlobalProperties]): SparkSession = {
+</span>30 <span style=''>    gp match {
+</span>31 <span style=''>      case Some(ss) =&gt;
+</span>32 <span style=''>        if (</span><span style='background: #AEF1AE'>ss.running_environment ==&quot;gcp&quot;</span><span style=''>) {
+</span>33 <span style=''>        </span><span style='background: #F0ADAD'>if (SparkSession.getActiveSession.isDefined) {
+</span>34 <span style=''></span><span style='background: #F0ADAD'>          val spark = SparkSession.getActiveSession.get
+</span>35 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;)
+</span>36 <span style=''></span><span style='background: #F0ADAD'>          spark
+</span>37 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>38 <span style=''></span><span style='background: #F0ADAD'>        else {
+</span>39 <span style=''></span><span style='background: #F0ADAD'>          val spark = SparkSession.builder()
+</span>40 <span style=''></span><span style='background: #F0ADAD'>            .config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>            .config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions)
+</span>42 <span style=''></span><span style='background: #F0ADAD'>            .config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>            .enableHiveSupport()
+</span>44 <span style=''></span><span style='background: #F0ADAD'>            .getOrCreate()
+</span>45 <span style=''></span><span style='background: #F0ADAD'>
+</span>46 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot; + spark.sparkContext.uiWebUrl)
+</span>48 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.sparkContext.applicationId = &quot; + spark.sparkContext.applicationId)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot; + spark.sparkContext.sparkUser)
+</span>50 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.eventLog.dir = &quot; + spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+</span>51 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.eventLog.enabled = &quot; + spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
+</span>52 <span style=''></span><span style='background: #F0ADAD'>          spark.conf.getAll.filter(m1 =&gt; m1._1.contains(&quot;yarn&quot;)).foreach(kv =&gt; ic_logger.info(kv._1 + &quot; = &quot; + kv._2))
+</span>53 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;#####################################################################&quot;)
+</span>54 <span style=''></span><span style='background: #F0ADAD'>
+</span>55 <span style=''></span><span style='background: #F0ADAD'>          spark
+</span>56 <span style=''></span><span style='background: #F0ADAD'>        }</span><span style=''>
+</span>57 <span style=''>
+</span>58 <span style=''>      }
+</span>59 <span style=''>        else </span><span style='background: #AEF1AE'>if (ss.running_environment ==&quot;aws&quot;) {
+</span>60 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>if (SparkSession.getActiveSession.isDefined) {
+</span>61 <span style=''></span><span style='background: #F0ADAD'>            SparkSession.getActiveSession.get
+</span>62 <span style=''></span><span style='background: #F0ADAD'>          }
+</span>63 <span style=''></span><span style='background: #F0ADAD'>          else {
+</span>64 <span style=''></span><span style='background: #F0ADAD'>            val spark = SparkSession.builder()
+</span>65 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads)
+</span>66 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions)
+</span>67 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode)
+</span>68 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
+</span>69 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
+</span>70 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.gs.project.id&quot;, ss.gcp_project)
+</span>71 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;)
+</span>72 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;google.cloud.auth.service.account.json.keyfile&quot;,ss.gcp_project_key_name)
+</span>73 <span style=''></span><span style='background: #F0ADAD'>              .enableHiveSupport()
+</span>74 <span style=''></span><span style='background: #F0ADAD'>              .getOrCreate()
+</span>75 <span style=''></span><span style='background: #F0ADAD'>
+</span>76 <span style=''></span><span style='background: #F0ADAD'>            spark
+</span>77 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style='background: #AEF1AE'>
+</span>78 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>79 <span style=''></span><span style='background: #AEF1AE'>        else if (ss.running_environment == &quot;local&quot;) {
+</span>80 <span style=''></span><span style='background: #AEF1AE'>          if (SparkSession.getActiveSession.isDefined) {
+</span>81 <span style=''></span><span style='background: #AEF1AE'>            SparkSession.getActiveSession.get
+</span>82 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>83 <span style=''></span><span style='background: #AEF1AE'>          else {
+</span>84 <span style=''></span><span style='background: #AEF1AE'>            val spark = SparkSession.builder().master(&quot;local[*]&quot;)
+</span>85 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
+</span>86 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
+</span>87 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.gs.project.id&quot;, ss.gcp_project)
+</span>88 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;)
+</span>89 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;google.cloud.auth.service.account.json.keyfile&quot;,ss.gcp_project_key_name)
+</span>90 <span style=''></span><span style='background: #AEF1AE'>              .getOrCreate()
+</span>91 <span style=''></span><span style='background: #AEF1AE'>
+</span>92 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
+</span>93 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot; + spark.sparkContext.uiWebUrl)
+</span>94 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.sparkContext.applicationId = &quot; + spark.sparkContext.applicationId)
+</span>95 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot; + spark.sparkContext.sparkUser)
+</span>96 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.eventLog.dir = &quot; + spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+</span>97 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.eventLog.enabled = &quot; + spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
+</span>98 <span style=''></span><span style='background: #AEF1AE'>            spark.conf.getAll.filter(m1 =&gt; m1._1.contains(&quot;yarn&quot;)).foreach(kv =&gt; </span><span style='background: #F0ADAD'>ic_logger.info(kv._1 + &quot; = &quot; + kv._2)</span><span style='background: #AEF1AE'>)
+</span>99 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;#####################################################################&quot;)
+</span>100 <span style=''></span><span style='background: #AEF1AE'>
+</span>101 <span style=''></span><span style='background: #AEF1AE'>            spark
+</span>102 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>103 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>104 <span style=''></span><span style='background: #AEF1AE'>        else {
+</span>105 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
+</span>106 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>107 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>SparkSession.builder().enableHiveSupport().getOrCreate()</span><span style=''>
+</span>108 <span style=''>    }
+</span>109 <span style=''>
+</span>110 <span style=''>
+</span>111 <span style=''>  }
+</span>112 <span style=''>
+</span>113 <span style=''>  def createBigQuerySession(gp: Option[GlobalProperties]): BigQuery = {
+</span>114 <span style=''>    gp match {
+</span>115 <span style=''>      case Some(ss) =&gt;
+</span>116 <span style=''>        </span><span style='background: #AEF1AE'>ic_logger.info(s&quot;Job is running on env: ${ss.running_environment}&quot;)</span><span style=''>
+</span>117 <span style=''>        if (</span><span style='background: #AEF1AE'>ss.running_environment == &quot;gcp&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
+</span>118 <span style=''>        else </span><span style='background: #AEF1AE'>if (ss.running_environment == &quot;aws&quot; || ss.running_environment == &quot;local&quot;)  {
+</span>119 <span style=''></span><span style='background: #AEF1AE'>          val credentials: GoogleCredentials  = ServiceAccountCredentials.fromStream(new FileInputStream(ss.gcp_project_key_name))
+</span>120 <span style=''></span><span style='background: #AEF1AE'>          BigQueryOptions.newBuilder().setCredentials(credentials).build().getService
+</span>121 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>122 <span style=''></span><span style='background: #AEF1AE'>        else {
+</span>123 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
+</span>124 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>125 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
+</span>126 <span style=''>    }
+</span>127 <span style=''>  }
+</span>128 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -157,33 +166,12 @@
           12
         </td>
         <td>
-          729
+          782
         </td>
         <td>
-          430
+          412
           -
           446
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          730
-        </td>
-        <td>
-          413
-          -
-          447
         </td>
         <td>
           Apply
@@ -196,15 +184,36 @@
         </td>
       </tr><tr>
         <td>
+          12
+        </td>
+        <td>
+          781
+        </td>
+        <td>
+          429
+          -
+          445
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          SessionManager.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
           13
         </td>
         <td>
-          731
+          783
         </td>
         <td>
-          450
+          449
           -
-          512
+          511
         </td>
         <td>
           Apply
@@ -213,7 +222,7 @@
           scala.Predef.println
         </td>
         <td style="background: #AEF1AE">
-          scala.this.Predef.println(({
+          scala.Predef.println(({
   val arg$macro$4: Any = SessionManager.this.getClass().getName();
   new scala.collection.immutable.StringOps(&quot;======&gt; Loaded SessionManager(%s)&quot;).format(arg$macro$4)
 }: String))
@@ -223,12 +232,12 @@
           16
         </td>
         <td>
-          732
+          784
         </td>
         <td>
-          588
+          587
           -
-          589
+          588
         </td>
         <td>
           Literal
@@ -244,12 +253,12 @@
           17
         </td>
         <td>
-          734
+          786
         </td>
         <td>
-          641
+          640
           -
-          670
+          669
         </td>
         <td>
           Select
@@ -265,12 +274,12 @@
           17
         </td>
         <td>
-          733
+          785
         </td>
         <td>
-          645
+          644
           -
-          659
+          658
         </td>
         <td>
           Apply
@@ -286,75 +295,12 @@
           20
         </td>
         <td>
-          738
+          792
         </td>
         <td>
-          826
-          -
-          841
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.sql.Column.expr
-        </td>
-        <td style="background: #F0ADAD">
-          expression.expr
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          735
-        </td>
-        <td>
-          783
-          -
-          797
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Column added &quot;
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          737
-        </td>
-        <td>
-          842
+          765
           -
           843
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          740
-        </td>
-        <td>
-          766
-          -
-          844
         </td>
         <td>
           Apply
@@ -370,12 +316,12 @@
           20
         </td>
         <td>
-          736
+          788
         </td>
         <td>
-          807
+          806
           -
-          825
+          824
         </td>
         <td>
           Literal
@@ -391,12 +337,12 @@
           20
         </td>
         <td>
-          739
+          791
         </td>
         <td>
-          781
+          780
           -
-          843
+          842
         </td>
         <td>
           Apply
@@ -409,15 +355,78 @@
         </td>
       </tr><tr>
         <td>
+          20
+        </td>
+        <td>
+          787
+        </td>
+        <td>
+          782
+          -
+          796
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Column added &quot;
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          790
+        </td>
+        <td>
+          825
+          -
+          840
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.Column.expr
+        </td>
+        <td style="background: #F0ADAD">
+          expression.expr
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          841
+          -
+          842
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
           21
         </td>
         <td>
-          741
+          793
         </td>
         <td>
-          851
+          850
           -
-          888
+          887
         </td>
         <td>
           Apply
@@ -433,12 +442,12 @@
           23
         </td>
         <td>
-          742
+          794
         </td>
         <td>
-          922
+          921
           -
-          934
+          933
         </td>
         <td>
           Select
@@ -451,99 +460,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          32
         </td>
         <td>
-          744
+          795
         </td>
         <td>
-          984
+          1221
           -
-          1021
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.utils.SessionManager.createSparkSession
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.createSparkSession(SessionManager.this.global_properties)
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          743
-        </td>
-        <td>
-          1003
-          -
-          1020
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.utils.SessionManager.global_properties
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.global_properties
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          746
-        </td>
-        <td>
-          1057
-          -
-          1097
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.utils.SessionManager.createBigQuerySession
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.createBigQuerySession(SessionManager.this.global_properties)
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          745
-        </td>
-        <td>
-          1079
-          -
-          1096
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.utils.SessionManager.global_properties
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.global_properties
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          747
-        </td>
-        <td>
-          1172
-          -
-          1202
+          1251
         </td>
         <td>
           Apply
@@ -556,15 +481,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          782
+          830
         </td>
         <td>
-          1212
+          1263
           -
-          2613
+          2698
         </td>
         <td>
           If
@@ -595,15 +520,36 @@ else
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          751
+          796
         </td>
         <td>
-          1257
+          1267
           -
-          1435
+          1306
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          799
+        </td>
+        <td>
+          1308
+          -
+          1494
         </td>
         <td>
           Block
@@ -620,36 +566,15 @@ else
         </td>
       </tr><tr>
         <td>
-          31
+          34
         </td>
         <td>
-          748
+          797
         </td>
         <td>
-          1216
+          1332
           -
-          1255
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.isDefined
-        </td>
-        <td style="background: #F0ADAD">
-          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          749
-        </td>
-        <td>
-          1279
-          -
-          1312
+          1365
         </td>
         <td>
           Select
@@ -662,15 +587,15 @@ else
         </td>
       </tr><tr>
         <td>
-          33
+          35
         </td>
         <td>
-          750
+          798
         </td>
         <td>
-          1321
+          1376
           -
-          1413
+          1468
         </td>
         <td>
           Apply
@@ -683,15 +608,15 @@ else
         </td>
       </tr><tr>
         <td>
-          36
+          38
         </td>
         <td>
-          781
+          829
         </td>
         <td>
-          1447
+          1508
           -
-          2613
+          2698
         </td>
         <td>
           Block
@@ -715,15 +640,15 @@ else
         </td>
       </tr><tr>
         <td>
-          42
+          44
         </td>
         <td>
-          752
+          800
         </td>
         <td>
-          1469
+          1532
           -
-          1806
+          1879
         </td>
         <td>
           Apply
@@ -736,15 +661,15 @@ else
         </td>
       </tr><tr>
         <td>
-          44
+          46
         </td>
         <td>
-          753
+          801
         </td>
         <td>
-          1824
+          1891
           -
-          1911
+          1978
         </td>
         <td>
           Apply
@@ -757,15 +682,15 @@ else
         </td>
       </tr><tr>
         <td>
-          45
+          47
         </td>
         <td>
-          756
+          804
         </td>
         <td>
-          1935
+          2004
           -
-          1997
+          2066
         </td>
         <td>
           Apply
@@ -778,15 +703,15 @@ else
         </td>
       </tr><tr>
         <td>
-          45
+          47
         </td>
         <td>
-          755
+          803
         </td>
         <td>
-          1970
+          2039
           -
-          1997
+          2066
         </td>
         <td>
           Select
@@ -799,36 +724,15 @@ else
         </td>
       </tr><tr>
         <td>
-          45
+          47
         </td>
         <td>
-          757
+          802
         </td>
         <td>
-          1920
+          2004
           -
-          1998
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          754
-        </td>
-        <td>
-          1935
-          -
-          1967
+          2036
         </td>
         <td>
           Literal
@@ -841,36 +745,15 @@ else
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          759
+          805
         </td>
         <td>
-          2062
+          1989
           -
-          2094
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.SparkContext.applicationId
-        </td>
-        <td style="background: #F0ADAD">
-          spark.sparkContext.applicationId
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          761
-        </td>
-        <td>
-          2007
-          -
-          2095
+          2067
         </td>
         <td>
           Apply
@@ -879,19 +762,19 @@ else
           org.apache.log4j.Category.info
         </td>
         <td style="background: #F0ADAD">
-          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
         </td>
       </tr><tr>
         <td>
-          46
+          48
         </td>
         <td>
-          758
+          806
         </td>
         <td>
-          2022
+          2093
           -
-          2059
+          2130
         </td>
         <td>
           Literal
@@ -904,15 +787,36 @@ else
         </td>
       </tr><tr>
         <td>
-          46
+          48
         </td>
         <td>
-          760
+          809
         </td>
         <td>
-          2022
+          2078
           -
-          2094
+          2166
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          808
+        </td>
+        <td>
+          2093
+          -
+          2165
         </td>
         <td>
           Apply
@@ -925,36 +829,36 @@ else
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
-          765
+          807
         </td>
         <td>
-          2104
+          2133
           -
-          2184
+          2165
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          org.apache.log4j.Category.info
+          org.apache.spark.SparkContext.applicationId
         </td>
         <td style="background: #F0ADAD">
-          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+          spark.sparkContext.applicationId
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
-          762
+          810
         </td>
         <td>
-          2119
+          2192
           -
-          2152
+          2225
         </td>
         <td>
           Literal
@@ -967,15 +871,36 @@ else
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
-          764
+          813
         </td>
         <td>
-          2119
+          2177
           -
-          2183
+          2257
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          812
+        </td>
+        <td>
+          2192
+          -
+          2256
         </td>
         <td>
           Apply
@@ -988,15 +913,15 @@ else
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
-          763
+          811
         </td>
         <td>
-          2155
+          2228
           -
-          2183
+          2256
         </td>
         <td>
           Select
@@ -1009,36 +934,15 @@ else
         </td>
       </tr><tr>
         <td>
-          48
+          50
         </td>
         <td>
-          768
+          815
         </td>
         <td>
-          2208
+          2309
           -
-          2276
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          767
-        </td>
-        <td>
-          2234
-          -
-          2276
+          2351
         </td>
         <td>
           Apply
@@ -1051,36 +955,15 @@ else
         </td>
       </tr><tr>
         <td>
-          48
+          50
         </td>
         <td>
-          766
+          817
         </td>
         <td>
-          2208
+          2268
           -
-          2231
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;spark.eventLog.dir = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          769
-        </td>
-        <td>
-          2193
-          -
-          2277
+          2352
         </td>
         <td>
           Apply
@@ -1093,15 +976,57 @@ else
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
-          771
+          814
         </td>
         <td>
-          2331
+          2283
           -
-          2377
+          2306
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.dir = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          816
+        </td>
+        <td>
+          2283
+          -
+          2351
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          819
+        </td>
+        <td>
+          2408
+          -
+          2454
         </td>
         <td>
           Apply
@@ -1114,36 +1039,15 @@ else
         </td>
       </tr><tr>
         <td>
-          49
+          51
         </td>
         <td>
-          770
+          821
         </td>
         <td>
-          2301
+          2363
           -
-          2328
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;spark.eventLog.enabled = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          773
-        </td>
-        <td>
-          2286
-          -
-          2378
+          2455
         </td>
         <td>
           Apply
@@ -1156,15 +1060,36 @@ else
         </td>
       </tr><tr>
         <td>
-          49
+          51
         </td>
         <td>
-          772
+          818
         </td>
         <td>
-          2301
+          2378
           -
-          2377
+          2405
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.enabled = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          820
+        </td>
+        <td>
+          2378
+          -
+          2454
         </td>
         <td>
           Apply
@@ -1177,15 +1102,15 @@ else
         </td>
       </tr><tr>
         <td>
-          50
+          52
         </td>
         <td>
-          774
+          822
         </td>
         <td>
-          2418
+          2497
           -
-          2440
+          2519
         </td>
         <td>
           Apply
@@ -1198,57 +1123,15 @@ else
         </td>
       </tr><tr>
         <td>
-          50
+          52
         </td>
         <td>
-          777
+          824
         </td>
         <td>
-          2471
+          2566
           -
-          2492
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          kv._1.+(&quot; = &quot;).+(kv._2)
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          779
-        </td>
-        <td>
-          2387
-          -
-          2494
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
-        </td>
-        <td style="background: #F0ADAD">
-          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SessionManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          776
-        </td>
-        <td>
-          2487
-          -
-          2492
+          2571
         </td>
         <td>
           Select
@@ -1261,36 +1144,36 @@ else
         </td>
       </tr><tr>
         <td>
-          50
+          52
         </td>
         <td>
-          775
+          827
         </td>
         <td>
-          2479
+          2466
           -
-          2484
+          2573
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.collection.IterableLike.foreach
         </td>
         <td style="background: #F0ADAD">
-          &quot; = &quot;
+          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SessionManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
         </td>
       </tr><tr>
         <td>
-          50
+          52
         </td>
         <td>
-          778
+          826
         </td>
         <td>
-          2456
+          2535
           -
-          2493
+          2572
         </td>
         <td>
           Apply
@@ -1303,15 +1186,57 @@ else
         </td>
       </tr><tr>
         <td>
-          51
+          52
         </td>
         <td>
-          780
+          823
         </td>
         <td>
-          2503
+          2558
           -
-          2590
+          2563
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          825
+        </td>
+        <td>
+          2550
+          -
+          2571
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          kv._1.+(&quot; = &quot;).+(kv._2)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          828
+        </td>
+        <td>
+          2584
+          -
+          2671
         </td>
         <td>
           Apply
@@ -1324,15 +1249,36 @@ else
         </td>
       </tr><tr>
         <td>
-          57
+          59
         </td>
         <td>
-          828
+          831
         </td>
         <td>
-          2636
+          2725
           -
-          5221
+          2755
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;aws&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          876
+        </td>
+        <td>
+          2721
+          -
+          5482
         </td>
         <td>
           If
@@ -1371,57 +1317,15 @@ else
         </td>
       </tr><tr>
         <td>
-          57
+          60
         </td>
         <td>
-          783
+          837
         </td>
         <td>
-          2640
+          2769
           -
-          2670
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.==
-        </td>
-        <td style="background: #AEF1AE">
-          ss.running_environment.==(&quot;aws&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          784
-        </td>
-        <td>
-          2684
-          -
-          2723
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.isDefined
-        </td>
-        <td style="background: #F0ADAD">
-          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          789
-        </td>
-        <td>
-          2680
-          -
-          3568
+          3721
         </td>
         <td>
           If
@@ -1440,36 +1344,36 @@ else
         </td>
       </tr><tr>
         <td>
-          59
+          60
         </td>
         <td>
-          786
+          832
         </td>
         <td>
-          2735
+          2773
           -
-          2768
+          2812
         </td>
         <td>
-          Block
+          Select
         </td>
         <td>
-          scala.Option.get
+          scala.Option.isDefined
         </td>
         <td style="background: #F0ADAD">
-          org.apache.spark.sql.SparkSession.getActiveSession.get
+          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
         </td>
       </tr><tr>
         <td>
-          59
+          61
         </td>
         <td>
-          785
+          833
         </td>
         <td>
-          2735
+          2828
           -
-          2768
+          2861
         </td>
         <td>
           Select
@@ -1485,12 +1389,33 @@ else
           61
         </td>
         <td>
-          788
+          834
         </td>
         <td>
-          2788
+          2828
           -
-          3568
+          2861
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          836
+        </td>
+        <td>
+          2889
+          -
+          3721
         </td>
         <td>
           Block
@@ -1506,15 +1431,15 @@ else
         </td>
       </tr><tr>
         <td>
-          72
+          74
         </td>
         <td>
-          787
+          835
         </td>
         <td>
-          2810
+          2915
           -
-          3545
+          3690
         </td>
         <td>
           Apply
@@ -1527,15 +1452,15 @@ else
         </td>
       </tr><tr>
         <td>
-          77
+          79
         </td>
         <td>
-          827
+          875
         </td>
         <td>
-          3584
+          3745
           -
-          5221
+          5482
         </td>
         <td>
           If
@@ -1565,15 +1490,15 @@ else
         </td>
       </tr><tr>
         <td>
-          77
+          79
         </td>
         <td>
-          790
+          838
         </td>
         <td>
-          3588
+          3749
           -
-          3621
+          3782
         </td>
         <td>
           Apply
@@ -1586,15 +1511,15 @@ else
         </td>
       </tr><tr>
         <td>
-          78
+          80
         </td>
         <td>
-          824
+          872
         </td>
         <td>
-          3631
+          3796
           -
-          5024
+          5269
         </td>
         <td>
           If
@@ -1621,15 +1546,15 @@ else
         </td>
       </tr><tr>
         <td>
-          78
+          80
         </td>
         <td>
-          791
+          839
         </td>
         <td>
-          3635
+          3800
           -
-          3674
+          3839
         </td>
         <td>
           Select
@@ -1642,36 +1567,15 @@ else
         </td>
       </tr><tr>
         <td>
-          79
+          81
         </td>
         <td>
-          792
+          841
         </td>
         <td>
-          3686
+          3855
           -
-          3719
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.get
-        </td>
-        <td style="background: #AEF1AE">
-          org.apache.spark.sql.SparkSession.getActiveSession.get
-        </td>
-      </tr><tr>
-        <td>
-          79
-        </td>
-        <td>
-          793
-        </td>
-        <td>
-          3686
-          -
-          3719
+          3888
         </td>
         <td>
           Block
@@ -1687,12 +1591,33 @@ else
           81
         </td>
         <td>
-          823
+          840
         </td>
         <td>
-          3739
+          3855
           -
-          5024
+          3888
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          871
+        </td>
+        <td>
+          3916
+          -
+          5269
         </td>
         <td>
           Block
@@ -1716,15 +1641,15 @@ else
         </td>
       </tr><tr>
         <td>
-          88
+          90
         </td>
         <td>
-          794
+          842
         </td>
         <td>
-          3761
+          3942
           -
-          4225
+          4430
         </td>
         <td>
           Apply
@@ -1737,15 +1662,15 @@ else
         </td>
       </tr><tr>
         <td>
-          90
+          92
         </td>
         <td>
-          795
+          843
         </td>
         <td>
-          4235
+          4444
           -
-          4322
+          4531
         </td>
         <td>
           Apply
@@ -1758,78 +1683,15 @@ else
         </td>
       </tr><tr>
         <td>
-          91
+          93
         </td>
         <td>
-          797
+          846
         </td>
         <td>
-          4381
+          4559
           -
-          4408
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.SparkContext.uiWebUrl
-        </td>
-        <td style="background: #AEF1AE">
-          spark.sparkContext.uiWebUrl
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          796
-        </td>
-        <td>
-          4346
-          -
-          4378
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;spark.sparkContext.uiWebUrl = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          799
-        </td>
-        <td>
-          4331
-          -
-          4409
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          798
-        </td>
-        <td>
-          4346
-          -
-          4408
+          4621
         </td>
         <td>
           Apply
@@ -1842,36 +1704,57 @@ else
         </td>
       </tr><tr>
         <td>
-          92
+          93
         </td>
         <td>
-          801
+          845
         </td>
         <td>
-          4473
+          4594
           -
-          4505
+          4621
         </td>
         <td>
           Select
         </td>
         <td>
-          org.apache.spark.SparkContext.applicationId
+          org.apache.spark.SparkContext.uiWebUrl
         </td>
         <td style="background: #AEF1AE">
-          spark.sparkContext.applicationId
+          spark.sparkContext.uiWebUrl
         </td>
       </tr><tr>
         <td>
-          92
+          93
         </td>
         <td>
-          803
+          844
         </td>
         <td>
-          4418
+          4559
           -
-          4506
+          4591
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.uiWebUrl = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          847
+        </td>
+        <td>
+          4544
+          -
+          4622
         </td>
         <td>
           Apply
@@ -1880,19 +1763,19 @@ else
           org.apache.log4j.Category.info
         </td>
         <td style="background: #AEF1AE">
-          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
         </td>
       </tr><tr>
         <td>
-          92
+          94
         </td>
         <td>
-          800
+          848
         </td>
         <td>
-          4433
+          4650
           -
-          4470
+          4687
         </td>
         <td>
           Literal
@@ -1905,15 +1788,36 @@ else
         </td>
       </tr><tr>
         <td>
-          92
+          94
         </td>
         <td>
-          802
+          851
         </td>
         <td>
-          4433
+          4635
           -
-          4505
+          4723
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SessionManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          850
+        </td>
+        <td>
+          4650
+          -
+          4722
         </td>
         <td>
           Apply
@@ -1926,78 +1830,36 @@ else
         </td>
       </tr><tr>
         <td>
-          93
+          94
         </td>
         <td>
-          804
+          849
         </td>
         <td>
-          4530
+          4690
           -
-          4563
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;spark.sparkContext.sparkUser = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          806
-        </td>
-        <td>
-          4530
-          -
-          4594
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          805
-        </td>
-        <td>
-          4566
-          -
-          4594
+          4722
         </td>
         <td>
           Select
         </td>
         <td>
-          org.apache.spark.SparkContext.sparkUser
+          org.apache.spark.SparkContext.applicationId
         </td>
         <td style="background: #AEF1AE">
-          spark.sparkContext.sparkUser
+          spark.sparkContext.applicationId
         </td>
       </tr><tr>
         <td>
-          93
+          95
         </td>
         <td>
-          807
+          855
         </td>
         <td>
-          4515
+          4736
           -
-          4595
+          4816
         </td>
         <td>
           Apply
@@ -2010,15 +1872,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          95
         </td>
         <td>
-          810
+          854
         </td>
         <td>
-          4619
+          4751
           -
-          4687
+          4815
         </td>
         <td>
           Apply
@@ -2027,19 +1889,61 @@ else
           java.lang.String.+
         </td>
         <td style="background: #AEF1AE">
-          &quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
         </td>
       </tr><tr>
         <td>
-          94
+          95
         </td>
         <td>
-          809
+          853
         </td>
         <td>
-          4645
+          4787
           -
-          4687
+          4815
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.sparkUser
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.sparkUser
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          4751
+          -
+          4784
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.sparkUser = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          857
+        </td>
+        <td>
+          4870
+          -
+          4912
         </td>
         <td>
           Apply
@@ -2052,36 +1956,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          96
         </td>
         <td>
-          811
+          856
         </td>
         <td>
-          4604
+          4844
           -
-          4688
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          SessionManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)))
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          808
-        </td>
-        <td>
-          4619
-          -
-          4642
+          4867
         </td>
         <td>
           Literal
@@ -2094,57 +1977,57 @@ else
         </td>
       </tr><tr>
         <td>
-          95
+          96
         </td>
         <td>
-          813
+          859
         </td>
         <td>
-          4742
+          4829
           -
-          4788
+          4913
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.spark.sql.RuntimeConfig.getOption
+          org.apache.log4j.Category.info
         </td>
         <td style="background: #AEF1AE">
-          spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)
+          SessionManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)))
         </td>
       </tr><tr>
         <td>
-          95
+          96
         </td>
         <td>
-          812
+          858
         </td>
         <td>
-          4712
+          4844
           -
-          4739
+          4912
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          java.lang.String.+
         </td>
         <td style="background: #AEF1AE">
-          &quot;spark.eventLog.enabled = &quot;
+          &quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
         </td>
       </tr><tr>
         <td>
-          95
+          97
         </td>
         <td>
-          815
+          863
         </td>
         <td>
-          4697
+          4926
           -
-          4789
+          5018
         </td>
         <td>
           Apply
@@ -2157,15 +2040,36 @@ else
         </td>
       </tr><tr>
         <td>
-          95
+          97
         </td>
         <td>
-          814
+          860
         </td>
         <td>
-          4712
+          4941
           -
-          4788
+          4968
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.eventLog.enabled = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          862
+        </td>
+        <td>
+          4941
+          -
+          5017
         </td>
         <td>
           Apply
@@ -2178,120 +2082,36 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          97
         </td>
         <td>
-          819
+          861
         </td>
         <td>
-          4882
+          4971
           -
-          4903
+          5017
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          kv._1.+(&quot; = &quot;).+(kv._2)
-        </td>
-      </tr><tr>
-        <td>
-          96
-        </td>
-        <td>
-          821
-        </td>
-        <td>
-          4798
-          -
-          4905
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
+          org.apache.spark.sql.RuntimeConfig.getOption
         </td>
         <td style="background: #AEF1AE">
-          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SessionManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
+          spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)
         </td>
       </tr><tr>
         <td>
-          96
+          98
         </td>
         <td>
-          818
+          864
         </td>
         <td>
-          4898
+          5062
           -
-          4903
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._2
-        </td>
-        <td style="background: #F0ADAD">
-          kv._2
-        </td>
-      </tr><tr>
-        <td>
-          96
-        </td>
-        <td>
-          817
-        </td>
-        <td>
-          4890
-          -
-          4895
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot; = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          96
-        </td>
-        <td>
-          820
-        </td>
-        <td>
-          4867
-          -
-          4904
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          SessionManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))
-        </td>
-      </tr><tr>
-        <td>
-          96
-        </td>
-        <td>
-          816
-        </td>
-        <td>
-          4829
-          -
-          4851
+          5084
         </td>
         <td>
           Apply
@@ -2304,15 +2124,120 @@ else
         </td>
       </tr><tr>
         <td>
-          97
+          98
         </td>
         <td>
-          822
+          866
         </td>
         <td>
-          4914
+          5131
           -
-          5001
+          5136
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          kv._2
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          869
+        </td>
+        <td>
+          5031
+          -
+          5138
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SessionManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          865
+        </td>
+        <td>
+          5123
+          -
+          5128
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          868
+        </td>
+        <td>
+          5100
+          -
+          5137
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SessionManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          867
+        </td>
+        <td>
+          5115
+          -
+          5136
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          kv._1.+(&quot; = &quot;).+(kv._2)
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          870
+        </td>
+        <td>
+          5151
+          -
+          5238
         </td>
         <td>
           Apply
@@ -2325,36 +2250,15 @@ else
         </td>
       </tr><tr>
         <td>
-          103
+          105
         </td>
         <td>
-          826
+          873
         </td>
         <td>
-          5048
+          5305
           -
-          5215
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          103
-        </td>
-        <td>
-          825
-        </td>
-        <td>
-          5048
-          -
-          5215
+          5472
         </td>
         <td>
           Throw
@@ -2367,78 +2271,57 @@ else
         </td>
       </tr><tr>
         <td>
-          109
+          105
         </td>
         <td>
-          831
+          874
         </td>
         <td>
-          5311
+          5305
           -
-          5362
+          5472
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          877
+        </td>
+        <td>
+          5502
+          -
+          5558
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.StringContext.s
+          org.apache.spark.sql.SparkSession.Builder.getOrCreate
         </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Job is running on env: &quot;, &quot;&quot;).s(ss.running_environment)
-        </td>
-      </tr><tr>
-        <td>
-          109
-        </td>
-        <td>
-          830
-        </td>
-        <td>
-          5361
-          -
-          5362
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.builder().enableHiveSupport().getOrCreate()
         </td>
       </tr><tr>
         <td>
-          109
+          116
         </td>
         <td>
-          829
+          881
         </td>
         <td>
-          5313
+          5690
           -
-          5337
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Job is running on env: &quot;
-        </td>
-      </tr><tr>
-        <td>
-          109
-        </td>
-        <td>
-          832
-        </td>
-        <td>
-          5296
-          -
-          5363
+          5757
         </td>
         <td>
           Apply
@@ -2451,15 +2334,78 @@ else
         </td>
       </tr><tr>
         <td>
-          110
+          116
         </td>
         <td>
-          833
+          878
         </td>
         <td>
-          5372
+          5707
           -
-          5403
+          5731
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Job is running on env: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          880
+        </td>
+        <td>
+          5705
+          -
+          5756
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Job is running on env: &quot;, &quot;&quot;).s(ss.running_environment)
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          879
+        </td>
+        <td>
+          5755
+          -
+          5756
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          882
+        </td>
+        <td>
+          5770
+          -
+          5801
         </td>
         <td>
           Apply
@@ -2472,15 +2418,15 @@ else
         </td>
       </tr><tr>
         <td>
-          110
+          117
         </td>
         <td>
-          835
+          884
         </td>
         <td>
-          5405
+          5803
           -
-          5450
+          5848
         </td>
         <td>
           Block
@@ -2493,15 +2439,15 @@ else
         </td>
       </tr><tr>
         <td>
-          110
+          117
         </td>
         <td>
-          834
+          883
         </td>
         <td>
-          5405
+          5803
           -
-          5450
+          5848
         </td>
         <td>
           Apply
@@ -2514,36 +2460,15 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          118
         </td>
         <td>
-          837
+          891
         </td>
         <td>
-          5499
+          5937
           -
-          5532
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.==
-        </td>
-        <td style="background: #AEF1AE">
-          ss.running_environment.==(&quot;local&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          111
-        </td>
-        <td>
-          842
-        </td>
-        <td>
-          5535
-          -
-          5753
+          6165
         </td>
         <td>
           Block
@@ -2559,15 +2484,57 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          118
         </td>
         <td>
-          836
+          887
         </td>
         <td>
-          5490
+          5866
           -
-          5495
+          5934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.||
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;aws&quot;).||(ss.running_environment.==(&quot;local&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          886
+        </td>
+        <td>
+          5901
+          -
+          5934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          885
+        </td>
+        <td>
+          5892
+          -
+          5897
         </td>
         <td>
           Literal
@@ -2580,15 +2547,15 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          118
         </td>
         <td>
-          845
+          894
         </td>
         <td>
-          5460
+          5862
           -
-          5944
+          6368
         </td>
         <td>
           If
@@ -2607,57 +2574,15 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          119
         </td>
         <td>
-          838
+          889
         </td>
         <td>
-          5464
+          5987
           -
-          5532
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Boolean.||
-        </td>
-        <td style="background: #AEF1AE">
-          ss.running_environment.==(&quot;aws&quot;).||(ss.running_environment.==(&quot;local&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          112
-        </td>
-        <td>
-          839
-        </td>
-        <td>
-          5618
-          -
-          5662
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.io.FileInputStream.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new java.io.FileInputStream(ss.gcp_project_key_name)
-        </td>
-      </tr><tr>
-        <td>
-          112
-        </td>
-        <td>
-          840
-        </td>
-        <td>
-          5581
-          -
-          5663
+          6069
         </td>
         <td>
           Apply
@@ -2670,15 +2595,36 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          119
         </td>
         <td>
-          841
+          888
         </td>
         <td>
-          5670
+          6024
           -
-          5747
+          6068
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.io.FileInputStream.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.io.FileInputStream(ss.gcp_project_key_name)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          890
+        </td>
+        <td>
+          6080
+          -
+          6155
         </td>
         <td>
           Apply
@@ -2691,15 +2637,15 @@ else
         </td>
       </tr><tr>
         <td>
-          116
+          123
         </td>
         <td>
-          844
+          893
         </td>
         <td>
-          5771
+          6191
           -
-          5938
+          6358
         </td>
         <td>
           Block
@@ -2712,15 +2658,15 @@ else
         </td>
       </tr><tr>
         <td>
-          116
+          123
         </td>
         <td>
-          843
+          892
         </td>
         <td>
-          5771
+          6191
           -
-          5938
+          6358
         </td>
         <td>
           Throw
@@ -2730,6 +2676,27 @@ else
         </td>
         <td style="background: #F0ADAD">
           throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          895
+        </td>
+        <td>
+          6388
+          -
+          6433
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.BigQueryOptions.getDefaultInstance().getService()
         </td>
       </tr>
     </table>

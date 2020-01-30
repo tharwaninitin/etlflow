@@ -1,8 +1,8 @@
 package examples.job1
 
-import org.apache.spark.sql.{SparkSession}
-import etljobs.etlsteps.{SparkReadWriteStep}
-import etljobs.utils.{CSV, PARQUET, AppLogger}
+import org.apache.spark.sql.SparkSession
+import etljobs.etlsteps.SparkReadWriteStep
+import etljobs.utils.{AppLogger, CSV, PARQUET}
 import org.apache.log4j.{Level, Logger}
 
 object SparkJob extends App {
@@ -27,11 +27,11 @@ object SparkJob extends App {
     input_type              = CSV(),
     output_location         = job_properties("ratings_output_path"),
     output_type             = PARQUET
-  )(spark,job_properties)
+  )(spark)
 
   job_logger.info("##################################JOB PROPERTIES########################################")
   job_logger.info(step1.name)
-  step1.getStepProperties.foreach(x => job_logger.info(x))
+  step1.getStepProperties().foreach(x => job_logger.info(x))
   job_logger.info("##################################JOB PROPERTIES########################################")
 
   val try_output = step1.process()

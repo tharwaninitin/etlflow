@@ -48,7 +48,7 @@ org.apache.log4j.Logger.getLogger("org").setLevel(org.apache.log4j.Level.WARN)
 
 lazy val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
 ```
-4. Define ETL Step which will load ratings data with below schema as specified from CSV to PARQUET:
+4. Define ETL Step which will load ratings data with below schema as specified from CSV to ORC:
 ```scala
 import org.apache.spark.sql.SaveMode
 case class Rating(user_id:Int, movie_id: Int, rating : Double, timestamp: Long)
@@ -61,13 +61,13 @@ val step1 = new SparkReadWriteStep[Rating, Rating](
     output_type             = ORC,
     output_save_mode        = SaveMode.Overwrite,
     output_filename         = Some(job_properties("ratings_output_file_name"))
- )(spark,job_properties)
+ )(spark)
 ```
 5. Run this step individually as below:
 ```scala
 step1.process()
 ```
-Now executing this step will add data in parquet format in path defined in above properties upon completion. This is very basic example for flat load from CSV to PARQUET but lets say you need to transform csv data in some way for e.g. new column need to be added then we need to create function with below signature:
+Now executing this step will add data in parquet format in path defined in above properties upon completion. This is very basic example for flat load from CSV to ORC but lets say you need to transform csv data in some way for e.g. new column need to be added then we need to create function with below signature:
 ```scala
 import org.apache.spark.sql.{Encoders, Dataset}
 import org.apache.spark.sql.types.DateType
@@ -95,7 +95,7 @@ Now our step would change to something like this:
     output_save_mode        = SaveMode.Overwrite,
     output_location         = job_properties("ratings_output_path"),
     output_filename         = Some(job_properties("ratings_output_file_name"))
-  )(spark,job_properties)
+  )(spark)
 
   step1.process()
 ```
@@ -123,7 +123,7 @@ val step2 = BQLoadStep(
     source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
-  )(bq,job_properties)
+  )(bq)
 
 step2.process()
 ```
@@ -140,14 +140,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.11</artifactId>
-    <version>0.6.0</version>
+    <version>0.7.0</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.7.0"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.6.0
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.7.0
 
 
 ## Documentation

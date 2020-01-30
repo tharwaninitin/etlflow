@@ -24,21 +24,23 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.utils
 </span>2 <span style=''>
-</span>3 <span style=''>sealed trait IOType
+</span>3 <span style=''>sealed trait IOType extends Serializable
 </span>4 <span style=''>
 </span>5 <span style=''>final case class CSV(delimiter : String = &quot;,&quot;, header_present : Boolean = true, parse_mode : String = &quot;FAILFAST&quot;) extends IOType {
-</span>6 <span style=''>  override def toString: String = </span><span style='background: #F0ADAD'>s&quot;CSV with delimiter =&gt; $delimiter header_present =&gt; $header_present parse_mode =&gt; $parse_mode&quot;</span><span style=''>
+</span>6 <span style=''>  override def toString: String = </span><span style='background: #AEF1AE'>s&quot;CSV with delimiter =&gt; $delimiter header_present =&gt; $header_present parse_mode =&gt; $parse_mode&quot;</span><span style=''>
 </span>7 <span style=''>}
 </span>8 <span style=''>final case class MCSV(delimiter : String, no_of_columns : Int) extends IOType
 </span>9 <span style=''>final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
 </span>10 <span style=''>  override def toString: String = </span><span style='background: #F0ADAD'>s&quot;JDBC with url =&gt; $url&quot;</span><span style=''>
 </span>11 <span style=''>}
-</span>12 <span style=''>case object BQ extends IOType
-</span>13 <span style=''>case object PARQUET extends IOType
-</span>14 <span style=''>case object ORC extends IOType
-</span>15 <span style=''>case object TEXT extends IOType
-</span>16 <span style=''>case object EXCEL extends IOType
-</span>17 <span style=''>case object JSON extends IOType
+</span>12 <span style=''>final case class JSON(multi_line : Boolean = false) extends IOType {
+</span>13 <span style=''>  override def toString: String = </span><span style='background: #F0ADAD'>s&quot;Json with multiline  =&gt; $multi_line&quot;</span><span style=''>
+</span>14 <span style=''>}
+</span>15 <span style=''>case object BQ extends IOType
+</span>16 <span style=''>case object PARQUET extends IOType
+</span>17 <span style=''>case object ORC extends IOType
+</span>18 <span style=''>case object TEXT extends IOType
+</span>19 <span style=''>case object EXCEL extends IOType
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -55,12 +57,12 @@
           6
         </td>
         <td>
-          720
+          765
         </td>
         <td>
-          303
+          232
           -
-          304
+          255
         </td>
         <td>
           Literal
@@ -68,49 +70,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          723
-        </td>
-        <td>
-          293
-          -
-          303
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.utils.CSV.parse_mode
-        </td>
-        <td style="background: #F0ADAD">
-          CSV.this.parse_mode
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          717
-        </td>
-        <td>
-          211
-          -
-          234
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;CSV with delimiter =&gt; &quot;
         </td>
       </tr><tr>
@@ -118,12 +78,12 @@
           6
         </td>
         <td>
-          719
+          768
         </td>
         <td>
-          277
+          324
           -
-          293
+          325
         </td>
         <td>
           Literal
@@ -131,20 +91,41 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
-          &quot; parse_mode =&gt; &quot;
+        <td style="background: #AEF1AE">
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
           6
         </td>
         <td>
-          722
+          771
         </td>
         <td>
-          263
+          314
           -
-          277
+          324
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.CSV.parse_mode
+        </td>
+        <td style="background: #AEF1AE">
+          CSV.this.parse_mode
+        </td>
+      </tr><tr>
+        <td>
+          6
+        </td>
+        <td>
+          770
+        </td>
+        <td>
+          284
+          -
+          298
         </td>
         <td>
           Select
@@ -152,7 +133,7 @@
         <td>
           etljobs.utils.CSV.header_present
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           CSV.this.header_present
         </td>
       </tr><tr>
@@ -160,33 +141,12 @@
           6
         </td>
         <td>
-          724
+          767
         </td>
         <td>
-          209
+          298
           -
-          304
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;CSV with delimiter =&gt; &quot;, &quot; header_present =&gt; &quot;, &quot; parse_mode =&gt; &quot;, &quot;&quot;).s(CSV.this.delimiter, CSV.this.header_present, CSV.this.parse_mode)
-        </td>
-      </tr><tr>
-        <td>
-          6
-        </td>
-        <td>
-          718
-        </td>
-        <td>
-          243
-          -
-          263
+          314
         </td>
         <td>
           Literal
@@ -194,7 +154,28 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
+          &quot; parse_mode =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          6
+        </td>
+        <td>
+          766
+        </td>
+        <td>
+          264
+          -
+          284
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
           &quot; header_present =&gt; &quot;
         </td>
       </tr><tr>
@@ -202,12 +183,12 @@
           6
         </td>
         <td>
-          721
+          769
         </td>
         <td>
-          234
+          255
           -
-          243
+          264
         </td>
         <td>
           Select
@@ -215,20 +196,41 @@
         <td>
           etljobs.utils.CSV.delimiter
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           CSV.this.delimiter
+        </td>
+      </tr><tr>
+        <td>
+          6
+        </td>
+        <td>
+          772
+        </td>
+        <td>
+          230
+          -
+          325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;CSV with delimiter =&gt; &quot;, &quot; header_present =&gt; &quot;, &quot; parse_mode =&gt; &quot;, &quot;&quot;).s(CSV.this.delimiter, CSV.this.header_present, CSV.this.parse_mode)
         </td>
       </tr><tr>
         <td>
           10
         </td>
         <td>
-          726
+          774
         </td>
         <td>
-          542
+          563
           -
-          543
+          564
         </td>
         <td>
           Literal
@@ -244,33 +246,12 @@
           10
         </td>
         <td>
-          728
+          773
         </td>
         <td>
-          519
+          542
           -
-          543
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;JDBC with url =&gt; &quot;, &quot;&quot;).s(JDBC.this.url)
-        </td>
-      </tr><tr>
-        <td>
-          10
-        </td>
-        <td>
-          725
-        </td>
-        <td>
-          521
-          -
-          539
+          560
         </td>
         <td>
           Literal
@@ -286,12 +267,33 @@
           10
         </td>
         <td>
-          727
+          776
         </td>
         <td>
-          539
+          540
           -
-          542
+          564
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;JDBC with url =&gt; &quot;, &quot;&quot;).s(JDBC.this.url)
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          775
+        </td>
+        <td>
+          560
+          -
+          563
         </td>
         <td>
           Select
@@ -301,6 +303,90 @@
         </td>
         <td style="background: #F0ADAD">
           JDBC.this.url
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          777
+        </td>
+        <td>
+          672
+          -
+          697
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Json with multiline  =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          779
+        </td>
+        <td>
+          697
+          -
+          707
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.JSON.multi_line
+        </td>
+        <td style="background: #F0ADAD">
+          JSON.this.multi_line
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          778
+        </td>
+        <td>
+          707
+          -
+          708
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          780
+        </td>
+        <td>
+          670
+          -
+          708
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Json with multiline  =&gt; &quot;, &quot;&quot;).s(JSON.this.multi_line)
         </td>
       </tr>
     </table>

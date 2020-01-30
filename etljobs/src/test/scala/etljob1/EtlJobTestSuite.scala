@@ -26,8 +26,8 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   )
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(props, global_properties)
-  etljob.execute(send_slack_notification = true)
+  val etljob = new EtlJobDefinition(props, Some(global_properties))
+  etljob.execute(send_slack_notification = true, slack_notification_level = "info")
 
   // Could use Hlist here for getting single step out of job
   // To get errors in CSV if any, run single step like this
@@ -36,7 +36,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   //  }
 
   // STEP 3: Run tests
-  val sm = new SessionManager(global_properties) {}
+  val sm = new SessionManager(Some(global_properties)) {}
   val raw: Dataset[RatingOutput] = ReadApi.LoadDS[RatingOutput](
                                   Seq(props("ratings_input_path")), 
                                   PARQUET

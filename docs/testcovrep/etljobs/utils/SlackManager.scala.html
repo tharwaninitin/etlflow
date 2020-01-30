@@ -64,7 +64,7 @@
 </span>40 <span style=''>  }
 </span>41 <span style=''>
 </span>42 <span style=''>  /** Get the step level information and update the variable finalSlackMessage */
-</span>43 <span style=''>  def updateStepLevelInformation(execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String, error_message: Option[String] = None): String = {
+</span>43 <span style=''>  def updateStepLevelInformation(execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String, slack_notification_level:String, error_message: Option[String] = None): String = {
 </span>44 <span style=''>    var slackMessageForSteps = </span><span style='background: #AEF1AE'>&quot;&quot;</span><span style=''>
 </span>45 <span style=''>    val execution_end_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
 </span>46 <span style=''>    val elapsedTime = </span><span style='background: #AEF1AE'>(execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + &quot; mins&quot;</span><span style=''>
@@ -74,7 +74,7 @@
 </span>50 <span style=''>    slackMessageForSteps = </span><span style='background: #AEF1AE'>step_icon + &quot;*&quot; + etlstep.name + &quot;*&quot; + &quot; - (&quot; + elapsedTime + &quot;)&quot;</span><span style=''>
 </span>51 <span style=''>    
 </span>52 <span style=''>    // Update the slackMessageForSteps variable and get the information of etl steps properties
-</span>53 <span style=''>    slackMessageForSteps = </span><span style='background: #AEF1AE'>slackMessageForSteps.concat(&quot;\n\t\t\t &quot; + etlstep.getStepProperties.mkString(&quot;, &quot;) + error_message.map(msg =&gt; f&quot;, error -&gt; $msg&quot;).getOrElse(&quot;&quot;))</span><span style=''>
+</span>53 <span style=''>    slackMessageForSteps = </span><span style='background: #AEF1AE'>slackMessageForSteps.concat(&quot;\n\t\t\t &quot; + etlstep.getStepProperties(slack_notification_level).mkString(&quot;, &quot;) + error_message.map(msg =&gt; f&quot;, error -&gt; $msg&quot;).getOrElse(&quot;&quot;))</span><span style=''>
 </span>54 <span style=''>
 </span>55 <span style=''>    // Concatenate all the messages with finalSlackMessage
 </span>56 <span style=''>    </span><span style='background: #AEF1AE'>final_slack_message = final_slack_message.concat(slackMessageForSteps)</span><span style=''>
@@ -121,7 +121,7 @@
           17
         </td>
         <td>
-          846
+          896
         </td>
         <td>
           511
@@ -142,7 +142,7 @@
           18
         </td>
         <td>
-          847
+          897
         </td>
         <td>
           558
@@ -156,14 +156,14 @@
           scala.collection.generic.GenMapFactory.apply
         </td>
         <td style="background: #AEF1AE">
-          scala.this.Predef.Map.apply[String, Nothing]()
+          scala.Predef.Map.apply[String, Nothing]()
         </td>
       </tr><tr>
         <td>
           19
         </td>
         <td>
-          848
+          898
         </td>
         <td>
           592
@@ -184,7 +184,7 @@
           20
         </td>
         <td>
-          849
+          899
         </td>
         <td>
           615
@@ -205,7 +205,7 @@
           24
         </td>
         <td>
-          850
+          900
         </td>
         <td>
           790
@@ -226,7 +226,7 @@
           26
         </td>
         <td>
-          851
+          901
         </td>
         <td>
           864
@@ -253,7 +253,7 @@
           34
         </td>
         <td>
-          852
+          902
         </td>
         <td>
           1101
@@ -280,12 +280,12 @@
           44
         </td>
         <td>
-          853
+          903
         </td>
         <td>
-          1544
+          1577
           -
-          1546
+          1579
         </td>
         <td>
           Literal
@@ -301,12 +301,12 @@
           45
         </td>
         <td>
-          854
+          904
         </td>
         <td>
-          1576
+          1609
           -
-          1593
+          1626
         </td>
         <td>
           Apply
@@ -315,19 +315,19 @@
           java.lang.System.nanoTime
         </td>
         <td style="background: #AEF1AE">
-          java.this.lang.System.nanoTime()
+          java.lang.System.nanoTime()
         </td>
       </tr><tr>
         <td>
           46
         </td>
         <td>
-          855
+          905
         </td>
         <td>
-          1616
+          1649
           -
-          1691
+          1724
         </td>
         <td>
           Apply
@@ -343,12 +343,33 @@
           47
         </td>
         <td>
-          857
+          908
         </td>
         <td>
-          1754
+          1787
           -
-          1779
+          1812
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n :small_blue_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          907
+        </td>
+        <td>
+          1787
+          -
+          1812
         </td>
         <td>
           Literal
@@ -364,12 +385,12 @@
           47
         </td>
         <td>
-          860
+          910
         </td>
         <td>
-          1785
+          1818
           -
-          1812
+          1845
         </td>
         <td>
           Block
@@ -385,12 +406,33 @@
           47
         </td>
         <td>
-          856
+          909
         </td>
         <td>
-          1716
+          1818
           -
-          1752
+          1845
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_orange_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          906
+        </td>
+        <td>
+          1749
+          -
+          1785
         </td>
         <td>
           Apply
@@ -403,57 +445,15 @@
         </td>
       </tr><tr>
         <td>
-          47
-        </td>
-        <td>
-          859
-        </td>
-        <td>
-          1785
-          -
-          1812
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n :small_orange_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          858
-        </td>
-        <td>
-          1754
-          -
-          1779
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;\n :small_blue_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
           50
         </td>
         <td>
-          861
+          911
         </td>
         <td>
-          1949
+          1982
           -
-          2014
+          2047
         </td>
         <td>
           Apply
@@ -469,12 +469,12 @@
           53
         </td>
         <td>
-          864
+          914
         </td>
         <td>
-          2228
+          2287
           -
-          2286
+          2345
         </td>
         <td>
           Apply
@@ -493,12 +493,12 @@
           53
         </td>
         <td>
-          863
+          913
         </td>
         <td>
-          2185
+          2218
           -
-          2225
+          2284
         </td>
         <td>
           Apply
@@ -507,19 +507,19 @@
           scala.collection.TraversableOnce.mkString
         </td>
         <td style="background: #AEF1AE">
-          etlstep.getStepProperties.mkString(&quot;, &quot;)
+          etlstep.getStepProperties(slack_notification_level).mkString(&quot;, &quot;)
         </td>
       </tr><tr>
         <td>
           53
         </td>
         <td>
-          866
+          916
         </td>
         <td>
-          2143
+          2176
           -
-          2287
+          2346
         </td>
         <td>
           Apply
@@ -528,7 +528,7 @@
           java.lang.String.concat
         </td>
         <td style="background: #AEF1AE">
-          slackMessageForSteps.concat(&quot;\n\t\t\t &quot;.+(etlstep.getStepProperties.mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
+          slackMessageForSteps.concat(&quot;\n\t\t\t &quot;.+(etlstep.getStepProperties(slack_notification_level).mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
   val arg$macro$13: Any = msg;
   new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$13)
 }: String))).getOrElse[String](&quot;&quot;)))
@@ -538,12 +538,12 @@
           53
         </td>
         <td>
-          862
+          912
         </td>
         <td>
-          2171
+          2204
           -
-          2182
+          2215
         </td>
         <td>
           Literal
@@ -559,12 +559,12 @@
           53
         </td>
         <td>
-          865
+          915
         </td>
         <td>
-          2171
+          2204
           -
-          2286
+          2345
         </td>
         <td>
           Apply
@@ -573,7 +573,7 @@
           java.lang.String.+
         </td>
         <td style="background: #AEF1AE">
-          &quot;\n\t\t\t &quot;.+(etlstep.getStepProperties.mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
+          &quot;\n\t\t\t &quot;.+(etlstep.getStepProperties(slack_notification_level).mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
   val arg$macro$13: Any = msg;
   new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$13)
 }: String))).getOrElse[String](&quot;&quot;))
@@ -583,33 +583,12 @@
           56
         </td>
         <td>
-          868
+          917
         </td>
         <td>
-          2352
+          2433
           -
-          2422
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.utils.SlackManager.final_slack_message_=
-        </td>
-        <td style="background: #AEF1AE">
-          SlackManager.this.final_slack_message_=(SlackManager.this.final_slack_message.concat(slackMessageForSteps))
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          867
-        </td>
-        <td>
-          2374
-          -
-          2422
+          2481
         </td>
         <td>
           Apply
@@ -622,15 +601,36 @@
         </td>
       </tr><tr>
         <td>
+          56
+        </td>
+        <td>
+          918
+        </td>
+        <td>
+          2411
+          -
+          2481
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.utils.SlackManager.final_slack_message_=
+        </td>
+        <td style="background: #AEF1AE">
+          SlackManager.this.final_slack_message_=(SlackManager.this.final_slack_message.concat(slackMessageForSteps))
+        </td>
+      </tr><tr>
+        <td>
           58
         </td>
         <td>
-          869
+          919
         </td>
         <td>
-          2428
+          2487
           -
-          2447
+          2506
         </td>
         <td>
           Select
@@ -646,12 +646,33 @@
           63
         </td>
         <td>
-          872
+          920
         </td>
         <td>
-          2611
+          2698
           -
-          2687
+          2719
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;yyyy-MM-dd HH:mm:ss&quot;
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          922
+        </td>
+        <td>
+          2670
+          -
+          2746
         </td>
         <td>
           Apply
@@ -667,12 +688,12 @@
           63
         </td>
         <td>
-          871
+          921
         </td>
         <td>
-          2669
+          2728
           -
-          2686
+          2745
         </td>
         <td>
           Apply
@@ -685,36 +706,15 @@
         </td>
       </tr><tr>
         <td>
-          63
-        </td>
-        <td>
-          870
-        </td>
-        <td>
-          2639
-          -
-          2660
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;yyyy-MM-dd HH:mm:ss&quot;
-        </td>
-      </tr><tr>
-        <td>
           65
         </td>
         <td>
-          876
+          926
         </td>
         <td>
-          2708
+          2767
           -
-          2860
+          2919
         </td>
         <td>
           Apply
@@ -730,12 +730,12 @@
           66
         </td>
         <td>
-          873
+          923
         </td>
         <td>
-          2749
+          2808
           -
-          2752
+          2811
         </td>
         <td>
           Select
@@ -751,12 +751,12 @@
           67
         </td>
         <td>
-          874
+          924
         </td>
         <td>
-          2760
+          2819
           -
-          2786
+          2845
         </td>
         <td>
           Apply
@@ -772,12 +772,12 @@
           69
         </td>
         <td>
-          875
+          925
         </td>
         <td>
-          2821
+          2880
           -
-          2840
+          2899
         </td>
         <td>
           Select
@@ -793,12 +793,12 @@
           72
         </td>
         <td>
-          877
+          927
         </td>
         <td>
-          2865
+          2924
           -
-          2878
+          2937
         </td>
         <td>
           Apply
@@ -807,19 +807,40 @@
           scala.Predef.println
         </td>
         <td style="background: #AEF1AE">
-          scala.this.Predef.println(data)
+          scala.Predef.println(data)
         </td>
       </tr><tr>
         <td>
           74
         </td>
         <td>
-          884
+          935
         </td>
         <td>
-          2888
+          2951
           -
-          3156
+          2951
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          934
+        </td>
+        <td>
+          2947
+          -
+          3215
         </td>
         <td>
           Apply
@@ -842,36 +863,15 @@
         </td>
       </tr><tr>
         <td>
-          74
-        </td>
-        <td>
-          885
-        </td>
-        <td>
-          2892
-          -
-          2892
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
           75
         </td>
         <td>
-          878
+          928
         </td>
         <td>
-          2913
+          2972
           -
-          2938
+          2997
         </td>
         <td>
           Apply
@@ -887,33 +887,12 @@
           76
         </td>
         <td>
-          880
+          929
         </td>
         <td>
-          2960
+          3032
           -
-          2985
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.http.client.methods.HttpPost.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new org.apache.http.client.methods.HttpPost(SlackManager.this.webhook_url)
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          879
-        </td>
-        <td>
-          2973
-          -
-          2984
+          3043
         </td>
         <td>
           Select
@@ -926,15 +905,36 @@
         </td>
       </tr><tr>
         <td>
+          76
+        </td>
+        <td>
+          930
+        </td>
+        <td>
+          3019
+          -
+          3044
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.http.client.methods.HttpPost.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new org.apache.http.client.methods.HttpPost(SlackManager.this.webhook_url)
+        </td>
+      </tr><tr>
+        <td>
           78
         </td>
         <td>
-          881
+          931
         </td>
         <td>
-          3057
+          3116
           -
-          3084
+          3143
         </td>
         <td>
           Apply
@@ -950,12 +950,12 @@
           79
         </td>
         <td>
-          882
+          932
         </td>
         <td>
-          3091
+          3150
           -
-          3117
+          3176
         </td>
         <td>
           Apply
@@ -971,12 +971,12 @@
           80
         </td>
         <td>
-          883
+          933
         </td>
         <td>
-          3125
+          3184
           -
-          3149
+          3208
         </td>
         <td>
           Apply

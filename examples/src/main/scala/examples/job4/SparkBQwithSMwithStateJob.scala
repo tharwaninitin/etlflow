@@ -27,10 +27,10 @@ object SparkBQwithSMwithStateJob extends App {
     "ratings_output_table_name" -> "ratings",
     "ratings_output_file_name" -> "ratings.parquet"
   )
-  val etljob = new SparkBQwithSMwithStateJob(job_properties, global_properties)
+  val etljob = new SparkBQwithSMwithStateJob(job_properties, Some(global_properties))
 }
 
-class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_properties: GlobalProperties) extends SessionManager(global_properties) with SparkUDF {
+class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_properties: Option[GlobalProperties]) extends SessionManager(global_properties) with SparkUDF {
   import RatingsSchemas._
   import SparkBQwithSMwithStateJob.etl_job_logger
   
@@ -57,7 +57,7 @@ class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_prope
     output_type             = PARQUET,
     output_location         = job_properties("ratings_output_path"),
     output_filename         = Some(job_properties("ratings_output_file_name"))
-  )(spark,job_properties)
+  )(spark)
 
   val step2 = new BQLoadStep(
     name                = "LoadRatingBQ",
@@ -66,7 +66,7 @@ class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_prope
     source_file_system  = LOCAL,
     destination_dataset = job_properties("ratings_output_dataset"),
     destination_table   = job_properties("ratings_output_table_name")
-  )(bq,job_properties)
+  )(bq)
 
   //    step1.map(enrichRatingData(spark, job_properties))
   //    for (x <- step1) {
@@ -76,8 +76,8 @@ class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_prope
   //     println("Output for map is " + output)
 
   etl_job_logger.info("##################################JOB PROPERTIES########################################")
-  etl_job_logger.info(step1.name + " : " + step1.getStepProperties.foreach(etl_job_logger.info))
-  etl_job_logger.info(step2.name + " : " + step2.getStepProperties.foreach(etl_job_logger.info))
+  etl_job_logger.info(step1.name + " : " + step1.getStepProperties().foreach(etl_job_logger.info))
+  etl_job_logger.info(step2.name + " : " + step2.getStepProperties().foreach(etl_job_logger.info))
   etl_job_logger.info("##################################JOB PROPERTIES########################################")
 
   // This below for comprehension is not lazy, it will run here only

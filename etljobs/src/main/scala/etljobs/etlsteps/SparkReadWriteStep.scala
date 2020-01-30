@@ -18,7 +18,7 @@ class SparkReadWriteStep[T <: Product: TypeTag, O <: Product: TypeTag](
           ,output_save_mode: SaveMode = SaveMode.Append
           ,output_repartitioning: Boolean = false
           ,transform_function : Option[Dataset[T] => Dataset[O]] = None
-        )(spark : => SparkSession, etl_metadata : Map[String, String])
+        )(spark : => SparkSession)
 extends EtlStep[Unit,Unit]
 {
   private var recordsWrittenCount = 0L
@@ -52,11 +52,11 @@ extends EtlStep[Unit,Unit]
 
   }
 
-  override def getStepProperties : Map[String,String] = {
-    val in_map = ReadApi.LoadDSHelper[T](input_location,input_type).toList
+  override def getStepProperties(level: String) : Map[String,String] = {
+    val in_map = ReadApi.LoadDSHelper[T](level, input_location,input_type).toList
     val out_map = transform_function match {
-      case Some(_) => WriteApi.WriteDSHelper[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList
-      case None => WriteApi.WriteDSHelper[T](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning).toList
+      case Some(_) => WriteApi.WriteDSHelper[O](level, output_type, output_location, output_partition_col, output_save_mode, output_filename, recordsWrittenCount, repartition=output_repartitioning).toList
+      case None => WriteApi.WriteDSHelper[T](level, output_type, output_location, output_partition_col, output_save_mode, output_filename, recordsWrittenCount, repartition=output_repartitioning).toList
     }
     (in_map ++ out_map).toMap
   }
@@ -86,7 +86,7 @@ object SparkReadWriteStep {
              ,output_save_mode: SaveMode = SaveMode.Append
              ,output_repartitioning: Boolean = false
              ,transform_function : Option[Dataset[T] => Dataset[O]] = None
-           ) (spark: => SparkSession, etl_metadata : Map[String, String]): SparkReadWriteStep[T,O] = {
-    new SparkReadWriteStep[T,O](name,input_location,input_type,output_location,output_type,output_filename,output_partition_col,output_save_mode,output_repartitioning,transform_function)(spark,etl_metadata)
+           ) (spark: => SparkSession): SparkReadWriteStep[T,O] = {
+    new SparkReadWriteStep[T,O](name,input_location,input_type,output_location,output_type,output_filename,output_partition_col,output_save_mode,output_repartitioning,transform_function)(spark)
   }
 }

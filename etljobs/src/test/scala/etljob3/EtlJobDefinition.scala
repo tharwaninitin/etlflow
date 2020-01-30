@@ -14,7 +14,7 @@ import org.apache.log4j.{Level, Logger}
 import etljobs.utils.SessionManager
 import etljobs.spark.ReadApi
 
-class EtlJobDefinition(job_properties: Map[String,String], global_properties: GlobalProperties) extends EtlJob(job_properties, global_properties) with SparkUDF {
+class EtlJobDefinition(job_properties: Map[String,String], global_properties: Option[GlobalProperties]) extends EtlJob(job_properties, global_properties) with SparkUDF {
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
@@ -53,7 +53,7 @@ class EtlJobDefinition(job_properties: Map[String,String], global_properties: Gl
     output_partition_col    = Some(f"$temp_date_col"),
     output_save_mode        = SaveMode.Overwrite,
     output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
-  )(spark,job_properties)
+  )(spark)
 
   val step2 = BQLoadStep(
     name                    = "LoadRatingBQ",
@@ -61,7 +61,7 @@ class EtlJobDefinition(job_properties: Map[String,String], global_properties: Gl
     source_format           = PARQUET,
     destination_dataset     = job_properties("ratings_output_dataset"),
     destination_table       = job_properties("ratings_output_table_name")
-  )(bq,job_properties)
+  )(bq)
 
   def apply() : List[EtlStep[Unit,Unit]] = List(step1,step2)
 }

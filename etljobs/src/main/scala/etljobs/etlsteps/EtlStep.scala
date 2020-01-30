@@ -9,5 +9,5 @@ trait EtlStep[IPSTATE,OPSTATE] {
 
   def process(input_state: IPSTATE) : Try[OPSTATE]
   def getExecutionMetrics : Map[String,Map[String,String]] = Map()
-  def getStepProperties : Map[String,String] = Map()
+  def getStepProperties(level: String = "info") : Map[String,String] = Map()
 }

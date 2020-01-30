@@ -64,28 +64,7 @@
           8
         </td>
         <td>
-          181
-        </td>
-        <td>
-          263
-          -
-          297
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Logger.getLogger
-        </td>
-        <td style="background: #AEF1AE">
-          org.apache.log4j.Logger.getLogger(QueryApi.this.getClass().getName())
-        </td>
-      </tr><tr>
-        <td>
-          8
-        </td>
-        <td>
-          180
+          187
         </td>
         <td>
           280
@@ -103,52 +82,31 @@
         </td>
       </tr><tr>
         <td>
-          9
+          8
         </td>
         <td>
-          182
+          188
         </td>
         <td>
-          322
+          263
           -
-          330
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Loaded &quot;
-        </td>
-      </tr><tr>
-        <td>
-          9
-        </td>
-        <td>
-          185
-        </td>
-        <td>
-          320
-          -
-          349
+          297
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.StringContext.s
+          org.apache.log4j.Logger.getLogger
         </td>
         <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName())
+          org.apache.log4j.Logger.getLogger(QueryApi.this.getClass().getName())
         </td>
       </tr><tr>
         <td>
           9
         </td>
         <td>
-          184
+          191
         </td>
         <td>
           331
@@ -169,7 +127,28 @@
           9
         </td>
         <td>
-          183
+          193
+        </td>
+        <td>
+          302
+          -
+          350
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          190
         </td>
         <td>
           348
@@ -190,28 +169,49 @@
           9
         </td>
         <td>
-          186
+          189
         </td>
         <td>
-          302
+          322
           -
-          350
+          330
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Loaded &quot;
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          320
+          -
+          349
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          scala.StringContext.s
         </td>
         <td style="background: #AEF1AE">
-          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName()))
+          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName())
         </td>
       </tr><tr>
         <td>
           14
         </td>
         <td>
-          187
+          194
         </td>
         <td>
           486
@@ -225,14 +225,14 @@
           com.google.cloud.bigquery.QueryJobConfiguration.Builder.build
         </td>
         <td style="background: #AEF1AE">
-          com.google.cloud.bigquery.QueryJobConfiguration.newBuilder(query).setUseLegacySql(scala.this.Predef.boolean2Boolean(false)).build()
+          com.google.cloud.bigquery.QueryJobConfiguration.newBuilder(query).setUseLegacySql(scala.Predef.boolean2Boolean(false)).build()
         </td>
       </tr><tr>
         <td>
           16
         </td>
         <td>
-          189
+          196
         </td>
         <td>
           611
@@ -253,7 +253,7 @@
           16
         </td>
         <td>
-          188
+          195
         </td>
         <td>
           620
@@ -274,7 +274,7 @@
           17
         </td>
         <td>
-          191
+          198
         </td>
         <td>
           678
@@ -295,7 +295,7 @@
           17
         </td>
         <td>
-          190
+          197
         </td>
         <td>
           688
@@ -316,7 +316,7 @@
           20
         </td>
         <td>
-          192
+          199
         </td>
         <td>
           797
@@ -337,7 +337,7 @@
           23
         </td>
         <td>
-          193
+          200
         </td>
         <td>
           900
@@ -358,28 +358,7 @@
           24
         </td>
         <td>
-          194
-        </td>
-        <td>
-          935
-          -
-          954
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.google.cloud.bigquery.TableResult.iterateAll
-        </td>
-        <td style="background: #AEF1AE">
-          result.iterateAll()
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          195
+          202
         </td>
         <td>
           935
@@ -394,6 +373,27 @@
         </td>
         <td style="background: #AEF1AE">
           scala.collection.JavaConverters.iterableAsScalaIterableConverter[com.google.cloud.bigquery.FieldValueList](result.iterateAll()).asScala
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          935
+          -
+          954
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableResult.iterateAll
+        </td>
+        <td style="background: #AEF1AE">
+          result.iterateAll()
         </td>
       </tr>
     </table>

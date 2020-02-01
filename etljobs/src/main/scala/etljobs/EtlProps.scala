@@ -1,3 +1,0 @@
-package etljobs
-
-trait EtlProps

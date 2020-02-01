@@ -7,7 +7,7 @@ the library provides abstraction on top of Spark that makes it easier to develop
 This project contains following sub-modules:
 
 1. **etljobs**:
- This module contains core library which defines Scala internal **dsl** that assists with writing **ETL Job** which can be composed as multiple **ETL steps** in a concise manner which facilitates easier **Testing** and reasoning about the entire job. This module also conatins many [test jobs](etljobs/src/test/scala) which conatins multiple steps. This core library also contains tests and all jobs uses EtlJob API. To run all test successfully some properties needs to be set in [loaddata.properties](etljobs/src/test/resources/loaddata.properties) or set these properties as ENVIRONMENT variables.
+ This module contains core library which defines Scala internal **dsl** that assists with writing **ETL Job** which can be composed as multiple **ETL steps** in a concise manner which facilitates easier **Testing** and reasoning about the entire job. This module also conatins many [test jobs](core/src/test/scala) which conatins multiple steps. This core library also contains tests and all jobs uses EtlJob API. To run all test successfully some properties needs to be set in [loaddata.properties](core/src/test/resources/loaddata.properties) or set these properties as ENVIRONMENT variables.
  ```shell
  export GCS_OUTPUT_BUCKET=<...>
  export GCP_PROJECT=<...>
@@ -18,7 +18,7 @@ This project contains following sub-modules:
 sbt "project etljobs" test
 ```
 2. **etlsteps**:
- This package contains all type of ETL Steps that can be created with this library, click [here](etljobs/src/main/scala/etljobs/etlsteps) to see.
+ This package contains all type of ETL Steps that can be created with this library, click [here](core/src/main/scala/etljobs/etlsteps) to see.
 3. **examples**:
  This module provides examples of diffferent types of ETL Jobs which can be created with this library, click [here](examples/src/main/scala/examples) to see code.
 
@@ -99,7 +99,7 @@ Now our step would change to something like this:
 
   step1.process()
 ```
-6. Lets add another step which will copy this transformed data in Bigquery table. For this step to work correctly [Google Cloud SDK](https://cloud.google.com/sdk/install) needs to be installed and configured as in this library upload from local file to Bigquery uses [bq command](https://cloud.google.com/bigquery/docs/bq-command-line-tool) which is only recommended to be used in testing environments as in production files should be present on **Google Cloud Storage** when uploading to Bigquery, see this [page](etljobs/src/main/scala/etljobs/etlsteps) for more details on each Step
+6. Lets add another step which will copy this transformed data in Bigquery table. For this step to work correctly [Google Cloud SDK](https://cloud.google.com/sdk/install) needs to be installed and configured as in this library upload from local file to Bigquery uses [bq command](https://cloud.google.com/bigquery/docs/bq-command-line-tool) which is only recommended to be used in testing environments as in production files should be present on **Google Cloud Storage** when uploading to Bigquery, see this [page](core/src/main/scala/etljobs/etlsteps) for more details on each Step
 ```scala
 import etljobs.etlsteps.BQLoadStep
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
@@ -127,7 +127,7 @@ val step2 = BQLoadStep(
 
 step2.process()
 ```
-Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. You can find similar code [here](etljobs/src/test/scala/etljob1) along with **tests**
+Now we can run this individually like previous step or use ETLJob api to run both of these steps as single job. You can find similar code [here](core/src/test/scala/etljobs.etljob1) along with **tests**
 
 
 ## Requirements and Installation

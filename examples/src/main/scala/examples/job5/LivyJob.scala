@@ -70,12 +70,12 @@ object LivyJob extends App {
         }
     }
 
-    def processJob(job_properties : Map[String,String]): ScalaJobHandle[Array[Rating]] = {
+    def processJob(job_props : Map[String,String]): ScalaJobHandle[Array[Rating]] = {
         scalaClient.submit { context =>
             val spark: SparkSession = context.sparkSession
-            val etl_job = new EtlJobDefinition(job_properties)
+            val etl_job = new SparkBQwithEtlJob(job_properties = Left(job_props))
             etl_job.execute(send_slack_notification = true, slack_notification_level = "info")
-            val x = ReadApi.LoadDS[Rating](Seq(job_properties("ratings_input_path")), input_type = CSV())(spark)
+            val x = ReadApi.LoadDS[Rating](Seq(job_props("ratings_input_path")), input_type = CSV())(spark)
 //            x.write.mode("Overwrite").json(job_properties("ratings_output_path"))
             x.head(10)
         }

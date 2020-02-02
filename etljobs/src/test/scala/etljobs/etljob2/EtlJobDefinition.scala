@@ -3,9 +3,9 @@ package etljobs.etljob2
 import EtlJobSchemas.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name}
 import org.apache.spark.sql.types.DateType
-import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
+import org.apache.spark.sql.{Encoders, SaveMode, SparkSession, Dataset}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
-import etljobs.etlsteps.{BQLoadStep, InputDataset, OutputDataset, SparkETLStep, SparkReadWriteStep, StateLessEtlStep}
+import etljobs.etlsteps.{BQLoadStep, SparkETLStep, SparkReadWriteStep, StateLessEtlStep}
 import etljobs.functions.SparkUDF
 import etljobs.utils.{CSV, GlobalProperties, LOCAL, PARQUET}
 import org.apache.log4j.{Level, Logger}
@@ -24,7 +24,7 @@ class EtlJobDefinition(
     case Left(value) => value
   }
 
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : InputDataset[Rating]) : OutputDataset[RatingOutput] = {
+  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in

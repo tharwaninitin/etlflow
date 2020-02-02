@@ -3,10 +3,8 @@ package etljobs.etljob3
 import org.scalatest.{FlatSpec, Matchers}
 import org.apache.spark.sql.{Dataset,Row}
 import etljobs.spark.ReadApi
-import etljobs.utils.SessionManager
-import etljobs.utils.{CSV, PARQUET, GlobalProperties, SessionManager}
-import etljobs.etlsteps.SparkReadWriteStep
-import etljobs.etlsteps.{Input,Output}
+import etljobs.utils.{CSV,GlobalProperties, SessionManager}
+import etljobs.etlsteps.DatasetWithState
 import etljobs.bigquery.QueryApi
 import EtlJobSchemas.{Rating,RatingOutput}
 
@@ -45,7 +43,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
                                   Seq(job_props("ratings_input_path")),
                                   CSV(",", true, job_props.getOrElse("parse_mode","FAILFAST"))
                                 )(sm.spark)
-  val op : Output[RatingOutput,Unit] = etljob.enrichRatingData(sm.spark, job_props)(Input[Rating,Unit](raw,()))
+  val op : DatasetWithState[RatingOutput,Unit] = etljob.enrichRatingData(sm.spark, job_props)(DatasetWithState[Rating,Unit](raw,()))
   val Row(sum_ratings: Double, count_ratings: Long) = op.ds.selectExpr("sum(rating)","count(*)").first()
 
   val destination_dataset = job_props("ratings_output_dataset")

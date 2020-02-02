@@ -1,12 +1,12 @@
 package examples.job3
 
-import etljobs.etlsteps.{BQLoadStep, InputDataset, OutputDataset, SparkReadWriteStep}
+import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStep}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET, SessionManager}
 import etljobs.functions.SparkUDF
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Encoders, SparkSession}
+import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 
 object RatingsSchemas {
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
@@ -35,7 +35,7 @@ class SparkBQwithSMJob(
                       ) extends SessionManager with SparkUDF {
   import RatingsSchemas._
 
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : InputDataset[Rating]) : OutputDataset[RatingOutput] = {
+  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in

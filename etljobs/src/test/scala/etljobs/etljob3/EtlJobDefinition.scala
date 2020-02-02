@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
-import etljobs.etlsteps.{BQLoadStep, EtlStep, InputDataset, OutputDataset, SparkReadWriteStateStep}
+import etljobs.etlsteps.{BQLoadStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
 import etljobs.functions.SparkUDF
 import etljobs.utils.{CSV, GlobalProperties, PARQUET}
 import org.apache.log4j.{Level, Logger}
@@ -23,10 +23,10 @@ class EtlJobDefinition(
     case Left(value) => value
   }
 
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : InputDataset[Rating]) : OutputDataset[RatingOutput] = {
+  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : DatasetWithState[Rating,Unit]) : DatasetWithState[RatingOutput,Unit] = {
     val mapping = Encoders.product[RatingOutput]
 
-    val ratings_df = in
+    val ratings_df = in.ds
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
         .withColumn(temp_date_col, get_formatted_date("date","yyyy-MM-dd","yyyyMMdd"))
         .where(f"$temp_date_col in ('20160101', '20160102')")
@@ -44,19 +44,19 @@ class EtlJobDefinition(
 
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
 
-    ratings_ds
+    DatasetWithState(ratings_ds,())
   }
 
   val step1 = SparkReadWriteStateStep[Rating, Unit, RatingOutput, Unit](
-    name                    = "LoadRatingsParquet",
-    input_location          = Seq(job_props("ratings_input_path")),
-    input_type              = CSV(",", true, job_props.getOrElse("parse_mode","FAILFAST")),
-    transform_function      = Some(enrichRatingData(spark, job_props)),
-    output_type             = PARQUET,
-    output_location         = job_props("ratings_output_path"),
-    output_partition_col    = Some(f"$temp_date_col"),
-    output_save_mode        = SaveMode.Overwrite,
-    output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
+    name                   = "LoadRatingsParquet",
+    input_location         = Seq(job_props("ratings_input_path")),
+    input_type             = CSV(",", true, job_props.getOrElse("parse_mode","FAILFAST")),
+    transform_with_state   = Some(enrichRatingData(spark, job_props)),
+    output_type            = PARQUET,
+    output_location        = job_props("ratings_output_path"),
+    output_partition_col   = Some(f"$temp_date_col"),
+    output_save_mode       = SaveMode.Overwrite,
+    output_repartitioning  = true  // Setting this to true takes care of creating one file for every partition
   )(spark)
 
   val step2 = BQLoadStep(

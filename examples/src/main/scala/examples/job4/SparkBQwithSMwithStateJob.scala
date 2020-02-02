@@ -1,6 +1,6 @@
 package examples.job4
 
-import etljobs.etlsteps.{BQLoadStep, Input, Output, SparkReadWriteStateStep}
+import etljobs.etlsteps.{BQLoadStep, DatasetWithState, SparkReadWriteStateStep}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET, SessionManager}
 import etljobs.functions.SparkUDF
 import org.apache.log4j.{Level, Logger}
@@ -36,7 +36,7 @@ class SparkBQwithSMwithStateJob(
   import RatingsSchemas._
   import SparkBQwithSMwithStateJob.etl_job_logger
   
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Input[Rating,Int]) : Output[RatingOutput,Int] = {
+  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : DatasetWithState[Rating,Int]) : DatasetWithState[RatingOutput,Int] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in.ds
@@ -45,17 +45,17 @@ class SparkBQwithSMwithStateJob(
 
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
 
-    etl_job_logger.info(s"Input State is ${in.ips}")
+    etl_job_logger.info(s"Input State is ${in.state}")
     etl_job_logger.info(s"Output State is ${3}")
 
-    Output[RatingOutput,Int](ratings_ds,3)
+    DatasetWithState[RatingOutput,Int](ratings_ds,3)
   }
 
   val step1 = SparkReadWriteStateStep[Rating , Int, RatingOutput, Int](
     name                    = "LoadRatingsParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
-    transform_function      = Some(enrichRatingData(spark, job_properties)),
+    transform_with_state    = Some(enrichRatingData(spark, job_properties)),
     output_type             = PARQUET,
     output_location         = job_properties("ratings_output_path"),
     output_filename         = Some(job_properties("ratings_output_file_name"))

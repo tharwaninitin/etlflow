@@ -1,6 +1,6 @@
 package etljobs.etljob3
 
-import EtlJobSchemas.{Rating, RatingOutput}
+import EtlJobSchemas.{EtlJob3Props, Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
@@ -19,12 +19,12 @@ class EtlJobDefinition(
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
-  val job_props: Map[String,String] = job_properties match {
-    case Left(value) => value
+
+  val job_props:EtlJob3Props  = job_properties match {
+    case Right(value) => value.asInstanceOf[EtlJob3Props]
   }
 
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : DatasetWithState[Rating,Unit]) : DatasetWithState[RatingOutput,Unit] = {
-    val mapping = Encoders.product[RatingOutput]
+  def enrichRatingData(spark: SparkSession, job_properties: EtlJob3Props)(in : DatasetWithState[Rating,Unit]) : DatasetWithState[RatingOutput,Unit] = {
 
     val ratings_df = in.ds
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
@@ -38,10 +38,11 @@ class EtlJobDefinition(
         .distinct()
         .as[String]
         .collect()
-        .map((date) => (job_properties("ratings_output_path") + f"/$temp_date_col=" + date + "/part*", date))
+        .map(date => (job_properties.ratings_output_path + f"/$temp_date_col=" + date + "/part*", date))
 
     ratings_df.drop(f"$temp_date_col")
 
+    val mapping = Encoders.product[RatingOutput]
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
 
     DatasetWithState(ratings_ds,())
@@ -49,11 +50,11 @@ class EtlJobDefinition(
 
   val step1 = SparkReadWriteStateStep[Rating, Unit, RatingOutput, Unit](
     name                   = "LoadRatingsParquet",
-    input_location         = Seq(job_props("ratings_input_path")),
-    input_type             = CSV(",", true, job_props.getOrElse("parse_mode","FAILFAST")),
+    input_location         = Seq(job_props.ratings_input_path),
+    input_type             = CSV(",", true, "FAILFAST"),
     transform_with_state   = Some(enrichRatingData(spark, job_props)),
     output_type            = PARQUET,
-    output_location        = job_props("ratings_output_path"),
+    output_location        = job_props.ratings_output_path,
     output_partition_col   = Some(f"$temp_date_col"),
     output_save_mode       = SaveMode.Overwrite,
     output_repartitioning  = true  // Setting this to true takes care of creating one file for every partition
@@ -63,8 +64,8 @@ class EtlJobDefinition(
     name                    = "LoadRatingBQ",
     source_paths_partitions = output_date_paths,
     source_format           = PARQUET,
-    destination_dataset     = job_props("ratings_output_dataset"),
-    destination_table       = job_props("ratings_output_table_name")
+    destination_dataset     = job_props.ratings_output_dataset,
+    destination_table       = job_props.ratings_output_table_name
   )(bq)
 
   val etl_step_list: List[EtlStep[Unit,Unit]] = List(step1,step2)

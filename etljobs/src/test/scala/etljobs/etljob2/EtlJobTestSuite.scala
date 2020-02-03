@@ -32,7 +32,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
 
   // STEP 2: Execute JOB
   val etljob = new EtlJobDefinition(job_properties=Left(job_props), global_properties=Some(global_props))
-  val state = etljob.execute(send_slack_notification = true, slack_notification_level = "info")
+  val state = etljob.execute(send_notification = true, notification_level = "info")
   println(state)
 
   // STEP 3: Run tests

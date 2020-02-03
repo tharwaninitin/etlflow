@@ -21,4 +21,8 @@ abstract class GlobalProperties(global_properties_file_path: String) {
   
   lazy val slack_webhook_url                      = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getProperty("slack_webhook_url"))
   lazy val slack_env                              = sys.env.getOrElse("SLACK_ENV", config.getProperty("slack_env"))
+
+  lazy val log_db_name                            = sys.env.getOrElse("LOG_DB_NAME", config.getProperty("log_db_name"))
+  lazy val log_db_user                            = sys.env.getOrElse("LOG_DB_USER", config.getProperty("log_db_user"))
+  lazy val log_db_pwd                             = sys.env.getOrElse("LOG_DB_PWD", config.getProperty("log_db_pwd"))
 }

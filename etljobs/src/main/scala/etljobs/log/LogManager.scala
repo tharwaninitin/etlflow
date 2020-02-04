@@ -3,7 +3,7 @@ package etljobs.log
 import etljobs.EtlJobName
 import etljobs.etlsteps.EtlStep
 
-// CREATE TABLE job(job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar)
+// CREATE TABLE job(job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar);
 case class Job(
                 job_run_id: String,
                 job_name: String,

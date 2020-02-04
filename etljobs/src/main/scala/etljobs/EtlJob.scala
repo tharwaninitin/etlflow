@@ -48,14 +48,18 @@ trait EtlJob extends SessionManager {
           case None => "<use_global_properties_slack_env>"
         }
 
-        DbManager.job_run_id = job_run_id
-        DbManager.log_db_name = global_properties match {
-          case Some(x) => x.log_db_name
-          case None => "<use_global_properties_log_db_name>"
+        DbManager.job_run_id  = job_run_id
+        DbManager.log_db_url  = global_properties match {
+          case Some(x) => x.log_db_url
+          case None => "<use_global_properties_log_db_url>"
         }
         DbManager.log_db_user = global_properties match {
           case Some(x) => x.log_db_user
           case None => "<use_global_properties_log_db_user>"
+        }
+        DbManager.log_db_pwd  = global_properties match {
+          case Some(x) => x.log_db_pwd
+          case None => "<use_global_properties_log_db_pwd>"
         }
 
         // Catch job result(Success/Failure) in Try so that it can be used further

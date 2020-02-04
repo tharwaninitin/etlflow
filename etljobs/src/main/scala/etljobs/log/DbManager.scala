@@ -4,20 +4,20 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import etljobs.EtlJobName
 import etljobs.etlsteps.EtlStep
 import io.getquill.{LowerCase, PostgresJdbcContext}
-
 import scala.util.{Failure, Success, Try}
 
 object DbManager extends LogManager {
   override var job_name: EtlJobName = _
   override var job_run_id: String = _
-  var log_db_name: String = ""
+  var log_db_url: String = ""
   var log_db_user: String = ""
   var log_db_pwd: String = ""
 
   private lazy val ctx = Try {
     val pgDataSource = new org.postgresql.ds.PGSimpleDataSource()
-    pgDataSource.setDatabaseName(log_db_name)
+    pgDataSource.setURL(log_db_url)
     pgDataSource.setUser(log_db_user)
+    pgDataSource.setPassword(log_db_user)
     val config = new HikariConfig()
     config.setDataSource(pgDataSource)
     new PostgresJdbcContext(LowerCase, new HikariDataSource(config))

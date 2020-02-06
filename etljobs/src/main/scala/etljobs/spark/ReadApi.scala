@@ -17,7 +17,7 @@ object ReadApi {
     read_logger.info("Input file paths: " + location.toList)
 
     val df_reader_options = input_type match {
-      case CSV(delimiter,header_present,_) => df_reader.format("csv").option("delimiter", delimiter).option("header", header_present)
+      case CSV(delimiter,header_present,_,quotechar) => df_reader.format("csv").option("delimiter", delimiter).option("quote",quotechar).option("header", header_present)
       case PARQUET => df_reader.format("parquet")
       case ORC => df_reader.format("orc")
       case JSON(multi_line) => df_reader.format("json").option("multiline",multi_line)
@@ -60,7 +60,7 @@ object ReadApi {
     read_logger.info("Input location: " + location.toList)
 
     val df_reader_options = input_type match {
-      case CSV(delimiter,header_present,parse_mode) => df_reader.format("csv").schema(mapping.schema).option("columnNameOfCorruptRecord","_corrupt_record").option("delimiter", delimiter).option("header", header_present).option("mode", parse_mode)
+      case CSV(delimiter,header_present,parse_mode,quotechar) => df_reader.format("csv").schema(mapping.schema).option("columnNameOfCorruptRecord","_corrupt_record").option("delimiter", delimiter).option("quote",quotechar).option("header", header_present).option("mode", parse_mode)
       case JSON(multi_line) => df_reader.format("json").option("multiline",multi_line).schema(mapping.schema)
       case PARQUET => df_reader.format("parquet")
       case ORC => df_reader.format("orc")

@@ -57,7 +57,7 @@ class EtlJobDefinition(
     transform_function      = Some(enrichRatingData(spark, job_props)),
     output_type             = PARQUET,
     output_location         = job_props("ratings_output_path"),
-    output_partition_col    = Some(f"$temp_date_col"),
+    output_partition_col    = Seq(f"$temp_date_col"),
     output_save_mode        = SaveMode.Overwrite,
     output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
   )(spark)

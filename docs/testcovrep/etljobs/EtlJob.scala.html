@@ -24,107 +24,129 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs
 </span>2 <span style=''>
-</span>3 <span style=''>import etljobs.etlsteps.EtlStep
-</span>4 <span style=''>import etljobs.utils.{SessionManager, SlackManager, GlobalProperties}
-</span>5 <span style=''>import org.apache.log4j.Logger
-</span>6 <span style=''>import scala.util.{Failure, Success, Try}
-</span>7 <span style=''>
-</span>8 <span style=''>case class EtlJobException(msg : String) extends Exception
-</span>9 <span style=''>
-</span>10 <span style=''>abstract class EtlJob(job_properties : Map[String,String], global_properties: Option[GlobalProperties] = None, etl_props: EtlProps = new EtlProps {}) extends SessionManager(global_properties) {
-</span>11 <span style=''>  val etl_job_logger : Logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
-</span>12 <span style=''>  var job_execution_state : Map[String, Map[String,String]] = </span><span style='background: #AEF1AE'>Map.empty</span><span style=''>
-</span>13 <span style=''>  var error_occured : Boolean = </span><span style='background: #AEF1AE'>false</span><span style=''>
-</span>14 <span style=''>  var slack_notification_level : String = </span><span style='background: #AEF1AE'>&quot;info&quot;</span><span style=''>
-</span>15 <span style=''>  def apply() : List[EtlStep[Unit,Unit]]
-</span>16 <span style=''>
-</span>17 <span style=''>  def printJobInfo(): Unit = {
-</span>18 <span style=''>    </span><span style='background: #F0ADAD'>apply().foreach{ etl =&gt;
-</span>19 <span style=''></span><span style='background: #F0ADAD'>      etl.getStepProperties(slack_notification_level).foreach(println)
-</span>20 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
-</span>21 <span style=''>  }
-</span>22 <span style=''>
-</span>23 <span style=''>  def getJobInfo: List[Map[String,String]] = {
-</span>24 <span style=''>    </span><span style='background: #F0ADAD'>apply().map{ etl =&gt;
-</span>25 <span style=''></span><span style='background: #F0ADAD'>      etl.getStepProperties(slack_notification_level)
-</span>26 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
-</span>27 <span style=''>  }
-</span>28 <span style=''>
-</span>29 <span style=''>  def execute(send_slack_notification: Boolean = false, slack_notification_level:String) : Map[String, Map[String,String]] = {
-</span>30 <span style=''>    val job_start_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
-</span>31 <span style=''>    if (send_slack_notification) 
-</span>32 <span style=''>    </span><span style='background: #AEF1AE'>{
-</span>33 <span style=''></span><span style='background: #AEF1AE'>      SlackManager.final_slack_message = &quot;&quot;
-</span>34 <span style=''></span><span style='background: #AEF1AE'>      SlackManager.job_properties = job_properties
-</span>35 <span style=''></span><span style='background: #AEF1AE'>      SlackManager.webhook_url = global_properties match {
-</span>36 <span style=''></span><span style='background: #AEF1AE'>        case Some(x) =&gt; x.slack_webhook_url
-</span>37 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties&gt;&quot;</span><span style='background: #AEF1AE'>
-</span>38 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>39 <span style=''></span><span style='background: #AEF1AE'>      SlackManager.env = global_properties match {
-</span>40 <span style=''></span><span style='background: #AEF1AE'>        case Some(x) =&gt; x.slack_env
-</span>41 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties&gt;&quot;</span><span style='background: #AEF1AE'>
-</span>42 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>43 <span style=''></span><span style='background: #AEF1AE'>
-</span>44 <span style=''></span><span style='background: #AEF1AE'>      // Catch job result(Success/Failure) in Try so that it can be used further
-</span>45 <span style=''></span><span style='background: #AEF1AE'>      val job_result = Try{
-</span>46 <span style=''></span><span style='background: #AEF1AE'>        apply().foreach { etl =&gt;
-</span>47 <span style=''></span><span style='background: #AEF1AE'>          val step_start_time = System.nanoTime()
-</span>48 <span style=''></span><span style='background: #AEF1AE'>          etl.process() match {
-</span>49 <span style=''></span><span style='background: #AEF1AE'>            case Success(_) =&gt; 
-</span>50 <span style=''></span><span style='background: #AEF1AE'>              SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, slack_notification_level)
-</span>51 <span style=''></span><span style='background: #AEF1AE'>              job_execution_state ++= etl.getExecutionMetrics
-</span>52 <span style=''></span><span style='background: #AEF1AE'>            case Failure(exception) =&gt; 
-</span>53 <span style=''></span><span style='background: #AEF1AE'>              </span><span style='background: #F0ADAD'>SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, slack_notification_level,Some(exception.getMessage()))</span><span style='background: #AEF1AE'>;
-</span>54 <span style=''></span><span style='background: #AEF1AE'>              </span><span style='background: #F0ADAD'>job_execution_state ++= etl.getExecutionMetrics</span><span style='background: #AEF1AE'> 
-</span>55 <span style=''></span><span style='background: #AEF1AE'>              </span><span style='background: #F0ADAD'>etl_job_logger.error(&quot;Error Occured: &quot; + exception.getMessage())</span><span style='background: #AEF1AE'>
-</span>56 <span style=''></span><span style='background: #AEF1AE'>              
-</span>57 <span style=''></span><span style='background: #AEF1AE'>              if (</span><span style='background: #F0ADAD'>job_properties.get(&quot;aggregate_error&quot;).getOrElse(&quot;false&quot;) == &quot;true&quot;</span><span style='background: #AEF1AE'>)
-</span>58 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>error_occured = true</span><span style='background: #AEF1AE'>
-</span>59 <span style=''></span><span style='background: #AEF1AE'>              else
-</span>60 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>throw exception</span><span style='background: #AEF1AE'>   
-</span>61 <span style=''></span><span style='background: #AEF1AE'>          }
-</span>62 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>63 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>64 <span style=''></span><span style='background: #AEF1AE'>      
-</span>65 <span style=''></span><span style='background: #AEF1AE'>      job_result match {
-</span>66 <span style=''></span><span style='background: #AEF1AE'>        case Success(_) =&gt; if(error_occured) </span><span style='background: #F0ADAD'>{
-</span>67 <span style=''></span><span style='background: #F0ADAD'>                              SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time); 
-</span>68 <span style=''></span><span style='background: #F0ADAD'>                              throw EtlJobException(&quot;Job failed&quot;); 
-</span>69 <span style=''></span><span style='background: #F0ADAD'>                            }</span><span style='background: #AEF1AE'>
-</span>70 <span style=''></span><span style='background: #AEF1AE'>                            else SlackManager.sendSlackNotification(&quot;Pass&quot;, job_start_time)
-</span>71 <span style=''></span><span style='background: #AEF1AE'>        case Failure(e) =&gt; </span><span style='background: #F0ADAD'>SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time)</span><span style='background: #AEF1AE'>; </span><span style='background: #F0ADAD'>throw e</span><span style='background: #AEF1AE'>;
-</span>72 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>73 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>74 <span style=''>    else 
-</span>75 <span style=''>    </span><span style='background: #F0ADAD'>{
-</span>76 <span style=''></span><span style='background: #F0ADAD'>      // Catch job result(Success/Failure) in Try so that it can be used further
-</span>77 <span style=''></span><span style='background: #F0ADAD'>      val job_result = Try{
-</span>78 <span style=''></span><span style='background: #F0ADAD'>        apply().foreach { etl =&gt;
-</span>79 <span style=''></span><span style='background: #F0ADAD'>          val step_start_time = System.nanoTime()
-</span>80 <span style=''></span><span style='background: #F0ADAD'>          etl.process() match {
-</span>81 <span style=''></span><span style='background: #F0ADAD'>            case Success(_) =&gt; job_execution_state ++= etl.getExecutionMetrics
-</span>82 <span style=''></span><span style='background: #F0ADAD'>            case Failure(exception) =&gt; 
-</span>83 <span style=''></span><span style='background: #F0ADAD'>              job_execution_state ++= etl.getExecutionMetrics 
-</span>84 <span style=''></span><span style='background: #F0ADAD'>              etl_job_logger.error(&quot;Error Occured: &quot; + exception.getMessage())
-</span>85 <span style=''></span><span style='background: #F0ADAD'>              
-</span>86 <span style=''></span><span style='background: #F0ADAD'>              if (job_properties.get(&quot;aggregate_error&quot;).getOrElse(&quot;false&quot;) == &quot;true&quot;)
-</span>87 <span style=''></span><span style='background: #F0ADAD'>                error_occured = true
-</span>88 <span style=''></span><span style='background: #F0ADAD'>              else
-</span>89 <span style=''></span><span style='background: #F0ADAD'>                throw exception  
-</span>90 <span style=''></span><span style='background: #F0ADAD'>          }
-</span>91 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>92 <span style=''></span><span style='background: #F0ADAD'>      }
-</span>93 <span style=''></span><span style='background: #F0ADAD'>      
-</span>94 <span style=''></span><span style='background: #F0ADAD'>      job_result match {
-</span>95 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt; if(error_occured) { throw EtlJobException(&quot;Job failed&quot;); }
-</span>96 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) =&gt; throw e;
-</span>97 <span style=''></span><span style='background: #F0ADAD'>      }
-</span>98 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
-</span>99 <span style=''>    val job_end_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
-</span>100 <span style=''>    </span><span style='background: #AEF1AE'>etl_job_logger.info(&quot;Job completed successfully in : &quot; + (job_end_time - job_start_time) / 1000000000.0 / 60.0 + &quot; mins&quot;)</span><span style=''>
-</span>101 <span style=''>    </span><span style='background: #AEF1AE'>job_execution_state</span><span style=''>
-</span>102 <span style=''>  }
-</span>103 <span style=''>}
+</span>3 <span style=''>import etljobs.etlsteps.StateLessEtlStep
+</span>4 <span style=''>import etljobs.log.{DbManager, SlackManager}
+</span>5 <span style=''>import etljobs.utils.{GlobalProperties, SessionManager}
+</span>6 <span style=''>import org.apache.log4j.Logger
+</span>7 <span style=''>import scala.util.{Failure, Success, Try}
+</span>8 <span style=''>
+</span>9 <span style=''>trait EtlJob extends SessionManager {
+</span>10 <span style=''>    val etl_job_logger: Logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>11 <span style=''>    var job_execution_state: Map[String, Map[String,String]] = </span><span style='background: #AEF1AE'>Map.empty</span><span style=''>
+</span>12 <span style=''>    var error_occured: Boolean = </span><span style='background: #AEF1AE'>false</span><span style=''>
+</span>13 <span style=''>    val etl_step_list: List[StateLessEtlStep]
+</span>14 <span style=''>    val job_name: EtlJobName
+</span>15 <span style=''>    val job_properties: Either[Map[String,String], EtlProps]
+</span>16 <span style=''>    val global_properties: Option[GlobalProperties]
+</span>17 <span style=''>    val aggregate_error: Boolean = </span><span style='background: #AEF1AE'>false</span><span style=''>
+</span>18 <span style=''>
+</span>19 <span style=''>    def printJobInfo(level: String = &quot;info&quot;): Unit = {
+</span>20 <span style=''>      </span><span style='background: #F0ADAD'>etl_step_list.foreach{ etl =&gt;
+</span>21 <span style=''></span><span style='background: #F0ADAD'>        etl.getStepProperties(level).foreach(println)
+</span>22 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>23 <span style=''>    }
+</span>24 <span style=''>
+</span>25 <span style=''>    def getJobInfo(level: String = &quot;info&quot;): List[Map[String,String]] = {
+</span>26 <span style=''>      </span><span style='background: #F0ADAD'>etl_step_list.map{ etl =&gt;
+</span>27 <span style=''></span><span style='background: #F0ADAD'>        etl.getStepProperties(level)
+</span>28 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>29 <span style=''>    }
+</span>30 <span style=''>
+</span>31 <span style=''>    def execute(send_notification: Boolean = false, notification_level: String) : Map[String, Map[String,String]] = {
+</span>32 <span style=''>      val job_start_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
+</span>33 <span style=''>      val job_run_id: String = </span><span style='background: #AEF1AE'>job_properties</span><span style=''> match {
+</span>34 <span style=''>        case Left(value) =&gt; </span><span style='background: #AEF1AE'>value.getOrElse(&quot;job_run_id&quot;,&quot;undefined_job_run_id&quot;)</span><span style=''>
+</span>35 <span style=''>        case Right(value) =&gt; </span><span style='background: #AEF1AE'>value.job_run_id</span><span style=''>
+</span>36 <span style=''>      }
+</span>37 <span style=''>
+</span>38 <span style=''>      if (send_notification)
+</span>39 <span style=''>      </span><span style='background: #AEF1AE'>{
+</span>40 <span style=''></span><span style='background: #AEF1AE'>        SlackManager.final_message = &quot;&quot;
+</span>41 <span style=''></span><span style='background: #AEF1AE'>        SlackManager.job_name = job_name
+</span>42 <span style=''></span><span style='background: #AEF1AE'>        SlackManager.webhook_url = global_properties match {
+</span>43 <span style=''></span><span style='background: #AEF1AE'>          case Some(x) =&gt; x.slack_webhook_url
+</span>44 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;</span><span style='background: #AEF1AE'>
+</span>45 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>46 <span style=''></span><span style='background: #AEF1AE'>        SlackManager.env = global_properties match {
+</span>47 <span style=''></span><span style='background: #AEF1AE'>          case Some(x) =&gt; x.slack_env
+</span>48 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties_slack_env&gt;&quot;</span><span style='background: #AEF1AE'>
+</span>49 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>50 <span style=''></span><span style='background: #AEF1AE'>
+</span>51 <span style=''></span><span style='background: #AEF1AE'>        DbManager.job_run_id  = job_run_id
+</span>52 <span style=''></span><span style='background: #AEF1AE'>        DbManager.log_db_url  = global_properties match {
+</span>53 <span style=''></span><span style='background: #AEF1AE'>          case Some(x) =&gt; x.log_db_url
+</span>54 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties_log_db_url&gt;&quot;</span><span style='background: #AEF1AE'>
+</span>55 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>56 <span style=''></span><span style='background: #AEF1AE'>        DbManager.log_db_user = global_properties match {
+</span>57 <span style=''></span><span style='background: #AEF1AE'>          case Some(x) =&gt; x.log_db_user
+</span>58 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties_log_db_user&gt;&quot;</span><span style='background: #AEF1AE'>
+</span>59 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>60 <span style=''></span><span style='background: #AEF1AE'>        DbManager.log_db_pwd  = global_properties match {
+</span>61 <span style=''></span><span style='background: #AEF1AE'>          case Some(x) =&gt; x.log_db_pwd
+</span>62 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt; </span><span style='background: #F0ADAD'>&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;</span><span style='background: #AEF1AE'>
+</span>63 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>64 <span style=''></span><span style='background: #AEF1AE'>
+</span>65 <span style=''></span><span style='background: #AEF1AE'>        // Catch job result(Success/Failure) in Try so that it can be used further
+</span>66 <span style=''></span><span style='background: #AEF1AE'>        val job_result = Try{
+</span>67 <span style=''></span><span style='background: #AEF1AE'>          etl_step_list.foreach { etl =&gt;
+</span>68 <span style=''></span><span style='background: #AEF1AE'>            val step_start_time = System.nanoTime()
+</span>69 <span style=''></span><span style='background: #AEF1AE'>            etl.process() match {
+</span>70 <span style=''></span><span style='background: #AEF1AE'>              case Success(_) =&gt;
+</span>71 <span style=''></span><span style='background: #AEF1AE'>                DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level)
+</span>72 <span style=''></span><span style='background: #AEF1AE'>                SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level)
+</span>73 <span style=''></span><span style='background: #AEF1AE'>                job_execution_state ++= etl.getExecutionMetrics
+</span>74 <span style=''></span><span style='background: #AEF1AE'>              case Failure(exception) =&gt;
+</span>75 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level,Some(exception.getMessage))</span><span style='background: #AEF1AE'>
+</span>76 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level,Some(exception.getMessage))</span><span style='background: #AEF1AE'>
+</span>77 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>job_execution_state ++= etl.getExecutionMetrics</span><span style='background: #AEF1AE'>
+</span>78 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>etl_job_logger.error(&quot;Error Occurred: &quot; + exception.getMessage)</span><span style='background: #AEF1AE'>
+</span>79 <span style=''></span><span style='background: #AEF1AE'>                if (</span><span style='background: #F0ADAD'>aggregate_error</span><span style='background: #AEF1AE'>)
+</span>80 <span style=''></span><span style='background: #AEF1AE'>                  </span><span style='background: #F0ADAD'>error_occured = true</span><span style='background: #AEF1AE'>
+</span>81 <span style=''></span><span style='background: #AEF1AE'>                else
+</span>82 <span style=''></span><span style='background: #AEF1AE'>                  </span><span style='background: #F0ADAD'>throw exception</span><span style='background: #AEF1AE'>
+</span>83 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>84 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>85 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>86 <span style=''></span><span style='background: #AEF1AE'>
+</span>87 <span style=''></span><span style='background: #AEF1AE'>        job_result match {
+</span>88 <span style=''></span><span style='background: #AEF1AE'>          case Success(_) =&gt; if(error_occured) </span><span style='background: #F0ADAD'>{
+</span>89 <span style=''></span><span style='background: #F0ADAD'>                                SlackManager.sendNotification(&quot;Failed&quot;, job_start_time)
+</span>90 <span style=''></span><span style='background: #F0ADAD'>                                throw EtlJobException(&quot;Job failed&quot;)
+</span>91 <span style=''></span><span style='background: #F0ADAD'>                              }</span><span style='background: #AEF1AE'>
+</span>92 <span style=''></span><span style='background: #AEF1AE'>                              else SlackManager.sendNotification(&quot;Pass&quot;, job_start_time)
+</span>93 <span style=''></span><span style='background: #AEF1AE'>          case Failure(e) =&gt; </span><span style='background: #F0ADAD'>SlackManager.sendNotification(&quot;Failed&quot;, job_start_time)</span><span style='background: #AEF1AE'>; </span><span style='background: #F0ADAD'>throw e</span><span style='background: #AEF1AE'>;
+</span>94 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>95 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>96 <span style=''>      else
+</span>97 <span style=''>      </span><span style='background: #F0ADAD'>{
+</span>98 <span style=''></span><span style='background: #F0ADAD'>        // Catch job result(Success/Failure) in Try so that it can be used further
+</span>99 <span style=''></span><span style='background: #F0ADAD'>        val job_result = Try{
+</span>100 <span style=''></span><span style='background: #F0ADAD'>          etl_step_list.foreach { etl =&gt;
+</span>101 <span style=''></span><span style='background: #F0ADAD'>            val step_start_time = System.nanoTime()
+</span>102 <span style=''></span><span style='background: #F0ADAD'>            etl.process() match {
+</span>103 <span style=''></span><span style='background: #F0ADAD'>              case Success(_) =&gt; job_execution_state ++= etl.getExecutionMetrics
+</span>104 <span style=''></span><span style='background: #F0ADAD'>              case Failure(exception) =&gt;
+</span>105 <span style=''></span><span style='background: #F0ADAD'>                job_execution_state ++= etl.getExecutionMetrics
+</span>106 <span style=''></span><span style='background: #F0ADAD'>                etl_job_logger.error(&quot;Error Occured: &quot; + exception.getMessage())
+</span>107 <span style=''></span><span style='background: #F0ADAD'>
+</span>108 <span style=''></span><span style='background: #F0ADAD'>                if (aggregate_error)
+</span>109 <span style=''></span><span style='background: #F0ADAD'>                  error_occured = true
+</span>110 <span style=''></span><span style='background: #F0ADAD'>                else
+</span>111 <span style=''></span><span style='background: #F0ADAD'>                  throw exception
+</span>112 <span style=''></span><span style='background: #F0ADAD'>            }
+</span>113 <span style=''></span><span style='background: #F0ADAD'>          }
+</span>114 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>115 <span style=''></span><span style='background: #F0ADAD'>
+</span>116 <span style=''></span><span style='background: #F0ADAD'>        job_result match {
+</span>117 <span style=''></span><span style='background: #F0ADAD'>          case Success(_) =&gt; if(error_occured) { throw EtlJobException(&quot;Job failed&quot;); }
+</span>118 <span style=''></span><span style='background: #F0ADAD'>          case Failure(e) =&gt; throw e;
+</span>119 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>120 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>121 <span style=''>      val job_end_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
+</span>122 <span style=''>      </span><span style='background: #AEF1AE'>etl_job_logger.info(&quot;Job completed successfully in : &quot; + (job_end_time - job_start_time) / 1000000000.0 / 60.0 + &quot; mins&quot;)</span><span style=''>
+</span>123 <span style=''>      </span><span style='background: #AEF1AE'>job_execution_state</span><span style=''>
+</span>124 <span style=''>    }
+</span>125 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -138,15 +160,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          11
+          10
         </td>
         <td>
           2
         </td>
         <td>
-          479
+          304
           -
-          513
+          338
         </td>
         <td>
           Apply
@@ -159,15 +181,15 @@
         </td>
       </tr><tr>
         <td>
-          11
+          10
         </td>
         <td>
           1
         </td>
         <td>
-          496
+          321
           -
-          512
+          337
         </td>
         <td>
           Apply
@@ -180,15 +202,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          11
         </td>
         <td>
           3
         </td>
         <td>
-          576
+          402
           -
-          585
+          411
         </td>
         <td>
           TypeApply
@@ -201,15 +223,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          12
         </td>
         <td>
           4
         </td>
         <td>
-          618
+          445
           -
-          623
+          450
         </td>
         <td>
           Literal
@@ -222,15 +244,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          17
         </td>
         <td>
           5
         </td>
         <td>
-          666
+          674
           -
-          672
+          679
         </td>
         <td>
           Literal
@@ -239,19 +261,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;info&quot;
+          false
         </td>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          9
+          8
         </td>
         <td>
-          750
+          742
           -
-          850
+          833
         </td>
         <td>
           Apply
@@ -260,21 +282,21 @@
           scala.collection.immutable.List.foreach
         </td>
         <td style="background: #F0ADAD">
-          EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; etl.getStepProperties(EtlJob.this.slack_notification_level).foreach[Unit]({
+          EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; etl.getStepProperties(level).foreach[Unit]({
   ((x: Any) =&gt; scala.Predef.println(x))
 })))
         </td>
       </tr><tr>
         <td>
-          19
+          21
         </td>
         <td>
-          8
+          7
         </td>
         <td>
           780
           -
-          844
+          825
         </td>
         <td>
           Apply
@@ -283,21 +305,21 @@
           scala.collection.IterableLike.foreach
         </td>
         <td style="background: #F0ADAD">
-          etl.getStepProperties(EtlJob.this.slack_notification_level).foreach[Unit]({
+          etl.getStepProperties(level).foreach[Unit]({
   ((x: Any) =&gt; scala.Predef.println(x))
 })
         </td>
       </tr><tr>
         <td>
-          19
+          21
         </td>
         <td>
-          7
+          6
         </td>
         <td>
-          836
+          817
           -
-          843
+          824
         </td>
         <td>
           Apply
@@ -310,36 +332,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          26
         </td>
         <td>
-          6
+          11
         </td>
         <td>
-          802
+          920
           -
-          826
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.EtlJob.slack_notification_level
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJob.this.slack_notification_level
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          13
-        </td>
-        <td>
-          907
-          -
-          986
+          990
         </td>
         <td>
           ApplyToImplicitArgs
@@ -348,19 +349,19 @@
           scala.collection.immutable.List.map
         </td>
         <td style="background: #F0ADAD">
-          EtlJob.this.apply().map[Map[String,String], List[Map[String,String]]](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; etl.getStepProperties(EtlJob.this.slack_notification_level)))(immutable.this.List.canBuildFrom[Map[String,String]])
+          EtlJob.this.etl_step_list.map[Map[String,String], List[Map[String,String]]](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; etl.getStepProperties(level)))(immutable.this.List.canBuildFrom[Map[String,String]])
         </td>
       </tr><tr>
         <td>
-          24
+          26
         </td>
         <td>
-          12
+          10
         </td>
         <td>
-          918
+          937
           -
-          918
+          937
         </td>
         <td>
           TypeApply
@@ -373,15 +374,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          11
+          9
         </td>
         <td>
-          933
+          954
           -
-          980
+          982
         </td>
         <td>
           Apply
@@ -390,40 +391,19 @@
           etljobs.etlsteps.EtlStep.getStepProperties
         </td>
         <td style="background: #F0ADAD">
-          etl.getStepProperties(EtlJob.this.slack_notification_level)
+          etl.getStepProperties(level)
         </td>
       </tr><tr>
         <td>
-          25
+          32
         </td>
         <td>
-          10
+          12
         </td>
         <td>
-          955
+          1143
           -
-          979
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.EtlJob.slack_notification_level
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJob.this.slack_notification_level
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          14
-        </td>
-        <td>
-          1144
-          -
-          1161
+          1160
         </td>
         <td>
           Apply
@@ -436,120 +416,15 @@
         </td>
       </tr><tr>
         <td>
-          32
-        </td>
-        <td>
-          58
-        </td>
-        <td>
-          1200
-          -
-          3045
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          {
-  etljobs.utils.SlackManager.final_slack_message_=(&quot;&quot;);
-  etljobs.utils.SlackManager.job_properties_=(EtlJob.this.job_properties);
-  etljobs.utils.SlackManager.webhook_url_=(EtlJob.this.global_properties match {
-    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
-    case scala.None =&gt; &quot;&lt;use_global_properties&gt;&quot;
-  });
-  etljobs.utils.SlackManager.env_=(EtlJob.this.global_properties match {
-    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
-    case scala.None =&gt; &quot;&lt;use_global_properties&gt;&quot;
-  });
-  val job_result: scala.util.Try[Unit] = scala.util.Try.apply[Unit](EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
-    val step_start_time: Long = java.lang.System.nanoTime();
-    etl.process(()) match {
-      case (value: Unit)scala.util.Success[Unit](_) =&gt; {
-        etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, slack_notification_level, etljobs.utils.SlackManager.updateStepLevelInformation$default$5);
-        EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
-      }
-      case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
-        etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, slack_notification_level, scala.Some.apply[String](exception.getMessage()));
-        EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
-        EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()));
-        if (EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;))
-          EtlJob.this.error_occured_=(true)
-        else
-          throw exception
-      }
-    }
-  })));
-  job_result match {
-    case (value: Unit)scala.util.Success[Unit](_) =&gt; if (EtlJob.this.error_occured)
-      {
-        etljobs.utils.SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time);
-        throw EtlJobException.apply(&quot;Job failed&quot;)
-      }
-    else
-      etljobs.utils.SlackManager.sendSlackNotification(&quot;Pass&quot;, job_start_time)
-    case (exception: Throwable)scala.util.Failure[Unit]((e @ _)) =&gt; {
-      etljobs.utils.SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time);
-      throw e
-    }
-  }
-}
-        </td>
-      </tr><tr>
-        <td>
           33
         </td>
         <td>
-          15
+          13
         </td>
         <td>
-          1208
+          1192
           -
-          1245
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.utils.SlackManager.final_slack_message_=
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.final_slack_message_=(&quot;&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          17
-        </td>
-        <td>
-          1252
-          -
-          1296
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.utils.SlackManager.job_properties_=
-        </td>
-        <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.job_properties_=(EtlJob.this.job_properties)
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          16
-        </td>
-        <td>
-          1282
-          -
-          1296
+          1206
         </td>
         <td>
           Select
@@ -562,126 +437,243 @@
         </td>
       </tr><tr>
         <td>
-          35
+          34
         </td>
         <td>
-          20
+          14
         </td>
         <td>
-          1303
+          1243
           -
-          1454
+          1295
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.webhook_url_=
+          scala.collection.MapLike.getOrElse
         </td>
         <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.webhook_url_=(EtlJob.this.global_properties match {
-  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
-  case scala.None =&gt; &quot;&lt;use_global_properties&gt;&quot;
-})
+          value.getOrElse[String](&quot;job_run_id&quot;, &quot;undefined_job_run_id&quot;)
         </td>
       </tr><tr>
         <td>
           35
         </td>
         <td>
-          18
+          15
         </td>
         <td>
-          1330
+          1325
           -
-          1347
+          1341
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.EtlJob.global_properties
+          etljobs.EtlProps.job_run_id
         </td>
         <td style="background: #AEF1AE">
-          EtlJob.this.global_properties
+          value.job_run_id
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
-          19
+          76
         </td>
         <td>
-          1421
+          1386
           -
-          1446
+          3992
         </td>
         <td>
-          Literal
+          Block
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
-          &quot;&lt;use_global_properties&gt;&quot;
+        <td style="background: #AEF1AE">
+          {
+  etljobs.log.SlackManager.final_message_=(&quot;&quot;);
+  etljobs.log.SlackManager.job_name_=(EtlJob.this.job_name);
+  etljobs.log.SlackManager.webhook_url_=(EtlJob.this.global_properties match {
+    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+    case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+  });
+  etljobs.log.SlackManager.env_=(EtlJob.this.global_properties match {
+    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+    case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+  });
+  etljobs.log.DbManager.job_run_id_=(job_run_id);
+  etljobs.log.DbManager.log_db_url_=(EtlJob.this.global_properties match {
+    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.log_db_url
+    case scala.None =&gt; &quot;&lt;use_global_properties_log_db_url&gt;&quot;
+  });
+  etljobs.log.DbManager.log_db_user_=(EtlJob.this.global_properties match {
+    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.log_db_user
+    case scala.None =&gt; &quot;&lt;use_global_properties_log_db_user&gt;&quot;
+  });
+  etljobs.log.DbManager.log_db_pwd_=(EtlJob.this.global_properties match {
+    case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.log_db_pwd
+    case scala.None =&gt; &quot;&lt;use_global_properties_log_db_pwd&gt;&quot;
+  });
+  val job_result: scala.util.Try[Unit] = scala.util.Try.apply[Unit](EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; {
+    val step_start_time: Long = java.lang.System.nanoTime();
+    etl.process(()) match {
+      case (value: Unit)scala.util.Success[Unit](_) =&gt; {
+        etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.DbManager.updateStepLevelInformation$default$5);
+        etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.SlackManager.updateStepLevelInformation$default$5);
+        EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
+      }
+      case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
+        etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+        etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+        EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
+        EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()));
+        if (EtlJob.this.aggregate_error)
+          EtlJob.this.error_occured_=(true)
+        else
+          throw exception
+      }
+    }
+  })));
+  job_result match {
+    case (value: Unit)scala.util.Success[Unit](_) =&gt; if (EtlJob.this.error_occured)
+      {
+        etljobs.log.SlackManager.sendNotification(&quot;Failed&quot;, job_start_time);
+        throw etljobs.this.`package`.EtlJobException.apply(&quot;Job failed&quot;)
+      }
+    else
+      etljobs.log.SlackManager.sendNotification(&quot;Pass&quot;, job_start_time)
+    case (exception: Throwable)scala.util.Failure[Unit]((e @ _)) =&gt; {
+      etljobs.log.SlackManager.sendNotification(&quot;Failed&quot;, job_start_time);
+      throw e
+    }
+  }
+}
         </td>
       </tr><tr>
         <td>
-          39
+          40
         </td>
         <td>
-          23
+          16
         </td>
         <td>
-          1461
+          1396
           -
-          1596
+          1427
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.env_=
+          etljobs.log.SlackManager.final_message_=
         </td>
         <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.env_=(EtlJob.this.global_properties match {
-  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
-  case scala.None =&gt; &quot;&lt;use_global_properties&gt;&quot;
-})
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          21
-        </td>
-        <td>
-          1480
-          -
-          1497
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.EtlJob.global_properties
-        </td>
-        <td style="background: #AEF1AE">
-          EtlJob.this.global_properties
+          etljobs.log.SlackManager.final_message_=(&quot;&quot;)
         </td>
       </tr><tr>
         <td>
           41
         </td>
         <td>
-          22
+          17
         </td>
         <td>
-          1563
+          1460
           -
-          1588
+          1468
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.job_name
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.job_name
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          1436
+          -
+          1468
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.SlackManager.job_name_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.SlackManager.job_name_=(EtlJob.this.job_name)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          1504
+          -
+          1521
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.global_properties
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.global_properties
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1477
+          -
+          1652
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.SlackManager.webhook_url_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.SlackManager.webhook_url_=(EtlJob.this.global_properties match {
+  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+})
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          1599
+          -
+          1642
         </td>
         <td>
           Literal
@@ -690,19 +682,304 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;&lt;use_global_properties&gt;&quot;
+          &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
-          49
+          22
         </td>
         <td>
-          1702
+          1680
           -
-          2571
+          1697
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.global_properties
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.global_properties
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          1661
+          -
+          1812
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.SlackManager.env_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.SlackManager.env_=(EtlJob.this.global_properties match {
+  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+})
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1767
+          -
+          1802
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&lt;use_global_properties_slack_env&gt;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          1822
+          -
+          1856
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.DbManager.job_run_id_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.DbManager.job_run_id_=(job_run_id)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          1889
+          -
+          1906
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.global_properties
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.global_properties
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          28
+        </td>
+        <td>
+          1865
+          -
+          2023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.DbManager.log_db_url_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.DbManager.log_db_url_=(EtlJob.this.global_properties match {
+  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.log_db_url
+  case scala.None =&gt; &quot;&lt;use_global_properties_log_db_url&gt;&quot;
+})
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          1977
+          -
+          2013
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&lt;use_global_properties_log_db_url&gt;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          2056
+          -
+          2073
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.global_properties
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.global_properties
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          2032
+          -
+          2192
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.DbManager.log_db_user_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.DbManager.log_db_user_=(EtlJob.this.global_properties match {
+  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.log_db_user
+  case scala.None =&gt; &quot;&lt;use_global_properties_log_db_user&gt;&quot;
+})
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          2145
+          -
+          2182
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&lt;use_global_properties_log_db_user&gt;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          2225
+          -
+          2242
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.global_properties
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.global_properties
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          34
+        </td>
+        <td>
+          2201
+          -
+          2359
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.DbManager.log_db_pwd_=
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.DbManager.log_db_pwd_=(EtlJob.this.global_properties match {
+  case (value: etljobs.utils.GlobalProperties)Some[etljobs.utils.GlobalProperties]((x @ _)) =&gt; x.log_db_pwd
+  case scala.None =&gt; &quot;&lt;use_global_properties_log_db_pwd&gt;&quot;
+})
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          2313
+          -
+          2349
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&lt;use_global_properties_log_db_pwd&gt;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          67
+        </td>
+        <td>
+          2469
+          -
+          3525
         </td>
         <td>
           Apply
@@ -711,18 +988,20 @@
           scala.util.Try.apply
         </td>
         <td style="background: #AEF1AE">
-          scala.util.Try.apply[Unit](EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
+          scala.util.Try.apply[Unit](EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; {
   val step_start_time: Long = java.lang.System.nanoTime();
   etl.process(()) match {
     case (value: Unit)scala.util.Success[Unit](_) =&gt; {
-      etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, slack_notification_level, etljobs.utils.SlackManager.updateStepLevelInformation$default$5);
+      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.DbManager.updateStepLevelInformation$default$5);
+      etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.SlackManager.updateStepLevelInformation$default$5);
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
     }
     case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
-      etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, slack_notification_level, scala.Some.apply[String](exception.getMessage()));
+      etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
-      EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()));
-      if (EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;))
+      EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()));
+      if (EtlJob.this.aggregate_error)
         EtlJob.this.error_occured_=(true)
       else
         throw exception
@@ -732,15 +1011,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          67
         </td>
         <td>
-          48
+          66
         </td>
         <td>
-          1715
+          2484
           -
-          2563
+          3515
         </td>
         <td>
           Apply
@@ -749,18 +1028,20 @@
           scala.collection.immutable.List.foreach
         </td>
         <td style="background: #AEF1AE">
-          EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
+          EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; {
   val step_start_time: Long = java.lang.System.nanoTime();
   etl.process(()) match {
     case (value: Unit)scala.util.Success[Unit](_) =&gt; {
-      etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, slack_notification_level, etljobs.utils.SlackManager.updateStepLevelInformation$default$5);
+      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.DbManager.updateStepLevelInformation$default$5);
+      etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.SlackManager.updateStepLevelInformation$default$5);
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
     }
     case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
-      etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, slack_notification_level, scala.Some.apply[String](exception.getMessage()));
+      etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
-      EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()));
-      if (EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;))
+      EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()));
+      if (EtlJob.this.aggregate_error)
         EtlJob.this.error_occured_=(true)
       else
         throw exception
@@ -770,15 +1051,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          68
         </td>
         <td>
-          24
+          35
         </td>
         <td>
-          1772
+          2549
           -
-          1789
+          2566
         </td>
         <td>
           Apply
@@ -791,15 +1072,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          69
         </td>
         <td>
-          25
+          36
         </td>
         <td>
-          1800
+          2579
           -
-          1813
+          2592
         </td>
         <td>
           Apply
@@ -812,15 +1093,36 @@
         </td>
       </tr><tr>
         <td>
-          50
+          71
         </td>
         <td>
-          26
+          38
         </td>
         <td>
-          1930
+          2660
           -
-          1936
+          2660
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.log.DbManager.updateStepLevelInformation$default$5
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.log.DbManager.updateStepLevelInformation$default$5
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          2709
+          -
+          2715
         </td>
         <td>
           Literal
@@ -833,99 +1135,99 @@
         </td>
       </tr><tr>
         <td>
-          50
+          71
         </td>
         <td>
-          28
+          39
         </td>
         <td>
-          1868
+          2650
           -
-          1963
+          2736
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.updateStepLevelInformation
+          etljobs.log.DbManager.updateStepLevelInformation
         </td>
         <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, slack_notification_level, etljobs.utils.SlackManager.updateStepLevelInformation$default$5)
+          etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.DbManager.updateStepLevelInformation$default$5)
         </td>
       </tr><tr>
         <td>
-          50
+          72
         </td>
         <td>
-          27
+          41
         </td>
         <td>
-          1881
+          2766
           -
-          1881
+          2766
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.utils.SlackManager.updateStepLevelInformation$default$5
+          etljobs.log.SlackManager.updateStepLevelInformation$default$5
         </td>
         <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.updateStepLevelInformation$default$5
+          etljobs.log.SlackManager.updateStepLevelInformation$default$5
         </td>
       </tr><tr>
         <td>
-          51
+          72
         </td>
         <td>
-          29
+          40
         </td>
         <td>
-          2002
+          2815
           -
-          2025
+          2821
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          etljobs.etlsteps.EtlStep.getExecutionMetrics
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          etl.getExecutionMetrics
+          &quot;Pass&quot;
         </td>
       </tr><tr>
         <td>
-          51
+          72
         </td>
         <td>
-          31
+          42
         </td>
         <td>
-          1978
+          2753
           -
-          2025
+          2842
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.EtlJob.job_execution_state_=
+          etljobs.log.SlackManager.updateStepLevelInformation
         </td>
         <td style="background: #AEF1AE">
-          EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
+          etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level, etljobs.log.SlackManager.updateStepLevelInformation$default$5)
         </td>
       </tr><tr>
         <td>
-          51
+          73
         </td>
         <td>
-          30
+          44
         </td>
         <td>
-          1978
+          2859
           -
-          2025
+          2906
         </td>
         <td>
           Apply
@@ -938,15 +1240,78 @@
         </td>
       </tr><tr>
         <td>
-          53
+          73
         </td>
         <td>
-          32
+          43
         </td>
         <td>
-          2142
+          2883
           -
-          2150
+          2906
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.getExecutionMetrics
+        </td>
+        <td style="background: #AEF1AE">
+          etl.getExecutionMetrics
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          45
+        </td>
+        <td>
+          2859
+          -
+          2906
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.EtlJob.job_execution_state_=
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          47
+        </td>
+        <td>
+          3060
+          -
+          3080
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          exception.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          46
+        </td>
+        <td>
+          3026
+          -
+          3034
         </td>
         <td>
           Literal
@@ -959,36 +1324,36 @@
         </td>
       </tr><tr>
         <td>
-          53
+          75
         </td>
         <td>
-          35
+          49
         </td>
         <td>
-          2080
+          2964
           -
-          2206
+          3082
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.updateStepLevelInformation
+          etljobs.log.SlackManager.updateStepLevelInformation
         </td>
         <td style="background: #F0ADAD">
-          etljobs.utils.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, slack_notification_level, scala.Some.apply[String](exception.getMessage()))
+          etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()))
         </td>
       </tr><tr>
         <td>
-          53
+          75
         </td>
         <td>
-          34
+          48
         </td>
         <td>
-          2177
+          3055
           -
-          2205
+          3081
         </td>
         <td>
           Apply
@@ -1001,15 +1366,78 @@
         </td>
       </tr><tr>
         <td>
+          76
+        </td>
+        <td>
+          50
+        </td>
+        <td>
+          3158
+          -
+          3166
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Failed&quot;
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
           53
         </td>
         <td>
-          33
+          3099
+          -
+          3214
         </td>
         <td>
-          2182
+          Apply
+        </td>
+        <td>
+          etljobs.log.DbManager.updateStepLevelInformation
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          3187
           -
-          2204
+          3213
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](exception.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          51
+        </td>
+        <td>
+          3192
+          -
+          3212
         </td>
         <td>
           Apply
@@ -1022,15 +1450,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          77
         </td>
         <td>
-          38
+          56
         </td>
         <td>
-          2222
+          3231
           -
-          2269
+          3278
         </td>
         <td>
           Apply
@@ -1043,15 +1471,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          77
         </td>
         <td>
-          37
+          55
         </td>
         <td>
-          2222
+          3231
           -
-          2269
+          3278
         </td>
         <td>
           Apply
@@ -1064,15 +1492,15 @@
         </td>
       </tr><tr>
         <td>
+          77
+        </td>
+        <td>
           54
         </td>
         <td>
-          36
-        </td>
-        <td>
-          2246
+          3255
           -
-          2269
+          3278
         </td>
         <td>
           Select
@@ -1085,15 +1513,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          78
         </td>
         <td>
-          41
+          59
         </td>
         <td>
-          2306
+          3316
           -
-          2348
+          3357
         </td>
         <td>
           Apply
@@ -1102,19 +1530,19 @@
           java.lang.String.+
         </td>
         <td style="background: #F0ADAD">
-          &quot;Error Occured: &quot;.+(exception.getMessage())
+          &quot;Error Occurred: &quot;.+(exception.getMessage())
         </td>
       </tr><tr>
         <td>
-          55
+          78
         </td>
         <td>
-          40
+          58
         </td>
         <td>
-          2326
+          3337
           -
-          2348
+          3357
         </td>
         <td>
           Apply
@@ -1127,36 +1555,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          78
         </td>
         <td>
-          39
+          60
         </td>
         <td>
-          2306
+          3295
           -
-          2323
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Error Occured: &quot;
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          42
-        </td>
-        <td>
-          2285
-          -
-          2349
+          3358
         </td>
         <td>
           Apply
@@ -1165,40 +1572,61 @@
           org.apache.log4j.Category.error
         </td>
         <td style="background: #F0ADAD">
-          EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()))
+          EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()))
         </td>
       </tr><tr>
+        <td>
+          78
+        </td>
         <td>
           57
         </td>
         <td>
-          43
-        </td>
-        <td>
-          2383
+          3316
           -
-          2449
+          3334
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          java.lang.Object.==
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;)
+          &quot;Error Occurred: &quot;
         </td>
       </tr><tr>
         <td>
-          58
+          79
         </td>
         <td>
-          44
+          61
         </td>
         <td>
-          2467
+          3379
           -
-          2487
+          3394
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.EtlJob.aggregate_error
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJob.this.aggregate_error
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          62
+        </td>
+        <td>
+          3414
+          -
+          3434
         </td>
         <td>
           Apply
@@ -1211,15 +1639,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          80
         </td>
         <td>
-          45
+          63
         </td>
         <td>
-          2467
+          3414
           -
-          2487
+          3434
         </td>
         <td>
           Block
@@ -1232,15 +1660,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          82
         </td>
         <td>
-          47
+          65
         </td>
         <td>
-          2523
+          3474
           -
-          2538
+          3489
         </td>
         <td>
           Block
@@ -1253,15 +1681,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          82
         </td>
         <td>
-          46
+          64
         </td>
         <td>
-          2523
+          3474
           -
-          2538
+          3489
         </td>
         <td>
           Throw
@@ -1274,15 +1702,15 @@
         </td>
       </tr><tr>
         <td>
-          66
+          88
         </td>
         <td>
-          50
+          68
         </td>
         <td>
-          2634
+          3586
           -
-          2647
+          3599
         </td>
         <td>
           Select
@@ -1295,15 +1723,15 @@
         </td>
       </tr><tr>
         <td>
-          66
+          88
         </td>
         <td>
-          53
+          71
         </td>
         <td>
-          2649
+          3601
           -
-          2841
+          3790
         </td>
         <td>
           Block
@@ -1313,42 +1741,42 @@
         </td>
         <td style="background: #F0ADAD">
           {
-  etljobs.utils.SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time);
-  throw EtlJobException.apply(&quot;Job failed&quot;)
+  etljobs.log.SlackManager.sendNotification(&quot;Failed&quot;, job_start_time);
+  throw etljobs.this.`package`.EtlJobException.apply(&quot;Job failed&quot;)
 }
         </td>
       </tr><tr>
         <td>
-          67
+          89
         </td>
         <td>
-          51
+          69
         </td>
         <td>
-          2681
+          3635
           -
-          2741
+          3690
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.sendSlackNotification
+          etljobs.log.SlackManager.sendNotification
         </td>
         <td style="background: #F0ADAD">
-          etljobs.utils.SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time)
+          etljobs.log.SlackManager.sendNotification(&quot;Failed&quot;, job_start_time)
         </td>
       </tr><tr>
         <td>
-          68
+          90
         </td>
         <td>
-          52
+          70
         </td>
         <td>
-          2774
+          3723
           -
-          2809
+          3758
         </td>
         <td>
           Throw
@@ -1357,82 +1785,82 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw EtlJobException.apply(&quot;Job failed&quot;)
+          throw etljobs.this.`package`.EtlJobException.apply(&quot;Job failed&quot;)
         </td>
       </tr><tr>
         <td>
-          70
+          92
         </td>
         <td>
-          55
+          73
         </td>
         <td>
-          2875
+          3826
           -
-          2933
+          3879
         </td>
         <td>
           Block
         </td>
         <td>
-          etljobs.utils.SlackManager.sendSlackNotification
+          etljobs.log.SlackManager.sendNotification
         </td>
         <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.sendSlackNotification(&quot;Pass&quot;, job_start_time)
+          etljobs.log.SlackManager.sendNotification(&quot;Pass&quot;, job_start_time)
         </td>
       </tr><tr>
         <td>
-          70
+          92
         </td>
         <td>
-          54
+          72
         </td>
         <td>
-          2875
+          3826
           -
-          2933
+          3879
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.sendSlackNotification
+          etljobs.log.SlackManager.sendNotification
         </td>
         <td style="background: #AEF1AE">
-          etljobs.utils.SlackManager.sendSlackNotification(&quot;Pass&quot;, job_start_time)
+          etljobs.log.SlackManager.sendNotification(&quot;Pass&quot;, job_start_time)
         </td>
       </tr><tr>
         <td>
-          71
+          93
         </td>
         <td>
-          56
+          74
         </td>
         <td>
-          2961
+          3909
           -
-          3021
+          3964
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.utils.SlackManager.sendSlackNotification
+          etljobs.log.SlackManager.sendNotification
         </td>
         <td style="background: #F0ADAD">
-          etljobs.utils.SlackManager.sendSlackNotification(&quot;Failed&quot;, job_start_time)
+          etljobs.log.SlackManager.sendNotification(&quot;Failed&quot;, job_start_time)
         </td>
       </tr><tr>
         <td>
-          71
+          93
         </td>
         <td>
-          57
+          75
         </td>
         <td>
-          3023
+          3966
           -
-          3030
+          3973
         </td>
         <td>
           Throw
@@ -1445,15 +1873,15 @@
         </td>
       </tr><tr>
         <td>
-          75
+          97
         </td>
         <td>
-          84
+          102
         </td>
         <td>
-          3060
+          4010
           -
-          3935
+          4858
         </td>
         <td>
           Block
@@ -1463,14 +1891,14 @@
         </td>
         <td style="background: #F0ADAD">
           {
-  val job_result: scala.util.Try[Unit] = scala.util.Try.apply[Unit](EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
+  val job_result: scala.util.Try[Unit] = scala.util.Try.apply[Unit](EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; {
     val step_start_time: Long = java.lang.System.nanoTime();
     etl.process(()) match {
       case (value: Unit)scala.util.Success[Unit](_) =&gt; EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
       case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
         EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
         EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()));
-        if (EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;))
+        if (EtlJob.this.aggregate_error)
           EtlJob.this.error_occured_=(true)
         else
           throw exception
@@ -1479,7 +1907,7 @@
   })));
   job_result match {
     case (value: Unit)scala.util.Success[Unit](_) =&gt; if (EtlJob.this.error_occured)
-      throw EtlJobException.apply(&quot;Job failed&quot;)
+      throw etljobs.this.`package`.EtlJobException.apply(&quot;Job failed&quot;)
     else
       ()
     case (exception: Throwable)scala.util.Failure[Unit]((e @ _)) =&gt; throw e
@@ -1488,15 +1916,15 @@
         </td>
       </tr><tr>
         <td>
-          77
+          99
         </td>
         <td>
-          77
+          95
         </td>
         <td>
-          3166
+          4120
           -
-          3767
+          4686
         </td>
         <td>
           Apply
@@ -1505,14 +1933,14 @@
           scala.util.Try.apply
         </td>
         <td style="background: #F0ADAD">
-          scala.util.Try.apply[Unit](EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
+          scala.util.Try.apply[Unit](EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; {
   val step_start_time: Long = java.lang.System.nanoTime();
   etl.process(()) match {
     case (value: Unit)scala.util.Success[Unit](_) =&gt; EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
     case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
       EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()));
-      if (EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;))
+      if (EtlJob.this.aggregate_error)
         EtlJob.this.error_occured_=(true)
       else
         throw exception
@@ -1522,15 +1950,15 @@
         </td>
       </tr><tr>
         <td>
-          78
+          100
         </td>
         <td>
-          76
+          94
         </td>
         <td>
-          3179
+          4135
           -
-          3759
+          4676
         </td>
         <td>
           Apply
@@ -1539,14 +1967,14 @@
           scala.collection.immutable.List.foreach
         </td>
         <td style="background: #F0ADAD">
-          EtlJob.this.apply().foreach[Unit](((etl: etljobs.etlsteps.EtlStep[Unit,Unit]) =&gt; {
+          EtlJob.this.etl_step_list.foreach[Unit](((etl: etljobs.etlsteps.StateLessEtlStep) =&gt; {
   val step_start_time: Long = java.lang.System.nanoTime();
   etl.process(()) match {
     case (value: Unit)scala.util.Success[Unit](_) =&gt; EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
     case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
       EtlJob.this.etl_job_logger.error(&quot;Error Occured: &quot;.+(exception.getMessage()));
-      if (EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;))
+      if (EtlJob.this.aggregate_error)
         EtlJob.this.error_occured_=(true)
       else
         throw exception
@@ -1556,15 +1984,15 @@
         </td>
       </tr><tr>
         <td>
-          79
+          101
         </td>
         <td>
-          59
+          77
         </td>
         <td>
-          3236
+          4200
           -
-          3253
+          4217
         </td>
         <td>
           Apply
@@ -1577,15 +2005,15 @@
         </td>
       </tr><tr>
         <td>
-          80
+          102
         </td>
         <td>
-          60
+          78
         </td>
         <td>
-          3264
+          4230
           -
-          3277
+          4243
         </td>
         <td>
           Apply
@@ -1598,15 +2026,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          103
         </td>
         <td>
-          62
+          80
         </td>
         <td>
-          3317
+          4285
           -
-          3364
+          4332
         </td>
         <td>
           Apply
@@ -1619,15 +2047,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          103
         </td>
         <td>
-          61
+          79
         </td>
         <td>
-          3341
+          4309
           -
-          3364
+          4332
         </td>
         <td>
           Select
@@ -1640,15 +2068,15 @@
         </td>
       </tr><tr>
         <td>
+          103
+        </td>
+        <td>
           81
         </td>
         <td>
-          63
-        </td>
-        <td>
-          3317
+          4285
           -
-          3364
+          4332
         </td>
         <td>
           Apply
@@ -1661,15 +2089,15 @@
         </td>
       </tr><tr>
         <td>
+          105
+        </td>
+        <td>
           83
         </td>
         <td>
-          65
-        </td>
-        <td>
-          3419
+          4390
           -
-          3466
+          4437
         </td>
         <td>
           Apply
@@ -1682,15 +2110,15 @@
         </td>
       </tr><tr>
         <td>
-          83
+          105
         </td>
         <td>
-          64
+          82
         </td>
         <td>
-          3443
+          4414
           -
-          3466
+          4437
         </td>
         <td>
           Select
@@ -1703,36 +2131,36 @@
         </td>
       </tr><tr>
         <td>
-          83
+          105
         </td>
-        <td>
-          66
-        </td>
-        <td>
-          3419
-          -
-          3466
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.EtlJob.job_execution_state_=
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
-        </td>
-      </tr><tr>
         <td>
           84
         </td>
         <td>
-          68
+          4390
+          -
+          4437
         </td>
         <td>
-          3523
+          Apply
+        </td>
+        <td>
+          etljobs.EtlJob.job_execution_state_=
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          86
+        </td>
+        <td>
+          4495
           -
-          3545
+          4517
         </td>
         <td>
           Apply
@@ -1745,15 +2173,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          106
         </td>
         <td>
-          67
+          85
         </td>
         <td>
-          3503
+          4475
           -
-          3520
+          4492
         </td>
         <td>
           Literal
@@ -1766,15 +2194,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          106
         </td>
         <td>
-          70
+          88
         </td>
         <td>
-          3482
+          4454
           -
-          3546
+          4518
         </td>
         <td>
           Apply
@@ -1787,15 +2215,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          106
         </td>
         <td>
-          69
+          87
         </td>
         <td>
-          3503
+          4475
           -
-          3545
+          4517
         </td>
         <td>
           Apply
@@ -1808,36 +2236,36 @@
         </td>
       </tr><tr>
         <td>
-          86
+          108
         </td>
         <td>
-          71
+          89
         </td>
         <td>
-          3580
+          4540
           -
-          3646
+          4555
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          java.lang.Object.==
+          etljobs.EtlJob.aggregate_error
         </td>
         <td style="background: #F0ADAD">
-          EtlJob.this.job_properties.get(&quot;aggregate_error&quot;).getOrElse[String](&quot;false&quot;).==(&quot;true&quot;)
+          EtlJob.this.aggregate_error
         </td>
       </tr><tr>
         <td>
-          87
+          109
         </td>
         <td>
-          73
+          91
         </td>
         <td>
-          3664
+          4575
           -
-          3684
+          4595
         </td>
         <td>
           Block
@@ -1850,15 +2278,15 @@
         </td>
       </tr><tr>
         <td>
-          87
+          109
         </td>
         <td>
-          72
+          90
         </td>
         <td>
-          3664
+          4575
           -
-          3684
+          4595
         </td>
         <td>
           Apply
@@ -1871,15 +2299,15 @@
         </td>
       </tr><tr>
         <td>
-          89
+          111
         </td>
         <td>
-          74
+          92
         </td>
         <td>
-          3720
+          4635
           -
-          3735
+          4650
         </td>
         <td>
           Throw
@@ -1892,15 +2320,15 @@
         </td>
       </tr><tr>
         <td>
-          89
+          111
         </td>
         <td>
-          75
+          93
         </td>
         <td>
-          3720
+          4635
           -
-          3735
+          4650
         </td>
         <td>
           Block
@@ -1913,15 +2341,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          117
         </td>
         <td>
-          80
+          98
         </td>
         <td>
-          3847
+          4764
           -
-          3882
+          4799
         </td>
         <td>
           Block
@@ -1930,19 +2358,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw EtlJobException.apply(&quot;Job failed&quot;)
+          throw etljobs.this.`package`.EtlJobException.apply(&quot;Job failed&quot;)
         </td>
       </tr><tr>
         <td>
-          95
+          117
         </td>
         <td>
-          82
+          100
         </td>
         <td>
-          3827
+          4744
           -
-          3827
+          4744
         </td>
         <td>
           Block
@@ -1955,15 +2383,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          117
         </td>
         <td>
-          79
+          97
         </td>
         <td>
-          3847
+          4764
           -
-          3882
+          4799
         </td>
         <td>
           Throw
@@ -1972,19 +2400,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw EtlJobException.apply(&quot;Job failed&quot;)
+          throw etljobs.this.`package`.EtlJobException.apply(&quot;Job failed&quot;)
         </td>
       </tr><tr>
         <td>
-          95
+          117
         </td>
         <td>
-          78
+          96
         </td>
         <td>
-          3830
+          4747
           -
-          3843
+          4760
         </td>
         <td>
           Select
@@ -1997,15 +2425,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          117
         </td>
         <td>
-          81
+          99
         </td>
         <td>
-          3827
+          4744
           -
-          3827
+          4744
         </td>
         <td>
           Literal
@@ -2018,15 +2446,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          118
         </td>
         <td>
-          83
+          101
         </td>
         <td>
-          3913
+          4832
           -
-          3920
+          4839
         </td>
         <td>
           Throw
@@ -2039,15 +2467,15 @@
         </td>
       </tr><tr>
         <td>
-          99
+          121
         </td>
         <td>
-          85
+          103
         </td>
         <td>
-          3959
+          4884
           -
-          3976
+          4901
         </td>
         <td>
           Apply
@@ -2060,15 +2488,15 @@
         </td>
       </tr><tr>
         <td>
-          100
+          122
         </td>
         <td>
-          86
+          104
         </td>
         <td>
-          4001
+          4928
           -
-          4101
+          5028
         </td>
         <td>
           Apply
@@ -2081,15 +2509,15 @@
         </td>
       </tr><tr>
         <td>
-          100
+          122
         </td>
         <td>
-          87
+          105
         </td>
         <td>
-          3981
+          4908
           -
-          4102
+          5029
         </td>
         <td>
           Apply
@@ -2102,15 +2530,15 @@
         </td>
       </tr><tr>
         <td>
-          101
+          123
         </td>
         <td>
-          88
+          106
         </td>
         <td>
-          4107
+          5036
           -
-          4126
+          5055
         </td>
         <td>
           Select

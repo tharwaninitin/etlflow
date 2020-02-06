@@ -22,14 +22,3 @@ exit the shell and copy generated docs
 rm -rf docs/api
 cp -r etljobs/target/scala-2.12/api/ docs/api
 ```
-# My Project
-
-To install my project
-```scala
-libraryDependencies += "com" % "lib" % "1.x.x"
-```
-
-```scala mdoc
-val x = 1
-List(x, x)
-```

@@ -1,0 +1,432 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/log/DbManager.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.log
+</span>2 <span style=''>
+</span>3 <span style=''>import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+</span>4 <span style=''>import etljobs.EtlJobName
+</span>5 <span style=''>import etljobs.etlsteps.EtlStep
+</span>6 <span style=''>import io.getquill.{LowerCase, PostgresJdbcContext}
+</span>7 <span style=''>import scala.util.{Failure, Success, Try}
+</span>8 <span style=''>
+</span>9 <span style=''>object DbManager extends LogManager {
+</span>10 <span style=''>  override var job_name: EtlJobName = _
+</span>11 <span style=''>  override var job_run_id: String = _
+</span>12 <span style=''>  var log_db_url: String = </span><span style='background: #AEF1AE'>&quot;&quot;</span><span style=''>
+</span>13 <span style=''>  var log_db_user: String = </span><span style='background: #AEF1AE'>&quot;&quot;</span><span style=''>
+</span>14 <span style=''>  var log_db_pwd: String = </span><span style='background: #AEF1AE'>&quot;&quot;</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  private lazy val ctx = Try {
+</span>17 <span style=''>    val pgDataSource = new org.postgresql.ds.PGSimpleDataSource()
+</span>18 <span style=''>    pgDataSource.setURL(log_db_url)
+</span>19 <span style=''>    pgDataSource.setUser(log_db_user)
+</span>20 <span style=''>    pgDataSource.setPassword(log_db_user)
+</span>21 <span style=''>    val config = new HikariConfig()
+</span>22 <span style=''>    config.setDataSource(pgDataSource)
+</span>23 <span style=''>    new PostgresJdbcContext(LowerCase, new HikariDataSource(config))
+</span>24 <span style=''>  }
+</span>25 <span style=''>
+</span>26 <span style=''>  def updateStepLevelInformation(
+</span>27 <span style=''>      execution_start_time: Long,
+</span>28 <span style=''>      etl_step: EtlStep[Unit,Unit],
+</span>29 <span style=''>      state_status: String,
+</span>30 <span style=''>      notification_level:String,
+</span>31 <span style=''>      error_message: Option[String] = None
+</span>32 <span style=''>    ): Unit = {
+</span>33 <span style=''>    ctx match {
+</span>34 <span style=''>      case Success(context) =&gt;
+</span>35 <span style=''>        import context._
+</span>36 <span style=''>        val execution_end_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
+</span>37 <span style=''>        val elapsed_time = </span><span style='background: #AEF1AE'>(execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + &quot; mins&quot;</span><span style=''>
+</span>38 <span style=''>        val step = </span><span style='background: #AEF1AE'>Step(
+</span>39 <span style=''></span><span style='background: #AEF1AE'>          job_run_id,
+</span>40 <span style=''></span><span style='background: #AEF1AE'>          etl_step.name,
+</span>41 <span style=''></span><span style='background: #AEF1AE'>          etl_step.getStepProperties(notification_level).mkString(&quot;, &quot;),
+</span>42 <span style=''></span><span style='background: #AEF1AE'>          state_status.toLowerCase(),
+</span>43 <span style=''></span><span style='background: #AEF1AE'>          elapsed_time
+</span>44 <span style=''></span><span style='background: #AEF1AE'>        )</span><span style=''>
+</span>45 <span style=''>        </span><span style='background: #AEF1AE'>println(step)</span><span style=''>
+</span>46 <span style=''>        val s = quote {
+</span>47 <span style=''>          query[Step].insert(lift(
+</span>48 <span style=''>            step
+</span>49 <span style=''>          ))
+</span>50 <span style=''>        }
+</span>51 <span style=''>        context.run(s)
+</span>52 <span style=''>      case Failure(e) =&gt; </span><span style='background: #F0ADAD'>println(s&quot;Cannot log step properties to log db =&gt; ${e.getMessage}&quot;)</span><span style=''>
+</span>53 <span style=''>    }
+</span>54 <span style=''>  }
+</span>55 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          552
+        </td>
+        <td>
+          375
+          -
+          377
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          553
+        </td>
+        <td>
+          406
+          -
+          408
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          554
+        </td>
+        <td>
+          436
+          -
+          438
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          555
+        </td>
+        <td>
+          1131
+          -
+          1148
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.nanoTime
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.System.nanoTime()
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          556
+        </td>
+        <td>
+          1176
+          -
+          1251
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          execution_end_time.-(execution_start_time)./(1.0E9)./(60.0).+(&quot; mins&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          561
+        </td>
+        <td>
+          1271
+          -
+          1467
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.Step.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Step.apply(DbManager.this.job_run_id, etl_step.name, etl_step.getStepProperties(notification_level).mkString(&quot;, &quot;), state_status.toLowerCase(), elapsed_time)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          557
+        </td>
+        <td>
+          1287
+          -
+          1297
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.log.DbManager.job_run_id
+        </td>
+        <td style="background: #AEF1AE">
+          DbManager.this.job_run_id
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          558
+        </td>
+        <td>
+          1309
+          -
+          1322
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #AEF1AE">
+          etl_step.name
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          559
+        </td>
+        <td>
+          1334
+          -
+          1395
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #AEF1AE">
+          etl_step.getStepProperties(notification_level).mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          560
+        </td>
+        <td>
+          1407
+          -
+          1433
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.toLowerCase
+        </td>
+        <td style="background: #AEF1AE">
+          state_status.toLowerCase()
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          562
+        </td>
+        <td>
+          1476
+          -
+          1489
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.println(step)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          567
+        </td>
+        <td>
+          1637
+          -
+          1704
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(scala.StringContext.apply(&quot;Cannot log step properties to log db =&gt; &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          564
+        </td>
+        <td>
+          1702
+          -
+          1703
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          563
+        </td>
+        <td>
+          1647
+          -
+          1688
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Cannot log step properties to log db =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          566
+        </td>
+        <td>
+          1645
+          -
+          1703
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Cannot log step properties to log db =&gt; &quot;, &quot;&quot;).s(e.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          565
+        </td>
+        <td>
+          1689
+          -
+          1701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          e.getMessage()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

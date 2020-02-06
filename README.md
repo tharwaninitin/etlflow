@@ -13,6 +13,12 @@ This project contains following sub-modules:
  export GCP_PROJECT=<...>
  export GCP_PROJECT_KEY_NAME=<...> # this should be full path to Service Account Key Json which should have GCS and Biguery Read/Write access
  ```
+ Optionally set below env variables for logging in PG database which needs to be set before running
+ ```shell
+  export LOG_DB_URL=<...>
+  export LOG_DB_USER=<...>
+  export LOG_DB_PWD=<...> 
+  ```
  Now run tests using below sbt command
  ```shell
 sbt "project etljobs" test
@@ -131,7 +137,7 @@ Now we can run this individually like previous step or use ETLJob api to run bot
 
 
 ## Requirements and Installation
-This project is compiled with scala 2.11.12 and works with Apache Spark versions 2.4.x.
+This project is compiled with scala versions 2.11.12, 2.12.10 and works with Apache Spark versions 2.4.x.
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etljobs). 
 Add the latest release as a dependency to your project
 
@@ -139,15 +145,15 @@ __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
-    <artifactId>etljobs_2.11</artifactId>
-    <version>0.7.0</version>
+    <artifactId>etljobs_2.12</artifactId>
+    <version>0.7.1</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.7.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.7.1"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.7.0
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.7.1
 
 
 ## Documentation

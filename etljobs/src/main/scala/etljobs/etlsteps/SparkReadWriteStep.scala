@@ -15,7 +15,7 @@ class SparkReadWriteStep[T <: Product: TypeTag, IPSTATE, O <: Product: TypeTag, 
           ,output_location: String
           ,output_type: IOType
           ,output_filename: Option[String] = None
-          ,output_partition_col: Option[String] = None
+          ,output_partition_col: Seq[String] = Seq.empty[String]
           ,output_save_mode: SaveMode = SaveMode.Append
           ,output_repartitioning: Boolean = false
           ,transform_function: Either[
@@ -96,7 +96,7 @@ object SparkReadWriteStep {
            , output_location: String
            , output_type: IOType
            , output_filename: Option[String] = None
-           , output_partition_col: Option[String] = None
+           , output_partition_col: Seq[String] = Seq.empty[String]
            , output_save_mode: SaveMode = SaveMode.Append
            , output_repartitioning: Boolean = false
            , transform_function: Option[Dataset[T] => Dataset[O]] = None
@@ -112,7 +112,7 @@ object SparkReadWriteStateStep {
            , output_location: String
            , output_type: IOType
            , output_filename: Option[String] = None
-           , output_partition_col: Option[String] = None
+           , output_partition_col: Seq[String] = Seq.empty[String]
            , output_save_mode: SaveMode = SaveMode.Append
            , output_repartitioning: Boolean = false
            , transform_with_state: Option[DatasetWithState[T, IPSTATE] => DatasetWithState[O, OPSTATE]] = None

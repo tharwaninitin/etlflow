@@ -21,7 +21,7 @@ object SparkJob extends App {
 
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
 
-  val step1 = new SparkReadWriteStep[Rating, Rating](
+  val step1 = SparkReadWriteStep[Rating, Rating](
     name                    = "ConvertRatingsCSVtoParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(),

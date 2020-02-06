@@ -28,99 +28,98 @@
 </span>4 <span style=''>import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo, LoadJobConfiguration, StandardTableDefinition, TableId, WriteChannelConfiguration}
 </span>5 <span style=''>import scala.sys.process._
 </span>6 <span style=''>
-</span>7 <span style=''>case class BQLoadException(msg : String) extends Exception
-</span>8 <span style=''>object LoadApi {
-</span>9 <span style=''>    private val load_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
-</span>10 <span style=''>    </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
-</span>11 <span style=''>
-</span>12 <span style=''>    def loadIntoBQFromLocalFile( 
-</span>13 <span style=''>        source_path: String
-</span>14 <span style=''>        ,source_paths_partitions: Seq[(String,String)]
-</span>15 <span style=''>        ,source_format: FormatOptions
-</span>16 <span style=''>        ,destination_dataset: String
-</span>17 <span style=''>        ,destination_table: String
-</span>18 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
-</span>19 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
-</span>20 <span style=''>        ) : Unit = {
-</span>21 <span style=''>        if (</span><span style='background: #AEF1AE'>source_paths_partitions.nonEmpty</span><span style=''>) </span><span style='background: #AEF1AE'>{
-</span>22 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot; )
-</span>23 <span style=''></span><span style='background: #AEF1AE'>            source_paths_partitions.foreach { case(src_path, partition) =&gt;
-</span>24 <span style=''></span><span style='background: #AEF1AE'>                val table_partition = destination_table + &quot;$&quot; + partition
-</span>25 <span style=''></span><span style='background: #AEF1AE'>                val full_table_name = destination_dataset + &quot;.&quot; + table_partition
-</span>26 <span style=''></span><span style='background: #AEF1AE'>                val bq_load_cmd =s&quot;&quot;&quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format.getType} $full_table_name $src_path&quot;&quot;&quot;.stripMargin
-</span>27 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Loading data from path: $src_path&quot;)
-</span>28 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Destination table: $full_table_name&quot;)
-</span>29 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
-</span>30 <span style=''></span><span style='background: #AEF1AE'>                val x = s&quot;$bq_load_cmd&quot;.!
-</span>31 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Output exit code: $x&quot;)
-</span>32 <span style=''></span><span style='background: #AEF1AE'>                if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
-</span>33 <span style=''></span><span style='background: #AEF1AE'>            }
-</span>34 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>35 <span style=''>        else </span><span style='background: #AEF1AE'>{
-</span>36 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(&quot;BQ file path: &quot; + source_path)
-</span>37 <span style=''></span><span style='background: #AEF1AE'>            val full_table_name = destination_dataset + &quot;.&quot; + destination_table
-</span>38 <span style=''></span><span style='background: #AEF1AE'>            val bq_load_cmd =s&quot;&quot;&quot;bq load --replace --source_format=${source_format.getType} $full_table_name $source_path&quot;&quot;&quot;.stripMargin
-</span>39 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Loading data from path: $source_path&quot;)
-</span>40 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Destination table: $full_table_name&quot;)
-</span>41 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
-</span>42 <span style=''></span><span style='background: #AEF1AE'>            val x = s&quot;$bq_load_cmd&quot;.!
-</span>43 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Output exit code: $x&quot;)
-</span>44 <span style=''></span><span style='background: #AEF1AE'>            if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
-</span>45 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>46 <span style=''>    }
-</span>47 <span style=''>    
-</span>48 <span style=''>    def loadIntoPartitionedBQTableFromGCS(
-</span>49 <span style=''>        bq: BigQuery
-</span>50 <span style=''>        ,source_paths_partitions: Seq[(String,String)]
-</span>51 <span style=''>        ,source_format: FormatOptions
-</span>52 <span style=''>        ,destination_dataset: String
-</span>53 <span style=''>        ,destination_table: String
-</span>54 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
-</span>55 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
-</span>56 <span style=''>        ): Unit ={
-</span>57 <span style=''>        
-</span>58 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot; )</span><span style=''>
-</span>59 <span style=''>        </span><span style='background: #AEF1AE'>source_paths_partitions.par.foreach { case (src_path, partition) =&gt;
-</span>60 <span style=''></span><span style='background: #AEF1AE'>            val table_partition = destination_table + &quot;$&quot; + partition             
-</span>61 <span style=''></span><span style='background: #AEF1AE'>            loadIntoUnpartitionedBQTableFromGCS(bq,src_path,source_format,destination_dataset,table_partition,write_disposition,create_disposition)
-</span>62 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>63 <span style=''>    }
-</span>64 <span style=''>
-</span>65 <span style=''>    def loadIntoUnpartitionedBQTableFromGCS(
-</span>66 <span style=''>        bq: BigQuery
-</span>67 <span style=''>        ,source_path: String
-</span>68 <span style=''>        ,source_format: FormatOptions
-</span>69 <span style=''>        ,destination_dataset: String
-</span>70 <span style=''>        ,destination_table: String
-</span>71 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
-</span>72 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
-</span>73 <span style=''>        ): Unit = {
-</span>74 <span style=''>
-</span>75 <span style=''>        // Create BQ table instance
-</span>76 <span style=''>        val tableId = </span><span style='background: #AEF1AE'>TableId.of(destination_dataset, destination_table)</span><span style=''>
-</span>77 <span style=''>        
-</span>78 <span style=''>        // Create BQ Load configuration
-</span>79 <span style=''>        val configuration: LoadJobConfiguration = </span><span style='background: #AEF1AE'>LoadJobConfiguration
-</span>80 <span style=''></span><span style='background: #AEF1AE'>            .builder(tableId, source_path)
-</span>81 <span style=''></span><span style='background: #AEF1AE'>            .setFormatOptions(source_format)
-</span>82 <span style=''></span><span style='background: #AEF1AE'>            .setWriteDisposition(write_disposition)
-</span>83 <span style=''></span><span style='background: #AEF1AE'>            .setCreateDisposition(create_disposition)
-</span>84 <span style=''></span><span style='background: #AEF1AE'>            .build()</span><span style=''>
-</span>85 <span style=''>
-</span>86 <span style=''>        // Create BQ Load job
-</span>87 <span style=''>        val loadJob = </span><span style='background: #AEF1AE'>bq.create(JobInfo.of(configuration))</span><span style=''>
-</span>88 <span style=''>
-</span>89 <span style=''>        // Wait for the job to complete
-</span>90 <span style=''>        val completedJob = </span><span style='background: #AEF1AE'>loadJob.waitFor()</span><span style=''>
-</span>91 <span style=''>        val destinationTable = </span><span style='background: #AEF1AE'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
-</span>92 <span style=''>
-</span>93 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Source path: $source_path&quot;)</span><span style=''>
-</span>94 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Destination table: ${destination_dataset}.${destination_table}&quot;)</span><span style=''>
-</span>95 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Job State: ${completedJob.getStatus.getState}&quot;)</span><span style=''>
-</span>96 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded rows: ${destinationTable.getNumRows}&quot;)</span><span style=''>
-</span>97 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB&quot;)</span><span style=''>
-</span>98 <span style=''>    }
-</span>99 <span style=''>}
+</span>7 <span style=''>object LoadApi {
+</span>8 <span style=''>    private val load_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>9 <span style=''>    </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>10 <span style=''>
+</span>11 <span style=''>    def loadIntoBQFromLocalFile( 
+</span>12 <span style=''>        source_path: String
+</span>13 <span style=''>        ,source_paths_partitions: Seq[(String,String)]
+</span>14 <span style=''>        ,source_format: FormatOptions
+</span>15 <span style=''>        ,destination_dataset: String
+</span>16 <span style=''>        ,destination_table: String
+</span>17 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
+</span>18 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
+</span>19 <span style=''>        ) : Unit = {
+</span>20 <span style=''>        if (</span><span style='background: #AEF1AE'>source_paths_partitions.nonEmpty</span><span style=''>) </span><span style='background: #AEF1AE'>{
+</span>21 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot; )
+</span>22 <span style=''></span><span style='background: #AEF1AE'>            source_paths_partitions.foreach { case(src_path, partition) =&gt;
+</span>23 <span style=''></span><span style='background: #AEF1AE'>                val table_partition = destination_table + &quot;$&quot; + partition
+</span>24 <span style=''></span><span style='background: #AEF1AE'>                val full_table_name = destination_dataset + &quot;.&quot; + table_partition
+</span>25 <span style=''></span><span style='background: #AEF1AE'>                val bq_load_cmd =s&quot;&quot;&quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format.getType} $full_table_name $src_path&quot;&quot;&quot;.stripMargin
+</span>26 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Loading data from path: $src_path&quot;)
+</span>27 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Destination table: $full_table_name&quot;)
+</span>28 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
+</span>29 <span style=''></span><span style='background: #AEF1AE'>                val x = s&quot;$bq_load_cmd&quot;.!
+</span>30 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Output exit code: $x&quot;)
+</span>31 <span style=''></span><span style='background: #AEF1AE'>                if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
+</span>32 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>33 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>34 <span style=''>        else </span><span style='background: #AEF1AE'>{
+</span>35 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(&quot;BQ file path: &quot; + source_path)
+</span>36 <span style=''></span><span style='background: #AEF1AE'>            val full_table_name = destination_dataset + &quot;.&quot; + destination_table
+</span>37 <span style=''></span><span style='background: #AEF1AE'>            val bq_load_cmd =s&quot;&quot;&quot;bq load --replace --source_format=${source_format.getType} $full_table_name $source_path&quot;&quot;&quot;.stripMargin
+</span>38 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Loading data from path: $source_path&quot;)
+</span>39 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Destination table: $full_table_name&quot;)
+</span>40 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
+</span>41 <span style=''></span><span style='background: #AEF1AE'>            val x = s&quot;$bq_load_cmd&quot;.!
+</span>42 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Output exit code: $x&quot;)
+</span>43 <span style=''></span><span style='background: #AEF1AE'>            if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
+</span>44 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>45 <span style=''>    }
+</span>46 <span style=''>    
+</span>47 <span style=''>    def loadIntoPartitionedBQTableFromGCS(
+</span>48 <span style=''>        bq: BigQuery
+</span>49 <span style=''>        ,source_paths_partitions: Seq[(String,String)]
+</span>50 <span style=''>        ,source_format: FormatOptions
+</span>51 <span style=''>        ,destination_dataset: String
+</span>52 <span style=''>        ,destination_table: String
+</span>53 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
+</span>54 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
+</span>55 <span style=''>        ): Unit ={
+</span>56 <span style=''>        
+</span>57 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot; )</span><span style=''>
+</span>58 <span style=''>        </span><span style='background: #AEF1AE'>source_paths_partitions.par.foreach { case (src_path, partition) =&gt;
+</span>59 <span style=''></span><span style='background: #AEF1AE'>            val table_partition = destination_table + &quot;$&quot; + partition             
+</span>60 <span style=''></span><span style='background: #AEF1AE'>            loadIntoUnpartitionedBQTableFromGCS(bq,src_path,source_format,destination_dataset,table_partition,write_disposition,create_disposition)
+</span>61 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>62 <span style=''>    }
+</span>63 <span style=''>
+</span>64 <span style=''>    def loadIntoUnpartitionedBQTableFromGCS(
+</span>65 <span style=''>        bq: BigQuery
+</span>66 <span style=''>        ,source_path: String
+</span>67 <span style=''>        ,source_format: FormatOptions
+</span>68 <span style=''>        ,destination_dataset: String
+</span>69 <span style=''>        ,destination_table: String
+</span>70 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
+</span>71 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
+</span>72 <span style=''>        ): Unit = {
+</span>73 <span style=''>
+</span>74 <span style=''>        // Create BQ table instance
+</span>75 <span style=''>        val tableId = </span><span style='background: #AEF1AE'>TableId.of(destination_dataset, destination_table)</span><span style=''>
+</span>76 <span style=''>        
+</span>77 <span style=''>        // Create BQ Load configuration
+</span>78 <span style=''>        val configuration: LoadJobConfiguration = </span><span style='background: #AEF1AE'>LoadJobConfiguration
+</span>79 <span style=''></span><span style='background: #AEF1AE'>            .builder(tableId, source_path)
+</span>80 <span style=''></span><span style='background: #AEF1AE'>            .setFormatOptions(source_format)
+</span>81 <span style=''></span><span style='background: #AEF1AE'>            .setWriteDisposition(write_disposition)
+</span>82 <span style=''></span><span style='background: #AEF1AE'>            .setCreateDisposition(create_disposition)
+</span>83 <span style=''></span><span style='background: #AEF1AE'>            .build()</span><span style=''>
+</span>84 <span style=''>
+</span>85 <span style=''>        // Create BQ Load job
+</span>86 <span style=''>        val loadJob = </span><span style='background: #AEF1AE'>bq.create(JobInfo.of(configuration))</span><span style=''>
+</span>87 <span style=''>
+</span>88 <span style=''>        // Wait for the job to complete
+</span>89 <span style=''>        val completedJob = </span><span style='background: #AEF1AE'>loadJob.waitFor()</span><span style=''>
+</span>90 <span style=''>        val destinationTable = </span><span style='background: #AEF1AE'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
+</span>91 <span style=''>
+</span>92 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Source path: $source_path&quot;)</span><span style=''>
+</span>93 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Destination table: ${destination_dataset}.${destination_table}&quot;)</span><span style=''>
+</span>94 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Job State: ${completedJob.getStatus.getState}&quot;)</span><span style=''>
+</span>95 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded rows: ${destinationTable.getNumRows}&quot;)</span><span style=''>
+</span>96 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB&quot;)</span><span style=''>
+</span>97 <span style=''>    }
+</span>98 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -134,15 +133,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          9
+          8
         </td>
         <td>
-          89
+          107
         </td>
         <td>
-          359
+          300
           -
-          375
+          316
         </td>
         <td>
           Apply
@@ -155,15 +154,15 @@
         </td>
       </tr><tr>
         <td>
-          9
+          8
         </td>
         <td>
-          90
+          108
         </td>
         <td>
-          342
+          283
           -
-          376
+          317
         </td>
         <td>
           Apply
@@ -176,15 +175,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          9
         </td>
         <td>
-          92
+          110
         </td>
         <td>
-          426
+          367
           -
-          427
+          368
         </td>
         <td>
           Literal
@@ -197,15 +196,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          9
         </td>
         <td>
-          95
+          113
         </td>
         <td>
-          381
+          322
           -
-          428
+          369
         </td>
         <td>
           Apply
@@ -218,15 +217,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          9
         </td>
         <td>
-          91
+          109
         </td>
         <td>
-          400
+          341
           -
-          408
+          349
         </td>
         <td>
           Literal
@@ -239,15 +238,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          9
         </td>
         <td>
-          94
+          112
         </td>
         <td>
-          398
+          339
           -
-          427
+          368
         </td>
         <td>
           Apply
@@ -260,15 +259,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          9
         </td>
         <td>
-          93
+          111
         </td>
         <td>
-          409
+          350
           -
-          425
+          366
         </td>
         <td>
           Apply
@@ -281,15 +280,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          20
         </td>
         <td>
-          127
+          145
         </td>
         <td>
-          832
+          773
           -
-          1756
+          1697
         </td>
         <td>
           Block
@@ -311,7 +310,7 @@
       val x: Int = scala.sys.process.`package`.stringToProcess(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(bq_load_cmd)).!;
       LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Output exit code: &quot;, &quot;&quot;).s(x));
       if (x.!=(0))
-        throw BQLoadException.apply(&quot;BQ error&quot;)
+        throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
       else
         ()
     }
@@ -320,15 +319,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          20
         </td>
         <td>
-          96
+          114
         </td>
         <td>
-          798
+          739
           -
-          830
+          771
         </td>
         <td>
           Select
@@ -341,15 +340,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          101
+          119
         </td>
         <td>
-          846
+          787
           -
-          922
+          863
         </td>
         <td>
           Apply
@@ -362,15 +361,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          98
+          116
         </td>
         <td>
-          919
+          860
           -
-          920
+          861
         </td>
         <td>
           Literal
@@ -383,36 +382,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          100
+          115
         </td>
         <td>
-          863
+          806
           -
-          920
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length)
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          97
-        </td>
-        <td>
-          865
-          -
-          887
+          828
         </td>
         <td>
           Literal
@@ -425,15 +403,36 @@
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          99
+          118
         </td>
         <td>
-          888
+          804
           -
-          918
+          861
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          829
+          -
+          859
         </td>
         <td>
           Select
@@ -446,15 +445,15 @@
         </td>
       </tr><tr>
         <td>
-          23
+          22
         </td>
         <td>
-          126
+          144
         </td>
         <td>
-          935
+          876
           -
-          1746
+          1687
         </td>
         <td>
           Apply
@@ -474,7 +473,7 @@
     val x: Int = scala.sys.process.`package`.stringToProcess(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(bq_load_cmd)).!;
     LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Output exit code: &quot;, &quot;&quot;).s(x));
     if (x.!=(0))
-      throw BQLoadException.apply(&quot;BQ error&quot;)
+      throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
     else
       ()
   }
@@ -482,15 +481,15 @@
         </td>
       </tr><tr>
         <td>
-          24
+          23
         </td>
         <td>
-          102
+          120
         </td>
         <td>
-          1036
+          977
           -
-          1071
+          1012
         </td>
         <td>
           Apply
@@ -503,15 +502,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          24
         </td>
         <td>
-          103
+          121
         </td>
         <td>
-          1110
+          1051
           -
-          1153
+          1094
         </td>
         <td>
           Apply
@@ -524,15 +523,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          110
+          128
         </td>
         <td>
-          1187
+          1128
           -
-          1356
+          1297
         </td>
         <td>
           Select
@@ -545,15 +544,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          104
+          122
         </td>
         <td>
-          1191
+          1132
           -
-          1291
+          1232
         </td>
         <td>
           Literal
@@ -566,15 +565,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          107
+          125
         </td>
         <td>
-          1341
+          1282
           -
-          1344
+          1285
         </td>
         <td>
           Literal
@@ -587,15 +586,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          106
+          124
         </td>
         <td>
-          1331
+          1272
           -
-          1333
+          1274
         </td>
         <td>
           Literal
@@ -608,15 +607,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          109
+          127
         </td>
         <td>
-          1187
+          1128
           -
-          1344
+          1285
         </td>
         <td>
           Apply
@@ -629,15 +628,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          105
+          123
         </td>
         <td>
-          1314
+          1255
           -
-          1316
+          1257
         </td>
         <td>
           Literal
@@ -650,15 +649,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          108
+          126
         </td>
         <td>
-          1292
+          1233
           -
-          1313
+          1254
         </td>
         <td>
           Apply
@@ -671,15 +670,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          26
         </td>
         <td>
-          112
+          130
         </td>
         <td>
-          1373
+          1314
           -
-          1427
+          1368
         </td>
         <td>
           Apply
@@ -692,15 +691,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          26
         </td>
         <td>
-          111
+          129
         </td>
         <td>
-          1390
+          1331
           -
-          1426
+          1367
         </td>
         <td>
           Apply
@@ -713,15 +712,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          27
         </td>
         <td>
-          113
+          131
         </td>
         <td>
-          1461
+          1402
           -
-          1499
+          1440
         </td>
         <td>
           Apply
@@ -734,15 +733,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          27
         </td>
         <td>
-          114
+          132
         </td>
         <td>
-          1444
+          1385
           -
-          1500
+          1441
         </td>
         <td>
           Apply
@@ -755,15 +754,15 @@
         </td>
       </tr><tr>
         <td>
-          29
+          28
         </td>
         <td>
-          116
+          134
         </td>
         <td>
-          1517
+          1458
           -
-          1570
+          1511
         </td>
         <td>
           Apply
@@ -776,15 +775,15 @@
         </td>
       </tr><tr>
         <td>
-          29
+          28
         </td>
         <td>
-          115
+          133
         </td>
         <td>
-          1534
+          1475
           -
-          1569
+          1510
         </td>
         <td>
           Apply
@@ -797,15 +796,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          29
         </td>
         <td>
-          118
+          136
         </td>
         <td>
-          1595
+          1536
           -
-          1612
+          1553
         </td>
         <td>
           Select
@@ -818,15 +817,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          29
         </td>
         <td>
-          117
+          135
         </td>
         <td>
-          1595
+          1536
           -
-          1610
+          1551
         </td>
         <td>
           Apply
@@ -839,15 +838,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          30
         </td>
         <td>
-          119
+          137
         </td>
         <td>
-          1646
+          1587
           -
-          1669
+          1610
         </td>
         <td>
           Apply
@@ -860,15 +859,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          30
         </td>
         <td>
-          120
+          138
         </td>
         <td>
-          1629
+          1570
           -
-          1670
+          1611
         </td>
         <td>
           Apply
@@ -881,15 +880,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          31
         </td>
         <td>
-          122
+          140
         </td>
         <td>
-          1699
+          1640
           -
-          1732
+          1673
         </td>
         <td>
           Throw
@@ -898,40 +897,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw BQLoadException.apply(&quot;BQ error&quot;)
+          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
         </td>
       </tr><tr>
         <td>
-          32
+          31
         </td>
         <td>
-          125
+          142
         </td>
         <td>
-          1687
+          1628
           -
-          1687
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          124
-        </td>
-        <td>
-          1687
-          -
-          1687
+          1628
         </td>
         <td>
           Literal
@@ -944,15 +922,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          31
         </td>
         <td>
-          121
+          139
         </td>
         <td>
-          1691
+          1632
           -
-          1697
+          1638
         </td>
         <td>
           Apply
@@ -965,15 +943,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          31
         </td>
         <td>
-          123
+          141
         </td>
         <td>
-          1699
+          1640
           -
-          1732
+          1673
         </td>
         <td>
           Block
@@ -982,19 +960,40 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw BQLoadException.apply(&quot;BQ error&quot;)
+          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
         </td>
       </tr><tr>
         <td>
-          35
+          31
         </td>
         <td>
-          153
+          143
         </td>
         <td>
-          1770
+          1628
           -
-          2414
+          1628
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          171
+        </td>
+        <td>
+          1711
+          -
+          2355
         </td>
         <td>
           Block
@@ -1013,22 +1012,22 @@
   val x: Int = scala.sys.process.`package`.stringToProcess(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(bq_load_cmd)).!;
   LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Output exit code: &quot;, &quot;&quot;).s(x));
   if (x.!=(0))
-    throw BQLoadException.apply(&quot;BQ error&quot;)
+    throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
   else
     ()
 }
         </td>
       </tr><tr>
         <td>
-          36
+          35
         </td>
         <td>
-          128
+          146
         </td>
         <td>
-          1801
+          1742
           -
-          1831
+          1772
         </td>
         <td>
           Apply
@@ -1041,15 +1040,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          35
         </td>
         <td>
-          129
+          147
         </td>
         <td>
-          1784
+          1725
           -
-          1832
+          1773
         </td>
         <td>
           Apply
@@ -1062,15 +1061,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          36
         </td>
         <td>
-          130
+          148
         </td>
         <td>
-          1867
+          1808
           -
-          1912
+          1853
         </td>
         <td>
           Apply
@@ -1083,15 +1082,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          37
         </td>
         <td>
-          137
+          155
         </td>
         <td>
-          1942
+          1883
           -
-          2049
+          1990
         </td>
         <td>
           Select
@@ -1104,15 +1103,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          37
         </td>
         <td>
-          131
+          149
         </td>
         <td>
-          1946
+          1887
           -
-          1981
+          1922
         </td>
         <td>
           Literal
@@ -1125,36 +1124,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          37
         </td>
         <td>
-          134
+          151
         </td>
         <td>
-          2034
+          1962
           -
-          2037
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          133
-        </td>
-        <td>
-          2021
-          -
-          2023
+          1964
         </td>
         <td>
           Literal
@@ -1167,15 +1145,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          37
         </td>
         <td>
-          136
+          154
         </td>
         <td>
-          1942
+          1883
           -
-          2037
+          1978
         </td>
         <td>
           Apply
@@ -1188,15 +1166,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          37
         </td>
         <td>
-          132
+          150
         </td>
         <td>
-          2004
+          1945
           -
-          2006
+          1947
         </td>
         <td>
           Literal
@@ -1209,15 +1187,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          37
         </td>
         <td>
-          135
+          153
         </td>
         <td>
-          1982
+          1923
           -
-          2003
+          1944
         </td>
         <td>
           Apply
@@ -1230,15 +1208,36 @@
         </td>
       </tr><tr>
         <td>
-          39
+          37
         </td>
         <td>
-          139
+          152
         </td>
         <td>
-          2062
+          1975
           -
-          2119
+          1978
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          2003
+          -
+          2060
         </td>
         <td>
           Apply
@@ -1251,15 +1250,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          38
         </td>
         <td>
-          138
+          156
         </td>
         <td>
-          2079
+          2020
           -
-          2118
+          2059
         </td>
         <td>
           Apply
@@ -1272,15 +1271,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          140
+          158
         </td>
         <td>
-          2149
+          2090
           -
-          2187
+          2128
         </td>
         <td>
           Apply
@@ -1293,15 +1292,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          141
+          159
         </td>
         <td>
-          2132
+          2073
           -
-          2188
+          2129
         </td>
         <td>
           Apply
@@ -1314,15 +1313,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          40
         </td>
         <td>
-          142
+          160
         </td>
         <td>
-          2218
+          2159
           -
-          2253
+          2194
         </td>
         <td>
           Apply
@@ -1335,15 +1334,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          40
         </td>
         <td>
-          143
+          161
         </td>
         <td>
-          2201
+          2142
           -
-          2254
+          2195
         </td>
         <td>
           Apply
@@ -1356,15 +1355,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          41
         </td>
         <td>
-          145
+          163
         </td>
         <td>
-          2275
+          2216
           -
-          2292
+          2233
         </td>
         <td>
           Select
@@ -1377,15 +1376,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          41
         </td>
         <td>
-          144
+          162
         </td>
         <td>
-          2275
+          2216
           -
-          2290
+          2231
         </td>
         <td>
           Apply
@@ -1398,15 +1397,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          42
         </td>
         <td>
-          146
+          164
         </td>
         <td>
-          2322
+          2263
           -
-          2345
+          2286
         </td>
         <td>
           Apply
@@ -1419,15 +1418,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          42
         </td>
         <td>
-          147
+          165
         </td>
         <td>
-          2305
+          2246
           -
-          2346
+          2287
         </td>
         <td>
           Apply
@@ -1440,15 +1439,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          43
         </td>
         <td>
-          149
+          167
         </td>
         <td>
-          2371
+          2312
           -
-          2404
+          2345
         </td>
         <td>
           Throw
@@ -1457,40 +1456,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw BQLoadException.apply(&quot;BQ error&quot;)
+          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
         </td>
       </tr><tr>
         <td>
-          44
+          43
         </td>
         <td>
-          151
+          166
         </td>
         <td>
-          2359
+          2304
           -
-          2359
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          148
-        </td>
-        <td>
-          2363
-          -
-          2369
+          2310
         </td>
         <td>
           Apply
@@ -1503,15 +1481,36 @@
         </td>
       </tr><tr>
         <td>
-          44
+          43
         </td>
         <td>
-          150
+          169
         </td>
         <td>
-          2371
+          2300
           -
-          2404
+          2300
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          2312
+          -
+          2345
         </td>
         <td>
           Block
@@ -1520,19 +1519,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          throw BQLoadException.apply(&quot;BQ error&quot;)
+          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
         </td>
       </tr><tr>
         <td>
-          44
+          43
         </td>
         <td>
-          152
+          170
         </td>
         <td>
-          2359
+          2300
           -
-          2359
+          2300
         </td>
         <td>
           Block
@@ -1545,15 +1544,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          57
         </td>
         <td>
-          155
+          173
         </td>
         <td>
-          2872
+          2813
           -
-          2873
+          2814
         </td>
         <td>
           Literal
@@ -1566,15 +1565,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          57
         </td>
         <td>
-          158
+          176
         </td>
         <td>
-          2799
+          2740
           -
-          2875
+          2816
         </td>
         <td>
           Apply
@@ -1587,36 +1586,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          57
         </td>
         <td>
-          154
+          175
         </td>
         <td>
-          2818
+          2757
           -
-          2840
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;No of BQ partitions: &quot;
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          157
-        </td>
-        <td>
-          2816
-          -
-          2873
+          2814
         </td>
         <td>
           Apply
@@ -1629,15 +1607,36 @@
         </td>
       </tr><tr>
         <td>
-          58
+          57
         </td>
         <td>
-          156
+          172
         </td>
         <td>
-          2841
+          2759
           -
-          2871
+          2781
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;No of BQ partitions: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          174
+        </td>
+        <td>
+          2782
+          -
+          2812
         </td>
         <td>
           Select
@@ -1650,15 +1649,15 @@
         </td>
       </tr><tr>
         <td>
-          59
+          58
         </td>
         <td>
-          161
+          179
         </td>
         <td>
-          2884
+          2825
           -
-          3192
+          3133
         </td>
         <td>
           Apply
@@ -1667,7 +1666,7 @@
           scala.collection.parallel.ParIterableLike.foreach
         </td>
         <td style="background: #AEF1AE">
-          source_paths_partitions.par.foreach[Unit](((x0$2: (String, String)) =&gt; x0$2 match {
+          source_paths_partitions.par.foreach[Unit](((x0$1: (String, String)) =&gt; x0$1 match {
   case (_1: String, _2: String)(String, String)((src_path @ _), (partition @ _)) =&gt; {
     val table_partition: String = destination_table.+(&quot;$&quot;).+(partition);
     LoadApi.this.loadIntoUnpartitionedBQTableFromGCS(bq, src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition)
@@ -1676,15 +1675,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          159
+          177
         </td>
         <td>
-          2986
+          2927
           -
-          3021
+          2962
         </td>
         <td>
           Apply
@@ -1697,15 +1696,15 @@
         </td>
       </tr><tr>
         <td>
-          61
+          60
         </td>
         <td>
-          160
+          178
         </td>
         <td>
-          3047
+          2988
           -
-          3182
+          3123
         </td>
         <td>
           Apply
@@ -1718,15 +1717,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          75
         </td>
         <td>
-          162
+          180
         </td>
         <td>
-          3592
+          3533
           -
-          3642
+          3583
         </td>
         <td>
           Apply
@@ -1739,15 +1738,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          83
         </td>
         <td>
-          163
+          181
         </td>
         <td>
-          3742
+          3683
           -
-          3977
+          3918
         </td>
         <td>
           Apply
@@ -1760,15 +1759,15 @@
         </td>
       </tr><tr>
         <td>
-          87
+          86
         </td>
         <td>
-          164
+          182
         </td>
         <td>
-          4041
+          3982
           -
-          4066
+          4007
         </td>
         <td>
           Apply
@@ -1781,15 +1780,15 @@
         </td>
       </tr><tr>
         <td>
-          87
+          86
         </td>
         <td>
-          165
+          183
         </td>
         <td>
-          4031
+          3972
           -
-          4067
+          4008
         </td>
         <td>
           Apply
@@ -1802,15 +1801,15 @@
         </td>
       </tr><tr>
         <td>
-          90
+          89
         </td>
         <td>
-          166
+          184
         </td>
         <td>
-          4136
+          4077
           -
-          4153
+          4094
         </td>
         <td>
           Apply
@@ -1823,15 +1822,15 @@
         </td>
       </tr><tr>
         <td>
-          91
+          90
         </td>
         <td>
-          167
+          185
         </td>
         <td>
-          4185
+          4126
           -
-          4244
+          4185
         </td>
         <td>
           Apply
@@ -1844,15 +1843,15 @@
         </td>
       </tr><tr>
         <td>
-          93
+          92
         </td>
         <td>
-          169
+          187
         </td>
         <td>
-          4254
+          4195
           -
-          4300
+          4241
         </td>
         <td>
           Apply
@@ -1865,15 +1864,15 @@
         </td>
       </tr><tr>
         <td>
-          93
+          92
         </td>
         <td>
-          168
+          186
         </td>
         <td>
-          4271
+          4212
           -
-          4299
+          4240
         </td>
         <td>
           Apply
@@ -1886,15 +1885,15 @@
         </td>
       </tr><tr>
         <td>
-          94
+          93
         </td>
         <td>
-          171
+          189
         </td>
         <td>
-          4309
+          4250
           -
-          4392
+          4333
         </td>
         <td>
           Apply
@@ -1907,15 +1906,15 @@
         </td>
       </tr><tr>
         <td>
-          94
+          93
         </td>
         <td>
-          170
+          188
         </td>
         <td>
-          4326
+          4267
           -
-          4391
+          4332
         </td>
         <td>
           Apply
@@ -1928,15 +1927,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          94
         </td>
         <td>
-          173
+          191
         </td>
         <td>
-          4465
+          4406
           -
-          4466
+          4407
         </td>
         <td>
           Literal
@@ -1949,15 +1948,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          94
         </td>
         <td>
-          176
+          194
         </td>
         <td>
-          4401
+          4342
           -
-          4467
+          4408
         </td>
         <td>
           Apply
@@ -1970,15 +1969,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          94
         </td>
         <td>
-          175
+          193
         </td>
         <td>
-          4418
+          4359
           -
-          4466
+          4407
         </td>
         <td>
           Apply
@@ -1991,15 +1990,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          94
         </td>
         <td>
-          172
+          190
         </td>
         <td>
-          4420
+          4361
           -
-          4432
+          4373
         </td>
         <td>
           Literal
@@ -2012,15 +2011,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          94
         </td>
         <td>
-          174
+          192
         </td>
         <td>
-          4433
+          4374
           -
-          4464
+          4405
         </td>
         <td>
           Apply
@@ -2033,15 +2032,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          95
         </td>
         <td>
-          178
+          196
         </td>
         <td>
-          4538
+          4479
           -
-          4539
+          4480
         </td>
         <td>
           Literal
@@ -2054,15 +2053,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          95
         </td>
         <td>
-          181
+          199
         </td>
         <td>
-          4476
+          4417
           -
-          4540
+          4481
         </td>
         <td>
           Apply
@@ -2075,15 +2074,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          95
         </td>
         <td>
-          180
+          198
         </td>
         <td>
-          4493
+          4434
           -
-          4539
+          4480
         </td>
         <td>
           Apply
@@ -2096,15 +2095,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          95
         </td>
         <td>
-          177
+          195
         </td>
         <td>
-          4495
+          4436
           -
-          4509
+          4450
         </td>
         <td>
           Literal
@@ -2117,15 +2116,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          95
         </td>
         <td>
-          179
+          197
         </td>
         <td>
-          4510
+          4451
           -
-          4537
+          4478
         </td>
         <td>
           Apply
@@ -2138,15 +2137,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          96
         </td>
         <td>
-          182
+          200
         </td>
         <td>
-          4568
+          4509
           -
-          4587
+          4528
         </td>
         <td>
           Literal
@@ -2159,36 +2158,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          96
         </td>
         <td>
-          185
+          202
         </td>
         <td>
-          4566
+          4529
           -
-          4633
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0))
-        </td>
-      </tr><tr>
-        <td>
-          97
-        </td>
-        <td>
-          184
-        </td>
-        <td>
-          4588
-          -
-          4628
+          4569
         </td>
         <td>
           Apply
@@ -2201,15 +2179,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          96
         </td>
         <td>
-          183
+          201
         </td>
         <td>
-          4629
+          4570
           -
-          4633
+          4574
         </td>
         <td>
           Literal
@@ -2222,15 +2200,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          96
         </td>
         <td>
-          186
+          204
         </td>
         <td>
-          4549
+          4490
           -
-          4634
+          4575
         </td>
         <td>
           Apply
@@ -2240,6 +2218,27 @@
         </td>
         <td style="background: #AEF1AE">
           LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0)))
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          203
+        </td>
+        <td>
+          4507
+          -
+          4574
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0))
         </td>
       </tr>
     </table>

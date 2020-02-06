@@ -4,7 +4,6 @@ import org.apache.log4j.Logger
 import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo, LoadJobConfiguration, StandardTableDefinition, TableId, WriteChannelConfiguration}
 import scala.sys.process._
 
-case class BQLoadException(msg : String) extends Exception
 object LoadApi {
     private val load_logger = Logger.getLogger(getClass.getName)
     load_logger.info(s"Loaded ${getClass.getName}")

@@ -45,7 +45,11 @@
 </span>21 <span style=''>  
 </span>22 <span style=''>  lazy val slack_webhook_url                      = sys.env.getOrElse(&quot;SLACK_WEBHOOK_URL&quot;, config.getProperty(&quot;slack_webhook_url&quot;))
 </span>23 <span style=''>  lazy val slack_env                              = sys.env.getOrElse(&quot;SLACK_ENV&quot;, config.getProperty(&quot;slack_env&quot;))
-</span>24 <span style=''>}
+</span>24 <span style=''>
+</span>25 <span style=''>  lazy val log_db_url                            = sys.env.getOrElse(&quot;LOG_DB_URL&quot;, config.getProperty(&quot;log_db_url&quot;))
+</span>26 <span style=''>  lazy val log_db_user                            = sys.env.getOrElse(&quot;LOG_DB_USER&quot;, config.getProperty(&quot;log_db_user&quot;))
+</span>27 <span style=''>  lazy val log_db_pwd                             = sys.env.getOrElse(&quot;LOG_DB_PWD&quot;, config.getProperty(&quot;log_db_pwd&quot;))
+</span>28 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -62,7 +66,7 @@
           7
         </td>
         <td>
-          758
+          764
         </td>
         <td>
           162
@@ -77,8 +81,8 @@
         </td>
         <td style="background: #AEF1AE">
           scala.Predef.println(({
-  val arg$macro$2: Any = GlobalProperties.this.getClass().getName();
-  new scala.collection.immutable.StringOps(&quot;======&gt; Loaded Settings(%s)&quot;).format(arg$macro$2)
+  val arg$macro$1: Any = GlobalProperties.this.getClass().getName();
+  new scala.collection.immutable.StringOps(&quot;======&gt; Loaded Settings(%s)&quot;).format(arg$macro$1)
 }: String))
         </td>
       </tr><tr>
@@ -86,7 +90,7 @@
           8
         </td>
         <td>
-          759
+          765
         </td>
         <td>
           222
@@ -101,8 +105,8 @@
         </td>
         <td style="background: #AEF1AE">
           scala.Predef.println(({
-  val arg$macro$3: Any = GlobalProperties.this.global_properties_file_path;
-  new scala.collection.immutable.StringOps(&quot;======&gt; settings_file_path: %s&quot;).format(arg$macro$3)
+  val arg$macro$2: Any = GlobalProperties.this.global_properties_file_path;
+  new scala.collection.immutable.StringOps(&quot;======&gt; settings_file_path: %s&quot;).format(arg$macro$2)
 }: String))
         </td>
       </tr><tr>
@@ -110,7 +114,7 @@
           10
         </td>
         <td>
-          761
+          767
         </td>
         <td>
           316
@@ -131,7 +135,7 @@
           10
         </td>
         <td>
-          760
+          766
         </td>
         <td>
           336
@@ -152,7 +156,7 @@
           11
         </td>
         <td>
-          762
+          768
         </td>
         <td>
           381
@@ -173,7 +177,7 @@
           12
         </td>
         <td>
-          764
+          770
         </td>
         <td>
           401
@@ -194,7 +198,7 @@
           12
         </td>
         <td>
-          763
+          769
         </td>
         <td>
           413

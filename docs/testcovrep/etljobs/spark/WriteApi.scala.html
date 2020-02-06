@@ -36,7 +36,7 @@
 </span>12 <span style=''>  private val write_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
 </span>13 <span style=''>  </span><span style='background: #AEF1AE'>write_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
 </span>14 <span style=''>
-</span>15 <span style=''>  def WriteDSHelper[T &lt;: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Option[String] = None
+</span>15 <span style=''>  def WriteDSHelper[T &lt;: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
 </span>16 <span style=''>                                            , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
 </span>17 <span style=''>                                            , recordsWrittenCount:Long,n : Int = 1, compression : String = &quot;none&quot;, repartition : Boolean = false
 </span>18 <span style=''>                                           ) : Map[String,String] = {
@@ -58,20 +58,20 @@
 </span>34 <span style=''>    }
 </span>35 <span style=''>  }
 </span>36 <span style=''>
-</span>37 <span style=''>  def WriteDS[T &lt;: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None
+</span>37 <span style=''>  def WriteDS[T &lt;: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
 </span>38 <span style=''>                                      , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
 </span>39 <span style=''>                                      , n : Int = 1, compression : String = &quot;none&quot;, repartition : Boolean = false)
 </span>40 <span style=''>                                     (source: Dataset[T], spark : SparkSession) : Unit = {
 </span>41 <span style=''>
 </span>42 <span style=''>    val df_writer = partition_by match {
-</span>43 <span style=''>      case Some(pbc) =&gt; if (repartition)
-</span>44 <span style=''>        </span><span style='background: #AEF1AE'>source.repartition(n, col(s&quot;$pbc&quot;)).write.option(&quot;compression&quot;,compression)</span><span style=''> //(&quot;compression&quot;, &quot;gzip&quot;,&quot;snappy&quot;)
+</span>43 <span style=''>      case partition if(</span><span style='background: #AEF1AE'>!partition.isEmpty</span><span style=''>) =&gt; if (repartition)
+</span>44 <span style=''>        </span><span style='background: #AEF1AE'>source.repartition(n,partition.map(c=&gt;col(c)):_*).write.option(&quot;compression&quot;,compression)</span><span style=''> //(&quot;compression&quot;, &quot;gzip&quot;,&quot;snappy&quot;)
 </span>45 <span style=''>      else </span><span style='background: #F0ADAD'>source.write.option(&quot;compression&quot;,compression)</span><span style=''>
-</span>46 <span style=''>      case None =&gt; </span><span style='background: #AEF1AE'>source.repartition(n).write.option(&quot;compression&quot;,compression)</span><span style=''>
+</span>46 <span style=''>      case _ =&gt; </span><span style='background: #AEF1AE'>source.repartition(n).write.option(&quot;compression&quot;,compression)</span><span style=''>
 </span>47 <span style=''>    }
 </span>48 <span style=''>
 </span>49 <span style=''>    val df_writer_options = output_type match {
-</span>50 <span style=''>      case CSV(delimiter,header_present,_) =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)</span><span style=''>
+</span>50 <span style=''>      case CSV(delimiter,header_present,_,quotechar) =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;,quotechar).option(&quot;header&quot;, header_present)</span><span style=''>
 </span>51 <span style=''>      case EXCEL =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;com.crealytics.spark.excel&quot;).option(&quot;useHeader&quot;,&quot;true&quot;)</span><span style=''>
 </span>52 <span style=''>      case PARQUET =&gt; </span><span style='background: #AEF1AE'>df_writer.format(&quot;parquet&quot;)</span><span style=''>
 </span>53 <span style=''>      case ORC =&gt; </span><span style='background: #AEF1AE'>df_writer.format(&quot;orc&quot;)</span><span style=''>
@@ -81,11 +81,11 @@
 </span>57 <span style=''>    }
 </span>58 <span style=''>
 </span>59 <span style=''>    partition_by match {
-</span>60 <span style=''>      case Some(partition_by_clause) =&gt; </span><span style='background: #AEF1AE'>df_writer_options.partitionBy(partition_by_clause).mode(save_mode).save(output_location)</span><span style=''>
-</span>61 <span style=''>      case None =&gt; </span><span style='background: #AEF1AE'>df_writer_options.mode(save_mode).save(output_location)</span><span style=''>
+</span>60 <span style=''>      case partition if(</span><span style='background: #AEF1AE'>!partition.isEmpty</span><span style=''>) =&gt; </span><span style='background: #AEF1AE'>df_writer_options.partitionBy(partition:_*).mode(save_mode).save(output_location)</span><span style=''>
+</span>61 <span style=''>      case _ =&gt; </span><span style='background: #AEF1AE'>df_writer_options.mode(save_mode).save(output_location)</span><span style=''>
 </span>62 <span style=''>    }
 </span>63 <span style=''>
-</span>64 <span style=''>    </span><span style='background: #AEF1AE'>write_logger.info(s&quot;Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc =&gt; &quot;Partitioned by &quot; + pbc).getOrElse(&quot;&quot;)}&quot;)</span><span style=''>
+</span>64 <span style=''>    </span><span style='background: #AEF1AE'>write_logger.info(s&quot;Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc =&gt; &quot;Partitioned by &quot; + pbc)}&quot;)</span><span style=''>
 </span>65 <span style=''>
 </span>66 <span style=''>    </span><span style='background: #AEF1AE'>output_filename.foreach { output_file =&gt;
 </span>67 <span style=''></span><span style='background: #AEF1AE'>      val path = s&quot;$output_location/&quot;
@@ -113,28 +113,7 @@
           12
         </td>
         <td>
-          681
-        </td>
-        <td>
-          308
-          -
-          324
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #AEF1AE">
-          WriteApi.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          682
+          684
         </td>
         <td>
           291
@@ -152,31 +131,52 @@
         </td>
       </tr><tr>
         <td>
-          13
+          12
         </td>
         <td>
-          687
+          683
         </td>
         <td>
-          328
+          308
           -
-          376
+          324
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          java.lang.Class.getName
         </td>
         <td style="background: #AEF1AE">
-          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName()))
+          WriteApi.this.getClass().getName()
         </td>
       </tr><tr>
         <td>
           13
         </td>
         <td>
-          684
+          687
+        </td>
+        <td>
+          357
+          -
+          373
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          686
         </td>
         <td>
           374
@@ -197,7 +197,28 @@
           13
         </td>
         <td>
-          683
+          689
+        </td>
+        <td>
+          328
+          -
+          376
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          685
         </td>
         <td>
           348
@@ -218,7 +239,7 @@
           13
         </td>
         <td>
-          686
+          688
         </td>
         <td>
           346
@@ -236,36 +257,15 @@
         </td>
       </tr><tr>
         <td>
-          13
-        </td>
-        <td>
-          685
-        </td>
-        <td>
-          357
-          -
-          373
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #AEF1AE">
-          WriteApi.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
           19
         </td>
         <td>
-          688
+          690
         </td>
         <td>
-          876
+          886
           -
-          895
+          905
         </td>
         <td>
           ApplyToImplicitArgs
@@ -281,12 +281,12 @@
           21
         </td>
         <td>
-          689
+          691
         </td>
         <td>
-          905
+          915
           -
-          935
+          945
         </td>
         <td>
           Apply
@@ -302,12 +302,33 @@
           22
         </td>
         <td>
-          690
+          702
         </td>
         <td>
-          946
+          952
           -
-          980
+          1153
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;output_location&quot;).-&gt;[String](output_location), scala.Predef.ArrowAssoc[String](&quot;output_filename&quot;).-&gt;[String](output_filename.getOrElse[String](&quot;NA&quot;)), scala.Predef.ArrowAssoc[String](&quot;output_type&quot;).-&gt;[String](output_type.toString()), scala.Predef.ArrowAssoc[String](&quot;output_rows&quot;).-&gt;[String](recordsWrittenCount.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          692
+        </td>
+        <td>
+          956
+          -
+          990
         </td>
         <td>
           Apply
@@ -323,36 +344,15 @@
           22
         </td>
         <td>
-          701
+          703
         </td>
         <td>
-          942
+          952
           -
-          1143
+          1153
         </td>
         <td>
           Block
-        </td>
-        <td>
-          scala.collection.generic.GenMapFactory.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;output_location&quot;).-&gt;[String](output_location), scala.Predef.ArrowAssoc[String](&quot;output_filename&quot;).-&gt;[String](output_filename.getOrElse[String](&quot;NA&quot;)), scala.Predef.ArrowAssoc[String](&quot;output_type&quot;).-&gt;[String](output_type.toString()), scala.Predef.ArrowAssoc[String](&quot;output_rows&quot;).-&gt;[String](recordsWrittenCount.toString()))
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          700
-        </td>
-        <td>
-          942
-          -
-          1143
-        </td>
-        <td>
-          Apply
         </td>
         <td>
           scala.collection.generic.GenMapFactory.apply
@@ -368,9 +368,30 @@
           693
         </td>
         <td>
-          989
+          999
           -
-          1039
+          1016
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;output_filename&quot;
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          695
+        </td>
+        <td>
+          999
+          -
+          1049
         </td>
         <td>
           Apply
@@ -386,12 +407,12 @@
           23
         </td>
         <td>
-          692
+          694
         </td>
         <td>
-          1008
+          1018
           -
-          1039
+          1049
         </td>
         <td>
           Apply
@@ -404,15 +425,15 @@
         </td>
       </tr><tr>
         <td>
-          23
+          24
         </td>
         <td>
-          691
+          696
         </td>
         <td>
-          989
+          1058
           -
-          1006
+          1071
         </td>
         <td>
           Literal
@@ -421,19 +442,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;output_filename&quot;
+          &quot;output_type&quot;
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          696
+          698
         </td>
         <td>
-          1048
+          1058
           -
-          1083
+          1093
         </td>
         <td>
           Apply
@@ -449,12 +470,12 @@
           24
         </td>
         <td>
-          695
+          697
         </td>
         <td>
-          1063
+          1073
           -
-          1083
+          1093
         </td>
         <td>
           Apply
@@ -467,15 +488,15 @@
         </td>
       </tr><tr>
         <td>
-          24
+          25
         </td>
         <td>
-          694
+          699
         </td>
         <td>
-          1048
+          1102
           -
-          1061
+          1115
         </td>
         <td>
           Literal
@@ -484,19 +505,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;output_type&quot;
+          &quot;output_rows&quot;
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          699
+          701
         </td>
         <td>
-          1092
+          1102
           -
-          1137
+          1147
         </td>
         <td>
           Apply
@@ -512,12 +533,12 @@
           25
         </td>
         <td>
-          698
+          700
         </td>
         <td>
-          1109
+          1119
           -
-          1137
+          1147
         </td>
         <td>
           Apply
@@ -530,36 +551,36 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          697
+          717
         </td>
         <td>
-          1092
+          1166
           -
-          1105
+          1425
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.collection.generic.GenMapFactory.apply
         </td>
-        <td style="background: #AEF1AE">
-          &quot;output_rows&quot;
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;output_location&quot;).-&gt;[String](output_location), scala.Predef.ArrowAssoc[String](&quot;output_filename&quot;).-&gt;[String](output_filename.getOrElse[String](&quot;NA&quot;)), scala.Predef.ArrowAssoc[String](&quot;output_type&quot;).-&gt;[String](output_type.toString()), scala.Predef.ArrowAssoc[String](&quot;output_class&quot;).-&gt;[String](mapping.schema.toDDL), scala.Predef.ArrowAssoc[String](&quot;output_rows&quot;).-&gt;[String](recordsWrittenCount.toString()))
         </td>
       </tr><tr>
         <td>
           27
         </td>
         <td>
-          702
+          704
         </td>
         <td>
-          1160
+          1170
           -
-          1194
+          1204
         </td>
         <td>
           Apply
@@ -575,36 +596,15 @@
           27
         </td>
         <td>
-          716
+          718
         </td>
         <td>
-          1156
+          1166
           -
-          1415
+          1425
         </td>
         <td>
           Block
-        </td>
-        <td>
-          scala.collection.generic.GenMapFactory.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;output_location&quot;).-&gt;[String](output_location), scala.Predef.ArrowAssoc[String](&quot;output_filename&quot;).-&gt;[String](output_filename.getOrElse[String](&quot;NA&quot;)), scala.Predef.ArrowAssoc[String](&quot;output_type&quot;).-&gt;[String](output_type.toString()), scala.Predef.ArrowAssoc[String](&quot;output_class&quot;).-&gt;[String](mapping.schema.toDDL), scala.Predef.ArrowAssoc[String](&quot;output_rows&quot;).-&gt;[String](recordsWrittenCount.toString()))
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          715
-        </td>
-        <td>
-          1156
-          -
-          1415
-        </td>
-        <td>
-          Apply
         </td>
         <td>
           scala.collection.generic.GenMapFactory.apply
@@ -620,9 +620,30 @@
           705
         </td>
         <td>
-          1205
+          1215
           -
-          1255
+          1232
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;output_filename&quot;
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          707
+        </td>
+        <td>
+          1215
+          -
+          1265
         </td>
         <td>
           Apply
@@ -638,12 +659,12 @@
           28
         </td>
         <td>
-          704
+          706
         </td>
         <td>
-          1224
+          1234
           -
-          1255
+          1265
         </td>
         <td>
           Apply
@@ -656,15 +677,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          29
         </td>
         <td>
-          703
+          708
         </td>
         <td>
-          1205
+          1276
           -
-          1222
+          1289
         </td>
         <td>
           Literal
@@ -673,19 +694,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;output_filename&quot;
+          &quot;output_type&quot;
         </td>
       </tr><tr>
         <td>
           29
         </td>
         <td>
-          708
+          710
         </td>
         <td>
-          1266
+          1276
           -
-          1301
+          1311
         </td>
         <td>
           Apply
@@ -701,12 +722,12 @@
           29
         </td>
         <td>
-          707
+          709
         </td>
         <td>
-          1281
+          1291
           -
-          1301
+          1311
         </td>
         <td>
           Apply
@@ -719,15 +740,15 @@
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          706
+          711
         </td>
         <td>
-          1266
+          1322
           -
-          1279
+          1336
         </td>
         <td>
           Literal
@@ -736,19 +757,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;output_type&quot;
+          &quot;output_class&quot;
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          711
+          713
         </td>
         <td>
-          1312
+          1322
           -
-          1350
+          1360
         </td>
         <td>
           Apply
@@ -764,12 +785,12 @@
           30
         </td>
         <td>
-          710
+          712
         </td>
         <td>
-          1330
+          1340
           -
-          1350
+          1360
         </td>
         <td>
           Select
@@ -782,15 +803,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          31
         </td>
         <td>
-          709
+          714
         </td>
         <td>
-          1312
+          1371
           -
-          1326
+          1384
         </td>
         <td>
           Literal
@@ -799,19 +820,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;output_class&quot;
+          &quot;output_rows&quot;
         </td>
       </tr><tr>
         <td>
           31
         </td>
         <td>
-          714
+          716
         </td>
         <td>
-          1361
+          1371
           -
-          1406
+          1416
         </td>
         <td>
           Apply
@@ -827,12 +848,12 @@
           31
         </td>
         <td>
-          713
+          715
         </td>
         <td>
-          1378
+          1388
           -
-          1406
+          1416
         </td>
         <td>
           Apply
@@ -845,36 +866,36 @@
         </td>
       </tr><tr>
         <td>
-          31
+          43
         </td>
         <td>
-          712
+          719
         </td>
         <td>
-          1361
+          1958
           -
-          1374
+          1976
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.Boolean.unary_!
         </td>
-        <td style="background: #F0ADAD">
-          &quot;output_rows&quot;
+        <td style="background: #AEF1AE">
+          partition.isEmpty.unary_!
         </td>
       </tr><tr>
         <td>
           44
         </td>
         <td>
-          717
+          720
         </td>
         <td>
-          1963
+          2006
           -
-          2038
+          2095
         </td>
         <td>
           Apply
@@ -883,19 +904,19 @@
           org.apache.spark.sql.DataFrameWriter.option
         </td>
         <td style="background: #AEF1AE">
-          source.repartition(n, org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(pbc))).write.option(&quot;compression&quot;, compression)
+          source.repartition(n, (partition.map[org.apache.spark.sql.Column, Seq[org.apache.spark.sql.Column]](((c: String) =&gt; org.apache.spark.sql.functions.col(c)))(collection.this.Seq.canBuildFrom[org.apache.spark.sql.Column]): _*)).write.option(&quot;compression&quot;, compression)
         </td>
       </tr><tr>
         <td>
           44
         </td>
         <td>
-          718
+          721
         </td>
         <td>
-          1963
+          2006
           -
-          2038
+          2095
         </td>
         <td>
           Block
@@ -904,19 +925,19 @@
           org.apache.spark.sql.DataFrameWriter.option
         </td>
         <td style="background: #AEF1AE">
-          source.repartition(n, org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(pbc))).write.option(&quot;compression&quot;, compression)
+          source.repartition(n, (partition.map[org.apache.spark.sql.Column, Seq[org.apache.spark.sql.Column]](((c: String) =&gt; org.apache.spark.sql.functions.col(c)))(collection.this.Seq.canBuildFrom[org.apache.spark.sql.Column]): _*)).write.option(&quot;compression&quot;, compression)
         </td>
       </tr><tr>
         <td>
           45
         </td>
         <td>
-          720
+          723
         </td>
         <td>
-          2085
+          2142
           -
-          2131
+          2188
         </td>
         <td>
           Block
@@ -932,12 +953,12 @@
           45
         </td>
         <td>
-          719
+          722
         </td>
         <td>
-          2085
+          2142
           -
-          2131
+          2188
         </td>
         <td>
           Apply
@@ -953,12 +974,12 @@
           46
         </td>
         <td>
-          721
+          724
         </td>
         <td>
-          2151
+          2205
           -
-          2212
+          2266
         </td>
         <td>
           Apply
@@ -974,12 +995,12 @@
           50
         </td>
         <td>
-          722
+          725
         </td>
         <td>
-          2314
+          2378
           -
-          2401
+          2491
         </td>
         <td>
           Apply
@@ -988,19 +1009,19 @@
           org.apache.spark.sql.DataFrameWriter.option
         </td>
         <td style="background: #F0ADAD">
-          df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;header&quot;, header_present)
+          df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;, quotechar).option(&quot;header&quot;, header_present)
         </td>
       </tr><tr>
         <td>
           51
         </td>
         <td>
-          723
+          726
         </td>
         <td>
-          2422
+          2512
           -
-          2495
+          2585
         </td>
         <td>
           Apply
@@ -1016,12 +1037,12 @@
           52
         </td>
         <td>
-          724
+          727
         </td>
         <td>
-          2518
+          2608
           -
-          2545
+          2635
         </td>
         <td>
           Apply
@@ -1037,12 +1058,12 @@
           53
         </td>
         <td>
-          725
+          728
         </td>
         <td>
-          2564
+          2654
           -
-          2587
+          2677
         </td>
         <td>
           Apply
@@ -1058,12 +1079,12 @@
           54
         </td>
         <td>
-          726
+          729
         </td>
         <td>
-          2619
+          2709
           -
-          2674
+          2764
         </td>
         <td>
           Apply
@@ -1079,12 +1100,12 @@
           55
         </td>
         <td>
-          727
+          730
         </td>
         <td>
-          2694
+          2784
           -
-          2718
+          2808
         </td>
         <td>
           Apply
@@ -1100,12 +1121,12 @@
           56
         </td>
         <td>
-          728
+          731
         </td>
         <td>
-          2735
+          2825
           -
-          2759
+          2849
         </td>
         <td>
           Apply
@@ -1121,12 +1142,33 @@
           60
         </td>
         <td>
-          729
+          732
         </td>
         <td>
-          2832
+          2906
           -
-          2920
+          2924
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #AEF1AE">
+          partition.isEmpty.unary_!
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          733
+        </td>
+        <td>
+          2929
+          -
+          3010
         </td>
         <td>
           Apply
@@ -1135,19 +1177,19 @@
           org.apache.spark.sql.DataFrameWriter.save
         </td>
         <td style="background: #AEF1AE">
-          df_writer_options.partitionBy(partition_by_clause).mode(save_mode).save(output_location)
+          df_writer_options.partitionBy((partition: _*)).mode(save_mode).save(output_location)
         </td>
       </tr><tr>
         <td>
           61
         </td>
         <td>
-          730
+          734
         </td>
         <td>
-          2940
+          3027
           -
-          2995
+          3082
         </td>
         <td>
           Apply
@@ -1166,114 +1208,9 @@
           738
         </td>
         <td>
-          3007
+          3209
           -
-          3190
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot; with SAVEMODE &quot;, &quot; &quot;, &quot;&quot;).s(output_type, output_location, save_mode, partition_by.map[String](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc))).getOrElse[String](&quot;&quot;)))
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          732
-        </td>
-        <td>
-          3068
-          -
-          3082
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot; in location &quot;
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          735
-        </td>
-        <td>
-          3188
-          -
-          3189
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          737
-        </td>
-        <td>
-          3025
-          -
-          3189
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot; with SAVEMODE &quot;, &quot; &quot;, &quot;&quot;).s(output_type, output_location, save_mode, partition_by.map[String](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc))).getOrElse[String](&quot;&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          731
-        </td>
-        <td>
-          3027
-          -
-          3057
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Successfully written data in &quot;
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          734
-        </td>
-        <td>
-          3122
-          -
-          3124
+          3211
         </td>
         <td>
           Literal
@@ -1289,12 +1226,96 @@
           64
         </td>
         <td>
-          733
+          741
         </td>
         <td>
-          3097
+          3228
           -
-          3113
+          3228
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[String]
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          735
+        </td>
+        <td>
+          3114
+          -
+          3144
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Successfully written data in &quot;
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          744
+        </td>
+        <td>
+          3094
+          -
+          3263
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot; with SAVEMODE &quot;, &quot; &quot;, &quot;&quot;).s(output_type, output_location, save_mode, partition_by.map[String, Any](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc)))(collection.this.Seq.canBuildFrom[String])))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          743
+        </td>
+        <td>
+          3112
+          -
+          3262
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot; with SAVEMODE &quot;, &quot; &quot;, &quot;&quot;).s(output_type, output_location, save_mode, partition_by.map[String, Any](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc)))(collection.this.Seq.canBuildFrom[String]))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          737
+        </td>
+        <td>
+          3184
+          -
+          3200
         </td>
         <td>
           Literal
@@ -1310,33 +1331,96 @@
           64
         </td>
         <td>
-          736
+          740
         </td>
         <td>
-          3125
+          3236
           -
-          3187
+          3259
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Option.getOrElse
+          java.lang.String.+
         </td>
         <td style="background: #AEF1AE">
-          partition_by.map[String](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc))).getOrElse[String](&quot;&quot;)
+          &quot;Partitioned by &quot;.+(pbc)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          742
+        </td>
+        <td>
+          3212
+          -
+          3260
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          partition_by.map[String, Any](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc)))(collection.this.Seq.canBuildFrom[String])
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          736
+        </td>
+        <td>
+          3155
+          -
+          3169
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; in location &quot;
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          739
+        </td>
+        <td>
+          3261
+          -
+          3262
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
           66
         </td>
         <td>
-          752
+          758
         </td>
         <td>
-          3196
+          3269
           -
-          3626
+          3699
         </td>
         <td>
           Apply
@@ -1359,12 +1443,12 @@
           67
         </td>
         <td>
-          739
+          745
         </td>
         <td>
-          3254
+          3327
           -
-          3274
+          3347
         </td>
         <td>
           Apply
@@ -1380,12 +1464,12 @@
           68
         </td>
         <td>
-          741
+          747
         </td>
         <td>
-          3329
+          3402
           -
-          3367
+          3440
         </td>
         <td>
           Select
@@ -1401,12 +1485,12 @@
           68
         </td>
         <td>
-          740
+          746
         </td>
         <td>
-          3305
+          3378
           -
-          3327
+          3400
         </td>
         <td>
           Apply
@@ -1422,12 +1506,12 @@
           68
         </td>
         <td>
-          742
+          748
         </td>
         <td>
-          3290
+          3363
           -
-          3368
+          3441
         </td>
         <td>
           Apply
@@ -1443,12 +1527,12 @@
           69
         </td>
         <td>
-          743
+          749
         </td>
         <td>
-          3390
+          3463
           -
-          3448
+          3521
         </td>
         <td>
           Apply
@@ -1464,33 +1548,12 @@
           70
         </td>
         <td>
-          747
+          750
         </td>
         <td>
-          3492
+          3547
           -
-          3520
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.hadoop.fs.Path.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new org.apache.hadoop.fs.Path(path.+(output_file))
-        </td>
-      </tr><tr>
-        <td>
-          70
-        </td>
-        <td>
-          744
-        </td>
-        <td>
-          3474
-          -
-          3489
+          3562
         </td>
         <td>
           Apply
@@ -1506,12 +1569,33 @@
           70
         </td>
         <td>
-          746
+          753
         </td>
         <td>
-          3501
+          3565
           -
-          3519
+          3593
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new org.apache.hadoop.fs.Path(path.+(output_file))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          752
+        </td>
+        <td>
+          3574
+          -
+          3592
         </td>
         <td>
           Apply
@@ -1527,12 +1611,12 @@
           70
         </td>
         <td>
-          745
+          751
         </td>
         <td>
-          3465
+          3538
           -
-          3490
+          3563
         </td>
         <td>
           Apply
@@ -1548,12 +1632,12 @@
           70
         </td>
         <td>
-          748
+          754
         </td>
         <td>
-          3455
+          3528
           -
-          3521
+          3594
         </td>
         <td>
           Apply
@@ -1569,12 +1653,12 @@
           71
         </td>
         <td>
-          750
+          756
         </td>
         <td>
-          3528
+          3601
           -
-          3603
+          3676
         </td>
         <td>
           Apply
@@ -1590,12 +1674,12 @@
           71
         </td>
         <td>
-          749
+          755
         </td>
         <td>
-          3546
+          3619
           -
-          3602
+          3675
         </td>
         <td>
           Apply
@@ -1611,12 +1695,12 @@
           72
         </td>
         <td>
-          751
+          757
         </td>
         <td>
-          3610
+          3683
           -
-          3620
+          3693
         </td>
         <td>
           Apply

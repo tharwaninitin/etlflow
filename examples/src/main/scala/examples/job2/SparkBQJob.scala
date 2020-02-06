@@ -23,7 +23,7 @@ object SparkBQJob extends App {
 
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
 
-  val step1 = new SparkReadWriteStep[Rating, Rating](
+  val step1 = SparkReadWriteStep[Rating, Rating](
     name                    = "ConvertRatingsCSVtoParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
@@ -32,7 +32,7 @@ object SparkBQJob extends App {
     output_filename         = Some(job_properties("ratings_output_file_name"))
   )(spark)
 
-  val step2 = new BQLoadStep(
+  val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     source_format       = PARQUET,

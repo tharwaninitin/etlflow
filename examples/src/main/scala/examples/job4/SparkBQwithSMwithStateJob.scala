@@ -1,8 +1,7 @@
 package examples.job4
 
-import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStateStep}
-import etljobs.etlsteps.SparkReadWriteStateStep.{Input, Output}
-import etljobs.utils.{CSV, PARQUET, SessionManager, GlobalProperties, LOCAL, AppLogger}
+import etljobs.etlsteps.{BQLoadStep, DatasetWithState, SparkReadWriteStateStep}
+import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET, SessionManager}
 import etljobs.functions.SparkUDF
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.types.DateType
@@ -30,11 +29,14 @@ object SparkBQwithSMwithStateJob extends App {
   val etljob = new SparkBQwithSMwithStateJob(job_properties, Some(global_properties))
 }
 
-class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_properties: Option[GlobalProperties]) extends SessionManager(global_properties) with SparkUDF {
+class SparkBQwithSMwithStateJob(
+                                 job_properties: Map[String,String],
+                                 val global_properties: Option[GlobalProperties]
+                               ) extends SessionManager with SparkUDF {
   import RatingsSchemas._
   import SparkBQwithSMwithStateJob.etl_job_logger
   
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Input[Rating,Int]) : Output[RatingOutput,Int] = {
+  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : DatasetWithState[Rating,Int]) : DatasetWithState[RatingOutput,Int] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in.ds
@@ -43,23 +45,23 @@ class SparkBQwithSMwithStateJob(job_properties: Map[String,String], global_prope
 
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
 
-    etl_job_logger.info(s"Input State is ${in.ips}")
+    etl_job_logger.info(s"Input State is ${in.state}")
     etl_job_logger.info(s"Output State is ${3}")
 
-    Output[RatingOutput,Int](ratings_ds,3)
+    DatasetWithState[RatingOutput,Int](ratings_ds,3)
   }
 
-  val step1 = new SparkReadWriteStateStep[Rating , Int, RatingOutput, Int](
+  val step1 = SparkReadWriteStateStep[Rating , Int, RatingOutput, Int](
     name                    = "LoadRatingsParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
-    transform_function      = Some(enrichRatingData(spark, job_properties)),
+    transform_with_state    = Some(enrichRatingData(spark, job_properties)),
     output_type             = PARQUET,
     output_location         = job_properties("ratings_output_path"),
     output_filename         = Some(job_properties("ratings_output_file_name"))
   )(spark)
 
-  val step2 = new BQLoadStep(
+  val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     source_format       = PARQUET,

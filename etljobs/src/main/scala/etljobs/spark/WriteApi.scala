@@ -12,7 +12,7 @@ object WriteApi {
   private val write_logger = Logger.getLogger(getClass.getName)
   write_logger.info(s"Loaded ${getClass.getName}")
 
-  def WriteDSHelper[T <: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Option[String] = None
+  def WriteDSHelper[T <: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
                                             , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
                                             , recordsWrittenCount:Long,n : Int = 1, compression : String = "none", repartition : Boolean = false
                                            ) : Map[String,String] = {
@@ -34,20 +34,20 @@ object WriteApi {
     }
   }
 
-  def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Option[String] = None
+  def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
                                       , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
                                       , n : Int = 1, compression : String = "none", repartition : Boolean = false)
                                      (source: Dataset[T], spark : SparkSession) : Unit = {
 
     val df_writer = partition_by match {
-      case Some(pbc) => if (repartition)
-        source.repartition(n, col(s"$pbc")).write.option("compression",compression) //("compression", "gzip","snappy")
+      case partition if(!partition.isEmpty) => if (repartition)
+        source.repartition(n,partition.map(c=>col(c)):_*).write.option("compression",compression) //("compression", "gzip","snappy")
       else source.write.option("compression",compression)
-      case None => source.repartition(n).write.option("compression",compression)
+      case _ => source.repartition(n).write.option("compression",compression)
     }
 
     val df_writer_options = output_type match {
-      case CSV(delimiter,header_present,_) => df_writer.format("csv").option("delimiter", delimiter).option("header", header_present)
+      case CSV(delimiter,header_present,_,quotechar) => df_writer.format("csv").option("delimiter", delimiter).option("quote",quotechar).option("header", header_present)
       case EXCEL => df_writer.format("com.crealytics.spark.excel").option("useHeader","true")
       case PARQUET => df_writer.format("parquet")
       case ORC => df_writer.format("orc")
@@ -57,11 +57,11 @@ object WriteApi {
     }
 
     partition_by match {
-      case Some(partition_by_clause) => df_writer_options.partitionBy(partition_by_clause).mode(save_mode).save(output_location)
-      case None => df_writer_options.mode(save_mode).save(output_location)
+      case partition if(!partition.isEmpty) => df_writer_options.partitionBy(partition:_*).mode(save_mode).save(output_location)
+      case _ => df_writer_options.mode(save_mode).save(output_location)
     }
 
-    write_logger.info(s"Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc => "Partitioned by " + pbc).getOrElse("")}")
+    write_logger.info(s"Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc => "Partitioned by " + pbc)}")
 
     output_filename.foreach { output_file =>
       val path = s"$output_location/"

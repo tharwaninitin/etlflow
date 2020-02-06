@@ -1,13 +1,12 @@
 package examples.job3
 
 import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStep}
-import etljobs.utils.{CSV, PARQUET, SessionManager, GlobalProperties, LOCAL, AppLogger}
+import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET, SessionManager}
 import etljobs.functions.SparkUDF
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Encoders, SparkSession}
-import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 
 object RatingsSchemas {
   case class Rating( user_id:Int, movie_id: Int, rating : Double, timestamp: Long )
@@ -30,7 +29,10 @@ object SparkBQwithSMJob extends App {
   val etljob = new SparkBQwithSMJob(job_properties, Some(global_properties))
 }
 
-class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: Option[GlobalProperties]) extends SessionManager(global_properties) with SparkUDF {
+class SparkBQwithSMJob(
+                        job_properties: Map[String,String],
+                        val global_properties: Option[GlobalProperties]
+                      ) extends SessionManager with SparkUDF {
   import RatingsSchemas._
 
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
@@ -45,7 +47,7 @@ class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: Op
     ratings_ds
   }
 
-  val step1 = new SparkReadWriteStep[Rating, RatingOutput](
+  val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name                    = "LoadRatingsParquet",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(",", true, job_properties.getOrElse("parse_mode","FAILFAST")),
@@ -55,7 +57,7 @@ class SparkBQwithSMJob(job_properties: Map[String,String], global_properties: Op
     output_filename         = Some(job_properties("ratings_output_file_name"))
   )(spark)
 
-  val step2 = new BQLoadStep(
+  val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
     source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
     source_format       = PARQUET,

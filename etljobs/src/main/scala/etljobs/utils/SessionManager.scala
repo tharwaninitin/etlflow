@@ -7,9 +7,9 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import scala.util.Try
 
-abstract class SessionManager(global_properties: Option[GlobalProperties]) {
-
+trait SessionManager {
   private val ic_logger = Logger.getLogger(getClass.getName)
+  val global_properties: Option[GlobalProperties]
   println(f"======> Loaded SessionManager(${getClass.getName})")
 
   implicit class DataFrameHelper(df : DataFrame) {

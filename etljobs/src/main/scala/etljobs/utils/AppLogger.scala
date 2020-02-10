@@ -13,27 +13,23 @@ object AppLogger {
         console.setThreshold(Level.INFO)
         console.activateOptions()
 
-//        val jdbc: JDBCAppender = new JDBCAppender()
         Logger.getRootLogger.addAppender(console)
+        // val jdbc: JDBCAppender = new JDBCAppender()
     }  
 }
 
-import java.sql.Connection
-import java.sql.SQLException
-import org.postgresql.ds.PGSimpleDataSource
-
-object ConnectionFactory {
-    private var dataSource: PGSimpleDataSource = _
-
-    @throws[SQLException]
-    def getConnection: Connection = {
-        if (dataSource == null) {
-            dataSource = new PGSimpleDataSource()
-            dataSource.setUrl("jdbc:postgresql://localhost:5432/etljobs")
-            dataSource.setUser("tharwanin")
-        }
-        dataSource.getConnection
-    }
-}
-class ConnectionFactory private() {
-}
+//import java.sql.Connection
+//import java.sql.SQLException
+//import org.postgresql.ds.PGSimpleDataSource
+//object ConnectionFactory {
+//    private var dataSource: PGSimpleDataSource = _
+//    @throws[SQLException]
+//    def getConnection: Connection = {
+//        if (dataSource == null) {
+//            dataSource = new PGSimpleDataSource()
+//            dataSource.setUrl("jdbc:postgresql://localhost:5432/etljobs")
+//            dataSource.setUser("tharwanin")
+//        }
+//        dataSource.getConnection
+//    }
+//}

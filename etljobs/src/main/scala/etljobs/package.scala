@@ -9,10 +9,10 @@ package object etljobs {
     val job_name: EtlJobName
   }
   trait EtlJobManager {
-    val etl_job_logger = Logger.getLogger(getClass.getName)
-    def executeEtlJob(etl_job: EtlJob): Unit = {
+    val etl_job_logger: Logger = Logger.getLogger(getClass.getName)
+    def executeEtlJob(etl_job: EtlJob, send_notification: Boolean, notification_level: String): Unit = {
       val output: Try[Unit] = Try {
-        etl_job.execute(send_notification = true, notification_level = "info")
+        etl_job.execute(send_notification, notification_level)
       }
       output match {
         case Success(_) => etl_job_logger.info("Success!!\n")

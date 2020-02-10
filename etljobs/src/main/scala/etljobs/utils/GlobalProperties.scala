@@ -23,7 +23,10 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   
   lazy val gcp_project                            = sys.env.getOrElse("GCP_PROJECT", config.getProperty("gcp_project")) 
   lazy val gcp_project_key_name                   = sys.env.getOrElse("GCP_PROJECT_KEY_NAME", config.getProperty("gcp_project_key_name"))
-  
+
+  lazy val send_notification                      = sys.env.getOrElse("SEND_NOTIFICATION", config.getProperty("send_notification"))
+  lazy val notification_level                     = sys.env.getOrElse("NOTIFICATION_LEVEL", config.getProperty("notification_level"))
+
   lazy val slack_webhook_url                      = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getProperty("slack_webhook_url"))
   lazy val slack_env                              = sys.env.getOrElse("SLACK_ENV", config.getProperty("slack_env"))
 

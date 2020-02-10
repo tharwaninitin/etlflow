@@ -21,8 +21,7 @@ val pg = "org.postgresql" % "postgresql" % "42.2.8"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 val jcabi = "com.jcabi" % "jcabi-log" % "0.17.4"
 
-
-version in ThisBuild := "0.7.1"
+version in ThisBuild := "0.7.2"
 
 // To run test sequentially instead of default parallel execution
 Global / concurrentRestrictions := Seq(

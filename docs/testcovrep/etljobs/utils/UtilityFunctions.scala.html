@@ -1,0 +1,651 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/utils/UtilityFunctions.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import org.apache.log4j.Logger
+</span>4 <span style=''>
+</span>5 <span style=''>import scala.reflect.ClassTag
+</span>6 <span style=''>import scala.util.{Failure, Success, Try}
+</span>7 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>8 <span style=''>
+</span>9 <span style=''>trait UtilityFunctions {
+</span>10 <span style=''>  lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
+</span>11 <span style=''>
+</span>12 <span style=''>  def parser(args: Array[String]): Map[String, String] = {
+</span>13 <span style=''>    </span><span style='background: #F0ADAD'>args.map {
+</span>14 <span style=''></span><span style='background: #F0ADAD'>      case arg =&gt; {
+</span>15 <span style=''></span><span style='background: #F0ADAD'>        val keyValue = arg.split(&quot;==&quot;);
+</span>16 <span style=''></span><span style='background: #F0ADAD'>        keyValue(0) -&gt; keyValue(1)
+</span>17 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>18 <span style=''></span><span style='background: #F0ADAD'>    }.toMap</span><span style=''>
+</span>19 <span style=''>  }
+</span>20 <span style=''>  def printEtlJobs[T: TypeTag]: Unit = {
+</span>21 <span style=''>    import scala.reflect.runtime.{universe =&gt; ru}
+</span>22 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
+</span>23 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
+</span>24 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
+</span>25 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.foreach(uf_logger.info(_))</span><span style=''>
+</span>26 <span style=''>  }
+</span>27 <span style=''>  //  val job_name = getEtlJobName(job_properties(&quot;job_name&quot;))
+</span>28 <span style=''>  //  def getEtlJobName(job_name: String): Option[MyEtlJobName] = {
+</span>29 <span style=''>  //    val job = MyEtlJobName.fromString(job_name)
+</span>30 <span style=''>  //    job
+</span>31 <span style=''>  //  }
+</span>32 <span style=''>  //  val my_global_properties = getGlobalProperties[MyGlobalProperties](&quot;loaddata.properties&quot;)
+</span>33 <span style=''>  //  val my_global_properties = getGlobalProperties(&quot;loaddata.properties&quot;)(new MyGlobalProperties(_))
+</span>34 <span style=''>  def getGlobalPropertiesUsingReflection[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(implicit tag: ClassTag[T]): Option[T] = {
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>36 <span style=''></span><span style='background: #F0ADAD'>      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
+</span>37 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>38 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
+</span>39 <span style=''>      case Failure(exception) =&gt;
+</span>40 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.printStackTrace())</span><span style=''>
+</span>41 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>42 <span style=''>    }
+</span>43 <span style=''>  }
+</span>44 <span style=''>  def getGlobalProperties[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(fct: String =&gt; T): Option[T] = {
+</span>45 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>46 <span style=''></span><span style='background: #F0ADAD'>      fct(path)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>48 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
+</span>49 <span style=''>      case Failure(exception) =&gt;
+</span>50 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.getMessage)</span><span style=''>
+</span>51 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>52 <span style=''>    }
+</span>53 <span style=''>  }
+</span>54 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          1031
+        </td>
+        <td>
+          338
+          -
+          338
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.Array.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          1032
+        </td>
+        <td>
+          329
+          -
+          448
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.refArrayOps[String](args).map[(String, String), Array[(String, String)]](((x0$1: String) =&gt; x0$1 match {
+  case (arg @ _) =&gt; {
+    val keyValue: Array[String] = arg.split(&quot;==&quot;);
+    scala.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+  }
+}))(scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)])))
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          1027
+        </td>
+        <td>
+          383
+          -
+          398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.split
+        </td>
+        <td style="background: #F0ADAD">
+          arg.split(&quot;==&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1028
+        </td>
+        <td>
+          408
+          -
+          419
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(0)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1030
+        </td>
+        <td>
+          408
+          -
+          434
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1029
+        </td>
+        <td>
+          423
+          -
+          434
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1034
+        </td>
+        <td>
+          329
+          -
+          454
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toMap
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.refArrayOps[(String, String)](scala.Predef.refArrayOps[String](args).map[(String, String), Array[(String, String)]](((x0$1: String) =&gt; x0$1 match {
+  case (arg @ _) =&gt; {
+    val keyValue: Array[String] = arg.split(&quot;==&quot;);
+    scala.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+  }
+}))(scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)])))).toMap[String, String](scala.Predef.$conforms[(String, String)])
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1033
+        </td>
+        <td>
+          449
+          -
+          449
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.$conforms[(String, String)]
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          1035
+        </td>
+        <td>
+          564
+          -
+          576
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.reflect.api.TypeTags.typeOf
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.runtime.`package`.universe.typeOf[T](evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1036
+        </td>
+        <td>
+          593
+          -
+          615
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.SymbolApi.asClass
+        </td>
+        <td style="background: #F0ADAD">
+          tpe.typeSymbol.asClass
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          1037
+        </td>
+        <td>
+          638
+          -
+          665
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.ClassSymbolApi.knownDirectSubclasses
+        </td>
+        <td style="background: #F0ADAD">
+          clazz.knownDirectSubclasses
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1039
+        </td>
+        <td>
+          670
+          -
+          708
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          allJobNames.foreach[Unit](((x$1: reflect.runtime.universe.Symbol) =&gt; UtilityFunctions.this.uf_logger.info(x$1)))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1038
+        </td>
+        <td>
+          690
+          -
+          707
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(x$1)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1042
+        </td>
+        <td>
+          1263
+          -
+          1363
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[T](tag.runtimeClass.getConstructor(classOf[java.lang.String]).newInstance(path).asInstanceOf[T])
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1040
+        </td>
+        <td>
+          1307
+          -
+          1322
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          classOf[java.lang.String]
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1041
+        </td>
+        <td>
+          1275
+          -
+          1357
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          tag.runtimeClass.getConstructor(classOf[java.lang.String]).newInstance(path).asInstanceOf[T]
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1043
+        </td>
+        <td>
+          1401
+          -
+          1412
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[T](value)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1045
+        </td>
+        <td>
+          1454
+          -
+          1497
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.printStackTrace())
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1044
+        </td>
+        <td>
+          1469
+          -
+          1496
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.printStackTrace
+        </td>
+        <td style="background: #F0ADAD">
+          exception.printStackTrace()
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1046
+        </td>
+        <td>
+          1506
+          -
+          1510
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1048
+        </td>
+        <td>
+          1645
+          -
+          1672
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[T](fct.apply(path))
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1047
+        </td>
+        <td>
+          1657
+          -
+          1666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          fct.apply(path)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1049
+        </td>
+        <td>
+          1710
+          -
+          1721
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[T](value)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1051
+        </td>
+        <td>
+          1763
+          -
+          1799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1050
+        </td>
+        <td>
+          1778
+          -
+          1798
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          exception.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1052
+        </td>
+        <td>
+          1808
+          -
+          1812
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

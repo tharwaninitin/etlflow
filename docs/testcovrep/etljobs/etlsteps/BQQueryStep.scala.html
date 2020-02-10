@@ -1,0 +1,1627 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/etlsteps/BQQueryStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import com.google.cloud.bigquery._
+</span>4 <span style=''>import etljobs.bigquery.QueryApi
+</span>5 <span style=''>import com.google.cloud.bigquery.JobInfo.CreateDisposition.CREATE_NEVER
+</span>6 <span style=''>import com.google.cloud.bigquery.JobInfo.WriteDisposition.WRITE_TRUNCATE
+</span>7 <span style=''>import scala.util.Try
+</span>8 <span style=''>
+</span>9 <span style=''>class BQQueryStep(
+</span>10 <span style=''>                   val name: String
+</span>11 <span style=''>                   ,source_pair_query_destination_table: (String,String) = (&quot;&quot;,&quot;&quot;)
+</span>12 <span style=''>                   ,source_seq_pair_query_destination_table: Seq[(String,String)] = Seq()
+</span>13 <span style=''>                   ,source_format : FormatOptions = FormatOptions.bigtable()
+</span>14 <span style=''>                   ,destination_dataset: String
+</span>15 <span style=''>                   ,destination_table: String
+</span>16 <span style=''>                   ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+</span>17 <span style=''>                   ,create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+</span>18 <span style=''>                 )(bq : =&gt; BigQuery)
+</span>19 <span style=''>  extends EtlStep[Unit,Unit]
+</span>20 <span style=''>{
+</span>21 <span style=''>  def process(input_state : Unit): Try[Unit] = {
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>Try{
+</span>23 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(&quot;#################################################################################################&quot;)
+</span>24 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(s&quot;Starting BQ Query Query Step : $name&quot;)
+</span>25 <span style=''></span><span style='background: #F0ADAD'>      QueryApi.loadIntoBQFromBQ(bq, source_seq_pair_query_destination_table ,destination_dataset,destination_table,write_disposition,create_disposition)
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(&quot;#################################################################################################&quot;)
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>28 <span style=''>  }
+</span>29 <span style=''>
+</span>30 <span style=''>  override def getExecutionMetrics : Map[String, Map[String,String]] = {
+</span>31 <span style=''>    val tableId = </span><span style='background: #F0ADAD'>TableId.of(destination_dataset, destination_table)</span><span style=''>
+</span>32 <span style=''>    val destinationTable = </span><span style='background: #F0ADAD'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
+</span>33 <span style=''>    </span><span style='background: #F0ADAD'>Map(name -&gt;
+</span>34 <span style=''></span><span style='background: #F0ADAD'>      Map(
+</span>35 <span style=''></span><span style='background: #F0ADAD'>        &quot;Total number of Rows&quot; -&gt; destinationTable.getNumRows.toString,
+</span>36 <span style=''></span><span style='background: #F0ADAD'>        &quot;Total size in MB&quot; -&gt; f&quot;${destinationTable.getNumBytes / 1000000.0} MB&quot;
+</span>37 <span style=''></span><span style='background: #F0ADAD'>      )
+</span>38 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>
+</span>39 <span style=''>  }
+</span>40 <span style=''>
+</span>41 <span style=''>  override def getStepProperties(level: String) : Map[String,String] = {
+</span>42 <span style=''>    val tableId = </span><span style='background: #F0ADAD'>TableId.of(destination_dataset, destination_table)</span><span style=''>
+</span>43 <span style=''>    val destinationTable = </span><span style='background: #F0ADAD'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
+</span>44 <span style=''>    if (</span><span style='background: #F0ADAD'>level.equalsIgnoreCase(&quot;info&quot;)</span><span style=''>)
+</span>45 <span style=''>    {
+</span>46 <span style=''>      </span><span style='background: #F0ADAD'>Map(
+</span>47 <span style=''></span><span style='background: #F0ADAD'>        &quot;destination_dataset&quot; -&gt; destination_dataset
+</span>48 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;destination_table&quot; -&gt; destination_table
+</span>49 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;Total number of Rows&quot; -&gt; destinationTable.getNumRows.toString
+</span>50 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;Source Format&quot; -&gt; source_format.toString
+</span>51 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>52 <span style=''>    }else
+</span>53 <span style=''>    {
+</span>54 <span style=''>      </span><span style='background: #F0ADAD'>Map(
+</span>55 <span style=''></span><span style='background: #F0ADAD'>        &quot;source_dirs&quot; -&gt; source_seq_pair_query_destination_table.mkString(&quot;,&quot;)
+</span>56 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;source_path&quot; -&gt; source_seq_pair_query_destination_table.mkString(&quot;,&quot;)
+</span>57 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;destination_dataset&quot; -&gt; destination_dataset
+</span>58 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;destination_table&quot; -&gt; destination_table
+</span>59 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;write_disposition&quot; -&gt; write_disposition.toString
+</span>60 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;create_disposition&quot; -&gt; create_disposition.toString
+</span>61 <span style=''></span><span style='background: #F0ADAD'>        ,&quot;Total number of Rows&quot; -&gt; destinationTable.getNumRows.toString
+</span>62 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>63 <span style=''>    }
+</span>64 <span style=''>  }
+</span>65 <span style=''>}
+</span>66 <span style=''>object BQQueryStep {
+</span>67 <span style=''>  def apply( name : String
+</span>68 <span style=''>             ,source_pair_query_destination_table:(String,String) = (&quot;&quot;,&quot;&quot;)
+</span>69 <span style=''>             ,source_seq_pair_query_destination_table: Seq[(String,String)] = Seq()
+</span>70 <span style=''>             ,source_format : FormatOptions = FormatOptions.bigtable()
+</span>71 <span style=''>             ,destination_dataset: String
+</span>72 <span style=''>             ,destination_table: String
+</span>73 <span style=''>             ,write_disposition: JobInfo.WriteDisposition = WRITE_TRUNCATE
+</span>74 <span style=''>             ,create_disposition: JobInfo.CreateDisposition = CREATE_NEVER
+</span>75 <span style=''>           )(bq: =&gt; BigQuery): BQQueryStep = {
+</span>76 <span style=''>    </span><span style='background: #F0ADAD'>new BQQueryStep(name, source_pair_query_destination_table, source_seq_pair_query_destination_table, source_format, destination_dataset, destination_table, write_disposition, create_disposition)(bq)</span><span style=''>
+</span>77 <span style=''>  }
+</span>78 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          448
+        </td>
+        <td>
+          995
+          -
+          1467
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[Unit]({
+  BQQueryStep.this.etl_logger.info(&quot;#################################################################################################&quot;);
+  BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Query Query Step : &quot;, &quot;&quot;).s(BQQueryStep.this.name));
+  etljobs.bigquery.QueryApi.loadIntoBQFromBQ(BQQueryStep.this.bq, BQQueryStep.this.source_seq_pair_query_destination_table, BQQueryStep.this.destination_dataset, BQQueryStep.this.destination_table, BQQueryStep.this.write_disposition, BQQueryStep.this.create_disposition);
+  BQQueryStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+})
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          434
+        </td>
+        <td>
+          1006
+          -
+          1122
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          436
+        </td>
+        <td>
+          1183
+          -
+          1184
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          439
+        </td>
+        <td>
+          1129
+          -
+          1185
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Query Query Step : &quot;, &quot;&quot;).s(BQQueryStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          1145
+          -
+          1184
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Starting BQ Query Query Step : &quot;, &quot;&quot;).s(BQQueryStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          435
+        </td>
+        <td>
+          1147
+          -
+          1179
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Starting BQ Query Query Step : &quot;
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          437
+        </td>
+        <td>
+          1179
+          -
+          1183
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          442
+        </td>
+        <td>
+          1263
+          -
+          1282
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          445
+        </td>
+        <td>
+          1319
+          -
+          1337
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.create_disposition
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.create_disposition
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          441
+        </td>
+        <td>
+          1222
+          -
+          1261
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.source_seq_pair_query_destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.source_seq_pair_query_destination_table
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          444
+        </td>
+        <td>
+          1301
+          -
+          1318
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.write_disposition
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.write_disposition
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          443
+        </td>
+        <td>
+          1283
+          -
+          1300
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          446
+        </td>
+        <td>
+          1192
+          -
+          1338
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.bigquery.QueryApi.loadIntoBQFromBQ
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.bigquery.QueryApi.loadIntoBQFromBQ(BQQueryStep.this.bq, BQQueryStep.this.source_seq_pair_query_destination_table, BQQueryStep.this.destination_dataset, BQQueryStep.this.destination_table, BQQueryStep.this.write_disposition, BQQueryStep.this.create_disposition)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          440
+        </td>
+        <td>
+          1218
+          -
+          1220
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.bq
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.bq
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          447
+        </td>
+        <td>
+          1345
+          -
+          1461
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          451
+        </td>
+        <td>
+          1564
+          -
+          1614
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableId.of
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.TableId.of(BQQueryStep.this.destination_dataset, BQQueryStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          450
+        </td>
+        <td>
+          1596
+          -
+          1613
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          449
+        </td>
+        <td>
+          1575
+          -
+          1594
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          452
+        </td>
+        <td>
+          1642
+          -
+          1701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableInfo.getDefinition
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.bq.getTable(tableId).getDefinition[com.google.cloud.bigquery.StandardTableDefinition]()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          460
+        </td>
+        <td>
+          1710
+          -
+          1888
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](BQQueryStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String))))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          453
+        </td>
+        <td>
+          1710
+          -
+          1714
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          461
+        </td>
+        <td>
+          1706
+          -
+          1894
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, scala.collection.immutable.Map[String,String]](scala.Predef.ArrowAssoc[String](BQQueryStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String)))))
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          459
+        </td>
+        <td>
+          1724
+          -
+          1888
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String)))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          454
+        </td>
+        <td>
+          1737
+          -
+          1759
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Total number of Rows&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          456
+        </td>
+        <td>
+          1737
+          -
+          1799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString())
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          455
+        </td>
+        <td>
+          1763
+          -
+          1799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Long.toString
+        </td>
+        <td style="background: #F0ADAD">
+          destinationTable.getNumRows().toString()
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          457
+        </td>
+        <td>
+          1809
+          -
+          1827
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Total size in MB&quot;
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          458
+        </td>
+        <td>
+          1809
+          -
+          1880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          463
+        </td>
+        <td>
+          2023
+          -
+          2040
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          462
+        </td>
+        <td>
+          2002
+          -
+          2021
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          464
+        </td>
+        <td>
+          1991
+          -
+          2041
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableId.of
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.TableId.of(BQQueryStep.this.destination_dataset, BQQueryStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          465
+        </td>
+        <td>
+          2069
+          -
+          2128
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableInfo.getDefinition
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.bq.getTable(tableId).getDefinition[com.google.cloud.bigquery.StandardTableDefinition]()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          466
+        </td>
+        <td>
+          2137
+          -
+          2167
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.equalsIgnoreCase
+        </td>
+        <td style="background: #F0ADAD">
+          level.equalsIgnoreCase(&quot;info&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          480
+        </td>
+        <td>
+          2181
+          -
+          2419
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQQueryStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQQueryStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Source Format&quot;).-&gt;[String](BQQueryStep.this.source_format.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          479
+        </td>
+        <td>
+          2181
+          -
+          2419
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQQueryStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQQueryStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Source Format&quot;).-&gt;[String](BQQueryStep.this.source_format.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          469
+        </td>
+        <td>
+          2194
+          -
+          2238
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQQueryStep.this.destination_dataset)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          468
+        </td>
+        <td>
+          2219
+          -
+          2238
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          467
+        </td>
+        <td>
+          2194
+          -
+          2215
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;destination_dataset&quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          472
+        </td>
+        <td>
+          2248
+          -
+          2288
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQQueryStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          471
+        </td>
+        <td>
+          2271
+          -
+          2288
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          470
+        </td>
+        <td>
+          2248
+          -
+          2267
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;destination_table&quot;
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          474
+        </td>
+        <td>
+          2324
+          -
+          2360
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Long.toString
+        </td>
+        <td style="background: #F0ADAD">
+          destinationTable.getNumRows().toString()
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          473
+        </td>
+        <td>
+          2298
+          -
+          2320
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Total number of Rows&quot;
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          475
+        </td>
+        <td>
+          2298
+          -
+          2360
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString())
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          478
+        </td>
+        <td>
+          2370
+          -
+          2411
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;Source Format&quot;).-&gt;[String](BQQueryStep.this.source_format.toString())
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          477
+        </td>
+        <td>
+          2389
+          -
+          2411
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.FormatOptions.toString
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.source_format.toString()
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          476
+        </td>
+        <td>
+          2370
+          -
+          2385
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Source Format&quot;
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          503
+        </td>
+        <td>
+          2442
+          -
+          2909
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;source_dirs&quot;).-&gt;[String](BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;source_path&quot;).-&gt;[String](BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQQueryStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQQueryStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;write_disposition&quot;).-&gt;[String](BQQueryStep.this.write_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;create_disposition&quot;).-&gt;[String](BQQueryStep.this.create_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          502
+        </td>
+        <td>
+          2442
+          -
+          2909
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;source_dirs&quot;).-&gt;[String](BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;source_path&quot;).-&gt;[String](BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQQueryStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQQueryStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;write_disposition&quot;).-&gt;[String](BQQueryStep.this.write_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;create_disposition&quot;).-&gt;[String](BQQueryStep.this.create_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          481
+        </td>
+        <td>
+          2455
+          -
+          2468
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;source_dirs&quot;
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          483
+        </td>
+        <td>
+          2455
+          -
+          2525
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;source_dirs&quot;).-&gt;[String](BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          482
+        </td>
+        <td>
+          2472
+          -
+          2525
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          486
+        </td>
+        <td>
+          2535
+          -
+          2605
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;source_path&quot;).-&gt;[String](BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          485
+        </td>
+        <td>
+          2552
+          -
+          2605
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.source_seq_pair_query_destination_table.mkString(&quot;,&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          484
+        </td>
+        <td>
+          2535
+          -
+          2548
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;source_path&quot;
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          487
+        </td>
+        <td>
+          2615
+          -
+          2636
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;destination_dataset&quot;
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          489
+        </td>
+        <td>
+          2615
+          -
+          2659
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQQueryStep.this.destination_dataset)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          488
+        </td>
+        <td>
+          2640
+          -
+          2659
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          490
+        </td>
+        <td>
+          2669
+          -
+          2688
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;destination_table&quot;
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          492
+        </td>
+        <td>
+          2669
+          -
+          2709
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQQueryStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          491
+        </td>
+        <td>
+          2692
+          -
+          2709
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          495
+        </td>
+        <td>
+          2719
+          -
+          2768
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;write_disposition&quot;).-&gt;[String](BQQueryStep.this.write_disposition.toString())
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          494
+        </td>
+        <td>
+          2742
+          -
+          2768
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.write_disposition.toString()
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          493
+        </td>
+        <td>
+          2719
+          -
+          2738
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;write_disposition&quot;
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          496
+        </td>
+        <td>
+          2778
+          -
+          2798
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;create_disposition&quot;
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          498
+        </td>
+        <td>
+          2778
+          -
+          2829
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;create_disposition&quot;).-&gt;[String](BQQueryStep.this.create_disposition.toString())
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          497
+        </td>
+        <td>
+          2802
+          -
+          2829
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.create_disposition.toString()
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          499
+        </td>
+        <td>
+          2839
+          -
+          2861
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Total number of Rows&quot;
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          501
+        </td>
+        <td>
+          2839
+          -
+          2901
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString())
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          500
+        </td>
+        <td>
+          2865
+          -
+          2901
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Long.toString
+        </td>
+        <td style="background: #F0ADAD">
+          destinationTable.getNumRows().toString()
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          504
+        </td>
+        <td>
+          3484
+          -
+          3681
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.etlsteps.BQQueryStep.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new BQQueryStep(name, source_pair_query_destination_table, source_seq_pair_query_destination_table, source_format, destination_dataset, destination_table, write_disposition, create_disposition)(bq)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

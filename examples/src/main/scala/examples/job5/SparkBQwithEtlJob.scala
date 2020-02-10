@@ -3,7 +3,9 @@ package examples.job5
 // BigQquery Imports
 import com.google.cloud.bigquery.JobInfo
 import EtlJobSchemas.Rating
+import etljobs.bigquery.BigQueryManager
 import etljobs.etlsteps.StateLessEtlStep
+import etljobs.spark.SparkManager
 import etljobs.{EtlJobName, EtlProps}
 import etljobs.utils.GlobalProperties
 // ETLJOB library specific Imports
@@ -19,7 +21,7 @@ class SparkBQwithEtlJob(
                          val job_name: EtlJobName = SparkBQwithEtlJob,
                          val job_properties: Either[Map[String,String], EtlProps],
                          val global_properties: Option[GlobalProperties] = None
-                      ) extends EtlJob {
+                      ) extends EtlJob with SparkManager with BigQueryManager{
   Logger.getLogger("org").setLevel(Level.WARN)
   val job_props: Map[String,String] = job_properties match {
     case Left(value) => value

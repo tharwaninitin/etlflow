@@ -1615,110 +1615,110 @@ statement-count="901" statements-invoked="584" statement-rate="64.82" branch-rat
         <package name="etljobs.functions" statement-count="78" statements-invoked="56" statement-rate="71.79">
             <classes>
                 <class 
-                name="etljobs.functions.BusinessUDF" filename="etljobs/functions/BusinessUDF.scala" statement-count="8" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
+                name="etljobs.utils.BusinessUDF" filename="etljobs/functions/BusinessUDF.scala" statement-count="8" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
                     <methods>
                         <method 
                         name="etljobs.functions/BusinessUDF/parser" statement-count="8" statements-invoked="0" statement-rate="0.00" branch-rate="0.00">
                             <statements>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="119" end="119" line="5" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="119" end="119" line="5" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="110" end="235" line="10" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="110" end="235" line="10" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="230" end="230" line="10" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="230" end="230" line="10" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="164" end="179" line="7" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="164" end="179" line="7" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="189" end="215" line="8" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="189" end="215" line="8" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="110" end="229" line="5" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="110" end="229" line="5" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="204" end="215" line="8" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="204" end="215" line="8" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.functions.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="189" end="200" line="8" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="BusinessUDF" class-type="Trait" full-class-name="etljobs.utils.BusinessUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/BusinessUDF.scala" method="parser" start="189" end="200" line="8" branch="false" invocation-count="0" ignored="false">
 </statement>
                             </statements>
 </method>
                     </methods>
 </class>
                 <class 
-                name="etljobs.functions.SparkUDF" filename="etljobs/functions/SparkUDF.scala" statement-count="70" statements-invoked="56" statement-rate="80.00" branch-rate="50.00">
+                name="etljobs.spark.SparkUDF" filename="etljobs/functions/SparkUDF.scala" statement-count="70" statements-invoked="56" statement-rate="80.00" branch-rate="50.00">
                     <methods>
                         <method 
                         name="etljobs.functions/SparkUDF/get_24hr_formatted" statement-count="22" statements-invoked="16" statement-rate="72.73" branch-rate="50.00">
                             <statements>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1219" end="1223" line="30" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1219" end="1223" line="30" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1352" end="1365" line="32" branch="true" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1352" end="1365" line="32" branch="true" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1475" end="1476" line="34" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1475" end="1476" line="34" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1453" end="1466" line="34" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1453" end="1466" line="34" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1250" end="1266" line="31" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1250" end="1266" line="31" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1375" end="1388" line="32" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1375" end="1388" line="32" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1490" end="1519" line="35" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1490" end="1519" line="35" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1407" end="1420" line="33" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1407" end="1420" line="33" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1289" end="1304" line="31" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1289" end="1304" line="31" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1352" end="1365" line="32" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1352" end="1365" line="32" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1325" end="1349" line="32" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1325" end="1349" line="32" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1407" end="1434" line="33" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1407" end="1434" line="33" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1453" end="1480" line="34" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1453" end="1480" line="34" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1183" end="1224" line="30" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1183" end="1224" line="30" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1371" end="1374" line="32" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1371" end="1374" line="32" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1268" end="1283" line="31" branch="true" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1268" end="1283" line="31" branch="true" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1371" end="1388" line="32" branch="true" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1371" end="1388" line="32" branch="true" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1371" end="1388" line="32" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1371" end="1388" line="32" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1485" end="1520" line="35" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1485" end="1520" line="35" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1268" end="1283" line="31" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1268" end="1283" line="31" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1289" end="1304" line="31" branch="true" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1289" end="1304" line="31" branch="true" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1429" end="1430" line="33" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted" start="1429" end="1430" line="33" branch="false" invocation-count="1" ignored="false">
 </statement>
                             </statements>
 </method>
@@ -1726,127 +1726,127 @@ statement-count="901" statements-invoked="584" statement-rate="64.82" branch-rat
                         name="etljobs.functions/SparkUDF/get_24hr_formatted_from_12hr" statement-count="41" statements-invoked="35" statement-rate="85.37" branch-rate="50.00">
                             <statements>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="947" end="964" line="23" branch="true" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="947" end="964" line="23" branch="true" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="662" end="666" line="18" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="662" end="666" line="18" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="836" end="855" line="22" branch="true" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="836" end="855" line="22" branch="true" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="514" end="530" line="16" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="514" end="530" line="16" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="983" end="1010" line="24" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="983" end="1010" line="24" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="901" end="925" line="23" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="901" end="925" line="23" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="576" end="580" line="17" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="576" end="580" line="17" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="708" end="712" line="19" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="708" end="712" line="19" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1005" end="1006" line="24" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1005" end="1006" line="24" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="662" end="686" line="18" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="662" end="686" line="18" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="861" end="880" line="22" branch="true" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="861" end="880" line="22" branch="true" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="536" end="553" line="16" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="536" end="553" line="16" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="312" end="335" line="12" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="312" end="335" line="12" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="571" end="602" line="17" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="571" end="602" line="17" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1051" end="1052" line="25" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1051" end="1052" line="25" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="703" end="734" line="19" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="703" end="734" line="19" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="928" end="941" line="23" branch="true" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="928" end="941" line="23" branch="true" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="947" end="964" line="23" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="947" end="964" line="23" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="627" end="658" line="18" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="627" end="658" line="18" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1061" end="1096" line="26" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1061" end="1096" line="26" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="836" end="855" line="22" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="836" end="855" line="22" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="505" end="509" line="16" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="505" end="509" line="16" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1066" end="1095" line="26" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1066" end="1095" line="26" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="951" end="964" line="23" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="951" end="964" line="23" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="814" end="834" line="22" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="814" end="834" line="22" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="500" end="531" line="16" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="500" end="531" line="16" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="668" end="685" line="18" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="668" end="685" line="18" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="861" end="880" line="22" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="861" end="880" line="22" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="983" end="996" line="24" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="983" end="996" line="24" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="928" end="941" line="23" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="928" end="941" line="23" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="243" end="292" line="11" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="243" end="292" line="11" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1029" end="1042" line="25" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1029" end="1042" line="25" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="717" end="733" line="19" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="717" end="733" line="19" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="585" end="601" line="17" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="585" end="601" line="17" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="406" end="443" line="14" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="406" end="443" line="14" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="641" end="657" line="18" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="641" end="657" line="18" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="947" end="950" line="23" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="947" end="950" line="23" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1029" end="1056" line="25" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="1029" end="1056" line="25" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="632" end="636" line="18" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="632" end="636" line="18" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="766" end="788" line="21" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="766" end="788" line="21" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="351" end="390" line="13" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="get_24hr_formatted_from_12hr" start="351" end="390" line="13" branch="false" invocation-count="1" ignored="false">
 </statement>
                             </statements>
 </method>
@@ -1854,25 +1854,25 @@ statement-count="901" statements-invoked="584" statement-rate="64.82" branch-rat
                         name="etljobs.functions/SparkUDF/&lt;none&gt;" statement-count="7" statements-invoked="5" statement-rate="71.43" branch-rate="100.00">
                             <statements>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1895" end="1913" line="44" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1895" end="1913" line="44" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1779" end="1835" line="43" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1779" end="1835" line="43" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1672" end="1719" line="40" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1672" end="1719" line="40" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1806" end="1834" line="43" branch="false" invocation-count="0" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1806" end="1834" line="43" branch="false" invocation-count="0" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1868" end="1914" line="44" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1868" end="1914" line="44" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1687" end="1702" line="40" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1687" end="1702" line="40" branch="false" invocation-count="1" ignored="false">
 </statement>
                                 <statement 
-                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.functions.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1658" end="1731" line="40" branch="false" invocation-count="1" ignored="false">
+                                package="etljobs.functions" class="SparkUDF" class-type="Trait" full-class-name="etljobs.spark.SparkUDF" source="/Users/tharwanin/Desktop/myrepos/etljobs/etljobs/src/main/scala/etljobs/functions/SparkUDF.scala" method="&lt;none&gt;" start="1658" end="1731" line="40" branch="false" invocation-count="1" ignored="false">
 </statement>
                             </statements>
 </method>

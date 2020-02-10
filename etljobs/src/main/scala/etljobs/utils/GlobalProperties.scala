@@ -2,14 +2,19 @@ package etljobs.utils
 
 import java.io.FileInputStream
 import java.util.Properties
+import org.apache.log4j.Logger
 
-abstract class GlobalProperties(global_properties_file_path: String) {
-  println(f"======> Loaded Settings(${getClass.getName})")
-  println(f"======> settings_file_path: $global_properties_file_path")
+abstract class GlobalProperties(global_properties_file_path: String, job_properties: Map[String,String] = Map.empty) {
+  private val ic_logger = Logger.getLogger(getClass.getName)
+  ic_logger.info(f"======> Loaded Settings(${getClass.getName})")
+  ic_logger.info(f"======> settings_file_path: $global_properties_file_path")
   
-  val file_stream = new FileInputStream(global_properties_file_path)
-  val config = new Properties()
-  config.load(file_stream)
+  lazy val file_stream = new FileInputStream(global_properties_file_path)
+  lazy val config: Properties = {
+    val prop = new Properties()
+    prop.load(file_stream)
+    prop
+  }
 
   lazy val spark_concurrent_threads               = config.getProperty("spark_concurrent_threads")
   lazy val spark_shuffle_partitions               = config.getProperty("spark_shuffle_partitions")

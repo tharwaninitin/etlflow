@@ -1,12 +1,13 @@
 package etljobs.etljob3
 
 import EtlJobSchemas.{EtlJob3Props, Rating, RatingOutput}
+import etljobs.bigquery.BigQueryManager
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
 import etljobs.etlsteps.{BQLoadStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
-import etljobs.functions.SparkUDF
+import etljobs.spark.{SparkManager, SparkUDF}
 import etljobs.utils.{CSV, GlobalProperties, PARQUET}
 import org.apache.log4j.{Level, Logger}
 
@@ -15,7 +16,7 @@ class EtlJobDefinition(
                         val job_properties: Either[Map[String,String], EtlProps],
                         val global_properties: Option[GlobalProperties] = None
                       )
-  extends EtlJob with SparkUDF {
+  extends EtlJob with SparkManager with SparkUDF with BigQueryManager {
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)

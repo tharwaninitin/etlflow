@@ -8,7 +8,7 @@ object LoadApi {
     private val load_logger = Logger.getLogger(getClass.getName)
     load_logger.info(s"Loaded ${getClass.getName}")
 
-    def loadIntoBQFromLocalFile( 
+    def loadIntoBQFromLocalFile(
         source_path: String
         ,source_paths_partitions: Seq[(String,String)]
         ,source_format: FormatOptions
@@ -52,13 +52,13 @@ object LoadApi {
         ,destination_table: String
         ,write_disposition: JobInfo.WriteDisposition
         ,create_disposition: JobInfo.CreateDisposition
-        ): Unit ={
+        ): Map[String, Long] ={
         
         load_logger.info(s"No of BQ partitions: ${source_paths_partitions.length}" )
-        source_paths_partitions.par.foreach { case (src_path, partition) =>
+        source_paths_partitions.par.flatMap { case (src_path, partition) =>
             val table_partition = destination_table + "$" + partition             
             loadIntoUnpartitionedBQTableFromGCS(bq,src_path,source_format,destination_dataset,table_partition,write_disposition,create_disposition)
-        }
+        }.toList.toMap
     }
 
     def loadIntoUnpartitionedBQTableFromGCS(
@@ -69,7 +69,7 @@ object LoadApi {
         ,destination_table: String
         ,write_disposition: JobInfo.WriteDisposition
         ,create_disposition: JobInfo.CreateDisposition
-        ): Unit = {
+        ): Map[String, Long] = {
 
         // Create BQ table instance
         val tableId = TableId.of(destination_dataset, destination_table)
@@ -90,9 +90,10 @@ object LoadApi {
         val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
 
         load_logger.info(s"Source path: $source_path")
-        load_logger.info(s"Destination table: ${destination_dataset}.${destination_table}")
+        load_logger.info(s"Destination table: $destination_dataset.$destination_table")
         load_logger.info(s"Job State: ${completedJob.getStatus.getState}")
         load_logger.info(s"Loaded rows: ${destinationTable.getNumRows}")
         load_logger.info(s"Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB")
+        Map(destination_table -> destinationTable.getNumRows)
     }
 }

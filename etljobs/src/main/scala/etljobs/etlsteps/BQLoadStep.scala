@@ -19,6 +19,7 @@ class BQLoadStep(
             )(bq : => BigQuery)
   extends EtlStep[Unit,Unit]
 {
+  var row_count: Map[String, Long] = Map.empty
   def process(input_state : Unit): Try[Unit] = {
     Try{
       etl_logger.info("#################################################################################################")
@@ -55,7 +56,7 @@ class BQLoadStep(
     }
   }
 
-  override def getExecutionMetrics : Map[String, Map[String,String]] = {
+  override def getExecutionMetrics: Map[String, Map[String, String]] = {
     val tableId = TableId.of(destination_dataset, destination_table)
     val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
     Map(name ->
@@ -70,25 +71,25 @@ class BQLoadStep(
     if (level.equalsIgnoreCase("info"))
     {
       Map(
-         "destination_dataset" -> destination_dataset
-        ,"destination_table" -> destination_table
-        ,"source_format" -> source_format.toString
+        "source_format" -> source_format.toString
         ,"source_path" -> source_path
         ,"source_dirs_count" -> source_paths_partitions.length.toString
-        ,"write_disposition" -> write_disposition.toString
-        ,"create_disposition" -> create_disposition.toString
-      )
-    } else
-    {
-      Map(
-        "source_dirs" -> source_paths_partitions.mkString(",")
-        ,"source_path" -> source_path
-        ,"source_format" -> source_format.toString
         ,"destination_dataset" -> destination_dataset
         ,"destination_table" -> destination_table
         ,"write_disposition" -> write_disposition.toString
         ,"create_disposition" -> create_disposition.toString
-      )
+      ) ++ row_count.map(x => (x._1, x._2.toString))
+    } else
+    {
+      Map(
+        "source_format" -> source_format.toString
+        , "source_dirs" -> source_paths_partitions.mkString(",")
+        , "source_path" -> source_path
+        , "destination_dataset" -> destination_dataset
+        , "destination_table" -> destination_table
+        , "write_disposition" -> write_disposition.toString
+        , "create_disposition" -> create_disposition.toString
+      ) ++ row_count.map(x => (x._1, x._2.toString))
     }
   }
 }

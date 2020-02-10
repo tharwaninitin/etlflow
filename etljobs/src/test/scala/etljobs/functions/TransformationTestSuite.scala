@@ -1,7 +1,7 @@
 package etljobs.functions
 
+import etljobs.spark.SparkUDF
 import org.scalatest.{FlatSpec, Matchers}
-import etljobs.functions.SparkUDF
 
 class TransformationTestSuite extends FlatSpec with Matchers with SparkUDF {
 

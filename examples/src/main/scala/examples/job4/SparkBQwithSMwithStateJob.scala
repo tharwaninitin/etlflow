@@ -1,8 +1,9 @@
 package examples.job4
 
+import etljobs.bigquery.BigQueryManager
 import etljobs.etlsteps.{BQLoadStep, DatasetWithState, SparkReadWriteStateStep}
-import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET, SessionManager}
-import etljobs.functions.SparkUDF
+import etljobs.spark.{SparkManager, SparkUDF}
+import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
@@ -32,7 +33,7 @@ object SparkBQwithSMwithStateJob extends App {
 class SparkBQwithSMwithStateJob(
                                  job_properties: Map[String,String],
                                  val global_properties: Option[GlobalProperties]
-                               ) extends SessionManager with SparkUDF {
+                               ) extends SparkManager with BigQueryManager with SparkUDF {
   import RatingsSchemas._
   import SparkBQwithSMwithStateJob.etl_job_logger
   

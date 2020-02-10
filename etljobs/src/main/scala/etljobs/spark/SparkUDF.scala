@@ -1,9 +1,7 @@
-package etljobs.functions
+package etljobs.spark
 
-import java.util.Calendar
-
-import org.apache.spark.sql.functions._
 import org.apache.spark.sql.Column
+import org.apache.spark.sql.functions.{col, from_unixtime, udf, unix_timestamp}
 
 trait SparkUDF {
 
@@ -35,13 +33,10 @@ trait SparkUDF {
     Some(hours+":"+minutes+":"+seconds)
   }
 
-  val get_formatted_date : (String,String,String) => Column
+  val get_formatted_date: (String,String,String) => Column
   = (ColumnName:String,ExistingFormat:String,NewFormat:String) => {
     from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
   }
-
   val get_24hr_formatted_from_12hr_udf  = udf[Option[String],String](get_24hr_formatted_from_12hr)
   val get_24hr_formatted_udf  = udf[Option[String],String](get_24hr_formatted)
-
-
 }

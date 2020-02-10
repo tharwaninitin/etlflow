@@ -1,0 +1,2301 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/spark/SparkManager.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.spark
+</span>2 <span style=''>
+</span>3 <span style=''>import etljobs.utils.GlobalProperties
+</span>4 <span style=''>import org.apache.log4j.Logger
+</span>5 <span style=''>import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+</span>6 <span style=''>
+</span>7 <span style=''>import scala.util.Try
+</span>8 <span style=''>
+</span>9 <span style=''>trait SparkManager {
+</span>10 <span style=''>  private val ic_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>11 <span style=''>  val global_properties: Option[GlobalProperties]
+</span>12 <span style=''>  </span><span style='background: #AEF1AE'>ic_logger.info(f&quot;======&gt; Loaded SparkManager(${getClass.getName})&quot;)</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  implicit class DataFrameHelper(df : DataFrame) {
+</span>15 <span style=''>    var column_count = </span><span style='background: #F0ADAD'>0</span><span style=''>
+</span>16 <span style=''>    def hasColumn(columnName : String) : Boolean = </span><span style='background: #F0ADAD'>Try(df(columnName)).isSuccess</span><span style=''>
+</span>17 <span style=''>    def withColumnExtended(columnName : String, expression : Column) : DataFrame = {
+</span>18 <span style=''>      </span><span style='background: #F0ADAD'>ic_logger.info(s&quot;Column added $columnName with expression ${expression.expr}&quot;)</span><span style=''>
+</span>19 <span style=''>      </span><span style='background: #F0ADAD'>df.withColumn(columnName, expression)</span><span style=''>
+</span>20 <span style=''>    }
+</span>21 <span style=''>    def columnCount: Int = </span><span style='background: #F0ADAD'>column_count</span><span style=''>
+</span>22 <span style=''>  }
+</span>23 <span style=''>
+</span>24 <span style=''>  lazy val spark: SparkSession = createSparkSession(global_properties)
+</span>25 <span style=''>
+</span>26 <span style=''>  def createSparkSession(gp: Option[GlobalProperties]): SparkSession = {
+</span>27 <span style=''>    gp match {
+</span>28 <span style=''>      case Some(ss) =&gt;
+</span>29 <span style=''>        if (</span><span style='background: #AEF1AE'>ss.running_environment ==&quot;gcp&quot;</span><span style=''>) {
+</span>30 <span style=''>        </span><span style='background: #F0ADAD'>if (SparkSession.getActiveSession.isDefined) {
+</span>31 <span style=''></span><span style='background: #F0ADAD'>          val spark = SparkSession.getActiveSession.get
+</span>32 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>          spark
+</span>34 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>35 <span style=''></span><span style='background: #F0ADAD'>        else {
+</span>36 <span style=''></span><span style='background: #F0ADAD'>          val spark = SparkSession.builder()
+</span>37 <span style=''></span><span style='background: #F0ADAD'>            .config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads)
+</span>38 <span style=''></span><span style='background: #F0ADAD'>            .config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>            .config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode)
+</span>40 <span style=''></span><span style='background: #F0ADAD'>            .enableHiveSupport()
+</span>41 <span style=''></span><span style='background: #F0ADAD'>            .getOrCreate()
+</span>42 <span style=''></span><span style='background: #F0ADAD'>
+</span>43 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
+</span>44 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot; + spark.sparkContext.uiWebUrl)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.sparkContext.applicationId = &quot; + spark.sparkContext.applicationId)
+</span>46 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot; + spark.sparkContext.sparkUser)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.eventLog.dir = &quot; + spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+</span>48 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;spark.eventLog.enabled = &quot; + spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
+</span>49 <span style=''></span><span style='background: #F0ADAD'>          spark.conf.getAll.filter(m1 =&gt; m1._1.contains(&quot;yarn&quot;)).foreach(kv =&gt; ic_logger.info(kv._1 + &quot; = &quot; + kv._2))
+</span>50 <span style=''></span><span style='background: #F0ADAD'>          ic_logger.info(&quot;#####################################################################&quot;)
+</span>51 <span style=''></span><span style='background: #F0ADAD'>
+</span>52 <span style=''></span><span style='background: #F0ADAD'>          spark
+</span>53 <span style=''></span><span style='background: #F0ADAD'>        }</span><span style=''>
+</span>54 <span style=''>
+</span>55 <span style=''>      }
+</span>56 <span style=''>        else </span><span style='background: #AEF1AE'>if (ss.running_environment ==&quot;aws&quot;) {
+</span>57 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>if (SparkSession.getActiveSession.isDefined) {
+</span>58 <span style=''></span><span style='background: #F0ADAD'>            SparkSession.getActiveSession.get
+</span>59 <span style=''></span><span style='background: #F0ADAD'>          }
+</span>60 <span style=''></span><span style='background: #F0ADAD'>          else {
+</span>61 <span style=''></span><span style='background: #F0ADAD'>            val spark = SparkSession.builder()
+</span>62 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads)
+</span>63 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions)
+</span>64 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode)
+</span>65 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
+</span>66 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
+</span>67 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.gs.project.id&quot;, ss.gcp_project)
+</span>68 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;)
+</span>69 <span style=''></span><span style='background: #F0ADAD'>              .config(&quot;google.cloud.auth.service.account.json.keyfile&quot;,ss.gcp_project_key_name)
+</span>70 <span style=''></span><span style='background: #F0ADAD'>              .enableHiveSupport()
+</span>71 <span style=''></span><span style='background: #F0ADAD'>              .getOrCreate()
+</span>72 <span style=''></span><span style='background: #F0ADAD'>
+</span>73 <span style=''></span><span style='background: #F0ADAD'>            spark
+</span>74 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style='background: #AEF1AE'>
+</span>75 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>76 <span style=''></span><span style='background: #AEF1AE'>        else if (ss.running_environment == &quot;local&quot;) {
+</span>77 <span style=''></span><span style='background: #AEF1AE'>          if (SparkSession.getActiveSession.isDefined) {
+</span>78 <span style=''></span><span style='background: #AEF1AE'>            SparkSession.getActiveSession.get
+</span>79 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>80 <span style=''></span><span style='background: #AEF1AE'>          else {
+</span>81 <span style=''></span><span style='background: #AEF1AE'>            val spark = SparkSession.builder().master(&quot;local[*]&quot;)
+</span>82 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
+</span>83 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
+</span>84 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.gs.project.id&quot;, ss.gcp_project)
+</span>85 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;)
+</span>86 <span style=''></span><span style='background: #AEF1AE'>              .config(&quot;google.cloud.auth.service.account.json.keyfile&quot;,ss.gcp_project_key_name)
+</span>87 <span style=''></span><span style='background: #AEF1AE'>              .getOrCreate()
+</span>88 <span style=''></span><span style='background: #AEF1AE'>
+</span>89 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
+</span>90 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot; + spark.sparkContext.uiWebUrl)
+</span>91 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.sparkContext.applicationId = &quot; + spark.sparkContext.applicationId)
+</span>92 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot; + spark.sparkContext.sparkUser)
+</span>93 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.eventLog.dir = &quot; + spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+</span>94 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;spark.eventLog.enabled = &quot; + spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
+</span>95 <span style=''></span><span style='background: #AEF1AE'>            spark.conf.getAll.filter(m1 =&gt; m1._1.contains(&quot;yarn&quot;)).foreach(kv =&gt; </span><span style='background: #F0ADAD'>ic_logger.info(kv._1 + &quot; = &quot; + kv._2)</span><span style='background: #AEF1AE'>)
+</span>96 <span style=''></span><span style='background: #AEF1AE'>            ic_logger.info(&quot;#####################################################################&quot;)
+</span>97 <span style=''></span><span style='background: #AEF1AE'>
+</span>98 <span style=''></span><span style='background: #AEF1AE'>            spark
+</span>99 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>100 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>101 <span style=''></span><span style='background: #AEF1AE'>        else {
+</span>102 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
+</span>103 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>104 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>SparkSession.builder().master(&quot;local[*]&quot;)
+</span>105 <span style=''></span><span style='background: #F0ADAD'>        .config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;)
+</span>106 <span style=''></span><span style='background: #F0ADAD'>        .config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;)
+</span>107 <span style=''></span><span style='background: #F0ADAD'>        .getOrCreate()</span><span style=''>
+</span>108 <span style=''>    }
+</span>109 <span style=''>  }
+</span>110 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          774
+        </td>
+        <td>
+          225
+          -
+          259
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(SparkManager.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          773
+        </td>
+        <td>
+          242
+          -
+          258
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          775
+        </td>
+        <td>
+          312
+          -
+          379
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(({
+  val arg$macro$1: Any = SparkManager.this.getClass().getName();
+  new scala.collection.immutable.StringOps(&quot;======&gt; Loaded SparkManager(%s)&quot;).format(arg$macro$1)
+}: String))
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          776
+        </td>
+        <td>
+          455
+          -
+          456
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          777
+        </td>
+        <td>
+          512
+          -
+          526
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.apply
+        </td>
+        <td style="background: #F0ADAD">
+          DataFrameHelper.this.df.apply(columnName)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          778
+        </td>
+        <td>
+          508
+          -
+          537
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.util.Try.isSuccess
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[org.apache.spark.sql.Column](DataFrameHelper.this.df.apply(columnName)).isSuccess
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          783
+        </td>
+        <td>
+          644
+          -
+          706
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Column added &quot;, &quot; with expression &quot;, &quot;&quot;).s(columnName, expression.expr)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          779
+        </td>
+        <td>
+          646
+          -
+          660
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Column added &quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          782
+        </td>
+        <td>
+          689
+          -
+          704
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.Column.expr
+        </td>
+        <td style="background: #F0ADAD">
+          expression.expr
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          784
+        </td>
+        <td>
+          629
+          -
+          707
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(scala.StringContext.apply(&quot;Column added &quot;, &quot; with expression &quot;, &quot;&quot;).s(columnName, expression.expr))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          781
+        </td>
+        <td>
+          705
+          -
+          706
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          780
+        </td>
+        <td>
+          670
+          -
+          688
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; with expression &quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          785
+        </td>
+        <td>
+          714
+          -
+          751
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.withColumn
+        </td>
+        <td style="background: #F0ADAD">
+          DataFrameHelper.this.df.withColumn(columnName, expression)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          786
+        </td>
+        <td>
+          785
+          -
+          797
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.spark.SparkManager.DataFrameHelper.column_count
+        </td>
+        <td style="background: #F0ADAD">
+          DataFrameHelper.this.column_count
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          787
+        </td>
+        <td>
+          998
+          -
+          1028
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;gcp&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          822
+        </td>
+        <td>
+          1040
+          -
+          2475
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          if (org.apache.spark.sql.SparkSession.getActiveSession.isDefined)
+  {
+    val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.getActiveSession.get;
+    SparkManager.this.ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;);
+    spark
+  }
+else
+  {
+    val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).enableHiveSupport().getOrCreate();
+    SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;);
+    SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl));
+    SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId));
+    SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser));
+    SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)));
+    SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)));
+    spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))));
+    SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;);
+    spark
+  }
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          788
+        </td>
+        <td>
+          1044
+          -
+          1083
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          791
+        </td>
+        <td>
+          1085
+          -
+          1271
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.getActiveSession.get;
+  SparkManager.this.ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;);
+  spark
+}
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          1109
+          -
+          1142
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          790
+        </td>
+        <td>
+          1153
+          -
+          1245
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          821
+        </td>
+        <td>
+          1285
+          -
+          2475
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).enableHiveSupport().getOrCreate();
+  SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;);
+  SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl));
+  SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId));
+  SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser));
+  SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)));
+  SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)));
+  spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))));
+  SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;);
+  spark
+}
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          792
+        </td>
+        <td>
+          1309
+          -
+          1656
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.SparkSession.Builder.getOrCreate
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).enableHiveSupport().getOrCreate()
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          793
+        </td>
+        <td>
+          1668
+          -
+          1755
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          795
+        </td>
+        <td>
+          1816
+          -
+          1843
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.uiWebUrl
+        </td>
+        <td style="background: #F0ADAD">
+          spark.sparkContext.uiWebUrl
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          797
+        </td>
+        <td>
+          1766
+          -
+          1844
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          794
+        </td>
+        <td>
+          1781
+          -
+          1813
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.sparkContext.uiWebUrl = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          796
+        </td>
+        <td>
+          1781
+          -
+          1843
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          801
+        </td>
+        <td>
+          1855
+          -
+          1943
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          800
+        </td>
+        <td>
+          1870
+          -
+          1942
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          799
+        </td>
+        <td>
+          1910
+          -
+          1942
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.applicationId
+        </td>
+        <td style="background: #F0ADAD">
+          spark.sparkContext.applicationId
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          798
+        </td>
+        <td>
+          1870
+          -
+          1907
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.sparkContext.applicationId = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          804
+        </td>
+        <td>
+          1969
+          -
+          2033
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          803
+        </td>
+        <td>
+          2005
+          -
+          2033
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.sparkUser
+        </td>
+        <td style="background: #F0ADAD">
+          spark.sparkContext.sparkUser
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          802
+        </td>
+        <td>
+          1969
+          -
+          2002
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.sparkContext.sparkUser = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          805
+        </td>
+        <td>
+          1954
+          -
+          2034
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          806
+        </td>
+        <td>
+          2060
+          -
+          2083
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.dir = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          809
+        </td>
+        <td>
+          2045
+          -
+          2129
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          808
+        </td>
+        <td>
+          2060
+          -
+          2128
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          807
+        </td>
+        <td>
+          2086
+          -
+          2128
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.RuntimeConfig.getOption
+        </td>
+        <td style="background: #F0ADAD">
+          spark.conf.getOption(&quot;spark.eventLog.dir&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          810
+        </td>
+        <td>
+          2155
+          -
+          2182
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.enabled = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          813
+        </td>
+        <td>
+          2140
+          -
+          2232
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          812
+        </td>
+        <td>
+          2155
+          -
+          2231
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          811
+        </td>
+        <td>
+          2185
+          -
+          2231
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.RuntimeConfig.getOption
+        </td>
+        <td style="background: #F0ADAD">
+          spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          819
+        </td>
+        <td>
+          2243
+          -
+          2350
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          815
+        </td>
+        <td>
+          2335
+          -
+          2340
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          818
+        </td>
+        <td>
+          2312
+          -
+          2349
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          817
+        </td>
+        <td>
+          2327
+          -
+          2348
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          kv._1.+(&quot; = &quot;).+(kv._2)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          814
+        </td>
+        <td>
+          2274
+          -
+          2296
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.contains
+        </td>
+        <td style="background: #F0ADAD">
+          m1._1.contains(&quot;yarn&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          816
+        </td>
+        <td>
+          2343
+          -
+          2348
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          kv._2
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          820
+        </td>
+        <td>
+          2361
+          -
+          2448
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          868
+        </td>
+        <td>
+          2498
+          -
+          5259
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (ss.running_environment.==(&quot;aws&quot;))
+  if (org.apache.spark.sql.SparkSession.getActiveSession.isDefined)
+    org.apache.spark.sql.SparkSession.getActiveSession.get
+  else
+    {
+      val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).enableHiveSupport().getOrCreate();
+      spark
+    }
+else
+  if (ss.running_environment.==(&quot;local&quot;))
+    if (org.apache.spark.sql.SparkSession.getActiveSession.isDefined)
+      org.apache.spark.sql.SparkSession.getActiveSession.get
+    else
+      {
+        val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().master(&quot;local[*]&quot;).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).getOrCreate();
+        SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;);
+        SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl));
+        SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId));
+        SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser));
+        SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)));
+        SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)));
+        spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))));
+        SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;);
+        spark
+      }
+  else
+    throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          823
+        </td>
+        <td>
+          2502
+          -
+          2532
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;aws&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          824
+        </td>
+        <td>
+          2550
+          -
+          2589
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          829
+        </td>
+        <td>
+          2546
+          -
+          3498
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          if (org.apache.spark.sql.SparkSession.getActiveSession.isDefined)
+  org.apache.spark.sql.SparkSession.getActiveSession.get
+else
+  {
+    val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).enableHiveSupport().getOrCreate();
+    spark
+  }
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          826
+        </td>
+        <td>
+          2605
+          -
+          2638
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          825
+        </td>
+        <td>
+          2605
+          -
+          2638
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          828
+        </td>
+        <td>
+          2666
+          -
+          3498
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).enableHiveSupport().getOrCreate();
+  spark
+}
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          827
+        </td>
+        <td>
+          2692
+          -
+          3467
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.SparkSession.Builder.getOrCreate
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.builder().config(&quot;spark.default.parallelism&quot;, ss.spark_concurrent_threads).config(&quot;spark.sql.shuffle.partitions&quot;, ss.spark_shuffle_partitions).config(&quot;spark.sql.sources.partitionOverwriteMode&quot;, ss.spark_output_partition_overwrite_mode).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).enableHiveSupport().getOrCreate()
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          830
+        </td>
+        <td>
+          3526
+          -
+          3559
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          867
+        </td>
+        <td>
+          3522
+          -
+          5259
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (ss.running_environment.==(&quot;local&quot;))
+  if (org.apache.spark.sql.SparkSession.getActiveSession.isDefined)
+    org.apache.spark.sql.SparkSession.getActiveSession.get
+  else
+    {
+      val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().master(&quot;local[*]&quot;).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).getOrCreate();
+      SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;);
+      SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl));
+      SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId));
+      SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser));
+      SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)));
+      SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)));
+      spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))));
+      SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;);
+      spark
+    }
+else
+  throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          864
+        </td>
+        <td>
+          3573
+          -
+          5046
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (org.apache.spark.sql.SparkSession.getActiveSession.isDefined)
+  org.apache.spark.sql.SparkSession.getActiveSession.get
+else
+  {
+    val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().master(&quot;local[*]&quot;).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).getOrCreate();
+    SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;);
+    SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl));
+    SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId));
+    SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser));
+    SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)));
+    SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)));
+    spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))));
+    SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;);
+    spark
+  }
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          831
+        </td>
+        <td>
+          3577
+          -
+          3616
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          833
+        </td>
+        <td>
+          3632
+          -
+          3665
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          832
+        </td>
+        <td>
+          3632
+          -
+          3665
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.SparkSession.getActiveSession.get
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          863
+        </td>
+        <td>
+          3693
+          -
+          5046
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.builder().master(&quot;local[*]&quot;).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).getOrCreate();
+  SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;);
+  SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl));
+  SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId));
+  SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser));
+  SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)));
+  SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)));
+  spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))));
+  SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;);
+  spark
+}
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          834
+        </td>
+        <td>
+          3719
+          -
+          4207
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.SparkSession.Builder.getOrCreate
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.SparkSession.builder().master(&quot;local[*]&quot;).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).config(&quot;fs.gs.project.id&quot;, ss.gcp_project).config(&quot;fs.gs.auth.service.account.enable&quot;, &quot;true&quot;).config(&quot;google.cloud.auth.service.account.json.keyfile&quot;, ss.gcp_project_key_name).getOrCreate()
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          835
+        </td>
+        <td>
+          4221
+          -
+          4308
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;##################### Created SparkSession ##########################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          837
+        </td>
+        <td>
+          4371
+          -
+          4398
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.uiWebUrl
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.uiWebUrl
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          839
+        </td>
+        <td>
+          4321
+          -
+          4399
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          836
+        </td>
+        <td>
+          4336
+          -
+          4368
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.uiWebUrl = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          838
+        </td>
+        <td>
+          4336
+          -
+          4398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          842
+        </td>
+        <td>
+          4427
+          -
+          4499
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          841
+        </td>
+        <td>
+          4467
+          -
+          4499
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.applicationId
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.applicationId
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          840
+        </td>
+        <td>
+          4427
+          -
+          4464
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.applicationId = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          843
+        </td>
+        <td>
+          4412
+          -
+          4500
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          846
+        </td>
+        <td>
+          4528
+          -
+          4592
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          845
+        </td>
+        <td>
+          4564
+          -
+          4592
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.sparkUser
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.sparkUser
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          844
+        </td>
+        <td>
+          4528
+          -
+          4561
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.sparkContext.sparkUser = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          847
+        </td>
+        <td>
+          4513
+          -
+          4593
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          848
+        </td>
+        <td>
+          4621
+          -
+          4644
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.eventLog.dir = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          851
+        </td>
+        <td>
+          4606
+          -
+          4690
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          850
+        </td>
+        <td>
+          4621
+          -
+          4689
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.eventLog.dir = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.dir&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          849
+        </td>
+        <td>
+          4647
+          -
+          4689
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.RuntimeConfig.getOption
+        </td>
+        <td style="background: #AEF1AE">
+          spark.conf.getOption(&quot;spark.eventLog.dir&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          855
+        </td>
+        <td>
+          4703
+          -
+          4795
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          854
+        </td>
+        <td>
+          4718
+          -
+          4794
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          853
+        </td>
+        <td>
+          4748
+          -
+          4794
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.RuntimeConfig.getOption
+        </td>
+        <td style="background: #AEF1AE">
+          spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          4718
+          -
+          4745
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.eventLog.enabled = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          857
+        </td>
+        <td>
+          4900
+          -
+          4905
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          860
+        </td>
+        <td>
+          4877
+          -
+          4914
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          856
+        </td>
+        <td>
+          4839
+          -
+          4861
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.contains
+        </td>
+        <td style="background: #AEF1AE">
+          m1._1.contains(&quot;yarn&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          859
+        </td>
+        <td>
+          4892
+          -
+          4913
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          kv._1.+(&quot; = &quot;).+(kv._2)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          858
+        </td>
+        <td>
+          4908
+          -
+          4913
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          kv._2
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          861
+        </td>
+        <td>
+          4808
+          -
+          4915
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          862
+        </td>
+        <td>
+          4928
+          -
+          5015
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;#####################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          866
+        </td>
+        <td>
+          5082
+          -
+          5249
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          865
+        </td>
+        <td>
+          5082
+          -
+          5249
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          869
+        </td>
+        <td>
+          5279
+          -
+          5528
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.SparkSession.Builder.getOrCreate
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.builder().master(&quot;local[*]&quot;).config(&quot;fs.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem&quot;).config(&quot;fs.AbstractFileSystem.gs.impl&quot;, &quot;com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS&quot;).getOrCreate()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

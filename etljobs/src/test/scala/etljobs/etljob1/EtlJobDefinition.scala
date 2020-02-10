@@ -2,6 +2,8 @@ package etljobs.etljob1
 
 // BigQquery Imports
 import com.google.cloud.bigquery.JobInfo
+import etljobs.bigquery.BigQueryManager
+import etljobs.spark.SparkManager
 import etljobs.{EtlJobName, EtlProps}
 // ETLJOB library specific Imports
 import etljobs.EtlJob
@@ -16,7 +18,7 @@ class EtlJobDefinition(
                         val job_properties: Either[Map[String,String], EtlProps],
                         val global_properties: Option[GlobalProperties] = None
                       )
-  extends EtlJob {
+  extends EtlJob with SparkManager with BigQueryManager {
   var output_date_paths : Seq[String] = Seq()
   Logger.getLogger("org").setLevel(Level.WARN)
   val job_props: Map[String,String] = job_properties match {

@@ -24,19 +24,39 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.utils
 </span>2 <span style=''>
-</span>3 <span style=''>import org.apache.log4j.{Level, Logger, BasicConfigurator, ConsoleAppender, PatternLayout}
-</span>4 <span style=''>
-</span>5 <span style=''>object AppLogger {
-</span>6 <span style=''>    def initialize(): Unit = {
-</span>7 <span style=''>        // https://stackoverflow.com/questions/8965946/configuring-log4j-loggers-programmatically
-</span>8 <span style=''>        // https://github.com/apache/spark/blob/master/core/src/main/resources/org/apache/spark/log4j-defaults.properties
-</span>9 <span style=''>        val console: ConsoleAppender = </span><span style='background: #F0ADAD'>new ConsoleAppender()</span><span style=''>; 
-</span>10 <span style=''>        </span><span style='background: #F0ADAD'>console.setLayout(new PatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;))</span><span style=''>; 
-</span>11 <span style=''>        // console.setThreshold(Level.FATAL); // Setting LEVEL at this level will set logging for all since we are adding this as root logger
-</span>12 <span style=''>        </span><span style='background: #F0ADAD'>console.activateOptions()</span><span style=''>;
-</span>13 <span style=''>        </span><span style='background: #F0ADAD'>Logger.getRootLogger().addAppender(console)</span><span style=''>
-</span>14 <span style=''>    }  
-</span>15 <span style=''>}
+</span>3 <span style=''>import org.apache.log4j.jdbc.JDBCAppender
+</span>4 <span style=''>import org.apache.log4j.{BasicConfigurator, ConsoleAppender, EnhancedPatternLayout, Level, Logger}
+</span>5 <span style=''>
+</span>6 <span style=''>object AppLogger {
+</span>7 <span style=''>    def initialize(): Unit = {
+</span>8 <span style=''>        // https://stackoverflow.com/questions/8965946/configuring-log4j-loggers-programmatically
+</span>9 <span style=''>        // https://github.com/apache/spark/blob/master/core/src/main/resources/org/apache/spark/log4j-defaults.properties
+</span>10 <span style=''>        val console: ConsoleAppender = </span><span style='background: #F0ADAD'>new ConsoleAppender()</span><span style=''>
+</span>11 <span style=''>        </span><span style='background: #F0ADAD'>console.setLayout(new EnhancedPatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;))</span><span style=''>
+</span>12 <span style=''>        // console.setThreshold(Level.FATAL); // Setting LEVEL at this level will set logging for all since we are adding this as root logger
+</span>13 <span style=''>        </span><span style='background: #F0ADAD'>console.setThreshold(Level.INFO)</span><span style=''>
+</span>14 <span style=''>        </span><span style='background: #F0ADAD'>console.activateOptions()</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>        </span><span style='background: #F0ADAD'>Logger.getRootLogger.addAppender(console)</span><span style=''>
+</span>17 <span style=''>        // val jdbc: JDBCAppender = new JDBCAppender()
+</span>18 <span style=''>    }  
+</span>19 <span style=''>}
+</span>20 <span style=''>
+</span>21 <span style=''>//import java.sql.Connection
+</span>22 <span style=''>//import java.sql.SQLException
+</span>23 <span style=''>//import org.postgresql.ds.PGSimpleDataSource
+</span>24 <span style=''>//object ConnectionFactory {
+</span>25 <span style=''>//    private var dataSource: PGSimpleDataSource = _
+</span>26 <span style=''>//    @throws[SQLException]
+</span>27 <span style=''>//    def getConnection: Connection = {
+</span>28 <span style=''>//        if (dataSource == null) {
+</span>29 <span style=''>//            dataSource = new PGSimpleDataSource()
+</span>30 <span style=''>//            dataSource.setUrl(&quot;jdbc:postgresql://localhost:5432/etljobs&quot;)
+</span>31 <span style=''>//            dataSource.setUser(&quot;tharwanin&quot;)
+</span>32 <span style=''>//        }
+</span>33 <span style=''>//        dataSource.getConnection
+</span>34 <span style=''>//    }
+</span>35 <span style=''>//}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -50,15 +70,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          9
+          10
         </td>
         <td>
-          759
+          1016
         </td>
         <td>
-          424
+          474
           -
-          445
+          495
         </td>
         <td>
           Apply
@@ -71,15 +91,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          11
         </td>
         <td>
-          761
+          1018
         </td>
         <td>
-          456
+          504
           -
-          532
+          588
         </td>
         <td>
           Apply
@@ -88,40 +108,82 @@
           org.apache.log4j.AppenderSkeleton.setLayout
         </td>
         <td style="background: #F0ADAD">
-          console.setLayout(new org.apache.log4j.PatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;))
+          console.setLayout(new org.apache.log4j.EnhancedPatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;))
         </td>
       </tr><tr>
         <td>
-          10
+          11
         </td>
         <td>
-          760
+          1017
         </td>
         <td>
-          474
+          522
           -
-          531
+          587
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.PatternLayout.&lt;init&gt;
+          org.apache.log4j.EnhancedPatternLayout.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          new org.apache.log4j.PatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;)
+          new org.apache.log4j.EnhancedPatternLayout(&quot;%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n&quot;)
         </td>
       </tr><tr>
         <td>
-          12
+          13
         </td>
         <td>
-          762
+          1019
         </td>
         <td>
-          685
+          760
           -
-          710
+          770
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.log4j.Level.INFO
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.log4j.Level.INFO
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          1020
+        </td>
+        <td>
+          739
+          -
+          771
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.AppenderSkeleton.setThreshold
+        </td>
+        <td style="background: #F0ADAD">
+          console.setThreshold(org.apache.log4j.Level.INFO)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          1021
+        </td>
+        <td>
+          780
+          -
+          805
         </td>
         <td>
           Apply
@@ -134,15 +196,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          16
         </td>
         <td>
-          763
+          1022
         </td>
         <td>
-          720
+          815
           -
-          763
+          856
         </td>
         <td>
           Apply

@@ -18,10 +18,10 @@ val quill     = "io.getquill" %% "quill-jdbc" % QuillVersion
 val hadoopGCS = "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion
 val gcloudBQ = "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
 val pg = "org.postgresql" % "postgresql" % "42.2.8"
-
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
+val jcabi = "com.jcabi" % "jcabi-log" % "0.17.4"
 
-version in ThisBuild := "0.7.1"
+version in ThisBuild := "0.7.2"
 
 // To run test sequentially instead of default parallel execution
 Global / concurrentRestrictions := Seq(
@@ -37,6 +37,7 @@ lazy val etljobsSettings = Seq(
     sparkCore % Provided, sparkSql % Provided,  // For Spark jobs in SparkSteps
     gcloudBQ % Provided,                        // For using Big-query java API in BQLoadStep
     hadoopGCS % Provided,                       // For saving and reading from GCS
+    jcabi,
     quill,
     pg,
     //    monocle,

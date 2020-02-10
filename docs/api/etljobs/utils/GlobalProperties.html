@@ -159,12 +159,12 @@
                         <a href="package$$PARQUET$.html" title="">PARQUET</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="trait" href="SessionManager.html" title=""></a>
-                        <a href="SessionManager.html" title="">SessionManager</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
                         <a class="object" href="package$$TEXT$.html" title=""></a>
                         <a href="package$$TEXT$.html" title="">TEXT</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="UtilityFunctions.html" title=""></a>
+                        <a href="UtilityFunctions.html" title="">UtilityFunctions</a>
                       </li>
               </ul>
             </div>
@@ -244,9 +244,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="etljobs.utils.GlobalProperties#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(global_properties_file_path:String):etljobs.utils.GlobalProperties"></a><a id="&lt;init&gt;:GlobalProperties"></a>
+      <a id="&lt;init&gt;(global_properties_file_path:String,job_properties:Map[String,String]):etljobs.utils.GlobalProperties"></a><a id="&lt;init&gt;:GlobalProperties"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/GlobalProperties.html#&lt;init&gt;(global_properties_file_path:String):etljobs.utils.GlobalProperties" title="Permalink">
+      <a href="../../etljobs/utils/GlobalProperties.html#&lt;init&gt;(global_properties_file_path:String,job_properties:Map[String,String]):etljobs.utils.GlobalProperties" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -255,7 +255,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">GlobalProperties</span><span class="params">(<span name="global_properties_file_path">global_properties_file_path: <span class="extype" name="scala.Predef.String">String</span></span>)</span>
+        <span class="name">GlobalProperties</span><span class="params">(<span name="global_properties_file_path">global_properties_file_path: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="job_properties">job_properties: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">Map.empty</a></span></span></span>)</span>
       </span>
       
       
@@ -366,7 +366,7 @@
     </span>
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">config</span><span class="result">: <span class="extype" name="java.util.Properties">Properties</span></span>
@@ -414,7 +414,7 @@
     </span>
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">file_stream</span><span class="result">: <span class="extype" name="java.io.FileInputStream">FileInputStream</span></span>
@@ -593,6 +593,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="etljobs.utils.GlobalProperties#notification_level" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="notification_level:String"></a>
+      <span class="permalink">
+      <a href="../../etljobs/utils/GlobalProperties.html#notification_level:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notification_level</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
@@ -644,6 +660,22 @@
       </span>
       <span class="symbol">
         <span class="name">running_environment</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      
+    </li><li name="etljobs.utils.GlobalProperties#send_notification" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="send_notification:String"></a>
+      <span class="permalink">
+      <a href="../../etljobs/utils/GlobalProperties.html#send_notification:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">send_notification</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       

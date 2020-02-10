@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          etljobs/functions/SparkUDF.scala.html
+          etljobs/spark/SparkUDF.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -22,53 +22,48 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.functions
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.spark
 </span>2 <span style=''>
-</span>3 <span style=''>import java.util.Calendar
-</span>4 <span style=''>
-</span>5 <span style=''>import org.apache.spark.sql.functions._
-</span>6 <span style=''>import org.apache.spark.sql.Column
+</span>3 <span style=''>import org.apache.spark.sql.Column
+</span>4 <span style=''>import org.apache.spark.sql.functions.{col, from_unixtime, udf, unix_timestamp}
+</span>5 <span style=''>
+</span>6 <span style=''>trait SparkUDF {
 </span>7 <span style=''>
-</span>8 <span style=''>trait SparkUDF {
-</span>9 <span style=''>
-</span>10 <span style=''>  def get_24hr_formatted_from_12hr (startTime:String) : Option[String] = {
-</span>11 <span style=''>    val StartTime = </span><span style='background: #AEF1AE'>Option(startTime).getOrElse(return None).toString</span><span style=''>
-</span>12 <span style=''>    val meridiem = </span><span style='background: #AEF1AE'>StartTime.split(&quot; &quot;)(1)</span><span style=''>
-</span>13 <span style=''>    val time = </span><span style='background: #AEF1AE'>StartTime.split(&quot; &quot;)(0).replace(&quot;:&quot;,&quot;&quot;)</span><span style=''>
-</span>14 <span style=''>    val hour = </span><span style='background: #AEF1AE'>StartTime.split(&quot; &quot;)(0).split(&quot;:&quot;)(0)</span><span style=''>
-</span>15 <span style=''>    val FormattedTime= meridiem match {
-</span>16 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;PM&quot; &amp;&amp; (hour.toInt != 12)</span><span style=''> =&gt; (</span><span style='background: #AEF1AE'>time.toInt+120000</span><span style=''>)
-</span>17 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;PM&quot; &amp;&amp; (hour.toInt == 12)</span><span style=''> =&gt; time
-</span>18 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;AM&quot; &amp;&amp; (hour.toInt == 12)</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>&quot;00&quot;+(time.toInt-120000)</span><span style=''>
-</span>19 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;AM&quot; &amp;&amp; (hour.toInt != 12)</span><span style=''> =&gt; time
-</span>20 <span style=''>    }
-</span>21 <span style=''>    val time_new=</span><span style='background: #AEF1AE'>FormattedTime.toString</span><span style=''>
-</span>22 <span style=''>    val time_split = if (</span><span style='background: #AEF1AE'>time_new.length == 6</span><span style=''>) </span><span style='background: #AEF1AE'>time_new.splitAt(2)</span><span style=''> else </span><span style='background: #F0ADAD'>time_new.splitAt(1)</span><span style=''>
-</span>23 <span style=''>    val hours = if (</span><span style='background: #AEF1AE'>time_split._1.length ==2</span><span style=''> ) </span><span style='background: #AEF1AE'>time_split._1</span><span style=''> else </span><span style='background: #F0ADAD'>&quot;0&quot;+time_split._1</span><span style=''>
-</span>24 <span style=''>    val minutes = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._1</span><span style=''>
-</span>25 <span style=''>    val seconds = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._2</span><span style=''>
-</span>26 <span style=''>    </span><span style='background: #AEF1AE'>Some(hours+&quot;:&quot;+minutes+&quot;:&quot;+seconds)</span><span style=''>
-</span>27 <span style=''>  }
-</span>28 <span style=''>
-</span>29 <span style=''>  def get_24hr_formatted (input_time:String) : Option[String] = {
-</span>30 <span style=''>    val time = </span><span style='background: #AEF1AE'>Option(input_time).getOrElse(return None)</span><span style=''>
-</span>31 <span style=''>    val time_split = if (</span><span style='background: #AEF1AE'>time.length == 6</span><span style=''>) </span><span style='background: #AEF1AE'>time.splitAt(2)</span><span style=''> else </span><span style='background: #F0ADAD'>time.splitAt(1)</span><span style=''>
-</span>32 <span style=''>    val hours = if (</span><span style='background: #AEF1AE'>time_split._1.length ==2</span><span style=''> ) </span><span style='background: #AEF1AE'>time_split._1</span><span style=''> else </span><span style='background: #F0ADAD'>&quot;0&quot;+time_split._1</span><span style=''>
-</span>33 <span style=''>    val minutes = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._1</span><span style=''>
-</span>34 <span style=''>    val seconds = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._2</span><span style=''>
-</span>35 <span style=''>    </span><span style='background: #AEF1AE'>Some(hours+&quot;:&quot;+minutes+&quot;:&quot;+seconds)</span><span style=''>
-</span>36 <span style=''>  }
-</span>37 <span style=''>
-</span>38 <span style=''>  val get_formatted_date : (String,String,String) =&gt; Column
-</span>39 <span style=''>  = (ColumnName:String,ExistingFormat:String,NewFormat:String) =&gt; {
-</span>40 <span style=''>    </span><span style='background: #AEF1AE'>from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)</span><span style=''>
-</span>41 <span style=''>  }
-</span>42 <span style=''>
-</span>43 <span style=''>  val get_24hr_formatted_from_12hr_udf  = </span><span style='background: #AEF1AE'>udf[Option[String],String](</span><span style='background: #F0ADAD'>get_24hr_formatted_from_12hr</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>44 <span style=''>  val get_24hr_formatted_udf  = </span><span style='background: #AEF1AE'>udf[Option[String],String](</span><span style='background: #F0ADAD'>get_24hr_formatted</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>45 <span style=''>
-</span>46 <span style=''>
-</span>47 <span style=''>}
+</span>8 <span style=''>  def get_24hr_formatted_from_12hr (startTime:String) : Option[String] = {
+</span>9 <span style=''>    val StartTime = </span><span style='background: #AEF1AE'>Option(startTime).getOrElse(return None).toString</span><span style=''>
+</span>10 <span style=''>    val meridiem = </span><span style='background: #AEF1AE'>StartTime.split(&quot; &quot;)(1)</span><span style=''>
+</span>11 <span style=''>    val time = </span><span style='background: #AEF1AE'>StartTime.split(&quot; &quot;)(0).replace(&quot;:&quot;,&quot;&quot;)</span><span style=''>
+</span>12 <span style=''>    val hour = </span><span style='background: #AEF1AE'>StartTime.split(&quot; &quot;)(0).split(&quot;:&quot;)(0)</span><span style=''>
+</span>13 <span style=''>    val FormattedTime= meridiem match {
+</span>14 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;PM&quot; &amp;&amp; (hour.toInt != 12)</span><span style=''> =&gt; (</span><span style='background: #AEF1AE'>time.toInt+120000</span><span style=''>)
+</span>15 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;PM&quot; &amp;&amp; (hour.toInt == 12)</span><span style=''> =&gt; time
+</span>16 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;AM&quot; &amp;&amp; (hour.toInt == 12)</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>&quot;00&quot;+(time.toInt-120000)</span><span style=''>
+</span>17 <span style=''>      case x if </span><span style='background: #AEF1AE'>x == &quot;AM&quot; &amp;&amp; (hour.toInt != 12)</span><span style=''> =&gt; time
+</span>18 <span style=''>    }
+</span>19 <span style=''>    val time_new=</span><span style='background: #AEF1AE'>FormattedTime.toString</span><span style=''>
+</span>20 <span style=''>    val time_split = if (</span><span style='background: #AEF1AE'>time_new.length == 6</span><span style=''>) </span><span style='background: #AEF1AE'>time_new.splitAt(2)</span><span style=''> else </span><span style='background: #F0ADAD'>time_new.splitAt(1)</span><span style=''>
+</span>21 <span style=''>    val hours = if (</span><span style='background: #AEF1AE'>time_split._1.length ==2</span><span style=''> ) </span><span style='background: #AEF1AE'>time_split._1</span><span style=''> else </span><span style='background: #F0ADAD'>&quot;0&quot;+time_split._1</span><span style=''>
+</span>22 <span style=''>    val minutes = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._1</span><span style=''>
+</span>23 <span style=''>    val seconds = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._2</span><span style=''>
+</span>24 <span style=''>    </span><span style='background: #AEF1AE'>Some(hours+&quot;:&quot;+minutes+&quot;:&quot;+seconds)</span><span style=''>
+</span>25 <span style=''>  }
+</span>26 <span style=''>
+</span>27 <span style=''>  def get_24hr_formatted (input_time:String) : Option[String] = {
+</span>28 <span style=''>    val time = </span><span style='background: #AEF1AE'>Option(input_time).getOrElse(return None)</span><span style=''>
+</span>29 <span style=''>    val time_split = if (</span><span style='background: #AEF1AE'>time.length == 6</span><span style=''>) </span><span style='background: #AEF1AE'>time.splitAt(2)</span><span style=''> else </span><span style='background: #F0ADAD'>time.splitAt(1)</span><span style=''>
+</span>30 <span style=''>    val hours = if (</span><span style='background: #AEF1AE'>time_split._1.length ==2</span><span style=''> ) </span><span style='background: #AEF1AE'>time_split._1</span><span style=''> else </span><span style='background: #F0ADAD'>&quot;0&quot;+time_split._1</span><span style=''>
+</span>31 <span style=''>    val minutes = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._1</span><span style=''>
+</span>32 <span style=''>    val seconds = </span><span style='background: #AEF1AE'>time_split._2.splitAt(2)._2</span><span style=''>
+</span>33 <span style=''>    </span><span style='background: #AEF1AE'>Some(hours+&quot;:&quot;+minutes+&quot;:&quot;+seconds)</span><span style=''>
+</span>34 <span style=''>  }
+</span>35 <span style=''>
+</span>36 <span style=''>  val get_formatted_date: (String,String,String) =&gt; Column
+</span>37 <span style=''>  = (ColumnName:String,ExistingFormat:String,NewFormat:String) =&gt; {
+</span>38 <span style=''>    </span><span style='background: #AEF1AE'>from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)</span><span style=''>
+</span>39 <span style=''>  }
+</span>40 <span style=''>  val get_24hr_formatted_from_12hr_udf  = </span><span style='background: #AEF1AE'>udf[Option[String],String](</span><span style='background: #F0ADAD'>get_24hr_formatted_from_12hr</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>41 <span style=''>  val get_24hr_formatted_udf  = </span><span style='background: #AEF1AE'>udf[Option[String],String](</span><span style='background: #F0ADAD'>get_24hr_formatted</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>42 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -82,15 +77,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          11
+          9
         </td>
         <td>
-          482
+          870
         </td>
         <td>
-          243
+          252
           -
-          292
+          301
         </td>
         <td>
           Apply
@@ -103,15 +98,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          10
         </td>
         <td>
-          483
+          871
         </td>
         <td>
-          312
+          321
           -
-          335
+          344
         </td>
         <td>
           Apply
@@ -124,15 +119,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          11
         </td>
         <td>
-          484
+          872
         </td>
         <td>
-          351
+          360
           -
-          390
+          399
         </td>
         <td>
           Apply
@@ -145,15 +140,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          12
         </td>
         <td>
-          485
+          873
         </td>
         <td>
-          406
+          415
           -
-          443
+          452
         </td>
         <td>
           Apply
@@ -166,15 +161,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          14
         </td>
         <td>
-          487
+          875
         </td>
         <td>
-          514
+          523
           -
-          530
+          539
         </td>
         <td>
           Apply
@@ -187,15 +182,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          14
         </td>
         <td>
-          489
+          877
         </td>
         <td>
-          536
+          545
           -
-          553
+          562
         </td>
         <td>
           Apply
@@ -208,15 +203,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          14
         </td>
         <td>
-          486
+          874
         </td>
         <td>
-          505
+          514
           -
-          509
+          518
         </td>
         <td>
           Literal
@@ -229,15 +224,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          14
         </td>
         <td>
-          488
+          876
         </td>
         <td>
-          500
+          509
           -
-          531
+          540
         </td>
         <td>
           Apply
@@ -250,15 +245,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          15
         </td>
         <td>
-          490
+          878
         </td>
         <td>
-          576
+          585
           -
-          580
+          589
         </td>
         <td>
           Literal
@@ -271,15 +266,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          15
         </td>
         <td>
-          492
+          880
         </td>
         <td>
-          571
+          580
           -
-          602
+          611
         </td>
         <td>
           Apply
@@ -292,15 +287,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          15
         </td>
         <td>
-          491
+          879
         </td>
         <td>
-          585
+          594
           -
-          601
+          610
         </td>
         <td>
           Apply
@@ -313,15 +308,57 @@
         </td>
       </tr><tr>
         <td>
-          18
+          16
         </td>
         <td>
-          496
+          882
         </td>
         <td>
-          662
+          650
           -
           666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(hour).toInt.==(12)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          881
+        </td>
+        <td>
+          641
+          -
+          645
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;AM&quot;
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          884
+        </td>
+        <td>
+          671
+          -
+          675
         </td>
         <td>
           Literal
@@ -334,15 +371,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          16
         </td>
         <td>
-          498
+          886
         </td>
         <td>
-          662
+          671
           -
-          686
+          695
         </td>
         <td>
           Apply
@@ -355,15 +392,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          16
         </td>
         <td>
-          495
+          883
         </td>
         <td>
-          627
+          636
           -
-          658
+          667
         </td>
         <td>
           Apply
@@ -376,15 +413,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          16
         </td>
         <td>
-          497
+          885
         </td>
         <td>
-          668
+          677
           -
-          685
+          694
         </td>
         <td>
           Apply
@@ -397,36 +434,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          17
         </td>
         <td>
-          494
+          887
         </td>
         <td>
-          641
+          717
           -
-          657
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.==
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(hour).toInt.==(12)
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          493
-        </td>
-        <td>
-          632
-          -
-          636
+          721
         </td>
         <td>
           Literal
@@ -439,36 +455,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          17
         </td>
         <td>
-          499
+          889
         </td>
         <td>
-          708
-          -
           712
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;AM&quot;
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          501
-        </td>
-        <td>
-          703
           -
-          734
+          743
         </td>
         <td>
           Apply
@@ -481,15 +476,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          17
         </td>
         <td>
-          500
+          888
         </td>
         <td>
-          717
+          726
           -
-          733
+          742
         </td>
         <td>
           Apply
@@ -502,15 +497,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          19
         </td>
         <td>
-          502
+          890
         </td>
         <td>
-          766
+          775
           -
-          788
+          797
         </td>
         <td>
           Apply
@@ -523,78 +518,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          20
         </td>
         <td>
-          505
+          891
         </td>
         <td>
-          836
+          823
           -
-          855
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.collection.IndexedSeqOptimized.splitAt
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(time_new).splitAt(2)
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          507
-        </td>
-        <td>
-          861
-          -
-          880
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.collection.IndexedSeqOptimized.splitAt
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.augmentString(time_new).splitAt(1)
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          504
-        </td>
-        <td>
-          836
-          -
-          855
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IndexedSeqOptimized.splitAt
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(time_new).splitAt(2)
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          503
-        </td>
-        <td>
-          814
-          -
-          834
+          843
         </td>
         <td>
           Apply
@@ -607,15 +539,78 @@
         </td>
       </tr><tr>
         <td>
-          22
+          20
         </td>
         <td>
-          506
+          893
         </td>
         <td>
-          861
+          845
           -
-          880
+          864
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.IndexedSeqOptimized.splitAt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(time_new).splitAt(2)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          895
+        </td>
+        <td>
+          870
+          -
+          889
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.IndexedSeqOptimized.splitAt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(time_new).splitAt(1)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          892
+        </td>
+        <td>
+          845
+          -
+          864
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IndexedSeqOptimized.splitAt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(time_new).splitAt(2)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          894
+        </td>
+        <td>
+          870
+          -
+          889
         </td>
         <td>
           Apply
@@ -628,141 +623,15 @@
         </td>
       </tr><tr>
         <td>
-          23
+          21
         </td>
         <td>
-          514
+          899
         </td>
         <td>
-          947
+          956
           -
-          964
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;0&quot;.+(time_split._1)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          508
-        </td>
-        <td>
-          901
-          -
-          925
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.==
-        </td>
-        <td style="background: #AEF1AE">
-          time_split._1.length().==(2)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          510
-        </td>
-        <td>
-          928
-          -
-          941
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Tuple2._1
-        </td>
-        <td style="background: #AEF1AE">
-          time_split._1
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          513
-        </td>
-        <td>
-          947
-          -
-          964
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;0&quot;.+(time_split._1)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          512
-        </td>
-        <td>
-          951
-          -
-          964
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._1
-        </td>
-        <td style="background: #F0ADAD">
-          time_split._1
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          509
-        </td>
-        <td>
-          928
-          -
-          941
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._1
-        </td>
-        <td style="background: #AEF1AE">
-          time_split._1
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          511
-        </td>
-        <td>
-          947
-          -
-          950
+          959
         </td>
         <td>
           Literal
@@ -775,15 +644,141 @@
         </td>
       </tr><tr>
         <td>
-          24
+          21
         </td>
         <td>
-          517
+          902
         </td>
         <td>
-          983
+          956
           -
-          1010
+          973
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;0&quot;.+(time_split._1)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          896
+        </td>
+        <td>
+          910
+          -
+          934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          time_split._1.length().==(2)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          898
+        </td>
+        <td>
+          937
+          -
+          950
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #AEF1AE">
+          time_split._1
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          901
+        </td>
+        <td>
+          956
+          -
+          973
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;0&quot;.+(time_split._1)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          900
+        </td>
+        <td>
+          960
+          -
+          973
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          time_split._1
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          897
+        </td>
+        <td>
+          937
+          -
+          950
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #AEF1AE">
+          time_split._1
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          905
+        </td>
+        <td>
+          992
+          -
+          1019
         </td>
         <td>
           Select
@@ -796,36 +791,36 @@
         </td>
       </tr><tr>
         <td>
-          24
+          22
         </td>
         <td>
-          516
+          904
         </td>
         <td>
+          1014
+          -
+          1015
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          2
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          903
+        </td>
+        <td>
+          992
+          -
           1005
-          -
-          1006
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          2
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          515
-        </td>
-        <td>
-          983
-          -
-          996
         </td>
         <td>
           Select
@@ -838,57 +833,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          23
         </td>
         <td>
-          519
+          908
         </td>
         <td>
-          1051
+          1038
           -
-          1052
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          2
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          518
-        </td>
-        <td>
-          1029
-          -
-          1042
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._2
-        </td>
-        <td style="background: #AEF1AE">
-          time_split._2
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          520
-        </td>
-        <td>
-          1029
-          -
-          1056
+          1065
         </td>
         <td>
           Select
@@ -901,15 +854,57 @@
         </td>
       </tr><tr>
         <td>
-          26
+          23
         </td>
         <td>
-          522
+          907
         </td>
         <td>
-          1061
+          1060
           -
-          1096
+          1061
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          2
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          906
+        </td>
+        <td>
+          1038
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #AEF1AE">
+          time_split._2
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          910
+        </td>
+        <td>
+          1070
+          -
+          1105
         </td>
         <td>
           Apply
@@ -922,15 +917,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          24
         </td>
         <td>
-          521
+          909
         </td>
         <td>
-          1066
+          1075
           -
-          1095
+          1104
         </td>
         <td>
           Apply
@@ -943,15 +938,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          28
         </td>
         <td>
-          523
+          911
         </td>
         <td>
-          1219
+          1228
           -
-          1223
+          1232
         </td>
         <td>
           Select
@@ -964,15 +959,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          28
         </td>
         <td>
-          524
+          912
         </td>
         <td>
-          1183
+          1192
           -
-          1224
+          1233
         </td>
         <td>
           Apply
@@ -985,15 +980,57 @@
         </td>
       </tr><tr>
         <td>
-          31
+          29
         </td>
         <td>
-          525
+          917
         </td>
         <td>
-          1250
+          1298
           -
-          1266
+          1313
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.IndexedSeqOptimized.splitAt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(time).splitAt(1)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          914
+        </td>
+        <td>
+          1277
+          -
+          1292
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IndexedSeqOptimized.splitAt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(time).splitAt(2)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          913
+        </td>
+        <td>
+          1259
+          -
+          1275
         </td>
         <td>
           Apply
@@ -1006,15 +1043,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          29
         </td>
         <td>
-          528
+          916
         </td>
         <td>
-          1289
+          1298
           -
-          1304
+          1313
         </td>
         <td>
           Apply
@@ -1027,15 +1064,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          29
         </td>
         <td>
-          527
+          915
         </td>
         <td>
-          1268
+          1277
           -
-          1283
+          1292
         </td>
         <td>
           Block
@@ -1048,57 +1085,36 @@
         </td>
       </tr><tr>
         <td>
-          31
+          30
         </td>
         <td>
-          526
+          923
         </td>
         <td>
-          1268
+          1380
           -
-          1283
+          1397
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.IndexedSeqOptimized.splitAt
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(time).splitAt(2)
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          529
-        </td>
-        <td>
-          1289
-          -
-          1304
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.collection.IndexedSeqOptimized.splitAt
+          java.lang.String.+
         </td>
         <td style="background: #F0ADAD">
-          scala.Predef.augmentString(time).splitAt(1)
+          &quot;0&quot;.+(time_split._1)
         </td>
       </tr><tr>
         <td>
-          32
+          30
         </td>
         <td>
-          532
+          920
         </td>
         <td>
-          1352
+          1361
           -
-          1365
+          1374
         </td>
         <td>
           Block
@@ -1111,15 +1127,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          30
         </td>
         <td>
-          534
+          922
         </td>
         <td>
-          1375
+          1384
           -
-          1388
+          1397
         </td>
         <td>
           Select
@@ -1132,15 +1148,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          30
         </td>
         <td>
-          531
+          919
         </td>
         <td>
-          1352
+          1361
           -
-          1365
+          1374
         </td>
         <td>
           Select
@@ -1153,15 +1169,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          30
         </td>
         <td>
-          530
+          918
         </td>
         <td>
-          1325
+          1334
           -
-          1349
+          1358
         </td>
         <td>
           Apply
@@ -1174,15 +1190,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          30
         </td>
         <td>
-          533
+          921
         </td>
         <td>
-          1371
+          1380
           -
-          1374
+          1383
         </td>
         <td>
           Literal
@@ -1195,15 +1211,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          30
         </td>
         <td>
-          536
+          924
         </td>
         <td>
-          1371
+          1380
           -
-          1388
+          1397
         </td>
         <td>
           Block
@@ -1216,36 +1232,36 @@
         </td>
       </tr><tr>
         <td>
-          32
+          31
         </td>
         <td>
-          535
+          926
         </td>
         <td>
-          1371
+          1438
           -
-          1388
+          1439
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          java.lang.String.+
+          &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
-          &quot;0&quot;.+(time_split._1)
+        <td style="background: #AEF1AE">
+          2
         </td>
       </tr><tr>
         <td>
-          33
+          31
         </td>
         <td>
-          537
+          925
         </td>
         <td>
-          1407
+          1416
           -
-          1420
+          1429
         </td>
         <td>
           Select
@@ -1258,15 +1274,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          31
         </td>
         <td>
-          539
+          927
         </td>
         <td>
-          1407
+          1416
           -
-          1434
+          1443
         </td>
         <td>
           Select
@@ -1279,15 +1295,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          32
         </td>
         <td>
-          538
+          929
         </td>
         <td>
-          1429
+          1484
           -
-          1430
+          1485
         </td>
         <td>
           Literal
@@ -1300,36 +1316,15 @@
         </td>
       </tr><tr>
         <td>
-          34
+          32
         </td>
         <td>
-          541
+          928
         </td>
         <td>
+          1462
+          -
           1475
-          -
-          1476
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          2
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          540
-        </td>
-        <td>
-          1453
-          -
-          1466
         </td>
         <td>
           Select
@@ -1342,15 +1337,15 @@
         </td>
       </tr><tr>
         <td>
-          34
+          32
         </td>
         <td>
-          542
+          930
         </td>
         <td>
-          1453
+          1462
           -
-          1480
+          1489
         </td>
         <td>
           Select
@@ -1363,36 +1358,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          33
         </td>
         <td>
-          543
+          932
         </td>
         <td>
-          1490
+          1494
           -
-          1519
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #AEF1AE">
-          hours.+(&quot;:&quot;).+(minutes).+(&quot;:&quot;).+(seconds)
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          544
-        </td>
-        <td>
-          1485
-          -
-          1520
+          1529
         </td>
         <td>
           Apply
@@ -1405,15 +1379,57 @@
         </td>
       </tr><tr>
         <td>
-          40
+          33
         </td>
         <td>
-          546
+          931
         </td>
         <td>
-          1672
+          1499
           -
-          1719
+          1528
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          hours.+(&quot;:&quot;).+(minutes).+(&quot;:&quot;).+(seconds)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          935
+        </td>
+        <td>
+          1666
+          -
+          1739
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.functions.from_unixtime
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.functions.from_unixtime(org.apache.spark.sql.functions.unix_timestamp(org.apache.spark.sql.functions.col(ColumnName), ExistingFormat), NewFormat)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          934
+        </td>
+        <td>
+          1680
+          -
+          1727
         </td>
         <td>
           Apply
@@ -1426,15 +1442,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          38
         </td>
         <td>
-          545
+          933
         </td>
         <td>
-          1687
+          1695
           -
-          1702
+          1710
         </td>
         <td>
           Apply
@@ -1450,33 +1466,12 @@
           40
         </td>
         <td>
-          547
+          937
         </td>
         <td>
-          1658
+          1786
           -
-          1731
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.spark.sql.functions.from_unixtime
-        </td>
-        <td style="background: #AEF1AE">
-          org.apache.spark.sql.functions.from_unixtime(org.apache.spark.sql.functions.unix_timestamp(org.apache.spark.sql.functions.col(ColumnName), ExistingFormat), NewFormat)
-        </td>
-      </tr><tr>
-        <td>
-          43
-        </td>
-        <td>
-          549
-        </td>
-        <td>
-          1779
-          -
-          1835
+          1842
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1489,7 +1484,7 @@
   ((startTime: String) =&gt; SparkUDF.this.get_24hr_formatted_from_12hr(startTime))
 })(({
   val $u: reflect.runtime.universe.type = scala.reflect.runtime.`package`.universe;
-  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.functions.SparkUDF].getClassLoader());
+  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.spark.SparkUDF].getClassLoader());
   $u.TypeTag.apply[Option[String]]($m, {
     final class $typecreator1 extends TypeCreator {
       def &lt;init&gt;(): $typecreator1 = {
@@ -1506,7 +1501,7 @@
   })
 }: reflect.runtime.universe.TypeTag[Option[String]]), ({
   val $u: reflect.runtime.universe.type = scala.reflect.runtime.`package`.universe;
-  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.functions.SparkUDF].getClassLoader());
+  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.spark.SparkUDF].getClassLoader());
   $u.TypeTag.apply[String]($m, {
     final class $typecreator2 extends TypeCreator {
       def &lt;init&gt;(): $typecreator2 = {
@@ -1525,57 +1520,57 @@
         </td>
       </tr><tr>
         <td>
-          43
+          40
         </td>
         <td>
-          548
+          936
         </td>
         <td>
-          1806
+          1813
           -
-          1834
+          1841
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.functions.SparkUDF.get_24hr_formatted_from_12hr
+          etljobs.spark.SparkUDF.get_24hr_formatted_from_12hr
         </td>
         <td style="background: #F0ADAD">
           SparkUDF.this.get_24hr_formatted_from_12hr(startTime)
         </td>
       </tr><tr>
         <td>
-          44
+          41
         </td>
         <td>
-          550
+          938
         </td>
         <td>
-          1895
+          1902
           -
-          1913
+          1920
         </td>
         <td>
           Apply
         </td>
         <td>
-          etljobs.functions.SparkUDF.get_24hr_formatted
+          etljobs.spark.SparkUDF.get_24hr_formatted
         </td>
         <td style="background: #F0ADAD">
           SparkUDF.this.get_24hr_formatted(input_time)
         </td>
       </tr><tr>
         <td>
-          44
+          41
         </td>
         <td>
-          551
+          939
         </td>
         <td>
-          1868
+          1875
           -
-          1914
+          1921
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1588,7 +1583,7 @@
   ((input_time: String) =&gt; SparkUDF.this.get_24hr_formatted(input_time))
 })(({
   val $u: reflect.runtime.universe.type = scala.reflect.runtime.`package`.universe;
-  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.functions.SparkUDF].getClassLoader());
+  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.spark.SparkUDF].getClassLoader());
   $u.TypeTag.apply[Option[String]]($m, {
     final class $typecreator1 extends TypeCreator {
       def &lt;init&gt;(): $typecreator1 = {
@@ -1605,7 +1600,7 @@
   })
 }: reflect.runtime.universe.TypeTag[Option[String]]), ({
   val $u: reflect.runtime.universe.type = scala.reflect.runtime.`package`.universe;
-  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.functions.SparkUDF].getClassLoader());
+  val $m: $u.Mirror = scala.reflect.runtime.`package`.universe.runtimeMirror(classOf[etljobs.spark.SparkUDF].getClassLoader());
   $u.TypeTag.apply[String]($m, {
     final class $typecreator2 extends TypeCreator {
       def &lt;init&gt;(): $typecreator2 = {

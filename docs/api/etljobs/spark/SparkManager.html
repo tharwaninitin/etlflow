@@ -85,10 +85,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../index.html" class="extype" name="_root_">root</a></dd></dl></div>
-    </li><li name="etljobs.utils" visbl="pub" class="indented2 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="utils"></a><a id="utils:utils"></a>
+    </li><li name="etljobs.spark" visbl="pub" class="indented2 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="spark"></a><a id="spark:spark"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/index.html" title="Permalink">
+      <a href="../../etljobs/spark/index.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -97,41 +97,37 @@
         <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <a title="" href="index.html"><span class="name">utils</span></a>
+        <a title="" href="index.html"><span class="name">spark</span></a>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="etljobs">etljobs</a></dd></dl></div>
-    </li><li name="etljobs.utils.SessionManager" visbl="pub" class="indented3 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="SessionManagerextendsAnyRef"></a><a id="SessionManager:SessionManager"></a>
-      <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="SessionManager.html"><span class="name">SessionManager</span></a><span class="result"> extends <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="etljobs.utils">utils</a></dd></dl></div>
-    </li><li class="current-entities indented3">
+    </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">DataFrameHelper</a>
+                        <a class="object" href="ReadApi$.html" title=""></a>
+                        <a href="ReadApi$.html" title="">ReadApi</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="" title=""></a>
+                        <a href="" title="">SparkManager</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="SparkUDF.html" title=""></a>
+                        <a href="SparkUDF.html" title="">SparkUDF</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="WriteApi$.html" title=""></a>
+                        <a href="WriteApi$.html" title="">WriteApi</a>
                       </li>
               </ul>
             </div>
           </div>
           <div id="content">
-            <body class="class type">
+            <body class="trait type">
       <div id="definition">
-        <div class="big-circle class">c</div>
-        <p id="owner"><a href="../index.html" class="extype" name="etljobs">etljobs</a>.<a href="index.html" class="extype" name="etljobs.utils">utils</a>.<a href="SessionManager.html" class="extype" name="etljobs.utils.SessionManager">SessionManager</a></p>
-        <h1>DataFrameHelper<span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html" title="Permalink">
+        <div class="big-circle trait">t</div>
+        <p id="owner"><a href="../index.html" class="extype" name="etljobs">etljobs</a>.<a href="index.html" class="extype" name="etljobs.spark">spark</a></p>
+        <h1>SparkManager<span class="permalink">
+      <a href="../../etljobs/spark/SparkManager.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -140,11 +136,11 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">class</span>
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">DataFrameHelper</span><span class="result"> extends <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">SparkManager</span><span class="result"> extends <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
       </span>
       </h4>
 
@@ -179,7 +175,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="etljobs.utils.SessionManager.DataFrameHelper"><span>DataFrameHelper</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="etljobs.spark.SparkManager"><span>SparkManager</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -197,38 +193,57 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="etljobs.utils.SessionManager.DataFrameHelper#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(df:org.apache.spark.sql.DataFrame):SessionManager.this.DataFrameHelper"></a><a id="&lt;init&gt;:DataFrameHelper"></a>
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="etljobs.spark.SparkManager.DataFrameHelper" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DataFrameHelperextendsAnyRef"></a><a id="DataFrameHelper:DataFrameHelper"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#&lt;init&gt;(df:org.apache.spark.sql.DataFrame):SessionManager.this.DataFrameHelper" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager$DataFrameHelper.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
+        <span class="modifier">implicit </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">DataFrameHelper</span><span class="params">(<span name="df">df: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>)</span>
+        <a title="" href="SparkManager$DataFrameHelper.html"><span class="name">DataFrameHelper</span></a><span class="result"> extends <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
     </li></ol>
             </div>
 
-        
-
-        
+        <div class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="etljobs.spark.SparkManager#global_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="global_properties:Option[etljobs.utils.GlobalProperties]"></a><a id="global_properties:Option[GlobalProperties]"></a>
+      <span class="permalink">
+      <a href="../../etljobs/spark/SparkManager.html#global_properties:Option[etljobs.utils.GlobalProperties]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">global_properties</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a>]</span>
+      </span>
+      
+      
+    </li></ol>
+            </div>
 
         <div class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -244,7 +259,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html###():Int" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -260,7 +275,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -276,7 +291,7 @@
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -292,7 +307,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#clone():Object" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -313,10 +328,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="etljobs.utils.SessionManager.DataFrameHelper#columnCount" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="columnCount:Int"></a>
+    </li><li name="etljobs.spark.SparkManager#createSparkSession" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="createSparkSession(gp:Option[etljobs.utils.GlobalProperties]):org.apache.spark.sql.SparkSession"></a><a id="createSparkSession(Option[GlobalProperties]):SparkSession"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#columnCount:Int" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#createSparkSession(gp:Option[etljobs.utils.GlobalProperties]):org.apache.spark.sql.SparkSession" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -325,30 +340,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">columnCount</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      
-      
-    </li><li name="etljobs.utils.SessionManager.DataFrameHelper#column_count" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="column_count:Int"></a>
-      <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#column_count:Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">var</span>
-      </span>
-      <span class="symbol">
-        <span class="name">column_count</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">createSparkSession</span><span class="params">(<span name="gp">gp: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>
       </span>
       
       
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -364,7 +363,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -380,7 +379,7 @@
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#finalize():Unit" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -402,7 +401,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#getClass():Class[_]" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -418,26 +417,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="etljobs.utils.SessionManager.DataFrameHelper#hasColumn" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="hasColumn(columnName:String):Boolean"></a><a id="hasColumn(String):Boolean"></a>
-      <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#hasColumn(columnName:String):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hasColumn</span><span class="params">(<span name="columnName">columnName: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#hashCode():Int" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -456,7 +439,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -472,7 +455,7 @@
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -488,7 +471,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#notify():Unit" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -507,7 +490,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#notifyAll():Unit" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -523,10 +506,26 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etljobs.spark.SparkManager#spark" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="spark:org.apache.spark.sql.SparkSession"></a><a id="spark:SparkSession"></a>
+      <span class="permalink">
+      <a href="../../etljobs/spark/SparkManager.html#spark:org.apache.spark.sql.SparkSession" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">spark</span><span class="result">: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -542,7 +541,7 @@
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#toString():String" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -558,7 +557,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#wait():Unit" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -580,7 +579,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -602,7 +601,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../etljobs/spark/SparkManager.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -623,22 +622,6 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="etljobs.utils.SessionManager.DataFrameHelper#withColumnExtended" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withColumnExtended(columnName:String,expression:org.apache.spark.sql.Column):org.apache.spark.sql.DataFrame"></a><a id="withColumnExtended(String,Column):DataFrame"></a>
-      <span class="permalink">
-      <a href="../../etljobs/utils/SessionManager$DataFrameHelper.html#withColumnExtended(columnName:String,expression:org.apache.spark.sql.Column):org.apache.spark.sql.DataFrame" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withColumnExtended</span><span class="params">(<span name="columnName">columnName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expression">expression: <span class="extype" name="org.apache.spark.sql.Column">Column</span></span>)</span><span class="result">: <span class="extype" name="org.apache.spark.sql.DataFrame">DataFrame</span></span>
-      </span>
-      
-      
     </li>
               </ol>
             </div>

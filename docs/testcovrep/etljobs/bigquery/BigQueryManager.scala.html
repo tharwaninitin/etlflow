@@ -1,0 +1,526 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/bigquery/BigQueryManager.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.bigquery
+</span>2 <span style=''>
+</span>3 <span style=''>import java.io.FileInputStream
+</span>4 <span style=''>
+</span>5 <span style=''>import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+</span>6 <span style=''>import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
+</span>7 <span style=''>import etljobs.utils.GlobalProperties
+</span>8 <span style=''>import org.apache.log4j.Logger
+</span>9 <span style=''>
+</span>10 <span style=''>trait BigQueryManager {
+</span>11 <span style=''>  private val ic_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>12 <span style=''>  val global_properties: Option[GlobalProperties]
+</span>13 <span style=''>  </span><span style='background: #AEF1AE'>ic_logger.info(f&quot;======&gt; Loaded BigQueryManager(${getClass.getName})&quot;)</span><span style=''>
+</span>14 <span style=''>
+</span>15 <span style=''>  lazy val bq: BigQuery = createBigQuerySession(global_properties)
+</span>16 <span style=''>
+</span>17 <span style=''>  def createBigQuerySession(gp: Option[GlobalProperties]): BigQuery = {
+</span>18 <span style=''>    gp match {
+</span>19 <span style=''>      case Some(ss) =&gt;
+</span>20 <span style=''>        </span><span style='background: #AEF1AE'>ic_logger.info(s&quot;Job is running on env: ${ss.running_environment}&quot;)</span><span style=''>
+</span>21 <span style=''>        if (</span><span style='background: #AEF1AE'>ss.running_environment == &quot;gcp&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
+</span>22 <span style=''>        else </span><span style='background: #AEF1AE'>if (ss.running_environment == &quot;aws&quot; || ss.running_environment == &quot;local&quot;)  {
+</span>23 <span style=''></span><span style='background: #AEF1AE'>          val credentials: GoogleCredentials  = ServiceAccountCredentials.fromStream(new FileInputStream(ss.gcp_project_key_name))
+</span>24 <span style=''></span><span style='background: #AEF1AE'>          BigQueryOptions.newBuilder().setCredentials(credentials).build().getService
+</span>25 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>26 <span style=''></span><span style='background: #AEF1AE'>        else {
+</span>27 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
+</span>28 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>29 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
+</span>30 <span style=''>    }
+</span>31 <span style=''>  }
+</span>32 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          316
+          -
+          350
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(BigQueryManager.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          333
+          -
+          349
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          BigQueryManager.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          403
+          -
+          473
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          BigQueryManager.this.ic_logger.info(({
+  val arg$macro$1: Any = BigQueryManager.this.getClass().getName();
+  new scala.collection.immutable.StringOps(&quot;======&gt; Loaded BigQueryManager(%s)&quot;).format(arg$macro$1)
+}: String))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          678
+          -
+          702
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Job is running on env: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          661
+          -
+          728
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          BigQueryManager.this.ic_logger.info(scala.StringContext.apply(&quot;Job is running on env: &quot;, &quot;&quot;).s(ss.running_environment))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          676
+          -
+          727
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Job is running on env: &quot;, &quot;&quot;).s(ss.running_environment)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          726
+          -
+          727
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          774
+          -
+          819
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.BigQueryOptions.getDefaultInstance().getService()
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          741
+          -
+          772
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;gcp&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          774
+          -
+          819
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.BigQueryOptions.getDefaultInstance().getService()
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          837
+          -
+          905
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.||
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;aws&quot;).||(ss.running_environment.==(&quot;local&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          872
+          -
+          905
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          908
+          -
+          1136
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  val credentials: com.google.auth.oauth2.GoogleCredentials = com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(ss.gcp_project_key_name));
+  com.google.cloud.bigquery.BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
+}
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          863
+          -
+          868
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;aws&quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          833
+          -
+          1339
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (ss.running_environment.==(&quot;aws&quot;).||(ss.running_environment.==(&quot;local&quot;)))
+  {
+    val credentials: com.google.auth.oauth2.GoogleCredentials = com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(ss.gcp_project_key_name));
+    com.google.cloud.bigquery.BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
+  }
+else
+  throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          958
+          -
+          1040
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.auth.oauth2.ServiceAccountCredentials.fromStream
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(ss.gcp_project_key_name))
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          995
+          -
+          1039
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.io.FileInputStream.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.io.FileInputStream(ss.gcp_project_key_name)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          1051
+          -
+          1126
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          1162
+          -
+          1329
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          1162
+          -
+          1329
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw new scala.`package`.Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          1359
+          -
+          1404
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.BigQueryOptions.getDefaultInstance().getService()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

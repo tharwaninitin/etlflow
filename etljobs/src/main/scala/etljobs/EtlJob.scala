@@ -2,11 +2,11 @@ package etljobs
 
 import etljobs.etlsteps.StateLessEtlStep
 import etljobs.log.{DbManager, SlackManager}
-import etljobs.utils.{GlobalProperties, SessionManager}
+import etljobs.utils.GlobalProperties
 import org.apache.log4j.Logger
 import scala.util.{Failure, Success, Try}
 
-trait EtlJob extends SessionManager {
+trait EtlJob {
     val etl_job_logger: Logger = Logger.getLogger(getClass.getName)
     var job_execution_state: Map[String, Map[String,String]] = Map.empty
     var error_occured: Boolean = false

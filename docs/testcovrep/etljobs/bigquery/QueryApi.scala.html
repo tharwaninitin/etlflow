@@ -26,28 +26,55 @@
 </span>2 <span style=''>
 </span>3 <span style=''>import org.apache.log4j.Logger
 </span>4 <span style=''>import java.util.UUID
-</span>5 <span style=''>import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, FieldValueList, Job, JobId, JobInfo, QueryJobConfiguration, TableResult}
+</span>5 <span style=''>import com.google.cloud.bigquery.{BigQuery, FieldValueList, Job, JobId, JobInfo, QueryJobConfiguration, TableId, TableResult}
 </span>6 <span style=''>
 </span>7 <span style=''>object QueryApi {
-</span>8 <span style=''>    private val query_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
-</span>9 <span style=''>    </span><span style='background: #AEF1AE'>query_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
-</span>10 <span style=''>    
-</span>11 <span style=''>    def getDataFromBQ(bq: BigQuery, query: String): Iterable[FieldValueList] = {
-</span>12 <span style=''>        val queryConfig: QueryJobConfiguration = </span><span style='background: #AEF1AE'>QueryJobConfiguration.newBuilder(query)
-</span>13 <span style=''></span><span style='background: #AEF1AE'>            .setUseLegacySql(false)
-</span>14 <span style=''></span><span style='background: #AEF1AE'>            .build()</span><span style=''>
+</span>8 <span style=''>  private val query_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>9 <span style=''>  </span><span style='background: #AEF1AE'>query_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>10 <span style=''>
+</span>11 <span style=''>  def getDataFromBQ(bq: BigQuery, query: String): Iterable[FieldValueList] = {
+</span>12 <span style=''>    val queryConfig: QueryJobConfiguration = </span><span style='background: #AEF1AE'>QueryJobConfiguration.newBuilder(query)
+</span>13 <span style=''></span><span style='background: #AEF1AE'>      .setUseLegacySql(false)
+</span>14 <span style=''></span><span style='background: #AEF1AE'>      .build()</span><span style=''>
 </span>15 <span style=''>
-</span>16 <span style=''>        val jobId: JobId = </span><span style='background: #AEF1AE'>JobId.of(UUID.randomUUID().toString())</span><span style=''>
-</span>17 <span style=''>        val queryJob: Job = </span><span style='background: #AEF1AE'>bq.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build())</span><span style=''>
+</span>16 <span style=''>    val jobId: JobId = </span><span style='background: #AEF1AE'>JobId.of(UUID.randomUUID().toString)</span><span style=''>
+</span>17 <span style=''>    val queryJob: Job = </span><span style='background: #AEF1AE'>bq.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build())</span><span style=''>
 </span>18 <span style=''>
-</span>19 <span style=''>        // Wait for the query to complete.
-</span>20 <span style=''>        </span><span style='background: #AEF1AE'>queryJob.waitFor()</span><span style=''>
+</span>19 <span style=''>    // Wait for the query to complete.
+</span>20 <span style=''>    </span><span style='background: #AEF1AE'>queryJob.waitFor()</span><span style=''>
 </span>21 <span style=''>
-</span>22 <span style=''>        import scala.collection.JavaConverters._
-</span>23 <span style=''>        val result: TableResult = </span><span style='background: #AEF1AE'>queryJob.getQueryResults()</span><span style=''>
-</span>24 <span style=''>        </span><span style='background: #AEF1AE'>result.iterateAll().asScala</span><span style=''>
-</span>25 <span style=''>    }
-</span>26 <span style=''>}
+</span>22 <span style=''>    import scala.collection.JavaConverters._
+</span>23 <span style=''>    val result: TableResult = </span><span style='background: #AEF1AE'>queryJob.getQueryResults()</span><span style=''>
+</span>24 <span style=''>    </span><span style='background: #AEF1AE'>result.iterateAll().asScala</span><span style=''>
+</span>25 <span style=''>  }
+</span>26 <span style=''>
+</span>27 <span style=''>  def loadIntoBQFromBQ(bq: BigQuery,
+</span>28 <span style=''>                       seq_query_destination_table: Seq[(String, String)],
+</span>29 <span style=''>                       destination_dataset: String,
+</span>30 <span style=''>                       destination_table: String,
+</span>31 <span style=''>                       write_disposition: JobInfo.WriteDisposition,
+</span>32 <span style=''>                       create_disposition: JobInfo.CreateDisposition
+</span>33 <span style=''>                      ): Unit = {
+</span>34 <span style=''>    </span><span style='background: #F0ADAD'>seq_query_destination_table.foreach { pair_query_destination_table =&gt;
+</span>35 <span style=''></span><span style='background: #F0ADAD'>
+</span>36 <span style=''></span><span style='background: #F0ADAD'>      val queryConfig: QueryJobConfiguration = QueryJobConfiguration.newBuilder(pair_query_destination_table._1)
+</span>37 <span style=''></span><span style='background: #F0ADAD'>        .setUseLegacySql(false)
+</span>38 <span style=''></span><span style='background: #F0ADAD'>        .setDestinationTable(TableId.of(destination_dataset, pair_query_destination_table._2))
+</span>39 <span style=''></span><span style='background: #F0ADAD'>        .setWriteDisposition(write_disposition)
+</span>40 <span style=''></span><span style='background: #F0ADAD'>        .setCreateDisposition(create_disposition)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>        .setAllowLargeResults(true)
+</span>42 <span style=''></span><span style='background: #F0ADAD'>        .build()
+</span>43 <span style=''></span><span style='background: #F0ADAD'>
+</span>44 <span style=''></span><span style='background: #F0ADAD'>      val jobId: JobId = JobId.of(UUID.randomUUID().toString)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>
+</span>46 <span style=''></span><span style='background: #F0ADAD'>      val queryJob: Job = bq.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build())
+</span>47 <span style=''></span><span style='background: #F0ADAD'>
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      queryJob.waitFor()
+</span>49 <span style=''></span><span style='background: #F0ADAD'>
+</span>50 <span style=''></span><span style='background: #F0ADAD'>      query_logger.info(s&quot;BQ table ${destination_dataset + &quot;.&quot; + pair_query_destination_table._2} has been updated successfully&quot;)
+</span>51 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -64,12 +91,12 @@
           8
         </td>
         <td>
-          205
+          268
         </td>
         <td>
-          280
+          270
           -
-          296
+          286
         </td>
         <td>
           Apply
@@ -85,12 +112,12 @@
           8
         </td>
         <td>
-          206
+          269
         </td>
         <td>
-          263
+          253
           -
-          297
+          287
         </td>
         <td>
           Apply
@@ -106,54 +133,12 @@
           9
         </td>
         <td>
-          209
+          271
         </td>
         <td>
-          331
+          336
           -
-          347
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #AEF1AE">
-          QueryApi.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
-          9
-        </td>
-        <td>
-          211
-        </td>
-        <td>
-          302
-          -
-          350
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName()))
-        </td>
-      </tr><tr>
-        <td>
-          9
-        </td>
-        <td>
-          208
-        </td>
-        <td>
-          348
-          -
-          349
+          337
         </td>
         <td>
           Literal
@@ -169,12 +154,33 @@
           9
         </td>
         <td>
-          207
+          274
         </td>
         <td>
-          322
+          290
           -
-          330
+          338
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          270
+        </td>
+        <td>
+          310
+          -
+          318
         </td>
         <td>
           Literal
@@ -190,12 +196,12 @@
           9
         </td>
         <td>
-          210
+          273
         </td>
         <td>
-          320
+          308
           -
-          349
+          337
         </td>
         <td>
           Apply
@@ -208,15 +214,36 @@
         </td>
       </tr><tr>
         <td>
+          9
+        </td>
+        <td>
+          272
+        </td>
+        <td>
+          319
+          -
+          335
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          QueryApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
           14
         </td>
         <td>
-          212
+          275
         </td>
         <td>
-          486
+          464
           -
-          582
+          548
         </td>
         <td>
           Apply
@@ -232,12 +259,12 @@
           16
         </td>
         <td>
-          214
+          277
         </td>
         <td>
-          611
+          573
           -
-          649
+          609
         </td>
         <td>
           Apply
@@ -253,12 +280,12 @@
           16
         </td>
         <td>
-          213
+          276
         </td>
         <td>
-          620
+          582
           -
-          648
+          608
         </td>
         <td>
           Apply
@@ -274,12 +301,12 @@
           17
         </td>
         <td>
-          216
+          279
         </td>
         <td>
-          678
+          634
           -
-          744
+          700
         </td>
         <td>
           Apply
@@ -295,12 +322,12 @@
           17
         </td>
         <td>
-          215
+          278
         </td>
         <td>
-          688
+          644
           -
-          743
+          699
         </td>
         <td>
           Apply
@@ -316,12 +343,12 @@
           20
         </td>
         <td>
-          217
+          280
         </td>
         <td>
-          797
+          745
           -
-          815
+          763
         </td>
         <td>
           Apply
@@ -337,12 +364,12 @@
           23
         </td>
         <td>
-          218
+          281
         </td>
         <td>
-          900
+          840
           -
-          926
+          866
         </td>
         <td>
           Apply
@@ -358,12 +385,12 @@
           24
         </td>
         <td>
-          220
+          283
         </td>
         <td>
-          935
+          871
           -
-          962
+          898
         </td>
         <td>
           Select
@@ -379,12 +406,12 @@
           24
         </td>
         <td>
-          219
+          282
         </td>
         <td>
-          935
+          871
           -
-          954
+          890
         </td>
         <td>
           Apply
@@ -394,6 +421,306 @@
         </td>
         <td style="background: #AEF1AE">
           result.iterateAll()
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          297
+        </td>
+        <td>
+          1293
+          -
+          2074
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          seq_query_destination_table.foreach[Unit](((pair_query_destination_table: (String, String)) =&gt; {
+  val queryConfig: com.google.cloud.bigquery.QueryJobConfiguration = com.google.cloud.bigquery.QueryJobConfiguration.newBuilder(pair_query_destination_table._1).setUseLegacySql(scala.Predef.boolean2Boolean(false)).setDestinationTable(com.google.cloud.bigquery.TableId.of(destination_dataset, pair_query_destination_table._2)).setWriteDisposition(write_disposition).setCreateDisposition(create_disposition).setAllowLargeResults(scala.Predef.boolean2Boolean(true)).build();
+  val jobId: com.google.cloud.bigquery.JobId = com.google.cloud.bigquery.JobId.of(java.util.UUID.randomUUID().toString());
+  val queryJob: com.google.cloud.bigquery.Job = bq.create(com.google.cloud.bigquery.JobInfo.newBuilder(queryConfig).setJobId(jobId).build());
+  queryJob.waitFor();
+  QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;BQ table &quot;, &quot; has been updated successfully&quot;).s(destination_dataset.+(&quot;.&quot;).+(pair_query_destination_table._2)))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          284
+        </td>
+        <td>
+          1411
+          -
+          1754
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.QueryJobConfiguration.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.QueryJobConfiguration.newBuilder(pair_query_destination_table._1).setUseLegacySql(scala.Predef.boolean2Boolean(false)).setDestinationTable(com.google.cloud.bigquery.TableId.of(destination_dataset, pair_query_destination_table._2)).setWriteDisposition(write_disposition).setCreateDisposition(create_disposition).setAllowLargeResults(scala.Predef.boolean2Boolean(true)).build()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          286
+        </td>
+        <td>
+          1781
+          -
+          1817
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.JobId.of
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.JobId.of(java.util.UUID.randomUUID().toString())
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          285
+        </td>
+        <td>
+          1790
+          -
+          1816
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.UUID.toString
+        </td>
+        <td style="background: #F0ADAD">
+          java.util.UUID.randomUUID().toString()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          288
+        </td>
+        <td>
+          1845
+          -
+          1911
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.BigQuery.create
+        </td>
+        <td style="background: #F0ADAD">
+          bq.create(com.google.cloud.bigquery.JobInfo.newBuilder(queryConfig).setJobId(jobId).build())
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          287
+        </td>
+        <td>
+          1855
+          -
+          1910
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.JobInfo.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.JobInfo.newBuilder(queryConfig).setJobId(jobId).build()
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          289
+        </td>
+        <td>
+          1919
+          -
+          1937
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.Job.waitFor
+        </td>
+        <td style="background: #F0ADAD">
+          queryJob.waitFor()
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          295
+        </td>
+        <td>
+          1963
+          -
+          2067
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;BQ table &quot;, &quot; has been updated successfully&quot;).s(destination_dataset.+(&quot;.&quot;).+(pair_query_destination_table._2))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          292
+        </td>
+        <td>
+          1998
+          -
+          2001
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;.&quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          294
+        </td>
+        <td>
+          1976
+          -
+          2035
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          destination_dataset.+(&quot;.&quot;).+(pair_query_destination_table._2)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          291
+        </td>
+        <td>
+          2036
+          -
+          2067
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; has been updated successfully&quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          290
+        </td>
+        <td>
+          1965
+          -
+          1975
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;BQ table &quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          293
+        </td>
+        <td>
+          2004
+          -
+          2035
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          pair_query_destination_table._2
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          296
+        </td>
+        <td>
+          1945
+          -
+          2068
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;BQ table &quot;, &quot; has been updated successfully&quot;).s(destination_dataset.+(&quot;.&quot;).+(pair_query_destination_table._2)))
         </td>
       </tr>
     </table>

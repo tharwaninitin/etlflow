@@ -1,8 +1,9 @@
 package examples.job3
 
+import etljobs.bigquery.BigQueryManager
 import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStep}
-import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET, SessionManager}
-import etljobs.functions.SparkUDF
+import etljobs.spark.{SparkManager, SparkUDF}
+import etljobs.utils.{AppLogger, CSV, GlobalProperties, LOCAL, PARQUET}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
@@ -32,7 +33,7 @@ object SparkBQwithSMJob extends App {
 class SparkBQwithSMJob(
                         job_properties: Map[String,String],
                         val global_properties: Option[GlobalProperties]
-                      ) extends SessionManager with SparkUDF {
+                      ) extends SparkManager with BigQueryManager with SparkUDF {
   import RatingsSchemas._
 
   def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {

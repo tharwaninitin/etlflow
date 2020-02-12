@@ -1,8 +1,6 @@
 package etljobs.etljob3
 
 import etljobs.utils.GlobalProperties
-import java.io.FileInputStream
-import java.util.Properties
 
 class MyGlobalProperties(val global_properties_file_path: String) extends GlobalProperties(global_properties_file_path) {
 

@@ -1,6 +1,7 @@
 package etljobs.etljob3
 
-import EtlJobSchemas.{EtlJob3Props, Rating, RatingOutput}
+import etljobs.EtlJobProps.EtlJob3Props
+import EtlJobSchemas.{Rating, RatingOutput}
 import etljobs.bigquery.BigQueryManager
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType

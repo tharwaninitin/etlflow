@@ -101,7 +101,8 @@ object SparkReadWriteStep {
            , output_repartitioning: Boolean = false
            , transform_function: Option[Dataset[T] => Dataset[O]] = None
          )(spark: => SparkSession): SparkReadWriteStep[T, Unit, O, Unit] = {
-    new SparkReadWriteStep[T, Unit, O, Unit](name, input_location, input_type, output_location, output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, Right(transform_function))(spark)
+    new SparkReadWriteStep[T, Unit, O, Unit](name, input_location, input_type, output_location, output_type
+      , output_filename, output_partition_col, output_save_mode, output_repartitioning, Right(transform_function))(spark)
   }
 }
 object SparkReadWriteStateStep {

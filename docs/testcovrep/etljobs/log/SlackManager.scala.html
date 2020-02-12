@@ -58,11 +58,11 @@
 </span>34 <span style=''>    }
 </span>35 <span style=''>    else {
 </span>36 <span style=''>      /** Template for slack failure message **/
-</span>37 <span style=''>      </span><span style='background: #F0ADAD'>return f&quot;&quot;&quot;
-</span>38 <span style=''></span><span style='background: #F0ADAD'>      :red_circle: $run_env - ${job_name.toString} Process *Failed!*
-</span>39 <span style=''></span><span style='background: #F0ADAD'>      *Time of Execution*: $exec_date
-</span>40 <span style=''></span><span style='background: #F0ADAD'>      *Steps (Task - Duration)*: $message
-</span>41 <span style=''></span><span style='background: #F0ADAD'>      &quot;&quot;&quot;</span><span style=''>
+</span>37 <span style=''>      </span><span style='background: #AEF1AE'>return f&quot;&quot;&quot;
+</span>38 <span style=''></span><span style='background: #AEF1AE'>      :red_circle: $run_env - ${job_name.toString} Process *Failed!*
+</span>39 <span style=''></span><span style='background: #AEF1AE'>      *Time of Execution*: $exec_date
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      *Steps (Task - Duration)*: $message
+</span>41 <span style=''></span><span style='background: #AEF1AE'>      &quot;&quot;&quot;</span><span style=''>
 </span>42 <span style=''>    }
 </span>43 <span style=''>  }
 </span>44 <span style=''>
@@ -71,7 +71,7 @@
 </span>47 <span style=''>    var slackMessageForSteps = </span><span style='background: #AEF1AE'>&quot;&quot;</span><span style=''>
 </span>48 <span style=''>    val execution_end_time = </span><span style='background: #AEF1AE'>System.nanoTime()</span><span style=''>
 </span>49 <span style=''>    val elapsedTime = </span><span style='background: #AEF1AE'>(execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + &quot; mins&quot;</span><span style=''>
-</span>50 <span style=''>    val step_icon = if (</span><span style='background: #AEF1AE'>state_status.toLowerCase() == &quot;pass&quot;</span><span style=''>) </span><span style='background: #AEF1AE'>&quot;\n :small_blue_diamond:&quot;</span><span style=''> else </span><span style='background: #F0ADAD'>&quot;\n :small_orange_diamond:&quot;</span><span style=''>
+</span>50 <span style=''>    val step_icon = if (</span><span style='background: #AEF1AE'>state_status.toLowerCase() == &quot;pass&quot;</span><span style=''>) </span><span style='background: #AEF1AE'>&quot;\n :small_blue_diamond:&quot;</span><span style=''> else </span><span style='background: #AEF1AE'>&quot;\n :small_orange_diamond:&quot;</span><span style=''>
 </span>51 <span style=''>
 </span>52 <span style=''>    // Update the slackMessageForSteps variable and get the information of step name and its execution time
 </span>53 <span style=''>    slackMessageForSteps = </span><span style='background: #AEF1AE'>step_icon + &quot;*&quot; + etlstep.name + &quot;*&quot; + &quot; - (&quot; + elapsedTime + &quot;)&quot;</span><span style=''>
@@ -122,7 +122,7 @@
           21
         </td>
         <td>
-          651
+          777
         </td>
         <td>
           628
@@ -143,7 +143,7 @@
           22
         </td>
         <td>
-          652
+          778
         </td>
         <td>
           659
@@ -164,7 +164,7 @@
           23
         </td>
         <td>
-          653
+          779
         </td>
         <td>
           682
@@ -185,7 +185,7 @@
           27
         </td>
         <td>
-          654
+          780
         </td>
         <td>
           866
@@ -206,7 +206,7 @@
           29
         </td>
         <td>
-          655
+          781
         </td>
         <td>
           940
@@ -233,7 +233,7 @@
           37
         </td>
         <td>
-          656
+          782
         </td>
         <td>
           1191
@@ -246,7 +246,7 @@
         <td>
           etljobs.log.SlackManager.finalMessageTemplate
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           return ({
   val arg$macro$5: Any = run_env;
   val arg$macro$6: Any = job_name.toString();
@@ -260,7 +260,7 @@
           47
         </td>
         <td>
-          657
+          783
         </td>
         <td>
           1673
@@ -281,7 +281,7 @@
           48
         </td>
         <td>
-          658
+          784
         </td>
         <td>
           1705
@@ -302,7 +302,7 @@
           49
         </td>
         <td>
-          659
+          785
         </td>
         <td>
           1745
@@ -323,7 +323,7 @@
           50
         </td>
         <td>
-          660
+          786
         </td>
         <td>
           1845
@@ -344,28 +344,7 @@
           50
         </td>
         <td>
-          663
-        </td>
-        <td>
-          1914
-          -
-          1941
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n :small_orange_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          662
+          788
         </td>
         <td>
           1883
@@ -386,28 +365,7 @@
           50
         </td>
         <td>
-          664
-        </td>
-        <td>
-          1914
-          -
-          1941
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n :small_orange_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          661
+          787
         </td>
         <td>
           1883
@@ -422,13 +380,55 @@
         </td>
         <td style="background: #AEF1AE">
           &quot;\n :small_blue_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          790
+        </td>
+        <td>
+          1914
+          -
+          1941
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n :small_orange_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          1914
+          -
+          1941
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n :small_orange_diamond:&quot;
         </td>
       </tr><tr>
         <td>
           53
         </td>
         <td>
-          665
+          791
         </td>
         <td>
           2078
@@ -449,7 +449,28 @@
           56
         </td>
         <td>
-          669
+          792
+        </td>
+        <td>
+          2296
+          -
+          2307
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n\t\t\t &quot;
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          795
         </td>
         <td>
           2296
@@ -473,28 +494,7 @@
           56
         </td>
         <td>
-          666
-        </td>
-        <td>
-          2296
-          -
-          2307
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;\n\t\t\t &quot;
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          668
+          794
         </td>
         <td>
           2373
@@ -518,7 +518,7 @@
           56
         </td>
         <td>
-          667
+          793
         </td>
         <td>
           2310
@@ -539,7 +539,7 @@
           56
         </td>
         <td>
-          670
+          796
         </td>
         <td>
           2268
@@ -563,28 +563,7 @@
           59
         </td>
         <td>
-          672
-        </td>
-        <td>
-          2497
-          -
-          2555
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.log.SlackManager.final_message_=
-        </td>
-        <td style="background: #AEF1AE">
-          SlackManager.this.final_message_=(SlackManager.this.final_message.concat(slackMessageForSteps))
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          671
+          797
         </td>
         <td>
           2513
@@ -602,10 +581,31 @@
         </td>
       </tr><tr>
         <td>
+          59
+        </td>
+        <td>
+          798
+        </td>
+        <td>
+          2497
+          -
+          2555
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.log.SlackManager.final_message_=
+        </td>
+        <td style="background: #AEF1AE">
+          SlackManager.this.final_message_=(SlackManager.this.final_message.concat(slackMessageForSteps))
+        </td>
+      </tr><tr>
+        <td>
           64
         </td>
         <td>
-          675
+          801
         </td>
         <td>
           2722
@@ -626,7 +626,7 @@
           64
         </td>
         <td>
-          674
+          800
         </td>
         <td>
           2780
@@ -647,7 +647,7 @@
           64
         </td>
         <td>
-          673
+          799
         </td>
         <td>
           2750
@@ -668,7 +668,7 @@
           66
         </td>
         <td>
-          679
+          805
         </td>
         <td>
           2815
@@ -689,7 +689,7 @@
           67
         </td>
         <td>
-          676
+          802
         </td>
         <td>
           2856
@@ -710,7 +710,7 @@
           68
         </td>
         <td>
-          677
+          803
         </td>
         <td>
           2867
@@ -731,7 +731,7 @@
           70
         </td>
         <td>
-          678
+          804
         </td>
         <td>
           2910
@@ -752,7 +752,7 @@
           73
         </td>
         <td>
-          680
+          806
         </td>
         <td>
           2948
@@ -773,7 +773,7 @@
           75
         </td>
         <td>
-          687
+          813
         </td>
         <td>
           2967
@@ -804,7 +804,7 @@
           75
         </td>
         <td>
-          688
+          814
         </td>
         <td>
           2971
@@ -825,7 +825,7 @@
           76
         </td>
         <td>
-          681
+          807
         </td>
         <td>
           2992
@@ -846,7 +846,7 @@
           77
         </td>
         <td>
-          683
+          809
         </td>
         <td>
           3039
@@ -867,7 +867,7 @@
           77
         </td>
         <td>
-          682
+          808
         </td>
         <td>
           3052
@@ -888,7 +888,7 @@
           79
         </td>
         <td>
-          684
+          810
         </td>
         <td>
           3136
@@ -909,7 +909,7 @@
           80
         </td>
         <td>
-          685
+          811
         </td>
         <td>
           3170
@@ -930,7 +930,7 @@
           81
         </td>
         <td>
-          686
+          812
         </td>
         <td>
           3204

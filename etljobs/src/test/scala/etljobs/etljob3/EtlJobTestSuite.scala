@@ -1,18 +1,23 @@
 package etljobs.etljob3
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.apache.spark.sql.{Dataset, Row}
-import etljobs.spark.{ReadApi, SparkManager}
-import etljobs.utils.{AppLogger, CSV, GlobalProperties}
-import etljobs.etlsteps.DatasetWithState
-import etljobs.bigquery.{BigQueryManager, QueryApi}
-import EtlJobSchemas.{EtlJob3Props, Rating, RatingOutput}
+import EtlJobSchemas.EtlJob3Props
 import etljobs.EtlJobList.EtlJob3CSVtoPARQUETtoBQGcsWith2Steps
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
-//  AppLogger.initialize()
+  // AppLogger.initialize()
+  //
+  //val create_table_script = """
+  //    CREATE TABLE test.ratings_par (
+  //      user_id INT64
+  //    , movie_id INT64
+  //    , rating FLOAT64
+  //    , timestamp INT64
+  //    , date DATE
+  //    ) PARTITION BY date
+  //    """
   // STEP 1: Initialize job properties and create BQ tables required for jobs 
-  val canonical_path = new java.io.File(".").getCanonicalPath
+  private val canonical_path = new java.io.File(".").getCanonicalPath
   val global_props = new MyGlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
 
   val job_props = EtlJob3Props(
@@ -24,51 +29,14 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     ratings_output_table_name = "ratings_par"
   )
 
-  val create_table_script = """
-    CREATE TABLE test.ratings_par (
-      user_id INT64
-    , movie_id INT64
-    , rating FLOAT64
-    , timestamp INT64
-    , date DATE
-    ) PARTITION BY date
-    """
-
   // STEP 2: Execute JOB
   val etljob = new EtlJobDefinition(job_properties=Right(job_props), global_properties=Some(global_props))
-  val state = etljob.execute(send_notification = true, notification_level = "info")
-  println(state)
 
-  // STEP 3: Run tests
-  private val sm = new SparkManager {
-    val global_properties: Option[GlobalProperties] = Some(global_props)
-  }
-  val raw : Dataset[Rating] = ReadApi.LoadDS[Rating](
-                                  Seq(job_props.ratings_input_path),
-                                  CSV(",", true, "FAILFAST")
-                                )(sm.spark)
-  val op : DatasetWithState[RatingOutput,Unit] = etljob.enrichRatingData(sm.spark, job_props)(DatasetWithState[Rating,Unit](raw,()))
-  val Row(sum_ratings: Double, count_ratings: Long) = op.ds.selectExpr("sum(rating)","count(*)").first()
-
-  val destination_dataset = job_props.ratings_output_dataset
-  val destination_table = job_props.ratings_output_table_name
-
-  val bqm = new BigQueryManager {
-    val global_properties: Option[GlobalProperties] = Some(global_props)
-  }
-  val query:String = s""" select count(*) as count,sum(rating) sum_ratings from $destination_dataset.$destination_table """.stripMargin
-  val result = QueryApi.getDataFromBQ(bqm.bq, query)
-  val count_records_bq:Long = result.head.get("count").getLongValue
-  val sum_ratings_bq:Double = result.head.get("sum_ratings").getDoubleValue
-
-  "Record counts" should "be matching in transformed DF and BQ table " in {
-    assert(count_ratings==count_records_bq)
+  val thrown = intercept[Exception] {
+    etljob.execute(send_notification = true, notification_level = "info")
   }
 
-  "Sum of ratings" should "be matching in transformed DF and BQ table " in {
-    assert(sum_ratings==sum_ratings_bq)
-  }
-
+  assert(thrown.getMessage === "Could not load data in FormatOptions{format=PARQUET} format in table test.ratings_par$20160102 due to error Error while reading data, error message: Input file is not in Parquet format.")
 }
 
 

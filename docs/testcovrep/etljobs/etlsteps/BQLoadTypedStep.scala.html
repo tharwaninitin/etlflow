@@ -1,0 +1,2827 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etljobs/etlsteps/BQLoadTypedStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import java.util
+</span>4 <span style=''>import com.google.cloud.bigquery.{BigQuery, CsvOptions, Field, FormatOptions, JobInfo, LegacySQLTypeName, Schema, StandardTableDefinition, TableId}
+</span>5 <span style=''>import etljobs.bigquery.LoadApi
+</span>6 <span style=''>import etljobs.utils._
+</span>7 <span style=''>import org.apache.spark.sql.Encoders
+</span>8 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>9 <span style=''>import scala.util.Try
+</span>10 <span style=''>
+</span>11 <span style=''>class BQLoadTypedStep[T &lt;: Product : TypeTag](
+</span>12 <span style=''>                                               val name: String
+</span>13 <span style=''>                                               , source_path: =&gt; String = &quot;&quot;
+</span>14 <span style=''>                                               , source_paths_partitions: =&gt; Seq[(String, String)] = Seq()
+</span>15 <span style=''>                                               , source_format: IOType
+</span>16 <span style=''>                                               , source_file_system: FSType = GCS
+</span>17 <span style=''>                                               , destination_dataset: String
+</span>18 <span style=''>                                               , destination_table: String
+</span>19 <span style=''>                                               , write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+</span>20 <span style=''>                                               , create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+</span>21 <span style=''>                                             )(bq: =&gt; BigQuery)
+</span>22 <span style=''>  extends EtlStep[Unit, Unit] {
+</span>23 <span style=''>  def process(input_state: Unit): Try[Unit] = </span><span style='background: #AEF1AE'>Try {
+</span>24 <span style=''></span><span style='background: #AEF1AE'>    etl_logger.info(&quot;#################################################################################################&quot;)
+</span>25 <span style=''></span><span style='background: #AEF1AE'>    etl_logger.info(s&quot;Starting BQ Data Load Step : $name&quot;)
+</span>26 <span style=''></span><span style='background: #AEF1AE'>
+</span>27 <span style=''></span><span style='background: #AEF1AE'>    val source_format_bq: FormatOptions = source_format match {
+</span>28 <span style=''></span><span style='background: #AEF1AE'>      case PARQUET =&gt; FormatOptions.parquet
+</span>29 <span style=''></span><span style='background: #AEF1AE'>      case ORC =&gt; </span><span style='background: #F0ADAD'>FormatOptions.orc</span><span style='background: #AEF1AE'>
+</span>30 <span style=''></span><span style='background: #AEF1AE'>      case CSV(field_delimiter, header_present, _, _) =&gt; </span><span style='background: #F0ADAD'>CsvOptions.newBuilder()
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        .setSkipLeadingRows(if (header_present) 1 else 0)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>        .setFieldDelimiter(field_delimiter)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>        .build()</span><span style='background: #AEF1AE'>
+</span>34 <span style=''></span><span style='background: #AEF1AE'>      case _ =&gt; </span><span style='background: #F0ADAD'>FormatOptions.parquet</span><span style='background: #AEF1AE'>
+</span>35 <span style=''></span><span style='background: #AEF1AE'>    }
+</span>36 <span style=''></span><span style='background: #AEF1AE'>
+</span>37 <span style=''></span><span style='background: #AEF1AE'>    def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
+</span>38 <span style=''></span><span style='background: #AEF1AE'>      case &quot;StringType&quot; =&gt; </span><span style='background: #F0ADAD'>LegacySQLTypeName.STRING</span><span style='background: #AEF1AE'>
+</span>39 <span style=''></span><span style='background: #AEF1AE'>      case &quot;IntegerType&quot; =&gt; LegacySQLTypeName.INTEGER
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      case &quot;LongType&quot; =&gt; LegacySQLTypeName.INTEGER
+</span>41 <span style=''></span><span style='background: #AEF1AE'>      case &quot;DoubleType&quot; =&gt; LegacySQLTypeName.FLOAT
+</span>42 <span style=''></span><span style='background: #AEF1AE'>      case &quot;DateType&quot; =&gt; LegacySQLTypeName.DATE
+</span>43 <span style=''></span><span style='background: #AEF1AE'>      case &quot;BooleanType&quot; =&gt; </span><span style='background: #F0ADAD'>LegacySQLTypeName.BOOLEAN</span><span style='background: #AEF1AE'>
+</span>44 <span style=''></span><span style='background: #AEF1AE'>      case _ =&gt; </span><span style='background: #F0ADAD'>LegacySQLTypeName.STRING</span><span style='background: #AEF1AE'>
+</span>45 <span style=''></span><span style='background: #AEF1AE'>    }
+</span>46 <span style=''></span><span style='background: #AEF1AE'>
+</span>47 <span style=''></span><span style='background: #AEF1AE'>    val fields = new util.ArrayList[Field]
+</span>48 <span style=''></span><span style='background: #AEF1AE'>    Encoders.product[T].schema.map(x =&gt; fields.add(Field.of(x.name, getBQType(x.dataType.toString))))
+</span>49 <span style=''></span><span style='background: #AEF1AE'>    val schema: Schema = Schema.of(fields)
+</span>50 <span style=''></span><span style='background: #AEF1AE'>
+</span>51 <span style=''></span><span style='background: #AEF1AE'>    if (source_paths_partitions.nonEmpty &amp;&amp; source_file_system == GCS) {
+</span>52 <span style=''></span><span style='background: #AEF1AE'>      etl_logger.info(s&quot;FileSystem: $source_file_system&quot;)
+</span>53 <span style=''></span><span style='background: #AEF1AE'>      LoadApi.loadIntoPartitionedBQTableFromGCS(
+</span>54 <span style=''></span><span style='background: #AEF1AE'>        bq, source_paths_partitions, source_format_bq
+</span>55 <span style=''></span><span style='background: #AEF1AE'>        , destination_dataset, destination_table, write_disposition, create_disposition, Some(schema)
+</span>56 <span style=''></span><span style='background: #AEF1AE'>      )
+</span>57 <span style=''></span><span style='background: #AEF1AE'>    }
+</span>58 <span style=''></span><span style='background: #AEF1AE'>    else </span><span style='background: #F0ADAD'>if (source_path != &quot;&quot; &amp;&amp; source_file_system == GCS) {
+</span>59 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.info(s&quot;FileSystem: $source_file_system&quot;)
+</span>60 <span style=''></span><span style='background: #F0ADAD'>      LoadApi.loadIntoUnpartitionedBQTableFromGCS(
+</span>61 <span style=''></span><span style='background: #F0ADAD'>        bq, source_path, source_format_bq
+</span>62 <span style=''></span><span style='background: #F0ADAD'>        , destination_dataset, destination_table, write_disposition, create_disposition, Some(schema)
+</span>63 <span style=''></span><span style='background: #F0ADAD'>      )
+</span>64 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style='background: #AEF1AE'>
+</span>65 <span style=''></span><span style='background: #AEF1AE'>    </span><span style='background: #F0ADAD'>etl_logger.info(&quot;#################################################################################################&quot;)</span><span style='background: #AEF1AE'>
+</span>66 <span style=''></span><span style='background: #AEF1AE'>  }</span><span style=''>
+</span>67 <span style=''>
+</span>68 <span style=''>  override def getExecutionMetrics: Map[String, Map[String, String]] = {
+</span>69 <span style=''>    val tableId = </span><span style='background: #AEF1AE'>TableId.of(destination_dataset, destination_table)</span><span style=''>
+</span>70 <span style=''>    val destinationTable = </span><span style='background: #AEF1AE'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
+</span>71 <span style=''>    </span><span style='background: #AEF1AE'>Map(name -&gt;
+</span>72 <span style=''></span><span style='background: #AEF1AE'>      Map(
+</span>73 <span style=''></span><span style='background: #AEF1AE'>        &quot;Total number of Rows&quot; -&gt; destinationTable.getNumRows.toString,
+</span>74 <span style=''></span><span style='background: #AEF1AE'>        &quot;Total size in MB&quot; -&gt; f&quot;${destinationTable.getNumBytes / 1000000.0} MB&quot;
+</span>75 <span style=''></span><span style='background: #AEF1AE'>      )
+</span>76 <span style=''></span><span style='background: #AEF1AE'>    )</span><span style=''>
+</span>77 <span style=''>  }
+</span>78 <span style=''>
+</span>79 <span style=''>  override def getStepProperties(level: String): Map[String, String] = {
+</span>80 <span style=''>    val tableId = </span><span style='background: #AEF1AE'>TableId.of(destination_dataset, destination_table)</span><span style=''>
+</span>81 <span style=''>    val destinationTable = </span><span style='background: #AEF1AE'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
+</span>82 <span style=''>    if (</span><span style='background: #AEF1AE'>level.equalsIgnoreCase(&quot;info&quot;)</span><span style=''>) {
+</span>83 <span style=''>      </span><span style='background: #AEF1AE'>Map(
+</span>84 <span style=''></span><span style='background: #AEF1AE'>        &quot;destination_dataset&quot; -&gt; destination_dataset
+</span>85 <span style=''></span><span style='background: #AEF1AE'>        , &quot;destination_table&quot; -&gt; destination_table
+</span>86 <span style=''></span><span style='background: #AEF1AE'>        , &quot;Total number of Rows&quot; -&gt; destinationTable.getNumRows.toString
+</span>87 <span style=''></span><span style='background: #AEF1AE'>        , &quot;Source Format&quot; -&gt; source_format.toString
+</span>88 <span style=''></span><span style='background: #AEF1AE'>      )</span><span style=''>
+</span>89 <span style=''>    } else {
+</span>90 <span style=''>      </span><span style='background: #F0ADAD'>Map(
+</span>91 <span style=''></span><span style='background: #F0ADAD'>        &quot;source_dirs&quot; -&gt; source_paths_partitions.mkString(&quot;,&quot;)
+</span>92 <span style=''></span><span style='background: #F0ADAD'>        , &quot;source_path&quot; -&gt; source_path
+</span>93 <span style=''></span><span style='background: #F0ADAD'>        , &quot;destination_dataset&quot; -&gt; destination_dataset
+</span>94 <span style=''></span><span style='background: #F0ADAD'>        , &quot;destination_table&quot; -&gt; destination_table
+</span>95 <span style=''></span><span style='background: #F0ADAD'>        , &quot;write_disposition&quot; -&gt; write_disposition.toString
+</span>96 <span style=''></span><span style='background: #F0ADAD'>        , &quot;create_disposition&quot; -&gt; create_disposition.toString
+</span>97 <span style=''></span><span style='background: #F0ADAD'>        , &quot;Total number of Rows&quot; -&gt; destinationTable.getNumRows.toString
+</span>98 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>99 <span style=''>    }
+</span>100 <span style=''>  }
+</span>101 <span style=''>}
+</span>102 <span style=''>
+</span>103 <span style=''>object BQLoadTypedStep {
+</span>104 <span style=''>  def apply[T &lt;: Product : TypeTag](name: String
+</span>105 <span style=''>                                    , source_path: =&gt; String = &quot;&quot;
+</span>106 <span style=''>                                    , source_paths_partitions: =&gt; Seq[(String, String)] = Seq()
+</span>107 <span style=''>                                    , source_format: IOType
+</span>108 <span style=''>                                    , source_file_system: FSType = GCS
+</span>109 <span style=''>                                    , destination_dataset: String
+</span>110 <span style=''>                                    , destination_table: String
+</span>111 <span style=''>                                    , write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+</span>112 <span style=''>                                    , create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+</span>113 <span style=''>                                   )(bq: =&gt; BigQuery): BQLoadTypedStep[T] = {
+</span>114 <span style=''>    </span><span style='background: #AEF1AE'>new BQLoadTypedStep[T](name, source_path, source_paths_partitions, source_format, source_file_system
+</span>115 <span style=''></span><span style='background: #AEF1AE'>      , destination_dataset, destination_table, write_disposition, create_disposition)(bq)</span><span style=''>
+</span>116 <span style=''>  }
+</span>117 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          503
+        </td>
+        <td>
+          1365
+          -
+          3364
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.util.Try.apply[Unit]({
+  BQLoadTypedStep.this.etl_logger.info(&quot;#################################################################################################&quot;);
+  BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Data Load Step : &quot;, &quot;&quot;).s(BQLoadTypedStep.this.name));
+  val source_format_bq: com.google.cloud.bigquery.FormatOptions = BQLoadTypedStep.this.source_format match {
+    case etljobs.utils.`package`.PARQUET =&gt; com.google.cloud.bigquery.FormatOptions.parquet()
+    case etljobs.utils.`package`.ORC =&gt; com.google.cloud.bigquery.FormatOptions.orc()
+    case (delimiter: String, header_present: Boolean, parse_mode: String, quotechar: String)etljobs.utils.CSV((field_delimiter @ _), (header_present @ _), _, _) =&gt; com.google.cloud.bigquery.CsvOptions.newBuilder().setSkipLeadingRows(if (header_present)
+  1L
+else
+  0L).setFieldDelimiter(field_delimiter).build()
+    case _ =&gt; com.google.cloud.bigquery.FormatOptions.parquet()
+  };
+  def getBQType(sp_type: String): com.google.cloud.bigquery.LegacySQLTypeName = sp_type match {
+    case &quot;StringType&quot; =&gt; com.google.cloud.bigquery.LegacySQLTypeName.STRING
+    case &quot;IntegerType&quot; =&gt; com.google.cloud.bigquery.LegacySQLTypeName.INTEGER
+    case &quot;LongType&quot; =&gt; com.google.cloud.bigquery.LegacySQLTypeName.INTEGER
+    case &quot;DoubleType&quot; =&gt; com.google.cloud.bigquery.LegacySQLTypeName.FLOAT
+    case &quot;DateType&quot; =&gt; com.google.cloud.bigquery.LegacySQLTypeName.DATE
+    case &quot;BooleanType&quot; =&gt; com.google.cloud.bigquery.LegacySQLTypeName.BOOLEAN
+    case _ =&gt; com.google.cloud.bigquery.LegacySQLTypeName.STRING
+  };
+  val fields: java.util.ArrayList[com.google.cloud.bigquery.Field] = new java.util.ArrayList[com.google.cloud.bigquery.Field]();
+  org.apache.spark.sql.Encoders.product[T](BQLoadTypedStep.this.evidence$1).schema.map[Boolean, Seq[Boolean]](((x: org.apache.spark.sql.types.StructField) =&gt; fields.add(com.google.cloud.bigquery.Field.of(x.name, getBQType(x.dataType.toString())))))(collection.this.Seq.canBuildFrom[Boolean]);
+  val schema: com.google.cloud.bigquery.Schema = com.google.cloud.bigquery.Schema.of(fields);
+  if (BQLoadTypedStep.this.source_paths_partitions.nonEmpty.&amp;&amp;(BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS)))
+    {
+      BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system));
+      etljobs.bigquery.LoadApi.loadIntoPartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_paths_partitions, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+    }
+  else
+    if (BQLoadTypedStep.this.source_path.!=(&quot;&quot;).&amp;&amp;(BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS)))
+      {
+        BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system));
+        etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_path, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+      }
+    else
+      ();
+  BQLoadTypedStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+})
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          436
+        </td>
+        <td>
+          1375
+          -
+          1491
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          439
+        </td>
+        <td>
+          1544
+          -
+          1548
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.name
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          1548
+          -
+          1549
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          441
+        </td>
+        <td>
+          1496
+          -
+          1550
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Data Load Step : &quot;, &quot;&quot;).s(BQLoadTypedStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          437
+        </td>
+        <td>
+          1514
+          -
+          1544
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Starting BQ Data Load Step : &quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          440
+        </td>
+        <td>
+          1512
+          -
+          1549
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Starting BQ Data Load Step : &quot;, &quot;&quot;).s(BQLoadTypedStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          442
+        </td>
+        <td>
+          1594
+          -
+          1607
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.source_format
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.source_format
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          443
+        </td>
+        <td>
+          1638
+          -
+          1659
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.FormatOptions.parquet
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.FormatOptions.parquet()
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          444
+        </td>
+        <td>
+          1678
+          -
+          1695
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.FormatOptions.orc
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.FormatOptions.orc()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          445
+        </td>
+        <td>
+          1753
+          -
+          1895
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.CsvOptions.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.CsvOptions.newBuilder().setSkipLeadingRows(if (header_present)
+  1L
+else
+  0L).setFieldDelimiter(field_delimiter).build()
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          446
+        </td>
+        <td>
+          1912
+          -
+          1933
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.FormatOptions.parquet
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.FormatOptions.parquet()
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          447
+        </td>
+        <td>
+          2040
+          -
+          2064
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.STRING
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.LegacySQLTypeName.STRING
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          448
+        </td>
+        <td>
+          2093
+          -
+          2118
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.INTEGER
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.LegacySQLTypeName.INTEGER
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          449
+        </td>
+        <td>
+          2144
+          -
+          2169
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.INTEGER
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.LegacySQLTypeName.INTEGER
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          450
+        </td>
+        <td>
+          2197
+          -
+          2220
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.FLOAT
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.LegacySQLTypeName.FLOAT
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          451
+        </td>
+        <td>
+          2246
+          -
+          2268
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.DATE
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.LegacySQLTypeName.DATE
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          452
+        </td>
+        <td>
+          2297
+          -
+          2322
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.BOOLEAN
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.LegacySQLTypeName.BOOLEAN
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          453
+        </td>
+        <td>
+          2339
+          -
+          2363
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.google.cloud.bigquery.LegacySQLTypeName.STRING
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.LegacySQLTypeName.STRING
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          454
+        </td>
+        <td>
+          2388
+          -
+          2413
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.ArrayList.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.util.ArrayList[com.google.cloud.bigquery.Field]()
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          460
+        </td>
+        <td>
+          2454
+          -
+          2514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.ArrayList.add
+        </td>
+        <td style="background: #AEF1AE">
+          fields.add(com.google.cloud.bigquery.Field.of(x.name, getBQType(x.dataType.toString())))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          457
+        </td>
+        <td>
+          2492
+          -
+          2511
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #AEF1AE">
+          x.dataType.toString()
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          456
+        </td>
+        <td>
+          2474
+          -
+          2480
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.types.StructField.name
+        </td>
+        <td style="background: #AEF1AE">
+          x.name
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          459
+        </td>
+        <td>
+          2465
+          -
+          2513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.Field.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.Field.of(x.name, getBQType(x.dataType.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          462
+        </td>
+        <td>
+          2418
+          -
+          2515
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.Encoders.product[T](BQLoadTypedStep.this.evidence$1).schema.map[Boolean, Seq[Boolean]](((x: org.apache.spark.sql.types.StructField) =&gt; fields.add(com.google.cloud.bigquery.Field.of(x.name, getBQType(x.dataType.toString())))))(collection.this.Seq.canBuildFrom[Boolean])
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          461
+        </td>
+        <td>
+          2448
+          -
+          2448
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[Boolean]
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          455
+        </td>
+        <td>
+          2434
+          -
+          2434
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.evidence$1
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          458
+        </td>
+        <td>
+          2482
+          -
+          2512
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.getBQType
+        </td>
+        <td style="background: #AEF1AE">
+          getBQType(x.dataType.toString())
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          463
+        </td>
+        <td>
+          2541
+          -
+          2558
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.Schema.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.Schema.of(fields)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          480
+        </td>
+        <td>
+          2631
+          -
+          2909
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system));
+  etljobs.bigquery.LoadApi.loadIntoPartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_paths_partitions, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+}
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          465
+        </td>
+        <td>
+          2604
+          -
+          2629
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          464
+        </td>
+        <td>
+          2626
+          -
+          2629
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.GCS
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.utils.`package`.GCS
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          466
+        </td>
+        <td>
+          2568
+          -
+          2629
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.source_paths_partitions.nonEmpty.&amp;&amp;(BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS))
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          469
+        </td>
+        <td>
+          2670
+          -
+          2688
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.source_file_system
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.source_file_system
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          468
+        </td>
+        <td>
+          2688
+          -
+          2689
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          471
+        </td>
+        <td>
+          2639
+          -
+          2690
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system))
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          470
+        </td>
+        <td>
+          2655
+          -
+          2689
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          467
+        </td>
+        <td>
+          2657
+          -
+          2670
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;FileSystem: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          479
+        </td>
+        <td>
+          2697
+          -
+          2903
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.bigquery.LoadApi.loadIntoPartitionedBQTableFromGCS
+        </td>
+        <td style="background: #AEF1AE">
+          etljobs.bigquery.LoadApi.loadIntoPartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_paths_partitions, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          472
+        </td>
+        <td>
+          2748
+          -
+          2750
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.bq
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.bq
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          473
+        </td>
+        <td>
+          2752
+          -
+          2775
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.source_paths_partitions
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.source_paths_partitions
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          478
+        </td>
+        <td>
+          2883
+          -
+          2895
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[com.google.cloud.bigquery.Schema](schema)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          474
+        </td>
+        <td>
+          2804
+          -
+          2823
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_dataset
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          477
+        </td>
+        <td>
+          2863
+          -
+          2881
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.create_disposition
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.create_disposition
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          476
+        </td>
+        <td>
+          2844
+          -
+          2861
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.write_disposition
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.write_disposition
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          475
+        </td>
+        <td>
+          2825
+          -
+          2842
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_table
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          499
+        </td>
+        <td>
+          2919
+          -
+          2919
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          481
+        </td>
+        <td>
+          2938
+          -
+          2940
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          498
+        </td>
+        <td>
+          2971
+          -
+          3239
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system));
+  etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_path, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+}
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          483
+        </td>
+        <td>
+          2944
+          -
+          2969
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          501
+        </td>
+        <td>
+          2919
+          -
+          3239
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          if (BQLoadTypedStep.this.source_path.!=(&quot;&quot;).&amp;&amp;(BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS)))
+  {
+    BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system));
+    etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_path, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+  }
+else
+  ()
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          482
+        </td>
+        <td>
+          2966
+          -
+          2969
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.utils.GCS
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.utils.`package`.GCS
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          500
+        </td>
+        <td>
+          2919
+          -
+          2919
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          484
+        </td>
+        <td>
+          2923
+          -
+          2969
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.source_path.!=(&quot;&quot;).&amp;&amp;(BQLoadTypedStep.this.source_file_system.==(etljobs.utils.`package`.GCS))
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          487
+        </td>
+        <td>
+          3010
+          -
+          3028
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.source_file_system
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.source_file_system
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          489
+        </td>
+        <td>
+          2979
+          -
+          3030
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.etl_logger.info(scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system))
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          486
+        </td>
+        <td>
+          3028
+          -
+          3029
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          488
+        </td>
+        <td>
+          2995
+          -
+          3029
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;FileSystem: &quot;, &quot;&quot;).s(BQLoadTypedStep.this.source_file_system)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          485
+        </td>
+        <td>
+          2997
+          -
+          3010
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;FileSystem: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          497
+        </td>
+        <td>
+          3037
+          -
+          3233
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS
+        </td>
+        <td style="background: #F0ADAD">
+          etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS(BQLoadTypedStep.this.bq, BQLoadTypedStep.this.source_path, source_format_bq, BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table, BQLoadTypedStep.this.write_disposition, BQLoadTypedStep.this.create_disposition, scala.Some.apply[com.google.cloud.bigquery.Schema](schema))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          490
+        </td>
+        <td>
+          3090
+          -
+          3092
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.bq
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.bq
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          491
+        </td>
+        <td>
+          3094
+          -
+          3105
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.source_path
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.source_path
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          496
+        </td>
+        <td>
+          3213
+          -
+          3225
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[com.google.cloud.bigquery.Schema](schema)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          492
+        </td>
+        <td>
+          3134
+          -
+          3153
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          495
+        </td>
+        <td>
+          3193
+          -
+          3211
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.create_disposition
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.create_disposition
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          494
+        </td>
+        <td>
+          3174
+          -
+          3191
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.write_disposition
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.write_disposition
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          493
+        </td>
+        <td>
+          3155
+          -
+          3172
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          502
+        </td>
+        <td>
+          3244
+          -
+          3360
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          505
+        </td>
+        <td>
+          3489
+          -
+          3506
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_table
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          504
+        </td>
+        <td>
+          3468
+          -
+          3487
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_dataset
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          506
+        </td>
+        <td>
+          3457
+          -
+          3507
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableId.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.TableId.of(BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          507
+        </td>
+        <td>
+          3535
+          -
+          3594
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableInfo.getDefinition
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.bq.getTable(tableId).getDefinition[com.google.cloud.bigquery.StandardTableDefinition]()
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          508
+        </td>
+        <td>
+          3603
+          -
+          3607
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.name
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          516
+        </td>
+        <td>
+          3599
+          -
+          3787
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.Map.apply[String, scala.collection.immutable.Map[String,String]](scala.Predef.ArrowAssoc[String](BQLoadTypedStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String)))))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          515
+        </td>
+        <td>
+          3603
+          -
+          3781
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](BQLoadTypedStep.this.name).-&gt;[scala.collection.immutable.Map[String,String]](scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String))))
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          514
+        </td>
+        <td>
+          3617
+          -
+          3781
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String)))
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          510
+        </td>
+        <td>
+          3656
+          -
+          3692
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Long.toString
+        </td>
+        <td style="background: #AEF1AE">
+          destinationTable.getNumRows().toString()
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          509
+        </td>
+        <td>
+          3630
+          -
+          3652
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Total number of Rows&quot;
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          511
+        </td>
+        <td>
+          3630
+          -
+          3692
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString())
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          513
+        </td>
+        <td>
+          3702
+          -
+          3773
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](&quot;Total size in MB&quot;).-&gt;[String](({
+  val arg$macro$1: Any = scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0);
+  new scala.collection.immutable.StringOps(&quot;%s MB&quot;).format(arg$macro$1)
+}: String))
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          512
+        </td>
+        <td>
+          3702
+          -
+          3720
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Total size in MB&quot;
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          517
+        </td>
+        <td>
+          3895
+          -
+          3914
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_dataset
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          519
+        </td>
+        <td>
+          3884
+          -
+          3934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableId.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.TableId.of(BQLoadTypedStep.this.destination_dataset, BQLoadTypedStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          518
+        </td>
+        <td>
+          3916
+          -
+          3933
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_table
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          520
+        </td>
+        <td>
+          3962
+          -
+          4021
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.TableInfo.getDefinition
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.bq.getTable(tableId).getDefinition[com.google.cloud.bigquery.StandardTableDefinition]()
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          521
+        </td>
+        <td>
+          4030
+          -
+          4060
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.equalsIgnoreCase
+        </td>
+        <td style="background: #AEF1AE">
+          level.equalsIgnoreCase(&quot;info&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          534
+        </td>
+        <td>
+          4070
+          -
+          4311
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQLoadTypedStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQLoadTypedStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Source Format&quot;).-&gt;[String](BQLoadTypedStep.this.source_format.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          535
+        </td>
+        <td>
+          4070
+          -
+          4311
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQLoadTypedStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQLoadTypedStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()), scala.Predef.ArrowAssoc[String](&quot;Source Format&quot;).-&gt;[String](BQLoadTypedStep.this.source_format.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          523
+        </td>
+        <td>
+          4108
+          -
+          4127
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_dataset
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          522
+        </td>
+        <td>
+          4083
+          -
+          4104
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;destination_dataset&quot;
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          524
+        </td>
+        <td>
+          4083
+          -
+          4127
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQLoadTypedStep.this.destination_dataset)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          525
+        </td>
+        <td>
+          4138
+          -
+          4157
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;destination_table&quot;
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          527
+        </td>
+        <td>
+          4138
+          -
+          4178
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQLoadTypedStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          526
+        </td>
+        <td>
+          4161
+          -
+          4178
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_table
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          528
+        </td>
+        <td>
+          4189
+          -
+          4211
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Total number of Rows&quot;
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          530
+        </td>
+        <td>
+          4189
+          -
+          4251
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString())
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          529
+        </td>
+        <td>
+          4215
+          -
+          4251
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Long.toString
+        </td>
+        <td style="background: #AEF1AE">
+          destinationTable.getNumRows().toString()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          532
+        </td>
+        <td>
+          4281
+          -
+          4303
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #AEF1AE">
+          BQLoadTypedStep.this.source_format.toString()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          531
+        </td>
+        <td>
+          4262
+          -
+          4277
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Source Format&quot;
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          533
+        </td>
+        <td>
+          4262
+          -
+          4303
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.ArrowAssoc[String](&quot;Source Format&quot;).-&gt;[String](BQLoadTypedStep.this.source_format.toString())
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          558
+        </td>
+        <td>
+          4331
+          -
+          4746
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;source_dirs&quot;).-&gt;[String](BQLoadTypedStep.this.source_paths_partitions.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;source_path&quot;).-&gt;[String](BQLoadTypedStep.this.source_path), scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQLoadTypedStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQLoadTypedStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;write_disposition&quot;).-&gt;[String](BQLoadTypedStep.this.write_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;create_disposition&quot;).-&gt;[String](BQLoadTypedStep.this.create_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          557
+        </td>
+        <td>
+          4331
+          -
+          4746
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;source_dirs&quot;).-&gt;[String](BQLoadTypedStep.this.source_paths_partitions.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;source_path&quot;).-&gt;[String](BQLoadTypedStep.this.source_path), scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQLoadTypedStep.this.destination_dataset), scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQLoadTypedStep.this.destination_table), scala.Predef.ArrowAssoc[String](&quot;write_disposition&quot;).-&gt;[String](BQLoadTypedStep.this.write_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;create_disposition&quot;).-&gt;[String](BQLoadTypedStep.this.create_disposition.toString()), scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString()))
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          537
+        </td>
+        <td>
+          4361
+          -
+          4398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.source_paths_partitions.mkString(&quot;,&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          536
+        </td>
+        <td>
+          4344
+          -
+          4357
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;source_dirs&quot;
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          538
+        </td>
+        <td>
+          4344
+          -
+          4398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;source_dirs&quot;).-&gt;[String](BQLoadTypedStep.this.source_paths_partitions.mkString(&quot;,&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          541
+        </td>
+        <td>
+          4409
+          -
+          4437
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;source_path&quot;).-&gt;[String](BQLoadTypedStep.this.source_path)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          540
+        </td>
+        <td>
+          4426
+          -
+          4437
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.source_path
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.source_path
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          539
+        </td>
+        <td>
+          4409
+          -
+          4422
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;source_path&quot;
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          543
+        </td>
+        <td>
+          4473
+          -
+          4492
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_dataset
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.destination_dataset
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          542
+        </td>
+        <td>
+          4448
+          -
+          4469
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;destination_dataset&quot;
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          544
+        </td>
+        <td>
+          4448
+          -
+          4492
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;destination_dataset&quot;).-&gt;[String](BQLoadTypedStep.this.destination_dataset)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          546
+        </td>
+        <td>
+          4526
+          -
+          4543
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.destination_table
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.destination_table
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          545
+        </td>
+        <td>
+          4503
+          -
+          4522
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;destination_table&quot;
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          547
+        </td>
+        <td>
+          4503
+          -
+          4543
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;destination_table&quot;).-&gt;[String](BQLoadTypedStep.this.destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          550
+        </td>
+        <td>
+          4554
+          -
+          4603
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;write_disposition&quot;).-&gt;[String](BQLoadTypedStep.this.write_disposition.toString())
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          549
+        </td>
+        <td>
+          4577
+          -
+          4603
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.write_disposition.toString()
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          548
+        </td>
+        <td>
+          4554
+          -
+          4573
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;write_disposition&quot;
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          552
+        </td>
+        <td>
+          4638
+          -
+          4665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          BQLoadTypedStep.this.create_disposition.toString()
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          551
+        </td>
+        <td>
+          4614
+          -
+          4634
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;create_disposition&quot;
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          553
+        </td>
+        <td>
+          4614
+          -
+          4665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;create_disposition&quot;).-&gt;[String](BQLoadTypedStep.this.create_disposition.toString())
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          555
+        </td>
+        <td>
+          4702
+          -
+          4738
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Long.toString
+        </td>
+        <td style="background: #F0ADAD">
+          destinationTable.getNumRows().toString()
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          554
+        </td>
+        <td>
+          4676
+          -
+          4698
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Total number of Rows&quot;
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          556
+        </td>
+        <td>
+          4676
+          -
+          4738
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;Total number of Rows&quot;).-&gt;[String](destinationTable.getNumRows().toString())
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          559
+        </td>
+        <td>
+          5588
+          -
+          5779
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etljobs.etlsteps.BQLoadTypedStep.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new etljobs.etlsteps.BQLoadTypedStep[T](name, source_path, source_paths_partitions, source_format, source_file_system, destination_dataset, destination_table, write_disposition, create_disposition)(bq)(evidence$2)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

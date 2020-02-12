@@ -73,7 +73,7 @@ trait EtlJob {
                 job_execution_state ++= etl.getExecutionMetrics
               case Failure(exception) =>
                 SlackManager.updateStepLevelInformation(step_start_time, etl, "Failed", notification_level,Some(exception.getMessage))
-                DbManager.updateStepLevelInformation(step_start_time, etl, "Failed", notification_level,Some(exception.getMessage))
+                DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage, notification_level,Some(exception.getMessage))
                 job_execution_state ++= etl.getExecutionMetrics
                 etl_job_logger.error("Error Occurred: " + exception.getMessage)
                 if (aggregate_error)

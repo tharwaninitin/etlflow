@@ -96,14 +96,14 @@
 </span>72 <span style=''></span><span style='background: #AEF1AE'>                SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Pass&quot;, notification_level)
 </span>73 <span style=''></span><span style='background: #AEF1AE'>                job_execution_state ++= etl.getExecutionMetrics
 </span>74 <span style=''></span><span style='background: #AEF1AE'>              case Failure(exception) =&gt;
-</span>75 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level,Some(exception.getMessage))</span><span style='background: #AEF1AE'>
-</span>76 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level,Some(exception.getMessage))</span><span style='background: #AEF1AE'>
-</span>77 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>job_execution_state ++= etl.getExecutionMetrics</span><span style='background: #AEF1AE'>
-</span>78 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>etl_job_logger.error(&quot;Error Occurred: &quot; + exception.getMessage)</span><span style='background: #AEF1AE'>
-</span>79 <span style=''></span><span style='background: #AEF1AE'>                if (</span><span style='background: #F0ADAD'>aggregate_error</span><span style='background: #AEF1AE'>)
+</span>75 <span style=''></span><span style='background: #AEF1AE'>                SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level,Some(exception.getMessage))
+</span>76 <span style=''></span><span style='background: #AEF1AE'>                DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage, notification_level,Some(exception.getMessage))
+</span>77 <span style=''></span><span style='background: #AEF1AE'>                job_execution_state ++= etl.getExecutionMetrics
+</span>78 <span style=''></span><span style='background: #AEF1AE'>                etl_job_logger.error(&quot;Error Occurred: &quot; + exception.getMessage)
+</span>79 <span style=''></span><span style='background: #AEF1AE'>                if (aggregate_error)
 </span>80 <span style=''></span><span style='background: #AEF1AE'>                  </span><span style='background: #F0ADAD'>error_occured = true</span><span style='background: #AEF1AE'>
 </span>81 <span style=''></span><span style='background: #AEF1AE'>                else
-</span>82 <span style=''></span><span style='background: #AEF1AE'>                  </span><span style='background: #F0ADAD'>throw exception</span><span style='background: #AEF1AE'>
+</span>82 <span style=''></span><span style='background: #AEF1AE'>                  throw exception
 </span>83 <span style=''></span><span style='background: #AEF1AE'>            }
 </span>84 <span style=''></span><span style='background: #AEF1AE'>          }
 </span>85 <span style=''></span><span style='background: #AEF1AE'>        }
@@ -114,7 +114,7 @@
 </span>90 <span style=''></span><span style='background: #F0ADAD'>                                throw EtlJobException(&quot;Job failed&quot;)
 </span>91 <span style=''></span><span style='background: #F0ADAD'>                              }</span><span style='background: #AEF1AE'>
 </span>92 <span style=''></span><span style='background: #AEF1AE'>                              else SlackManager.sendNotification(&quot;Pass&quot;, job_start_time)
-</span>93 <span style=''></span><span style='background: #AEF1AE'>          case Failure(e) =&gt; </span><span style='background: #F0ADAD'>SlackManager.sendNotification(&quot;Failed&quot;, job_start_time)</span><span style='background: #AEF1AE'>; </span><span style='background: #F0ADAD'>throw e</span><span style='background: #AEF1AE'>;
+</span>93 <span style=''></span><span style='background: #AEF1AE'>          case Failure(e) =&gt; SlackManager.sendNotification(&quot;Failed&quot;, job_start_time); throw e;
 </span>94 <span style=''></span><span style='background: #AEF1AE'>        }
 </span>95 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
 </span>96 <span style=''>      else
@@ -487,7 +487,7 @@
         <td>
           1345
           -
-          3951
+          3963
         </td>
         <td>
           Block
@@ -530,7 +530,7 @@
       }
       case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
         etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
-        etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+        etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage(), notification_level, scala.Some.apply[String](exception.getMessage()));
         EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
         EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()));
         if (EtlJob.this.aggregate_error)
@@ -979,7 +979,7 @@
         <td>
           2428
           -
-          3484
+          3496
         </td>
         <td>
           Apply
@@ -998,7 +998,7 @@
     }
     case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
       etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
-      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage(), notification_level, scala.Some.apply[String](exception.getMessage()));
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
       EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()));
       if (EtlJob.this.aggregate_error)
@@ -1019,7 +1019,7 @@
         <td>
           2443
           -
-          3474
+          3486
         </td>
         <td>
           Apply
@@ -1038,7 +1038,7 @@
     }
     case (exception: Throwable)scala.util.Failure[Unit]((exception @ _)) =&gt; {
       etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
-      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()));
+      etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage(), notification_level, scala.Some.apply[String](exception.getMessage()));
       EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics));
       EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()));
       if (EtlJob.this.aggregate_error)
@@ -1298,7 +1298,7 @@
         <td>
           java.lang.Throwable.getMessage
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           exception.getMessage()
         </td>
       </tr><tr>
@@ -1319,7 +1319,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Failed&quot;
         </td>
       </tr><tr>
@@ -1340,7 +1340,7 @@
         <td>
           etljobs.log.SlackManager.updateStepLevelInformation
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           etljobs.log.SlackManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()))
         </td>
       </tr><tr>
@@ -1361,7 +1361,7 @@
         <td>
           scala.Some.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.Some.apply[String](exception.getMessage())
         </td>
       </tr><tr>
@@ -1374,16 +1374,16 @@
         <td>
           3117
           -
-          3125
+          3137
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          java.lang.Throwable.getMessage
         </td>
-        <td style="background: #F0ADAD">
-          &quot;Failed&quot;
+        <td style="background: #AEF1AE">
+          exception.getMessage()
         </td>
       </tr><tr>
         <td>
@@ -1395,7 +1395,7 @@
         <td>
           3058
           -
-          3173
+          3185
         </td>
         <td>
           Apply
@@ -1403,8 +1403,8 @@
         <td>
           etljobs.log.DbManager.updateStepLevelInformation
         </td>
-        <td style="background: #F0ADAD">
-          etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, &quot;Failed&quot;, notification_level, scala.Some.apply[String](exception.getMessage()))
+        <td style="background: #AEF1AE">
+          etljobs.log.DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage(), notification_level, scala.Some.apply[String](exception.getMessage()))
         </td>
       </tr><tr>
         <td>
@@ -1414,9 +1414,9 @@
           52
         </td>
         <td>
-          3146
+          3158
           -
-          3172
+          3184
         </td>
         <td>
           Apply
@@ -1424,7 +1424,7 @@
         <td>
           scala.Some.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.Some.apply[String](exception.getMessage())
         </td>
       </tr><tr>
@@ -1435,9 +1435,9 @@
           51
         </td>
         <td>
-          3151
+          3163
           -
-          3171
+          3183
         </td>
         <td>
           Apply
@@ -1445,7 +1445,7 @@
         <td>
           java.lang.Throwable.getMessage
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           exception.getMessage()
         </td>
       </tr><tr>
@@ -1456,9 +1456,9 @@
           56
         </td>
         <td>
-          3190
+          3202
           -
-          3237
+          3249
         </td>
         <td>
           Apply
@@ -1466,7 +1466,7 @@
         <td>
           etljobs.EtlJob.job_execution_state_=
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJob.this.job_execution_state_=(EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics))
         </td>
       </tr><tr>
@@ -1477,9 +1477,9 @@
           55
         </td>
         <td>
-          3190
+          3202
           -
-          3237
+          3249
         </td>
         <td>
           Apply
@@ -1487,7 +1487,7 @@
         <td>
           scala.collection.immutable.MapLike.++
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJob.this.job_execution_state.++[Map[String,String]](etl.getExecutionMetrics)
         </td>
       </tr><tr>
@@ -1498,9 +1498,9 @@
           54
         </td>
         <td>
-          3214
+          3226
           -
-          3237
+          3249
         </td>
         <td>
           Select
@@ -1508,7 +1508,7 @@
         <td>
           etljobs.etlsteps.EtlStep.getExecutionMetrics
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           etl.getExecutionMetrics
         </td>
       </tr><tr>
@@ -1519,9 +1519,9 @@
           59
         </td>
         <td>
-          3275
+          3287
           -
-          3316
+          3328
         </td>
         <td>
           Apply
@@ -1529,7 +1529,7 @@
         <td>
           java.lang.String.+
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Error Occurred: &quot;.+(exception.getMessage())
         </td>
       </tr><tr>
@@ -1540,9 +1540,9 @@
           58
         </td>
         <td>
-          3296
+          3308
           -
-          3316
+          3328
         </td>
         <td>
           Apply
@@ -1550,7 +1550,7 @@
         <td>
           java.lang.Throwable.getMessage
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           exception.getMessage()
         </td>
       </tr><tr>
@@ -1561,9 +1561,9 @@
           60
         </td>
         <td>
-          3254
+          3266
           -
-          3317
+          3329
         </td>
         <td>
           Apply
@@ -1571,7 +1571,7 @@
         <td>
           org.apache.log4j.Category.error
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJob.this.etl_job_logger.error(&quot;Error Occurred: &quot;.+(exception.getMessage()))
         </td>
       </tr><tr>
@@ -1582,9 +1582,9 @@
           57
         </td>
         <td>
-          3275
+          3287
           -
-          3293
+          3305
         </td>
         <td>
           Literal
@@ -1592,7 +1592,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Error Occurred: &quot;
         </td>
       </tr><tr>
@@ -1603,9 +1603,9 @@
           61
         </td>
         <td>
-          3338
+          3350
           -
-          3353
+          3365
         </td>
         <td>
           Select
@@ -1613,7 +1613,7 @@
         <td>
           etljobs.EtlJob.aggregate_error
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJob.this.aggregate_error
         </td>
       </tr><tr>
@@ -1624,9 +1624,9 @@
           62
         </td>
         <td>
-          3373
+          3385
           -
-          3393
+          3405
         </td>
         <td>
           Apply
@@ -1645,9 +1645,9 @@
           63
         </td>
         <td>
-          3373
+          3385
           -
-          3393
+          3405
         </td>
         <td>
           Block
@@ -1666,9 +1666,9 @@
           65
         </td>
         <td>
-          3433
+          3445
           -
-          3448
+          3460
         </td>
         <td>
           Block
@@ -1676,7 +1676,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           throw exception
         </td>
       </tr><tr>
@@ -1687,9 +1687,9 @@
           64
         </td>
         <td>
-          3433
+          3445
           -
-          3448
+          3460
         </td>
         <td>
           Throw
@@ -1697,7 +1697,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           throw exception
         </td>
       </tr><tr>
@@ -1708,9 +1708,9 @@
           68
         </td>
         <td>
-          3545
+          3557
           -
-          3558
+          3570
         </td>
         <td>
           Select
@@ -1729,9 +1729,9 @@
           71
         </td>
         <td>
-          3560
+          3572
           -
-          3749
+          3761
         </td>
         <td>
           Block
@@ -1753,9 +1753,9 @@
           69
         </td>
         <td>
-          3594
+          3606
           -
-          3649
+          3661
         </td>
         <td>
           Apply
@@ -1774,9 +1774,9 @@
           70
         </td>
         <td>
-          3682
+          3694
           -
-          3717
+          3729
         </td>
         <td>
           Throw
@@ -1795,9 +1795,9 @@
           73
         </td>
         <td>
-          3785
+          3797
           -
-          3838
+          3850
         </td>
         <td>
           Block
@@ -1816,9 +1816,9 @@
           72
         </td>
         <td>
-          3785
+          3797
           -
-          3838
+          3850
         </td>
         <td>
           Apply
@@ -1837,9 +1837,9 @@
           74
         </td>
         <td>
-          3868
+          3880
           -
-          3923
+          3935
         </td>
         <td>
           Apply
@@ -1847,7 +1847,7 @@
         <td>
           etljobs.log.SlackManager.sendNotification
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           etljobs.log.SlackManager.sendNotification(&quot;Failed&quot;, job_start_time)
         </td>
       </tr><tr>
@@ -1858,9 +1858,9 @@
           75
         </td>
         <td>
-          3925
+          3937
           -
-          3932
+          3944
         </td>
         <td>
           Throw
@@ -1868,7 +1868,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           throw e
         </td>
       </tr><tr>
@@ -1879,9 +1879,9 @@
           102
         </td>
         <td>
-          3969
+          3981
           -
-          4817
+          4829
         </td>
         <td>
           Block
@@ -1922,9 +1922,9 @@
           95
         </td>
         <td>
-          4079
+          4091
           -
-          4645
+          4657
         </td>
         <td>
           Apply
@@ -1956,9 +1956,9 @@
           94
         </td>
         <td>
-          4094
+          4106
           -
-          4635
+          4647
         </td>
         <td>
           Apply
@@ -1990,9 +1990,9 @@
           77
         </td>
         <td>
-          4159
+          4171
           -
-          4176
+          4188
         </td>
         <td>
           Apply
@@ -2011,9 +2011,9 @@
           78
         </td>
         <td>
-          4189
+          4201
           -
-          4202
+          4214
         </td>
         <td>
           Apply
@@ -2032,9 +2032,9 @@
           80
         </td>
         <td>
-          4244
+          4256
           -
-          4291
+          4303
         </td>
         <td>
           Apply
@@ -2053,9 +2053,9 @@
           79
         </td>
         <td>
-          4268
+          4280
           -
-          4291
+          4303
         </td>
         <td>
           Select
@@ -2074,9 +2074,9 @@
           81
         </td>
         <td>
-          4244
+          4256
           -
-          4291
+          4303
         </td>
         <td>
           Apply
@@ -2095,9 +2095,9 @@
           83
         </td>
         <td>
-          4349
+          4361
           -
-          4396
+          4408
         </td>
         <td>
           Apply
@@ -2116,9 +2116,9 @@
           82
         </td>
         <td>
-          4373
+          4385
           -
-          4396
+          4408
         </td>
         <td>
           Select
@@ -2137,9 +2137,9 @@
           84
         </td>
         <td>
-          4349
+          4361
           -
-          4396
+          4408
         </td>
         <td>
           Apply
@@ -2158,9 +2158,9 @@
           86
         </td>
         <td>
-          4454
+          4466
           -
-          4476
+          4488
         </td>
         <td>
           Apply
@@ -2179,9 +2179,9 @@
           85
         </td>
         <td>
-          4434
+          4446
           -
-          4451
+          4463
         </td>
         <td>
           Literal
@@ -2200,9 +2200,9 @@
           88
         </td>
         <td>
-          4413
+          4425
           -
-          4477
+          4489
         </td>
         <td>
           Apply
@@ -2221,9 +2221,9 @@
           87
         </td>
         <td>
-          4434
+          4446
           -
-          4476
+          4488
         </td>
         <td>
           Apply
@@ -2242,9 +2242,9 @@
           89
         </td>
         <td>
-          4499
+          4511
           -
-          4514
+          4526
         </td>
         <td>
           Select
@@ -2263,9 +2263,9 @@
           91
         </td>
         <td>
-          4534
+          4546
           -
-          4554
+          4566
         </td>
         <td>
           Block
@@ -2284,9 +2284,9 @@
           90
         </td>
         <td>
-          4534
+          4546
           -
-          4554
+          4566
         </td>
         <td>
           Apply
@@ -2305,9 +2305,9 @@
           92
         </td>
         <td>
-          4594
+          4606
           -
-          4609
+          4621
         </td>
         <td>
           Throw
@@ -2326,9 +2326,9 @@
           93
         </td>
         <td>
-          4594
+          4606
           -
-          4609
+          4621
         </td>
         <td>
           Block
@@ -2347,9 +2347,9 @@
           98
         </td>
         <td>
-          4723
+          4735
           -
-          4758
+          4770
         </td>
         <td>
           Block
@@ -2368,9 +2368,9 @@
           100
         </td>
         <td>
-          4703
+          4715
           -
-          4703
+          4715
         </td>
         <td>
           Block
@@ -2389,9 +2389,9 @@
           97
         </td>
         <td>
-          4723
+          4735
           -
-          4758
+          4770
         </td>
         <td>
           Throw
@@ -2410,9 +2410,9 @@
           96
         </td>
         <td>
-          4706
+          4718
           -
-          4719
+          4731
         </td>
         <td>
           Select
@@ -2431,9 +2431,9 @@
           99
         </td>
         <td>
-          4703
+          4715
           -
-          4703
+          4715
         </td>
         <td>
           Literal
@@ -2452,9 +2452,9 @@
           101
         </td>
         <td>
-          4791
+          4803
           -
-          4798
+          4810
         </td>
         <td>
           Throw
@@ -2473,9 +2473,9 @@
           103
         </td>
         <td>
-          4843
+          4855
           -
-          4860
+          4872
         </td>
         <td>
           Apply
@@ -2494,9 +2494,9 @@
           104
         </td>
         <td>
-          4887
+          4899
           -
-          4987
+          4999
         </td>
         <td>
           Apply
@@ -2515,9 +2515,9 @@
           105
         </td>
         <td>
-          4867
+          4879
           -
-          4988
+          5000
         </td>
         <td>
           Apply
@@ -2536,9 +2536,9 @@
           106
         </td>
         <td>
-          4995
+          5007
           -
-          5014
+          5026
         </td>
         <td>
           Select

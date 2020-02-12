@@ -28,39 +28,33 @@
 </span>4 <span style=''>import org.apache.log4j.Logger
 </span>5 <span style=''>import scala.reflect.runtime.universe.TypeTag
 </span>6 <span style=''>
-</span>7 <span style=''>abstract class EtlJobApp[EJN: TypeTag] extends UtilityFunctions with EtlJobManager {
+</span>7 <span style=''>abstract class MintEtlJobApp[EJN: TypeTag] extends UtilityFunctions with EtlJobManager {
 </span>8 <span style=''>  </span><span style='background: #F0ADAD'>AppLogger.initialize()</span><span style=''>
 </span>9 <span style=''>  lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
-</span>10 <span style=''>  val global_properties: Option[GlobalProperties] = </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>11 <span style=''>  private val send_notification = </span><span style='background: #F0ADAD'>global_properties</span><span style=''> match {
-</span>12 <span style=''>    case Some(value) =&gt; </span><span style='background: #F0ADAD'>value.send_notification.toBoolean</span><span style=''>
-</span>13 <span style=''>    case None =&gt; </span><span style='background: #F0ADAD'>true</span><span style=''>
-</span>14 <span style=''>  }
-</span>15 <span style=''>  private val notification_level = </span><span style='background: #F0ADAD'>global_properties</span><span style=''> match {
-</span>16 <span style=''>    case Some(value) =&gt; value.notification_level
-</span>17 <span style=''>    case None =&gt; </span><span style='background: #F0ADAD'>&quot;info&quot;</span><span style=''>
-</span>18 <span style=''>  }
-</span>19 <span style=''>
-</span>20 <span style=''>  def main(args: Array[String]): Unit = {
-</span>21 <span style=''>    </span><span style='background: #F0ADAD'>args(0)</span><span style=''> match {
-</span>22 <span style=''>      case &quot;list_jobs&quot; =&gt; </span><span style='background: #F0ADAD'>printEtlJobs[EJN]</span><span style=''>
-</span>23 <span style=''>      case &quot;show_job&quot; =&gt;
-</span>24 <span style=''>        val job_properties = </span><span style='background: #F0ADAD'>parser(args.drop(1))</span><span style=''>
-</span>25 <span style=''>        val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_properties(&quot;job_name&quot;), job_properties, global_properties)</span><span style=''>
-</span>26 <span style=''>        </span><span style='background: #F0ADAD'>etl_job.etl_step_list.foreach { s =&gt;
-</span>27 <span style=''></span><span style='background: #F0ADAD'>          ea_logger.info(&quot;=&quot; * 10 + s.name + &quot;=&quot; * 10)
-</span>28 <span style=''></span><span style='background: #F0ADAD'>          s.getStepProperties().foreach(prop =&gt; ea_logger.info(s&quot;==&gt; $prop&quot;))
-</span>29 <span style=''></span><span style='background: #F0ADAD'>        }</span><span style=''>
-</span>30 <span style=''>      case &quot;run_job&quot; =&gt;
-</span>31 <span style=''>        val job_properties = </span><span style='background: #F0ADAD'>parser(args.drop(1))</span><span style=''>
-</span>32 <span style=''>        val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_properties(&quot;job_name&quot;), job_properties, global_properties)</span><span style=''>
-</span>33 <span style=''>        </span><span style='background: #F0ADAD'>executeEtlJob(etl_job, send_notification, notification_level)</span><span style=''>
-</span>34 <span style=''>      case _ =&gt;
-</span>35 <span style=''>        </span><span style='background: #F0ADAD'>ea_logger.error(&quot;Unsupported parameter, Supported params are list_jobs, show_job, run_job&quot;)</span><span style=''>
-</span>36 <span style=''>        </span><span style='background: #F0ADAD'>throw EtlJobException(&quot;Unsupported parameter, Supported params are list_jobs, show_job, run_job&quot;)</span><span style=''>
-</span>37 <span style=''>    }
-</span>38 <span style=''>  }
-</span>39 <span style=''>}
+</span>10 <span style=''>  val global_properties: Option[GlobalProperties]
+</span>11 <span style=''>  val send_notification: Boolean
+</span>12 <span style=''>  val notification_level: String
+</span>13 <span style=''>
+</span>14 <span style=''>  def main(args: Array[String]): Unit = {
+</span>15 <span style=''>    </span><span style='background: #F0ADAD'>args(0)</span><span style=''> match {
+</span>16 <span style=''>      case &quot;list_jobs&quot; =&gt; </span><span style='background: #F0ADAD'>printEtlJobs[EJN]</span><span style=''>
+</span>17 <span style=''>      case &quot;show_job&quot; =&gt;
+</span>18 <span style=''>        val job_properties = </span><span style='background: #F0ADAD'>parser(args.drop(1))</span><span style=''>
+</span>19 <span style=''>        val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_properties(&quot;job_name&quot;), job_properties, global_properties)</span><span style=''>
+</span>20 <span style=''>        </span><span style='background: #F0ADAD'>etl_job.etl_step_list.foreach { s =&gt;
+</span>21 <span style=''></span><span style='background: #F0ADAD'>          ea_logger.info(&quot;=&quot; * 10 + s.name + &quot;=&quot; * 10)
+</span>22 <span style=''></span><span style='background: #F0ADAD'>          s.getStepProperties(notification_level).foreach(prop =&gt; ea_logger.info(s&quot;==&gt; $prop&quot;))
+</span>23 <span style=''></span><span style='background: #F0ADAD'>        }</span><span style=''>
+</span>24 <span style=''>      case &quot;run_job&quot; =&gt;
+</span>25 <span style=''>        val job_properties = </span><span style='background: #F0ADAD'>parser(args.drop(1))</span><span style=''>
+</span>26 <span style=''>        val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_properties(&quot;job_name&quot;), job_properties, global_properties)</span><span style=''>
+</span>27 <span style=''>        </span><span style='background: #F0ADAD'>executeEtlJob(etl_job, send_notification, notification_level)</span><span style=''>
+</span>28 <span style=''>      case _ =&gt;
+</span>29 <span style=''>        </span><span style='background: #F0ADAD'>ea_logger.error(&quot;Unsupported parameter, Supported params are list_jobs, show_job, run_job&quot;)</span><span style=''>
+</span>30 <span style=''>        </span><span style='background: #F0ADAD'>throw EtlJobException(&quot;Unsupported parameter, Supported params are list_jobs, show_job, run_job&quot;)</span><span style=''>
+</span>31 <span style=''>    }
+</span>32 <span style=''>  }
+</span>33 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -80,9 +74,9 @@
           107
         </td>
         <td>
-          251
+          255
           -
-          273
+          277
         </td>
         <td>
           Apply
@@ -95,141 +89,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          15
         </td>
         <td>
           108
         </td>
         <td>
-          392
-          -
-          396
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #F0ADAD">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          109
-        </td>
-        <td>
-          431
-          -
-          448
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.EtlJobApp.global_properties
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobApp.this.global_properties
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          110
-        </td>
-        <td>
-          481
+          507
           -
           514
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.immutable.StringLike.toBoolean
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.augmentString(value.send_notification).toBoolean
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          111
-        </td>
-        <td>
-          532
-          -
-          536
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          true
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          112
-        </td>
-        <td>
-          576
-          -
-          593
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etljobs.EtlJobApp.global_properties
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobApp.this.global_properties
-        </td>
-      </tr><tr>
-        <td>
-          17
-        </td>
-        <td>
-          113
-        </td>
-        <td>
-          668
-          -
-          674
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;info&quot;
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          114
-        </td>
-        <td>
-          726
-          -
-          733
         </td>
         <td>
           Apply
@@ -242,15 +110,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          16
         </td>
         <td>
-          116
+          110
         </td>
         <td>
-          768
+          549
           -
-          785
+          566
         </td>
         <td>
           ApplyToImplicitArgs
@@ -259,40 +127,40 @@
           etljobs.utils.UtilityFunctions.printEtlJobs
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.printEtlJobs[EJN](EtlJobApp.this.evidence$1)
+          MintEtlJobApp.this.printEtlJobs[EJN](MintEtlJobApp.this.evidence$1)
         </td>
       </tr><tr>
         <td>
-          22
+          16
         </td>
         <td>
-          115
+          109
         </td>
         <td>
-          780
+          561
           -
-          780
+          561
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.EtlJobApp.evidence$1
+          etljobs.MintEtlJobApp.evidence$1
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.evidence$1
+          MintEtlJobApp.this.evidence$1
         </td>
       </tr><tr>
         <td>
-          24
+          18
         </td>
         <td>
-          118
+          112
         </td>
         <td>
-          840
+          621
           -
-          860
+          641
         </td>
         <td>
           Apply
@@ -301,19 +169,19 @@
           etljobs.utils.UtilityFunctions.parser
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.parser(scala.Predef.refArrayOps[String](args).drop(1))
+          MintEtlJobApp.this.parser(scala.Predef.refArrayOps[String](args).drop(1))
         </td>
       </tr><tr>
         <td>
-          24
+          18
         </td>
         <td>
-          117
+          111
         </td>
         <td>
-          847
+          628
           -
-          859
+          640
         </td>
         <td>
           Apply
@@ -326,15 +194,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          19
         </td>
         <td>
-          119
+          113
         </td>
         <td>
-          892
+          673
           -
-          918
+          699
         </td>
         <td>
           Apply
@@ -347,15 +215,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          19
         </td>
         <td>
-          121
+          115
         </td>
         <td>
-          883
+          664
           -
-          954
+          735
         </td>
         <td>
           Apply
@@ -364,40 +232,40 @@
           etljobs.EtlJobManager.toEtlJob
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.toEtlJob(job_properties.apply(&quot;job_name&quot;), job_properties, EtlJobApp.this.global_properties)
+          MintEtlJobApp.this.toEtlJob(job_properties.apply(&quot;job_name&quot;), job_properties, MintEtlJobApp.this.global_properties)
         </td>
       </tr><tr>
         <td>
-          25
+          19
         </td>
         <td>
-          120
+          114
         </td>
         <td>
-          936
+          717
           -
-          953
+          734
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.EtlJobApp.global_properties
+          etljobs.MintEtlJobApp.global_properties
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.global_properties
+          MintEtlJobApp.this.global_properties
         </td>
       </tr><tr>
         <td>
-          26
+          20
         </td>
         <td>
-          132
+          126
         </td>
         <td>
-          963
+          744
           -
-          1142
+          941
         </td>
         <td>
           Apply
@@ -407,42 +275,21 @@
         </td>
         <td style="background: #F0ADAD">
           etl_job.etl_step_list.foreach[Unit](((s: etljobs.etlsteps.StateLessEtlStep) =&gt; {
-  EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(&quot;=&quot;).*(10).+(s.name).+(scala.Predef.augmentString(&quot;=&quot;).*(10)));
-  s.getStepProperties(s.getStepProperties$default$1).foreach[Unit](((prop: (String, String)) =&gt; EtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;==&gt; &quot;, &quot;&quot;).s(prop))))
+  MintEtlJobApp.this.ea_logger.info(scala.Predef.augmentString(&quot;=&quot;).*(10).+(s.name).+(scala.Predef.augmentString(&quot;=&quot;).*(10)));
+  s.getStepProperties(MintEtlJobApp.this.notification_level).foreach[Unit](((prop: (String, String)) =&gt; MintEtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;==&gt; &quot;, &quot;&quot;).s(prop))))
 }))
         </td>
       </tr><tr>
         <td>
-          27
+          21
         </td>
         <td>
-          122
+          119
         </td>
         <td>
-          1025
+          826
           -
-          1028
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;=&quot;
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          125
-        </td>
-        <td>
-          1045
-          -
-          1053
+          834
         </td>
         <td>
           Apply
@@ -455,15 +302,36 @@
         </td>
       </tr><tr>
         <td>
-          27
+          21
         </td>
         <td>
-          124
+          116
         </td>
         <td>
-          1036
+          806
           -
-          1042
+          809
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;=&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          817
+          -
+          823
         </td>
         <td>
           Select
@@ -476,15 +344,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          21
         </td>
         <td>
-          127
+          121
         </td>
         <td>
-          1010
+          791
           -
-          1054
+          835
         </td>
         <td>
           Apply
@@ -493,40 +361,19 @@
           org.apache.log4j.Category.info
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(&quot;=&quot;).*(10).+(s.name).+(scala.Predef.augmentString(&quot;=&quot;).*(10)))
+          MintEtlJobApp.this.ea_logger.info(scala.Predef.augmentString(&quot;=&quot;).*(10).+(s.name).+(scala.Predef.augmentString(&quot;=&quot;).*(10)))
         </td>
       </tr><tr>
         <td>
-          27
+          21
         </td>
         <td>
-          123
+          120
         </td>
         <td>
-          1031
+          806
           -
-          1033
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          10
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          126
-        </td>
-        <td>
-          1025
-          -
-          1053
+          834
         </td>
         <td>
           Apply
@@ -539,36 +386,57 @@
         </td>
       </tr><tr>
         <td>
-          28
+          21
         </td>
         <td>
-          128
+          117
         </td>
         <td>
-          1067
+          812
           -
-          1067
+          814
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          10
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          122
+        </td>
+        <td>
+          866
+          -
+          884
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.etlsteps.EtlStep.getStepProperties$default$1
+          etljobs.MintEtlJobApp.notification_level
         </td>
         <td style="background: #F0ADAD">
-          s.getStepProperties$default$1
+          MintEtlJobApp.this.notification_level
         </td>
       </tr><tr>
         <td>
-          28
+          22
         </td>
         <td>
-          131
+          125
         </td>
         <td>
-          1065
+          846
           -
-          1132
+          931
         </td>
         <td>
           Apply
@@ -577,19 +445,19 @@
           scala.collection.IterableLike.foreach
         </td>
         <td style="background: #F0ADAD">
-          s.getStepProperties(s.getStepProperties$default$1).foreach[Unit](((prop: (String, String)) =&gt; EtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;==&gt; &quot;, &quot;&quot;).s(prop))))
+          s.getStepProperties(MintEtlJobApp.this.notification_level).foreach[Unit](((prop: (String, String)) =&gt; MintEtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;==&gt; &quot;, &quot;&quot;).s(prop))))
         </td>
       </tr><tr>
         <td>
-          28
+          22
         </td>
         <td>
-          130
+          124
         </td>
         <td>
-          1103
+          902
           -
-          1131
+          930
         </td>
         <td>
           Apply
@@ -598,19 +466,19 @@
           org.apache.log4j.Category.info
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;==&gt; &quot;, &quot;&quot;).s(prop))
+          MintEtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;==&gt; &quot;, &quot;&quot;).s(prop))
         </td>
       </tr><tr>
         <td>
-          28
+          22
         </td>
         <td>
-          129
+          123
         </td>
         <td>
-          1118
+          917
           -
-          1130
+          929
         </td>
         <td>
           Apply
@@ -623,15 +491,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          25
         </td>
         <td>
-          134
+          128
         </td>
         <td>
-          1196
+          995
           -
-          1216
+          1015
         </td>
         <td>
           Apply
@@ -640,19 +508,19 @@
           etljobs.utils.UtilityFunctions.parser
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.parser(scala.Predef.refArrayOps[String](args).drop(1))
+          MintEtlJobApp.this.parser(scala.Predef.refArrayOps[String](args).drop(1))
         </td>
       </tr><tr>
         <td>
-          31
+          25
         </td>
         <td>
-          133
+          127
         </td>
         <td>
-          1203
+          1002
           -
-          1215
+          1014
         </td>
         <td>
           Apply
@@ -665,15 +533,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          26
         </td>
         <td>
-          137
+          131
         </td>
         <td>
-          1239
+          1038
           -
-          1310
+          1109
         </td>
         <td>
           Apply
@@ -682,40 +550,40 @@
           etljobs.EtlJobManager.toEtlJob
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.toEtlJob(job_properties.apply(&quot;job_name&quot;), job_properties, EtlJobApp.this.global_properties)
+          MintEtlJobApp.this.toEtlJob(job_properties.apply(&quot;job_name&quot;), job_properties, MintEtlJobApp.this.global_properties)
         </td>
       </tr><tr>
         <td>
-          32
+          26
         </td>
         <td>
-          136
+          130
         </td>
         <td>
-          1292
+          1091
           -
-          1309
+          1108
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.EtlJobApp.global_properties
+          etljobs.MintEtlJobApp.global_properties
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.global_properties
+          MintEtlJobApp.this.global_properties
         </td>
       </tr><tr>
         <td>
-          32
+          26
         </td>
         <td>
-          135
+          129
         </td>
         <td>
-          1248
+          1047
           -
-          1274
+          1073
         </td>
         <td>
           Apply
@@ -728,15 +596,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          27
         </td>
         <td>
-          140
+          134
         </td>
         <td>
-          1319
+          1118
           -
-          1380
+          1179
         </td>
         <td>
           Apply
@@ -745,61 +613,61 @@
           etljobs.EtlJobManager.executeEtlJob
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.executeEtlJob(etl_job, EtlJobApp.this.send_notification, EtlJobApp.this.notification_level)
+          MintEtlJobApp.this.executeEtlJob(etl_job, MintEtlJobApp.this.send_notification, MintEtlJobApp.this.notification_level)
         </td>
       </tr><tr>
         <td>
-          33
+          27
         </td>
         <td>
-          139
+          133
         </td>
         <td>
-          1361
+          1160
           -
-          1379
+          1178
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.EtlJobApp.notification_level
+          etljobs.MintEtlJobApp.notification_level
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.notification_level
+          MintEtlJobApp.this.notification_level
         </td>
       </tr><tr>
         <td>
-          33
+          27
         </td>
         <td>
-          138
+          132
         </td>
         <td>
-          1342
+          1141
           -
-          1359
+          1158
         </td>
         <td>
           Select
         </td>
         <td>
-          etljobs.EtlJobApp.send_notification
+          etljobs.MintEtlJobApp.send_notification
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.send_notification
+          MintEtlJobApp.this.send_notification
         </td>
       </tr><tr>
         <td>
-          35
+          29
         </td>
         <td>
-          141
+          135
         </td>
         <td>
-          1405
+          1204
           -
-          1496
+          1295
         </td>
         <td>
           Apply
@@ -808,19 +676,19 @@
           org.apache.log4j.Category.error
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.ea_logger.error(&quot;Unsupported parameter, Supported params are list_jobs, show_job, run_job&quot;)
+          MintEtlJobApp.this.ea_logger.error(&quot;Unsupported parameter, Supported params are list_jobs, show_job, run_job&quot;)
         </td>
       </tr><tr>
         <td>
-          36
+          30
         </td>
         <td>
-          142
+          136
         </td>
         <td>
-          1505
+          1304
           -
-          1602
+          1401
         </td>
         <td>
           Throw

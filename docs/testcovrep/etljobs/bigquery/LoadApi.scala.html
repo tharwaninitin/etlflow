@@ -25,102 +25,117 @@
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.bigquery
 </span>2 <span style=''>
 </span>3 <span style=''>import org.apache.log4j.Logger
-</span>4 <span style=''>import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo, LoadJobConfiguration, StandardTableDefinition, TableId, WriteChannelConfiguration}
+</span>4 <span style=''>import com.google.cloud.bigquery.{BigQuery, FormatOptions, JobInfo, LoadJobConfiguration, Schema, StandardTableDefinition, TableId}
 </span>5 <span style=''>import scala.sys.process._
 </span>6 <span style=''>
 </span>7 <span style=''>object LoadApi {
-</span>8 <span style=''>    private val load_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
-</span>9 <span style=''>    </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>8 <span style=''>  private val load_logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>9 <span style=''>  </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
 </span>10 <span style=''>
-</span>11 <span style=''>    def loadIntoBQFromLocalFile(
-</span>12 <span style=''>        source_path: String
-</span>13 <span style=''>        ,source_paths_partitions: Seq[(String,String)]
-</span>14 <span style=''>        ,source_format: FormatOptions
-</span>15 <span style=''>        ,destination_dataset: String
-</span>16 <span style=''>        ,destination_table: String
-</span>17 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
-</span>18 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
-</span>19 <span style=''>        ) : Unit = {
-</span>20 <span style=''>        if (</span><span style='background: #AEF1AE'>source_paths_partitions.nonEmpty</span><span style=''>) </span><span style='background: #AEF1AE'>{
-</span>21 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot; )
-</span>22 <span style=''></span><span style='background: #AEF1AE'>            source_paths_partitions.foreach { case(src_path, partition) =&gt;
-</span>23 <span style=''></span><span style='background: #AEF1AE'>                val table_partition = destination_table + &quot;$&quot; + partition
-</span>24 <span style=''></span><span style='background: #AEF1AE'>                val full_table_name = destination_dataset + &quot;.&quot; + table_partition
-</span>25 <span style=''></span><span style='background: #AEF1AE'>                val bq_load_cmd =s&quot;&quot;&quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format.getType} $full_table_name $src_path&quot;&quot;&quot;.stripMargin
-</span>26 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Loading data from path: $src_path&quot;)
-</span>27 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Destination table: $full_table_name&quot;)
-</span>28 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
-</span>29 <span style=''></span><span style='background: #AEF1AE'>                val x = s&quot;$bq_load_cmd&quot;.!
-</span>30 <span style=''></span><span style='background: #AEF1AE'>                load_logger.info(s&quot;Output exit code: $x&quot;)
-</span>31 <span style=''></span><span style='background: #AEF1AE'>                if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
-</span>32 <span style=''></span><span style='background: #AEF1AE'>            }
-</span>33 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>34 <span style=''>        else </span><span style='background: #AEF1AE'>{
-</span>35 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(&quot;BQ file path: &quot; + source_path)
-</span>36 <span style=''></span><span style='background: #AEF1AE'>            val full_table_name = destination_dataset + &quot;.&quot; + destination_table
-</span>37 <span style=''></span><span style='background: #AEF1AE'>            val bq_load_cmd =s&quot;&quot;&quot;bq load --replace --source_format=${source_format.getType} $full_table_name $source_path&quot;&quot;&quot;.stripMargin
-</span>38 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Loading data from path: $source_path&quot;)
-</span>39 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Destination table: $full_table_name&quot;)
-</span>40 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
-</span>41 <span style=''></span><span style='background: #AEF1AE'>            val x = s&quot;$bq_load_cmd&quot;.!
-</span>42 <span style=''></span><span style='background: #AEF1AE'>            load_logger.info(s&quot;Output exit code: $x&quot;)
-</span>43 <span style=''></span><span style='background: #AEF1AE'>            if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
-</span>44 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>45 <span style=''>    }
-</span>46 <span style=''>    
-</span>47 <span style=''>    def loadIntoPartitionedBQTableFromGCS(
-</span>48 <span style=''>        bq: BigQuery
-</span>49 <span style=''>        ,source_paths_partitions: Seq[(String,String)]
-</span>50 <span style=''>        ,source_format: FormatOptions
-</span>51 <span style=''>        ,destination_dataset: String
-</span>52 <span style=''>        ,destination_table: String
-</span>53 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
-</span>54 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
-</span>55 <span style=''>        ): Map[String, Long] ={
-</span>56 <span style=''>        
-</span>57 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot; )</span><span style=''>
-</span>58 <span style=''>        </span><span style='background: #AEF1AE'>source_paths_partitions.par.flatMap { case (src_path, partition) =&gt;
-</span>59 <span style=''></span><span style='background: #AEF1AE'>            val table_partition = destination_table + &quot;$&quot; + partition             
-</span>60 <span style=''></span><span style='background: #AEF1AE'>            loadIntoUnpartitionedBQTableFromGCS(bq,src_path,source_format,destination_dataset,table_partition,write_disposition,create_disposition)
-</span>61 <span style=''></span><span style='background: #AEF1AE'>        }.toList.toMap</span><span style=''>
-</span>62 <span style=''>    }
+</span>11 <span style=''>  def loadIntoBQFromLocalFile(
+</span>12 <span style=''>                               source_path: String
+</span>13 <span style=''>                               , source_paths_partitions: Seq[(String, String)]
+</span>14 <span style=''>                               , source_format: FormatOptions
+</span>15 <span style=''>                               , destination_dataset: String
+</span>16 <span style=''>                               , destination_table: String
+</span>17 <span style=''>                               , write_disposition: JobInfo.WriteDisposition
+</span>18 <span style=''>                               , create_disposition: JobInfo.CreateDisposition
+</span>19 <span style=''>                             ): Unit = {
+</span>20 <span style=''>    if (</span><span style='background: #AEF1AE'>source_paths_partitions.nonEmpty</span><span style=''>) </span><span style='background: #AEF1AE'>{
+</span>21 <span style=''></span><span style='background: #AEF1AE'>      load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot;)
+</span>22 <span style=''></span><span style='background: #AEF1AE'>      source_paths_partitions.foreach { case (src_path, partition) =&gt;
+</span>23 <span style=''></span><span style='background: #AEF1AE'>        val table_partition = destination_table + &quot;$&quot; + partition
+</span>24 <span style=''></span><span style='background: #AEF1AE'>        val full_table_name = destination_dataset + &quot;.&quot; + table_partition
+</span>25 <span style=''></span><span style='background: #AEF1AE'>        val bq_load_cmd =s&quot;&quot;&quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format.getType} $full_table_name $src_path&quot;&quot;&quot;.stripMargin
+</span>26 <span style=''></span><span style='background: #AEF1AE'>        load_logger.info(s&quot;Loading data from path: $src_path&quot;)
+</span>27 <span style=''></span><span style='background: #AEF1AE'>        load_logger.info(s&quot;Destination table: $full_table_name&quot;)
+</span>28 <span style=''></span><span style='background: #AEF1AE'>        load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
+</span>29 <span style=''></span><span style='background: #AEF1AE'>        val x = s&quot;$bq_load_cmd&quot;.!
+</span>30 <span style=''></span><span style='background: #AEF1AE'>        load_logger.info(s&quot;Output exit code: $x&quot;)
+</span>31 <span style=''></span><span style='background: #AEF1AE'>        if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
+</span>32 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>33 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>34 <span style=''>    else </span><span style='background: #AEF1AE'>{
+</span>35 <span style=''></span><span style='background: #AEF1AE'>      load_logger.info(&quot;BQ file path: &quot; + source_path)
+</span>36 <span style=''></span><span style='background: #AEF1AE'>      val full_table_name = destination_dataset + &quot;.&quot; + destination_table
+</span>37 <span style=''></span><span style='background: #AEF1AE'>      val bq_load_cmd =s&quot;&quot;&quot;bq load --replace --source_format=${source_format.getType} $full_table_name $source_path&quot;&quot;&quot;.stripMargin
+</span>38 <span style=''></span><span style='background: #AEF1AE'>      load_logger.info(s&quot;Loading data from path: $source_path&quot;)
+</span>39 <span style=''></span><span style='background: #AEF1AE'>      load_logger.info(s&quot;Destination table: $full_table_name&quot;)
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      load_logger.info(s&quot;BQ Load command is: $bq_load_cmd&quot;)
+</span>41 <span style=''></span><span style='background: #AEF1AE'>      val x = s&quot;$bq_load_cmd&quot;.!
+</span>42 <span style=''></span><span style='background: #AEF1AE'>      load_logger.info(s&quot;Output exit code: $x&quot;)
+</span>43 <span style=''></span><span style='background: #AEF1AE'>      if (x != 0) </span><span style='background: #F0ADAD'>throw BQLoadException(&quot;BQ error&quot;)</span><span style='background: #AEF1AE'>
+</span>44 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>  def loadIntoPartitionedBQTableFromGCS(
+</span>48 <span style=''>                                         bq: BigQuery
+</span>49 <span style=''>                                         , source_paths_partitions: Seq[(String, String)]
+</span>50 <span style=''>                                         , source_format: FormatOptions
+</span>51 <span style=''>                                         , destination_dataset: String
+</span>52 <span style=''>                                         , destination_table: String
+</span>53 <span style=''>                                         , write_disposition: JobInfo.WriteDisposition
+</span>54 <span style=''>                                         , create_disposition: JobInfo.CreateDisposition
+</span>55 <span style=''>                                         , schema: Option[Schema] = None
+</span>56 <span style=''>                                       ): Map[String, Long] = {
+</span>57 <span style=''>    </span><span style='background: #AEF1AE'>load_logger.info(s&quot;No of BQ partitions: ${source_paths_partitions.length}&quot;)</span><span style=''>
+</span>58 <span style=''>    </span><span style='background: #AEF1AE'>source_paths_partitions.par.flatMap { case (src_path, partition) =&gt;
+</span>59 <span style=''></span><span style='background: #AEF1AE'>      val table_partition = destination_table + &quot;$&quot; + partition
+</span>60 <span style=''></span><span style='background: #AEF1AE'>      loadIntoUnpartitionedBQTableFromGCS(bq, src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition)
+</span>61 <span style=''></span><span style='background: #AEF1AE'>    }.toList.toMap</span><span style=''>
+</span>62 <span style=''>  }
 </span>63 <span style=''>
-</span>64 <span style=''>    def loadIntoUnpartitionedBQTableFromGCS(
-</span>65 <span style=''>        bq: BigQuery
-</span>66 <span style=''>        ,source_path: String
-</span>67 <span style=''>        ,source_format: FormatOptions
-</span>68 <span style=''>        ,destination_dataset: String
-</span>69 <span style=''>        ,destination_table: String
-</span>70 <span style=''>        ,write_disposition: JobInfo.WriteDisposition
-</span>71 <span style=''>        ,create_disposition: JobInfo.CreateDisposition
-</span>72 <span style=''>        ): Map[String, Long] = {
-</span>73 <span style=''>
-</span>74 <span style=''>        // Create BQ table instance
-</span>75 <span style=''>        val tableId = </span><span style='background: #AEF1AE'>TableId.of(destination_dataset, destination_table)</span><span style=''>
-</span>76 <span style=''>        
-</span>77 <span style=''>        // Create BQ Load configuration
-</span>78 <span style=''>        val configuration: LoadJobConfiguration = </span><span style='background: #AEF1AE'>LoadJobConfiguration
-</span>79 <span style=''></span><span style='background: #AEF1AE'>            .builder(tableId, source_path)
-</span>80 <span style=''></span><span style='background: #AEF1AE'>            .setFormatOptions(source_format)
-</span>81 <span style=''></span><span style='background: #AEF1AE'>            .setWriteDisposition(write_disposition)
-</span>82 <span style=''></span><span style='background: #AEF1AE'>            .setCreateDisposition(create_disposition)
-</span>83 <span style=''></span><span style='background: #AEF1AE'>            .build()</span><span style=''>
-</span>84 <span style=''>
-</span>85 <span style=''>        // Create BQ Load job
-</span>86 <span style=''>        val loadJob = </span><span style='background: #AEF1AE'>bq.create(JobInfo.of(configuration))</span><span style=''>
-</span>87 <span style=''>
-</span>88 <span style=''>        // Wait for the job to complete
-</span>89 <span style=''>        val completedJob = </span><span style='background: #AEF1AE'>loadJob.waitFor()</span><span style=''>
-</span>90 <span style=''>        val destinationTable = </span><span style='background: #AEF1AE'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
-</span>91 <span style=''>
-</span>92 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Source path: $source_path&quot;)</span><span style=''>
-</span>93 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Destination table: $destination_dataset.$destination_table&quot;)</span><span style=''>
-</span>94 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Job State: ${completedJob.getStatus.getState}&quot;)</span><span style=''>
-</span>95 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded rows: ${destinationTable.getNumRows}&quot;)</span><span style=''>
-</span>96 <span style=''>        </span><span style='background: #AEF1AE'>load_logger.info(s&quot;Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB&quot;)</span><span style=''>
-</span>97 <span style=''>        </span><span style='background: #AEF1AE'>Map(destination_table -&gt; destinationTable.getNumRows)</span><span style=''>
-</span>98 <span style=''>    }
-</span>99 <span style=''>}
+</span>64 <span style=''>  def loadIntoUnpartitionedBQTableFromGCS(
+</span>65 <span style=''>                                           bq: BigQuery
+</span>66 <span style=''>                                           , source_path: String
+</span>67 <span style=''>                                           , source_format: FormatOptions
+</span>68 <span style=''>                                           , destination_dataset: String
+</span>69 <span style=''>                                           , destination_table: String
+</span>70 <span style=''>                                           , write_disposition: JobInfo.WriteDisposition
+</span>71 <span style=''>                                           , create_disposition: JobInfo.CreateDisposition
+</span>72 <span style=''>                                           , schema: Option[Schema] = None
+</span>73 <span style=''>                                         ): Map[String, Long] = {
+</span>74 <span style=''>    // Create BQ table instance
+</span>75 <span style=''>    val tableId = </span><span style='background: #AEF1AE'>TableId.of(destination_dataset, destination_table)</span><span style=''>
+</span>76 <span style=''>
+</span>77 <span style=''>    // Create BQ Load configuration
+</span>78 <span style=''>    val configuration: LoadJobConfiguration = schema match {
+</span>79 <span style=''>      case Some(s) =&gt; </span><span style='background: #F0ADAD'>LoadJobConfiguration
+</span>80 <span style=''></span><span style='background: #F0ADAD'>        .builder(tableId, source_path)
+</span>81 <span style=''></span><span style='background: #F0ADAD'>        .setFormatOptions(source_format)
+</span>82 <span style=''></span><span style='background: #F0ADAD'>        .setSchema(s)
+</span>83 <span style=''></span><span style='background: #F0ADAD'>        .setWriteDisposition(write_disposition)
+</span>84 <span style=''></span><span style='background: #F0ADAD'>        .setCreateDisposition(create_disposition)
+</span>85 <span style=''></span><span style='background: #F0ADAD'>        .build()</span><span style=''>
+</span>86 <span style=''>      case None =&gt; </span><span style='background: #AEF1AE'>LoadJobConfiguration
+</span>87 <span style=''></span><span style='background: #AEF1AE'>        .builder(tableId, source_path)
+</span>88 <span style=''></span><span style='background: #AEF1AE'>        .setFormatOptions(source_format)
+</span>89 <span style=''></span><span style='background: #AEF1AE'>        .setWriteDisposition(write_disposition)
+</span>90 <span style=''></span><span style='background: #AEF1AE'>        .setCreateDisposition(create_disposition)
+</span>91 <span style=''></span><span style='background: #AEF1AE'>        .build()</span><span style=''>
+</span>92 <span style=''>    }
+</span>93 <span style=''>
+</span>94 <span style=''>    // Create BQ Load job
+</span>95 <span style=''>    val loadJob = </span><span style='background: #AEF1AE'>bq.create(JobInfo.of(configuration))</span><span style=''>
+</span>96 <span style=''>
+</span>97 <span style=''>    // Wait for the job to complete
+</span>98 <span style=''>    val completedJob = </span><span style='background: #AEF1AE'>loadJob.waitFor()</span><span style=''>
+</span>99 <span style=''>    val destinationTable = </span><span style='background: #AEF1AE'>bq.getTable(tableId).getDefinition[StandardTableDefinition]</span><span style=''>
+</span>100 <span style=''>
+</span>101 <span style=''>    if (</span><span style='background: #AEF1AE'>completedJob.getStatus.getError == null</span><span style=''>) </span><span style='background: #F0ADAD'>{
+</span>102 <span style=''></span><span style='background: #F0ADAD'>      load_logger.info(s&quot;Source path: $source_path&quot;)
+</span>103 <span style=''></span><span style='background: #F0ADAD'>      load_logger.info(s&quot;Destination table: $destination_dataset.$destination_table&quot;)
+</span>104 <span style=''></span><span style='background: #F0ADAD'>      load_logger.info(s&quot;Job State: ${completedJob.getStatus.getState}&quot;)
+</span>105 <span style=''></span><span style='background: #F0ADAD'>      load_logger.info(s&quot;Loaded rows: ${destinationTable.getNumRows}&quot;)
+</span>106 <span style=''></span><span style='background: #F0ADAD'>      load_logger.info(s&quot;Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB&quot;)
+</span>107 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>108 <span style=''>    else {
+</span>109 <span style=''>      </span><span style='background: #AEF1AE'>throw new RuntimeException(
+</span>110 <span style=''></span><span style='background: #AEF1AE'>        s&quot;&quot;&quot;Could not load data in ${source_format.toString} format in table ${destination_dataset + &quot;.&quot; + destination_table} due to error ${completedJob.getStatus.getError.getMessage}&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>111 <span style=''>    }
+</span>112 <span style=''>    </span><span style='background: #F0ADAD'>Map(destination_table -&gt; destinationTable.getNumRows)</span><span style=''>
+</span>113 <span style=''>  }
+</span>114 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -137,12 +152,12 @@
           8
         </td>
         <td>
-          164
+          158
         </td>
         <td>
-          300
+          279
           -
-          316
+          295
         </td>
         <td>
           Apply
@@ -158,12 +173,12 @@
           8
         </td>
         <td>
-          165
+          159
         </td>
         <td>
-          283
+          262
           -
-          317
+          296
         </td>
         <td>
           Apply
@@ -179,33 +194,33 @@
           9
         </td>
         <td>
-          167
+          164
         </td>
         <td>
-          367
+          299
           -
-          368
+          346
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          org.apache.log4j.Category.info
         </td>
         <td style="background: #AEF1AE">
-          &quot;&quot;
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(LoadApi.this.getClass().getName()))
         </td>
       </tr><tr>
         <td>
           9
         </td>
         <td>
-          166
+          160
         </td>
         <td>
-          341
+          318
           -
-          349
+          326
         </td>
         <td>
           Literal
@@ -221,12 +236,12 @@
           9
         </td>
         <td>
-          169
+          163
         </td>
         <td>
-          339
+          316
           -
-          368
+          345
         </td>
         <td>
           Apply
@@ -242,12 +257,12 @@
           9
         </td>
         <td>
-          168
+          162
         </td>
         <td>
-          350
+          327
           -
-          366
+          343
         </td>
         <td>
           Apply
@@ -263,33 +278,33 @@
           9
         </td>
         <td>
-          170
+          161
         </td>
         <td>
-          322
+          344
           -
-          369
+          345
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          org.apache.log4j.Category.info
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(LoadApi.this.getClass().getName()))
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
           20
         </td>
         <td>
-          202
+          196
         </td>
         <td>
-          772
+          931
           -
-          1696
+          1761
         </td>
         <td>
           Block
@@ -323,12 +338,12 @@
           20
         </td>
         <td>
-          171
+          165
         </td>
         <td>
-          738
+          897
           -
-          770
+          929
         </td>
         <td>
           Select
@@ -344,12 +359,12 @@
           21
         </td>
         <td>
-          173
+          167
         </td>
         <td>
-          859
+          1012
           -
-          860
+          1013
         </td>
         <td>
           Literal
@@ -365,54 +380,12 @@
           21
         </td>
         <td>
-          176
+          166
         </td>
         <td>
-          786
+          958
           -
-          862
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length))
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          175
-        </td>
-        <td>
-          803
-          -
-          860
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length)
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          172
-        </td>
-        <td>
-          805
-          -
-          827
+          980
         </td>
         <td>
           Literal
@@ -428,12 +401,33 @@
           21
         </td>
         <td>
-          174
+          169
         </td>
         <td>
-          828
+          956
           -
-          858
+          1013
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          981
+          -
+          1011
         </td>
         <td>
           Select
@@ -446,15 +440,36 @@
         </td>
       </tr><tr>
         <td>
+          21
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          939
+          -
+          1014
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length))
+        </td>
+      </tr><tr>
+        <td>
           22
         </td>
         <td>
-          201
+          195
         </td>
         <td>
-          875
+          1021
           -
-          1686
+          1755
         </td>
         <td>
           Apply
@@ -485,12 +500,12 @@
           23
         </td>
         <td>
-          177
+          171
         </td>
         <td>
-          976
+          1115
           -
-          1011
+          1150
         </td>
         <td>
           Apply
@@ -506,12 +521,12 @@
           24
         </td>
         <td>
-          178
+          172
         </td>
         <td>
-          1050
+          1181
           -
-          1093
+          1224
         </td>
         <td>
           Apply
@@ -527,12 +542,33 @@
           25
         </td>
         <td>
-          182
+          173
         </td>
         <td>
-          1281
+          1254
           -
-          1284
+          1354
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          176
+        </td>
+        <td>
+          1404
+          -
+          1407
         </td>
         <td>
           Literal
@@ -548,33 +584,33 @@
           25
         </td>
         <td>
-          185
+          175
         </td>
         <td>
-          1127
+          1394
           -
-          1296
+          1396
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          scala.collection.immutable.StringLike.stripMargin
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          scala.Predef.augmentString(scala.StringContext.apply(&quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=&quot;, &quot; &quot;, &quot; &quot;, &quot;&quot;).s(source_format.getType(), full_table_name, src_path)).stripMargin
+          &quot; &quot;
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          184
+          178
         </td>
         <td>
-          1127
+          1250
           -
-          1284
+          1407
         </td>
         <td>
           Apply
@@ -590,12 +626,12 @@
           25
         </td>
         <td>
-          181
+          174
         </td>
         <td>
-          1271
+          1377
           -
-          1273
+          1379
         </td>
         <td>
           Literal
@@ -611,33 +647,12 @@
           25
         </td>
         <td>
-          180
+          177
         </td>
         <td>
-          1254
+          1355
           -
-          1256
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot; &quot;
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          183
-        </td>
-        <td>
-          1232
-          -
-          1253
+          1376
         </td>
         <td>
           Apply
@@ -656,30 +671,30 @@
           179
         </td>
         <td>
-          1131
+          1250
           -
-          1231
+          1419
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.collection.immutable.StringLike.stripMargin
         </td>
         <td style="background: #AEF1AE">
-          &quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=&quot;
+          scala.Predef.augmentString(scala.StringContext.apply(&quot;bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=&quot;, &quot; &quot;, &quot; &quot;, &quot;&quot;).s(source_format.getType(), full_table_name, src_path)).stripMargin
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          187
+          181
         </td>
         <td>
-          1313
+          1428
           -
-          1367
+          1482
         </td>
         <td>
           Apply
@@ -695,12 +710,12 @@
           26
         </td>
         <td>
-          186
+          180
         </td>
         <td>
-          1330
+          1445
           -
-          1366
+          1481
         </td>
         <td>
           Apply
@@ -716,33 +731,12 @@
           27
         </td>
         <td>
-          189
+          182
         </td>
         <td>
-          1384
+          1508
           -
-          1440
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;&quot;).s(full_table_name))
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          188
-        </td>
-        <td>
-          1401
-          -
-          1439
+          1546
         </td>
         <td>
           Apply
@@ -755,15 +749,36 @@
         </td>
       </tr><tr>
         <td>
+          27
+        </td>
+        <td>
+          183
+        </td>
+        <td>
+          1491
+          -
+          1547
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;&quot;).s(full_table_name))
+        </td>
+      </tr><tr>
+        <td>
           28
         </td>
         <td>
-          191
+          185
         </td>
         <td>
-          1457
+          1556
           -
-          1510
+          1609
         </td>
         <td>
           Apply
@@ -779,12 +794,12 @@
           28
         </td>
         <td>
-          190
+          184
         </td>
         <td>
-          1474
+          1573
           -
-          1509
+          1608
         </td>
         <td>
           Apply
@@ -800,12 +815,12 @@
           29
         </td>
         <td>
-          193
+          187
         </td>
         <td>
-          1535
+          1626
           -
-          1552
+          1643
         </td>
         <td>
           Select
@@ -821,12 +836,12 @@
           29
         </td>
         <td>
-          192
+          186
         </td>
         <td>
-          1535
+          1626
           -
-          1550
+          1641
         </td>
         <td>
           Apply
@@ -842,33 +857,12 @@
           30
         </td>
         <td>
-          194
+          189
         </td>
         <td>
-          1586
+          1652
           -
-          1609
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Output exit code: &quot;, &quot;&quot;).s(x)
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          195
-        </td>
-        <td>
-          1569
-          -
-          1610
+          1693
         </td>
         <td>
           Apply
@@ -881,15 +875,57 @@
         </td>
       </tr><tr>
         <td>
+          30
+        </td>
+        <td>
+          188
+        </td>
+        <td>
+          1669
+          -
+          1692
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Output exit code: &quot;, &quot;&quot;).s(x)
+        </td>
+      </tr><tr>
+        <td>
           31
         </td>
         <td>
-          200
+          191
         </td>
         <td>
-          1627
+          1714
           -
-          1627
+          1747
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          194
+        </td>
+        <td>
+          1702
+          -
+          1702
         </td>
         <td>
           Block
@@ -905,33 +941,12 @@
           31
         </td>
         <td>
-          196
+          193
         </td>
         <td>
-          1631
+          1702
           -
-          1637
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.!=
-        </td>
-        <td style="background: #AEF1AE">
-          x.!=(0)
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          199
-        </td>
-        <td>
-          1627
-          -
-          1627
+          1702
         </td>
         <td>
           Literal
@@ -947,12 +962,33 @@
           31
         </td>
         <td>
-          198
+          190
         </td>
         <td>
-          1639
+          1706
           -
-          1672
+          1712
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.!=
+        </td>
+        <td style="background: #AEF1AE">
+          x.!=(0)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          1714
+          -
+          1747
         </td>
         <td>
           Block
@@ -965,36 +1001,15 @@
         </td>
       </tr><tr>
         <td>
-          31
-        </td>
-        <td>
-          197
-        </td>
-        <td>
-          1639
-          -
-          1672
-        </td>
-        <td>
-          Throw
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
-        </td>
-      </tr><tr>
-        <td>
           34
         </td>
         <td>
-          228
+          222
         </td>
         <td>
-          1710
+          1771
           -
-          2354
+          2357
         </td>
         <td>
           Block
@@ -1023,12 +1038,12 @@
           35
         </td>
         <td>
-          204
+          198
         </td>
         <td>
-          1724
+          1779
           -
-          1772
+          1827
         </td>
         <td>
           Apply
@@ -1044,12 +1059,12 @@
           35
         </td>
         <td>
-          203
+          197
         </td>
         <td>
-          1741
+          1796
           -
-          1771
+          1826
         </td>
         <td>
           Apply
@@ -1065,12 +1080,12 @@
           36
         </td>
         <td>
-          205
+          199
         </td>
         <td>
-          1807
+          1856
           -
-          1852
+          1901
         </td>
         <td>
           Apply
@@ -1086,12 +1101,12 @@
           37
         </td>
         <td>
-          209
+          200
         </td>
         <td>
-          1974
+          1929
           -
-          1977
+          1964
         </td>
         <td>
           Literal
@@ -1100,19 +1115,40 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;&quot;
+          &quot;bq load --replace --source_format=&quot;
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          211
+          202
         </td>
         <td>
-          1882
+          2004
           -
-          1977
+          2006
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          205
+        </td>
+        <td>
+          1925
+          -
+          2020
         </td>
         <td>
           Apply
@@ -1128,12 +1164,12 @@
           37
         </td>
         <td>
-          208
+          201
         </td>
         <td>
-          1961
+          1987
           -
-          1963
+          1989
         </td>
         <td>
           Literal
@@ -1149,33 +1185,12 @@
           37
         </td>
         <td>
-          207
+          204
         </td>
         <td>
-          1944
+          1965
           -
-          1946
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot; &quot;
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          210
-        </td>
-        <td>
-          1922
-          -
-          1943
+          1986
         </td>
         <td>
           Apply
@@ -1191,12 +1206,33 @@
           37
         </td>
         <td>
-          212
+          203
         </td>
         <td>
-          1882
+          2017
           -
-          1989
+          2020
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          1925
+          -
+          2032
         </td>
         <td>
           Select
@@ -1209,36 +1245,15 @@
         </td>
       </tr><tr>
         <td>
-          37
-        </td>
-        <td>
-          206
-        </td>
-        <td>
-          1886
-          -
-          1921
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;bq load --replace --source_format=&quot;
-        </td>
-      </tr><tr>
-        <td>
           38
         </td>
         <td>
-          214
+          208
         </td>
         <td>
-          2002
+          2039
           -
-          2059
+          2096
         </td>
         <td>
           Apply
@@ -1254,12 +1269,12 @@
           38
         </td>
         <td>
-          213
+          207
         </td>
         <td>
-          2019
+          2056
           -
-          2058
+          2095
         </td>
         <td>
           Apply
@@ -1275,33 +1290,12 @@
           39
         </td>
         <td>
-          216
+          209
         </td>
         <td>
-          2072
+          2120
           -
-          2128
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;&quot;).s(full_table_name))
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          215
-        </td>
-        <td>
-          2089
-          -
-          2127
+          2158
         </td>
         <td>
           Apply
@@ -1314,15 +1308,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          218
+          210
         </td>
         <td>
-          2141
+          2103
           -
-          2194
+          2159
         </td>
         <td>
           Apply
@@ -1331,19 +1325,19 @@
           org.apache.log4j.Category.info
         </td>
         <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;BQ Load command is: &quot;, &quot;&quot;).s(bq_load_cmd))
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;&quot;).s(full_table_name))
         </td>
       </tr><tr>
         <td>
           40
         </td>
         <td>
-          217
+          211
         </td>
         <td>
-          2158
+          2183
           -
-          2193
+          2218
         </td>
         <td>
           Apply
@@ -1356,15 +1350,36 @@
         </td>
       </tr><tr>
         <td>
+          40
+        </td>
+        <td>
+          212
+        </td>
+        <td>
+          2166
+          -
+          2219
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;BQ Load command is: &quot;, &quot;&quot;).s(bq_load_cmd))
+        </td>
+      </tr><tr>
+        <td>
           41
         </td>
         <td>
-          220
+          214
         </td>
         <td>
-          2215
+          2234
           -
-          2232
+          2251
         </td>
         <td>
           Select
@@ -1380,12 +1395,12 @@
           41
         </td>
         <td>
-          219
+          213
         </td>
         <td>
-          2215
+          2234
           -
-          2230
+          2249
         </td>
         <td>
           Apply
@@ -1401,12 +1416,12 @@
           42
         </td>
         <td>
-          222
+          216
         </td>
         <td>
-          2245
+          2258
           -
-          2286
+          2299
         </td>
         <td>
           Apply
@@ -1422,12 +1437,12 @@
           42
         </td>
         <td>
-          221
+          215
         </td>
         <td>
-          2262
+          2275
           -
-          2285
+          2298
         </td>
         <td>
           Apply
@@ -1443,33 +1458,33 @@
           43
         </td>
         <td>
-          227
+          218
         </td>
         <td>
-          2299
+          2318
           -
-          2299
+          2351
         </td>
         <td>
-          Block
+          Throw
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          ()
+        <td style="background: #F0ADAD">
+          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
         </td>
       </tr><tr>
         <td>
           43
         </td>
         <td>
-          226
+          220
         </td>
         <td>
-          2299
+          2306
           -
-          2299
+          2306
         </td>
         <td>
           Literal
@@ -1485,12 +1500,12 @@
           43
         </td>
         <td>
-          223
+          217
         </td>
         <td>
-          2303
+          2310
           -
-          2309
+          2316
         </td>
         <td>
           Apply
@@ -1506,12 +1521,12 @@
           43
         </td>
         <td>
-          225
+          219
         </td>
         <td>
-          2311
+          2318
           -
-          2344
+          2351
         </td>
         <td>
           Block
@@ -1527,54 +1542,54 @@
           43
         </td>
         <td>
-          224
+          221
         </td>
         <td>
-          2311
+          2306
           -
-          2344
+          2306
         </td>
         <td>
-          Throw
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw bigquery.this.`package`.BQLoadException.apply(&quot;BQ error&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          57
-        </td>
-        <td>
-          229
-        </td>
-        <td>
-          2771
-          -
-          2793
-        </td>
-        <td>
-          Literal
+          Block
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;No of BQ partitions: &quot;
+          ()
         </td>
       </tr><tr>
         <td>
           57
         </td>
         <td>
-          232
+          227
         </td>
         <td>
-          2769
+          3077
           -
-          2826
+          3152
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length))
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          226
+        </td>
+        <td>
+          3094
+          -
+          3151
         </td>
         <td>
           Apply
@@ -1590,12 +1605,33 @@
           57
         </td>
         <td>
-          231
+          223
         </td>
         <td>
-          2794
+          3096
           -
-          2824
+          3118
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;No of BQ partitions: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          225
+        </td>
+        <td>
+          3119
+          -
+          3149
         </td>
         <td>
           Select
@@ -1611,12 +1647,12 @@
           57
         </td>
         <td>
-          230
+          224
         </td>
         <td>
-          2825
+          3150
           -
-          2826
+          3151
         </td>
         <td>
           Literal
@@ -1629,36 +1665,15 @@
         </td>
       </tr><tr>
         <td>
-          57
-        </td>
-        <td>
-          233
-        </td>
-        <td>
-          2752
-          -
-          2828
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;No of BQ partitions: &quot;, &quot;&quot;).s(source_paths_partitions.length))
-        </td>
-      </tr><tr>
-        <td>
           58
         </td>
         <td>
-          236
+          231
         </td>
         <td>
-          2873
+          3193
           -
-          2873
+          3193
         </td>
         <td>
           TypeApply
@@ -1674,12 +1689,12 @@
           59
         </td>
         <td>
-          234
+          228
         </td>
         <td>
-          2939
+          3253
           -
-          2974
+          3288
         </td>
         <td>
           Apply
@@ -1695,12 +1710,33 @@
           60
         </td>
         <td>
-          235
+          229
         </td>
         <td>
-          3000
+          3295
           -
-          3135
+          3295
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS$default$8
+        </td>
+        <td style="background: #AEF1AE">
+          LoadApi.this.loadIntoUnpartitionedBQTableFromGCS$default$8
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          230
+        </td>
+        <td>
+          3295
+          -
+          3436
         </td>
         <td>
           Apply
@@ -1709,19 +1745,40 @@
           etljobs.bigquery.LoadApi.loadIntoUnpartitionedBQTableFromGCS
         </td>
         <td style="background: #AEF1AE">
-          LoadApi.this.loadIntoUnpartitionedBQTableFromGCS(bq, src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition)
+          LoadApi.this.loadIntoUnpartitionedBQTableFromGCS(bq, src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition, LoadApi.this.loadIntoUnpartitionedBQTableFromGCS$default$8)
         </td>
       </tr><tr>
         <td>
           61
         </td>
         <td>
-          238
+          232
         </td>
         <td>
-          2837
+          3450
           -
-          3158
+          3450
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.$conforms[(String, Long)]
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          233
+        </td>
+        <td>
+          3157
+          -
+          3455
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1733,42 +1790,21 @@
           source_paths_partitions.par.flatMap[(String, Long), scala.collection.parallel.ParSeq[(String, Long)]](((x0$1: (String, String)) =&gt; x0$1 match {
   case (_1: String, _2: String)(String, String)((src_path @ _), (partition @ _)) =&gt; {
     val table_partition: String = destination_table.+(&quot;$&quot;).+(partition);
-    LoadApi.this.loadIntoUnpartitionedBQTableFromGCS(bq, src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition)
+    LoadApi.this.loadIntoUnpartitionedBQTableFromGCS(bq, src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition, LoadApi.this.loadIntoUnpartitionedBQTableFromGCS$default$8)
   }
 }))(parallel.this.ParSeq.canBuildFrom[(String, Long)]).toList.toMap[String, Long](scala.Predef.$conforms[(String, Long)])
-        </td>
-      </tr><tr>
-        <td>
-          61
-        </td>
-        <td>
-          237
-        </td>
-        <td>
-          3153
-          -
-          3153
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.Predef.$conforms
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.$conforms[(String, Long)]
         </td>
       </tr><tr>
         <td>
           75
         </td>
         <td>
-          239
+          234
         </td>
         <td>
-          3571
+          4214
           -
-          3621
+          4264
         </td>
         <td>
           Apply
@@ -1781,15 +1817,36 @@
         </td>
       </tr><tr>
         <td>
-          83
+          85
         </td>
         <td>
-          240
+          235
         </td>
         <td>
-          3721
+          4385
           -
-          3956
+          4622
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.LoadJobConfiguration.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.bigquery.LoadJobConfiguration.builder(tableId, source_path).setFormatOptions(source_format).setSchema(s).setWriteDisposition(write_disposition).setCreateDisposition(create_disposition).build()
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          236
+        </td>
+        <td>
+          4642
+          -
+          4857
         </td>
         <td>
           Apply
@@ -1802,36 +1859,15 @@
         </td>
       </tr><tr>
         <td>
-          86
+          95
         </td>
         <td>
-          241
+          238
         </td>
         <td>
-          4020
+          4909
           -
-          4045
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.google.cloud.bigquery.JobInfo.of
-        </td>
-        <td style="background: #AEF1AE">
-          com.google.cloud.bigquery.JobInfo.of(configuration)
-        </td>
-      </tr><tr>
-        <td>
-          86
-        </td>
-        <td>
-          242
-        </td>
-        <td>
-          4010
-          -
-          4046
+          4945
         </td>
         <td>
           Apply
@@ -1844,15 +1880,36 @@
         </td>
       </tr><tr>
         <td>
-          89
+          95
         </td>
         <td>
-          243
+          237
         </td>
         <td>
-          4115
+          4919
           -
-          4132
+          4944
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.bigquery.JobInfo.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.JobInfo.of(configuration)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          239
+        </td>
+        <td>
+          5006
+          -
+          5023
         </td>
         <td>
           Apply
@@ -1865,15 +1922,15 @@
         </td>
       </tr><tr>
         <td>
-          90
+          99
         </td>
         <td>
-          244
+          240
         </td>
         <td>
-          4164
+          5051
           -
-          4223
+          5110
         </td>
         <td>
           Apply
@@ -1886,36 +1943,105 @@
         </td>
       </tr><tr>
         <td>
-          92
+          101
+        </td>
+        <td>
+          241
+        </td>
+        <td>
+          5120
+          -
+          5159
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          completedJob.getStatus().getError().==(null)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          261
+        </td>
+        <td>
+          5161
+          -
+          5543
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Source path: &quot;, &quot;&quot;).s(source_path));
+  LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;.&quot;, &quot;&quot;).s(destination_dataset, destination_table));
+  LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Job State: &quot;, &quot;&quot;).s(completedJob.getStatus().getState()));
+  LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded rows: &quot;, &quot;&quot;).s(destinationTable.getNumRows()));
+  LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0)))
+}
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          243
+        </td>
+        <td>
+          5169
+          -
+          5215
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Source path: &quot;, &quot;&quot;).s(source_path))
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          242
+        </td>
+        <td>
+          5186
+          -
+          5214
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Source path: &quot;, &quot;&quot;).s(source_path)
+        </td>
+      </tr><tr>
+        <td>
+          103
         </td>
         <td>
           245
         </td>
         <td>
-          4250
+          5222
           -
-          4278
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Source path: &quot;, &quot;&quot;).s(source_path)
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          246
-        </td>
-        <td>
-          4233
-          -
-          4279
+          5301
         </td>
         <td>
           Apply
@@ -1923,125 +2049,83 @@
         <td>
           org.apache.log4j.Category.info
         </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Source path: &quot;, &quot;&quot;).s(source_path))
+        <td style="background: #F0ADAD">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;.&quot;, &quot;&quot;).s(destination_dataset, destination_table))
         </td>
       </tr><tr>
         <td>
-          93
+          103
+        </td>
+        <td>
+          244
+        </td>
+        <td>
+          5239
+          -
+          5300
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Destination table: &quot;, &quot;.&quot;, &quot;&quot;).s(destination_dataset, destination_table)
+        </td>
+      </tr><tr>
+        <td>
+          104
         </td>
         <td>
           247
         </td>
         <td>
-          4305
+          5372
           -
-          4366
+          5373
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          scala.StringContext.s
+          &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Destination table: &quot;, &quot;.&quot;, &quot;&quot;).s(destination_dataset, destination_table)
+        <td style="background: #F0ADAD">
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
-          93
-        </td>
-        <td>
-          248
-        </td>
-        <td>
-          4288
-          -
-          4367
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Destination table: &quot;, &quot;.&quot;, &quot;&quot;).s(destination_dataset, destination_table))
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          253
-        </td>
-        <td>
-          4376
-          -
-          4442
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Job State: &quot;, &quot;&quot;).s(completedJob.getStatus().getState()))
-        </td>
-      </tr><tr>
-        <td>
-          94
+          104
         </td>
         <td>
           250
         </td>
         <td>
-          4440
+          5308
           -
-          4441
+          5374
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          org.apache.log4j.Category.info
         </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
+        <td style="background: #F0ADAD">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Job State: &quot;, &quot;&quot;).s(completedJob.getStatus().getState()))
         </td>
       </tr><tr>
         <td>
-          94
+          104
         </td>
         <td>
           249
         </td>
         <td>
-          4395
+          5325
           -
-          4407
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Job State: &quot;
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          252
-        </td>
-        <td>
-          4393
-          -
-          4441
+          5373
         </td>
         <td>
           Apply
@@ -2049,20 +2133,41 @@
         <td>
           scala.StringContext.s
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           scala.StringContext.apply(&quot;Job State: &quot;, &quot;&quot;).s(completedJob.getStatus().getState())
         </td>
       </tr><tr>
         <td>
-          94
+          104
         </td>
         <td>
-          251
+          246
         </td>
         <td>
-          4408
+          5327
           -
-          4439
+          5339
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Job State: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          248
+        </td>
+        <td>
+          5340
+          -
+          5371
         </td>
         <td>
           Apply
@@ -2070,41 +2175,41 @@
         <td>
           com.google.cloud.bigquery.JobStatus.getState
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           completedJob.getStatus().getState()
         </td>
       </tr><tr>
         <td>
-          95
+          105
         </td>
         <td>
           254
         </td>
         <td>
-          4470
+          5398
           -
-          4484
+          5444
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.StringContext.s
         </td>
-        <td style="background: #AEF1AE">
-          &quot;Loaded rows: &quot;
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Loaded rows: &quot;, &quot;&quot;).s(destinationTable.getNumRows())
         </td>
       </tr><tr>
         <td>
-          95
+          105
         </td>
         <td>
-          256
+          253
         </td>
         <td>
-          4485
+          5415
           -
-          4512
+          5442
         </td>
         <td>
           Apply
@@ -2112,20 +2217,41 @@
         <td>
           com.google.cloud.bigquery.StandardTableDefinition.getNumRows
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           destinationTable.getNumRows()
         </td>
       </tr><tr>
         <td>
-          95
+          105
         </td>
         <td>
-          258
+          252
         </td>
         <td>
-          4451
+          5443
           -
-          4515
+          5444
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          255
+        </td>
+        <td>
+          5381
+          -
+          5445
         </td>
         <td>
           Apply
@@ -2133,20 +2259,20 @@
         <td>
           org.apache.log4j.Category.info
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded rows: &quot;, &quot;&quot;).s(destinationTable.getNumRows()))
         </td>
       </tr><tr>
         <td>
-          95
+          105
         </td>
         <td>
-          255
+          251
         </td>
         <td>
-          4513
+          5400
           -
-          4514
+          5414
         </td>
         <td>
           Literal
@@ -2154,83 +2280,62 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
+        <td style="background: #F0ADAD">
+          &quot;Loaded rows: &quot;
         </td>
       </tr><tr>
         <td>
-          95
+          106
         </td>
         <td>
-          257
+          256
         </td>
         <td>
-          4468
+          5471
           -
-          4514
+          5490
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          scala.StringContext.s
+          &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Loaded rows: &quot;, &quot;&quot;).s(destinationTable.getNumRows())
+        <td style="background: #F0ADAD">
+          &quot;Loaded rows size: &quot;
         </td>
       </tr><tr>
         <td>
-          96
-        </td>
-        <td>
-          262
-        </td>
-        <td>
-          4541
-          -
-          4608
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0))
-        </td>
-      </tr><tr>
-        <td>
-          96
+          106
         </td>
         <td>
           259
         </td>
         <td>
-          4543
+          5469
           -
-          4562
+          5536
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.StringContext.s
         </td>
-        <td style="background: #AEF1AE">
-          &quot;Loaded rows size: &quot;
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0))
         </td>
       </tr><tr>
         <td>
-          96
+          106
         </td>
         <td>
-          261
+          258
         </td>
         <td>
-          4563
+          5491
           -
-          4603
+          5531
         </td>
         <td>
           Apply
@@ -2238,41 +2343,20 @@
         <td>
           scala.Long./
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0)
         </td>
       </tr><tr>
         <td>
-          96
+          106
         </td>
         <td>
-          263
+          257
         </td>
         <td>
-          4524
+          5532
           -
-          4609
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0)))
-        </td>
-      </tr><tr>
-        <td>
-          96
-        </td>
-        <td>
-          260
-        </td>
-        <td>
-          4604
-          -
-          4608
+          5536
         </td>
         <td>
           Literal
@@ -2280,20 +2364,83 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           &quot; MB&quot;
         </td>
       </tr><tr>
         <td>
-          97
+          106
+        </td>
+        <td>
+          260
+        </td>
+        <td>
+          5452
+          -
+          5537
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          LoadApi.this.load_logger.info(scala.StringContext.apply(&quot;Loaded rows size: &quot;, &quot; MB&quot;).s(scala.Predef.Long2long(destinationTable.getNumBytes())./(1000000.0)))
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          262
+        </td>
+        <td>
+          5561
+          -
+          5789
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.RuntimeException(scala.Predef.augmentString(scala.StringContext.apply(&quot;Could not load data in &quot;, &quot; format in table &quot;, &quot; due to error &quot;, &quot;&quot;).s(source_format.toString(), destination_dataset.+(&quot;.&quot;).+(destination_table), completedJob.getStatus().getError().getMessage())).stripMargin)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          263
+        </td>
+        <td>
+          5561
+          -
+          5789
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.RuntimeException(scala.Predef.augmentString(scala.StringContext.apply(&quot;Could not load data in &quot;, &quot; format in table &quot;, &quot; due to error &quot;, &quot;&quot;).s(source_format.toString(), destination_dataset.+(&quot;.&quot;).+(destination_table), completedJob.getStatus().getError().getMessage())).stripMargin)
+        </td>
+      </tr><tr>
+        <td>
+          112
         </td>
         <td>
           265
         </td>
         <td>
-          4643
+          5825
           -
-          4670
+          5852
         </td>
         <td>
           ApplyImplicitView
@@ -2301,20 +2448,20 @@
         <td>
           scala.Predef.Long2long
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           scala.Predef.Long2long(destinationTable.getNumRows())
         </td>
       </tr><tr>
         <td>
-          97
+          112
         </td>
         <td>
           267
         </td>
         <td>
-          4618
+          5800
           -
-          4671
+          5853
         </td>
         <td>
           Apply
@@ -2322,20 +2469,20 @@
         <td>
           scala.collection.generic.GenMapFactory.apply
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           scala.Predef.Map.apply[String, Long](scala.Predef.ArrowAssoc[String](destination_table).-&gt;[Long](scala.Predef.Long2long(destinationTable.getNumRows())))
         </td>
       </tr><tr>
         <td>
-          97
+          112
         </td>
         <td>
           264
         </td>
         <td>
-          4643
+          5825
           -
-          4670
+          5852
         </td>
         <td>
           Apply
@@ -2343,20 +2490,20 @@
         <td>
           com.google.cloud.bigquery.StandardTableDefinition.getNumRows
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           destinationTable.getNumRows()
         </td>
       </tr><tr>
         <td>
-          97
+          112
         </td>
         <td>
           266
         </td>
         <td>
-          4622
+          5804
           -
-          4670
+          5852
         </td>
         <td>
           Apply
@@ -2364,7 +2511,7 @@
         <td>
           scala.Predef.ArrowAssoc.-&gt;
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           scala.Predef.ArrowAssoc[String](destination_table).-&gt;[Long](scala.Predef.Long2long(destinationTable.getNumRows()))
         </td>
       </tr>

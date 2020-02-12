@@ -71,7 +71,7 @@
 </span>47 <span style=''>    }
 </span>48 <span style=''>
 </span>49 <span style=''>    val df_writer_options = output_type match {
-</span>50 <span style=''>      case CSV(delimiter,header_present,_,quotechar) =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;,quotechar).option(&quot;header&quot;, header_present)</span><span style=''>
+</span>50 <span style=''>      case CSV(delimiter,header_present,_,quotechar) =&gt; </span><span style='background: #AEF1AE'>df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;,quotechar).option(&quot;header&quot;, header_present)</span><span style=''>
 </span>51 <span style=''>      case EXCEL =&gt; </span><span style='background: #F0ADAD'>df_writer.format(&quot;com.crealytics.spark.excel&quot;).option(&quot;useHeader&quot;,&quot;true&quot;)</span><span style=''>
 </span>52 <span style=''>      case PARQUET =&gt; </span><span style='background: #AEF1AE'>df_writer.format(&quot;parquet&quot;)</span><span style=''>
 </span>53 <span style=''>      case ORC =&gt; </span><span style='background: #AEF1AE'>df_writer.format(&quot;orc&quot;)</span><span style=''>
@@ -113,7 +113,7 @@
           12
         </td>
         <td>
-          941
+          1067
         </td>
         <td>
           291
@@ -134,7 +134,7 @@
           12
         </td>
         <td>
-          940
+          1066
         </td>
         <td>
           308
@@ -155,7 +155,7 @@
           13
         </td>
         <td>
-          944
+          1070
         </td>
         <td>
           357
@@ -176,28 +176,7 @@
           13
         </td>
         <td>
-          946
-        </td>
-        <td>
-          328
-          -
-          376
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName()))
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          943
+          1069
         </td>
         <td>
           374
@@ -218,28 +197,28 @@
           13
         </td>
         <td>
-          945
+          1072
         </td>
         <td>
-          346
+          328
           -
-          375
+          376
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.StringContext.s
+          org.apache.log4j.Category.info
         </td>
         <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName())
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName()))
         </td>
       </tr><tr>
         <td>
           13
         </td>
         <td>
-          942
+          1068
         </td>
         <td>
           348
@@ -257,10 +236,31 @@
         </td>
       </tr><tr>
         <td>
+          13
+        </td>
+        <td>
+          1071
+        </td>
+        <td>
+          346
+          -
+          375
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(WriteApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
           19
         </td>
         <td>
-          947
+          1073
         </td>
         <td>
           886
@@ -281,7 +281,7 @@
           21
         </td>
         <td>
-          948
+          1074
         </td>
         <td>
           915
@@ -302,7 +302,7 @@
           22
         </td>
         <td>
-          959
+          1085
         </td>
         <td>
           952
@@ -323,7 +323,7 @@
           22
         </td>
         <td>
-          949
+          1075
         </td>
         <td>
           956
@@ -344,7 +344,7 @@
           22
         </td>
         <td>
-          960
+          1086
         </td>
         <td>
           952
@@ -365,7 +365,7 @@
           23
         </td>
         <td>
-          950
+          1076
         </td>
         <td>
           999
@@ -386,7 +386,7 @@
           23
         </td>
         <td>
-          952
+          1078
         </td>
         <td>
           999
@@ -407,7 +407,7 @@
           23
         </td>
         <td>
-          951
+          1077
         </td>
         <td>
           1018
@@ -428,7 +428,7 @@
           24
         </td>
         <td>
-          953
+          1079
         </td>
         <td>
           1058
@@ -449,7 +449,7 @@
           24
         </td>
         <td>
-          955
+          1081
         </td>
         <td>
           1058
@@ -470,7 +470,7 @@
           24
         </td>
         <td>
-          954
+          1080
         </td>
         <td>
           1073
@@ -491,7 +491,7 @@
           25
         </td>
         <td>
-          956
+          1082
         </td>
         <td>
           1102
@@ -512,7 +512,7 @@
           25
         </td>
         <td>
-          958
+          1084
         </td>
         <td>
           1102
@@ -533,7 +533,7 @@
           25
         </td>
         <td>
-          957
+          1083
         </td>
         <td>
           1119
@@ -554,7 +554,7 @@
           27
         </td>
         <td>
-          974
+          1100
         </td>
         <td>
           1166
@@ -575,7 +575,7 @@
           27
         </td>
         <td>
-          961
+          1087
         </td>
         <td>
           1170
@@ -596,7 +596,7 @@
           27
         </td>
         <td>
-          975
+          1101
         </td>
         <td>
           1166
@@ -617,7 +617,7 @@
           28
         </td>
         <td>
-          962
+          1088
         </td>
         <td>
           1215
@@ -638,7 +638,7 @@
           28
         </td>
         <td>
-          964
+          1090
         </td>
         <td>
           1215
@@ -659,7 +659,7 @@
           28
         </td>
         <td>
-          963
+          1089
         </td>
         <td>
           1234
@@ -680,7 +680,7 @@
           29
         </td>
         <td>
-          965
+          1091
         </td>
         <td>
           1276
@@ -701,7 +701,7 @@
           29
         </td>
         <td>
-          967
+          1093
         </td>
         <td>
           1276
@@ -722,7 +722,7 @@
           29
         </td>
         <td>
-          966
+          1092
         </td>
         <td>
           1291
@@ -743,7 +743,7 @@
           30
         </td>
         <td>
-          968
+          1094
         </td>
         <td>
           1322
@@ -764,7 +764,7 @@
           30
         </td>
         <td>
-          970
+          1096
         </td>
         <td>
           1322
@@ -785,7 +785,7 @@
           30
         </td>
         <td>
-          969
+          1095
         </td>
         <td>
           1340
@@ -806,7 +806,7 @@
           31
         </td>
         <td>
-          971
+          1097
         </td>
         <td>
           1371
@@ -827,7 +827,7 @@
           31
         </td>
         <td>
-          973
+          1099
         </td>
         <td>
           1371
@@ -848,7 +848,7 @@
           31
         </td>
         <td>
-          972
+          1098
         </td>
         <td>
           1388
@@ -869,7 +869,7 @@
           43
         </td>
         <td>
-          976
+          1102
         </td>
         <td>
           1958
@@ -890,28 +890,7 @@
           44
         </td>
         <td>
-          977
-        </td>
-        <td>
-          2006
-          -
-          2095
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.spark.sql.DataFrameWriter.option
-        </td>
-        <td style="background: #AEF1AE">
-          source.repartition(n, (partition.map[org.apache.spark.sql.Column, Seq[org.apache.spark.sql.Column]](((c: String) =&gt; org.apache.spark.sql.functions.col(c)))(collection.this.Seq.canBuildFrom[org.apache.spark.sql.Column]): _*)).write.option(&quot;compression&quot;, compression)
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          978
+          1104
         </td>
         <td>
           2006
@@ -929,10 +908,31 @@
         </td>
       </tr><tr>
         <td>
+          44
+        </td>
+        <td>
+          1103
+        </td>
+        <td>
+          2006
+          -
+          2095
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameWriter.option
+        </td>
+        <td style="background: #AEF1AE">
+          source.repartition(n, (partition.map[org.apache.spark.sql.Column, Seq[org.apache.spark.sql.Column]](((c: String) =&gt; org.apache.spark.sql.functions.col(c)))(collection.this.Seq.canBuildFrom[org.apache.spark.sql.Column]): _*)).write.option(&quot;compression&quot;, compression)
+        </td>
+      </tr><tr>
+        <td>
           45
         </td>
         <td>
-          980
+          1106
         </td>
         <td>
           2142
@@ -953,7 +953,7 @@
           45
         </td>
         <td>
-          979
+          1105
         </td>
         <td>
           2142
@@ -974,7 +974,7 @@
           46
         </td>
         <td>
-          981
+          1107
         </td>
         <td>
           2205
@@ -995,7 +995,7 @@
           50
         </td>
         <td>
-          982
+          1108
         </td>
         <td>
           2378
@@ -1008,7 +1008,7 @@
         <td>
           org.apache.spark.sql.DataFrameWriter.option
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           df_writer.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;, quotechar).option(&quot;header&quot;, header_present)
         </td>
       </tr><tr>
@@ -1016,7 +1016,7 @@
           51
         </td>
         <td>
-          983
+          1109
         </td>
         <td>
           2512
@@ -1037,7 +1037,7 @@
           52
         </td>
         <td>
-          984
+          1110
         </td>
         <td>
           2608
@@ -1058,7 +1058,7 @@
           53
         </td>
         <td>
-          985
+          1111
         </td>
         <td>
           2654
@@ -1079,7 +1079,7 @@
           54
         </td>
         <td>
-          986
+          1112
         </td>
         <td>
           2709
@@ -1100,7 +1100,7 @@
           55
         </td>
         <td>
-          987
+          1113
         </td>
         <td>
           2784
@@ -1121,7 +1121,7 @@
           56
         </td>
         <td>
-          988
+          1114
         </td>
         <td>
           2825
@@ -1142,7 +1142,7 @@
           60
         </td>
         <td>
-          989
+          1115
         </td>
         <td>
           2906
@@ -1163,7 +1163,7 @@
           60
         </td>
         <td>
-          990
+          1116
         </td>
         <td>
           2929
@@ -1184,7 +1184,7 @@
           61
         </td>
         <td>
-          991
+          1117
         </td>
         <td>
           3027
@@ -1205,70 +1205,7 @@
           64
         </td>
         <td>
-          992
-        </td>
-        <td>
-          3114
-          -
-          3144
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Successfully written data in &quot;
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1001
-        </td>
-        <td>
-          3094
-          -
-          3263
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot; with SAVEMODE &quot;, &quot; &quot;, &quot;&quot;).s(output_type, output_location, save_mode, partition_by.map[String, Any](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc)))(collection.this.Seq.canBuildFrom[String])))
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          995
-        </td>
-        <td>
-          3209
-          -
-          3211
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot; &quot;
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          998
+          1124
         </td>
         <td>
           3228
@@ -1289,28 +1226,49 @@
           64
         </td>
         <td>
-          997
+          1118
         </td>
         <td>
-          3236
+          3114
           -
-          3259
+          3144
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          java.lang.String.+
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;Partitioned by &quot;.+(pbc)
+          &quot;Successfully written data in &quot;
         </td>
       </tr><tr>
         <td>
           64
         </td>
         <td>
-          1000
+          1127
+        </td>
+        <td>
+          3094
+          -
+          3263
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Successfully written data in &quot;, &quot; in location &quot;, &quot; with SAVEMODE &quot;, &quot; &quot;, &quot;&quot;).s(output_type, output_location, save_mode, partition_by.map[String, Any](((pbc: String) =&gt; &quot;Partitioned by &quot;.+(pbc)))(collection.this.Seq.canBuildFrom[String])))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1126
         </td>
         <td>
           3112
@@ -1331,7 +1289,7 @@
           64
         </td>
         <td>
-          994
+          1120
         </td>
         <td>
           3184
@@ -1352,28 +1310,28 @@
           64
         </td>
         <td>
-          996
+          1123
         </td>
         <td>
-          3261
+          3236
           -
-          3262
+          3259
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          java.lang.String.+
         </td>
         <td style="background: #AEF1AE">
-          &quot;&quot;
+          &quot;Partitioned by &quot;.+(pbc)
         </td>
       </tr><tr>
         <td>
           64
         </td>
         <td>
-          999
+          1125
         </td>
         <td>
           3212
@@ -1394,7 +1352,7 @@
           64
         </td>
         <td>
-          993
+          1119
         </td>
         <td>
           3155
@@ -1412,10 +1370,52 @@
         </td>
       </tr><tr>
         <td>
+          64
+        </td>
+        <td>
+          1122
+        </td>
+        <td>
+          3261
+          -
+          3262
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1121
+        </td>
+        <td>
+          3209
+          -
+          3211
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; &quot;
+        </td>
+      </tr><tr>
+        <td>
           66
         </td>
         <td>
-          1015
+          1141
         </td>
         <td>
           3269
@@ -1443,7 +1443,7 @@
           67
         </td>
         <td>
-          1002
+          1128
         </td>
         <td>
           3327
@@ -1464,28 +1464,7 @@
           68
         </td>
         <td>
-          1004
-        </td>
-        <td>
-          3402
-          -
-          3440
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.SparkContext.hadoopConfiguration
-        </td>
-        <td style="background: #AEF1AE">
-          spark.sparkContext.hadoopConfiguration
-        </td>
-      </tr><tr>
-        <td>
-          68
-        </td>
-        <td>
-          1003
+          1129
         </td>
         <td>
           3378
@@ -1506,7 +1485,7 @@
           68
         </td>
         <td>
-          1005
+          1131
         </td>
         <td>
           3363
@@ -1524,10 +1503,31 @@
         </td>
       </tr><tr>
         <td>
+          68
+        </td>
+        <td>
+          1130
+        </td>
+        <td>
+          3402
+          -
+          3440
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.hadoopConfiguration
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.hadoopConfiguration
+        </td>
+      </tr><tr>
+        <td>
           69
         </td>
         <td>
-          1006
+          1132
         </td>
         <td>
           3463
@@ -1548,28 +1548,7 @@
           70
         </td>
         <td>
-          1010
-        </td>
-        <td>
-          3565
-          -
-          3593
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.hadoop.fs.Path.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new org.apache.hadoop.fs.Path(path.+(output_file))
-        </td>
-      </tr><tr>
-        <td>
-          70
-        </td>
-        <td>
-          1007
+          1133
         </td>
         <td>
           3547
@@ -1590,7 +1569,28 @@
           70
         </td>
         <td>
-          1009
+          1136
+        </td>
+        <td>
+          3565
+          -
+          3593
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.hadoop.fs.Path.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new org.apache.hadoop.fs.Path(path.+(output_file))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1135
         </td>
         <td>
           3574
@@ -1611,7 +1611,7 @@
           70
         </td>
         <td>
-          1008
+          1134
         </td>
         <td>
           3538
@@ -1632,7 +1632,7 @@
           70
         </td>
         <td>
-          1011
+          1137
         </td>
         <td>
           3528
@@ -1653,28 +1653,7 @@
           71
         </td>
         <td>
-          1013
-        </td>
-        <td>
-          3601
-          -
-          3676
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file))
-        </td>
-      </tr><tr>
-        <td>
-          71
-        </td>
-        <td>
-          1012
+          1138
         </td>
         <td>
           3619
@@ -1692,10 +1671,31 @@
         </td>
       </tr><tr>
         <td>
+          71
+        </td>
+        <td>
+          1139
+        </td>
+        <td>
+          3601
+          -
+          3676
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          WriteApi.this.write_logger.info(scala.StringContext.apply(&quot;Renamed file path &quot;, &quot;&quot;, &quot; to &quot;, &quot;&quot;, &quot;&quot;).s(path, fileName, path, output_file))
+        </td>
+      </tr><tr>
+        <td>
           72
         </td>
         <td>
-          1014
+          1140
         </td>
         <td>
           3683

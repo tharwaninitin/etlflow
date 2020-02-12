@@ -4,18 +4,12 @@ import etljobs.utils.{AppLogger, GlobalProperties, UtilityFunctions}
 import org.apache.log4j.Logger
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class EtlJobApp[EJN: TypeTag] extends UtilityFunctions with EtlJobManager {
+abstract class MintEtlJobApp[EJN: TypeTag] extends UtilityFunctions with EtlJobManager {
   AppLogger.initialize()
   lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
-  val global_properties: Option[GlobalProperties] = None
-  private val send_notification = global_properties match {
-    case Some(value) => value.send_notification.toBoolean
-    case None => true
-  }
-  private val notification_level = global_properties match {
-    case Some(value) => value.notification_level
-    case None => "info"
-  }
+  val global_properties: Option[GlobalProperties]
+  val send_notification: Boolean
+  val notification_level: String
 
   def main(args: Array[String]): Unit = {
     args(0) match {
@@ -25,7 +19,7 @@ abstract class EtlJobApp[EJN: TypeTag] extends UtilityFunctions with EtlJobManag
         val etl_job = toEtlJob(job_properties("job_name"), job_properties, global_properties)
         etl_job.etl_step_list.foreach { s =>
           ea_logger.info("=" * 10 + s.name + "=" * 10)
-          s.getStepProperties().foreach(prop => ea_logger.info(s"==> $prop"))
+          s.getStepProperties(notification_level).foreach(prop => ea_logger.info(s"==> $prop"))
         }
       case "run_job" =>
         val job_properties = parser(args.drop(1))

@@ -148,28 +148,7 @@
           10
         </td>
         <td>
-          774
-        </td>
-        <td>
-          225
-          -
-          259
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Logger.getLogger
-        </td>
-        <td style="background: #AEF1AE">
-          org.apache.log4j.Logger.getLogger(SparkManager.this.getClass().getName())
-        </td>
-      </tr><tr>
-        <td>
-          10
-        </td>
-        <td>
-          773
+          899
         </td>
         <td>
           242
@@ -187,10 +166,31 @@
         </td>
       </tr><tr>
         <td>
+          10
+        </td>
+        <td>
+          900
+        </td>
+        <td>
+          225
+          -
+          259
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(SparkManager.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
           12
         </td>
         <td>
-          775
+          901
         </td>
         <td>
           312
@@ -214,7 +214,7 @@
           15
         </td>
         <td>
-          776
+          902
         </td>
         <td>
           455
@@ -235,28 +235,7 @@
           16
         </td>
         <td>
-          777
-        </td>
-        <td>
-          512
-          -
-          526
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.spark.sql.Dataset.apply
-        </td>
-        <td style="background: #F0ADAD">
-          DataFrameHelper.this.df.apply(columnName)
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          778
+          904
         </td>
         <td>
           508
@@ -274,52 +253,31 @@
         </td>
       </tr><tr>
         <td>
-          18
+          16
         </td>
         <td>
-          783
+          903
         </td>
         <td>
-          644
+          512
           -
-          706
+          526
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.StringContext.s
+          org.apache.spark.sql.Dataset.apply
         </td>
         <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;Column added &quot;, &quot; with expression &quot;, &quot;&quot;).s(columnName, expression.expr)
+          DataFrameHelper.this.df.apply(columnName)
         </td>
       </tr><tr>
         <td>
           18
         </td>
         <td>
-          779
-        </td>
-        <td>
-          646
-          -
-          660
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Column added &quot;
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          782
+          908
         </td>
         <td>
           689
@@ -340,28 +298,28 @@
           18
         </td>
         <td>
-          784
+          905
         </td>
         <td>
-          629
+          646
           -
-          707
+          660
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          org.apache.log4j.Category.info
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          SparkManager.this.ic_logger.info(scala.StringContext.apply(&quot;Column added &quot;, &quot; with expression &quot;, &quot;&quot;).s(columnName, expression.expr))
+          &quot;Column added &quot;
         </td>
       </tr><tr>
         <td>
           18
         </td>
         <td>
-          781
+          907
         </td>
         <td>
           705
@@ -382,7 +340,49 @@
           18
         </td>
         <td>
-          780
+          910
+        </td>
+        <td>
+          629
+          -
+          707
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(scala.StringContext.apply(&quot;Column added &quot;, &quot; with expression &quot;, &quot;&quot;).s(columnName, expression.expr))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          909
+        </td>
+        <td>
+          644
+          -
+          706
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Column added &quot;, &quot; with expression &quot;, &quot;&quot;).s(columnName, expression.expr)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          906
         </td>
         <td>
           670
@@ -403,7 +403,7 @@
           19
         </td>
         <td>
-          785
+          911
         </td>
         <td>
           714
@@ -424,7 +424,7 @@
           21
         </td>
         <td>
-          786
+          912
         </td>
         <td>
           785
@@ -445,7 +445,7 @@
           29
         </td>
         <td>
-          787
+          913
         </td>
         <td>
           998
@@ -466,7 +466,53 @@
           30
         </td>
         <td>
-          822
+          917
+        </td>
+        <td>
+          1085
+          -
+          1271
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.getActiveSession.get;
+  SparkManager.this.ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;);
+  spark
+}
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          914
+        </td>
+        <td>
+          1044
+          -
+          1083
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          948
         </td>
         <td>
           1040
@@ -502,56 +548,10 @@ else
         </td>
       </tr><tr>
         <td>
-          30
-        </td>
-        <td>
-          788
-        </td>
-        <td>
-          1044
-          -
-          1083
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.isDefined
-        </td>
-        <td style="background: #F0ADAD">
-          org.apache.spark.sql.SparkSession.getActiveSession.isDefined
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          791
-        </td>
-        <td>
-          1085
-          -
-          1271
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  val spark: org.apache.spark.sql.SparkSession = org.apache.spark.sql.SparkSession.getActiveSession.get;
-  SparkManager.this.ic_logger.info(&quot;################# Using Already Created Spark Session ####################&quot;);
-  spark
-}
-        </td>
-      </tr><tr>
-        <td>
           31
         </td>
         <td>
-          789
+          915
         </td>
         <td>
           1109
@@ -572,7 +572,7 @@ else
           32
         </td>
         <td>
-          790
+          916
         </td>
         <td>
           1153
@@ -593,7 +593,7 @@ else
           35
         </td>
         <td>
-          821
+          947
         </td>
         <td>
           1285
@@ -625,7 +625,7 @@ else
           41
         </td>
         <td>
-          792
+          918
         </td>
         <td>
           1309
@@ -646,7 +646,7 @@ else
           43
         </td>
         <td>
-          793
+          919
         </td>
         <td>
           1668
@@ -667,28 +667,7 @@ else
           44
         </td>
         <td>
-          795
-        </td>
-        <td>
-          1816
-          -
-          1843
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.SparkContext.uiWebUrl
-        </td>
-        <td style="background: #F0ADAD">
-          spark.sparkContext.uiWebUrl
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          797
+          923
         </td>
         <td>
           1766
@@ -709,7 +688,7 @@ else
           44
         </td>
         <td>
-          794
+          920
         </td>
         <td>
           1781
@@ -730,7 +709,7 @@ else
           44
         </td>
         <td>
-          796
+          922
         </td>
         <td>
           1781
@@ -748,31 +727,31 @@ else
         </td>
       </tr><tr>
         <td>
-          45
+          44
         </td>
         <td>
-          801
+          921
         </td>
         <td>
-          1855
+          1816
           -
-          1943
+          1843
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          org.apache.log4j.Category.info
+          org.apache.spark.SparkContext.uiWebUrl
         </td>
         <td style="background: #F0ADAD">
-          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+          spark.sparkContext.uiWebUrl
         </td>
       </tr><tr>
         <td>
           45
         </td>
         <td>
-          800
+          926
         </td>
         <td>
           1870
@@ -793,7 +772,7 @@ else
           45
         </td>
         <td>
-          799
+          925
         </td>
         <td>
           1910
@@ -814,7 +793,28 @@ else
           45
         </td>
         <td>
-          798
+          927
+        </td>
+        <td>
+          1855
+          -
+          1943
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.applicationId = &quot;.+(spark.sparkContext.applicationId))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          924
         </td>
         <td>
           1870
@@ -835,28 +835,7 @@ else
           46
         </td>
         <td>
-          804
-        </td>
-        <td>
-          1969
-          -
-          2033
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          803
+          929
         </td>
         <td>
           2005
@@ -877,7 +856,28 @@ else
           46
         </td>
         <td>
-          802
+          931
+        </td>
+        <td>
+          1954
+          -
+          2034
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          928
         </td>
         <td>
           1969
@@ -898,28 +898,28 @@ else
           46
         </td>
         <td>
-          805
+          930
         </td>
         <td>
-          1954
+          1969
           -
-          2034
+          2033
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          java.lang.String.+
         </td>
         <td style="background: #F0ADAD">
-          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
         </td>
       </tr><tr>
         <td>
           47
         </td>
         <td>
-          806
+          932
         </td>
         <td>
           2060
@@ -940,7 +940,7 @@ else
           47
         </td>
         <td>
-          809
+          935
         </td>
         <td>
           2045
@@ -961,7 +961,7 @@ else
           47
         </td>
         <td>
-          808
+          934
         </td>
         <td>
           2060
@@ -982,7 +982,7 @@ else
           47
         </td>
         <td>
-          807
+          933
         </td>
         <td>
           2086
@@ -1003,49 +1003,7 @@ else
           48
         </td>
         <td>
-          810
-        </td>
-        <td>
-          2155
-          -
-          2182
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;spark.eventLog.enabled = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          813
-        </td>
-        <td>
-          2140
-          -
-          2232
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)))
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          812
+          938
         </td>
         <td>
           2155
@@ -1066,7 +1024,7 @@ else
           48
         </td>
         <td>
-          811
+          937
         </td>
         <td>
           2185
@@ -1084,31 +1042,52 @@ else
         </td>
       </tr><tr>
         <td>
-          49
+          48
         </td>
         <td>
-          819
+          936
         </td>
         <td>
-          2243
+          2155
           -
-          2350
+          2182
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;spark.eventLog.enabled = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          939
+        </td>
+        <td>
+          2140
+          -
+          2232
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.IterableLike.foreach
+          org.apache.log4j.Category.info
         </td>
         <td style="background: #F0ADAD">
-          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
+          SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)))
         </td>
       </tr><tr>
         <td>
           49
         </td>
         <td>
-          815
+          941
         </td>
         <td>
           2335
@@ -1129,7 +1108,7 @@ else
           49
         </td>
         <td>
-          818
+          944
         </td>
         <td>
           2312
@@ -1150,28 +1129,7 @@ else
           49
         </td>
         <td>
-          817
-        </td>
-        <td>
-          2327
-          -
-          2348
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          kv._1.+(&quot; = &quot;).+(kv._2)
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          814
+          940
         </td>
         <td>
           2274
@@ -1192,7 +1150,49 @@ else
           49
         </td>
         <td>
-          816
+          943
+        </td>
+        <td>
+          2327
+          -
+          2348
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          kv._1.+(&quot; = &quot;).+(kv._2)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          945
+        </td>
+        <td>
+          2243
+          -
+          2350
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          spark.conf.getAll.filter(((m1: (String, String)) =&gt; m1._1.contains(&quot;yarn&quot;))).foreach[Unit](((kv: (String, String)) =&gt; SparkManager.this.ic_logger.info(kv._1.+(&quot; = &quot;).+(kv._2))))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          942
         </td>
         <td>
           2343
@@ -1213,7 +1213,7 @@ else
           50
         </td>
         <td>
-          820
+          946
         </td>
         <td>
           2361
@@ -1234,7 +1234,7 @@ else
           56
         </td>
         <td>
-          868
+          994
         </td>
         <td>
           2498
@@ -1281,7 +1281,7 @@ else
           56
         </td>
         <td>
-          823
+          949
         </td>
         <td>
           2502
@@ -1302,7 +1302,7 @@ else
           57
         </td>
         <td>
-          824
+          950
         </td>
         <td>
           2550
@@ -1323,7 +1323,7 @@ else
           57
         </td>
         <td>
-          829
+          955
         </td>
         <td>
           2546
@@ -1350,7 +1350,7 @@ else
           58
         </td>
         <td>
-          826
+          952
         </td>
         <td>
           2605
@@ -1371,7 +1371,7 @@ else
           58
         </td>
         <td>
-          825
+          951
         </td>
         <td>
           2605
@@ -1392,7 +1392,7 @@ else
           60
         </td>
         <td>
-          828
+          954
         </td>
         <td>
           2666
@@ -1416,7 +1416,7 @@ else
           71
         </td>
         <td>
-          827
+          953
         </td>
         <td>
           2692
@@ -1437,7 +1437,7 @@ else
           76
         </td>
         <td>
-          830
+          956
         </td>
         <td>
           3526
@@ -1458,7 +1458,7 @@ else
           76
         </td>
         <td>
-          867
+          993
         </td>
         <td>
           3522
@@ -1496,7 +1496,7 @@ else
           77
         </td>
         <td>
-          864
+          990
         </td>
         <td>
           3573
@@ -1531,7 +1531,7 @@ else
           77
         </td>
         <td>
-          831
+          957
         </td>
         <td>
           3577
@@ -1552,7 +1552,7 @@ else
           78
         </td>
         <td>
-          833
+          959
         </td>
         <td>
           3632
@@ -1573,7 +1573,7 @@ else
           78
         </td>
         <td>
-          832
+          958
         </td>
         <td>
           3632
@@ -1594,7 +1594,7 @@ else
           80
         </td>
         <td>
-          863
+          989
         </td>
         <td>
           3693
@@ -1626,7 +1626,7 @@ else
           87
         </td>
         <td>
-          834
+          960
         </td>
         <td>
           3719
@@ -1647,7 +1647,7 @@ else
           89
         </td>
         <td>
-          835
+          961
         </td>
         <td>
           4221
@@ -1668,49 +1668,7 @@ else
           90
         </td>
         <td>
-          837
-        </td>
-        <td>
-          4371
-          -
-          4398
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.apache.spark.SparkContext.uiWebUrl
-        </td>
-        <td style="background: #AEF1AE">
-          spark.sparkContext.uiWebUrl
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          839
-        </td>
-        <td>
-          4321
-          -
-          4399
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          836
+          962
         </td>
         <td>
           4336
@@ -1731,7 +1689,28 @@ else
           90
         </td>
         <td>
-          838
+          965
+        </td>
+        <td>
+          4321
+          -
+          4399
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.uiWebUrl = &quot;.+(spark.sparkContext.uiWebUrl))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          964
         </td>
         <td>
           4336
@@ -1749,10 +1728,31 @@ else
         </td>
       </tr><tr>
         <td>
+          90
+        </td>
+        <td>
+          963
+        </td>
+        <td>
+          4371
+          -
+          4398
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.SparkContext.uiWebUrl
+        </td>
+        <td style="background: #AEF1AE">
+          spark.sparkContext.uiWebUrl
+        </td>
+      </tr><tr>
+        <td>
           91
         </td>
         <td>
-          842
+          968
         </td>
         <td>
           4427
@@ -1773,7 +1773,7 @@ else
           91
         </td>
         <td>
-          841
+          967
         </td>
         <td>
           4467
@@ -1794,28 +1794,7 @@ else
           91
         </td>
         <td>
-          840
-        </td>
-        <td>
-          4427
-          -
-          4464
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;spark.sparkContext.applicationId = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          843
+          969
         </td>
         <td>
           4412
@@ -1833,31 +1812,31 @@ else
         </td>
       </tr><tr>
         <td>
-          92
+          91
         </td>
         <td>
-          846
+          966
         </td>
         <td>
-          4528
+          4427
           -
-          4592
+          4464
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          java.lang.String.+
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
+          &quot;spark.sparkContext.applicationId = &quot;
         </td>
       </tr><tr>
         <td>
           92
         </td>
         <td>
-          845
+          971
         </td>
         <td>
           4564
@@ -1878,7 +1857,28 @@ else
           92
         </td>
         <td>
-          844
+          973
+        </td>
+        <td>
+          4513
+          -
+          4593
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          970
         </td>
         <td>
           4528
@@ -1899,49 +1899,28 @@ else
           92
         </td>
         <td>
-          847
+          972
         </td>
         <td>
-          4513
+          4528
           -
-          4593
+          4592
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          java.lang.String.+
         </td>
         <td style="background: #AEF1AE">
-          SparkManager.this.ic_logger.info(&quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser))
+          &quot;spark.sparkContext.sparkUser = &quot;.+(spark.sparkContext.sparkUser)
         </td>
       </tr><tr>
         <td>
           93
         </td>
         <td>
-          848
-        </td>
-        <td>
-          4621
-          -
-          4644
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;spark.eventLog.dir = &quot;
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          851
+          977
         </td>
         <td>
           4606
@@ -1962,7 +1941,28 @@ else
           93
         </td>
         <td>
-          850
+          974
+        </td>
+        <td>
+          4621
+          -
+          4644
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;spark.eventLog.dir = &quot;
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          976
         </td>
         <td>
           4621
@@ -1983,7 +1983,7 @@ else
           93
         </td>
         <td>
-          849
+          975
         </td>
         <td>
           4647
@@ -2004,28 +2004,7 @@ else
           94
         </td>
         <td>
-          855
-        </td>
-        <td>
-          4703
-          -
-          4795
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #AEF1AE">
-          SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)))
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          854
+          980
         </td>
         <td>
           4718
@@ -2046,7 +2025,7 @@ else
           94
         </td>
         <td>
-          853
+          979
         </td>
         <td>
           4748
@@ -2067,7 +2046,7 @@ else
           94
         </td>
         <td>
-          852
+          978
         </td>
         <td>
           4718
@@ -2085,10 +2064,31 @@ else
         </td>
       </tr><tr>
         <td>
+          94
+        </td>
+        <td>
+          981
+        </td>
+        <td>
+          4703
+          -
+          4795
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #AEF1AE">
+          SparkManager.this.ic_logger.info(&quot;spark.eventLog.enabled = &quot;.+(spark.conf.getOption(&quot;spark.eventLog.enabled&quot;)))
+        </td>
+      </tr><tr>
+        <td>
           95
         </td>
         <td>
-          857
+          983
         </td>
         <td>
           4900
@@ -2109,7 +2109,7 @@ else
           95
         </td>
         <td>
-          860
+          986
         </td>
         <td>
           4877
@@ -2130,7 +2130,7 @@ else
           95
         </td>
         <td>
-          856
+          982
         </td>
         <td>
           4839
@@ -2151,7 +2151,7 @@ else
           95
         </td>
         <td>
-          859
+          985
         </td>
         <td>
           4892
@@ -2172,28 +2172,7 @@ else
           95
         </td>
         <td>
-          858
-        </td>
-        <td>
-          4908
-          -
-          4913
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._2
-        </td>
-        <td style="background: #F0ADAD">
-          kv._2
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          861
+          987
         </td>
         <td>
           4808
@@ -2211,10 +2190,31 @@ else
         </td>
       </tr><tr>
         <td>
+          95
+        </td>
+        <td>
+          984
+        </td>
+        <td>
+          4908
+          -
+          4913
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          kv._2
+        </td>
+      </tr><tr>
+        <td>
           96
         </td>
         <td>
-          862
+          988
         </td>
         <td>
           4928
@@ -2235,7 +2235,7 @@ else
           102
         </td>
         <td>
-          866
+          992
         </td>
         <td>
           5082
@@ -2256,7 +2256,7 @@ else
           102
         </td>
         <td>
-          865
+          991
         </td>
         <td>
           5082
@@ -2277,7 +2277,7 @@ else
           107
         </td>
         <td>
-          869
+          995
         </td>
         <td>
           5279

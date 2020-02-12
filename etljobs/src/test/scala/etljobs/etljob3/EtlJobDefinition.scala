@@ -6,7 +6,7 @@ import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
-import etljobs.etlsteps.{BQLoadStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
+import etljobs.etlsteps.{BQLoadTypedStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
 import etljobs.spark.{SparkManager, SparkUDF}
 import etljobs.utils.{CSV, GlobalProperties, PARQUET}
 import org.apache.log4j.{Level, Logger}
@@ -54,14 +54,14 @@ class EtlJobDefinition(
     input_location         = Seq(job_props.ratings_input_path),
     input_type             = CSV(",", true, "FAILFAST"),
     transform_with_state   = Some(enrichRatingData(spark, job_props)),
-    output_type            = PARQUET,
+    output_type            = CSV(",", true),
     output_location        = job_props.ratings_output_path,
     output_partition_col   = Seq(f"$temp_date_col"),
     output_save_mode       = SaveMode.Overwrite,
     output_repartitioning  = true  // Setting this to true takes care of creating one file for every partition
   )(spark)
 
-  val step2 = BQLoadStep(
+  val step2 = BQLoadTypedStep[RatingOutput](
     name                    = "LoadRatingBQ",
     source_paths_partitions = output_date_paths,
     source_format           = PARQUET,

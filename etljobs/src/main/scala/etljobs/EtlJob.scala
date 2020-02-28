@@ -14,7 +14,7 @@ trait EtlJob {
 
     val etl_step_list: List[StateLessEtlStep]
     val job_name: EtlJobName
-    val job_properties: Either[Map[String,String], EtlProps]
+    val job_properties: EtlProps
     val global_properties: Option[GlobalProperties]
 
     def printJobInfo(level: String = "info"): Unit = {
@@ -29,14 +29,8 @@ trait EtlJob {
     }
     def execute(send_notification: Boolean = false, notification_level: String) : Map[String, Map[String,String]] = {
       val job_start_time = System.nanoTime()
-      val job_run_id: String = job_properties match {
-        case Left(value) => value.getOrElse("job_run_id","undefined_job_run_id")
-        case Right(value) => value.job_run_id
-      }
-      aggregate_error = job_properties match {
-        case Left(value) => value.getOrElse("aggregate_error","undefined_aggregate_error").toBoolean
-        case Right(value) => value.aggregate_error
-      }
+      val job_run_id: String = job_properties.job_run_id
+      aggregate_error = job_properties.aggregate_error
 
       if (send_notification)
       {

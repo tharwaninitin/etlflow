@@ -3,7 +3,7 @@ package etljobs.etljob3
 import org.scalatest.{FlatSpec, Matchers}
 import etljobs.MyGlobalProperties
 import etljobs.schema.EtlJobList.EtlJob3CSVtoPARQUETtoBQGcsWith2Steps
-import etljobs.schema.EtlJobProps.EtlJob3Props
+import etljobs.schema.EtlJobProps.{EtlJob23Props}
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
   // AppLogger.initialize()
@@ -21,7 +21,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   private val canonical_path = new java.io.File(".").getCanonicalPath
   val global_props = new MyGlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
 
-  val job_props = EtlJob3Props(
+  val job_props = EtlJob23Props(
     job_run_id = java.util.UUID.randomUUID.toString,
     job_name = EtlJob3CSVtoPARQUETtoBQGcsWith2Steps,
     ratings_input_path = f"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
@@ -31,7 +31,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   )
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(job_properties=Right(job_props), global_properties=Some(global_props))
+  val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
 
   val thrown = intercept[Exception] {
     etljob.execute(send_notification = true, notification_level = "info")

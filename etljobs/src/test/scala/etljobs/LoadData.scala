@@ -2,7 +2,7 @@ package etljobs
 
 import etljobs.etljob3.EtlJobDefinition
 import etljobs.schema.EtlJobList.{EtlJob3CSVtoPARQUETtoBQGcsWith2Steps, MyEtlJobName}
-import etljobs.schema.EtlJobProps.EtlJob3Props
+import etljobs.schema.EtlJobProps.EtlJob23Props
 import scala.util.Try
 
 object LoadData extends EtlJobApp[MyEtlJobName] {
@@ -12,7 +12,7 @@ object LoadData extends EtlJobApp[MyEtlJobName] {
   val notification_level = "debug"
 
   def toEtlJob(job_name: String, job_properties: Map[String, String]): EtlJob = {
-    val job3Props = EtlJob3Props(
+    val job3Props = EtlJob23Props(
       job_run_id = java.util.UUID.randomUUID.toString,
       job_name = EtlJob3CSVtoPARQUETtoBQGcsWith2Steps,
       ratings_input_path = f"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
@@ -21,7 +21,7 @@ object LoadData extends EtlJobApp[MyEtlJobName] {
       ratings_output_table_name = "ratings_par"
     )
     job_name match {
-      case "EtlJob3CSVtoPARQUETtoBQGcsWith2Steps" => new EtlJobDefinition(job_properties=Right(job3Props))
+      case "EtlJob3CSVtoPARQUETtoBQGcsWith2Steps" => new EtlJobDefinition(job_properties=job3Props)
     }
   }
 }

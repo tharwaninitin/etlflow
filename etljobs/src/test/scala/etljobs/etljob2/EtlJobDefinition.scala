@@ -7,6 +7,7 @@ import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
 import etljobs.etlsteps.{BQLoadStep, SparkETLStep, SparkReadWriteStep, StateLessEtlStep}
 import etljobs.schema.EtlJobList
+import etljobs.schema.EtlJobProps.EtlJob23Props
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
 import etljobs.utils.{CSV, GlobalProperties, LOCAL, PARQUET}
 import org.apache.log4j.{Level, Logger}
@@ -14,18 +15,17 @@ import etljobs.spark.{ReadApi, SparkManager, SparkUDF}
 
 class EtlJobDefinition(
                         val job_name: EtlJobName = EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
-                        val job_properties: Either[Map[String,String], EtlProps],
+                        val job_properties: EtlProps,
                         val global_properties: Option[GlobalProperties] = None
                       )
   extends EtlJob with SparkManager with SparkUDF with BigQueryManager {
   var output_date_paths : Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
-  val job_props: Map[String,String] = job_properties match {
-    case Left(value) => value
-  }
 
-  def enrichRatingData(spark: SparkSession, job_properties : Map[String, String])(in : Dataset[Rating]) : Dataset[RatingOutput] = {
+  val job_props:EtlJob23Props  = job_properties.asInstanceOf[EtlJob23Props]
+
+  def enrichRatingData(spark: SparkSession)(in : Dataset[Rating]) : Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in
@@ -36,16 +36,16 @@ class EtlJobDefinition(
     ratings_df.as[RatingOutput](mapping)
   }
 
-  def addFilePaths(spark: SparkSession, job_properties : Map[String, String])() = {
+  def addFilePaths(spark: SparkSession, job_properties: EtlJob23Props)() = {
     import spark.implicits._
 
-    output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(job_properties("ratings_output_path")),PARQUET)(spark)
+    output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(job_properties.ratings_output_path),PARQUET)(spark)
       .select(f"$temp_date_col")
       .withColumn("filename", input_file_name)
       .distinct()
       .as[(String,String)]
       .collect()
-      .map((date) => (job_properties("ratings_output_path") + f"/$temp_date_col=" + date._1 + "/" + date._2.split("/").last, date._1))
+      .map((date) => (job_properties.ratings_output_path + f"/$temp_date_col=" + date._1 + "/" + date._2.split("/").last, date._1))
 
     etl_job_logger.info("Filepaths generated are: ")
     output_date_paths.foreach(path => println(path))
@@ -53,11 +53,11 @@ class EtlJobDefinition(
 
   val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name                    = "LoadRatingsParquet",
-    input_location          = Seq(job_props("ratings_input_path")),
-    input_type              = CSV(",", true, job_props.getOrElse("parse_mode","FAILFAST")),
-    transform_function      = Some(enrichRatingData(spark, job_props)),
+    input_location          = Seq(job_props.ratings_input_path),
+    input_type              = CSV(",", true, "FAILFAST"),
+    transform_function      = Some(enrichRatingData(spark)),
     output_type             = PARQUET,
-    output_location         = job_props("ratings_output_path"),
+    output_location         = job_props.ratings_output_path,
     output_partition_col    = Seq(f"$temp_date_col"),
     output_save_mode        = SaveMode.Overwrite,
     output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
@@ -75,8 +75,8 @@ class EtlJobDefinition(
     source_paths_partitions = output_date_paths,
     source_format           = PARQUET,
     source_file_system      = LOCAL,
-    destination_dataset     = job_props("ratings_output_dataset"),
-    destination_table       = job_props("ratings_output_table_name")
+    destination_dataset     = job_props.ratings_output_dataset,
+    destination_table       = job_props.ratings_output_table_name
   )(bq)
 
   val etl_step_list: List[StateLessEtlStep] = List(step1,step2,step3)

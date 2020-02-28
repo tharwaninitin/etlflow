@@ -5,6 +5,8 @@ import org.apache.spark.sql.{Dataset, Row}
 import etljobs.spark.{ReadApi, SparkManager}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties}
 import etljobs.bigquery.{BigQueryManager, QueryApi}
+import etljobs.schema.EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps
+import etljobs.schema.EtlJobProps.EtlJob23Props
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
@@ -12,13 +14,15 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   // STEP 1: Initialize job properties and create BQ tables required for jobs 
   private val canonical_path = new java.io.File(".").getCanonicalPath
   private val global_props = new GlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties") {}
-  private val job_props : Map[String,String] = Map(
-      "job_name" -> "EtlJob2CSVtoPARQUETtoBQLocalWith3Steps",
-      "ratings_input_path" -> s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
-      "ratings_output_path" -> s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
-      "ratings_output_dataset" -> "test",
-      "ratings_output_table_name" -> "ratings_par"
-    )
+  val job_props = EtlJob23Props(
+    job_run_id = java.util.UUID.randomUUID.toString,
+    job_name = EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
+    ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
+    ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
+    ratings_output_dataset = "test",
+    ratings_output_table_name = "ratings_par"
+  )
+
   val create_table_script = """
     CREATE TABLE test.ratings_par (
       user_id INT64
@@ -30,7 +34,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     """
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(job_properties=Left(job_props), global_properties=Some(global_props))
+  val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
   val state = etljob.execute(send_notification = true, notification_level = "info")
   println(state)
 
@@ -39,14 +43,14 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     val global_properties: Option[GlobalProperties] = Some(global_props)
   }
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](
-                                  Seq(job_props("ratings_input_path")),
-                                  CSV(",", true, job_props.getOrElse("parse_mode","FAILFAST"))
+                                  Seq(job_props.ratings_input_path),
+                                  CSV()
                                 )(sm.spark)
-  val op: Dataset[RatingOutput] = etljob.enrichRatingData(sm.spark, job_props)(raw)
+  val op: Dataset[RatingOutput] = etljob.enrichRatingData(sm.spark)(raw)
   val Row(sum_ratings: Double, count_ratings: Long) = op.selectExpr("sum(rating)","count(*)").first()
 
-  val destination_dataset = job_props("ratings_output_dataset")
-  val destination_table = job_props("ratings_output_table_name")
+  val destination_dataset = job_props.ratings_output_dataset
+  val destination_table = job_props.ratings_output_table_name
 
   val bqm = new BigQueryManager {
     val global_properties: Option[GlobalProperties] = Some(global_props)

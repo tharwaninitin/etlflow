@@ -7,7 +7,7 @@ import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
 import etljobs.etlsteps.{BQLoadTypedStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
 import etljobs.schema.EtlJobList
-import etljobs.schema.EtlJobProps.EtlJob3Props
+import etljobs.schema.EtlJobProps.{EtlJob23Props}
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
 import etljobs.spark.{SparkManager, SparkUDF}
 import etljobs.utils.{CSV, GlobalProperties, PARQUET}
@@ -15,7 +15,7 @@ import org.apache.log4j.{Level, Logger}
 
 class EtlJobDefinition(
                         val job_name: EtlJobName = EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
-                        val job_properties: Either[Map[String,String], EtlProps],
+                        val job_properties: EtlProps,
                         val global_properties: Option[GlobalProperties] = None
                       )
   extends EtlJob with SparkManager with SparkUDF with BigQueryManager {
@@ -23,11 +23,9 @@ class EtlJobDefinition(
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
 
-  val job_props:EtlJob3Props  = job_properties match {
-    case Right(value) => value.asInstanceOf[EtlJob3Props]
-  }
+  val job_props:EtlJob23Props  = job_properties.asInstanceOf[EtlJob23Props]
 
-  def enrichRatingData(spark: SparkSession, job_properties: EtlJob3Props)(in : DatasetWithState[Rating,Unit]) : DatasetWithState[RatingOutput,Unit] = {
+  def enrichRatingData(spark: SparkSession, job_properties: EtlJob23Props)(in : DatasetWithState[Rating,Unit]) : DatasetWithState[RatingOutput,Unit] = {
 
     val ratings_df = in.ds
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))

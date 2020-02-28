@@ -1,4 +1,6 @@
-package etljobs
+package etljobs.schema
+
+import etljobs.{EtlJobName, EtlProps}
 
 object EtlJobProps {
   case class EtlJob3Props (

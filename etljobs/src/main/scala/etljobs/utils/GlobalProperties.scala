@@ -6,11 +6,10 @@ import org.apache.log4j.Logger
 
 abstract class GlobalProperties(global_properties_file_path: String, job_properties: Map[String,String] = Map.empty) {
   private val ic_logger = Logger.getLogger(getClass.getName)
-  ic_logger.info(f"======> Loaded Settings(${getClass.getName})")
-  ic_logger.info(f"======> settings_file_path: $global_properties_file_path")
-  
-  lazy val file_stream = new FileInputStream(global_properties_file_path)
+  ic_logger.info(f"======> Loaded ${getClass.getName} with path $global_properties_file_path")
+
   lazy val config: Properties = {
+    val file_stream = new FileInputStream(global_properties_file_path)
     val prop = new Properties()
     prop.load(file_stream)
     prop
@@ -30,7 +29,7 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   lazy val slack_webhook_url                      = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getProperty("slack_webhook_url"))
   lazy val slack_env                              = sys.env.getOrElse("SLACK_ENV", config.getProperty("slack_env"))
 
-  lazy val log_db_url                            = sys.env.getOrElse("LOG_DB_URL", config.getProperty("log_db_url"))
+  lazy val log_db_url                             = sys.env.getOrElse("LOG_DB_URL", config.getProperty("log_db_url"))
   lazy val log_db_user                            = sys.env.getOrElse("LOG_DB_USER", config.getProperty("log_db_user"))
   lazy val log_db_pwd                             = sys.env.getOrElse("LOG_DB_PWD", config.getProperty("log_db_pwd"))
 }

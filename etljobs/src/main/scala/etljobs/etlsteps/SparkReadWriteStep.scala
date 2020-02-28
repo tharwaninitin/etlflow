@@ -4,7 +4,6 @@ import etljobs.spark.{ReadApi, WriteApi}
 import etljobs.utils.IOType
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
-
 import scala.util.Try
 import scala.reflect.runtime.universe.TypeTag
 
@@ -43,8 +42,8 @@ extends EtlStep[IPSTATE,OPSTATE] {
       transform_function match {
         case Left(tf) =>
           tf match {
-            case Some(tf) =>
-              val output = tf(DatasetWithState[T, IPSTATE](ds, input_state))
+            case Some(transformFunc) =>
+              val output = transformFunc(DatasetWithState[T, IPSTATE](ds, input_state))
               WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output.ds,sp)
               etl_logger.info("#################################################################################################")
               output.state
@@ -55,8 +54,8 @@ extends EtlStep[IPSTATE,OPSTATE] {
           }
         case Right(tf) =>
           tf match {
-            case Some(tf) =>
-              val output = tf(ds)
+            case Some(transformFunc) =>
+              val output = transformFunc(ds)
               WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output,sp)
               etl_logger.info("#################################################################################################")
               input_state.asInstanceOf[OPSTATE]

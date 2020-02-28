@@ -1,8 +1,10 @@
 package etljobs.etljob1
 
-// BigQquery Imports
+// BigQuery Imports
 import com.google.cloud.bigquery.JobInfo
 import etljobs.bigquery.BigQueryManager
+import etljobs.schema.EtlJobList
+import etljobs.schema.EtlJobSchemas.RatingOutput
 import etljobs.spark.SparkManager
 import etljobs.{EtlJobName, EtlProps}
 // ETLJOB library specific Imports
@@ -10,11 +12,10 @@ import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
 import etljobs.utils.{ORC, PARQUET, GlobalProperties, LOCAL}
 // Job specific imports
-import EtlJobSchemas.RatingOutput
 import org.apache.log4j.{Level, Logger}
 
 class EtlJobDefinition(
-                        val job_name: EtlJobName = etljobs.EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack,
+                        val job_name: EtlJobName = EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack,
                         val job_properties: Either[Map[String,String], EtlProps],
                         val global_properties: Option[GlobalProperties] = None
                       )

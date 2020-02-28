@@ -9,30 +9,33 @@ import scala.util.{Failure, Success, Try}
 trait EtlJob {
     val etl_job_logger: Logger = Logger.getLogger(getClass.getName)
     var job_execution_state: Map[String, Map[String,String]] = Map.empty
-    var error_occured: Boolean = false
+    var error_occurred: Boolean = false
+    var aggregate_error: Boolean = false
+
     val etl_step_list: List[StateLessEtlStep]
     val job_name: EtlJobName
     val job_properties: Either[Map[String,String], EtlProps]
     val global_properties: Option[GlobalProperties]
-    val aggregate_error: Boolean = false
 
     def printJobInfo(level: String = "info"): Unit = {
       etl_step_list.foreach{ etl =>
         etl.getStepProperties(level).foreach(println)
       }
     }
-
     def getJobInfo(level: String = "info"): List[Map[String,String]] = {
       etl_step_list.map{ etl =>
         etl.getStepProperties(level)
       }
     }
-
     def execute(send_notification: Boolean = false, notification_level: String) : Map[String, Map[String,String]] = {
       val job_start_time = System.nanoTime()
       val job_run_id: String = job_properties match {
         case Left(value) => value.getOrElse("job_run_id","undefined_job_run_id")
         case Right(value) => value.job_run_id
+      }
+      aggregate_error = job_properties match {
+        case Left(value) => value.getOrElse("aggregate_error","undefined_aggregate_error").toBoolean
+        case Right(value) => value.aggregate_error
       }
 
       if (send_notification)
@@ -77,7 +80,7 @@ trait EtlJob {
                 job_execution_state ++= etl.getExecutionMetrics
                 etl_job_logger.error("Error Occurred: " + exception.getMessage)
                 if (aggregate_error)
-                  error_occured = true
+                  error_occurred = true
                 else
                   throw exception
             }
@@ -85,7 +88,7 @@ trait EtlJob {
         }
 
         job_result match {
-          case Success(_) => if(error_occured) {
+          case Success(_) => if(error_occurred) {
                                 SlackManager.sendNotification("Failed", job_start_time)
                                 throw EtlJobException("Job failed")
                               }
@@ -103,10 +106,10 @@ trait EtlJob {
               case Success(_) => job_execution_state ++= etl.getExecutionMetrics
               case Failure(exception) =>
                 job_execution_state ++= etl.getExecutionMetrics
-                etl_job_logger.error("Error Occured: " + exception.getMessage())
+                etl_job_logger.error("Error Occurred: " + exception.getMessage)
 
                 if (aggregate_error)
-                  error_occured = true
+                  error_occurred = true
                 else
                   throw exception
             }
@@ -114,7 +117,7 @@ trait EtlJob {
         }
 
         job_result match {
-          case Success(_) => if(error_occured) { throw EtlJobException("Job failed"); }
+          case Success(_) => if(error_occurred) { throw EtlJobException("Job failed"); }
           case Failure(e) => throw e;
         }
       }

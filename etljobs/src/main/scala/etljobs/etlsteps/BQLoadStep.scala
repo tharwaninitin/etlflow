@@ -17,9 +17,9 @@ class BQLoadStep(
             ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
             ,create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
             )(bq : => BigQuery)
-  extends EtlStep[Unit,Unit]
-{
+  extends EtlStep[Unit,Unit] {
   var row_count: Map[String, Long] = Map.empty
+
   def process(input_state : Unit): Try[Unit] = {
     Try{
       etl_logger.info("#################################################################################################")
@@ -40,14 +40,14 @@ class BQLoadStep(
       }
       else if (source_paths_partitions.nonEmpty && source_file_system == GCS) {
         etl_logger.info(s"FileSystem: $source_file_system")
-        LoadApi.loadIntoPartitionedBQTableFromGCS(
+        row_count = LoadApi.loadIntoPartitionedBQTableFromGCS(
           bq,source_paths_partitions,source_format_bq
           ,destination_dataset,destination_table,write_disposition,create_disposition
         )
       }
       else if (source_path != "" && source_file_system == GCS) {
         etl_logger.info(s"FileSystem: $source_file_system")
-        LoadApi.loadIntoUnpartitionedBQTableFromGCS(
+        row_count = LoadApi.loadIntoUnpartitionedBQTableFromGCS(
           bq,source_path,source_format_bq
           ,destination_dataset,destination_table,write_disposition,create_disposition
         )
@@ -61,8 +61,8 @@ class BQLoadStep(
     val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
     Map(name ->
       Map(
-        "Total number of Rows" -> destinationTable.getNumRows.toString,
-        "Total size in MB" -> f"${destinationTable.getNumBytes / 1000000.0} MB"
+        "total_rows" -> destinationTable.getNumRows.toString,
+        "total_size" -> s"${destinationTable.getNumBytes / 1000000.0} MB"
       )
     )
   }

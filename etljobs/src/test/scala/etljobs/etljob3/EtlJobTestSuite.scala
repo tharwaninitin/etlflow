@@ -1,8 +1,9 @@
 package etljobs.etljob3
 
 import org.scalatest.{FlatSpec, Matchers}
-import etljobs.EtlJobList.EtlJob3CSVtoPARQUETtoBQGcsWith2Steps
-import etljobs.EtlJobProps.EtlJob3Props
+import etljobs.MyGlobalProperties
+import etljobs.schema.EtlJobList.EtlJob3CSVtoPARQUETtoBQGcsWith2Steps
+import etljobs.schema.EtlJobProps.EtlJob3Props
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
   // AppLogger.initialize()

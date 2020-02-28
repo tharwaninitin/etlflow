@@ -1,19 +1,20 @@
 package etljobs.etljob3
 
-import etljobs.EtlJobProps.EtlJob3Props
-import EtlJobSchemas.{Rating, RatingOutput}
 import etljobs.bigquery.BigQueryManager
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
 import etljobs.etlsteps.{BQLoadTypedStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
+import etljobs.schema.EtlJobList
+import etljobs.schema.EtlJobProps.EtlJob3Props
+import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
 import etljobs.spark.{SparkManager, SparkUDF}
 import etljobs.utils.{CSV, GlobalProperties, PARQUET}
 import org.apache.log4j.{Level, Logger}
 
 class EtlJobDefinition(
-                        val job_name: EtlJobName = etljobs.EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
+                        val job_name: EtlJobName = EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
                         val job_properties: Either[Map[String,String], EtlProps],
                         val global_properties: Option[GlobalProperties] = None
                       )

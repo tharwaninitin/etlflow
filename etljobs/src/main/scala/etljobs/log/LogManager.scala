@@ -3,24 +3,6 @@ package etljobs.log
 import etljobs.EtlJobName
 import etljobs.etlsteps.EtlStep
 
-// CREATE TABLE job(job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar);
-case class Job(
-                job_run_id: String,
-                job_name: String,
-                description: Option[String] = None,
-                properties: Option[String] = None,
-                state: Option[String] = None
-              )
-
-// CREATE TABLE step(job_run_id varchar, step_name varchar, properties varchar, state varchar, elapsed_time varchar);
-case class Step(
-                 job_run_id: String,
-                 step_name: String,
-                 properties: String,
-                 state: String,
-                 elapsed_time: String
-               )
-
 trait LogManager {
   var job_name: EtlJobName
   var job_run_id: String
@@ -34,4 +16,5 @@ trait LogManager {
                                   error_message: Option[String] = None
                                 ): Unit
   def sendNotification(result: String, start_time: Long): Unit = ()
+  def updateJobInformation(job_run_id: String, state: String): Unit = ()
 }

@@ -1,4 +1,4 @@
-package etljobs.etljob3
+package etljobs.schema
 
 object EtlJobSchemas {
   case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long)

@@ -5,7 +5,7 @@ import org.apache.spark.sql.{Dataset, Row}
 import etljobs.spark.{ReadApi, SparkManager}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties, ORC, PARQUET}
 import etljobs.bigquery.{BigQueryManager, QueryApi}
-import EtlJobSchemas.RatingOutput
+import etljobs.schema.EtlJobSchemas.RatingOutput
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
 //  AppLogger.initialize()

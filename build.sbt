@@ -59,8 +59,29 @@ lazy val examplesSettings = Seq(
   )
 )
 
+val copyDocs = Def.taskKey[Unit]("copyDocs")
+
 lazy val root = (project in file("."))
   .settings(
+    copyDocs := {
+      import java.nio.file.Files
+      import java.nio.file.Paths
+      import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+      //  import Path._
+      //  val src = (Compile / crossTarget).value / "api"
+      val src = new File("etljobs/etljobs/target/scala-2.12/api")
+      println(src)
+      val allFiles = src.listFiles()
+      println(allFiles.length)
+      def copyDir(from: java.nio.file.Path, to: java.nio.file.Path): Unit = {
+        Files.copy(from, to, REPLACE_EXISTING)
+      }
+
+      // Files.delete(Paths.get("docs/api"))
+      val from = Paths.get("etljobs/etljobs/target/scala-2.12/api")
+      val to = Paths.get("docs/api")
+      copyDir(from, to)
+    },
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true)
   .aggregate(etljobs, examples)

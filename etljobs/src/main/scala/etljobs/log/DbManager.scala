@@ -6,27 +6,27 @@ import etljobs.etlsteps.EtlStep
 import io.getquill.{LowerCase, PostgresJdbcContext}
 import scala.util.{Failure, Success, Try}
 
-// CREATE TABLE jobrun(job_id int, job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar, elapsed_time varchar);
-case class JobRun(
-                   job_id: Int,
-                   job_run_id: String,
-                   job_name: String,
-                   description: Option[String] = None,
-                   properties: Option[String] = None,
-                   state: String,
-                   elapsed_time: String
-                 )
-
-// CREATE TABLE steprun(job_run_id varchar, step_name varchar, properties varchar, state varchar, elapsed_time varchar);
-case class StepRun(
-                    job_run_id: String,
-                    step_name: String,
-                    properties: String,
-                    state: String,
-                    elapsed_time: String
-                  )
-
 object DbManager extends LogManager {
+  // CREATE TABLE jobrun(job_id int, job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar, elapsed_time varchar);
+  case class JobRun(
+                     job_id: Int,
+                     job_run_id: String,
+                     job_name: String,
+                     description: Option[String] = None,
+                     properties: Option[String] = None,
+                     state: String,
+                     elapsed_time: String
+                   )
+
+  // CREATE TABLE steprun(job_run_id varchar, step_name varchar, properties varchar, state varchar, elapsed_time varchar);
+  case class StepRun(
+                      job_run_id: String,
+                      step_name: String,
+                      properties: String,
+                      state: String,
+                      elapsed_time: String
+                    )
+
   override var job_name: EtlJobName = _
   override var job_run_id: String = _
   var log_db_url: String = ""

@@ -2,7 +2,6 @@ package etljobs
 
 import etljobs.schema.EtlJobList.{EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack, EtlJob2CSVtoPARQUETtoBQLocalWith3Steps, EtlJob3CSVtoPARQUETtoBQGcsWith2Steps, MyEtlJobName}
 import etljobs.schema.EtlJobProps.{EtlJob1Props, EtlJob23Props}
-
 import scala.util.Try
 
 object LoadData extends EtlJobApp[MyEtlJobName] {
@@ -11,8 +10,8 @@ object LoadData extends EtlJobApp[MyEtlJobName] {
   val send_notification = true
   val notification_level = "debug"
 
-  def toEtlJob(job_name: String, job_properties: Map[String, String]): EtlJob = {
-    val job1Props = EtlJob1Props(
+  def toEtlJob(job_name: MyEtlJobName, job_properties: Map[String, String]): EtlJob = {
+    lazy val job1Props = EtlJob1Props(
       job_run_id = java.util.UUID.randomUUID.toString,
       job_name = EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack,
       ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*",
@@ -23,11 +22,11 @@ object LoadData extends EtlJobApp[MyEtlJobName] {
     )
 
     job_name match {
-      case "EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack" =>
+      case EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack =>
         new etljob1.EtlJobDefinition(
           job_properties = job1Props
         )
-      case "EtlJob2CSVtoPARQUETtoBQLocalWith3Steps" =>
+      case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps =>
         new etljob2.EtlJobDefinition(
           job_properties = EtlJob23Props(
             job_run_id = java.util.UUID.randomUUID.toString,
@@ -38,7 +37,7 @@ object LoadData extends EtlJobApp[MyEtlJobName] {
             ratings_output_table_name = "ratings_par"
           )
         )
-      case "EtlJob3CSVtoPARQUETtoBQGcsWith2Steps" =>
+      case EtlJob3CSVtoPARQUETtoBQGcsWith2Steps =>
         new etljob3.EtlJobDefinition(
           job_properties = EtlJob23Props(
             job_run_id = java.util.UUID.randomUUID.toString,

@@ -27,23 +27,24 @@ trait EtlJob {
         etl.getStepProperties(level)
       }
     }
-    def execute(send_notification: Boolean = false, notification_level: String) : Map[String, Map[String,String]] = {
+    def execute(send_slack_notification: Boolean = false, log_in_db: Boolean = false, notification_level: String) : Map[String, Map[String,String]] = {
       val job_start_time = System.nanoTime()
       val job_run_id: String = job_properties.job_run_id
       aggregate_error = job_properties.aggregate_error
 
-      if (send_notification)
+      if (send_slack_notification || log_in_db)
       {
         SlackManager.final_message = ""
-        SlackManager.job_name = job_name
-        SlackManager.webhook_url = global_properties match {
+        SlackManager.job_name      = job_name
+        SlackManager.webhook_url   = global_properties match {
           case Some(x) => x.slack_webhook_url
           case None => "<use_global_properties_slack_webhook_url>"
         }
-        SlackManager.env = global_properties match {
+        SlackManager.env           = global_properties match {
           case Some(x) => x.slack_env
           case None => "<use_global_properties_slack_env>"
         }
+        SlackManager.log_level     = notification_level
 
         DbManager.job_run_id  = job_run_id
         DbManager.log_db_url  = global_properties match {
@@ -58,6 +59,7 @@ trait EtlJob {
           case Some(x) => x.log_db_pwd
           case None => "<use_global_properties_log_db_pwd>"
         }
+        DbManager.log_level   = notification_level
 
         // Catch job result(Success/Failure) in Try so that it can be used further
         val job_result = Try{
@@ -65,12 +67,12 @@ trait EtlJob {
             val step_start_time = System.nanoTime()
             etl.process() match {
               case Success(_) =>
-                DbManager.updateStepLevelInformation(step_start_time, etl, "Pass", notification_level)
-                SlackManager.updateStepLevelInformation(step_start_time, etl, "Pass", notification_level)
+                if (send_slack_notification) SlackManager.updateStepLevelInformation(step_start_time, etl, "Pass", notification_level)
+                if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, "Pass", notification_level)
                 job_execution_state ++= etl.getExecutionMetrics
               case Failure(exception) =>
-                SlackManager.updateStepLevelInformation(step_start_time, etl, "Failed", notification_level,Some(exception.getMessage))
-                DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage, notification_level,Some(exception.getMessage))
+                if (send_slack_notification) SlackManager.updateStepLevelInformation(step_start_time, etl, "Failed", notification_level,Some(exception.getMessage))
+                if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage, notification_level,Some(exception.getMessage))
                 job_execution_state ++= etl.getExecutionMetrics
                 etl_job_logger.error("Error Occurred: " + exception.getMessage)
                 if (aggregate_error)
@@ -83,11 +85,11 @@ trait EtlJob {
 
         job_result match {
           case Success(_) => if(error_occurred) {
-                                SlackManager.sendNotification("Failed", job_start_time)
+                                if (send_slack_notification) SlackManager.sendNotification("Failed", job_start_time)
                                 throw EtlJobException("Job failed")
                               }
-                              else SlackManager.sendNotification("Pass", job_start_time)
-          case Failure(e) => SlackManager.sendNotification("Failed", job_start_time); throw e;
+                              else if (send_slack_notification) SlackManager.sendNotification("Pass", job_start_time)
+          case Failure(e) => if (send_slack_notification) SlackManager.sendNotification("Failed", job_start_time); throw e;
         }
       }
       else

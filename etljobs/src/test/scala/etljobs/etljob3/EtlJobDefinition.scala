@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 import etljobs.{EtlJob, EtlJobName, EtlProps}
-import etljobs.etlsteps.{BQLoadTypedStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
+import etljobs.etlsteps.{BQLoadStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
 import etljobs.schema.EtlJobList
 import etljobs.schema.EtlJobProps.{EtlJob23Props}
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
@@ -14,12 +14,12 @@ import etljobs.utils.{CSV, GlobalProperties, PARQUET}
 import org.apache.log4j.{Level, Logger}
 
 class EtlJobDefinition(
-                        val job_name: EtlJobName = EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
+                        val job_name: EtlJobName = EtlJobList.EtlJob3CSVtoCSVtoBQGcsWith2Steps,
                         val job_properties: EtlProps,
                         val global_properties: Option[GlobalProperties] = None
                       )
   extends EtlJob with SparkManager with SparkUDF with BigQueryManager {
-  var output_date_paths : Seq[(String,String)] = Seq()
+  var output_date_paths: Seq[(String,String)] = Seq()
   val temp_date_col = "temp_date_col"
   Logger.getLogger("org").setLevel(Level.WARN)
 
@@ -61,12 +61,12 @@ class EtlJobDefinition(
     output_repartitioning  = true  // Setting this to true takes care of creating one file for every partition
   )(spark)
 
-  val step2 = BQLoadTypedStep[RatingOutput](
-    name                    = "LoadRatingBQ",
-    source_paths_partitions = output_date_paths,
-    source_format           = PARQUET,
-    destination_dataset     = job_props.ratings_output_dataset,
-    destination_table       = job_props.ratings_output_table_name
+  val step2 = BQLoadStep[RatingOutput](
+    name               = "LoadRatingBQ",
+    input_location     = Right(output_date_paths),
+    input_type         = CSV(),
+    output_dataset     = job_props.ratings_output_dataset,
+    output_table       = job_props.ratings_output_table_name
   )(bq)
 
   val etl_step_list: List[EtlStep[Unit,Unit]] = List(step1,step2)

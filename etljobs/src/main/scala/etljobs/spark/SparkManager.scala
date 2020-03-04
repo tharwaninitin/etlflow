@@ -55,6 +55,7 @@ trait SparkManager {
       }
         else if (ss.running_environment =="aws") {
           if (SparkSession.getActiveSession.isDefined) {
+            ic_logger.info("################# Using Already Created Spark Session ####################")
             SparkSession.getActiveSession.get
           }
           else {
@@ -70,11 +71,21 @@ trait SparkManager {
               .enableHiveSupport()
               .getOrCreate()
 
+            ic_logger.info("##################### Created SparkSession ##########################")
+            ic_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
+            ic_logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
+            ic_logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)
+            ic_logger.info("spark.eventLog.dir = " + spark.conf.getOption("spark.eventLog.dir"))
+            ic_logger.info("spark.eventLog.enabled = " + spark.conf.getOption("spark.eventLog.enabled"))
+            spark.conf.getAll.filter(m1 => m1._1.contains("yarn")).foreach(kv => ic_logger.info(kv._1 + " = " + kv._2))
+            ic_logger.info("#####################################################################")
+
             spark
           }
         }
         else if (ss.running_environment == "local") {
           if (SparkSession.getActiveSession.isDefined) {
+            ic_logger.info("################# Using Already Created Spark Session ####################")
             SparkSession.getActiveSession.get
           }
           else {
@@ -101,10 +112,20 @@ trait SparkManager {
         else {
           throw new Exception("Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local")
         }
-      case None => SparkSession.builder().master("local[*]")
-        .config("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
-        .config("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
-        .getOrCreate()
+      case None =>
+        val spark = SparkSession.builder().master("local[*]")
+          .config("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
+          .config("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+          .getOrCreate()
+        ic_logger.info("##################### Created Local SparkSession without GlobalProperties ##########################")
+        ic_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
+        ic_logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
+        ic_logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)
+        ic_logger.info("spark.eventLog.dir = " + spark.conf.getOption("spark.eventLog.dir"))
+        ic_logger.info("spark.eventLog.enabled = " + spark.conf.getOption("spark.eventLog.enabled"))
+        spark.conf.getAll.filter(m1 => m1._1.contains("yarn")).foreach(kv => ic_logger.info(kv._1 + " = " + kv._2))
+        ic_logger.info("#####################################################################")
+        spark
     }
   }
 }

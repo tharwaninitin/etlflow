@@ -70,7 +70,9 @@ object SlackManager extends LogManager {
       final_message,
       result
     )
-    println(data)
+
+    if (log_level.equalsIgnoreCase("debug"))
+      println(data)
 
     Try {
       val client = HttpClients.createDefault

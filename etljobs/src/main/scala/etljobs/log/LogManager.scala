@@ -6,6 +6,7 @@ import etljobs.etlsteps.EtlStep
 trait LogManager {
   var job_name: EtlJobName
   var job_run_id: String
+  var log_level: String = "info"
 
   def finalMessageTemplate(run_env: String, job_name: EtlJobName, exec_date: String, message: String, result: String): String = ""
   def updateStepLevelInformation(

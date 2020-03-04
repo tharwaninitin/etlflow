@@ -70,7 +70,7 @@ extends EtlStep[IPSTATE,OPSTATE] {
 
   override def getStepProperties(level: String) : Map[String,String] = {
     val in_map = ReadApi.LoadDSHelper[T](level,input_location,input_type).toList
-    val out_map = WriteApi.WriteDSHelper[O](level,output_type, output_location, output_partition_col, output_save_mode, output_filename, recordsWrittenCount,repartition=output_repartitioning).toList
+    val out_map = WriteApi.WriteDSHelper[O](level,output_type, output_location, output_partition_col, output_save_mode, output_filename, recordsWrittenCount, repartition=output_repartitioning).toList
     (in_map ++ out_map).toMap
   }
 

@@ -26,7 +26,9 @@ trait BigQueryManager {
         else {
           throw new Exception("Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local")
         }
-      case None => BigQueryOptions.getDefaultInstance.getService
+      case None =>
+        ic_logger.info(s"Job is running without GlobalProperties")
+        BigQueryOptions.getDefaultInstance.getService
     }
   }
 }

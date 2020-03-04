@@ -36,13 +36,13 @@ class EtlJobDefinition(
   )(spark)
   
   val step2 = BQLoadStep(
-    name                = "LoadRatingBQ",
-    source_path         = job_props.ratings_output_path + "/" + job_props.ratings_output_file_name,
-    source_format       = ORC,
-    source_file_system  = LOCAL,
-    destination_dataset = job_props.ratings_output_dataset,
-    destination_table   = job_props.ratings_output_table_name,
-    create_disposition  = JobInfo.CreateDisposition.CREATE_IF_NEEDED
+    name                              = "LoadRatingBQ",
+    input_location                    = Left(job_props.ratings_output_path + "/" + job_props.ratings_output_file_name),
+    input_type                        = ORC,
+    input_file_system                 = LOCAL,
+    output_dataset                    = job_props.ratings_output_dataset,
+    output_table                      = job_props.ratings_output_table_name,
+    output_table_create_disposition   = JobInfo.CreateDisposition.CREATE_IF_NEEDED
   )(bq)
 
   val etl_step_list:List[EtlStep[Unit,Unit]] = List(step1,step2)

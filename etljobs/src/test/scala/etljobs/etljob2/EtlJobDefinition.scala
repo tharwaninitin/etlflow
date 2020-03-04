@@ -58,8 +58,8 @@ class EtlJobDefinition(
     transform_function      = Some(enrichRatingData(spark)),
     output_type             = PARQUET,
     output_location         = job_props.ratings_output_path,
-    output_partition_col    = Seq(f"$temp_date_col"),
     output_save_mode        = SaveMode.Overwrite,
+    output_partition_col    = Seq(f"$temp_date_col"),
     output_repartitioning   = true  // Setting this to true takes care of creating one file for every partition
   )(spark)
 
@@ -70,13 +70,13 @@ class EtlJobDefinition(
     override def getStepProperties(level: String) : Map[String,String] = Map("paths" -> output_date_paths.mkString(","))
   }
 
-  val step3 = new BQLoadStep(
-    name                    = "LoadRatingBQ",
-    source_paths_partitions = output_date_paths,
-    source_format           = PARQUET,
-    source_file_system      = LOCAL,
-    destination_dataset     = job_props.ratings_output_dataset,
-    destination_table       = job_props.ratings_output_table_name
+  val step3 = BQLoadStep(
+    name               = "LoadRatingBQ",
+    input_location     = Right(output_date_paths),
+    input_type         = PARQUET,
+    input_file_system  = LOCAL,
+    output_dataset     = job_props.ratings_output_dataset,
+    output_table       = job_props.ratings_output_table_name
   )(bq)
 
   val etl_step_list: List[StateLessEtlStep] = List(step1,step2,step3)

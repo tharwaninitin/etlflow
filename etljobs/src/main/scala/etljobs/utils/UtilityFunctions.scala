@@ -1,12 +1,10 @@
 package etljobs.utils
 
 import org.apache.log4j.Logger
-
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.reflect.runtime.universe.TypeTag
 import scala.reflect.runtime.{universe => ru}
-import scala.util.control.Exception._
 
 trait UtilityFunctions {
   lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)

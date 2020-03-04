@@ -45,7 +45,7 @@ object DbManager extends LogManager {
 
   def updateStepLevelInformation(
       execution_start_time: Long,
-      etl_step: EtlStep[Unit,Unit],
+      etl_step: EtlStep[Unit, Unit],
       state_status: String,
       notification_level:String,
       error_message: Option[String] = None

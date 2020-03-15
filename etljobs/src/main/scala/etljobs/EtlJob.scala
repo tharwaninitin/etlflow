@@ -47,6 +47,7 @@ trait EtlJob {
         SlackManager.log_level     = notification_level
 
         DbManager.job_run_id  = job_run_id
+        DbManager.job_name    = job_name
         DbManager.log_db_url  = global_properties match {
           case Some(x) => x.log_db_url
           case None => "<use_global_properties_log_db_url>"
@@ -61,18 +62,20 @@ trait EtlJob {
         }
         DbManager.log_level   = notification_level
 
+        if (log_in_db) DbManager.updateJobInformation("started", Some(job_properties),"insert")
         // Catch job result(Success/Failure) in Try so that it can be used further
         val job_result = Try{
           etl_step_list.foreach { etl =>
             val step_start_time = System.nanoTime()
+            if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, "started", notification_level, mode = "insert")
             etl.process() match {
               case Success(_) =>
-                if (send_slack_notification) SlackManager.updateStepLevelInformation(step_start_time, etl, "Pass", notification_level)
-                if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, "Pass", notification_level)
+                if (send_slack_notification) SlackManager.updateStepLevelInformation(step_start_time, etl, "pass", notification_level)
+                if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, "pass", notification_level)
                 job_execution_state ++= etl.getExecutionMetrics
               case Failure(exception) =>
-                if (send_slack_notification) SlackManager.updateStepLevelInformation(step_start_time, etl, "Failed", notification_level,Some(exception.getMessage))
-                if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, exception.getMessage, notification_level,Some(exception.getMessage))
+                if (send_slack_notification) SlackManager.updateStepLevelInformation(step_start_time, etl, "failed", notification_level, Some(exception.getMessage))
+                if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, "failed", notification_level, Some(exception.getMessage))
                 job_execution_state ++= etl.getExecutionMetrics
                 etl_job_logger.error("Error Occurred: " + exception.getMessage)
                 if (aggregate_error)
@@ -85,11 +88,17 @@ trait EtlJob {
 
         job_result match {
           case Success(_) => if(error_occurred) {
-                                if (send_slack_notification) SlackManager.sendNotification("Failed", job_start_time)
+                                if (send_slack_notification) SlackManager.sendNotification("failed", job_start_time)
+                                if (log_in_db) DbManager.updateJobInformation("failed")
                                 throw EtlJobException("Job failed")
                               }
-                              else if (send_slack_notification) SlackManager.sendNotification("Pass", job_start_time)
-          case Failure(e) => if (send_slack_notification) SlackManager.sendNotification("Failed", job_start_time); throw e;
+                              else {
+                                if (send_slack_notification) SlackManager.sendNotification("pass", job_start_time)
+                                if (log_in_db) DbManager.updateJobInformation("pass")
+                              }
+          case Failure(e) => if (send_slack_notification) SlackManager.sendNotification("failed", job_start_time)
+                             if (log_in_db) DbManager.updateJobInformation("failed")
+                             throw e
         }
       }
       else

@@ -7,8 +7,8 @@ import scala.util.Try
 object LoadData extends EtlJobApp[MyEtlJobName] {
   private val canonical_path = new java.io.File(".").getCanonicalPath
   val global_properties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(s"$canonical_path/etljobs/src/test/resources/loaddata.properties")).toOption
-  val send_slack_notification = true
-  val log_in_db: Boolean = false
+  val send_slack_notification = false
+  val log_in_db: Boolean = true
   val notification_level = "debug" // info or debug
 
   def toEtlJob(job_name: MyEtlJobName, job_properties: Map[String, String]): EtlJob = {

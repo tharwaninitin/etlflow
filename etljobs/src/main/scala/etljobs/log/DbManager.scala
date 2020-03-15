@@ -1,30 +1,28 @@
 package etljobs.log
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import etljobs.EtlJobName
+import etljobs.{EtlJobName, EtlProps}
 import etljobs.etlsteps.EtlStep
 import io.getquill.{LowerCase, PostgresJdbcContext}
 import scala.util.{Failure, Success, Try}
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization.write
 
 object DbManager extends LogManager {
-  // CREATE TABLE jobrun(job_id int, job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar, elapsed_time varchar);
   case class JobRun(
-                     job_id: Int,
                      job_run_id: String,
                      job_name: String,
-                     description: Option[String] = None,
-                     properties: Option[String] = None,
+                     description: String,
+                     properties: String,
                      state: String,
-                     elapsed_time: String
+                     inserted_at: Long
                    )
-
-  // CREATE TABLE steprun(job_run_id varchar, step_name varchar, properties varchar, state varchar, elapsed_time varchar);
   case class StepRun(
                       job_run_id: String,
                       step_name: String,
                       properties: String,
                       state: String,
-                      elapsed_time: String
+                      elapsed_time:String
                     )
 
   override var job_name: EtlJobName = _
@@ -48,38 +46,66 @@ object DbManager extends LogManager {
       etl_step: EtlStep[Unit, Unit],
       state_status: String,
       notification_level:String,
-      error_message: Option[String] = None
+      error_message: Option[String] = None,
+      mode: String = "update"
     ): Unit = {
     ctx match {
       case Success(context) =>
         import context._
-        val execution_end_time = System.nanoTime()
-        val elapsed_time = (execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + " mins"
-        val step = StepRun(
-          job_run_id,
-          etl_step.name,
-          etl_step.getStepProperties(notification_level).mkString(", "),
-          state_status.toLowerCase(),
-          elapsed_time
-        )
-        println(step)
-        val s = quote {
-          query[StepRun].insert(lift(step))
+        if (mode == "insert") {
+          val step = StepRun(
+            job_run_id,
+            etl_step.name,
+            etl_step.getStepProperties(notification_level).mkString(", "),
+            state_status.toLowerCase(),
+            "..."
+          )
+          lm_logger.info(step)
+          val s = quote {
+            querySchema[StepRun]("step").insert(lift(step))
+          }
+          context.run(s)
         }
-        context.run(s)
-      case Failure(e) => println(s"Cannot log step properties to log db => ${e.getMessage}")
+        else if (mode == "update") {
+          val execution_end_time = System.nanoTime()
+          val status = if (error_message.isDefined) state_status + " with error: " + error_message.get else state_status
+          val elapsed_time = (math floor ((execution_end_time - execution_start_time) / 1000000000.0)) + " secs"
+          lm_logger.info(s"Updating step info in db with status => $status")
+          context.run( quote {
+            querySchema[StepRun]("step")
+              .filter(x => x.job_run_id == lift(job_run_id) && x.step_name == lift(etl_step.name))
+              .update(
+                _.state -> lift(status),
+                _.elapsed_time -> lift(elapsed_time)
+                )
+          })
+        }
+
+      case Failure(e) => lm_logger.error(s"Cannot log step properties to log db => ${e.getMessage}")
     }
   }
 
-  override def updateJobInformation(job_run_id: String, state: String): Unit = {
+  override def updateJobInformation(status: String, etlProps: Option[EtlProps] = None, mode: String = "update"): Unit = {
     ctx match {
       case Success(context) =>
         import context._
-        val s = quote {
-          query[JobRun].filter(_.job_run_id == lift(job_run_id)).update(_.state -> lift(state))
+        if (mode == "insert") {
+          implicit val formats = DefaultFormats
+          val propsJson = write(etlProps.get)
+          val job = JobRun(job_run_id, job_name.toString, "This is job description", propsJson, "started", System.currentTimeMillis())
+          lm_logger.info(job)
+          context.run( quote {
+            query[JobRun].insert(lift(job))
+          })
         }
-        context.run(s)
-      case Failure(e) => println(s"Cannot update job state to log db => ${e.getMessage}")
+        else if (mode == "update") {
+          lm_logger.info(s"Updating job info in db with status => $status")
+          context.run( quote {
+            query[JobRun].filter(_.job_run_id == lift(job_run_id)).update(_.state -> lift(status))
+          })
+        }
+
+      case Failure(e) => lm_logger.error(s"Cannot update job state to log db => ${e.getMessage}")
     }
   }
 }

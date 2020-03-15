@@ -2,13 +2,11 @@ package etljobs.log
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
 import etljobs.EtlJobName
 import etljobs.etlsteps.EtlStep
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
-
 import scala.util.Try
 
 /** Object SlackManager have below functionality
@@ -43,7 +41,10 @@ object SlackManager extends LogManager {
   }
 
   /** Get the step level information and update the variable finalSlackMessage */
-  def updateStepLevelInformation(execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String, notification_level:String, error_message: Option[String] = None): Unit = {
+  def updateStepLevelInformation(
+                                  execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String
+                                 , notification_level:String, error_message: Option[String] = None, mode: String = "update"
+                                ): Unit = {
     var slackMessageForSteps = ""
     val execution_end_time = System.nanoTime()
     val elapsedTime = (execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + " mins"

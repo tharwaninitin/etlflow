@@ -10,7 +10,7 @@ class BQQueryStep(
                    val name: String
                    ,source_pair_query_destination_table: (String,String) = ("","")
                    ,source_seq_pair_query_destination_table: Seq[(String,String)] = Seq()
-                   ,source_format : FormatOptions = FormatOptions.bigtable()
+                   ,source_format: FormatOptions = FormatOptions.bigtable()
                    ,destination_dataset: String
                    ,destination_table: String
                    ,write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
@@ -28,12 +28,14 @@ class BQQueryStep(
   }
 
   override def getExecutionMetrics : Map[String, Map[String,String]] = {
-    val tableId = TableId.of(destination_dataset, destination_table)
-    val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
+    val destinationTable = Try {
+      val tableId = TableId.of(destination_dataset, destination_table)
+      bq.getTable(tableId).getDefinition[StandardTableDefinition]
+    }.toOption
     Map(name ->
       Map(
-        "Total number of Rows" -> destinationTable.getNumRows.toString,
-        "Total size in MB" -> f"${destinationTable.getNumBytes / 1000000.0} MB"
+        "total_rows" -> destinationTable.map(x => x.getNumRows.toString).getOrElse("error in getting number of rows"),
+        "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
       )
     )
   }

@@ -27,7 +27,7 @@ object LoadApi {
         load_logger.info(s"BQ Load command is: $bq_load_cmd")
         val x = s"$bq_load_cmd".!
         load_logger.info(s"Output exit code: $x")
-        if (x != 0) throw BQLoadException("BQ error")
+        if (x != 0) throw BQLoadException("Error executing BQ load command")
       }
     }
     else {
@@ -39,7 +39,7 @@ object LoadApi {
       load_logger.info(s"BQ Load command is: $bq_load_cmd")
       val x = s"$bq_load_cmd".!
       load_logger.info(s"Output exit code: $x")
-      if (x != 0) throw BQLoadException("BQ error")
+      if (x != 0) throw BQLoadException("Error executing BQ load command")
     }
   }
 
@@ -107,7 +107,7 @@ object LoadApi {
       load_logger.info(s"Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB")
     }
     else {
-      throw new RuntimeException(
+      throw BQLoadException(
         s"""Could not load data in ${source_format.toString} format in table ${destination_dataset + "." + destination_table} due to error ${completedJob.getStatus.getError.getMessage}""".stripMargin)
     }
     Map(destination_table -> destinationTable.getNumRows)

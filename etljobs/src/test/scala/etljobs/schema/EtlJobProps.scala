@@ -3,6 +3,7 @@ package etljobs.schema
 import etljobs.{EtlJobName, EtlProps}
 
 object EtlJobProps {
+  sealed trait MyEtlProps extends EtlProps
   case class EtlJob1Props (
                             job_run_id: String,
                             job_name: EtlJobName,
@@ -11,7 +12,7 @@ object EtlJobProps {
                             ratings_output_dataset: String,
                             ratings_output_table_name: String,
                             ratings_output_file_name: String
-                          ) extends EtlProps
+                          ) extends MyEtlProps
   case class EtlJob23Props (
                             job_run_id: String,
                             job_name: EtlJobName,
@@ -19,5 +20,5 @@ object EtlJobProps {
                             ratings_output_path: String,
                             ratings_output_dataset: String,
                             ratings_output_table_name: String
-                          ) extends EtlProps
+                          ) extends MyEtlProps
 }

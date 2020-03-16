@@ -59,7 +59,7 @@ lazy val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrC
 import org.apache.spark.sql.SaveMode
 case class Rating(user_id:Int, movie_id: Int, rating : Double, timestamp: Long)
 
-val step1 = new SparkReadWriteStep[Rating, Rating](
+val step1 = SparkReadWriteStep[Rating, Rating](
     name                    = "ConvertRatingsCSVtoORC",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(),
@@ -92,7 +92,7 @@ def enrichRatingData()(in : Dataset[Rating]) : Dataset[RatingOutput] = {
 ```
 Now our step would change to something like this:
 ```scala
- val step1 = new SparkReadWriteStep[Rating, RatingOutput](
+ val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name                    = "ConvertRatingsCSVtoORC",
     input_location          = Seq(job_properties("ratings_input_path")),
     input_type              = CSV(),
@@ -124,11 +124,11 @@ val job_properties: Map[String,String] = Map(
 
 val step2 = BQLoadStep(
     name                = "LoadRatingBQ",
-    source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
-    source_format       = ORC,
-    source_file_system  = LOCAL,
-    destination_dataset = job_properties("ratings_output_dataset"),
-    destination_table   = job_properties("ratings_output_table_name")
+    input_location      = Left(job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name")),
+    input_type          = ORC,
+    input_file_system   = LOCAL,
+    output_dataset      = job_properties("ratings_output_dataset"),
+    output_table        = job_properties("ratings_output_table_name")
   )(bq)
 
 step2.process()
@@ -146,14 +146,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etljobs_2.12</artifactId>
-    <version>0.7.4</version>
+    <version>0.7.5</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.7.4"
+libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.7.5"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.7.4
+__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.7.5
 
 
 ## Documentation

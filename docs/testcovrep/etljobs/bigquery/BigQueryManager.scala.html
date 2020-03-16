@@ -50,10 +50,12 @@
 </span>26 <span style=''></span><span style='background: #AEF1AE'>        else {
 </span>27 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>throw new Exception(&quot;Exception occurred! Please provide correct value of property running_environment in loaddata.properties. Expected values are gcp or aws or local&quot;)</span><span style='background: #AEF1AE'>
 </span>28 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>29 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
-</span>30 <span style=''>    }
-</span>31 <span style=''>  }
-</span>32 <span style=''>}
+</span>29 <span style=''>      case None =&gt;
+</span>30 <span style=''>        </span><span style='background: #F0ADAD'>ic_logger.info(s&quot;Job is running without GlobalProperties&quot;)</span><span style=''>
+</span>31 <span style=''>        </span><span style='background: #F0ADAD'>BigQueryOptions.getDefaultInstance.getService</span><span style=''>
+</span>32 <span style=''>    }
+</span>33 <span style=''>  }
+</span>34 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -70,7 +72,7 @@
           11
         </td>
         <td>
-          137
+          209
         </td>
         <td>
           333
@@ -91,7 +93,7 @@
           11
         </td>
         <td>
-          138
+          210
         </td>
         <td>
           316
@@ -112,7 +114,7 @@
           13
         </td>
         <td>
-          139
+          211
         </td>
         <td>
           403
@@ -136,28 +138,7 @@
           20
         </td>
         <td>
-          140
-        </td>
-        <td>
-          678
-          -
-          702
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Job is running on env: &quot;
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          142
+          214
         </td>
         <td>
           676
@@ -178,7 +159,7 @@
           20
         </td>
         <td>
-          141
+          213
         </td>
         <td>
           726
@@ -199,7 +180,28 @@
           20
         </td>
         <td>
-          143
+          212
+        </td>
+        <td>
+          678
+          -
+          702
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Job is running on env: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          215
         </td>
         <td>
           661
@@ -220,7 +222,7 @@
           21
         </td>
         <td>
-          146
+          218
         </td>
         <td>
           774
@@ -241,7 +243,7 @@
           21
         </td>
         <td>
-          145
+          217
         </td>
         <td>
           774
@@ -262,7 +264,7 @@
           21
         </td>
         <td>
-          144
+          216
         </td>
         <td>
           741
@@ -283,28 +285,7 @@
           22
         </td>
         <td>
-          149
-        </td>
-        <td>
-          837
-          -
-          905
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Boolean.||
-        </td>
-        <td style="background: #AEF1AE">
-          ss.running_environment.==(&quot;aws&quot;).||(ss.running_environment.==(&quot;local&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          148
+          220
         </td>
         <td>
           872
@@ -325,28 +306,31 @@
           22
         </td>
         <td>
-          147
+          225
         </td>
         <td>
-          863
+          908
           -
-          868
+          1136
         </td>
         <td>
-          Literal
+          Block
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;aws&quot;
+          {
+  val credentials: com.google.auth.oauth2.GoogleCredentials = com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(ss.gcp_project_key_name));
+  com.google.cloud.bigquery.BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
+}
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          156
+          228
         </td>
         <td>
           833
@@ -373,31 +357,49 @@ else
           22
         </td>
         <td>
-          153
+          219
         </td>
         <td>
-          908
+          863
           -
-          1136
+          868
         </td>
         <td>
-          Block
+          Literal
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          {
-  val credentials: com.google.auth.oauth2.GoogleCredentials = com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(ss.gcp_project_key_name));
-  com.google.cloud.bigquery.BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
-}
+          &quot;aws&quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          221
+        </td>
+        <td>
+          837
+          -
+          905
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.||
+        </td>
+        <td style="background: #AEF1AE">
+          ss.running_environment.==(&quot;aws&quot;).||(ss.running_environment.==(&quot;local&quot;))
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          151
+          223
         </td>
         <td>
           958
@@ -418,7 +420,7 @@ else
           23
         </td>
         <td>
-          150
+          222
         </td>
         <td>
           995
@@ -439,7 +441,7 @@ else
           24
         </td>
         <td>
-          152
+          224
         </td>
         <td>
           1051
@@ -460,7 +462,7 @@ else
           27
         </td>
         <td>
-          155
+          227
         </td>
         <td>
           1162
@@ -481,7 +483,7 @@ else
           27
         </td>
         <td>
-          154
+          226
         </td>
         <td>
           1162
@@ -499,15 +501,57 @@ else
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          157
+          229
         </td>
         <td>
-          1359
+          1382
           -
-          1404
+          1424
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Job is running without GlobalProperties&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          230
+        </td>
+        <td>
+          1367
+          -
+          1425
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          BigQueryManager.this.ic_logger.info(scala.StringContext.apply(&quot;Job is running without GlobalProperties&quot;).s())
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          231
+        </td>
+        <td>
+          1434
+          -
+          1479
         </td>
         <td>
           Apply

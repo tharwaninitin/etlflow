@@ -24,41 +24,28 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.log
 </span>2 <span style=''>
-</span>3 <span style=''>import etljobs.EtlJobName
+</span>3 <span style=''>import etljobs.{EtlJobName, EtlProps}
 </span>4 <span style=''>import etljobs.etlsteps.EtlStep
-</span>5 <span style=''>
-</span>6 <span style=''>// CREATE TABLE job(job_run_id varchar,job_name varchar, description varchar, properties varchar, state varchar);
-</span>7 <span style=''>case class Job(
-</span>8 <span style=''>                job_run_id: String,
-</span>9 <span style=''>                job_name: String,
-</span>10 <span style=''>                description: Option[String] = None,
-</span>11 <span style=''>                properties: Option[String] = None,
-</span>12 <span style=''>                state: Option[String] = None
-</span>13 <span style=''>              )
-</span>14 <span style=''>
-</span>15 <span style=''>// CREATE TABLE step(job_run_id varchar, step_name varchar, properties varchar, state varchar, elapsed_time varchar);
-</span>16 <span style=''>case class Step(
-</span>17 <span style=''>                 job_run_id: String,
-</span>18 <span style=''>                 step_name: String,
-</span>19 <span style=''>                 properties: String,
-</span>20 <span style=''>                 state: String,
-</span>21 <span style=''>                 elapsed_time: String
-</span>22 <span style=''>               )
-</span>23 <span style=''>
-</span>24 <span style=''>trait LogManager {
-</span>25 <span style=''>  var job_name: EtlJobName
-</span>26 <span style=''>  var job_run_id: String
-</span>27 <span style=''>
-</span>28 <span style=''>  def finalMessageTemplate(run_env: String, job_name: EtlJobName, exec_date: String, message: String, result: String): String = </span><span style='background: #F0ADAD'>&quot;&quot;</span><span style=''>
-</span>29 <span style=''>  def updateStepLevelInformation(
-</span>30 <span style=''>                                  execution_start_time: Long,
-</span>31 <span style=''>                                  etl_step: EtlStep[Unit,Unit],
-</span>32 <span style=''>                                  state_status: String,
-</span>33 <span style=''>                                  notification_level:String,
-</span>34 <span style=''>                                  error_message: Option[String] = None
-</span>35 <span style=''>                                ): Unit
-</span>36 <span style=''>  def sendNotification(result: String, start_time: Long): Unit = </span><span style='background: #F0ADAD'>()</span><span style=''>
-</span>37 <span style=''>}
+</span>5 <span style=''>import org.apache.log4j.Logger
+</span>6 <span style=''>
+</span>7 <span style=''>trait LogManager {
+</span>8 <span style=''>  var job_name: EtlJobName
+</span>9 <span style=''>  var job_run_id: String
+</span>10 <span style=''>  var log_level: String = </span><span style='background: #AEF1AE'>&quot;info&quot;</span><span style=''>
+</span>11 <span style=''>  val lm_logger: Logger = </span><span style='background: #AEF1AE'>Logger.getLogger(getClass.getName)</span><span style=''>
+</span>12 <span style=''>
+</span>13 <span style=''>  def finalMessageTemplate(run_env: String, job_name: EtlJobName, exec_date: String, message: String, result: String): String = </span><span style='background: #F0ADAD'>&quot;&quot;</span><span style=''>
+</span>14 <span style=''>  def updateStepLevelInformation(
+</span>15 <span style=''>                                  execution_start_time: Long,
+</span>16 <span style=''>                                  etl_step: EtlStep[Unit,Unit],
+</span>17 <span style=''>                                  state_status: String,
+</span>18 <span style=''>                                  notification_level:String,
+</span>19 <span style=''>                                  error_message: Option[String] = None,
+</span>20 <span style=''>                                  mode: String = &quot;update&quot;
+</span>21 <span style=''>                                ): Unit
+</span>22 <span style=''>  def sendNotification(result: String, start_time: Long): Unit = </span><span style='background: #F0ADAD'>()</span><span style=''>
+</span>23 <span style=''>  def updateJobInformation(status: String, etlProps: Option[EtlProps] = None, mode: String = &quot;update&quot;): Unit = </span><span style='background: #F0ADAD'>()</span><span style=''>
+</span>24 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -72,15 +59,78 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          28
+          10
         </td>
         <td>
-          775
+          786
         </td>
         <td>
-          978
+          220
           -
-          980
+          226
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;info&quot;
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          788
+        </td>
+        <td>
+          253
+          -
+          287
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Logger.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.log4j.Logger.getLogger(LogManager.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          787
+        </td>
+        <td>
+          270
+          -
+          286
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          LogManager.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          417
+          -
+          419
         </td>
         <td>
           Literal
@@ -93,15 +143,36 @@
         </td>
       </tr><tr>
         <td>
-          36
+          22
         </td>
         <td>
-          776
+          790
         </td>
         <td>
-          1434
+          932
           -
-          1436
+          934
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          791
+        </td>
+        <td>
+          1046
+          -
+          1048
         </td>
         <td>
           Literal

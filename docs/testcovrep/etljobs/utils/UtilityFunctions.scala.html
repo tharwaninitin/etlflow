@@ -25,10 +25,10 @@
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etljobs.utils
 </span>2 <span style=''>
 </span>3 <span style=''>import org.apache.log4j.Logger
-</span>4 <span style=''>
-</span>5 <span style=''>import scala.reflect.ClassTag
-</span>6 <span style=''>import scala.util.{Failure, Success, Try}
-</span>7 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>4 <span style=''>import scala.reflect.ClassTag
+</span>5 <span style=''>import scala.util.{Failure, Success, Try}
+</span>6 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>7 <span style=''>import scala.reflect.runtime.{universe =&gt; ru}
 </span>8 <span style=''>
 </span>9 <span style=''>trait UtilityFunctions {
 </span>10 <span style=''>  lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
@@ -42,40 +42,46 @@
 </span>18 <span style=''></span><span style='background: #F0ADAD'>    }.toMap</span><span style=''>
 </span>19 <span style=''>  }
 </span>20 <span style=''>  def printEtlJobs[T: TypeTag]: Unit = {
-</span>21 <span style=''>    import scala.reflect.runtime.{universe =&gt; ru}
-</span>22 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
-</span>23 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
-</span>24 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
-</span>25 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.foreach(uf_logger.info(_))</span><span style=''>
-</span>26 <span style=''>  }
-</span>27 <span style=''>  //  val job_name = getEtlJobName(job_properties(&quot;job_name&quot;))
-</span>28 <span style=''>  //  def getEtlJobName(job_name: String): Option[MyEtlJobName] = {
-</span>29 <span style=''>  //    val job = MyEtlJobName.fromString(job_name)
-</span>30 <span style=''>  //    job
-</span>31 <span style=''>  //  }
-</span>32 <span style=''>  //  val my_global_properties = getGlobalProperties[MyGlobalProperties](&quot;loaddata.properties&quot;)
-</span>33 <span style=''>  //  val my_global_properties = getGlobalProperties(&quot;loaddata.properties&quot;)(new MyGlobalProperties(_))
-</span>34 <span style=''>  def getGlobalPropertiesUsingReflection[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(implicit tag: ClassTag[T]): Option[T] = {
-</span>35 <span style=''>    </span><span style='background: #F0ADAD'>Try {
-</span>36 <span style=''></span><span style='background: #F0ADAD'>      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
-</span>37 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
-</span>38 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
-</span>39 <span style=''>      case Failure(exception) =&gt;
-</span>40 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.printStackTrace())</span><span style=''>
-</span>41 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>42 <span style=''>    }
-</span>43 <span style=''>  }
-</span>44 <span style=''>  def getGlobalProperties[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(fct: String =&gt; T): Option[T] = {
-</span>45 <span style=''>    </span><span style='background: #F0ADAD'>Try {
-</span>46 <span style=''></span><span style='background: #F0ADAD'>      fct(path)
-</span>47 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
-</span>48 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
-</span>49 <span style=''>      case Failure(exception) =&gt;
-</span>50 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.getMessage)</span><span style=''>
-</span>51 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>52 <span style=''>    }
-</span>53 <span style=''>  }
-</span>54 <span style=''>}
+</span>21 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
+</span>22 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
+</span>23 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
+</span>24 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.foreach(uf_logger.info(_))</span><span style=''>
+</span>25 <span style=''>  }
+</span>26 <span style=''>  def getEtlJobName[T: TypeTag](job_name: String): T = {
+</span>27 <span style=''>    val fullClassName = </span><span style='background: #F0ADAD'>&quot;etljobs.schema.EtlJobList$&quot; + job_name + &quot;$&quot;</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>    try {
+</span>30 <span style=''>      </span><span style='background: #F0ADAD'>val classVal = Class.forName(fullClassName)
+</span>31 <span style=''></span><span style='background: #F0ADAD'>      val constructor = classVal.getConstructor()
+</span>32 <span style=''></span><span style='background: #F0ADAD'>      constructor.newInstance().asInstanceOf[T]</span><span style=''>
+</span>33 <span style=''>    }
+</span>34 <span style=''>    catch {
+</span>35 <span style=''>      case e: ClassNotFoundException =&gt;
+</span>36 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.error(s&quot;Tried creating object with path $fullClassName, but failed with error&quot;)</span><span style=''>
+</span>37 <span style=''>        </span><span style='background: #F0ADAD'>throw e</span><span style=''>
+</span>38 <span style=''>    }
+</span>39 <span style=''>  }
+</span>40 <span style=''>  def getGlobalPropertiesUsingReflection[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(implicit tag: ClassTag[T]): Option[T] = {
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
+</span>43 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>44 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
+</span>45 <span style=''>      case Failure(exception) =&gt;
+</span>46 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.printStackTrace())</span><span style=''>
+</span>47 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>48 <span style=''>    }
+</span>49 <span style=''>  }
+</span>50 <span style=''>  def getGlobalProperties[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(fct: String =&gt; T): Option[T] = {
+</span>51 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>52 <span style=''></span><span style='background: #F0ADAD'>      fct(path)
+</span>53 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>54 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
+</span>55 <span style=''>      case Failure(exception) =&gt;
+</span>56 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.getMessage)</span><span style=''>
+</span>57 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>58 <span style=''>    }
+</span>59 <span style=''>  }
+</span>60 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -92,12 +98,33 @@
           13
         </td>
         <td>
-          1158
+          1234
         </td>
         <td>
-          329
+          383
           -
-          448
+          383
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.Array.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          1235
+        </td>
+        <td>
+          374
+          -
+          493
         </td>
         <td>
           ApplyToImplicitArgs
@@ -115,36 +142,15 @@
         </td>
       </tr><tr>
         <td>
-          13
-        </td>
-        <td>
-          1157
-        </td>
-        <td>
-          338
-          -
-          338
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.Array.canBuildFrom
-        </td>
-        <td style="background: #F0ADAD">
-          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
-        </td>
-      </tr><tr>
-        <td>
           15
         </td>
         <td>
-          1153
+          1230
         </td>
         <td>
-          383
+          428
           -
-          398
+          443
         </td>
         <td>
           Apply
@@ -160,12 +166,12 @@
           16
         </td>
         <td>
-          1154
+          1231
         </td>
         <td>
-          408
+          453
           -
-          419
+          464
         </td>
         <td>
           Apply
@@ -181,12 +187,12 @@
           16
         </td>
         <td>
-          1156
+          1233
         </td>
         <td>
-          408
+          453
           -
-          434
+          479
         </td>
         <td>
           Apply
@@ -202,12 +208,12 @@
           16
         </td>
         <td>
-          1155
+          1232
         </td>
         <td>
-          423
+          468
           -
-          434
+          479
         </td>
         <td>
           Apply
@@ -223,12 +229,12 @@
           18
         </td>
         <td>
-          1160
+          1237
         </td>
         <td>
-          329
+          374
           -
-          454
+          499
         </td>
         <td>
           ApplyToImplicitArgs
@@ -249,12 +255,12 @@
           18
         </td>
         <td>
-          1159
+          1236
         </td>
         <td>
-          449
+          494
           -
-          449
+          494
         </td>
         <td>
           TypeApply
@@ -267,15 +273,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          1161
+          1238
         </td>
         <td>
-          564
+          559
           -
-          576
+          571
         </td>
         <td>
           ApplyToImplicitArgs
@@ -288,15 +294,15 @@
         </td>
       </tr><tr>
         <td>
-          23
+          22
         </td>
         <td>
-          1162
+          1239
         </td>
         <td>
-          593
+          588
           -
-          615
+          610
         </td>
         <td>
           Select
@@ -309,15 +315,15 @@
         </td>
       </tr><tr>
         <td>
-          24
+          23
         </td>
         <td>
-          1163
+          1240
         </td>
         <td>
-          638
+          633
           -
-          665
+          660
         </td>
         <td>
           Select
@@ -330,15 +336,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          24
         </td>
         <td>
-          1165
+          1242
         </td>
         <td>
-          670
+          665
           -
-          708
+          703
         </td>
         <td>
           Apply
@@ -351,15 +357,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          24
         </td>
         <td>
-          1164
+          1241
         </td>
         <td>
-          690
+          685
           -
-          707
+          702
         </td>
         <td>
           Apply
@@ -372,15 +378,187 @@
         </td>
       </tr><tr>
         <td>
-          35
+          27
         </td>
         <td>
-          1168
+          1243
         </td>
         <td>
-          1263
+          789
           -
-          1363
+          834
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;etljobs.schema.EtlJobList$&quot;.+(job_name).+(&quot;$&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1247
+        </td>
+        <td>
+          852
+          -
+          993
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val classVal: Class[_] = java.lang.Class.forName(fullClassName);
+  val constructor: java.lang.reflect.Constructor[_] = classVal.getConstructor();
+  constructor.newInstance().asInstanceOf[T]
+}
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1244
+        </td>
+        <td>
+          867
+          -
+          895
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.forName
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.Class.forName(fullClassName)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1245
+        </td>
+        <td>
+          920
+          -
+          945
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getConstructor
+        </td>
+        <td style="background: #F0ADAD">
+          classVal.getConstructor()
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1246
+        </td>
+        <td>
+          952
+          -
+          993
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          constructor.newInstance().asInstanceOf[T]
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1249
+        </td>
+        <td>
+          1060
+          -
+          1149
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.error
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Tried creating object with path &quot;, &quot;, but failed with error&quot;).s(fullClassName))
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1248
+        </td>
+        <td>
+          1076
+          -
+          1148
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Tried creating object with path &quot;, &quot;, but failed with error&quot;).s(fullClassName)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1250
+        </td>
+        <td>
+          1158
+          -
+          1165
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw e
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1253
+        </td>
+        <td>
+          1324
+          -
+          1424
         </td>
         <td>
           Apply
@@ -393,15 +571,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          42
         </td>
         <td>
-          1167
+          1252
         </td>
         <td>
-          1275
+          1336
           -
-          1357
+          1418
         </td>
         <td>
           TypeApply
@@ -414,15 +592,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          42
         </td>
         <td>
-          1166
+          1251
         </td>
         <td>
-          1307
+          1368
           -
-          1322
+          1383
         </td>
         <td>
           Literal
@@ -435,15 +613,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          44
         </td>
         <td>
-          1169
+          1254
         </td>
         <td>
-          1401
+          1462
           -
-          1412
+          1473
         </td>
         <td>
           Apply
@@ -456,36 +634,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          46
         </td>
         <td>
-          1171
+          1255
         </td>
         <td>
-          1454
+          1530
           -
-          1497
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.info(exception.printStackTrace())
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          1170
-        </td>
-        <td>
-          1469
-          -
-          1496
+          1557
         </td>
         <td>
           Apply
@@ -498,15 +655,36 @@
         </td>
       </tr><tr>
         <td>
-          41
+          46
         </td>
         <td>
-          1172
+          1256
         </td>
         <td>
-          1506
+          1515
           -
-          1510
+          1558
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.printStackTrace())
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          1257
+        </td>
+        <td>
+          1567
+          -
+          1571
         </td>
         <td>
           Select
@@ -519,15 +697,15 @@
         </td>
       </tr><tr>
         <td>
-          45
+          51
         </td>
         <td>
-          1174
+          1259
         </td>
         <td>
-          1645
+          1706
           -
-          1672
+          1733
         </td>
         <td>
           Apply
@@ -540,15 +718,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          52
         </td>
         <td>
-          1173
+          1258
         </td>
         <td>
-          1657
+          1718
           -
-          1666
+          1727
         </td>
         <td>
           Apply
@@ -561,15 +739,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          54
         </td>
         <td>
-          1175
+          1260
         </td>
         <td>
-          1710
+          1771
           -
-          1721
+          1782
         </td>
         <td>
           Apply
@@ -582,36 +760,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          56
         </td>
         <td>
-          1177
+          1261
         </td>
         <td>
-          1763
+          1839
           -
-          1799
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.info(exception.getMessage())
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          1176
-        </td>
-        <td>
-          1778
-          -
-          1798
+          1859
         </td>
         <td>
           Apply
@@ -624,15 +781,36 @@
         </td>
       </tr><tr>
         <td>
-          51
+          56
         </td>
         <td>
-          1178
+          1262
         </td>
         <td>
-          1808
+          1824
           -
-          1812
+          1860
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1263
+        </td>
+        <td>
+          1869
+          -
+          1873
         </td>
         <td>
           Select

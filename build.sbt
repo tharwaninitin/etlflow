@@ -3,7 +3,7 @@ val GCloudVersion = "1.80.0"
 val HadoopGCSVersion = "1.6.1-hadoop2"
 val QuillVersion = "3.5.0"
 
-version in ThisBuild := "0.7.4"
+version in ThisBuild := "0.7.5"
 
 lazy val scala212 = "2.12.10"
 lazy val scala211 = "2.11.12"

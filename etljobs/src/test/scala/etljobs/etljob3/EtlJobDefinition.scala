@@ -64,7 +64,7 @@ class EtlJobDefinition(
   val step2 = BQLoadStep[RatingOutput](
     name               = "LoadRatingBQ",
     input_location     = Right(output_date_paths),
-    input_type         = CSV(),
+    input_type         = PARQUET,
     output_dataset     = job_props.ratings_output_dataset,
     output_table       = job_props.ratings_output_table_name
   )(bq)

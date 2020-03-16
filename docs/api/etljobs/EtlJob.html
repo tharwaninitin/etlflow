@@ -171,12 +171,12 @@
                         <a href="" title="">EtlJob</a>
                       </li><li class="current-entities indented1">
                         <span class="separator"></span>
-                        <a class="class" href="package$$EtlJobException.html" title=""></a>
-                        <a href="package$$EtlJobException.html" title="">EtlJobException</a>
+                        <a class="class" href="EtlJobApp.html" title=""></a>
+                        <a href="EtlJobApp.html" title="">EtlJobApp</a>
                       </li><li class="current-entities indented1">
                         <span class="separator"></span>
-                        <a class="trait" href="package$$EtlJobManager.html" title=""></a>
-                        <a href="package$$EtlJobManager.html" title="">EtlJobManager</a>
+                        <a class="class" href="package$$EtlJobException.html" title=""></a>
+                        <a href="package$$EtlJobException.html" title="">EtlJobException</a>
                       </li><li class="current-entities indented1">
                         <span class="separator"></span>
                         <a class="trait" href="package$$EtlJobName.html" title=""></a>
@@ -185,10 +185,6 @@
                         <span class="separator"></span>
                         <a class="trait" href="package$$EtlProps.html" title=""></a>
                         <a href="package$$EtlProps.html" title="">EtlProps</a>
-                      </li><li class="current-entities indented1">
-                        <span class="separator"></span>
-                        <a class="class" href="MintEtlJobApp.html" title=""></a>
-                        <a href="MintEtlJobApp.html" title="">MintEtlJobApp</a>
                       </li>
               </ul>
             </div>
@@ -320,9 +316,9 @@
       
       
     </li><li name="etljobs.EtlJob#job_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="job_properties:Either[Map[String,String],etljobs.EtlProps]"></a><a id="job_properties:Either[Map[String,String],EtlProps]"></a>
+      <a id="job_properties:etljobs.EtlProps"></a><a id="job_properties:EtlProps"></a>
       <span class="permalink">
-      <a href="../etljobs/EtlJob.html#job_properties:Either[Map[String,String],etljobs.EtlProps]" title="Permalink">
+      <a href="../etljobs/EtlJob.html#job_properties:etljobs.EtlProps" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -331,7 +327,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">job_properties</span><span class="result">: <a href="../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>], <a href="package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a>]</span>
+        <span class="name">job_properties</span><span class="result">: <a href="package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a></span>
       </span>
       
       
@@ -477,10 +473,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.EtlJob#error_occured" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="error_occured:Boolean"></a>
+    </li><li name="etljobs.EtlJob#error_occurred" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="error_occurred:Boolean"></a>
       <span class="permalink">
-      <a href="../etljobs/EtlJob.html#error_occured:Boolean" title="Permalink">
+      <a href="../etljobs/EtlJob.html#error_occurred:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -489,7 +485,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">error_occured</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">error_occurred</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
       
@@ -510,9 +506,9 @@
       
       
     </li><li name="etljobs.EtlJob#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="execute(send_notification:Boolean,notification_level:String):Map[String,Map[String,String]]"></a><a id="execute(Boolean,String):Map[String,Map[String,String]]"></a>
+      <a id="execute(send_slack_notification:Boolean,log_in_db:Boolean,notification_level:String):Map[String,Map[String,String]]"></a><a id="execute(Boolean,Boolean,String):Map[String,Map[String,String]]"></a>
       <span class="permalink">
-      <a href="../etljobs/EtlJob.html#execute(send_notification:Boolean,notification_level:String):Map[String,Map[String,String]]" title="Permalink">
+      <a href="../etljobs/EtlJob.html#execute(send_slack_notification:Boolean,log_in_db:Boolean,notification_level:String):Map[String,Map[String,String]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -521,7 +517,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">execute</span><span class="params">(<span name="send_notification">send_notification: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="notification_level">notification_level: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
+        <span class="name">execute</span><span class="params">(<span name="send_slack_notification">send_slack_notification: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="log_in_db">log_in_db: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="notification_level">notification_level: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
       </span>
       
       

@@ -5,27 +5,28 @@ import java.util.Properties
 
 import org.apache.log4j.Logger
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 abstract class GlobalProperties(global_properties_file_path: String, job_properties: Map[String,String] = Map.empty) {
   private val ic_logger = Logger.getLogger(getClass.getName)
   ic_logger.info(f"======> Trying to load ${getClass.getName} with path $global_properties_file_path")
 
-  val config: Properties = Try {
+  val configTry: Try[Properties] = Try {
     val file_stream = new FileInputStream(global_properties_file_path)
     val prop = new Properties()
     prop.load(file_stream)
     prop
-  }.fold(
-    x => {
+  }
+  val config: Properties = configTry match {
+    case Failure(x) => {
       ic_logger.error(f"======> Failed to load ${getClass.getName} with path $global_properties_file_path with error ${x.getMessage}")
       throw x
-    },
-    x => {
+    }
+    case Success(x) => {
       ic_logger.info(f"======> Loaded successfully ${getClass.getName}")
       x
     }
-  )
+  }
 
   lazy val spark_concurrent_threads               = config.getOrDefault("spark_concurrent_threads", "4").toString
   lazy val spark_shuffle_partitions               = config.getOrDefault("spark_shuffle_partitions", "1").toString

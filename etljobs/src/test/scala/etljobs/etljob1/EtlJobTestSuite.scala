@@ -27,7 +27,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
 
   // STEP 2: Execute JOB
   val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
-  etljob.execute(send_slack_notification = true, notification_level = "info")
+  etljob.execute(log_in_db = true, notification_level = "info")
 
   // Could use Hlist here for getting single step out of job
   // To get errors in CSV if any, run single step like this

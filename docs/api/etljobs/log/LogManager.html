@@ -107,20 +107,12 @@
                         <a href="DbManager$.html" title="">DbManager</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="Job.html" title=""></a>
-                        <a href="Job.html" title="">Job</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
                         <a class="trait" href="" title=""></a>
                         <a href="" title="">LogManager</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="SlackManager$.html" title="Object SlackManager have below functionality"></a>
                         <a href="SlackManager$.html" title="Object SlackManager have below functionality">SlackManager</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="Step.html" title=""></a>
-                        <a href="Step.html" title="">Step</a>
                       </li>
               </ul>
             </div>
@@ -241,9 +233,9 @@
       
       
     </li><li name="etljobs.log.LogManager#updateStepLevelInformation" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="updateStepLevelInformation(execution_start_time:Long,etl_step:etljobs.etlsteps.EtlStep[Unit,Unit],state_status:String,notification_level:String,error_message:Option[String]):Unit"></a><a id="updateStepLevelInformation(Long,EtlStep[Unit,Unit],String,String,Option[String]):Unit"></a>
+      <a id="updateStepLevelInformation(execution_start_time:Long,etl_step:etljobs.etlsteps.EtlStep[Unit,Unit],state_status:String,notification_level:String,error_message:Option[String],mode:String):Unit"></a><a id="updateStepLevelInformation(Long,EtlStep[Unit,Unit],String,String,Option[String],String):Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/log/LogManager.html#updateStepLevelInformation(execution_start_time:Long,etl_step:etljobs.etlsteps.EtlStep[Unit,Unit],state_status:String,notification_level:String,error_message:Option[String]):Unit" title="Permalink">
+      <a href="../../etljobs/log/LogManager.html#updateStepLevelInformation(execution_start_time:Long,etl_step:etljobs.etlsteps.EtlStep[Unit,Unit],state_status:String,notification_level:String,error_message:Option[String],mode:String):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -252,7 +244,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateStepLevelInformation</span><span class="params">(<span name="execution_start_time">execution_start_time: <span class="extype" name="scala.Long">Long</span></span>, <span name="etl_step">etl_step: <a href="../etlsteps/EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>, <span name="state_status">state_status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="notification_level">notification_level: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="error_message">error_message: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">None</a></span></span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">updateStepLevelInformation</span><span class="params">(<span name="execution_start_time">execution_start_time: <span class="extype" name="scala.Long">Long</span></span>, <span name="etl_step">etl_step: <a href="../etlsteps/EtlStep.html" class="extype" name="etljobs.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>, <span name="state_status">state_status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="notification_level">notification_level: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="error_message">error_message: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">None</a></span></span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;update&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       
@@ -474,6 +466,38 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="etljobs.log.LogManager#lm_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lm_logger:org.apache.log4j.Logger"></a><a id="lm_logger:Logger"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/LogManager.html#lm_logger:org.apache.log4j.Logger" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lm_logger</span><span class="result">: <span class="extype" name="org.apache.log4j.Logger">Logger</span></span>
+      </span>
+      
+      
+    </li><li name="etljobs.log.LogManager#log_level" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="log_level:String"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/LogManager.html#log_level:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">log_level</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -576,6 +600,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="etljobs.log.LogManager#updateJobInformation" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="updateJobInformation(status:String,etlProps:Option[etljobs.EtlProps],mode:String):Unit"></a><a id="updateJobInformation(String,Option[EtlProps],String):Unit"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/LogManager.html#updateJobInformation(status:String,etlProps:Option[etljobs.EtlProps],mode:String):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">updateJobInformation</span><span class="params">(<span name="status">status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="etlProps">etlProps: <span class="extype" name="scala.Option">Option</span>[<a href="../package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">None</a></span></span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;update&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">

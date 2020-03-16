@@ -22,32 +22,15 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>import etljobs.utils.GlobalProperties
-</span>2 <span style=''>import org.apache.log4j.Logger
-</span>3 <span style=''>import scala.util.{Failure, Success, Try}
-</span>4 <span style=''>
-</span>5 <span style=''>package object etljobs {
-</span>6 <span style=''>  trait EtlJobName
-</span>7 <span style=''>  trait EtlProps {
-</span>8 <span style=''>    val job_run_id: String
-</span>9 <span style=''>    val job_name: EtlJobName
-</span>10 <span style=''>  }
-</span>11 <span style=''>  trait EtlJobManager {
-</span>12 <span style=''>    val etl_job_logger: Logger = </span><span style='background: #F0ADAD'>Logger.getLogger(getClass.getName)</span><span style=''>
-</span>13 <span style=''>    def executeEtlJob(etl_job: EtlJob, send_notification: Boolean, notification_level: String): Unit = {
-</span>14 <span style=''>      val output: Try[Unit] = </span><span style='background: #F0ADAD'>Try {
-</span>15 <span style=''></span><span style='background: #F0ADAD'>        etl_job.execute(send_notification, notification_level)
-</span>16 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>17 <span style=''>      output match {
-</span>18 <span style=''>        case Success(_) =&gt; </span><span style='background: #F0ADAD'>etl_job_logger.info(&quot;Success!!\n&quot;)</span><span style=''>
-</span>19 <span style=''>        case Failure(e) =&gt; </span><span style='background: #F0ADAD'>etl_job_logger.error(e.getMessage + &quot;. Stopping execution!\n&quot;)</span><span style=''>
-</span>20 <span style=''>          </span><span style='background: #F0ADAD'>throw e</span><span style=''>
-</span>21 <span style=''>      }
-</span>22 <span style=''>    }
-</span>23 <span style=''>    def toEtlJob(job_name: String, job_properties: Map[String, String], gp: Option[GlobalProperties]): EtlJob
-</span>24 <span style=''>  }
-</span>25 <span style=''>  case class EtlJobException(msg : String) extends Exception
-</span>26 <span style=''>}
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package object etljobs {
+</span>2 <span style=''>  trait EtlJobName
+</span>3 <span style=''>  trait EtlProps {
+</span>4 <span style=''>    val job_run_id: String
+</span>5 <span style=''>    val job_name: EtlJobName
+</span>6 <span style=''>    val aggregate_error: Boolean = </span><span style='background: #AEF1AE'>false</span><span style=''>
+</span>7 <span style=''>  }
+</span>8 <span style=''>  case class EtlJobException(msg : String) extends Exception
+</span>9 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -61,81 +44,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          12
+          6
         </td>
         <td>
-          815
+          834
         </td>
         <td>
-          309
+          154
           -
-          325
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobManager.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          816
-        </td>
-        <td>
-          292
-          -
-          326
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Logger.getLogger
-        </td>
-        <td style="background: #F0ADAD">
-          org.apache.log4j.Logger.getLogger(EtlJobManager.this.getClass().getName())
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          819
-        </td>
-        <td>
-          462
-          -
-          538
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.util.Try.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.util.Try.apply[Unit]({
-  etl_job.execute(send_notification, notification_level);
-  ()
-})
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          818
-        </td>
-        <td>
-          491
-          -
-          491
+          159
         </td>
         <td>
           Literal
@@ -143,113 +60,8 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          817
-        </td>
-        <td>
-          476
-          -
-          530
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etljobs.EtlJob.execute
-        </td>
-        <td style="background: #F0ADAD">
-          etl_job.execute(send_notification, notification_level)
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          820
-        </td>
-        <td>
-          587
-          -
-          621
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobManager.this.etl_job_logger.info(&quot;Success!!\n&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          822
-        </td>
-        <td>
-          649
-          -
-          711
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.error
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobManager.this.etl_job_logger.error(e.getMessage().+(&quot;. Stopping execution!\n&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          821
-        </td>
-        <td>
-          670
-          -
-          710
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          e.getMessage().+(&quot;. Stopping execution!\n&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          823
-        </td>
-        <td>
-          722
-          -
-          729
-        </td>
-        <td>
-          Throw
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw e
+        <td style="background: #AEF1AE">
+          false
         </td>
       </tr>
     </table>

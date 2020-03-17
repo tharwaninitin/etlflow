@@ -28,7 +28,7 @@ trait EtlJob {
       }
     }
     def execute(send_slack_notification: Boolean = false, log_in_db: Boolean = false, notification_level: String) : Map[String, Map[String,String]] = {
-      val job_start_time = System.nanoTime()
+      val job_start_time = System.currentTimeMillis()
       val job_run_id: String = job_properties.job_run_id
       aggregate_error = job_properties.aggregate_error
 
@@ -66,7 +66,7 @@ trait EtlJob {
         // Catch job result(Success/Failure) in Try so that it can be used further
         val job_result = Try{
           etl_step_list.foreach { etl =>
-            val step_start_time = System.nanoTime()
+            val step_start_time = System.currentTimeMillis()
             if (log_in_db) DbManager.updateStepLevelInformation(step_start_time, etl, "started", notification_level, mode = "insert")
             etl.process() match {
               case Success(_) =>
@@ -106,13 +106,11 @@ trait EtlJob {
         // Catch job result(Success/Failure) in Try so that it can be used further
         val job_result = Try{
           etl_step_list.foreach { etl =>
-            val step_start_time = System.nanoTime()
             etl.process() match {
               case Success(_) => job_execution_state ++= etl.getExecutionMetrics
               case Failure(exception) =>
                 job_execution_state ++= etl.getExecutionMetrics
                 etl_job_logger.error("Error Occurred: " + exception.getMessage)
-
                 if (aggregate_error)
                   error_occurred = true
                 else
@@ -126,8 +124,8 @@ trait EtlJob {
           case Failure(e) => throw e;
         }
       }
-      val job_end_time = System.nanoTime()
-      etl_job_logger.info("Job completed successfully in : " + (job_end_time - job_start_time) / 1000000000.0 / 60.0 + " mins")
+      val job_end_time = System.currentTimeMillis()
+      etl_job_logger.info("Job completed successfully in : " + (job_end_time - job_start_time) / 1000.0 / 60.0 + " mins")
       job_execution_state
     }
 }

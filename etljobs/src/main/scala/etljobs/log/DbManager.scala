@@ -4,8 +4,10 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import etljobs.{EtlJobName, EtlProps}
 import etljobs.etlsteps.EtlStep
 import io.getquill.{LowerCase, PostgresJdbcContext}
+import org.json4s.JsonAST.JNothing
+
 import scala.util.{Failure, Success, Try}
-import org.json4s.DefaultFormats
+import org.json4s.{CustomSerializer, DefaultFormats}
 import org.json4s.jackson.Serialization.write
 
 object DbManager extends LogManager {
@@ -67,9 +69,9 @@ object DbManager extends LogManager {
           context.run(s)
         }
         else if (mode == "update") {
-          val execution_end_time = System.nanoTime()
+          val execution_end_time = System.currentTimeMillis()
           val status = if (error_message.isDefined) state_status + " with error: " + error_message.get else state_status
-          val elapsed_time = (math floor ((execution_end_time - execution_start_time) / 1000000000.0)) + " secs"
+          val elapsed_time = (math floor ((execution_end_time - execution_start_time) / 1000.0)) + " secs"
           lm_logger.info(s"Updating step info in db with status => $status")
           context.run( quote {
             querySchema[StepRun]("step")
@@ -90,7 +92,11 @@ object DbManager extends LogManager {
       case Success(context) =>
         import context._
         if (mode == "insert") {
-          implicit val formats = DefaultFormats
+
+          // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
+          implicit val formats = DefaultFormats + new CustomSerializer[EtlJobName](formats =>
+            (PartialFunction.empty, { case _: EtlJobName => JNothing })
+          )
           val propsJson = write(etlProps.get)
           val job = JobRun(job_run_id, job_name.toString, "This is job description", propsJson, "started", System.currentTimeMillis())
           lm_logger.info(job)

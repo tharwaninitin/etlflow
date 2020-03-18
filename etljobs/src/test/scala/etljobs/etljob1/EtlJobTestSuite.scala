@@ -10,7 +10,7 @@ import etljobs.schema.EtlJobProps.EtlJob1Props
 import etljobs.schema.EtlJobSchemas.RatingOutput
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
-//  AppLogger.initialize()
+  // AppLogger.initialize()
   // STEP 1: Initialize job properties and create BQ tables required for jobs 
   val canonical_path: String = new java.io.File(".").getCanonicalPath
   val global_props: GlobalProperties = new GlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties") {}
@@ -18,6 +18,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val job_props = EtlJob1Props(
     job_run_id = java.util.UUID.randomUUID.toString,
     job_name = EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack,
+    job_description = "This is EtlJob which converts PARQUET to ORC in step 1 and ORC to BQ in step 2",
     ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*",
     ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     ratings_output_dataset = "test",

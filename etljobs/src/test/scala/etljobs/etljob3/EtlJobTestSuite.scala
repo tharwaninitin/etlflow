@@ -34,7 +34,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
 
   val thrown = intercept[Exception] {
-    etljob.execute(send_slack_notification = true, notification_level = "info")
+    etljob.execute(send_slack_notification = true, log_in_db = true, notification_level = "info")
   }
 
   assert(thrown.getMessage === "Could not load data in FormatOptions{format=PARQUET} format in table test.ratings_par$20160102 due to error Error while reading data, error message: Input file is not in Parquet format.")

@@ -136,7 +136,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">DbManager</span><span class="result"> extends <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></span>
+        <span class="name">DbManager</span><span class="result"> extends <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a> with <a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></span>
       </span>
       </h4>
 
@@ -145,7 +145,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a>, <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a>, <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a>, <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -171,7 +171,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="etljobs.log.DbManager"><span>DbManager</span></li><li class="in" name="etljobs.log.LogManager"><span>LogManager</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="etljobs.log.DbManager"><span>DbManager</span></li><li class="in" name="etljobs.utils.UtilityFunctions"><span>UtilityFunctions</span></li><li class="in" name="etljobs.log.LogManager"><span>LogManager</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -321,6 +321,22 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#convertToJsonByRemovingKeys" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertToJsonByRemovingKeys(entity:AnyRef,keys:List[String])(implicitformats:org.json4s.Formats):String"></a><a id="convertToJsonByRemovingKeys(AnyRef,List[String])(Formats):String"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#convertToJsonByRemovingKeys(entity:AnyRef,keys:List[String])(implicitformats:org.json4s.Formats):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertToJsonByRemovingKeys</span><span class="params">(<span name="entity">entity: <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>, <span name="keys">keys: <a href="../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="formats">formats: <span class="extype" name="org.json4s.Formats">Formats</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -353,22 +369,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.log.LogManager#finalMessageTemplate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="finalMessageTemplate(run_env:String,job_name:etljobs.EtlJobName,exec_date:String,message:String,result:String):String"></a><a id="finalMessageTemplate(String,EtlJobName,String,String,String):String"></a>
-      <span class="permalink">
-      <a href="../../etljobs/log/DbManager$.html#finalMessageTemplate(run_env:String,job_name:etljobs.EtlJobName,exec_date:String,message:String,result:String):String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">finalMessageTemplate</span><span class="params">(<span name="run_env">run_env: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="job_name">job_name: <a href="../package$$EtlJobName.html" class="extype" name="etljobs.EtlJobName">EtlJobName</a></span>, <span name="exec_date">exec_date: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="result">result: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -410,6 +410,102 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#getCurrentTimestamp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getCurrentTimestamp:Long"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#getCurrentTimestamp:Long" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getCurrentTimestamp</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#getCurrentTimestampAsString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getCurrentTimestampAsString(pattern:String):String"></a><a id="getCurrentTimestampAsString(String):String"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#getCurrentTimestampAsString(pattern:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getCurrentTimestampAsString</span><span class="params">(<span name="pattern">pattern: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#getEtlJobName" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getEtlJobName[T](job_name:String)(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):T"></a><a id="getEtlJobName[T](String)(scala.reflect.api.JavaUniverse.TypeTag[T]):T"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#getEtlJobName[T](job_name:String)(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):T" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getEtlJobName</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="job_name">job_name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etljobs.utils.UtilityFunctions.getEtlJobName.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="etljobs.utils.UtilityFunctions.getEtlJobName.T">T</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#getGlobalProperties" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getGlobalProperties[T&lt;:etljobs.utils.GlobalProperties](path:String)(fct:String=&gt;T):Option[T]"></a><a id="getGlobalProperties[T&lt;:GlobalProperties](String)((String)⇒T):Option[T]"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#getGlobalProperties[T&lt;:etljobs.utils.GlobalProperties](path:String)(fct:String=&gt;T):Option[T]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getGlobalProperties</span><span class="tparams">[<span name="T">T &lt;: <a href="../utils/GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a></span>]</span><span class="params">(<span name="path">path: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;loaddata.properties&quot;</span></span>)</span><span class="params">(<span name="fct">fct: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <span class="extype" name="etljobs.utils.UtilityFunctions.getGlobalProperties.T">T</span></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="etljobs.utils.UtilityFunctions.getGlobalProperties.T">T</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#getGlobalPropertiesUsingReflection" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getGlobalPropertiesUsingReflection[T&lt;:etljobs.utils.GlobalProperties](path:String)(implicittag:scala.reflect.ClassTag[T]):Option[T]"></a><a id="getGlobalPropertiesUsingReflection[T&lt;:GlobalProperties](String)(ClassTag[T]):Option[T]"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#getGlobalPropertiesUsingReflection[T&lt;:etljobs.utils.GlobalProperties](path:String)(implicittag:scala.reflect.ClassTag[T]):Option[T]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getGlobalPropertiesUsingReflection</span><span class="tparams">[<span name="T">T &lt;: <a href="../utils/GlobalProperties.html" class="extype" name="etljobs.utils.GlobalProperties">GlobalProperties</a></span>]</span><span class="params">(<span name="path">path: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;loaddata.properties&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="tag">tag: <span class="extype" name="scala.reflect.ClassTag">ClassTag</span>[<span class="extype" name="etljobs.utils.UtilityFunctions.getGlobalPropertiesUsingReflection.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="etljobs.utils.UtilityFunctions.getGlobalPropertiesUsingReflection.T">T</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#getTimeDifferenceAsString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getTimeDifferenceAsString(start_ts:Long,end_ts:Long):String"></a><a id="getTimeDifferenceAsString(Long,Long):String"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#getTimeDifferenceAsString(start_ts:Long,end_ts:Long):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getTimeDifferenceAsString</span><span class="params">(<span name="start_ts">start_ts: <span class="extype" name="scala.Long">Long</span></span>, <span name="end_ts">end_ts: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
@@ -445,10 +541,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="etljobs.log.DbManager#job_name" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="job_name:etljobs.EtlJobName"></a><a id="job_name:EtlJobName"></a>
+    </li><li name="etljobs.log.DbManager#job_properties" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="job_properties:etljobs.EtlProps"></a><a id="job_properties:EtlProps"></a>
       <span class="permalink">
-      <a href="../../etljobs/log/DbManager$.html#job_name:etljobs.EtlJobName" title="Permalink">
+      <a href="../../etljobs/log/DbManager$.html#job_properties:etljobs.EtlProps" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -457,23 +553,7 @@
         <span class="kind">var</span>
       </span>
       <span class="symbol">
-        <span class="name">job_name</span><span class="result">: <a href="../package$$EtlJobName.html" class="extype" name="etljobs.EtlJobName">EtlJobName</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.log.DbManager">DbManager</a> → <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></dd></dl></div>
-    </li><li name="etljobs.log.DbManager#job_run_id" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="job_run_id:String"></a>
-      <span class="permalink">
-      <a href="../../etljobs/log/DbManager$.html#job_run_id:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">var</span>
-      </span>
-      <span class="symbol">
-        <span class="name">job_run_id</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">job_properties</span><span class="result">: <a href="../package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.log.DbManager">DbManager</a> → <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></dd></dl></div>
@@ -611,10 +691,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="etljobs.log.LogManager#sendNotification" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="sendNotification(result:String,start_time:Long):Unit"></a><a id="sendNotification(String,Long):Unit"></a>
+    </li><li name="etljobs.utils.UtilityFunctions#parser" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parser(args:Array[String]):Map[String,String]"></a><a id="parser(Array[String]):Map[String,String]"></a>
       <span class="permalink">
-      <a href="../../etljobs/log/DbManager$.html#sendNotification(result:String,start_time:Long):Unit" title="Permalink">
+      <a href="../../etljobs/log/DbManager$.html#parser(args:Array[String]):Map[String,String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -623,10 +703,42 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sendNotification</span><span class="params">(<span name="result">result: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start_time">start_time: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">parser</span><span class="params">(<span name="args">args: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#printEtlJobs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="printEtlJobs[T](implicitevidence$1:reflect.runtime.universe.TypeTag[T]):Unit"></a><a id="printEtlJobs[T](scala.reflect.api.JavaUniverse.TypeTag[T]):Unit"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#printEtlJobs[T](implicitevidence$1:reflect.runtime.universe.TypeTag[T]):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">printEtlJobs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etljobs.utils.UtilityFunctions.printEtlJobs.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.utils.UtilityFunctions#roundAt" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="roundAt(p:Int)(n:Double):Double"></a><a id="roundAt(Int)(Double):Double"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#roundAt(p:Int)(n:Double):Double" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">roundAt</span><span class="params">(<span name="p">p: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span name="n">n: <span class="extype" name="scala.Double">Double</span></span>)</span><span class="result">: <span class="extype" name="scala.Double">Double</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -659,10 +771,26 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.log.DbManager#updateJobInformation" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateJobInformation(status:String,etlProps:Option[etljobs.EtlProps],mode:String):Unit"></a><a id="updateJobInformation(String,Option[EtlProps],String):Unit"></a>
+    </li><li name="etljobs.utils.UtilityFunctions#uf_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="uf_logger:org.apache.log4j.Logger"></a><a id="uf_logger:Logger"></a>
       <span class="permalink">
-      <a href="../../etljobs/log/DbManager$.html#updateJobInformation(status:String,etlProps:Option[etljobs.EtlProps],mode:String):Unit" title="Permalink">
+      <a href="../../etljobs/log/DbManager$.html#uf_logger:org.apache.log4j.Logger" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">uf_logger</span><span class="result">: <span class="extype" name="org.apache.log4j.Logger">Logger</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></dd></dl></div>
+    </li><li name="etljobs.log.DbManager#updateJobInformation" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="updateJobInformation(status:String,mode:String):Unit"></a><a id="updateJobInformation(String,String):Unit"></a>
+      <span class="permalink">
+      <a href="../../etljobs/log/DbManager$.html#updateJobInformation(status:String,mode:String):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -671,7 +799,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateJobInformation</span><span class="params">(<span name="status">status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="etlProps">etlProps: <span class="extype" name="scala.Option">Option</span>[<a href="../package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">None</a></span></span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;update&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">updateJobInformation</span><span class="params">(<span name="status">status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;update&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etljobs.log.DbManager">DbManager</a> → <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></dd></dl></div>
@@ -769,7 +897,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="etljobs.log.LogManager">
+        <div class="parent" name="etljobs.utils.UtilityFunctions">
+              <h3>Inherited from <a href="../utils/UtilityFunctions.html" class="extype" name="etljobs.utils.UtilityFunctions">UtilityFunctions</a></h3>
+            </div><div class="parent" name="etljobs.log.LogManager">
               <h3>Inherited from <a href="LogManager.html" class="extype" name="etljobs.log.LogManager">LogManager</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>

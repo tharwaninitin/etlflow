@@ -3,14 +3,15 @@ package etljobs.log
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import etljobs.{EtlJobName, EtlProps}
 import etljobs.etlsteps.EtlStep
+import etljobs.utils.UtilityFunctions
 import io.getquill.{LowerCase, PostgresJdbcContext}
-import org.json4s.JsonAST.JNothing
-
 import scala.util.{Failure, Success, Try}
-import org.json4s.{CustomSerializer, DefaultFormats}
+import org.json4s.{CustomSerializer, DefaultFormats, FieldSerializer}
+import org.json4s.JsonAST.JNothing
+import org.json4s.jackson.Json
 import org.json4s.jackson.Serialization.write
 
-object DbManager extends LogManager {
+object DbManager extends LogManager with UtilityFunctions{
   case class JobRun(
                      job_run_id: String,
                      job_name: String,
@@ -27,8 +28,7 @@ object DbManager extends LogManager {
                       elapsed_time:String
                     )
 
-  override var job_name: EtlJobName = _
-  override var job_run_id: String = _
+  override var job_properties: EtlProps = _
   var log_db_url: String = ""
   var log_db_user: String = ""
   var log_db_pwd: String = ""
@@ -56,9 +56,9 @@ object DbManager extends LogManager {
         import context._
         if (mode == "insert") {
           val step = StepRun(
-            job_run_id,
+            job_properties.job_run_id,
             etl_step.name,
-            etl_step.getStepProperties(notification_level).mkString(", "),
+            Json(DefaultFormats).write(etl_step.getStepProperties(notification_level)),
             state_status.toLowerCase(),
             "..."
           )
@@ -69,15 +69,15 @@ object DbManager extends LogManager {
           context.run(s)
         }
         else if (mode == "update") {
-          val execution_end_time = System.currentTimeMillis()
           val status = if (error_message.isDefined) state_status + " with error: " + error_message.get else state_status
-          val elapsed_time = (math floor ((execution_end_time - execution_start_time) / 1000.0)) + " secs"
+          val elapsed_time = getTimeDifferenceAsString(execution_start_time, getCurrentTimestamp)
           lm_logger.info(s"Updating step info in db with status => $status")
           context.run( quote {
             querySchema[StepRun]("step")
-              .filter(x => x.job_run_id == lift(job_run_id) && x.step_name == lift(etl_step.name))
+              .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
               .update(
                 _.state -> lift(status),
+                _.properties -> lift(Json(DefaultFormats).write(etl_step.getStepProperties(notification_level))),
                 _.elapsed_time -> lift(elapsed_time)
                 )
           })
@@ -87,18 +87,21 @@ object DbManager extends LogManager {
     }
   }
 
-  override def updateJobInformation(status: String, etlProps: Option[EtlProps] = None, mode: String = "update"): Unit = {
+  override def updateJobInformation(status: String, mode: String = "update"): Unit = {
     ctx match {
       case Success(context) =>
         import context._
         if (mode == "insert") {
-
           // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
-          implicit val formats = DefaultFormats + new CustomSerializer[EtlJobName](formats =>
+          val customSerializer1 = new CustomSerializer[EtlJobName](formats =>
             (PartialFunction.empty, { case _: EtlJobName => JNothing })
           )
-          val propsJson = write(etlProps.get)
-          val job = JobRun(job_run_id, job_name.toString, "This is job description", propsJson, "started", System.currentTimeMillis())
+          implicit val formats = DefaultFormats + customSerializer1
+          val job = JobRun(
+            job_properties.job_run_id, job_properties.job_name.toString,
+            job_properties.job_description, convertToJsonByRemovingKeys(job_properties,List("job_run_id","job_description","aggregate_error"))(formats),
+            "started", getCurrentTimestamp
+          )
           lm_logger.info(job)
           context.run( quote {
             query[JobRun].insert(lift(job))
@@ -107,10 +110,9 @@ object DbManager extends LogManager {
         else if (mode == "update") {
           lm_logger.info(s"Updating job info in db with status => $status")
           context.run( quote {
-            query[JobRun].filter(_.job_run_id == lift(job_run_id)).update(_.state -> lift(status))
+            query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(status))
           })
         }
-
       case Failure(e) => lm_logger.error(s"Cannot update job state to log db => ${e.getMessage}")
     }
   }

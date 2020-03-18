@@ -1,9 +1,8 @@
 package etljobs.log
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import etljobs.EtlJobName
+import etljobs.{EtlJobName, EtlProps}
 import etljobs.etlsteps.EtlStep
+import etljobs.utils.UtilityFunctions
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -13,19 +12,18 @@ import scala.util.Try
  *       - Create Success and Failure Slack message templates
  *       - Send the slack message to appropriate channels
  */
-object SlackManager extends LogManager {
-  override var job_name: EtlJobName = _
-  override var job_run_id: String = _
+object SlackManager extends LogManager with UtilityFunctions{
+  override var job_properties: EtlProps = _
   var final_message = ""
-  var webhook_url: String = ""
+  var web_hook_url: String = ""
   var env: String = ""
 
   /** Slack message templates */
-  override def finalMessageTemplate(run_env: String, job_name: EtlJobName, exec_date: String, message: String, result: String): String = {
-    if (result == "Pass") {
+  private def finalMessageTemplate(run_env: String, exec_date: String, message: String, status: String): String = {
+    if (status == "pass") {
       /** Template for slack success message */
       return f"""
-      :large_blue_circle: $run_env - ${job_name.toString} Process *Success!*
+      :large_blue_circle: $run_env - ${job_properties.job_name.toString} Process *Success!*
       *Time of Execution*: $exec_date
       *Steps (Task - Duration)*: $message
       """
@@ -33,7 +31,7 @@ object SlackManager extends LogManager {
     else {
       /** Template for slack failure message **/
       return f"""
-      :red_circle: $run_env - ${job_name.toString} Process *Failed!*
+      :red_circle: $run_env - ${job_properties.job_name.toString} Process *Failed!*
       *Time of Execution*: $exec_date
       *Steps (Task - Duration)*: $message
       """
@@ -46,8 +44,7 @@ object SlackManager extends LogManager {
                                  , notification_level:String, error_message: Option[String] = None, mode: String = "update"
                                 ): Unit = {
     var slackMessageForSteps = ""
-    val execution_end_time = System.nanoTime()
-    val elapsedTime = (execution_end_time - execution_start_time) / 1000000000.0 / 60.0 + " mins"
+    val elapsedTime = getTimeDifferenceAsString(execution_start_time, getCurrentTimestamp)
     val step_icon = if (state_status.toLowerCase() == "pass") "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
 
     // Update the slackMessageForSteps variable and get the information of step name and its execution time
@@ -61,15 +58,14 @@ object SlackManager extends LogManager {
   }
 
   /** Sends the slack notification to slack channels*/
-  override def sendNotification(result: String, start_time: Long): Unit = {
-    val execution_date_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now)
+  def updateJobInformation(status: String, mode: String = "update"): Unit = {
+    val execution_date_time = getCurrentTimestampAsString("yyyy-MM-dd HH:mm:ss")
 
-    val data = SlackManager.finalMessageTemplate(
+    val data = finalMessageTemplate(
       env,
-      job_name,
       execution_date_time,
       final_message,
-      result
+      status
     )
 
     if (log_level.equalsIgnoreCase("debug"))
@@ -77,7 +73,7 @@ object SlackManager extends LogManager {
 
     Try {
       val client = HttpClients.createDefault
-      val slackApi = new HttpPost(webhook_url)
+      val slackApi = new HttpPost(web_hook_url)
       val json_data = f""" { "text" : "$data" } """
       val entity = new StringEntity(json_data)
       slackApi.setEntity(entity);

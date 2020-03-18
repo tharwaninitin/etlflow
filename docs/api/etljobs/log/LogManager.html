@@ -200,10 +200,10 @@
 
         <div class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="etljobs.log.LogManager#job_name" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="job_name:etljobs.EtlJobName"></a><a id="job_name:EtlJobName"></a>
+              <ol><li name="etljobs.log.LogManager#job_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="job_properties:etljobs.EtlProps"></a><a id="job_properties:EtlProps"></a>
       <span class="permalink">
-      <a href="../../etljobs/log/LogManager.html#job_name:etljobs.EtlJobName" title="Permalink">
+      <a href="../../etljobs/log/LogManager.html#job_properties:etljobs.EtlProps" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -212,23 +212,23 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">job_name</span><span class="result">: <a href="../package$$EtlJobName.html" class="extype" name="etljobs.EtlJobName">EtlJobName</a></span>
+        <span class="name">job_properties</span><span class="result">: <a href="../package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a></span>
       </span>
       
       
-    </li><li name="etljobs.log.LogManager#job_run_id" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="job_run_id:String"></a>
+    </li><li name="etljobs.log.LogManager#updateJobInformation" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="updateJobInformation(status:String,mode:String):Unit"></a><a id="updateJobInformation(String,String):Unit"></a>
       <span class="permalink">
-      <a href="../../etljobs/log/LogManager.html#job_run_id:String" title="Permalink">
+      <a href="../../etljobs/log/LogManager.html#updateJobInformation(status:String,mode:String):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">job_run_id</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">updateJobInformation</span><span class="params">(<span name="status">status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;update&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       
@@ -374,22 +374,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.log.LogManager#finalMessageTemplate" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="finalMessageTemplate(run_env:String,job_name:etljobs.EtlJobName,exec_date:String,message:String,result:String):String"></a><a id="finalMessageTemplate(String,EtlJobName,String,String,String):String"></a>
-      <span class="permalink">
-      <a href="../../etljobs/log/LogManager.html#finalMessageTemplate(run_env:String,job_name:etljobs.EtlJobName,exec_date:String,message:String,result:String):String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">finalMessageTemplate</span><span class="params">(<span name="run_env">run_env: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="job_name">job_name: <a href="../package$$EtlJobName.html" class="extype" name="etljobs.EtlJobName">EtlJobName</a></span>, <span name="exec_date">exec_date: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="result">result: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -552,22 +536,6 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="etljobs.log.LogManager#sendNotification" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="sendNotification(result:String,start_time:Long):Unit"></a><a id="sendNotification(String,Long):Unit"></a>
-      <span class="permalink">
-      <a href="../../etljobs/log/LogManager.html#sendNotification(result:String,start_time:Long):Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">sendNotification</span><span class="params">(<span name="result">result: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="start_time">start_time: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -600,22 +568,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etljobs.log.LogManager#updateJobInformation" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="updateJobInformation(status:String,etlProps:Option[etljobs.EtlProps],mode:String):Unit"></a><a id="updateJobInformation(String,Option[EtlProps],String):Unit"></a>
-      <span class="permalink">
-      <a href="../../etljobs/log/LogManager.html#updateJobInformation(status:String,etlProps:Option[etljobs.EtlProps],mode:String):Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">updateJobInformation</span><span class="params">(<span name="status">status: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="etlProps">etlProps: <span class="extype" name="scala.Option">Option</span>[<a href="../package$$EtlProps.html" class="extype" name="etljobs.EtlProps">EtlProps</a>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">None</a></span></span></span>, <span name="mode">mode: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;update&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">

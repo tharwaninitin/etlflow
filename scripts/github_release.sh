@@ -7,5 +7,5 @@ echo $GITHUB_TOKEN
 
 # https://github.com/tcnksm/ghr
 # Uploads jar to Github releases page
-ghr v0.7.5 etljobs/target/scala-2.11/etljobs_2.11-0.7.5.jar
-ghr v0.7.5 etljobs/target/scala-2.12/etljobs_2.12-0.7.5.jar
+ghr v0.7.6 etljobs/target/scala-2.11/etljobs_2.11-0.7.6.jar
+ghr v0.7.6 etljobs/target/scala-2.12/etljobs_2.12-0.7.6.jar

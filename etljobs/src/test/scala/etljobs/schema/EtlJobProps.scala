@@ -7,6 +7,7 @@ object EtlJobProps {
   case class EtlJob1Props (
                             job_run_id: String,
                             job_name: EtlJobName,
+                            override val job_description: String,
                             ratings_input_path: String,
                             ratings_output_path: String,
                             ratings_output_dataset: String,

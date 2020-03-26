@@ -1,17 +1,13 @@
 package etljobs.log
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import etljobs.{EtlJobName, EtlProps}
+import etljobs.EtlJobProps
 import etljobs.etlsteps.EtlStep
-import etljobs.utils.UtilityFunctions
+import etljobs.utils.{UtilityFunctions => UF}
 import io.getquill.{LowerCase, PostgresJdbcContext}
 import scala.util.{Failure, Success, Try}
-import org.json4s.{CustomSerializer, DefaultFormats, FieldSerializer}
-import org.json4s.JsonAST.JNothing
-import org.json4s.jackson.Json
-import org.json4s.jackson.Serialization.write
 
-object DbManager extends LogManager with UtilityFunctions{
+object DbManager extends LogManager {
   case class JobRun(
                      job_run_id: String,
                      job_name: String,
@@ -28,7 +24,7 @@ object DbManager extends LogManager with UtilityFunctions{
                       elapsed_time:String
                     )
 
-  override var job_properties: EtlProps = _
+  override var job_properties: EtlJobProps = _
   var log_db_url: String = ""
   var log_db_user: String = ""
   var log_db_pwd: String = ""
@@ -47,7 +43,6 @@ object DbManager extends LogManager with UtilityFunctions{
       execution_start_time: Long,
       etl_step: EtlStep[Unit, Unit],
       state_status: String,
-      notification_level:String,
       error_message: Option[String] = None,
       mode: String = "update"
     ): Unit = {
@@ -58,31 +53,30 @@ object DbManager extends LogManager with UtilityFunctions{
           val step = StepRun(
             job_properties.job_run_id,
             etl_step.name,
-            Json(DefaultFormats).write(etl_step.getStepProperties(notification_level)),
+            UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
             state_status.toLowerCase(),
             "..."
           )
-          lm_logger.info(step)
+          lm_logger.info(s"Inserting step info in db with status => ${state_status.toLowerCase()}")
           val s = quote {
             querySchema[StepRun]("step").insert(lift(step))
           }
           context.run(s)
         }
         else if (mode == "update") {
-          val status = if (error_message.isDefined) state_status + " with error: " + error_message.get else state_status
-          val elapsed_time = getTimeDifferenceAsString(execution_start_time, getCurrentTimestamp)
+          val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
+          val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
           lm_logger.info(s"Updating step info in db with status => $status")
           context.run( quote {
             querySchema[StepRun]("step")
               .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
               .update(
                 _.state -> lift(status),
-                _.properties -> lift(Json(DefaultFormats).write(etl_step.getStepProperties(notification_level))),
+                _.properties -> lift(UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
                 _.elapsed_time -> lift(elapsed_time)
                 )
           })
         }
-
       case Failure(e) => lm_logger.error(s"Cannot log step properties to log db => ${e.getMessage}")
     }
   }
@@ -92,17 +86,13 @@ object DbManager extends LogManager with UtilityFunctions{
       case Success(context) =>
         import context._
         if (mode == "insert") {
-          // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
-          val customSerializer1 = new CustomSerializer[EtlJobName](formats =>
-            (PartialFunction.empty, { case _: EtlJobName => JNothing })
-          )
-          implicit val formats = DefaultFormats + customSerializer1
           val job = JobRun(
             job_properties.job_run_id, job_properties.job_name.toString,
-            job_properties.job_description, convertToJsonByRemovingKeys(job_properties,List("job_run_id","job_description","aggregate_error"))(formats),
-            "started", getCurrentTimestamp
+            job_properties.job_description,
+            UF.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
+            "started", UF.getCurrentTimestamp
           )
-          lm_logger.info(job)
+          lm_logger.info(s"Inserting job info in db with status => $status")
           context.run( quote {
             query[JobRun].insert(lift(job))
           })

@@ -15,13 +15,14 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   private val canonical_path = new java.io.File(".").getCanonicalPath
   private val global_props = new GlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties") {}
   val job_props = EtlJob23Props(
-    job_run_id = java.util.UUID.randomUUID.toString,
     job_name = EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
     ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     ratings_output_dataset = "test",
     ratings_output_table_name = "ratings_par"
   )
+  job_props.job_notification_level = "info"
+  job_props.job_send_slack_notification = true
 
   val create_table_script = """
     CREATE TABLE test.ratings_par (
@@ -35,7 +36,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
 
   // STEP 2: Execute JOB
   val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
-  val state = etljob.execute(send_slack_notification = true, log_in_db = true, notification_level = "info")
+  val state = etljob.execute
   println(state)
 
   // STEP 3: Run tests

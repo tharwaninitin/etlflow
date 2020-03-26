@@ -6,4 +6,4 @@
 .vscode
 target
 project
-src/test/resources/output
+etljobs/src/test/resources/output

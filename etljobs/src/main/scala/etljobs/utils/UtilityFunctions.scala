@@ -2,15 +2,18 @@ package etljobs.utils
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import etljobs.{EtlJobName, EtlJobProps}
 import org.apache.log4j.Logger
-import org.json4s.{Extraction, Formats}
-import org.json4s.jackson.Serialization.write
+import org.json4s.JsonAST.JNothing
+import org.json4s.jackson.Serialization.{writePretty,write}
+import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.reflect.runtime.universe.TypeTag
 import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.universe._
 
-trait UtilityFunctions {
+object UtilityFunctions {
   lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
 
   def parser(args: Array[String]): Map[String, String] = {
@@ -22,9 +25,21 @@ trait UtilityFunctions {
     }.toMap
   }
 
+  def convertToJson(entity: AnyRef): String = {
+    implicit val formats = DefaultFormats
+    writePretty(entity)
+  }
+
   // https://stackoverflow.com/questions/29296335/json4s-jackson-how-to-ignore-field-using-annotations
-  def convertToJsonByRemovingKeys(entity:AnyRef, keys: List[String])(implicit formats: Formats): String= {
-    write(Extraction.decompose(entity).removeField { x => keys.contains(x._1)})
+  def convertToJsonByRemovingKeys(entity: AnyRef, keys: List[String]): String = {
+    // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
+    val customSerializer1 = new CustomSerializer[EtlJobName](_ =>
+      (PartialFunction.empty, { case _: EtlJobName => JNothing })
+    )
+    // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
+    val customSerializer2 = new FieldSerializer[EtlJobProps]
+    implicit val formats = DefaultFormats + customSerializer1 + customSerializer2
+    writePretty(Extraction.decompose(entity).removeField { x => keys.contains(x._1)})
   }
 
   def getCurrentTimestamp: Long = System.currentTimeMillis()
@@ -52,9 +67,14 @@ trait UtilityFunctions {
     allJobNames.foreach(uf_logger.info(_))
   }
 
-  def getEtlJobName[T: TypeTag](job_name: String): T = {
-    val fullClassName = "etljobs.schema.EtlJobList$" + job_name + "$"
+  def getEtlJobProps[T: TypeTag](excludeColumnList: Set[String] = Set("job_run_id","job_description","job_properties","job_name")): Map[String,String] =
+    typeOf[T].members.collect {
+      case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
+      case m: MethodSymbol if (m.isVar || m.isVal) && m.isGetter => (m.name.toString, m.returnType.toString)
+    }.toList.filterNot(x => excludeColumnList.contains(x._1)).toMap
 
+  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package:String = "etljobs.schema.EtlJobList$"): T = {
+    val fullClassName = etl_job_list_package + job_name + "$"
     try {
       val classVal = Class.forName(fullClassName)
       val constructor = classVal.getConstructor()
@@ -66,6 +86,7 @@ trait UtilityFunctions {
         throw e
     }
   }
+
 
   def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
     Try {

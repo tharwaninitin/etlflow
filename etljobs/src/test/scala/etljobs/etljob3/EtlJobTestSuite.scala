@@ -22,7 +22,6 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val global_props = new MyGlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
 
   val job_props = EtlJob23Props(
-    job_run_id = java.util.UUID.randomUUID.toString,
     job_name = EtlJob3CSVtoCSVtoBQGcsWith2Steps,
     ratings_input_path = f"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     ratings_output_path = f"gs://${global_props.gcs_output_bucket}/output/ratings",
@@ -34,7 +33,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
 
   val thrown = intercept[Exception] {
-    etljob.execute(send_slack_notification = true, log_in_db = true, notification_level = "info")
+    etljob.execute
   }
 
   assert(thrown.getMessage === "Could not load data in FormatOptions{format=PARQUET} format in table test.ratings_par$20160102 due to error Error while reading data, error message: Input file is not in Parquet format.")

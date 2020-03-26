@@ -5,7 +5,7 @@ import org.apache.spark.sql.{Dataset, Row}
 import etljobs.spark.{ReadApi, SparkManager}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties, ORC, PARQUET}
 import etljobs.bigquery.{BigQueryManager, QueryApi}
-import etljobs.schema.EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack
+import etljobs.schema.EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2Steps
 import etljobs.schema.EtlJobProps.EtlJob1Props
 import etljobs.schema.EtlJobSchemas.RatingOutput
 
@@ -16,19 +16,18 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val global_props: GlobalProperties = new GlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties") {}
 
   val job_props = EtlJob1Props(
-    job_run_id = java.util.UUID.randomUUID.toString,
-    job_name = EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack,
-    job_description = "This is EtlJob which converts PARQUET to ORC in step 1 and ORC to BQ in step 2",
-    ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*",
+    job_name = EtlJob1PARQUETtoORCtoBQLocalWith2Steps,
+    ratings_input_path = List(s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*"),
     ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     ratings_output_dataset = "test",
     ratings_output_table_name = "ratings",
-    ratings_output_file_name = "ratings.parquet"
+    ratings_output_file_name = Some("ratings.orc")
   )
+  job_props.job_notification_level = "info"
 
   // STEP 2: Execute JOB
   val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
-  etljob.execute(log_in_db = true, notification_level = "info")
+  etljob.execute
 
   // Could use Hlist here for getting single step out of job
   // To get errors in CSV if any, run single step like this
@@ -41,10 +40,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     val global_properties: Option[GlobalProperties] = Some(global_props)
   }
 
-  val raw: Dataset[RatingOutput] = ReadApi.LoadDS[RatingOutput](
-                                  Seq(job_props.ratings_input_path),
-                                  PARQUET
-                                )(sm.spark)
+  val raw: Dataset[RatingOutput] = ReadApi.LoadDS[RatingOutput](job_props.ratings_input_path, PARQUET)(sm.spark)
   val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
 
   val destination_dataset = job_props.ratings_output_dataset

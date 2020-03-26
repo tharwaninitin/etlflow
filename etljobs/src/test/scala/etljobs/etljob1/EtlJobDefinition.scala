@@ -3,11 +3,10 @@ package etljobs.etljob1
 // BigQuery Imports
 import com.google.cloud.bigquery.JobInfo
 import etljobs.bigquery.BigQueryManager
-import etljobs.schema.EtlJobList
 import etljobs.schema.EtlJobProps.EtlJob1Props
 import etljobs.schema.EtlJobSchemas.RatingOutput
 import etljobs.spark.SparkManager
-import etljobs.{EtlJobName, EtlProps}
+import etljobs.EtlJobProps
 // ETLJOB library specific Imports
 import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
@@ -15,10 +14,9 @@ import etljobs.utils.{ORC, PARQUET, GlobalProperties, LOCAL}
 // Job specific imports
 import org.apache.log4j.{Level, Logger}
 
-class EtlJobDefinition(
-                        val job_name: EtlJobName = EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2StepsWithSlack,
-                        val job_properties: EtlProps,
-                        val global_properties: Option[GlobalProperties] = None
+case class EtlJobDefinition(
+                        job_properties: EtlJobProps,
+                        global_properties: Option[GlobalProperties] = None
                       )
   extends EtlJob with SparkManager with BigQueryManager {
   var output_date_paths : Seq[String] = Seq()
@@ -28,11 +26,11 @@ class EtlJobDefinition(
 
   val step1 = SparkReadWriteStep[RatingOutput, RatingOutput](
     name                    = "LoadRatingsParquet",
-    input_location          = Seq(job_props.ratings_input_path),
+    input_location          = job_props.ratings_input_path,
     input_type              = PARQUET,
     output_type             = ORC,
     output_location         = job_props.ratings_output_path,
-    output_filename         = Some(job_props.ratings_output_file_name)
+    output_filename         = job_props.ratings_output_file_name
   )(spark)
   
   val step2 = BQLoadStep(

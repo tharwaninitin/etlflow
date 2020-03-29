@@ -1,22 +1,23 @@
 package etljobs.etlsteps
 
 import java.util.ArrayList
-import com.google.cloud.bigquery.{BigQuery, CsvOptions, Field, FormatOptions, JobInfo, LegacySQLTypeName, Schema, StandardTableDefinition, TableId}
+import com.google.cloud.bigquery.{BigQuery, Field, JobInfo, LegacySQLTypeName, Schema, StandardTableDefinition, TableId}
 import etljobs.bigquery.LoadApi
 import etljobs.utils._
 import org.apache.spark.sql.Encoders
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
+import collection.JavaConverters._
 
-class BQLoadStep[T <: Product : TypeTag](
-                                          val name: String
-                                          , input_location: => Either[String, Seq[(String, String)]]
-                                          , input_type: IOType
-                                          , input_file_system: FSType = GCS
-                                          , output_dataset: String
-                                          , output_table: String
-                                          , output_table_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
-                                          , output_table_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+class BQLoadStep[T <: Product : TypeTag] private (
+            val name: String
+            , input_location: => Either[String, Seq[(String, String)]]
+            , input_type: IOType
+            , input_file_system: FSType = GCS
+            , output_dataset: String
+            , output_table: String
+            , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+            , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
        )(bq: => BigQuery)
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
@@ -25,17 +26,7 @@ class BQLoadStep[T <: Product : TypeTag](
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting BQ Data Load Step : $name")
 
-    val source_format_bq: FormatOptions = input_type match {
-      case PARQUET => FormatOptions.parquet
-      case ORC => FormatOptions.orc
-      case CSV(field_delimiter, header_present, _, _) => CsvOptions.newBuilder()
-        .setSkipLeadingRows(if (header_present) 1 else 0)
-        .setFieldDelimiter(field_delimiter)
-        .build()
-      case _ => FormatOptions.parquet
-    }
-
-    def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
+     def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
       case "StringType"   => LegacySQLTypeName.STRING
       case "IntegerType"  => LegacySQLTypeName.INTEGER
       case "LongType"     => LegacySQLTypeName.INTEGER
@@ -48,27 +39,29 @@ class BQLoadStep[T <: Product : TypeTag](
     val schema: Option[Schema] = Try{
       val fields = new ArrayList[Field]
       Encoders.product[T].schema.map(x => fields.add(Field.of(x.name, getBQType(x.dataType.toString))))
-      Schema.of(fields)
+      val s = Schema.of(fields)
+      etl_logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName,x.getType))}")
+      s
     }.toOption
 
     if (input_file_system == LOCAL) {
       etl_logger.info(s"FileSystem: $input_file_system")
       LoadApi.loadIntoBQFromLocalFile(
-        input_location,source_format_bq,output_dataset,output_table,output_table_write_disposition,output_table_create_disposition
+        input_location,input_type,output_dataset,output_table,output_write_disposition,output_create_disposition
       )
     }
     else if (input_location.isRight && input_file_system == GCS) {
       etl_logger.info(s"FileSystem: $input_file_system")
-      row_count = LoadApi.loadIntoPartitionedBQTableFromGCS(
-        bq, input_location.right.get, source_format_bq
-        , output_dataset, output_table, output_table_write_disposition, output_table_create_disposition, schema
+      row_count = LoadApi.loadIntoPartitionedBQTable(
+        bq, input_location.right.get, input_type
+        , output_dataset, output_table, output_write_disposition, output_create_disposition, schema
       )
     }
     else if (input_location.isLeft && input_file_system == GCS) {
       etl_logger.info(s"FileSystem: $input_file_system")
-      row_count = LoadApi.loadIntoUnpartitionedBQTableFromGCS(
-        bq, input_location.left.get, source_format_bq
-        , output_dataset, output_table, output_table_write_disposition, output_table_create_disposition, schema
+      row_count = LoadApi.loadIntoBQTable(
+        bq, input_location.left.get, input_type
+        , output_dataset, output_table, output_write_disposition, output_create_disposition, schema
       )
     }
     etl_logger.info("#################################################################################################")
@@ -99,8 +92,8 @@ class BQLoadStep[T <: Product : TypeTag](
         )
         ,"output_dataset" -> output_dataset
         ,"output_table" -> output_table
-        ,"output_table_write_disposition" -> output_table_write_disposition.toString
-        ,"output_table_create_disposition" -> output_table_create_disposition.toString
+        ,"output_table_write_disposition" -> output_write_disposition.toString
+        ,"output_table_create_disposition" -> output_create_disposition.toString
         ,"output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
       )
     } else
@@ -114,8 +107,8 @@ class BQLoadStep[T <: Product : TypeTag](
         ,"input_class" -> Try(Encoders.product[T].schema.toDDL).toOption.getOrElse("No Class Provided")
         ,"output_dataset" -> output_dataset
         ,"output_table" -> output_table
-        ,"output_table_write_disposition" -> output_table_write_disposition.toString
-        ,"output_table_create_disposition" -> output_table_create_disposition.toString
+        ,"output_table_write_disposition" -> output_write_disposition.toString
+        ,"output_table_create_disposition" -> output_create_disposition.toString
         ,"output_rows" -> row_count.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
       )
     }
@@ -130,10 +123,10 @@ object BQLoadStep {
       , input_file_system: FSType = GCS
       , output_dataset: String
       , output_table: String
-      , output_table_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
-      , output_table_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+      , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+      , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
      )(bq: => BigQuery): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system
-      , output_dataset, output_table, output_table_write_disposition, output_table_create_disposition)(bq)
+      , output_dataset, output_table, output_write_disposition, output_create_disposition)(bq)
   }
 }

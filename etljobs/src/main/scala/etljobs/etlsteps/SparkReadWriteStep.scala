@@ -7,10 +7,12 @@ import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import scala.util.Try
 import scala.reflect.runtime.universe.TypeTag
 
-class SparkReadWriteStep[T <: Product: TypeTag, IPSTATE, O <: Product: TypeTag, OPSTATE](
+class SparkReadWriteStep[T <: Product: TypeTag, IPSTATE, O <: Product: TypeTag, OPSTATE] private[etlsteps] (
           val name : String
           ,input_location: Seq[String]
           ,input_type: IOType
+          ,input_columns: Seq[String] = Seq("*")
+          ,input_filter: String = "1 = 1"
           ,output_location: String
           ,output_type: IOType
           ,output_filename: Option[String] = None
@@ -37,7 +39,7 @@ extends EtlStep[IPSTATE,OPSTATE] {
       })
       etl_logger.info("#################################################################################################")
       etl_logger.info(s"Starting ETL Step : $name")
-      val ds = ReadApi.LoadDS[T](input_location,input_type)(sp)
+      val ds = ReadApi.LoadDS[T](input_location,input_type,input_filter,input_columns)(sp)
       
       transform_function match {
         case Left(tf) =>
@@ -87,36 +89,80 @@ extends EtlStep[IPSTATE,OPSTATE] {
   }
 }
 
-object SparkReadWriteStep {
+object SparkReadTransformWriteStep {
   def apply[T <: Product : TypeTag, O <: Product : TypeTag](
            name: String
-           , input_location: Seq[String]
-           , input_type: IOType
-           , output_location: String
-           , output_type: IOType
-           , output_filename: Option[String] = None
-           , output_partition_col: Seq[String] = Seq.empty[String]
-           , output_save_mode: SaveMode = SaveMode.Append
-           , output_repartitioning: Boolean = false
-           , transform_function: Option[Dataset[T] => Dataset[O]] = None
+           ,input_location: Seq[String]
+           ,input_type: IOType
+           ,input_columns: Seq[String] = Seq("*")
+           ,input_filter: String = "1 = 1"
+           ,output_location: String
+           ,output_type: IOType
+           ,output_filename: Option[String] = None
+           ,output_partition_col: Seq[String] = Seq.empty[String]
+           ,output_save_mode: SaveMode = SaveMode.Append
+           ,output_repartitioning: Boolean = false
+           ,transform_function: Dataset[T] => Dataset[O]
          )(spark: => SparkSession): SparkReadWriteStep[T, Unit, O, Unit] = {
-    new SparkReadWriteStep[T, Unit, O, Unit](name, input_location, input_type, output_location, output_type
-      , output_filename, output_partition_col, output_save_mode, output_repartitioning, Right(transform_function))(spark)
+    new SparkReadWriteStep[T, Unit, O, Unit](name, input_location, input_type, input_columns, input_filter, output_location,
+      output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, Right(Some(transform_function)))(spark)
   }
 }
-object SparkReadWriteStateStep {
+
+object SparkReadWriteStep {
+  def apply[T <: Product : TypeTag](
+           name: String
+           ,input_location: Seq[String]
+           ,input_type: IOType
+           ,input_columns: Seq[String] = Seq("*")
+           ,input_filter: String = "1 = 1"
+           ,output_location: String
+           ,output_type: IOType
+           ,output_filename: Option[String] = None
+           ,output_partition_col: Seq[String] = Seq.empty[String]
+           ,output_save_mode: SaveMode = SaveMode.Append
+           ,output_repartitioning: Boolean = false
+         )(spark: => SparkSession): SparkReadWriteStep[T, Unit, T, Unit] = {
+    new SparkReadWriteStep[T, Unit, T, Unit](name, input_location, input_type, input_columns, input_filter, output_location,
+      output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, Right(None))(spark)
+  }
+}
+
+object SparkReadTransformWriteStateStep {
   def apply[T <: Product : TypeTag, IPSTATE, O <: Product : TypeTag, OPSTATE](
            name: String
-           , input_location: Seq[String]
-           , input_type: IOType
-           , output_location: String
-           , output_type: IOType
-           , output_filename: Option[String] = None
-           , output_partition_col: Seq[String] = Seq.empty[String]
-           , output_save_mode: SaveMode = SaveMode.Append
-           , output_repartitioning: Boolean = false
-           , transform_with_state: Option[DatasetWithState[T, IPSTATE] => DatasetWithState[O, OPSTATE]] = None
+           ,input_location: Seq[String]
+           ,input_type: IOType
+           ,input_columns: Seq[String] = Seq("*")
+           ,input_filter: String = "1 = 1"
+           ,output_location: String
+           ,output_type: IOType
+           ,output_filename: Option[String] = None
+           ,output_partition_col: Seq[String] = Seq.empty[String]
+           ,output_save_mode: SaveMode = SaveMode.Append
+           ,output_repartitioning: Boolean = false
+           ,transform_with_state: DatasetWithState[T, IPSTATE] => DatasetWithState[O, OPSTATE]
          )(spark: => SparkSession): SparkReadWriteStep[T, IPSTATE, O, OPSTATE] = {
-    new SparkReadWriteStep[T, IPSTATE, O, OPSTATE](name, input_location, input_type, output_location, output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,Left(transform_with_state))(spark)
+    new SparkReadWriteStep[T, IPSTATE, O, OPSTATE](name, input_location, input_type, input_columns, input_filter, output_location,
+      output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,Left(Some(transform_with_state)))(spark)
+  }
+}
+
+object SparkReadWriteStateStep {
+  def apply[T <: Product : TypeTag, IPSTATE, OPSTATE](
+           name: String
+           ,input_location: Seq[String]
+           ,input_type: IOType
+           ,input_columns: Seq[String] = Seq("*")
+           ,input_filter: String = "1 = 1"
+           ,output_location: String
+           ,output_type: IOType
+           ,output_filename: Option[String] = None
+           ,output_partition_col: Seq[String] = Seq.empty[String]
+           ,output_save_mode: SaveMode = SaveMode.Append
+           ,output_repartitioning: Boolean = false
+         )(spark: => SparkSession): SparkReadWriteStep[T, IPSTATE, T, OPSTATE] = {
+    new SparkReadWriteStep[T, IPSTATE, T, OPSTATE](name, input_location, input_type, input_columns, input_filter, output_location,
+      output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,Left(None))(spark)
   }
 }

@@ -52,7 +52,7 @@ object ReadApi {
     }
   }
 
-  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*"))(spark: SparkSession) : Dataset[T] = {
+  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1", select_clause: Seq[String] = Seq("*"))(spark: SparkSession) : Dataset[T] = {
     val mapping = Encoders.product[T]
 
     val df_reader = spark.read
@@ -74,7 +74,9 @@ object ReadApi {
       case JDBC(_,_,_,_) | BQ => df_reader_options.load().where(where_clause).selectExpr(select_clause: _*)
       case _ => df_reader_options.load(location: _*).where(where_clause).selectExpr(select_clause: _*)
     }
-
+    read_logger.info("#"*20 + " Input Schema " + "#"*20)
+    df.schema.foreach(read_logger.info(_))
+    read_logger.info("#"*20 + " Input Schema " + "#"*20)
     df.as[T](mapping)
   }
 

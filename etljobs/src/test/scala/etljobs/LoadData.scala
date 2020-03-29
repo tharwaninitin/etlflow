@@ -1,20 +1,23 @@
 package etljobs
 
 import etljobs.schema.EtlJobList
-import etljobs.schema.EtlJobList.{EtlJob1PARQUETtoORCtoBQLocalWith2Steps, EtlJob2CSVtoPARQUETtoBQLocalWith3Steps, EtlJob3CSVtoCSVtoBQGcsWith2Steps, MyEtlJobName}
-import etljobs.schema.EtlJobProps.{EtlJob1Props, EtlJob23Props, MyEtlJobProps}
-import etljobs.utils.{UtilityFunctions => UF}
+import etljobs.schema.EtlJobList._
+import etljobs.schema.EtlJobProps._
+import etljobs.utils.{AppLogger, UtilityFunctions => UF}
 import scala.util.Try
 
 object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
+  // AppLogger.initialize()
   private val canonical_path = new java.io.File(".").getCanonicalPath
   val global_properties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(s"$canonical_path/etljobs/src/test/resources/loaddata.properties")).toOption
 
   def toEtlJobPropsAsJson(job_name: MyEtlJobName): Map[String,String] = {
     job_name match {
-      case EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2Steps => UF.getEtlJobProps[EtlJob1Props]()
-      case EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => UF.getEtlJobProps[EtlJob23Props]()
-      case EtlJobList.EtlJob3CSVtoCSVtoBQGcsWith2Steps => UF.getEtlJobProps[EtlJob23Props]()
+      case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => UF.getEtlJobProps[EtlJob1Props]()
+      case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => UF.getEtlJobProps[EtlJob23Props]()
+      case EtlJob3CSVtoCSVtoBQGcsWith2Steps => UF.getEtlJobProps[EtlJob23Props]()
+      case EtlJob4BQtoBQ => UF.getEtlJobProps[EtlJob4Props]()
+      case EtlJobList.EtlJob5PARQUETtoJDBC => UF.getEtlJobProps[EtlJob5Props]()
     }
   }
   def toEtlJobProps(job_name: MyEtlJobName, job_properties: Map[String, String]): MyEtlJobProps = {
@@ -23,7 +26,7 @@ object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
         EtlJob1Props(
           job_name = EtlJob1PARQUETtoORCtoBQLocalWith2Steps,
           ratings_input_path = List(s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*"),
-          ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
+          ratings_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings",
           ratings_output_dataset = "test",
           ratings_output_table_name = "ratings",
           ratings_output_file_name = Some("ratings.orc")
@@ -33,7 +36,7 @@ object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
           job_name = EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
           job_properties = job_properties,
           ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
-          ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
+          ratings_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings",
           ratings_output_dataset = "test",
           ratings_output_table_name = "ratings_par"
         )
@@ -45,6 +48,16 @@ object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
           ratings_output_dataset    = job_properties.getOrElse("ratings_output_dataset","test"),
           ratings_output_table_name = job_properties.getOrElse("ratings_output_table_name","ratings_par")
         )
+      case EtlJob4BQtoBQ => EtlJob4Props(EtlJob4BQtoBQ)
+      case EtlJob5PARQUETtoJDBC => EtlJob5Props(
+        EtlJob5PARQUETtoJDBC,
+        ratings_input_path = List(s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*"),
+        ratings_output_table = "ratings",
+        jdbc_user = global_properties.get.jdbc_user,
+        jdbc_password = global_properties.get.jdbc_pwd,
+        jdbc_url = global_properties.get.jdbc_url,
+        jdbc_driver = global_properties.get.jdbc_driver
+      )
     }
   }
   def toEtlJob(job_name: MyEtlJobName, job_properties: EtlJobProps): EtlJob = {
@@ -52,6 +65,8 @@ object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
       case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => etljob1.EtlJobDefinition(job_properties, global_properties)
       case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => etljob2.EtlJobDefinition(job_properties, global_properties)
       case EtlJob3CSVtoCSVtoBQGcsWith2Steps => new etljob3.EtlJobDefinition(job_properties, global_properties)
+      case EtlJob4BQtoBQ => etljob4.EtlJobDefinition(job_properties, global_properties)
+      case EtlJob5PARQUETtoJDBC => etljob5.EtlJobDefinition(job_properties, global_properties)
     }
   }
 }

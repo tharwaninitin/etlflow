@@ -1,13 +1,14 @@
 package etljobs.spark
 
 import etljobs.utils.GlobalProperties
-import org.apache.log4j.Logger
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
-
 import scala.util.Try
 
 trait SparkManager {
   private val ic_logger = Logger.getLogger(getClass.getName)
+  Logger.getLogger("org").setLevel(Level.WARN)
+
   val global_properties: Option[GlobalProperties]
   ic_logger.info(f"======> Loaded SparkManager(${getClass.getName})")
 
@@ -51,7 +52,6 @@ trait SparkManager {
 
           spark
         }
-
       }
         else if (ss.running_environment =="aws") {
           if (SparkSession.getActiveSession.isDefined) {
@@ -85,7 +85,7 @@ trait SparkManager {
         }
         else if (ss.running_environment == "local") {
           if (SparkSession.getActiveSession.isDefined) {
-            ic_logger.info("################# Using Already Created Spark Session ####################")
+            ic_logger.info("################# Using Already Created Local Spark Session ####################")
             SparkSession.getActiveSession.get
           }
           else {
@@ -96,8 +96,8 @@ trait SparkManager {
               .config("fs.gs.auth.service.account.enable", "true")
               .config("google.cloud.auth.service.account.json.keyfile",ss.gcp_project_key_name)
               .getOrCreate()
-
-            ic_logger.info("##################### Created SparkSession ##########################")
+            spark.conf.set("credentialsFile", ss.gcp_project_key_name)
+            ic_logger.info("################### Created Local SparkSession ########################")
             ic_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
             ic_logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
             ic_logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)

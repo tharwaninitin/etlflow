@@ -8,7 +8,6 @@ import scala.reflect.runtime.{universe => ru}
 // 1) abstract class EtlJobApp[EJN: TypeTag]
 // 2) Or below "trait with type" like this => trait EtlJobApp[T] { type EJN = TypeTag[T] }
 abstract class EtlJobApp[EJN: TypeTag, EJP: TypeTag] {
-  AppLogger.initialize()
   lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
   val global_properties: Option[GlobalProperties]
 

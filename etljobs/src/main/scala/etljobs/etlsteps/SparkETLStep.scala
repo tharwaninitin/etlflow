@@ -3,7 +3,7 @@ package etljobs.etlsteps
 import org.apache.spark.sql.SparkSession
 import scala.util.Try
 
-class SparkETLStep(
+class SparkETLStep (
                   val name : String
                   ,transform_function : () => Unit
                   )(spark : => SparkSession)
@@ -17,4 +17,9 @@ extends EtlStep[Unit,Unit]
       etl_logger.info("#################################################################################################")
     }
   }
+}
+
+object SparkETLStep {
+  def apply(name: String, transform_function: () => Unit)(spark: => SparkSession): SparkETLStep =
+    new SparkETLStep(name, transform_function)(spark)
 }

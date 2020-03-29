@@ -22,7 +22,24 @@ object EtlJobProps {
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = ""
                           ) extends MyEtlJobProps
+  case class EtlJob4Props (
+                           job_name: EtlJobName,
+                           job_properties: Map[String,String] = Map.empty
+                          ) extends MyEtlJobProps
 
-  val catOnePropsList  =  UF.getEtlJobProps[EtlJob1Props]()
-  val catTwoPropsList  =  UF.getEtlJobProps[EtlJob23Props]()
+  case class EtlJob5Props (
+                            job_name: EtlJobName,
+                            job_properties: Map[String,String] = Map.empty,
+                            ratings_input_path: List[String],
+                            ratings_output_table: String,
+                            jdbc_user: String,
+                            jdbc_password: String,
+                            jdbc_url: String,
+                            jdbc_driver: String
+                          ) extends MyEtlJobProps
+
+  val catOnePropsList   = UF.getEtlJobProps[EtlJob1Props]()
+  val catTwoPropsList   = UF.getEtlJobProps[EtlJob23Props]()
+  val catThreePropsList = UF.getEtlJobProps[EtlJob4Props]()
+  val catFourPropsList  = UF.getEtlJobProps[EtlJob5Props]()
 }

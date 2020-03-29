@@ -1,5 +1,13 @@
+import etljobs.etlsteps.StateLessEtlStep
+import org.apache.log4j.Logger
+
 package object etljobs {
+  lazy val etl_jobs_logger: Logger = Logger.getLogger(getClass.getName)
+
+  case class EtlJobException(msg : String) extends RuntimeException(msg)
+
   trait EtlJobName
+
   trait EtlJobProps {
     val job_name: EtlJobName
     val job_properties: Map[String,String]
@@ -9,5 +17,14 @@ package object etljobs {
     var job_send_slack_notification: Boolean  = job_properties.getOrElse("job_send_slack_notification", "false").toBoolean
     var job_notification_level: String        = job_properties.getOrElse("job_notification_level", "debug") //info or debug
   }
-  case class EtlJobException(msg : String) extends Exception
+
+  object EtlStepList {
+    def apply(args: StateLessEtlStep*): List[StateLessEtlStep] = {
+      etl_jobs_logger.info("inside EtlStepList")
+      val seq = List(args:_*)
+      if (seq.map(x => x.name).distinct.length == seq.map(x => x.name).length)
+        seq
+      else throw EtlJobException("Duplicate step name detected")
+    }
+  }
 }

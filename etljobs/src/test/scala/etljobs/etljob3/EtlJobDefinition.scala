@@ -4,9 +4,9 @@ import etljobs.bigquery.BigQueryManager
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
-import etljobs.{EtlJob, EtlJobProps}
-import etljobs.etlsteps.{BQLoadStep, DatasetWithState, EtlStep, SparkReadWriteStateStep}
-import etljobs.schema.EtlJobProps.{EtlJob23Props}
+import etljobs.{EtlJob, EtlJobProps, EtlStepList}
+import etljobs.etlsteps.{BQLoadStep, DatasetWithState, SparkReadTransformWriteStateStep, SparkReadWriteStateStep, StateLessEtlStep}
+import etljobs.schema.EtlJobProps.EtlJob23Props
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
 import etljobs.spark.{SparkManager, SparkUDF}
 import etljobs.utils.{CSV, GlobalProperties, PARQUET}
@@ -47,25 +47,24 @@ class EtlJobDefinition(
     DatasetWithState(ratings_ds,())
   }
 
-  val step1 = SparkReadWriteStateStep[Rating, Unit, RatingOutput, Unit](
-    name                   = "LoadRatingsParquet",
-    input_location         = Seq(job_props.ratings_input_path),
-    input_type             = CSV(",", true, "FAILFAST"),
-    transform_with_state   = Some(enrichRatingData(spark, job_props)),
-    output_type            = CSV(",", true),
-    output_location        = job_props.ratings_output_path,
-    output_partition_col   = Seq(f"$temp_date_col"),
-    output_save_mode       = SaveMode.Overwrite,
-    output_repartitioning  = true  // Setting this to true takes care of creating one file for every partition
+  val step1 = SparkReadTransformWriteStateStep[Rating, Unit, RatingOutput, Unit](
+    name                  = "LoadRatingsParquet",
+    input_location        = Seq(job_props.ratings_input_path),
+    input_type            = CSV(),
+    transform_with_state  = enrichRatingData(spark, job_props),
+    output_type           = CSV(),
+    output_location       = job_props.ratings_output_path,
+    output_partition_col  = Seq(f"$temp_date_col"),
+    output_save_mode      = SaveMode.Overwrite
   )(spark)
 
   val step2 = BQLoadStep[RatingOutput](
-    name               = "LoadRatingBQ",
-    input_location     = Right(output_date_paths),
-    input_type         = PARQUET,
-    output_dataset     = job_props.ratings_output_dataset,
-    output_table       = job_props.ratings_output_table_name
+    name           = "LoadRatingBQ",
+    input_location = Right(output_date_paths),
+    input_type     = CSV(),
+    output_dataset = job_props.ratings_output_dataset,
+    output_table   = job_props.ratings_output_table_name
   )(bq)
 
-  val etl_step_list: List[EtlStep[Unit,Unit]] = List(step1,step2)
+  val etl_step_list: List[StateLessEtlStep] = EtlStepList(step1, step2)
 }

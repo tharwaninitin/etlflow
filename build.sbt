@@ -17,6 +17,8 @@ val gcloudBQ  = "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
 val pg        = "org.postgresql" % "postgresql" % "42.2.8"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 val jcabi     = "com.jcabi" % "jcabi-log" % "0.17.4"
+val refined   = "eu.timepit" %% "refined" % "0.9.12"
+val sparkbq   = "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % "0.13.1-beta"
 
 // To run test sequentially instead of default parallel execution
 Global / concurrentRestrictions := Seq(
@@ -35,6 +37,8 @@ lazy val etljobsSettings = Seq(
     jcabi % Provided,
     quill % Provided,
     pg % Provided,
+    refined % Provided,
+    sparkbq % Provided,
     scalaTest % Test
   )
 )

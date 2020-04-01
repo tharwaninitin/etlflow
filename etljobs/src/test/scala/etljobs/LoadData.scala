@@ -9,7 +9,7 @@ import scala.util.Try
 object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
   // AppLogger.initialize()
   private val canonical_path = new java.io.File(".").getCanonicalPath
-  val global_properties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(s"$canonical_path/etljobs/src/test/resources/loaddata.properties")).toOption
+  lazy val global_properties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(s"$canonical_path/etljobs/src/test/resources/loaddata.properties")).toOption
 
   def toEtlJobPropsAsJson(job_name: MyEtlJobName): Map[String,String] = {
     job_name match {

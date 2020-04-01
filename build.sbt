@@ -19,6 +19,7 @@ val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 val jcabi     = "com.jcabi" % "jcabi-log" % "0.17.4"
 val refined   = "eu.timepit" %% "refined" % "0.9.12"
 val sparkbq   = "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % "0.13.1-beta"
+val scopt     = "com.github.scopt" %% "scopt" % "3.7.1"
 
 // To run test sequentially instead of default parallel execution
 Global / concurrentRestrictions := Seq(
@@ -39,6 +40,7 @@ lazy val etljobsSettings = Seq(
     pg % Provided,
     refined % Provided,
     sparkbq % Provided,
+    scopt % Provided,
     scalaTest % Test
   )
 )

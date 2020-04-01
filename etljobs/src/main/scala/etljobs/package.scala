@@ -20,11 +20,10 @@ package object etljobs {
 
   object EtlStepList {
     def apply(args: StateLessEtlStep*): List[StateLessEtlStep] = {
-      etl_jobs_logger.info("inside EtlStepList")
       val seq = List(args:_*)
       if (seq.map(x => x.name).distinct.length == seq.map(x => x.name).length)
         seq
-      else throw EtlJobException("Duplicate step name detected")
+      else throw EtlJobException(s"Duplicate step name detected from ${seq.map(x => x.name)}")
     }
   }
 }

@@ -7,7 +7,8 @@ import etljobs.utils.{AppLogger, UtilityFunctions => UF}
 import scala.util.Try
 
 object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
-  // AppLogger.initialize()
+  // Use AppLogger.initialize() to initialize logging
+  // or keep log4j.properties in resources folder
   private val canonical_path = new java.io.File(".").getCanonicalPath
   lazy val global_properties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(s"$canonical_path/etljobs/src/test/resources/loaddata.properties")).toOption
 
@@ -60,7 +61,7 @@ object LoadData extends EtlJobApp[MyEtlJobName, MyEtlJobProps] {
       )
     }
   }
-  def toEtlJob(job_name: MyEtlJobName, job_properties: EtlJobProps): EtlJob = {
+  def toEtlJob(job_name: MyEtlJobName, job_properties: MyEtlJobProps): EtlJob = {
     job_name match {
       case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => etljob1.EtlJobDefinition(job_properties, global_properties)
       case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => etljob2.EtlJobDefinition(job_properties, global_properties)

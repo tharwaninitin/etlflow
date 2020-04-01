@@ -14,7 +14,7 @@ object EtlJobArgsParser {
                          )
   val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etljobs-cli") {
     head("etljobs", "0.7.6")
-    help("help").text("prints this usage text")
+    help("help")
     opt[Unit]('l', "list_jobs")
       .action((_, c) => c.copy(list_jobs = true))
       .text("List jobs in etljobs")

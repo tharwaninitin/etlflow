@@ -64,7 +64,7 @@ object UtilityFunctions {
     val tpe = ru.typeOf[T]
     val clazz = tpe.typeSymbol.asClass
     val allJobNames = clazz.knownDirectSubclasses
-    allJobNames.foreach(uf_logger.info(_))
+    allJobNames.foreach(x => uf_logger.info(x.name))
   }
 
   def getEtlJobProps[T: TypeTag](excludeColumnList: Set[String] = Set("job_run_id","job_description","job_properties","job_name")): Map[String,String] =

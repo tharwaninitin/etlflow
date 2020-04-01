@@ -50,19 +50,19 @@ class BQLoadStep[T <: Product : TypeTag] private (
         input_location,input_type,output_dataset,output_table,output_write_disposition,output_create_disposition
       )
     }
-    else if (input_location.isRight && input_file_system == GCS) {
-      etl_logger.info(s"FileSystem: $input_file_system")
-      row_count = LoadApi.loadIntoPartitionedBQTable(
-        bq, input_location.right.get, input_type
-        , output_dataset, output_table, output_write_disposition, output_create_disposition, schema
-      )
-    }
-    else if (input_location.isLeft && input_file_system == GCS) {
-      etl_logger.info(s"FileSystem: $input_file_system")
-      row_count = LoadApi.loadIntoBQTable(
-        bq, input_location.left.get, input_type
-        , output_dataset, output_table, output_write_disposition, output_create_disposition, schema
-      )
+    else if (input_file_system == GCS) {
+      input_location match {
+        case Left(value) =>
+          etl_logger.info(s"FileSystem: $input_file_system")
+          row_count = LoadApi.loadIntoBQTable(
+            bq, value, input_type, output_dataset, output_table, output_write_disposition, output_create_disposition, schema
+          )
+        case Right(value) =>
+          etl_logger.info(s"FileSystem: $input_file_system")
+          row_count = LoadApi.loadIntoPartitionedBQTable(
+            bq, value, input_type, output_dataset, output_table, output_write_disposition, output_create_disposition, schema
+          )
+      }
     }
     etl_logger.info("#################################################################################################")
   }

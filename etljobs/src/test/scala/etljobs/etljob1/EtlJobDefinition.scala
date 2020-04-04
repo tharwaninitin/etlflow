@@ -4,10 +4,10 @@ package etljobs.etljob1
 import com.google.cloud.bigquery.JobInfo
 import etljobs.bigquery.BigQueryManager
 import etljobs.etlsteps.StateLessEtlStep
-import etljobs.schema.EtlJobProps.EtlJob1Props
+import etljobs.schema.MyEtlJobProps.EtlJob1Props
 import etljobs.schema.EtlJobSchemas.RatingOutput
 import etljobs.spark.SparkManager
-import etljobs.{EtlJobProps, EtlStepList}
+import etljobs.{EtlJobName, EtlJobProps, EtlStepList}
 // ETLJOB library specific Imports
 import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
@@ -16,6 +16,7 @@ import etljobs.utils.{ORC, PARQUET, GlobalProperties, LOCAL}
 import org.apache.log4j.{Level, Logger}
 
 case class EtlJobDefinition(
+                        job_name: String,
                         job_properties: EtlJobProps,
                         global_properties: Option[GlobalProperties] = None
                       )

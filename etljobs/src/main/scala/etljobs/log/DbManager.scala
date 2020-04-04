@@ -24,6 +24,7 @@ object DbManager extends LogManager {
                       elapsed_time:String
                     )
 
+  override var job_name: String = _
   override var job_properties: EtlJobProps = _
   var log_db_url: String = ""
   var log_db_user: String = ""
@@ -87,7 +88,7 @@ object DbManager extends LogManager {
         import context._
         if (mode == "insert") {
           val job = JobRun(
-            job_properties.job_run_id, job_properties.job_name.toString,
+            job_properties.job_run_id, job_name.toString,
             job_properties.job_description,
             UF.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
             "started", UF.getCurrentTimestamp

@@ -1,15 +1,19 @@
 import etljobs.etlsteps.StateLessEtlStep
 import org.apache.log4j.Logger
+import etljobs.utils.{UtilityFunctions => UF}
+import scala.reflect.runtime.universe.TypeTag
 
 package object etljobs {
   lazy val etl_jobs_logger: Logger = Logger.getLogger(getClass.getName)
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
 
-  trait EtlJobName
+  abstract class EtlJobName[+EJP : TypeTag] {
+    val job_props: EtlJobProps
+    val job_props_map: Map[String,String] = UF.getEtlJobProps[EJP]()
+  }
 
   trait EtlJobProps {
-    val job_name: EtlJobName
     val job_properties: Map[String,String]
     val job_run_id: String                    = java.util.UUID.randomUUID.toString
     var job_description: String               = job_properties.getOrElse("job_description", "")

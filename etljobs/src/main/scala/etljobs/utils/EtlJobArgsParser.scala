@@ -1,6 +1,7 @@
 package etljobs.utils
 
 import scopt.OptionParser
+import etljobs.{BuildInfo => BI}
 
 object EtlJobArgsParser {
   case class EtlJobConfig(
@@ -13,7 +14,7 @@ object EtlJobArgsParser {
                            job_properties: Map[String,String] = Map.empty
                          )
   val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etljobs-cli") {
-    head("etljobs", "0.7.6")
+    head(BI.name, BI.version, s"Build with scala version ${BI.scalaVersion}")
     help("help")
     opt[Unit]('l', "list_jobs")
       .action((_, c) => c.copy(list_jobs = true))

@@ -33,8 +33,8 @@ object UtilityFunctions {
   // https://stackoverflow.com/questions/29296335/json4s-jackson-how-to-ignore-field-using-annotations
   def convertToJsonByRemovingKeys(entity: AnyRef, keys: List[String]): String = {
     // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
-    val customSerializer1 = new CustomSerializer[EtlJobName](_ =>
-      (PartialFunction.empty, { case _: EtlJobName => JNothing })
+    val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
+      (PartialFunction.empty, { case _: EtlJobName[EtlJobProps] => JNothing })
     )
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]
@@ -87,6 +87,17 @@ object UtilityFunctions {
     }
   }
 
+  def getEtlJobNameGeneric[T: TypeTag](job_name: String): T = {
+    val tpe = ru.typeOf[T]
+    val clazz = tpe.typeSymbol.asClass
+    val allJobNames = clazz.knownDirectSubclasses
+    val fullName = allJobNames.filter(x => x.name.toString.contains(job_name)).head.fullName
+    val name = allJobNames.filter(x => x.name.toString.contains(job_name)).head.name.toString
+    val finalName = fullName.replace("." + name,"$" + name + "$")
+    val classVal = Class.forName(finalName)
+    val constructor = classVal.getConstructor()
+    constructor.newInstance().asInstanceOf[T]
+  }
 
   def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
     Try {

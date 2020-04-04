@@ -4,15 +4,16 @@ import etljobs.bigquery.BigQueryManager
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
-import etljobs.{EtlJob, EtlJobProps, EtlStepList}
+import etljobs.{EtlJob, EtlJobName, EtlJobProps, EtlStepList}
 import etljobs.etlsteps.{BQLoadStep, SparkETLStep, SparkReadTransformWriteStep, SparkReadWriteStep, StateLessEtlStep}
-import etljobs.schema.EtlJobProps.EtlJob23Props
+import etljobs.schema.MyEtlJobProps.EtlJob23Props
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
-import etljobs.utils.{CSV, GlobalProperties, LOCAL, PARQUET}
+import etljobs.utils.{CSV, GlobalProperties, PARQUET}
 import org.apache.log4j.{Level, Logger}
 import etljobs.spark.{ReadApi, SparkManager, SparkUDF}
 
 case class EtlJobDefinition(
+                        job_name: String,
                         job_properties: EtlJobProps,
                         global_properties: Option[GlobalProperties] = None
                       )

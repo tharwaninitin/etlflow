@@ -32,10 +32,18 @@ lazy val root = (project in file("."))
 lazy val etljobs = (project in file("etljobs"))
   .settings(etlJobsSettings)
   .enablePlugins(ClassDiagramPlugin)
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
-    initialCommands := "import etljobs._"
+    initialCommands := "import etljobs._",
+    buildInfoKeys := Seq[BuildInfoKey](
+      resolvers,
+      libraryDependencies in Compile,
+      name, version, scalaVersion, sbtVersion
+    ),
+    buildInfoOptions += BuildInfoOption.BuildTime,
+    buildInfoPackage := "etljobs",
   )
 
 lazy val examples = (project in file("examples"))

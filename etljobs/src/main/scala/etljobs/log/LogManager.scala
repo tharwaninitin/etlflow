@@ -5,6 +5,7 @@ import etljobs.etlsteps.EtlStep
 import org.apache.log4j.Logger
 
 trait LogManager {
+  var job_name: String
   var job_properties: EtlJobProps
   val lm_logger: Logger = Logger.getLogger(getClass.getName)
 

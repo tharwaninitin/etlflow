@@ -13,6 +13,7 @@ import scala.util.Try
  *       - Send the slack message to appropriate channels
  */
 object SlackManager extends LogManager {
+  override var job_name: String = _
   override var job_properties: EtlJobProps = _
   var final_message = ""
   var web_hook_url: String = ""
@@ -23,7 +24,7 @@ object SlackManager extends LogManager {
     if (status == "pass") {
       /** Template for slack success message */
       return f"""
-      :large_blue_circle: $run_env - ${job_properties.job_name.toString} Process *Success!*
+      :large_blue_circle: $run_env - ${job_name} Process *Success!*
       *Time of Execution*: $exec_date
       *Steps (Task - Duration)*: $message
       """
@@ -31,7 +32,7 @@ object SlackManager extends LogManager {
     else {
       /** Template for slack failure message **/
       return f"""
-      :red_circle: $run_env - ${job_properties.job_name.toString} Process *Failed!*
+      :red_circle: $run_env - ${job_name} Process *Failed!*
       *Time of Execution*: $exec_date
       *Steps (Task - Duration)*: $message
       """

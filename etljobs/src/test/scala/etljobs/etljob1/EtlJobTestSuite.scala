@@ -5,8 +5,8 @@ import org.apache.spark.sql.{Dataset, Row}
 import etljobs.spark.{ReadApi, SparkManager}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties, ORC, PARQUET}
 import etljobs.bigquery.{BigQueryManager, QueryApi}
-import etljobs.schema.EtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2Steps
-import etljobs.schema.EtlJobProps.EtlJob1Props
+import etljobs.schema.MyEtlJobList.EtlJob1PARQUETtoORCtoBQLocalWith2Steps
+import etljobs.schema.MyEtlJobProps.EtlJob1Props
 import etljobs.schema.EtlJobSchemas.RatingOutput
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
@@ -16,7 +16,6 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val global_props: GlobalProperties = new GlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties") {}
 
   val job_props = EtlJob1Props(
-    job_name = EtlJob1PARQUETtoORCtoBQLocalWith2Steps,
     ratings_input_path = List(s"$canonical_path/etljobs/src/test/resources/input/movies/ratings_parquet/*"),
     ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     ratings_output_dataset = "test",
@@ -26,7 +25,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   job_props.job_notification_level = "info"
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
+  val etljob = new EtlJobDefinition(EtlJob1PARQUETtoORCtoBQLocalWith2Steps.toString,job_properties=job_props, global_properties=Some(global_props))
   etljob.execute
 
   // Could use Hlist here for getting single step out of job

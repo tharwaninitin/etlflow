@@ -2,8 +2,8 @@ package etljobs.etljob3
 
 import org.scalatest.{FlatSpec, Matchers}
 import etljobs.MyGlobalProperties
-import etljobs.schema.EtlJobList.EtlJob3CSVtoCSVtoBQGcsWith2Steps
-import etljobs.schema.EtlJobProps.{EtlJob23Props}
+import etljobs.schema.MyEtlJobList.EtlJob3CSVtoCSVtoBQGcsWith2Steps
+import etljobs.schema.MyEtlJobProps.{EtlJob23Props}
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
   // AppLogger.initialize()
@@ -22,7 +22,6 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val global_props = new MyGlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
 
   val job_props = EtlJob23Props(
-    job_name = EtlJob3CSVtoCSVtoBQGcsWith2Steps,
     ratings_input_path = f"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     ratings_output_path = f"gs://${global_props.gcs_output_bucket}/output/ratings",
     ratings_output_dataset = "test",
@@ -30,7 +29,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   )
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
+  val etljob = new EtlJobDefinition(EtlJob3CSVtoCSVtoBQGcsWith2Steps.toString, job_properties=job_props, global_properties=Some(global_props))
 
   val thrown = intercept[Exception] {
     etljob.execute

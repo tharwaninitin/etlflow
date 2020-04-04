@@ -5,8 +5,8 @@ import org.apache.spark.sql.{Dataset, Row}
 import etljobs.spark.{ReadApi, SparkManager}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties}
 import etljobs.bigquery.{BigQueryManager, QueryApi}
-import etljobs.schema.EtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps
-import etljobs.schema.EtlJobProps.EtlJob23Props
+import etljobs.schema.MyEtlJobList.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps
+import etljobs.schema.MyEtlJobProps.EtlJob23Props
 import etljobs.schema.EtlJobSchemas.{Rating, RatingOutput}
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
@@ -15,7 +15,6 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   private val canonical_path = new java.io.File(".").getCanonicalPath
   private val global_props = new GlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties") {}
   val job_props = EtlJob23Props(
-    job_name = EtlJob2CSVtoPARQUETtoBQLocalWith3Steps,
     ratings_input_path = s"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
     ratings_output_path = s"$canonical_path/etljobs/src/test/resources/output/movies/ratings",
     ratings_output_dataset = "test",
@@ -35,7 +34,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
     """
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(job_properties=job_props, global_properties=Some(global_props))
+  val etljob = new EtlJobDefinition(EtlJob2CSVtoPARQUETtoBQLocalWith3Steps.toString,job_properties=job_props, global_properties=Some(global_props))
   val state = etljob.execute
   println(state)
 

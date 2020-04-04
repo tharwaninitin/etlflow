@@ -14,6 +14,7 @@ trait EtlJob {
     val etl_step_list: List[StateLessEtlStep]
     val job_properties: EtlJobProps
     val global_properties: Option[GlobalProperties]
+    val job_name: String
 
     def printJobInfo(level: String = "info"): Unit = {
       etl_step_list.foreach{ etl =>
@@ -29,6 +30,7 @@ trait EtlJob {
       val job_start_time = UF.getCurrentTimestamp
 
       if (job_properties.job_send_slack_notification) {
+        SlackManager.job_name = job_name
         SlackManager.job_properties = job_properties
         SlackManager.final_message = ""
         SlackManager.web_hook_url = global_properties match {
@@ -41,6 +43,7 @@ trait EtlJob {
         }
       }
 
+      DbManager.job_name = job_name
       DbManager.job_properties = job_properties
       DbManager.log_db_url = global_properties match {
         case Some(x) => x.log_db_url

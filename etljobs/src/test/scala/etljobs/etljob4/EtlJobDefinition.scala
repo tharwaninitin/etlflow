@@ -6,7 +6,7 @@ import etljobs.bigquery.BigQueryManager
 import etljobs.etlsteps.{BQLoadStep, BQQueryStep, StateLessEtlStep}
 import etljobs.utils.{BQ, GlobalProperties}
 
-case class EtlJobDefinition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties] = None)
+case class EtlJobDefinition(job_name: String,job_properties: EtlJobProps, global_properties: Option[GlobalProperties] = None)
   extends EtlJob with BigQueryManager {
 
   val select_query: String = """

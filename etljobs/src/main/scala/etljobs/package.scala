@@ -11,10 +11,13 @@ package object etljobs {
   abstract class EtlJobName[+EJP : TypeTag] {
     val job_props: EtlJobProps
     val job_props_map: Map[String,String] = UF.getEtlJobProps[EJP]()
+    def toEtlJobProps(job_properties: Map[String, String]): EJP
   }
 
+  trait EtlJobSchema extends Product
+
   trait EtlJobProps {
-    val job_properties: Map[String,String]
+    val job_properties: Map[String,String]    = Map.empty
     val job_run_id: String                    = java.util.UUID.randomUUID.toString
     var job_description: String               = job_properties.getOrElse("job_description", "")
     var job_aggregate_error: Boolean          = job_properties.getOrElse("job_aggregate_error", "false").toBoolean

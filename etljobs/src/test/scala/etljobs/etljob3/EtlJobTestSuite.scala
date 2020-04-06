@@ -1,9 +1,10 @@
 package etljobs.etljob3
 
 import org.scalatest.{FlatSpec, Matchers}
-import etljobs.MyGlobalProperties
-import etljobs.schema.MyEtlJobList.EtlJob3CSVtoCSVtoBQGcsWith2Steps
-import etljobs.schema.MyEtlJobProps.{EtlJob23Props}
+import etljobs.examples.MyGlobalProperties
+import etljobs.examples.etljob3.EtlJobDefinition
+import etljobs.examples.schema.MyEtlJobName.EtlJob3CSVtoCSVtoBQGcsWith2Steps
+import etljobs.examples.schema.MyEtlJobProps.EtlJob23Props
 
 class EtlJobTestSuite extends FlatSpec with Matchers {
   // AppLogger.initialize()
@@ -22,8 +23,8 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   val global_props = new MyGlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties")
 
   val job_props = EtlJob23Props(
+    job_properties = Map.empty,
     ratings_input_path = f"$canonical_path/etljobs/src/test/resources/input/movies/ratings/*",
-    ratings_output_path = f"gs://${global_props.gcs_output_bucket}/output/ratings",
     ratings_output_dataset = "test",
     ratings_output_table_name = "ratings_par"
   )

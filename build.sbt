@@ -29,11 +29,22 @@ lazy val root = (project in file("."))
     publish / skip := true)
   .aggregate(etljobs, examples)
 
+import NativePackagerHelper._
+
 lazy val etljobs = (project in file("etljobs"))
   .settings(etlJobsSettings)
   .enablePlugins(ClassDiagramPlugin)
   .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(DockerPlugin)
   .settings(
+    packageName in Docker := "etljobs",
+    mainClass in Compile := Some("etljobs.examples.LoadData"),
+    dockerBaseImage := "openjdk:jre",
+    maintainer := "tharwaninitin182@gmail.com",
+    // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
+    mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
+    mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
     initialCommands := "import etljobs._",

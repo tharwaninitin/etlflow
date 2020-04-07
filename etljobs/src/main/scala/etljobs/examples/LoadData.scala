@@ -14,11 +14,11 @@ object LoadData extends EtlJobApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps] {
 
   def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps], job_properties: Map[String, String]): EtlJob = {
     job_name match {
-      case x@EtlJob1PARQUETtoORCtoBQLocalWith2Steps => etljob1.EtlJobDefinition(x.toString, x.toEtlJobProps(job_properties), global_properties)
-      case x@EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => etljob2.EtlJobDefinition(x.toString, x.toEtlJobProps(job_properties), global_properties)
-      case x@EtlJob3CSVtoCSVtoBQGcsWith2Steps => new etljob3.EtlJobDefinition(x.toString, x.toEtlJobProps(job_properties), global_properties)
-      case x@EtlJob4BQtoBQ => etljob4.EtlJobDefinition(x.toString, x.toEtlJobProps(job_properties))
-      case x@EtlJob5PARQUETtoJDBC => etljob5.EtlJobDefinition(x.toString, x.toEtlJobProps(job_properties), global_properties)
+      case x@EtlJob1PARQUETtoORCtoBQLocalWith2Steps => etljob1.EtlJobDefinition(x.toString, x.getActualProperties(job_properties), global_properties)
+      case x@EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => etljob2.EtlJobDefinition(x.toString, x.getActualProperties(job_properties), global_properties)
+      case x@EtlJob3CSVtoCSVtoBQGcsWith2Steps => new etljob3.EtlJobDefinition(x.toString, x.getActualProperties(job_properties), global_properties)
+      case x@EtlJob4BQtoBQ => etljob4.EtlJobDefinition(x.toString, x.getActualProperties(job_properties))
+      case x@EtlJob5PARQUETtoJDBC => etljob5.EtlJobDefinition(x.toString, x.getActualProperties(job_properties), global_properties)
     }
   }
 }

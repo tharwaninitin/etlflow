@@ -21,23 +21,22 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         case EtlJobConfig(true,false,false,false,false,false,"",_) => UF.printEtlJobs[EJN]
         case EtlJobConfig(false,default,actual,true,false,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_job_props with params: job_name => $jobName""".stripMargin)
-          val job_name  = UF.getEtlJobName[EJN](jobName,etl_job_list_package)
+          val job_name = UF.getEtlJobName[EJN](jobName,etl_job_list_package)
+          println(UF.convertToJson(job_name.default_properties_map))
           val exclude_keys = List("job_run_id","job_description","job_properties")
           if (default && !actual) {
-            println(UF.convertToJson(job_name.job_props_map))
-            println(UF.convertToJsonByRemovingKeys(job_name.job_props,exclude_keys))
+            println(UF.convertToJsonByRemovingKeys(job_name.default_properties,exclude_keys))
           }
           else if (actual && !default) {
-            println(UF.convertToJson(job_name.job_props_map))
-            val props = job_name.toEtlJobProps(jobProps)
+            val props = job_name.getActualProperties(jobProps)
             println(UF.convertToJsonByRemovingKeys(props,exclude_keys))
           }
         case EtlJobConfig(false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName
                             | job_properties => $jobProps""".stripMargin)
-          val job_name  = UF.getEtlJobName[EJN](jobName,etl_job_list_package)
-          val etl_job   = toEtlJob(job_name,jobProps)
-          val json      = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+          val job_name = UF.getEtlJobName[EJN](jobName,etl_job_list_package)
+          val etl_job = toEtlJob(job_name,jobProps)
+          val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
           println(json)
         case EtlJobConfig(false,false,false,false,false,true,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Running job with params: job_name => $jobName
@@ -49,7 +48,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           ea_logger.error(s"Need to provide args --job_name")
           System.exit(1)
         case _ =>
-          ea_logger.error(s"Incorrect input args, Try --help for more information.")
+          ea_logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
           System.exit(1)
       }
       case None => System.exit(1)

@@ -9,9 +9,9 @@ package object etljobs {
   case class EtlJobException(msg : String) extends RuntimeException(msg)
 
   abstract class EtlJobName[+EJP : TypeTag] {
-    val job_props: EtlJobProps
-    val job_props_map: Map[String,String] = UF.getEtlJobProps[EJP]()
-    def toEtlJobProps(job_properties: Map[String, String]): EJP
+    val default_properties: EtlJobProps
+    val default_properties_map: Map[String,String] = UF.getEtlJobProps[EJP]()
+    def getActualProperties(job_properties: Map[String, String]): EJP
   }
 
   trait EtlJobSchema extends Product

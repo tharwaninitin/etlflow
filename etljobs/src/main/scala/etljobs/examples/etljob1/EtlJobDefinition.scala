@@ -8,19 +8,14 @@ import etljobs.examples.MyGlobalProperties
 import etljobs.examples.schema.MyEtlJobSchema.RatingOutput
 import etljobs.examples.schema.MyEtlJobProps.EtlJob1Props
 import etljobs.spark.SparkManager
-import etljobs.utils.LOCAL
-import etljobs.{EtlJobProps, EtlStepList}
+import etljobs.EtlStepList
+import etljobs.examples.schema.MyEtlJobProps
 // ETLJOB library specific Imports
 import etljobs.EtlJob
 import etljobs.etlsteps.{BQLoadStep, SparkReadWriteStep}
 import etljobs.utils.{ORC, PARQUET}
 
-case class EtlJobDefinition(
-                        job_name: String,
-                        job_properties: EtlJobProps,
-                        global_properties: Option[MyGlobalProperties]
-                      )
-  extends EtlJob with SparkManager with BigQueryManager {
+case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with SparkManager with BigQueryManager {
 
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private val job_props:EtlJob1Props = job_properties.asInstanceOf[EtlJob1Props]

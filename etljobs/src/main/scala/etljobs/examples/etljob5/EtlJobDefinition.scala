@@ -3,6 +3,7 @@ package etljobs.examples.etljob5
 // Spark Imports
 import etljobs.EtlJobName
 import etljobs.examples.MyGlobalProperties
+import etljobs.examples.schema.MyEtlJobProps
 import etljobs.spark.SparkManager
 import etljobs.utils.BQ
 import org.apache.spark.sql.SaveMode
@@ -15,8 +16,7 @@ import etljobs.utils.{JDBC, PARQUET, GlobalProperties}
 import etljobs.examples.schema.MyEtlJobProps.EtlJob5Props
 import etljobs.examples.schema.MyEtlJobSchema.{RatingBQ,Rating}
 
-case class EtlJobDefinition(job_name: String,job_properties: EtlJobProps, global_properties: Option[MyGlobalProperties])
-  extends EtlJob with SparkManager {
+case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with SparkManager {
 
   private val global_props = global_properties.get
   private val job_props = job_properties.asInstanceOf[EtlJob5Props]

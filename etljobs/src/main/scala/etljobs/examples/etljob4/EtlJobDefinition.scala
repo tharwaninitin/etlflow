@@ -4,10 +4,11 @@ import com.google.cloud.bigquery.JobInfo
 import etljobs.{EtlJob, EtlJobProps, EtlStepList}
 import etljobs.bigquery.BigQueryManager
 import etljobs.etlsteps.{BQLoadStep, BQQueryStep, StateLessEtlStep}
+import etljobs.examples.MyGlobalProperties
+import etljobs.examples.schema.MyEtlJobProps
 import etljobs.utils.{BQ, GlobalProperties}
 
-case class EtlJobDefinition(job_name: String,job_properties: EtlJobProps, global_properties: Option[GlobalProperties] = None)
-  extends EtlJob with BigQueryManager {
+case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with BigQueryManager {
 
   private val select_query: String = """
       | SELECT movie_id, COUNT(1) cnt
@@ -29,7 +30,7 @@ case class EtlJobDefinition(job_name: String,job_properties: EtlJobProps, global
 
   // val query = "CREATE OR REPLACE TABLE test.ratings_temp (a INT64)"
   // val query = "CALL test_reports.sp_temp_delete('2016-01-01')"
-  private val query = """CREATE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
+  private val query = """CREATE OR REPLACE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
                 |BEGIN
                 |  DECLARE count_dt INT64 DEFAULT 0;
                 |  SET count_dt =(SELECT COUNT(*) FROM test.ratings WHERE date = start_date);
@@ -41,10 +42,10 @@ case class EtlJobDefinition(job_name: String,job_properties: EtlJobProps, global
     query = query
   )(bq)
 
-  private val step2 = BQQueryStep(
-    name = "CreateStoredProcedure",
-    query = query
-  )(bq)
+  //  private val step2 = BQQueryStep(
+  //    name = "CreateStoredProcedure",
+  //    query = query
+  //  )(bq)
 
   private val step3 = BQLoadStep(
     name            = "LoadQueryDataBQ",
@@ -63,5 +64,5 @@ case class EtlJobDefinition(job_name: String,job_properties: EtlJobProps, global
     output_table   = "ratings_grouped_par"
   )(bq)
 
-  val etl_step_list: List[StateLessEtlStep] = EtlStepList(step1,step2,step3,step4)
+  val etl_step_list: List[StateLessEtlStep] = EtlStepList(step1,step3,step4)
 }

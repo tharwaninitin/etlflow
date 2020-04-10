@@ -10,11 +10,11 @@ trait EtlJob {
     final val etl_job_logger: Logger = Logger.getLogger(getClass.getName)
     final var job_execution_state: Map[String, Map[String,String]] = Map.empty
     final var error_occurred: Boolean = false
+    final var job_name: String = "NameNotSet"
 
-    val etl_step_list: List[StateLessEtlStep]
     val job_properties: EtlJobProps
     val global_properties: Option[GlobalProperties]
-    val job_name: String
+    val etl_step_list: List[StateLessEtlStep]
 
     def printJobInfo(level: String = "info"): Unit = {
       etl_step_list.foreach{ etl =>

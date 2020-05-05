@@ -43,6 +43,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                             | job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
           val etl_job = toEtlJob(job_name,jobProps)(job_name.getActualProperties(jobProps),global_properties)
+          etl_job.job_name = job_name.toString
           etl_job.execute
         case etlJobConfig if (etlJobConfig.show_job_props || etlJobConfig.show_step_props) && etlJobConfig.job_name == "" =>
           ea_logger.error(s"Need to provide args --job_name")

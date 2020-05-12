@@ -1,15 +1,16 @@
 package etljobs.etlsteps
 
 import java.util.ArrayList
-import com.google.cloud.bigquery.{BigQuery, Field, JobInfo, LegacySQLTypeName, Schema, StandardTableDefinition, TableId}
+import com.google.cloud.bigquery.{BigQuery, Field, JobInfo, LegacySQLTypeName, Schema}
 import etljobs.bigquery.LoadApi
 import etljobs.utils._
 import org.apache.spark.sql.Encoders
+import zio.Task
+import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
-import collection.JavaConverters._
 
-class BQLoadStep[T <: Product : TypeTag] private (
+class BQLoadStep[T <: Product : TypeTag] private[etljobs] (
             val name: String
             , input_location: => Either[String, Seq[(String, String)]]
             , input_type: IOType
@@ -18,11 +19,11 @@ class BQLoadStep[T <: Product : TypeTag] private (
             , output_table: String
             , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
             , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-       )(bq: => BigQuery)
-  extends EtlStep[Unit, Unit] {
+       )
+  extends EtlStep[BigQuery,Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  def process(input_state: Unit): Try[Unit] = Try {
+  def process(bq: BigQuery): Task[Unit] = Task {
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting BQ Data Load Step : $name")
 
@@ -67,19 +68,19 @@ class BQLoadStep[T <: Product : TypeTag] private (
     etl_logger.info("#################################################################################################")
   }
 
-  override def getExecutionMetrics: Map[String, Map[String, String]] = {
-    val destinationTable = Try {
-      val tableId = TableId.of(output_dataset, output_table)
-      bq.getTable(tableId).getDefinition[StandardTableDefinition]
-    }.toOption
-
-    Map(name ->
-      Map(
-        "total_rows" -> destinationTable.map(x => x.getNumRows.toString).getOrElse("error in getting number of rows"),
-        "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
-      )
-    )
-  }
+//  override def getExecutionMetrics: Map[String, Map[String, String]] = {
+//    val destinationTable = Try {
+//      val tableId = TableId.of(output_dataset, output_table)
+//      bq.getTable(tableId).getDefinition[StandardTableDefinition]
+//    }.toOption
+//
+//    Map(name ->
+//      Map(
+//        "total_rows" -> destinationTable.map(x => x.getNumRows.toString).getOrElse("error in getting number of rows"),
+//        "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
+//      )
+//    )
+//  }
 
   override def getStepProperties(level: String): Map[String, String] = {
     if (level.equalsIgnoreCase("info"))
@@ -125,8 +126,8 @@ object BQLoadStep {
       , output_table: String
       , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
       , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-     )(bq: => BigQuery): BQLoadStep[T] = {
+     ): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system
-      , output_dataset, output_table, output_write_disposition, output_create_disposition)(bq)
+      , output_dataset, output_table, output_write_disposition, output_create_disposition)
   }
 }

@@ -2,29 +2,14 @@ package etljobs.spark
 
 import etljobs.utils.GlobalProperties
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
-import scala.util.Try
+import org.apache.spark.sql.SparkSession
 
-trait SparkManager {
+trait SparkManager  {
   private val ic_logger = Logger.getLogger(getClass.getName)
   Logger.getLogger("org").setLevel(Level.WARN)
 
-  val global_properties: Option[GlobalProperties]
-  ic_logger.info(f"======> Loaded SparkManager(${getClass.getName})")
-
-  implicit class DataFrameHelper(df : DataFrame) {
-    var column_count = 0
-    def hasColumn(columnName : String) : Boolean = Try(df(columnName)).isSuccess
-    def withColumnExtended(columnName : String, expression : Column) : DataFrame = {
-      ic_logger.info(s"Column added $columnName with expression ${expression.expr}")
-      df.withColumn(columnName, expression)
-    }
-    def columnCount: Int = column_count
-  }
-
-  lazy val spark: SparkSession = createSparkSession(global_properties)
-
   def createSparkSession(gp: Option[GlobalProperties]): SparkSession = {
+    ic_logger.info(f"======> Loaded SparkManager(${getClass.getName})")
     gp match {
       case Some(ss) =>
         if (ss.running_environment =="gcp") {

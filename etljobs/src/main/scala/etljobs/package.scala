@@ -1,4 +1,4 @@
-import etljobs.etlsteps.StateLessEtlStep
+import etljobs.etlsteps.EtlStep
 import org.apache.log4j.Logger
 import etljobs.utils.{UtilityFunctions => UF}
 import scala.reflect.runtime.universe.TypeTag
@@ -9,8 +9,9 @@ package object etljobs {
   case class EtlJobException(msg : String) extends RuntimeException(msg)
 
   abstract class EtlJobName[+EJP : TypeTag] {
+    final val default_properties_map: Map[String,String] = UF.getEtlJobProps[EJP]()
+    final val job_name_package = getClass.getName
     val default_properties: EtlJobProps
-    val default_properties_map: Map[String,String] = UF.getEtlJobProps[EJP]()
     def getActualProperties(job_properties: Map[String, String]): EJP
   }
 
@@ -26,7 +27,7 @@ package object etljobs {
   }
 
   object EtlStepList {
-    def apply(args: StateLessEtlStep*): List[StateLessEtlStep] = {
+    def apply(args: EtlStep[_,_]*): List[EtlStep[_,_]] = {
       val seq = List(args:_*)
       if (seq.map(x => x.name).distinct.length == seq.map(x => x.name).length)
         seq

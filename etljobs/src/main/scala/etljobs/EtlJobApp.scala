@@ -1,8 +1,10 @@
 package etljobs
 
-import etljobs.utils.EtlJobArgsParser.{EtlJobConfig,parser}
+import etljobs.etljob.{EtlJob, GenericEtlJob}
+import etljobs.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etljobs.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.apache.log4j.Logger
+
 import scala.reflect.runtime.universe.TypeTag
 
 // Either use =>
@@ -13,7 +15,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
   val global_properties: Option[EJGP]
   val etl_job_name_package: String
 
-  def toEtlJob(job_name: EJN, job_properties: Map[String, String]): (EJP,Option[EJGP]) => EtlJob
+  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlJob
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, EtlJobConfig()) match {
@@ -34,17 +36,19 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         case EtlJobConfig(false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName job_properties => $jobProps""")
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          val etl_job = toEtlJob(job_name,jobProps)(job_name.getActualProperties(jobProps),global_properties)
-          etl_job.job_name = job_name.toString
-          val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
-          println(json)
+          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),global_properties)
+          if (etl_job.isInstanceOf[GenericEtlJob])
+            println("Step Props info not available for generic jobs")
+          else
+            etl_job.job_name = job_name.toString
+            val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+            println(json)
         case EtlJobConfig(false,false,false,false,false,true,jobName,jobProps) if jobName != "" =>
-          ea_logger.info(s"""Running job with params: job_name => $jobName
-                            | job_properties => $jobProps""".stripMargin)
+          ea_logger.info(s"""Running job with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          val etl_job = toEtlJob(job_name,jobProps)(job_name.getActualProperties(jobProps),global_properties)
+          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),global_properties)
           etl_job.job_name = job_name.toString
-          etl_job.execute
+          etl_job.execute()
         case etlJobConfig if (etlJobConfig.show_job_props || etlJobConfig.show_step_props) && etlJobConfig.job_name == "" =>
           ea_logger.error(s"Need to provide args --job_name")
           System.exit(1)

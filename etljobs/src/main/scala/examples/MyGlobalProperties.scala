@@ -1,4 +1,4 @@
-package etljobs.examples
+package examples
 
 import etljobs.utils.GlobalProperties
 

@@ -1,27 +1,27 @@
-package etljobs.examples.etljob3
+package examples.jobs
 
-import etljobs.bigquery.BigQueryManager
-import etljobs.etlsteps.{BQLoadStep, DatasetWithState, SparkReadTransformWriteStateStep, StateLessEtlStep}
-import etljobs.examples.MyGlobalProperties
-import etljobs.examples.schema.MyEtlJobProps
-import etljobs.examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
-import etljobs.examples.schema.MyEtlJobProps.EtlJob23Props
-import etljobs.spark.{SparkManager, SparkUDF}
-import etljobs.utils.{CSV, GlobalProperties}
-import etljobs.{EtlJob, EtlJobProps, EtlStepList}
+import etljobs.etljob.GenericEtlJob
+import etljobs.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
+import etljobs.spark.SparkUDF
+import etljobs.utils.CSV
+import examples.MyGlobalProperties
+import examples.schema.MyEtlJobProps
+import examples.schema.MyEtlJobProps.EtlJob23Props
+import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
-import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
+import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
+import zio.Task
 
-case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with SparkManager with SparkUDF with BigQueryManager {
+case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends GenericEtlJob with SparkUDF {
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private var output_date_paths: Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"
-  private val job_props:EtlJob23Props  = job_properties.asInstanceOf[EtlJob23Props]
+  private val job_props = job_properties.asInstanceOf[EtlJob23Props]
 
-  private def enrichRatingData(spark: SparkSession, job_properties: EtlJob23Props)(in : DatasetWithState[Rating,Unit]) : DatasetWithState[RatingOutput,Unit] = {
+  private def enrichRatingData(job_properties: EtlJob23Props)(spark: SparkSession, in: Dataset[Rating]) : Dataset[RatingOutput] = {
 
-    val ratings_df = in.ds
+    val ratings_df = in
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
         .withColumn(temp_date_col, get_formatted_date("date","yyyy-MM-dd","yyyyMMdd"))
         .where(f"$temp_date_col in ('20160101', '20160102')")
@@ -39,20 +39,19 @@ case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Op
 
     val mapping = Encoders.product[RatingOutput]
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
-
-    DatasetWithState(ratings_ds,())
+    ratings_ds
   }
 
-  private val step1 = SparkReadTransformWriteStateStep[Rating, Unit, RatingOutput, Unit](
+  private val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                  = "LoadRatingsParquet",
     input_location        = Seq(job_props.ratings_input_path),
     input_type            = CSV(),
-    transform_with_state  = enrichRatingData(spark, job_props),
+    transform_function    = enrichRatingData(job_props),
     output_type           = CSV(),
     output_location       = gcs_output_path,
     output_partition_col  = Seq(f"$temp_date_col"),
     output_save_mode      = SaveMode.Overwrite
-  )(spark)
+  )
 
   private val step2 = BQLoadStep[RatingOutput](
     name           = "LoadRatingBQ",
@@ -60,7 +59,10 @@ case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Op
     input_type     = CSV(),
     output_dataset = job_props.ratings_output_dataset,
     output_table   = job_props.ratings_output_table_name
-  )(bq)
+  )
 
-  val etl_step_list: List[StateLessEtlStep] = EtlStepList(step1, step2)
+  def etl_job: Task[Unit] = for {
+    - <- step1.execute(spark)
+    _ <- step2.execute(bq)
+   } yield ()
 }

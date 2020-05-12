@@ -1,7 +1,6 @@
 package etljobs.bigquery
 
 import java.io.FileInputStream
-
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
 import etljobs.utils.GlobalProperties
@@ -9,12 +8,9 @@ import org.apache.log4j.Logger
 
 trait BigQueryManager {
   private val ic_logger = Logger.getLogger(getClass.getName)
-  val global_properties: Option[GlobalProperties]
-  ic_logger.info(f"======> Loaded BigQueryManager(${getClass.getName})")
-
-  lazy val bq: BigQuery = createBigQuerySession(global_properties)
 
   def createBigQuerySession(gp: Option[GlobalProperties]): BigQuery = {
+    ic_logger.info(f"======> Loaded BigQueryManager(${getClass.getName})")
     gp match {
       case Some(ss) =>
         ic_logger.info(s"Job is running on env: ${ss.running_environment}")

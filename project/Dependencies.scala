@@ -8,6 +8,8 @@ object Dependencies {
   private val QuillVersion = "3.5.0"
   private val ScalaTestVersion = "3.0.5"
   private val ScoptVersion = "3.7.1"
+  private val ZioVersion = "1.0.0-RC18"
+  private val doobieVersion = "0.8.8"
 
   lazy val loggingLibs = List(
     "com.jcabi" % "jcabi-log" % "0.17.4"
@@ -27,6 +29,18 @@ object Dependencies {
   lazy val dbLibs = List(
     "io.getquill" %% "quill-jdbc" % QuillVersion,
     "org.postgresql" % "postgresql" % "42.2.8"
+  )
+
+  lazy val zioLibs = List(
+    "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC11"
+  )
+
+  lazy val postgres = List(
+    "org.tpolecat" %% "doobie-core"     % doobieVersion,
+    "org.tpolecat" %% "doobie-postgres" % doobieVersion,
+    "org.tpolecat" %% "doobie-hikari"   % doobieVersion,
+    "org.tpolecat" %% "doobie-quill"    % doobieVersion
   )
 
   lazy val miscLibs = List(

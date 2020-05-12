@@ -1,22 +1,16 @@
-package etljobs.examples.etljob5
+package examples.jobs
 
-// Spark Imports
-import etljobs.EtlJobName
-import etljobs.examples.MyGlobalProperties
-import etljobs.examples.schema.MyEtlJobProps
-import etljobs.spark.SparkManager
-import etljobs.utils.BQ
+import etljobs.EtlStepList
+import etljobs.etljob.SequentialEtlJob
+import etljobs.etlsteps.{EtlStep, SparkReadWriteStep}
+import etljobs.utils.{BQ, JDBC, PARQUET}
+import examples.MyGlobalProperties
+import examples.schema.MyEtlJobProps
+import examples.schema.MyEtlJobProps.EtlJob5Props
+import examples.schema.MyEtlJobSchema.{Rating, RatingBQ}
 import org.apache.spark.sql.SaveMode
-// EtlJob library specific Imports
-import etljobs.EtlJob
-import etljobs.{EtlJobProps, EtlStepList}
-import etljobs.etlsteps.SparkReadWriteStep
-import etljobs.utils.{JDBC, PARQUET, GlobalProperties}
-// Job specific imports
-import etljobs.examples.schema.MyEtlJobProps.EtlJob5Props
-import etljobs.examples.schema.MyEtlJobSchema.{RatingBQ,Rating}
 
-case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with SparkManager {
+case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob {
 
   private val global_props = global_properties.get
   private val job_props = job_properties.asInstanceOf[EtlJob5Props]
@@ -29,7 +23,7 @@ case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Op
     output_type      = JDBC(global_props.jdbc_url, global_props.jdbc_user, global_props.jdbc_pwd, global_props.jdbc_driver),
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
-  )(spark)
+  )
 
   private val step2 = SparkReadWriteStep[RatingBQ](
     name             = "LoadRatingsBqToJdbc",
@@ -39,8 +33,7 @@ case class EtlJobDefinition(job_properties: MyEtlJobProps, global_properties: Op
     output_type      = JDBC(global_props.jdbc_url, global_props.jdbc_user, global_props.jdbc_pwd, global_props.jdbc_driver),
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
-  )(spark)
+  )
 
-  val etl_step_list = EtlStepList(step1,step2)
+  val etl_step_list: List[EtlStep[_,_]] = EtlStepList(step1,step2)
 }
-

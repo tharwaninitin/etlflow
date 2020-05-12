@@ -15,7 +15,7 @@ Global / concurrentRestrictions := Seq(
 import Dependencies._
 lazy val etlJobsSettings = Seq(
   name := "etljobs"
-  , libraryDependencies ++= sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
+  , libraryDependencies ++= zioLibs ++ sparkLibs ++ postgres ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
 lazy val examplesSettings = Seq(
@@ -39,7 +39,7 @@ lazy val etljobs = (project in file("etljobs"))
   .enablePlugins(DockerPlugin)
   .settings(
     packageName in Docker := "etljobs",
-    mainClass in Compile := Some("etljobs.examples.LoadData"),
+    mainClass in Compile := Some("examples.LoadData"),
     dockerBaseImage := "openjdk:jre",
     maintainer := "tharwaninitin182@gmail.com",
     // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin

@@ -5,7 +5,6 @@ import org.apache.spark.sql.Dataset
 // import monocle.Iso
 
 package object etlsteps {
-  type StateLessEtlStep = EtlStep[Unit,Unit]
   case class DatasetWithState[T, S](ds: Dataset[T], state: S = Unit)
 //  type DatasetWoState[T] = DatasetWithState[T, Unit]
 //  def change[T]:Iso[DatasetWoState[T], Dataset[T]] = Iso[DatasetWoState[T], Dataset[T]](_.ds){ds => DatasetWithState(ds)}

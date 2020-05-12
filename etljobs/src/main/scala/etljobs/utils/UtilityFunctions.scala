@@ -34,7 +34,7 @@ object UtilityFunctions {
   def convertToJsonByRemovingKeys(entity: AnyRef, keys: List[String]): String = {
     // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
     val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
-      (PartialFunction.empty, { case _: EtlJobName[EtlJobProps] => JNothing })
+      (PartialFunction.empty, { case _: EtlJobName[_] => JNothing })
     )
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]

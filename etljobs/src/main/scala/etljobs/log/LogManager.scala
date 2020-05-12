@@ -4,17 +4,17 @@ import etljobs.{EtlJobName, EtlJobProps}
 import etljobs.etlsteps.EtlStep
 import org.apache.log4j.Logger
 
-trait LogManager {
-  var job_name: String
-  var job_properties: EtlJobProps
+trait LogManager[A] {
+  val job_name: String
+  val job_properties: EtlJobProps
   val lm_logger: Logger = Logger.getLogger(getClass.getName)
 
   def updateStepLevelInformation(
                                   execution_start_time: Long,
-                                  etl_step: EtlStep[Unit,Unit],
+                                  etl_step: EtlStep[_,_],
                                   state_status: String,
                                   error_message: Option[String] = None,
                                   mode: String = "update"
-                                ): Unit
-  def updateJobInformation(status: String, mode: String = "update"): Unit
+                                ): A
+  def updateJobInformation(status: String, mode: String = "update"): A
 }

@@ -5,13 +5,12 @@ import org.apache.spark.sql.{Dataset, Row}
 import etljobs.spark.{ReadApi, SparkManager}
 import etljobs.utils.{AppLogger, CSV, GlobalProperties}
 import etljobs.bigquery.{BigQueryManager, QueryApi}
-import etljobs.examples.MyGlobalProperties
-import etljobs.examples.etljob2.EtlJobDefinition
-import etljobs.examples.schema.MyEtlJobName.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps
-import etljobs.examples.schema.MyEtlJobProps.EtlJob23Props
-import etljobs.examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
+import examples.MyGlobalProperties
+import examples.schema.MyEtlJobName.EtlJob2CSVtoPARQUETtoBQLocalWith3Steps
+import examples.schema.MyEtlJobProps.EtlJob23Props
+import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 
-class EtlJobTestSuite extends FlatSpec with Matchers {
+class SequentialEtlJobTestSuite extends FlatSpec with Matchers {
 //  AppLogger.initialize()
   // STEP 1: Initialize job properties and create BQ tables required for jobs 
   private val canonical_path = new java.io.File(".").getCanonicalPath

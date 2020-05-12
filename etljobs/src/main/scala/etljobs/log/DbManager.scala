@@ -1,55 +1,34 @@
 package etljobs.log
 
+import cats.effect.{Blocker, Resource}
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import doobie.free.connection.ConnectionIO
+import doobie.hikari.HikariTransactor
+import doobie.implicits._
+import doobie.quill.DoobieContext
 import etljobs.EtlJobProps
 import etljobs.etlsteps.EtlStep
-import etljobs.utils.{UtilityFunctions => UF}
-import io.getquill.{LowerCase, PostgresJdbcContext}
-import scala.util.{Failure, Success, Try}
+import etljobs.utils.{GlobalProperties, UtilityFunctions => UF}
+import io.getquill.Literal
+import org.apache.log4j.Logger
+import zio.interop.catz._
+import zio.{Task, UIO, ZIO, ZManaged}
 
-object DbManager extends LogManager {
-  case class JobRun(
-                     job_run_id: String,
-                     job_name: String,
-                     description: String,
-                     properties: String,
-                     state: String,
-                     inserted_at: Long
-                   )
-  case class StepRun(
-                      job_run_id: String,
-                      step_name: String,
-                      properties: String,
-                      state: String,
-                      elapsed_time:String
-                    )
+import scala.concurrent.ExecutionContext
+import scala.util.Try
 
-  override var job_name: String = _
-  override var job_properties: EtlJobProps = _
-  var log_db_url: String = ""
-  var log_db_user: String = ""
-  var log_db_pwd: String = ""
+class DbManager private[log](val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
 
-  private lazy val ctx = Try {
-    val pgDataSource = new org.postgresql.ds.PGSimpleDataSource()
-    pgDataSource.setURL(log_db_url)
-    pgDataSource.setUser(log_db_user)
-    pgDataSource.setPassword(log_db_user)
-    val config = new HikariConfig()
-    config.setDataSource(pgDataSource)
-    new PostgresJdbcContext(LowerCase, new HikariDataSource(config))
-  }
+  private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
+  import ctx._
 
   def updateStepLevelInformation(
       execution_start_time: Long,
-      etl_step: EtlStep[Unit, Unit],
+      etl_step: EtlStep[_,_],
       state_status: String,
       error_message: Option[String] = None,
       mode: String = "update"
-    ): Unit = {
-    ctx match {
-      case Success(context) =>
-        import context._
+    ): Task[Long] = {
         if (mode == "insert") {
           val step = StepRun(
             job_properties.job_run_id,
@@ -58,17 +37,18 @@ object DbManager extends LogManager {
             state_status.toLowerCase(),
             "..."
           )
-          lm_logger.info(s"Inserting step info in db with status => ${state_status.toLowerCase()}")
-          val s = quote {
+          lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
+          val x: ConnectionIO[Long] = ctx.run(quote {
             querySchema[StepRun]("step").insert(lift(step))
-          }
-          context.run(s)
+          })
+          val y: Task[Long] = x.transact(transactor)
+          y
         }
-        else if (mode == "update") {
+        else {
           val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
           val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
-          lm_logger.info(s"Updating step info in db with status => $status")
-          context.run( quote {
+          lm_logger.info(s"Updating step info for ${etl_step.name} in db with status => $status")
+          val x = ctx.run(quote {
             querySchema[StepRun]("step")
               .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
               .update(
@@ -76,35 +56,65 @@ object DbManager extends LogManager {
                 _.properties -> lift(UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
                 _.elapsed_time -> lift(elapsed_time)
                 )
-          })
+          }).transact(transactor)
+          x *> ZIO.when(error_message.isDefined)(Task.fail(new RuntimeException(error_message.get))).as(1)
         }
-      case Failure(e) => lm_logger.error(s"Cannot log step properties to log db => ${e.getMessage}")
+    }
+
+  def updateJobInformation(status: String, mode: String = "update"): Task[Long] = {
+    import ctx._
+    if (mode == "insert") {
+      val job = JobRun(
+        job_properties.job_run_id, job_name.toString,
+        job_properties.job_description,
+        UF.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
+        "started", UF.getCurrentTimestamp
+      )
+      lm_logger.info(s"Inserting job info in db with status => $status")
+      ctx.run(quote {
+        query[JobRun].insert(lift(job))
+      }).transact(transactor)
+    }
+    else {
+      lm_logger.info(s"Updating job info in db with status => $status")
+      ctx.run(quote {
+        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(status))
+      }).transact(transactor)
     }
   }
+}
 
-  override def updateJobInformation(status: String, mode: String = "update"): Unit = {
-    ctx match {
-      case Success(context) =>
-        import context._
-        if (mode == "insert") {
-          val job = JobRun(
-            job_properties.job_run_id, job_name.toString,
-            job_properties.job_description,
-            UF.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
-            "started", UF.getCurrentTimestamp
-          )
-          lm_logger.info(s"Inserting job info in db with status => $status")
-          context.run( quote {
-            query[JobRun].insert(lift(job))
-          })
-        }
-        else if (mode == "update") {
-          lm_logger.info(s"Updating job info in db with status => $status")
-          context.run( quote {
-            query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(status))
-          })
-        }
-      case Failure(e) => lm_logger.error(s"Cannot update job state to log db => ${e.getMessage}")
+trait DbLogManager {
+  val db_logger: Logger = Logger.getLogger(getClass.getName)
+
+  def createDbResource(global_properties: Option[GlobalProperties], ec: ExecutionContext): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
+    val config = new HikariConfig()
+    config.setDriverClassName("org.postgresql.Driver")
+    config.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse("<use_global_properties_log_db_url>"))
+    config.setUsername(global_properties.map(_.log_db_user).getOrElse("<use_global_properties_log_db_user>"))
+    config.setPassword(global_properties.map(_.log_db_pwd).getOrElse("<use_global_properties_log_db_pwd>"))
+    config.setMaximumPoolSize(2)
+    HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
+  }.toManagedZIO
+
+  def createDbLogger(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): ZManaged[Any, Nothing, DbManager] =
+    Task.succeed(new DbManager(transactor, job_name, job_properties)).toManaged_
+
+  private def logError(e: Throwable): None.type = {
+    db_logger.error(s"Cannot update job state to log db => ${e.getMessage}")
+    None
+  }
+
+  def createDbLogger(job_name: String, job_properties: EtlJobProps, global_properties: Option[GlobalProperties], ec: ExecutionContext): Option[DbManager] = {
+    Try {
+      val dataSource = new HikariDataSource()
+      dataSource.setDriverClassName("org.postgresql.Driver")
+      dataSource.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse("<use_global_properties_log_db_url>"))
+      dataSource.setUsername(global_properties.map(_.log_db_user).getOrElse("<use_global_properties_log_db_user>"))
+      dataSource.setPassword(global_properties.map(_.log_db_pwd).getOrElse("<use_global_properties_log_db_pwd>"))
+      HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
+    }.fold(ex => logError(ex), trans => Some(trans)).map{ transactor =>
+      new DbManager(transactor,job_name, job_properties)
     }
   }
 }

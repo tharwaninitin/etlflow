@@ -2,11 +2,12 @@ package etljobs.etljob3
 
 import org.scalatest.{FlatSpec, Matchers}
 import etljobs.examples.MyGlobalProperties
-import etljobs.examples.etljob3.EtlJobDefinition
-import etljobs.examples.schema.MyEtlJobName.EtlJob3CSVtoCSVtoBQGcsWith2Steps
-import etljobs.examples.schema.MyEtlJobProps.EtlJob23Props
+import examples.MyGlobalProperties
+import examples.jobs.EtlJob3Definition
+import examples.schema.MyEtlJobName.EtlJob3CSVtoCSVtoBQGcsWith2Steps
+import examples.schema.MyEtlJobProps.EtlJob23Props
 
-class EtlJobTestSuite extends FlatSpec with Matchers {
+class SequentialEtlJobTestSuite extends FlatSpec with Matchers {
   // AppLogger.initialize()
   //
   //val create_table_script = """
@@ -30,7 +31,7 @@ class EtlJobTestSuite extends FlatSpec with Matchers {
   )
 
   // STEP 2: Execute JOB
-  val etljob = new EtlJobDefinition(EtlJob3CSVtoCSVtoBQGcsWith2Steps.toString, job_properties=job_props, global_properties=Some(global_props))
+  val etljob = new EtlJob3Definition(EtlJob3CSVtoCSVtoBQGcsWith2Steps.toString, job_properties=job_props, global_properties=Some(global_props))
 
   val thrown = intercept[Exception] {
     etljob.execute

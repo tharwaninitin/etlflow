@@ -1,24 +1,20 @@
 package etljobs.log
 
-import etljobs.{EtlJobName, EtlJobProps}
+import etljobs.EtlJobProps
 import etljobs.etlsteps.EtlStep
-import etljobs.utils.{UtilityFunctions => UF}
+import etljobs.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import scala.util.Try
 
-/** Object SlackManager have below functionality
- *       - Create Success and Failure Slack message templates
- *       - Send the slack message to appropriate channels
- */
-object SlackManager extends LogManager {
-  override var job_name: String = _
-  override var job_properties: EtlJobProps = _
-  var final_message = ""
-  var web_hook_url: String = ""
-  var env: String = ""
-
+class SlackManager private[log] (
+                                  val job_name: String,
+                                  val job_properties: EtlJobProps,
+                                  var final_message: String = "",
+                                  web_hook_url: String = "",
+                                  env: String = ""
+                                ) extends LogManager[Unit] {
   /** Slack message templates */
   private def finalMessageTemplate(run_env: String, exec_date: String, message: String, status: String): String = {
     if (status == "pass") {
@@ -39,9 +35,8 @@ object SlackManager extends LogManager {
     }
   }
 
-  /** Get the step level information and update the variable finalSlackMessage */
   def updateStepLevelInformation(
-                                  execution_start_time: Long, etlstep: EtlStep[Unit,Unit], state_status: String
+                                  execution_start_time: Long, etlstep: EtlStep[_,_], state_status: String
                                  , error_message: Option[String] = None, mode: String = "update"
                                 ): Unit = {
     var slackMessageForSteps = ""
@@ -58,7 +53,6 @@ object SlackManager extends LogManager {
     final_message = final_message.concat(slackMessageForSteps)
   }
 
-  /** Sends the slack notification to slack channels*/
   def updateJobInformation(status: String, mode: String = "update"): Unit = {
     val execution_date_time = UF.getCurrentTimestampAsString("yyyy-MM-dd HH:mm:ss")
 
@@ -80,5 +74,23 @@ object SlackManager extends LogManager {
       slackApi.setEntity(entity);
       client.execute(slackApi);
     }
+  }
+}
+
+trait SlackLogManager {
+  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Option[GlobalProperties]): Option[SlackManager] = {
+    if (job_properties.job_send_slack_notification)
+      Some(new SlackManager(job_name, job_properties,"",
+        global_properties match {
+          case Some(x) => x.slack_webhook_url
+          case None => "<use_global_properties_slack_webhook_url>"
+        },
+        global_properties match {
+          case Some(x) => x.slack_env
+          case None => "<use_global_properties_slack_env>"
+        }
+      ))
+    else
+      None
   }
 }

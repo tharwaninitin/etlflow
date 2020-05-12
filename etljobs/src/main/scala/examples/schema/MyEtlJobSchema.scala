@@ -1,4 +1,4 @@
-package etljobs.examples.schema
+package examples.schema
 
 import etljobs.EtlJobSchema
 

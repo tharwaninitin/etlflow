@@ -11,6 +11,7 @@ object EtlJobArgsParser {
                            show_job_props: Boolean = false,
                            show_step_props: Boolean = false,
                            run_job: Boolean = false,
+                           run_job_remote: Boolean = false,
                            job_name: String = "",
                            job_properties: Map[String,String] = Map.empty
                          )
@@ -53,6 +54,18 @@ object EtlJobArgsParser {
     cmd("run_job")
       .action((_, c) => c.copy(run_job = true))
       .text("run job in etljobs")
+      .children(
+        opt[String]("job_name")
+          .action((x, c) => c.copy(job_name = x))
+          .text("job_name is a EtlJobName"),
+        opt[Map[String, String]]("props")
+          .valueName("k1=v1,k2=v2...")
+          .action((x, c) => c.copy(job_properties = x))
+          .text("other arguments")
+      )
+    cmd("run_job_remote")
+      .action((_, c) => c.copy(run_job_remote = true))
+      .text("Submit job to cluster")
       .children(
         opt[String]("job_name")
           .action((x, c) => c.copy(job_name = x))

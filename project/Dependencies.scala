@@ -17,7 +17,8 @@ object Dependencies {
 
   lazy val googleCloudLibs = List(
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
-    "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
+    "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion,
+    "com.google.cloud" % "google-cloud-dataproc" % "0.122.1"
   )
 
   lazy val sparkLibs = List(

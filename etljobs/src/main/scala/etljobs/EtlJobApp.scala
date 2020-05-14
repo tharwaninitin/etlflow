@@ -1,6 +1,6 @@
 package etljobs
 
-import etljobs.etljob.{EtlJob, GenericEtlJob}
+import etljobs.etljob.{EtlJob, GenericEtlJob, DataProcJobSupport}
 import etljobs.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etljobs.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.apache.log4j.Logger
@@ -10,9 +10,9 @@ import scala.reflect.runtime.universe.TypeTag
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]
 // 2) Or below "trait with type" like this => trait EtlJobApp[T] { type EJN = TypeTag[T] }
-abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] {
+abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends DataProcJobSupport{
   lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
-  val global_properties: Option[EJGP]
+  def globalProperties: Option[EJGP]
   val etl_job_name_package: String
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlJob
@@ -20,8 +20,8 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
   def main(args: Array[String]): Unit = {
     parser.parse(args, EtlJobConfig()) match {
       case Some(serverConfig) => serverConfig match {
-        case EtlJobConfig(true,false,false,false,false,false,"",_) => UF.printEtlJobs[EJN]
-        case EtlJobConfig(false,default,actual,true,false,false,jobName,jobProps) if jobName != "" =>
+        case EtlJobConfig(true,false,false,false,false,false,false,"",_) => UF.printEtlJobs[EJN]
+        case EtlJobConfig(false,default,actual,true,false,false,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_job_props with params: job_name => $jobName""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
           println(UF.convertToJson(job_name.default_properties_map))
@@ -33,20 +33,25 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
             val props = job_name.getActualProperties(jobProps)
             println(UF.convertToJsonByRemovingKeys(props,exclude_keys))
           }
-        case EtlJobConfig(false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
+        case EtlJobConfig(false,false,false,false,true,false,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName job_properties => $jobProps""")
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),global_properties)
+          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)
           if (etl_job.isInstanceOf[GenericEtlJob])
             println("Step Props info not available for generic jobs")
-          else
+          else {
             etl_job.job_name = job_name.toString
             val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
             println(json)
-        case EtlJobConfig(false,false,false,false,false,true,jobName,jobProps) if jobName != "" =>
+          }
+        case EtlJobConfig(false,false,false,false,false,false,true,jobName,jobProps) if jobName != "" =>
+          ea_logger.info(s"""Submitting job to cluster with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
+          val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
+          executeDataProcJob(job_name.toString,jobProps)
+        case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Running job with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),global_properties)
+          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)
           etl_job.job_name = job_name.toString
           etl_job.execute()
         case etlJobConfig if (etlJobConfig.show_job_props || etlJobConfig.show_step_props) && etlJobConfig.job_name == "" =>

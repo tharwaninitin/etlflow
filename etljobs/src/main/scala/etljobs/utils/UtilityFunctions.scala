@@ -73,7 +73,7 @@ object UtilityFunctions {
       case m: MethodSymbol if (m.isVar || m.isVal) && m.isGetter => (m.name.toString, m.returnType.toString)
     }.toList.filterNot(x => excludeColumnList.contains(x._1)).toMap
 
-  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package:String = "etljobs.schema.EtlJobList$"): T = {
+  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package: String = "etljobs.schema.EtlJobList$"): T = {
     val fullClassName = etl_job_list_package + job_name + "$"
     try {
       val classVal = Class.forName(fullClassName)

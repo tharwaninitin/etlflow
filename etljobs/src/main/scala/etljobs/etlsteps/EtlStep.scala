@@ -1,6 +1,6 @@
 package etljobs.etlsteps
 
-import etljobs.log.{DbManager, SlackManager}
+import etljobs.LoggerResource
 import org.apache.log4j.Logger
 import zio.{Task, ZIO}
 
@@ -12,42 +12,35 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()
   def getStepProperties(level: String = "info"): Map[String,String] = Map()
 
-  final def logStepInit(step_start_time: Long)(db: Option[DbManager]): Task[Long] = {
-    if (db.isDefined)
-      db.get.updateStepLevelInformation(step_start_time, self, "started", mode = "insert")
+  final def logStepInit(step_start_time: Long)(resource: LoggerResource): Task[Long] = {
+    if (resource.db.isDefined)
+      resource.db.get.updateStepLevelInformation(step_start_time, self, "started", mode = "insert")
     else ZIO.succeed(0)
   }
-  final def logStepSuccess(step_start_time: Long)(db: Option[DbManager]): Task[Long] = {
-    if (db.isDefined)
-      db.get.updateStepLevelInformation(step_start_time, this, "pass")
+  final def logStepSuccess(step_start_time: Long)(resource: LoggerResource): Task[Long] = {
+    resource.slack.foreach(_.updateStepLevelInformation(step_start_time, this, "pass"))
+    if (resource.db.isDefined)
+      resource.db.get.updateStepLevelInformation(step_start_time, this, "pass")
     else
       ZIO.succeed(0)
   }
-  final def logStepError(step_start_time: Long, ex: Throwable)(db: Option[DbManager]): Task[Long] = {
-    if (db.isDefined)
-      db.get.updateStepLevelInformation(step_start_time, this, "failed", Some(ex.getMessage))
+  final def logStepError(step_start_time: Long, ex: Throwable)(resource: LoggerResource): Task[Long] = {
+    resource.slack.foreach(_.updateStepLevelInformation(step_start_time, this, "failed", Some(ex.getMessage)))
+    if (resource.db.isDefined)
+      resource.db.get.updateStepLevelInformation(step_start_time, this, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage)).as(1)
     else
-      ZIO.fail(ex)
+      Task.fail(ex)
   }
-  final def execute(input_state: IPSTATE)(implicit db: Option[DbManager] = None, slack: Option[SlackManager] = None): Task[Unit] = {
-    //    def errorHandler(exception: Throwable): Throwable = {
-    //      slack.foreach(_.updateStepLevelInformation(step_start_time, this, "failed", Some(exception.getMessage)))
-    //      db.foreach(_.updateStepLevelInformation(step_start_time, this, "failed", Some(exception.getMessage)))
-    //      etl_logger.error(s"Error Occurred in step $name ${exception.getMessage}")
-    //      exception
-    //    }
-    //
-    //    def successHandler(): Task[Unit] = Task {
-    //      slack.foreach(_.updateStepLevelInformation(step_start_time, this, "pass"))
-    //      db.foreach(_.updateStepLevelInformation(step_start_time, this, "pass"))
-    //    }
-    for {
+
+  final def execute(input_state: IPSTATE)(implicit resource: LoggerResource): Task[Unit] = {
+    val step = for {
       step_start_time <- Task.succeed(System.currentTimeMillis())
-      _ <- logStepInit(step_start_time)(db)
+      _ <- logStepInit(step_start_time)(resource)
       _ <- process(input_state) foldM (
-              ex => logStepError(step_start_time, ex)(db),
-              _  => logStepSuccess(step_start_time)(db)
+              ex => logStepError(step_start_time, ex)(resource),
+              _  => logStepSuccess(step_start_time)(resource)
            )
     } yield ()
+    step
   }
 }

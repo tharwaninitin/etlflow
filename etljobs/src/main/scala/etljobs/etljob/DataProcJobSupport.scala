@@ -3,17 +3,17 @@ package etljobs.etljob
 import java.util.concurrent.TimeUnit
 import com.google.cloud.dataproc.v1._
 import org.apache.log4j.Logger
-import zio.ZIO
 import scala.collection.JavaConverters._
 
 trait DataProcJobSupport {
+
   lazy val dp_logger: Logger = Logger.getLogger(getClass.getName)
-  val region: String
-  val projectId: String
-  val endPoint: String
-  val clusterName: String
-  val mainClass: String
-  val libs: List[String]
+  val gcp_region: String
+  val gcp_project: String
+  val gcp_dp_endpoint: String
+  val gcp_dp_cluster_name: String
+  val main_class: String
+  val dp_libs: List[String]
 
   def executeDataProcJob(job_name: String, job_properties: Map[String,String]): Unit = {
     val props = job_properties.map(x => s"${x._1}=${x._2}").mkString(",")
@@ -24,22 +24,22 @@ trait DataProcJobSupport {
       "--props",
       props
     )
-    val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(endPoint).build()
+    val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(gcp_dp_endpoint).build()
     val jobControllerClient = JobControllerClient.create(jobControllerSettings)
-    val jobPlacement = JobPlacement.newBuilder().setClusterName(clusterName).build()
+    val jobPlacement = JobPlacement.newBuilder().setClusterName(gcp_dp_cluster_name).build()
     val sparkJob = SparkJob.newBuilder()
-      .addAllJarFileUris(libs.asJava)
-      .setMainClass(mainClass)
+      .addAllJarFileUris(dp_libs.asJava)
+      .setMainClass(main_class)
       .addAllArgs(args.asJava)
       .build()
     val job = Job.newBuilder().setPlacement(jobPlacement).setSparkJob(sparkJob).build()
-    val request = jobControllerClient.submitJob(projectId, region, job)
+    val request = jobControllerClient.submitJob(gcp_project, gcp_region, job)
     val jobId = request.getReference.getJobId
     dp_logger.info(s"Submitted job $jobId")
-    waitForJobCompletion(jobControllerClient, projectId, region, jobId)
+    waitForJobCompletion(jobControllerClient, gcp_project, gcp_region, jobId)
   }
 
-  private[etljob] def waitForJobCompletion(jobControllerClient: JobControllerClient, projectId: String, region: String, jobId: String): Unit = {
+  private def waitForJobCompletion(jobControllerClient: JobControllerClient, projectId: String, region: String, jobId: String): Unit = {
     var continue = true
     var jobInfo = jobControllerClient.getJob(projectId, region, jobId)
     var jobState = jobInfo.getStatus.getState.toString
@@ -59,5 +59,4 @@ trait DataProcJobSupport {
       }
     }
   }
-
 }

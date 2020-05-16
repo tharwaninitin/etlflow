@@ -1,6 +1,7 @@
 package examples.jobs
 
-import etljobs.etljob.GenericEtlJob
+import etljobs.LoggerResource
+import etljobs.etljob.EtlJob
 import etljobs.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
 import etljobs.spark.SparkUDF
 import etljobs.utils.CSV
@@ -13,13 +14,13 @@ import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import zio.Task
 
-case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends GenericEtlJob with SparkUDF {
+case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with SparkUDF {
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private var output_date_paths: Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"
   private val job_props = job_properties.asInstanceOf[EtlJob23Props]
 
-  private def enrichRatingData(job_properties: EtlJob23Props)(spark: SparkSession, in: Dataset[Rating]) : Dataset[RatingOutput] = {
+  private def enrichRatingData(job_properties: EtlJob23Props)(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
 
     val ratings_df = in
         .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
@@ -61,7 +62,7 @@ case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: O
     output_table   = job_props.ratings_output_table_name
   )
 
-  def etl_job: Task[Unit] = for {
+  def etlJob(implicit resource: LoggerResource): Task[Unit] = for {
     - <- step1.execute(spark)
     _ <- step2.execute(bq)
    } yield ()

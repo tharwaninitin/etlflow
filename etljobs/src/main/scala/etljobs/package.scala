@@ -1,6 +1,8 @@
 import etljobs.etlsteps.EtlStep
+import etljobs.log.{DbLogManager, SlackLogManager}
 import org.apache.log4j.Logger
 import etljobs.utils.{UtilityFunctions => UF}
+
 import scala.reflect.runtime.universe.TypeTag
 
 package object etljobs {
@@ -8,10 +10,12 @@ package object etljobs {
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
 
+  case class LoggerResource(db: Option[DbLogManager], slack: Option[SlackLogManager])
+
   abstract class EtlJobName[+EJP : TypeTag] {
     final val default_properties_map: Map[String,String] = UF.getEtlJobProps[EJP]()
     final val job_name_package = getClass.getName
-    val default_properties: EtlJobProps
+    val default_properties: EJP
     def getActualProperties(job_properties: Map[String, String]): EJP
   }
 

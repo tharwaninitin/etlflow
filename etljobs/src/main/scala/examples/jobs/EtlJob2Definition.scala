@@ -73,5 +73,5 @@ case class EtlJob2Definition(job_properties: MyEtlJobProps, global_properties: O
     output_table      = job_props.ratings_output_table_name
   )
 
-  val etl_step_list: List[EtlStep[_,_]] = EtlStepList(step1,step2,step3)
+  val etlStepList: List[EtlStep[_,_]] = EtlStepList(step1,step2,step3)
 }

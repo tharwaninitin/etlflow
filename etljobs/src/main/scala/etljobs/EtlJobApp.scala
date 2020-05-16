@@ -1,19 +1,23 @@
 package etljobs
 
-import etljobs.etljob.{EtlJob, GenericEtlJob, DataProcJobSupport}
+import etljobs.etljob.{DataProcJobSupport, EtlJob, SequentialEtlJob}
 import etljobs.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etljobs.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.apache.log4j.Logger
-
 import scala.reflect.runtime.universe.TypeTag
 
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]
 // 2) Or below "trait with type" like this => trait EtlJobApp[T] { type EJN = TypeTag[T] }
-abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends DataProcJobSupport{
+abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends DataProcJobSupport {
   lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
   def globalProperties: Option[EJGP]
   val etl_job_name_package: String
+  val gcp_region: String = globalProperties.map(x => x.gcp_region).getOrElse("<not_set>")
+  val gcp_project: String = globalProperties.map(x => x.gcp_project).getOrElse("<not_set>")
+  val gcp_dp_endpoint: String = globalProperties.map(x => x.gcp_dp_endpoint).getOrElse("<not_set>")
+  val gcp_dp_cluster_name: String = globalProperties.map(x => x.gcp_dp_cluster_name).getOrElse("<not_set>")
+  val main_class: String = getClass.getName
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlJob
 
@@ -37,7 +41,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName job_properties => $jobProps""")
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
           val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)
-          if (etl_job.isInstanceOf[GenericEtlJob])
+          if (!etl_job.isInstanceOf[SequentialEtlJob])
             println("Step Props info not available for generic jobs")
           else {
             etl_job.job_name = job_name.toString

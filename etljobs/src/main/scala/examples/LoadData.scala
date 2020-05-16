@@ -12,21 +12,17 @@ object LoadData extends EtlJobApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, My
   // or keep log4j.properties in resources folder
   private val props_file_path = s"${new java.io.File(".").getCanonicalPath}/conf/loaddata.properties"
   override def globalProperties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(props_file_path)).toOption
-  override val etl_job_name_package = my_job_package
-  override val region: String       = ""
-  override val projectId: String    = ""
-  override val endPoint: String     = ""
-  override val clusterName: String  = ""
-  override val mainClass: String    = ""
-  override val libs: List[String]   = List.empty
+  override val etl_job_name_package: String = my_job_package
+  override val dp_libs: List[String] = List.empty
 
   def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps,Option[MyGlobalProperties]) => EtlJob = {
     job_name match {
       case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => EtlJob1Definition
       case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => EtlJob2Definition
-      case EtlJob3CSVtoCSVtoBQGcsWith2Steps       => EtlJob3Definition
-      case EtlJob4BQtoBQ                          => EtlJob4Definition
-      case EtlJob5PARQUETtoJDBC                   => EtlJob5Definition
+      case EtlJob3CSVtoCSVtoBQGcsWith2Steps => EtlJob3Definition
+      case EtlJob4BQtoBQ => EtlJob4Definition
+      case EtlJob5PARQUETtoJDBC => EtlJob5Definition
+      case EtlJob6BQPGQuery => EtlJob6Definition
     }
   }
 }

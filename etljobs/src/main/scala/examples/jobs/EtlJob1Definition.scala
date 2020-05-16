@@ -33,5 +33,5 @@ case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: O
     output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
   )
 
-  val etl_step_list: List[EtlStep[_, _]] = EtlStepList(step1,step2)
+  val etlStepList: List[EtlStep[_, _]] = EtlStepList(step1,step2)
 }

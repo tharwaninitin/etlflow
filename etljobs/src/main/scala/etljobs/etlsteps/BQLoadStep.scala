@@ -1,6 +1,6 @@
 package etljobs.etlsteps
 
-import java.util.ArrayList
+import java.util
 import com.google.cloud.bigquery.{BigQuery, Field, JobInfo, LegacySQLTypeName, Schema}
 import etljobs.bigquery.LoadApi
 import etljobs.utils._
@@ -38,7 +38,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etljobs] (
     }
 
     val schema: Option[Schema] = Try{
-      val fields = new ArrayList[Field]
+      val fields = new util.ArrayList[Field]
       Encoders.product[T].schema.map(x => fields.add(Field.of(x.name, getBQType(x.dataType.toString))))
       val s = Schema.of(fields)
       etl_logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName,x.getType))}")
@@ -68,19 +68,14 @@ class BQLoadStep[T <: Product : TypeTag] private[etljobs] (
     etl_logger.info("#################################################################################################")
   }
 
-//  override def getExecutionMetrics: Map[String, Map[String, String]] = {
-//    val destinationTable = Try {
-//      val tableId = TableId.of(output_dataset, output_table)
-//      bq.getTable(tableId).getDefinition[StandardTableDefinition]
-//    }.toOption
-//
-//    Map(name ->
-//      Map(
-//        "total_rows" -> destinationTable.map(x => x.getNumRows.toString).getOrElse("error in getting number of rows"),
-//        "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
-//      )
-//    )
-//  }
+  override def getExecutionMetrics: Map[String, Map[String, String]] = {
+    Map(name ->
+      Map(
+        "total_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+        // "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
+      )
+    )
+  }
 
   override def getStepProperties(level: String): Map[String, String] = {
     if (level.equalsIgnoreCase("info"))

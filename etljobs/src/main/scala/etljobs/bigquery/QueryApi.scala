@@ -48,7 +48,8 @@ object QueryApi {
     }
     else {
       query_logger.info(s"Job State: ${queryJob.getStatus.getState}")
-      query_logger.info(s"Statistics: ${queryJob.getStatistics.asInstanceOf[QueryStatistics]}")
+      // val stats = queryJob.getStatistics.asInstanceOf[QueryStatistics]
+      // query_logger.info(s"Query Plan : ${stats.getQueryPlan}")
     }
   }
 }

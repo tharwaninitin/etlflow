@@ -9,15 +9,11 @@ import scala.reflect.runtime.universe.TypeTag
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]
 // 2) Or below "trait with type" like this => trait EtlJobApp[T] { type EJN = TypeTag[T] }
-abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends DataProcJobSupport {
+abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends DataProcJobSupport[EJGP] {
   lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
+
   def globalProperties: Option[EJGP]
   val etl_job_name_package: String
-  val gcp_region: String = globalProperties.map(x => x.gcp_region).getOrElse("<not_set>")
-  val gcp_project: String = globalProperties.map(x => x.gcp_project).getOrElse("<not_set>")
-  val gcp_dp_endpoint: String = globalProperties.map(x => x.gcp_dp_endpoint).getOrElse("<not_set>")
-  val gcp_dp_cluster_name: String = globalProperties.map(x => x.gcp_dp_cluster_name).getOrElse("<not_set>")
-  val main_class: String = getClass.getName
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlJob
 
@@ -51,7 +47,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         case EtlJobConfig(false,false,false,false,false,false,true,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Submitting job to cluster with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          executeDataProcJob(job_name.toString,jobProps)
+          executeDataProcJob(job_name.toString,jobProps,globalProperties)
         case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Running job with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)

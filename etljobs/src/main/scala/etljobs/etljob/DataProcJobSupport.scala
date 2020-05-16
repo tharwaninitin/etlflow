@@ -2,28 +2,39 @@ package etljobs.etljob
 
 import java.util.concurrent.TimeUnit
 import com.google.cloud.dataproc.v1._
+import etljobs.utils.GlobalProperties
 import org.apache.log4j.Logger
 import scala.collection.JavaConverters._
 
-trait DataProcJobSupport {
+trait DataProcJobSupport[EJGP <: GlobalProperties] {
 
   lazy val dp_logger: Logger = Logger.getLogger(getClass.getName)
-  val gcp_region: String
-  val gcp_project: String
-  val gcp_dp_endpoint: String
-  val gcp_dp_cluster_name: String
-  val main_class: String
-  val dp_libs: List[String]
 
-  def executeDataProcJob(job_name: String, job_properties: Map[String,String]): Unit = {
+  val main_class: String = getClass.getName.replace("$","")
+  val dp_libs: List[String] = List.empty
+
+  def executeDataProcJob(job_name: String, job_properties: Map[String,String],global_properties: Option[EJGP]): Unit = {
+    val gcp_region: String = global_properties.map(x => x.gcp_region).getOrElse("<not_set>")
+    val gcp_project: String = global_properties.map(x => x.gcp_project).getOrElse("<not_set>")
+    val gcp_dp_endpoint: String = global_properties.map(x => x.gcp_dp_endpoint).getOrElse("<not_set>")
+    val gcp_dp_cluster_name: String = global_properties.map(x => x.gcp_dp_cluster_name).getOrElse("<not_set>")
+
     val props = job_properties.map(x => s"${x._1}=${x._2}").mkString(",")
-    val args = List(
-      "run_job_remote",
-      "--job_name",
-      job_name,
-      "--props",
-      props
-    )
+    val args =
+      if (props != "")
+        List("run_job", "--job_name", job_name, "--props", props)
+      else
+        List("run_job", "--job_name", job_name)
+
+    dp_logger.info(s"""gcp_region => $gcp_region
+         |gcp_project => $gcp_project
+         |gcp_dp_endpoint => $gcp_dp_endpoint
+         |gcp_dp_cluster_name => $gcp_dp_cluster_name
+         |main_class => $main_class
+         |args => $args""".stripMargin)
+    dp_logger.info("dp_libs")
+    dp_libs.foreach(dp_logger.info(_))
+
     val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(gcp_dp_endpoint).build()
     val jobControllerClient = JobControllerClient.create(jobControllerSettings)
     val jobPlacement = JobPlacement.newBuilder().setClusterName(gcp_dp_cluster_name).build()

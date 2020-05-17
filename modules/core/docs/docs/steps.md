@@ -1,9 +1,9 @@
 ---
 layout: docs
-title: Etl Steps
+title: EtlSteps
 ---
 
-## Etl Steps
+## EtlSteps
 
 **SparkReadWriteStep**
     
@@ -19,41 +19,62 @@ title: Etl Steps
       
 **SparkReadTransformWriteStep**
 
-     val step = SparkReadTransformWriteStep[HotstarMasterMappingAws, HotstarMasterMappingBQ](
-        name                    = "load_hostar_master_mapping_GCP",
-        input_location          = Seq(props.job_input_path),
-        input_type              = CSV(",",true),
-        output_location         = props.job_output_path,
-        transform_function      = hotstar_master_mapping_transform,
-        output_type             = ORC,
-        output_save_mode        = SaveMode.Overwrite,
-        output_filename         = Some(props.output_file_name)
-      )
+     val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
+         name                  = "LoadRatingsParquet",
+         input_location        = Seq(job_props.ratings_input_path),
+         input_type            = CSV(",", true, "FAILFAST"),
+         transform_function    = enrichRatingData,
+         output_type           = PARQUET,
+         output_location       = gcs_output_path,
+         output_save_mode      = SaveMode.Overwrite,
+         output_partition_col  = Seq(f"$temp_date_col"),
+         output_repartitioning = true  // Setting this to true takes care of creating one file for every partition
+       )
       
 **SparkETLStep**       
           
     val step = new SparkETLStep(
-        name="POSTGRES_UPDATE_FACT_REV_TABLE",
-        transform_function=queryPostgres
-    )
+        name               = "GenerateFilePaths",
+        transform_function = addFilePaths(job_props)
+      ) {
+        override def getStepProperties(level: String) : Map[String,String] = Map("paths" -> output_date_paths.mkString(","))
+      }
      
 **BQLoadStep**
 
-     val step = BQLoadStep(
-        name                = "LoadRatingBQ",
-        source_path         = job_properties("ratings_output_path") + "/" + job_properties("ratings_output_file_name"),
-        source_format       = PARQUET,
-        source_file_system  = LOCAL,
-        destination_dataset = job_properties("ratings_output_dataset"),
-        destination_table   = job_properties("ratings_output_table_name")
-      )
+     val step1 = BQLoadStep(
+         name            = "LoadQueryDataBQ",
+         input_location  = Left(select_query),
+         input_type      = BQ,
+         output_dataset  = "test",
+         output_table    = "ratings_grouped",
+         output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
+     )
+     
+     val step2 = BQLoadStep(
+         name           = "LoadQueryDataBQPar",
+         input_location = Right(input_query_partitions),
+         input_type     = BQ,
+         output_dataset = "test",
+         output_table   = "ratings_grouped_par"
+     )
     
 
 **BQQueryStep**   
    
-    private val query = s"""create table ${props.output_dataset}.${props.output_table_name} as select advertiser_group, channel_name from ${props.output_dataset}.${props.job_input_path} limit 10;"""
-    
-    private val step1 = BQQueryStep(
-      name = "CreateStoredProcedure",
-      query = query
-    )      
+    val step = BQQueryStep(
+        name  = "CreateTableBQ",
+        query = s"""CREATE OR REPLACE TABLE test.ratings_grouped as
+                SELECT movie_id, COUNT(1) cnt
+                FROM test.ratings
+                GROUP BY movie_id
+                ORDER BY cnt DESC;""".stripMargin
+    )     
+      
+**DBQueryStep**
+
+    val step4 = DBQueryStep(
+        name  = "UpdatePG",
+        query = "BEGIN; DELETE FROM ratings WHERE 1 =1; INSERT INTO ratings SELECT * FROM ratings_temp; COMMIT;",
+        credentials = JDBC(global_props.log_db_url, global_props.log_db_user, global_props.log_db_pwd, global_props.jdbc_driver)
+    )

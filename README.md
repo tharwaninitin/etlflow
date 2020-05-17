@@ -26,7 +26,7 @@ sbt "project etljobs" test
 2. **etlsteps**:
  This package contains all type of ETL Steps that can be created with this library, click [here](core/src/main/scala/etljobs/etlsteps) to see.
 3. **examples**:
- This module provides examples of diffferent types of ETL Jobs which can be created with this library, click [here](examples/src/main/scala/examples) to see code.
+ This module provides examples of diffferent types of ETL Jobs which can be created with this library, click [here](oldexamples/src/main/scala/examples) to see code.
 
 ## Getting Started
 Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)

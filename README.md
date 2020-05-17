@@ -21,40 +21,40 @@ This project contains following sub-modules:
   ```
  Now run tests using below sbt command
  ```shell
-sbt "project etljobs" test
+sbt "project etlflow" test
 ```
 2. **modules/core/src/main/scala/etlflow/etlsteps**:
- This package contains all type of ETL Steps that can be created with this library, click [here](core/src/main/scala/etljobs/etlsteps) to see.
+ This package contains all type of ETL Steps that can be created with this library, click [here](modules/core/src/main/scala/etlflow/etlsteps) to see.
 3. **modules/examples**:
- This module provides examples of diffferent types of ETL Jobs which can be created with this library, click [here](oldexamples/src/main/scala/examples) to see code.
+ This module provides examples of different types of ETL Jobs which can be created with this library, click [here](modules/examples/src/main/scala/examples) to see code.
 
 ## Requirements and Installation
 This project is compiled with scala version 2.12.10 and works with Apache Spark versions 2.4.x.
-Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etljobs). 
+Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core). 
 Add the latest release as a dependency to your project
 
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
-    <artifactId>etljobs_2.12</artifactId>
-    <version>0.7.6</version>
+    <artifactId>etlflow-core_2.12</artifactId>
+    <version>0.7.7</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etljobs" % "0.7.7"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.7"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etljobs/releases/tag/v0.7.7
+__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.7
 
 
 ## Documentation
 
-__Documentation__  https://tharwaninitin.github.io/etljobs/site/
+__Documentation__  https://tharwaninitin.github.io/etlflow/site/
 
-__Scala API Docs__ https://tharwaninitin.github.io/etljobs/api/
+__Scala API Docs__ https://tharwaninitin.github.io/etlflow/api/
 
-__Scala Test Coverage Report__  https://tharwaninitin.github.io/etljobs/testcovrep/
+__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

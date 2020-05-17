@@ -26,10 +26,24 @@ lazy val core = (project in file("modules/core"))
   .settings(coreSettings)
   .enablePlugins(ClassDiagramPlugin)
   .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(MicrositesPlugin)
   .settings(
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
     initialCommands := "import etlflow._",
+    micrositeName := "EtlFlow",
+    micrositeDescription := "EtlFlow",
+    micrositeUrl := "https://tharwaninitin.github.io/etljobs/site/",
+    micrositeBaseUrl := "",
+    micrositeTheme := "pattern",
+    micrositeDocumentationUrl := "/docs",
+    micrositeGithubOwner := "tharwaninitin",
+    micrositeGithubRepo := "etljobs",
+    micrositeGitterChannel := false,
+    micrositeDocumentationLabelDescription := "Documentation",
+    micrositeCompilingDocsTool := WithMdoc,
+    micrositeDataDirectory := (resourceDirectory in Compile).value / "docs" / "data",
+    micrositeAuthor := "Tharwani Nitin",
     buildInfoKeys := Seq[BuildInfoKey](
       resolvers,
       libraryDependencies in Compile,

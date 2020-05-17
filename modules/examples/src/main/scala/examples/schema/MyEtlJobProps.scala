@@ -1,6 +1,6 @@
 package examples.schema
 
-import etljobs.EtlJobProps
+import etlflow.EtlJobProps
 
 sealed trait MyEtlJobProps extends EtlJobProps
 

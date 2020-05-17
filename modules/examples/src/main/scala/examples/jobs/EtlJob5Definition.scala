@@ -1,9 +1,9 @@
 package examples.jobs
 
-import etljobs.EtlStepList
-import etljobs.etljob.SequentialEtlJob
-import etljobs.etlsteps.{EtlStep, SparkReadWriteStep}
-import etljobs.utils.{BQ, JDBC, PARQUET}
+import etlflow.EtlStepList
+import etlflow.etljobs.SequentialEtlJob
+import etlflow.etlsteps.{EtlStep, SparkReadWriteStep}
+import etlflow.utils.{BQ, JDBC, PARQUET}
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob5Props

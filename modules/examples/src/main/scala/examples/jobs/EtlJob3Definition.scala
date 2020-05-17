@@ -1,10 +1,10 @@
 package examples.jobs
 
-import etljobs.LoggerResource
-import etljobs.etljob.EtlJob
-import etljobs.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
-import etljobs.spark.SparkUDF
-import etljobs.utils.CSV
+import etlflow.LoggerResource
+import etlflow.etljobs.EtlJob
+import etlflow.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
+import etlflow.spark.SparkUDF
+import etlflow.utils.CSV
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob23Props

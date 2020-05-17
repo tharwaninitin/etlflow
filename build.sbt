@@ -7,12 +7,12 @@ lazy val supportedScalaVersions = List(scala212)
 import Dependencies._
 
 lazy val coreSettings = Seq(
-  name := "etljobs-core"
+  name := "etlflow-core"
   , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
 lazy val examplesSettings = Seq(
-  name := "etljobs-examples"
+  name := "etlflow-examples"
   , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
@@ -29,14 +29,14 @@ lazy val core = (project in file("modules/core"))
   .settings(
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
-    initialCommands := "import etljobs._",
+    initialCommands := "import etlflow._",
     buildInfoKeys := Seq[BuildInfoKey](
       resolvers,
       libraryDependencies in Compile,
       name, version, scalaVersion, sbtVersion
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
-    buildInfoPackage := "etljobs",
+    buildInfoPackage := "etlflow",
     Test / parallelExecution := false
   )
 
@@ -49,7 +49,7 @@ lazy val examples = (project in file("modules/examples"))
   .settings(
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
-    packageName in Docker := "etljobs",
+    packageName in Docker := "etlflow",
     mainClass in Compile := Some("examples.LoadData"),
     dockerBaseImage := "openjdk:jre",
     maintainer := "tharwaninitin182@gmail.com",

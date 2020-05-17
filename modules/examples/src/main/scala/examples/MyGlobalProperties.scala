@@ -1,6 +1,6 @@
 package examples
 
-import etljobs.utils.GlobalProperties
+import etlflow.utils.GlobalProperties
 
 class MyGlobalProperties(val global_properties_file_path: String) extends GlobalProperties(global_properties_file_path) {
 

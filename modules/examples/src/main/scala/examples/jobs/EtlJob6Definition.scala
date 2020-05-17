@@ -1,9 +1,9 @@
 package examples.jobs
 
-import etljobs.EtlStepList
-import etljobs.etljob.SequentialEtlJob
-import etljobs.etlsteps.{BQQueryStep, DBQueryStep, EtlStep}
-import etljobs.utils.JDBC
+import etlflow.EtlStepList
+import etlflow.etljobs.SequentialEtlJob
+import etlflow.etlsteps.{BQQueryStep, DBQueryStep, EtlStep}
+import etlflow.utils.JDBC
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 

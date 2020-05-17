@@ -1,10 +1,10 @@
 package examples.jobs
 
 import com.google.cloud.bigquery.JobInfo
-import etljobs.EtlStepList
-import etljobs.etljob.SequentialEtlJob
-import etljobs.etlsteps.{BQLoadStep, BQQueryStep, EtlStep}
-import etljobs.utils.BQ
+import etlflow.EtlStepList
+import etlflow.etljobs.SequentialEtlJob
+import etlflow.etlsteps.{BQLoadStep, BQQueryStep, EtlStep}
+import etlflow.utils.BQ
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 

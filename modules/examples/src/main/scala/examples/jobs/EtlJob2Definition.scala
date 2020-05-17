@@ -1,10 +1,10 @@
 package examples.jobs
 
-import etljobs.EtlStepList
-import etljobs.etljob.SequentialEtlJob
-import etljobs.etlsteps.{BQLoadStep, EtlStep, SparkETLStep, SparkReadTransformWriteStep}
-import etljobs.spark.{ReadApi, SparkUDF}
-import etljobs.utils.{CSV, PARQUET}
+import etlflow.EtlStepList
+import etlflow.etljobs.SequentialEtlJob
+import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkETLStep, SparkReadTransformWriteStep}
+import etlflow.spark.{ReadApi, SparkUDF}
+import etlflow.utils.{CSV, PARQUET}
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import examples.MyGlobalProperties

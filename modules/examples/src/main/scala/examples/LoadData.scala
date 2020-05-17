@@ -1,7 +1,7 @@
 package examples
 
-import etljobs.EtlJobApp
-import etljobs.etljob.EtlJob
+import etlflow.EtlJobApp
+import etlflow.etljobs.EtlJob
 import examples.jobs._
 import examples.schema.MyEtlJobName._
 import examples.schema.{MyEtlJobName, MyEtlJobProps}

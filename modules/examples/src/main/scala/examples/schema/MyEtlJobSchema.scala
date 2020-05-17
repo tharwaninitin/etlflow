@@ -1,6 +1,6 @@
 package examples.schema
 
-import etljobs.EtlJobSchema
+import etlflow.EtlJobSchema
 
 sealed trait MyEtlJobSchema extends EtlJobSchema
 

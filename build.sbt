@@ -1,48 +1,76 @@
-version in ThisBuild := "0.7.6"
+version in ThisBuild := "0.7.7"
 
 lazy val scala212 = "2.12.10"
-lazy val scala211 = "2.11.12"
-lazy val supportedScalaVersions = List(scala212, scala211)
-
-// To run test sequentially instead of default parallel execution
-Global / concurrentRestrictions := Seq(
-  Tags.limit(Tags.CPU, 2),
-  Tags.limit(Tags.Network, 10),
-  Tags.limit(Tags.Test, 1),
-  Tags.limitAll( 15 )
-)
+lazy val scala211 = "2.11.12" // not supported now
+lazy val supportedScalaVersions = List(scala212)
 
 import Dependencies._
-lazy val etlJobsSettings = Seq(
-  name := "etljobs"
-  , libraryDependencies ++= sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
+
+lazy val coreSettings = Seq(
+  name := "etlflow-core"
+  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
 lazy val examplesSettings = Seq(
-  name := "examples"
-  , libraryDependencies ++= sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
+  name := "etlflow-examples"
+  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true)
-  .aggregate(etljobs, examples)
+  .aggregate(core, examples)
 
-lazy val etljobs = (project in file("etljobs"))
-  .settings(etlJobsSettings)
+lazy val core = (project in file("modules/core"))
+  .settings(coreSettings)
   .enablePlugins(ClassDiagramPlugin)
+  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(MicrositesPlugin)
   .settings(
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
-    initialCommands := "import etljobs._"
+    initialCommands := "import etlflow._",
+    micrositeName := "EtlFlow",
+    micrositeDescription := "EtlFlow",
+    micrositeUrl := "https://tharwaninitin.github.io/etljobs/site/",
+    micrositeBaseUrl := "",
+    micrositeTheme := "pattern",
+    micrositeDocumentationUrl := "/docs",
+    micrositeGithubOwner := "tharwaninitin",
+    micrositeGithubRepo := "etljobs",
+    micrositeGitterChannel := false,
+    micrositeDocumentationLabelDescription := "Documentation",
+    micrositeCompilingDocsTool := WithMdoc,
+    micrositeDataDirectory := (resourceDirectory in Compile).value / "docs" / "data",
+    micrositeAuthor := "Tharwani Nitin",
+    buildInfoKeys := Seq[BuildInfoKey](
+      resolvers,
+      libraryDependencies in Compile,
+      name, version, scalaVersion, sbtVersion
+    ),
+    buildInfoOptions += BuildInfoOption.BuildTime,
+    buildInfoPackage := "etlflow",
+    Test / parallelExecution := false
   )
 
-lazy val examples = (project in file("examples"))
+import NativePackagerHelper._
+
+lazy val examples = (project in file("modules/examples"))
   .settings(examplesSettings)
+  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(DockerPlugin)
   .settings(
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
+    packageName in Docker := "etlflow",
+    mainClass in Compile := Some("examples.LoadData"),
+    dockerBaseImage := "openjdk:jre",
+    maintainer := "tharwaninitin182@gmail.com",
+    // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
+    mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
+    mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
+    Test / parallelExecution := false
   )
-  .dependsOn(etljobs)
+  .dependsOn(core)
 

@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # Publish to local
-sbt "project etljobs" +clean +publishLocal
+sbt "project core" clean publishLocal
 
 # Make sure GITHUB_TOKEN is properly set
 echo $GITHUB_TOKEN
 
 # https://github.com/tcnksm/ghr
 # Uploads jar to Github releases page
-ghr v0.7.6 etljobs/target/scala-2.11/etljobs_2.11-0.7.6.jar
-ghr v0.7.6 etljobs/target/scala-2.12/etljobs_2.12-0.7.6.jar
+ghr v0.7.7 modules/core/target/scala-2.12/etlflow-core_2.12-0.7.7.jar

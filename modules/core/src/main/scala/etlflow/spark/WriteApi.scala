@@ -1,0 +1,94 @@
+package etlflow.spark
+
+import etlflow.EtlJobException
+import etlflow.utils._
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.log4j.Logger
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql._
+import scala.reflect.runtime.universe.TypeTag
+
+object WriteApi {
+
+  private val write_logger = Logger.getLogger(getClass.getName)
+  write_logger.info(s"Loaded ${getClass.getName}")
+
+  def WriteDSHelper[T <: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
+                                            , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
+                                            , recordsWrittenCount:Long,n : Int = 1, compression : String = "none", repartition : Boolean = false
+                                           ) : Map[String,String] = {
+    val mapping = Encoders.product[T]
+
+    if (level.equalsIgnoreCase("info")){
+      Map("output_location"->output_location
+        , "output_filename"->output_filename.getOrElse("NA")
+        , "output_type"->output_type.toString
+        , "output_rows" -> recordsWrittenCount.toString
+      )
+    }
+    else {
+      Map("output_location"->output_location
+        , "output_filename"->output_filename.getOrElse("NA")
+        , "output_type"->output_type.toString
+        , "output_class" -> mapping.schema.toDDL
+        , "output_rows" -> recordsWrittenCount.toString
+      )
+    }
+  }
+
+  def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
+                                      , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
+                                      , n : Int = 1, compression : String = "none", repartition : Boolean = false)
+                                     (source: Dataset[T], spark : SparkSession) : Unit = {
+    val mapping = Encoders.product[T]
+
+    val df_writer = partition_by match {
+      case partition if partition.nonEmpty && repartition =>
+          source.as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
+      case _ => source.as[T](mapping).repartition(n).write.option("compression",compression) //("compression", "gzip","snappy")
+    }
+
+    val df_writer_options = output_type match {
+      case CSV(delimiter,header_present,_,quotechar) => df_writer.format("csv").option("delimiter", delimiter)
+        .option("quote",quotechar).option("header", header_present)
+      case EXCEL => df_writer.format("com.crealytics.spark.excel").option("useHeader","true")
+      case PARQUET => df_writer.format("parquet")
+      case ORC => df_writer.format("orc")
+      case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
+      case TEXT => df_writer.format("text")
+      case JDBC(_, _, _, _) => df_writer
+      case _ => df_writer.format("text")
+    }
+
+    partition_by match {
+      case partition if partition.nonEmpty =>
+        output_type match {
+          case JDBC(_, _, _, _) => throw EtlJobException("Output partitioning with JDBC is not yet implemented")
+          case _ => df_writer_options.partitionBy(partition: _*).mode(save_mode).save(output_location)
+        }
+      case _ => {
+        output_type match {
+          case JDBC(url, user, password, driver) => {
+            val prop = new java.util.Properties
+            prop.setProperty("driver", driver)
+            prop.setProperty("user", user)
+            prop.setProperty("password", password)
+            df_writer_options.mode(save_mode).jdbc(url, output_location, prop)
+          }
+          case _ => df_writer_options.mode(save_mode).save(output_location)
+        }
+      }
+    }
+
+    write_logger.info(s"Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc => "Partitioned by " + pbc)}")
+
+    output_filename.foreach { output_file =>
+      val path = s"$output_location/"
+      val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
+      val fileName = fs.globStatus(new Path(path + "part*"))(0).getPath.getName
+      fs.rename(new Path(path + fileName), new Path(path + output_file))
+      write_logger.info(s"Renamed file path $path$fileName to $path$output_file")
+      fs.close()
+    }
+  }
+}

@@ -8,30 +8,42 @@ object Dependencies {
   private val QuillVersion = "3.5.0"
   private val ScalaTestVersion = "3.0.5"
   private val ScoptVersion = "3.7.1"
+  private val ZioVersion = "1.0.0-RC18"
+  private val DoobieVersion = "0.8.8"
 
   lazy val loggingLibs = List(
     "com.jcabi" % "jcabi-log" % "0.17.4"
-  ).map(_ % Provided)
+  )
 
   lazy val googleCloudLibs = List(
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
-    "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion
-  ).map(_ % Provided)
+    "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion,
+    "com.google.cloud" % "google-cloud-dataproc" % "0.122.1"
+  )
 
   lazy val sparkLibs = List(
     "org.apache.spark" %% "spark-core" % SparkVersion,
     "org.apache.spark" %% "spark-sql" % SparkVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
-  ).map(_ % Provided)
+  )
 
   lazy val dbLibs = List(
-    "io.getquill" %% "quill-jdbc" % QuillVersion,
-    "org.postgresql" % "postgresql" % "42.2.8"
-  ).map(_ % Provided)
+    "io.getquill" %% "quill-jdbc"       % QuillVersion,
+    "org.tpolecat" %% "doobie-core"     % DoobieVersion,
+    "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
+    "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
+    "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
+    "org.postgresql" % "postgresql"     % "42.2.8"
+  )
+
+  lazy val zioLibs = List(
+    "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC11"
+  )
 
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion
-  ).map(_ % Provided)
+  )
 
   lazy val testLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion

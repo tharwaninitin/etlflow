@@ -8,6 +8,7 @@ package object etlflow {
   lazy val etl_jobs_logger: Logger = Logger.getLogger(getClass.getName)
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
+  case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
 
   case class LoggerResource(db: Option[DbLogManager], slack: Option[SlackLogManager])
 

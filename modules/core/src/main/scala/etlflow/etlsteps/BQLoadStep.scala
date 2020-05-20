@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import java.util
-import com.google.cloud.bigquery.{BigQuery, Field, JobInfo, LegacySQLTypeName, Schema}
+import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
 import etlflow.bigquery.LoadApi
 import etlflow.utils._
 import org.apache.spark.sql.Encoders
@@ -19,11 +19,12 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
             , output_table: String
             , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
             , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+            , val gcp_credential_file_path: Option[String] = None
        )
-  extends EtlStep[BigQuery,Unit] {
+  extends BQStep {
   var row_count: Map[String, Long] = Map.empty
 
-  def process(bq: BigQuery): Task[Unit] = Task {
+  final def process(input: =>Unit): Task[Unit] = Task {
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting BQ Data Load Step : $name")
 
@@ -121,8 +122,9 @@ object BQLoadStep {
       , output_table: String
       , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
       , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+      , gcp_credential_file_path: Option[String] = None
      ): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system
-      , output_dataset, output_table, output_write_disposition, output_create_disposition)
+      , output_dataset, output_table, output_write_disposition, output_create_disposition, gcp_credential_file_path)
   }
 }

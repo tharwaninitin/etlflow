@@ -6,7 +6,7 @@ import doobie.hikari.HikariTransactor
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.scheduler.EtlFlowHelper.{EtlFlow, EtlFlowHas, EtlFlowInfo, EtlJob, EtlJobArgs, EtlJobNameArgs, EtlJobStatus}
 import etlflow.{EtlJobName, EtlJobProps}
-import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
+import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Queue, Ref, Task, UIO, ZEnv, ZIO, ZLayer}
 import ch.qos.logback.classic.Level
@@ -24,10 +24,11 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 
   private lazy val global_properties: Option[EJGP] = globalProperties
-  val DB_DRIVER: String = "org.postgresql.Driver"
+  val DB_DRIVER: String = global_properties.map(x => x.log_db_driver).getOrElse("<not_set>")
   val DB_URL: String  = global_properties.map(x => x.log_db_url).getOrElse("<not_set>")     // connect URL
   val DB_USER: String = global_properties.map(x => x.log_db_user).getOrElse("<not_set>")    // username
   val DB_PASS: String = global_properties.map(x => x.log_db_pwd).getOrElse("<not_set>")    // password
+  val credentials: JDBC = JDBC(DB_URL,DB_USER,DB_PASS,DB_DRIVER)
 
   object EtlFlowService {
     def liveHttp4s(pgTransactor: HikariTransactor[Task]): ZLayer[Any, Throwable, EtlFlowHas] =

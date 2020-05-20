@@ -1,12 +1,16 @@
 package etlflow.etlsteps
 
-import com.google.cloud.bigquery.BigQuery
 import etlflow.bigquery.QueryApi
 import zio.Task
 
-case class BQQueryStep private[etlflow](name: String, query: String) extends EtlStep[BigQuery,Unit] {
+case class BQQueryStep private[etlflow](
+                 name: String
+                 , query: String
+                 , gcp_credential_file_path: Option[String] = None
+           )
+  extends BQStep {
 
-  def process(bq : BigQuery): Task[Unit] = Task {
+  final def process(input: =>Unit): Task[Unit] = Task {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting BQ Query Step: $name")
     etl_logger.info(s"Query: $query")

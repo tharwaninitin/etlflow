@@ -1,17 +1,13 @@
 package etlflow.etljobs
 
-import com.google.cloud.bigquery.BigQuery
-import etlflow.bigquery.BigQueryManager
 import etlflow.jdbc.DbManager
 import etlflow.log.{DbLogManager, SlackLogManager}
-import etlflow.spark.SparkManager
 import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import etlflow.{EtlJobProps, LoggerResource}
 import org.apache.log4j.Logger
-import org.apache.spark.sql.SparkSession
 import zio.{BootstrapRuntime, Task, UIO, ZIO, ZManaged}
 
-trait EtlJob extends BootstrapRuntime with SparkManager with BigQueryManager with DbManager {
+trait EtlJob extends BootstrapRuntime with DbManager {
 
   final val etl_job_logger: Logger = Logger.getLogger(getClass.getName)
 
@@ -26,18 +22,15 @@ trait EtlJob extends BootstrapRuntime with SparkManager with BigQueryManager wit
   final def execute(): ZIO[Any, Throwable, Unit] = {
     (for {
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
-      resource        <- managed_etl_resource
+      resource        <- logger_resource
       _               <- logJobInit(resource).toManaged_
       _               <- etlJob(resource).mapError(e => logJobError(e,job_start_time)(resource)).toManaged_
       _               <- logJobSuccess(job_start_time)(resource).toManaged_
     } yield ()).use_(ZIO.unit)
   }
 
-  lazy val spark: SparkSession = createSparkSession(global_properties)
-  lazy val bq: BigQuery = createBigQuerySession(global_properties)
-
-  private[etljobs] val managed_etl_resource: ZManaged[Any, Throwable, LoggerResource] = for {
-    transactor      <- createDbTransactorManaged(global_properties,platform.executor.asEC)
+  private[etljobs] lazy val logger_resource: ZManaged[Any, Throwable, LoggerResource] = for {
+    transactor      <- createDbTransactorManagedGP(global_properties,platform.executor.asEC,job_name+"-Pool")
     db              <- DbLogManager.createDbLoggerManaged(transactor,job_name,job_properties)
     slack           <- SlackLogManager.createSlackLogger(job_name,job_properties,global_properties).toManaged_
   } yield LoggerResource(Option(db),slack)

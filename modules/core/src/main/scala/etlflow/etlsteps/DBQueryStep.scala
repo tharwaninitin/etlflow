@@ -10,10 +10,10 @@ case class DBQueryStep private[etlflow](name: String, query: String, credentials
   with BootstrapRuntime
   with DbManager{
 
-  val db: Managed[Throwable, HikariTransactor[Task]] =
+  lazy val db: Managed[Throwable, HikariTransactor[Task]] =
     createDbTransactorManagedJDBC(credentials, platform.executor.asEC,  name + "-Pool")
 
-  def process(in: Unit): Task[Unit] = {
+  final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting DB Query Step: $name")
     etl_logger.info(s"Query: $query")

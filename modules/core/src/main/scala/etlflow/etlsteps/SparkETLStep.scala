@@ -9,7 +9,7 @@ class SparkETLStep (
                   )
 extends EtlStep[SparkSession,Unit]
 {
-  def process(spark: SparkSession): Task[Unit] = Task {
+  final def process(spark: =>SparkSession): Task[Unit] = Task {
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting Spark ETL Step : $name")
     transform_function(spark)

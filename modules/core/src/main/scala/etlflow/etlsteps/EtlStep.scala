@@ -8,7 +8,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   val name: String
   val etl_logger: Logger = Logger.getLogger(getClass.getName)
 
-  def process(input_state: IPSTATE): Task[OPSTATE]
+  def process(input_state: =>IPSTATE): Task[OPSTATE]
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()
   def getStepProperties(level: String = "info"): Map[String,String] = Map()
 
@@ -32,7 +32,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
       Task.fail(ex)
   }
 
-  final def execute(input_state: IPSTATE)(implicit resource: LoggerResource): Task[Unit] = {
+  final def execute(input_state: =>IPSTATE)(implicit resource: LoggerResource): Task[Unit] = {
     val step = for {
       step_start_time <- Task.succeed(System.currentTimeMillis())
       _ <- logStepInit(step_start_time)(resource)

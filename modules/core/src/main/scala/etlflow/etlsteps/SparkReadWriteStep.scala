@@ -24,7 +24,7 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
 extends EtlStep[SparkSession,Unit] {
   private var recordsWrittenCount = 0L
 
-  def process(spark: SparkSession): Task[Unit] = Task {
+  final def process(spark: =>SparkSession): Task[Unit] = Task {
     implicit lazy val sp = spark
     sp.sparkContext.addSparkListener(new SparkListener() {
       override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {

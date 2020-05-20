@@ -11,6 +11,7 @@ object Dependencies {
   private val ZioVersion = "1.0.0-RC18-2"
   private val DoobieVersion = "0.8.8"
   private val calibanVersion = "0.7.5"
+  private val FlywayVersion = "6.4.1"
 
   lazy val loggingLibs = List(
     "com.jcabi" % "jcabi-log" % "0.17.4",
@@ -33,9 +34,12 @@ object Dependencies {
     "io.getquill" %% "quill-jdbc"       % QuillVersion,
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
+    "org.tpolecat" %% "doobie-h2"       % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
     "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
-    "org.postgresql" % "postgresql"     % "42.2.8"
+    "org.flywaydb" % "flyway-core"      % FlywayVersion,
+    "org.postgresql" % "postgresql"     % "42.2.8",
+    "org.hsqldb"    % "hsqldb"          % "2.5.0"
   )
 
   lazy val zioLibs = List(

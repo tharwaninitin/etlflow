@@ -2,6 +2,8 @@ package etlflow.scheduler
 
 import caliban.{CalibanError, GraphQLInterpreter, Http4sAdapter}
 import doobie.hikari.HikariTransactor
+import etlflow.jdbc.DbManager
+import etlflow.utils.JDBC
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
@@ -13,11 +15,8 @@ import org.http4s.implicits._
 import scala.concurrent.duration._
 import etlflow.{BuildInfo => BI}
 
-private[scheduler] trait GQLServerHttp4s extends CatsApp {
-  val DB_DRIVER: String   // driver classname
-  val DB_URL: String      // connect URL
-  val DB_USER: String     // username
-  val DB_PASS: String     // password
+private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with BootstrapRuntime {
+  val credentials: JDBC
 
   def etlFlowHttp4sInterpreter(transactor: HikariTransactor[Task]): ZIO[Any, CalibanError, GraphQLInterpreter[ZEnv, Throwable]]
 
@@ -31,12 +30,13 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp {
 
   override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     val serverManaged = for {
-      dbTransactor         <- DbHelpers.dbResource(DB_DRIVER,DB_URL,DB_USER,DB_PASS).toManaged
+      _                    <- runDbMigration(credentials).toManaged_
+      dbTransactor         <- createDbTransactorManagedJDBC(credentials, platform.executor.asEC, "EtlFlowScheduler-Pool")
       etlFlowInterpreter   <- etlFlowHttp4sInterpreter(dbTransactor).toManaged_
       server               <- BlazeServerBuilder[EtlFlowTask]
                                  .bindHttp(8080, "0.0.0.0")
                                  .withConnectorPoolSize(2)
-                                 .withResponseHeaderTimeout(60.seconds)
+                                 .withResponseHeaderTimeout(55.seconds)
                                  .withIdleTimeout(60.seconds)
                                  .withExecutionContext(platform.executor.asEC)
                                  .withHttpApp(

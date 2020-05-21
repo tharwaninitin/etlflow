@@ -14,6 +14,7 @@ import zio.interop.catz._
 import org.http4s.implicits._
 import scala.concurrent.duration._
 import etlflow.{BuildInfo => BI}
+import org.http4s.server.middleware.CORS
 
 private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with BootstrapRuntime {
   val credentials: JDBC
@@ -42,7 +43,7 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
                                  .withHttpApp(
                                    Router[EtlFlowTask](
                                      "/"    -> otherRoutes,
-                                     "/api/etlflow"    -> Http4sAdapter.makeHttpService(etlFlowInterpreter),
+                                     "/api/etlflow"    -> CORS(Http4sAdapter.makeHttpService(etlFlowInterpreter)),
                                      "/ws/etlflow"     -> Http4sAdapter.makeWebSocketService(etlFlowInterpreter),
                                    ).orNotFound
                                  )

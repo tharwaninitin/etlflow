@@ -57,6 +57,10 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion
   )
 
+  lazy val jwt = List(
+    "com.pauldijou" %% "jwt-core" % "4.2.0"
+  )
+
   lazy val testLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion
   ).map(_ % Test)

@@ -5,7 +5,11 @@ import etlflow.jdbc.{DbManager, QueryApi}
 import etlflow.utils.JDBC
 import zio.{BootstrapRuntime, Managed, Task}
 
-case class DBQueryStep private[etlflow](name: String, query: String, credentials: JDBC)
+class DBQueryStep private[etlflow](
+                val name: String,
+                query: => String,
+                credentials: JDBC
+              )
   extends EtlStep[Unit,Unit]
   with BootstrapRuntime
   with DbManager{
@@ -23,4 +27,7 @@ case class DBQueryStep private[etlflow](name: String, query: String, credentials
   override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
 }
 
-
+object DBQueryStep {
+  def apply(name: String, query: => String, credentials: JDBC): DBQueryStep =
+    new DBQueryStep(name, query, credentials)
+}

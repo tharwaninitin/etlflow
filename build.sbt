@@ -13,7 +13,7 @@ lazy val coreSettings = Seq(
 
 lazy val schedulerSettings = Seq(
   name := "etlflow-scheduler"
-  , libraryDependencies ++= caliban
+  , libraryDependencies ++= caliban ++ jwt
 )
 
 lazy val examplesSettings = Seq(

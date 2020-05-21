@@ -1,17 +1,23 @@
 package etlflow.scheduler
 
+import java.util.UUID.randomUUID
+import pdi.jwt.{Jwt, JwtAlgorithm}
 import caliban.CalibanError.ExecutionError
 import caliban.{CalibanError, GraphQLInterpreter}
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
-import etlflow.scheduler.EtlFlowHelper.{EtlFlow, EtlFlowHas, EtlFlowInfo, EtlJob, EtlJobArgs, EtlJobNameArgs, EtlJobStatus}
+import etlflow.scheduler.EtlFlowHelper._
 import etlflow.{EtlJobName, EtlJobProps}
 import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Queue, Ref, Task, UIO, ZEnv, ZIO, ZLayer}
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.{Logger => LBLogger}
+import doobie.quill.DoobieContext
+import io.getquill.Literal
 import zio.stream.ZStream
+import doobie.implicits._
+import zio.interop.catz._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
@@ -40,16 +46,42 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       }
   }
 
+  // DB Objects
+  case class UserInfo(user_name: String, password: String, user_active: String)
+  case class UserAuthTokens(token: String)
+
   final case class EtlFlowService(transactor: HikariTransactor[Task], activeJobs: Ref[Int], subscribers: Ref[List[Queue[EtlJobStatus]]]) extends EtlFlow.Service {
     val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+    val dc = new DoobieContext.Postgres(Literal)
+    import dc._
 
-    override def getEtlJobs(args: EtlJobNameArgs): ZIO[EtlFlowHas, Throwable, List[EtlJob]] = {
+    override def getEtlJobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]] = {
       Task{
         UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobProps(x))).toList
       }.mapError{ e =>
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
+    }
+
+    override def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =  {
+      val q = quote {
+        query[UserInfo].filter(x => x.user_name == lift(args.user_name) && x.password == lift(args.password))
+      }
+      dc.run(q).transact(transactor).flatMap(z => {
+        if (z.isEmpty) {
+          Task(UserAuth("Invalid User", ""))
+        }
+        else {
+          val number = randomUUID().toString.split("-")(0)
+          val token = Jwt.encode(s"""${args.user_name}:$number""", "secretKey", JwtAlgorithm.HS256)
+          logger.info("Token generated " + token)
+          val userAuthToken = quote {
+            query[UserAuthTokens].insert(lift(UserAuthTokens(token)))
+          }
+          dc.run(userAuthToken).transact(transactor).map(z => UserAuth("Valid User", token))
+        }
+      })
     }
 
     override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
@@ -96,11 +128,11 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       job
     }
 
-    override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {
+    override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {
       for {
         x <- activeJobs.get
         y <- subscribers.get
-      } yield EtlFlowInfo(x, y.length)
+      } yield EtlFlowMetrics(x, y.length)
     }
 
     override def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus] = ZStream.unwrap {
@@ -110,13 +142,13 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       } yield ZStream.fromQueue(queue).ensuring(queue.shutdown)
     }
 
-    def getStream: ZStream[EtlFlowHas, Throwable, EtlFlowInfo] = {
-      ZStream.fromIterable(Seq(EtlFlowInfo(1,1), EtlFlowInfo(2,2), EtlFlowInfo(3,3)))
+    def getStream: ZStream[EtlFlowHas, Throwable, EtlFlowMetrics] = {
+      ZStream.fromIterable(Seq(EtlFlowMetrics(1,1), EtlFlowMetrics(2,2), EtlFlowMetrics(3,3)))
     }
 
-    def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {
+    def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {
       // ZStream.fromIterable(Seq(EtlFlowInfo(1), EtlFlowInfo(2), EtlFlowInfo(3))).runCollect.map(x => x.head)
-      ZStream.fromIterable(Seq(EtlFlowInfo(1,1), EtlFlowInfo(2,2), EtlFlowInfo(3,3))).runCollect.map(x => x.head)
+      ZStream.fromIterable(Seq(EtlFlowMetrics(1,1), EtlFlowMetrics(2,2), EtlFlowMetrics(3,3))).runCollect.map(x => x.head)
       // Command("echo", "-n", "1\n2\n3").linesStream.runCollect.map(x => EtlFlowInfo(x.head.length))
     }
   }

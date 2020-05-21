@@ -9,7 +9,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
           val name: String
-          ,input_location: Seq[String]
+          ,input_location: => Seq[String]
           ,input_type: IOType
           ,input_columns: Seq[String] = Seq("*")
           ,input_filter: String = "1 = 1"
@@ -90,7 +90,7 @@ object SparkReadTransformWriteStep {
 object SparkReadWriteStep {
   def apply[T <: Product : TypeTag](
            name: String
-           ,input_location: Seq[String]
+           ,input_location: => Seq[String]
            ,input_type: IOType
            ,input_columns: Seq[String] = Seq("*")
            ,input_filter: String = "1 = 1"

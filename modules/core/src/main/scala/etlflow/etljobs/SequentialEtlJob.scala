@@ -20,6 +20,7 @@ trait SequentialEtlJob extends EtlJob with SparkManager {
                         case step: SparkETLStep => step.execute(spark)(resource)
                         case step: SparkReadWriteStep[_, _] => step.execute(spark)(resource)
                         case step: DBQueryStep => step.execute()(resource)
+                        case step: EtlStep[Unit,Unit] => step.execute()(resource)
                       }
                     }
       job       <- ZIO.collectAll(step_list) *> ZIO.unit

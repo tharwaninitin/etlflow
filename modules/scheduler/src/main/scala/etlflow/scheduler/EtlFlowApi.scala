@@ -13,13 +13,14 @@ import zio.stream.ZStream
 object EtlFlowApi extends GenericSchema[EtlFlowHas] {
 
   case class Queries(
-                      etljobs: EtlJobNameArgs => ZIO[EtlFlowHas, Throwable, List[EtlJob]],
-                      info: ZIO[EtlFlowHas, Throwable, EtlFlowInfo],
-                      // get_stream: ZStream[EtlFlowHas, Throwable, EtlFlowInfo],
-                      // get_logs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo]
+                      etljobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]],
+                      metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                     )
 
-  case class Mutations(run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob])
+  case class Mutations(
+                        run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
+                        login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth]
+                      )
 
   case class Subscriptions(notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus])
 
@@ -27,12 +28,13 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
     graphQL(
       RootResolver(
         Queries(
-          args => getEtlJobs(args),
+          getEtlJobs,
           getInfo,
-          //getStream,
-          //getLogs
         ),
-        Mutations(args => runJob(args)),
+        Mutations(
+          args => runJob(args),
+          args => login(args)
+        ),
         Subscriptions(notifications)
       )
     )

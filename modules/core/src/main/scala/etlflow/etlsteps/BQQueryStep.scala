@@ -3,10 +3,10 @@ package etlflow.etlsteps
 import etlflow.bigquery.QueryApi
 import zio.Task
 
-case class BQQueryStep private[etlflow](
-                 name: String
-                 , query: String
-                 , gcp_credential_file_path: Option[String] = None
+class BQQueryStep private[etlflow](
+                 val name: String
+                 , query: => String
+                 ,val gcp_credential_file_path: Option[String] = None
            )
   extends BQStep {
 
@@ -19,6 +19,15 @@ case class BQQueryStep private[etlflow](
   }
 
   override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
+}
+
+object BQQueryStep {
+  def apply(
+             name: String,
+             query: => String,
+             gcp_credential_file_path: Option[String] = None
+           ): BQQueryStep =
+    new BQQueryStep(name, query, gcp_credential_file_path)
 }
 
 

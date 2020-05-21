@@ -21,14 +21,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>0.7.7</version>
+    <version>0.7.8</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.7"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.8"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.7
+__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.8
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

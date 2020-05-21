@@ -7,7 +7,7 @@ title: Getting started
 
 Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)
 
-    SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project core" console
+    SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project examples" console
 
 **Import core packages**
 
@@ -47,8 +47,8 @@ Clone this git repo and go inside repo root folder and enter below command (make
      
 **Since all these steps return Task from ZIO library, we need to import Zio Default Runtime to run these steps**
      
-     import zio.Runtime
-     val runtime: Runtime[Unit] = Runtime.default
+     import zio.{Runtime,ZEnv}
+     val runtime: Runtime[ZEnv] = Runtime.default
           
 **Run this step as below**
 
@@ -97,10 +97,7 @@ For this step to work correctly [Google Cloud SDK](https://cloud.google.com/sdk/
 as in this library upload from local file to BigQuery uses [bq command](https://cloud.google.com/bigquery/docs/bq-command-line-tool) which is only recommended to be used in testing environments as in production files should be present on Google Cloud Storage when uploading to BigQuery**
 
     import etlflow.etlsteps.BQLoadStep
-    import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
     import etlflow.utils.LOCAL
-    
-    lazy val bq: BigQuery = BigQueryOptions.getDefaultInstance.getService
     
     // Adding two new properties for Bigquery table and Dataset
     val job_properties: Map[String,String] = Map(
@@ -120,14 +117,14 @@ as in this library upload from local file to BigQuery uses [bq command](https://
         output_table        = job_properties("ratings_output_table_name")
     )
     
-    val task = step2.process(bq)
+    val task = step2.process()
     runtime.unsafeRun(task)
 
 **Now we can run also chain multiple steps together and run as single job as shown below.**
 
     val job = for {
         _ <- step1.process(spark)
-        _ <- step2.process(bq)
+        _ <- step2.process()
     } yield ()
     
     runtime.unsafeRun(job)

@@ -30,7 +30,7 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   lazy val running_environment: String      = config.getOrDefault("running_environment","local").toString
   
   lazy val gcp_project: String              = sys.env.getOrElse("GCP_PROJECT", config.getProperty("gcp_project"))
-  lazy val gcp_project_key_name: String     = sys.env.getOrElse("GCP_PROJECT_KEY_NAME", config.getProperty("gcp_project_key_name"))
+  lazy val gcp_credential_file_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", config.getProperty("gcp_credential_file_path"))
   lazy val gcp_region: String               = sys.env.getOrElse("GCP_REGION", config.getProperty("gcp_region"))
   lazy val gcp_dp_endpoint: String          = sys.env.getOrElse("GCP_DP_ENDPOINT", config.getProperty("gcp_dp_endpoint"))
   lazy val gcp_dp_cluster_name: String      = sys.env.getOrElse("GCP_DP_CLUSTER_NAME", config.getProperty("gcp_dp_cluster_name"))
@@ -41,6 +41,7 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   lazy val slack_webhook_url: String        = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getProperty("slack_webhook_url"))
   lazy val slack_env: String                = sys.env.getOrElse("SLACK_ENV", config.getProperty("slack_env"))
 
+  lazy val log_db_driver: String            = sys.env.getOrElse("LOG_DB_DRIVER", config.getProperty("log_db_driver"))
   lazy val log_db_url: String               = sys.env.getOrElse("LOG_DB_URL", config.getProperty("log_db_url"))
   lazy val log_db_user: String              = sys.env.getOrElse("LOG_DB_USER", config.getProperty("log_db_user"))
   lazy val log_db_pwd: String               = sys.env.getOrElse("LOG_DB_PWD", config.getProperty("log_db_pwd"))

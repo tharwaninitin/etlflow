@@ -4,7 +4,7 @@ import etljobs.{DataProcJob, EtlJob, SequentialEtlJob}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.apache.log4j.Logger
-
+import zio.{Runtime,ZEnv}
 import scala.reflect.runtime.universe.TypeTag
 
 // Either use =>
@@ -50,11 +50,12 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
           executeDataProcJob(job_name.toString,jobProps,globalProperties)
         case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
+          val runtime: Runtime[ZEnv] = Runtime.default
           ea_logger.info(s"""Running job with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
           val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)
           etl_job.job_name = job_name.toString
-          etl_job.execute()
+          runtime.unsafeRun(etl_job.execute())
         case etlJobConfig if (etlJobConfig.show_job_props || etlJobConfig.show_step_props) && etlJobConfig.job_name == "" =>
           ea_logger.error(s"Need to provide args --job_name")
           System.exit(1)

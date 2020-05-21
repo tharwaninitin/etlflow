@@ -8,11 +8,14 @@ object Dependencies {
   private val QuillVersion = "3.5.0"
   private val ScalaTestVersion = "3.0.5"
   private val ScoptVersion = "3.7.1"
-  private val ZioVersion = "1.0.0-RC18"
+  private val ZioVersion = "1.0.0-RC18-2"
   private val DoobieVersion = "0.8.8"
+  private val calibanVersion = "0.7.5"
+  private val FlywayVersion = "6.4.1"
 
   lazy val loggingLibs = List(
-    "com.jcabi" % "jcabi-log" % "0.17.4"
+    "com.jcabi" % "jcabi-log" % "0.17.4",
+    "ch.qos.logback" % "logback-classic" % "1.2.3"
   )
 
   lazy val googleCloudLibs = List(
@@ -31,18 +34,32 @@ object Dependencies {
     "io.getquill" %% "quill-jdbc"       % QuillVersion,
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
+    "org.tpolecat" %% "doobie-h2"       % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
     "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
-    "org.postgresql" % "postgresql"     % "42.2.8"
+    "org.flywaydb" % "flyway-core"      % FlywayVersion,
+    "org.postgresql" % "postgresql"     % "42.2.8",
+    "org.hsqldb"    % "hsqldb"          % "2.5.0"
   )
 
   lazy val zioLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC11"
+    "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC11",
+    "dev.zio" %% "zio-process" % "0.0.3"
   )
 
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion
+  )
+
+  lazy val caliban = List(
+    "com.github.ghostdogpr" %% "caliban" % calibanVersion,
+    "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion,
+    "eu.timepit" %% "fs2-cron-core" % "0.2.2"
+  )
+
+  lazy val jwt = List(
+    "com.pauldijou" %% "jwt-core" % "4.2.0"
   )
 
   lazy val testLibs = List(

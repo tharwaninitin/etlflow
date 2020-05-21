@@ -2,16 +2,18 @@ package etlflow.utils
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import etlflow.{EtlJobName, EtlJobProps}
+
+import etlflow.{EtlJobName, EtlJobNotFoundException, EtlJobProps}
 import org.apache.log4j.Logger
 import org.json4s.JsonAST.JNothing
-import org.json4s.jackson.Serialization.{writePretty,write}
-import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer}
+import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.Serialization.writePretty
+import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, JValue, _}
+
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
-import scala.reflect.runtime.universe.TypeTag
+import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
-import scala.reflect.runtime.universe._
+import scala.util.{Failure, Success, Try}
 
 object UtilityFunctions {
   lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
@@ -42,6 +44,18 @@ object UtilityFunctions {
     writePretty(Extraction.decompose(entity).removeField { x => keys.contains(x._1)})
   }
 
+  def convertToJsonByRemovingKeysAsMap(entity: AnyRef, keys: List[String]): Map[String,Any] = {
+    // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
+    val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
+      (PartialFunction.empty, { case _: EtlJobName[_] => JNothing })
+    )
+    // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
+    val customSerializer2 = new FieldSerializer[EtlJobProps]
+    implicit val formats: Formats = DefaultFormats + customSerializer1 + customSerializer2
+    val json: JValue = Extraction.decompose(entity).removeField { x => keys.contains(x._1)}
+    parse(writePretty(json)).extract[Map[String, Any]]
+  }
+
   def getCurrentTimestamp: Long = System.currentTimeMillis()
 
   def getCurrentTimestampAsString(pattern: String): String = DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now)
@@ -67,13 +81,20 @@ object UtilityFunctions {
     allJobNames.foreach(x => uf_logger.info(x.name))
   }
 
+  def getEtlJobs[T: TypeTag]: Set[String] = {
+    val tpe = ru.typeOf[T]
+    val clazz = tpe.typeSymbol.asClass
+    val allJobNames = clazz.knownDirectSubclasses
+    allJobNames.map(x => x.name.toString)
+  }
+
   def getEtlJobProps[T: TypeTag](excludeColumnList: Set[String] = Set("job_run_id","job_description","job_properties","job_name")): Map[String,String] =
     typeOf[T].members.collect {
       case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
       case m: MethodSymbol if (m.isVar || m.isVal) && m.isGetter => (m.name.toString, m.returnType.toString)
     }.toList.filterNot(x => excludeColumnList.contains(x._1)).toMap
 
-  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package: String = "etljobs.schema.EtlJobList$"): T = {
+  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package: String = "etlflow.schema.EtlJobList$"): T = {
     val fullClassName = etl_job_list_package + job_name + "$"
     try {
       val classVal = Class.forName(fullClassName)
@@ -83,7 +104,7 @@ object UtilityFunctions {
     catch {
       case e: ClassNotFoundException =>
         uf_logger.error(s"Tried creating object with path $fullClassName, but failed with error")
-        throw e
+        throw EtlJobNotFoundException(s"$job_name not present")
     }
   }
 

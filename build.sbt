@@ -1,4 +1,4 @@
-version in ThisBuild := "0.7.7"
+version in ThisBuild := "0.7.8"
 
 lazy val scala212 = "2.12.10"
 lazy val scala211 = "2.11.12" // not supported now
@@ -11,16 +11,20 @@ lazy val coreSettings = Seq(
   , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
+lazy val schedulerSettings = Seq(
+  name := "etlflow-scheduler"
+  , libraryDependencies ++= caliban ++ jwt
+)
+
 lazy val examplesSettings = Seq(
   name := "etlflow-examples"
-  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
 )
 
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true)
-  .aggregate(core, examples)
+  .aggregate(core, scheduler, examples)
 
 lazy val core = (project in file("modules/core"))
   .settings(coreSettings)
@@ -54,6 +58,16 @@ lazy val core = (project in file("modules/core"))
     Test / parallelExecution := false
   )
 
+lazy val scheduler = (project in file("modules/scheduler"))
+  .settings(schedulerSettings)
+  .settings(
+    organization := "com.github.tharwaninitin",
+    crossScalaVersions := supportedScalaVersions,
+    scalacOptions ++= Seq("-Ypartial-unification"),
+    Test / parallelExecution := false
+  )
+  .dependsOn(core)
+
 import NativePackagerHelper._
 
 lazy val examples = (project in file("modules/examples"))
@@ -64,13 +78,15 @@ lazy val examples = (project in file("modules/examples"))
     organization := "com.github.tharwaninitin",
     crossScalaVersions := supportedScalaVersions,
     packageName in Docker := "etlflow",
-    mainClass in Compile := Some("examples.LoadData"),
+    // mainClass in Compile := Some("examples.LoadData"),
+    mainClass in Compile := Some("examples.RunServer"),
     dockerBaseImage := "openjdk:jre",
+    dockerExposedPorts ++= Seq(8080),
     maintainer := "tharwaninitin182@gmail.com",
     // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
     mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
     mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
     Test / parallelExecution := false
   )
-  .dependsOn(core)
+  .dependsOn(core, scheduler)
 

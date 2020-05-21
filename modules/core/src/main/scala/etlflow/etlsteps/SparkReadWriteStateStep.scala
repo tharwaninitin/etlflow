@@ -28,7 +28,7 @@ extends EtlStep[IPSTATE,OPSTATE] {
   private var recordsWrittenCount = 0L
   var spark: Option[SparkSession] = None
 
-  def process(input_state: IPSTATE): Task[OPSTATE] = Task {
+  final def process(input_state: =>IPSTATE): Task[OPSTATE] = Task {
     implicit lazy val sp = spark.get
     sp.sparkContext.addSparkListener(new SparkListener() {
       override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {

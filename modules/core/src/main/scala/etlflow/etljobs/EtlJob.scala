@@ -4,12 +4,13 @@ import etlflow.jdbc.DbManager
 import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import etlflow.{EtlJobProps, LoggerResource}
-import org.apache.log4j.Logger
-import zio.{BootstrapRuntime, Task, UIO, ZIO, ZManaged}
+import org.slf4j.{Logger, LoggerFactory}
+import zio.{Task, UIO, ZIO, ZManaged}
+import zio.internal.Platform
 
-trait EtlJob extends BootstrapRuntime with DbManager {
+trait EtlJob extends DbManager {
 
-  final val etl_job_logger: Logger = Logger.getLogger(getClass.getName)
+  final val etl_job_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   var job_name: String = "NameNotSet"
   val global_properties: Option[GlobalProperties]
@@ -30,7 +31,7 @@ trait EtlJob extends BootstrapRuntime with DbManager {
   }
 
   private[etljobs] lazy val logger_resource: ZManaged[Any, Throwable, LoggerResource] = for {
-    transactor      <- createDbTransactorManagedGP(global_properties,platform.executor.asEC,job_name+"-Pool")
+    transactor      <- createDbTransactorManagedGP(global_properties,Platform.default.executor.asEC,job_name+"-Pool")
     db              <- DbLogManager.createDbLoggerManaged(transactor,job_name,job_properties)
     slack           <- SlackLogManager.createSlackLogger(job_name,job_properties,global_properties).toManaged_
   } yield LoggerResource(Option(db),slack)

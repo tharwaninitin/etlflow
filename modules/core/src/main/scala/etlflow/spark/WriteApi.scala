@@ -3,14 +3,14 @@ package etlflow.spark
 import etlflow.EtlJobException
 import etlflow.utils._
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.log4j.Logger
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql._
+import org.slf4j.LoggerFactory
 import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi {
 
-  private val write_logger = Logger.getLogger(getClass.getName)
+  private val write_logger = LoggerFactory.getLogger(getClass.getName)
   write_logger.info(s"Loaded ${getClass.getName}")
 
   def WriteDSHelper[T <: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
@@ -42,10 +42,15 @@ object WriteApi {
                                      (source: Dataset[T], spark : SparkSession) : Unit = {
     val mapping = Encoders.product[T]
 
+    write_logger.info("#"*20 + " Actual Output Schema " + "#"*20)
+    source.schema.printTreeString
+    write_logger.info("#"*20 + " Provided Output Case Class Schema " + "#"*20)
+    mapping.schema.printTreeString
+
     val df_writer = partition_by match {
       case partition if partition.nonEmpty && repartition =>
-          source.as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
-      case _ => source.as[T](mapping).repartition(n).write.option("compression",compression) //("compression", "gzip","snappy")
+          source.selectExpr(mapping.schema.map(x => x.name):_*).as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
+      case _ => source.selectExpr(mapping.schema.map(x => x.name):_*).as[T](mapping).repartition(n).write.option("compression",compression) //("compression", "gzip","snappy")
     }
 
     val df_writer_options = output_type match {
@@ -57,7 +62,6 @@ object WriteApi {
       case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
       case TEXT => df_writer.format("text")
       case JDBC(_, _, _, _) => df_writer
-      case _ => df_writer.format("text")
     }
 
     partition_by match {
@@ -80,7 +84,7 @@ object WriteApi {
       }
     }
 
-    write_logger.info(s"Successfully written data in $output_type in location $output_location with SAVEMODE $save_mode ${partition_by.map(pbc => "Partitioned by " + pbc)}")
+    write_logger.info(s"Successfully wrote data in $output_type in location $output_location with SAVEMODE $save_mode Partitioned by $partition_by")
 
     output_filename.foreach { output_file =>
       val path = s"$output_location/"

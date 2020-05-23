@@ -1,12 +1,12 @@
 package etlflow.etlsteps
 
 import etlflow.LoggerResource
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 import zio.{Task, ZIO}
 
 trait EtlStep[IPSTATE,OPSTATE] { self =>
   val name: String
-  val etl_logger: Logger = Logger.getLogger(getClass.getName)
+  val etl_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def process(input_state: =>IPSTATE): Task[OPSTATE]
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()

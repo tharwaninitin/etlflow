@@ -1,17 +1,13 @@
 package etlflow.bigquery
 
 import java.util.UUID
-
-import org.apache.log4j.Logger
-import com.google.cloud.bigquery.{BigQuery, CsvOptions, FormatOptions, Job, JobConfiguration,
-  JobId, JobInfo, LoadJobConfiguration,
-  QueryJobConfiguration, Schema, StandardTableDefinition, TableId
-}
+import com.google.cloud.bigquery.{BigQuery, CsvOptions, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId}
 import etlflow.utils.{BQ, CSV, IOType, ORC, PARQUET}
+import org.slf4j.LoggerFactory
 import scala.sys.process._
 
 object LoadApi {
-  private val load_logger = Logger.getLogger(getClass.getName)
+  private val load_logger = LoggerFactory.getLogger(getClass.getName)
   load_logger.info(s"Loaded ${getClass.getName}")
 
   def getFormatOptions(input_type: IOType): FormatOptions = input_type match {

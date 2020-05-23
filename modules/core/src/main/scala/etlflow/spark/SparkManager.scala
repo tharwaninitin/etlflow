@@ -1,12 +1,11 @@
 package etlflow.spark
 
 import etlflow.utils.GlobalProperties
-import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+import org.slf4j.LoggerFactory
 
 trait SparkManager  {
-  private val ic_logger = Logger.getLogger(getClass.getName)
-  Logger.getLogger("org").setLevel(Level.WARN)
+  private val ic_logger = LoggerFactory.getLogger(getClass.getName)
 
   def createSparkSession(gp: Option[GlobalProperties]): SparkSession = {
     ic_logger.info(f"======> Loaded SparkManager(${getClass.getName})")

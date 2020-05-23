@@ -14,7 +14,7 @@ object Dependencies {
   private val FlywayVersion = "6.4.1"
 
   lazy val loggingLibs = List(
-    "com.jcabi" % "jcabi-log" % "0.17.4",
+    // "com.jcabi" % "jcabi-log" % "0.17.4",
     "ch.qos.logback" % "logback-classic" % "1.2.3"
   )
 
@@ -63,6 +63,7 @@ object Dependencies {
   )
 
   lazy val testLibs = List(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "org.testcontainers" % "postgresql" % "1.11.2"
   ).map(_ % Test)
 }

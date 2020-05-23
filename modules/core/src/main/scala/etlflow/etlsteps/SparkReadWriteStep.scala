@@ -11,7 +11,6 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
           val name: String
           ,input_location: => Seq[String]
           ,input_type: IOType
-          ,input_columns: Seq[String] = Seq("*")
           ,input_filter: String = "1 = 1"
           ,output_location: String
           ,output_type: IOType
@@ -23,9 +22,10 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
         )
 extends EtlStep[SparkSession,Unit] {
   private var recordsWrittenCount = 0L
+  private var recordsReadCount = 0L
 
   final def process(spark: =>SparkSession): Task[Unit] = Task {
-    implicit lazy val sp = spark
+    val sp = spark
     sp.sparkContext.addSparkListener(new SparkListener() {
       override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
         synchronized {
@@ -33,17 +33,28 @@ extends EtlStep[SparkSession,Unit] {
         }
       }
     })
+    sp.sparkContext.addSparkListener(new SparkListener() {
+      override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+        synchronized {
+          recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
+        }
+      }
+    })
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting ETL Step : $name")
-    val ds = ReadApi.LoadDS[I](input_location,input_type,input_filter,input_columns)(sp)
+    val ds = ReadApi.LoadDS[I](input_location,input_type,input_filter)(sp)
 
     transform_function match {
       case Some(transformFunc) =>
         val output = transformFunc(sp,ds)
         WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output,sp)
+        etl_logger.info(s"recordsReadCount: $recordsReadCount")
+        etl_logger.info(s"recordsWrittenCount: $recordsWrittenCount")
         etl_logger.info("#################################################################################################")
       case None =>
         WriteApi.WriteDS[I](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(ds,sp)
+        etl_logger.info(s"recordsReadCount: $recordsReadCount")
+        etl_logger.info(s"recordsWrittenCount: $recordsWrittenCount")
         etl_logger.info("#################################################################################################")
     }
   }
@@ -56,7 +67,10 @@ extends EtlStep[SparkSession,Unit] {
 
   override def getExecutionMetrics : Map[String, Map[String,String]] = {
     Map(name ->
-      Map("Number of records written" -> recordsWrittenCount.toString)
+      Map(
+        "Number of records written" -> recordsWrittenCount.toString,
+        "Number of records read" -> recordsReadCount.toString
+      )
     )
   }
   
@@ -72,7 +86,6 @@ object SparkReadTransformWriteStep {
            name: String
            ,input_location: Seq[String]
            ,input_type: IOType
-           ,input_columns: Seq[String] = Seq("*")
            ,input_filter: String = "1 = 1"
            ,output_location: String
            ,output_type: IOType
@@ -82,7 +95,7 @@ object SparkReadTransformWriteStep {
            ,output_repartitioning: Boolean = false
            ,transform_function: (SparkSession,Dataset[T]) => Dataset[O]
          ): SparkReadWriteStep[T, O] = {
-    new SparkReadWriteStep[T, O](name, input_location, input_type, input_columns, input_filter, output_location,
+    new SparkReadWriteStep[T, O](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, Some(transform_function))
   }
 }
@@ -92,7 +105,6 @@ object SparkReadWriteStep {
            name: String
            ,input_location: => Seq[String]
            ,input_type: IOType
-           ,input_columns: Seq[String] = Seq("*")
            ,input_filter: String = "1 = 1"
            ,output_location: String
            ,output_type: IOType
@@ -101,7 +113,7 @@ object SparkReadWriteStep {
            ,output_save_mode: SaveMode = SaveMode.Append
            ,output_repartitioning: Boolean = false
          ): SparkReadWriteStep[T, T] = {
-    new SparkReadWriteStep[T, T](name, input_location, input_type, input_columns, input_filter, output_location,
+    new SparkReadWriteStep[T, T](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, None)
   }
 }

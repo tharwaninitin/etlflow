@@ -21,13 +21,13 @@ This project is compiled with scala version 2.12.10 and works with Apache Spark 
     <dependency>
         <groupId>com.github.tharwaninitin</groupId>
         <artifactId>etlflow-core_2.12</artifactId>
-        <version>0.7.8</version>
+        <version>0.7.9</version>
     </dependency>
     
 **SBT**
 
-    libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.8"
+    libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.9"
 
-[Download Latest](https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.8)
+[Download Latest](https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.9)
  
 

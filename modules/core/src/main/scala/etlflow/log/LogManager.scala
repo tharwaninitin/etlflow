@@ -1,13 +1,13 @@
 package etlflow.log
 
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 
 trait LogManager[A] {
   val job_name: String
   val job_properties: EtlJobProps
-  val lm_logger: Logger = Logger.getLogger(getClass.getName)
+  val lm_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def updateStepLevelInformation(
                                   execution_start_time: Long,

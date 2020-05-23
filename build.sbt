@@ -1,4 +1,4 @@
-version in ThisBuild := "0.7.8"
+version in ThisBuild := "0.7.9"
 
 lazy val scala212 = "2.12.10"
 lazy val scala211 = "2.11.12" // not supported now

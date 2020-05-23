@@ -1,14 +1,14 @@
 package etlflow.spark
 
 import etlflow.utils._
-import org.apache.log4j.Logger
 import org.apache.spark.sql.functions.{col, split}
 import org.apache.spark.sql._
+import org.slf4j.LoggerFactory
 import scala.reflect.runtime.universe.TypeTag
 
 object ReadApi {
 
-  private val read_logger = Logger.getLogger(getClass.getName)
+  private val read_logger = LoggerFactory.getLogger(getClass.getName)
   read_logger.info(s"Loaded ${getClass.getName}")
 
   def LoadDF(location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*"))(implicit spark: SparkSession): Dataset[Row] = {
@@ -39,7 +39,7 @@ object ReadApi {
     df
   }
 
-  def LoadDSHelper[T <: Product : TypeTag](level: String,location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*")) : Map[String,String] = {
+  def LoadDSHelper[T <: Product : TypeTag](level: String,location: Seq[String], input_type: IOType, where_clause : String = "1 = 1") : Map[String,String] = {
     val mapping = Encoders.product[T]
     if (level.equalsIgnoreCase("info")){
      Map("input_location"->location.mkString(",")
@@ -52,7 +52,7 @@ object ReadApi {
     }
   }
 
-  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1", select_clause: Seq[String] = Seq("*"))(spark: SparkSession) : Dataset[T] = {
+  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(spark: SparkSession) : Dataset[T] = {
     val mapping = Encoders.product[T]
 
     val df_reader = spark.read
@@ -60,7 +60,9 @@ object ReadApi {
     read_logger.info("Input location: " + location.toList)
 
     val df_reader_options = input_type match {
-      case CSV(delimiter,header_present,parse_mode,quotechar) => df_reader.format("csv").schema(mapping.schema).option("columnNameOfCorruptRecord","_corrupt_record").option("delimiter", delimiter).option("quote",quotechar).option("header", header_present).option("mode", parse_mode)
+      case CSV(delimiter,header_present,parse_mode,quotechar) => df_reader.format("csv").schema(mapping.schema)
+        .option("columnNameOfCorruptRecord","_corrupt_record").option("delimiter", delimiter)
+        .option("quote",quotechar).option("header", header_present).option("mode", parse_mode)
       case JSON(multi_line) => df_reader.format("json").option("multiline",multi_line).schema(mapping.schema)
       case PARQUET => df_reader.format("parquet")
       case ORC => df_reader.format("orc")
@@ -71,13 +73,16 @@ object ReadApi {
     }
 
     val df = input_type match {
-      case JDBC(_,_,_,_) | BQ => df_reader_options.load().where(where_clause).selectExpr(select_clause: _*)
-      case _ => df_reader_options.load(location: _*).where(where_clause).selectExpr(select_clause: _*)
+      case JDBC(_,_,_,_) | BQ => df_reader_options.load().where(where_clause)
+      case _ => df_reader_options.load(location: _*).where(where_clause)
     }
-    read_logger.info("#"*20 + " Input Schema " + "#"*20)
-    df.schema.foreach(read_logger.info(_))
-    read_logger.info("#"*20 + " Input Schema " + "#"*20)
-    df.as[T](mapping)
+
+    read_logger.info("#"*20 + " Actual Input Schema " + "#"*20)
+    df.schema.printTreeString // df.schema.foreach(x => read_logger.info(x.toString))
+    read_logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
+    mapping.schema.printTreeString
+
+    df.selectExpr(mapping.schema.map(x => x.name):_*).as[T](mapping)
   }
 
 }

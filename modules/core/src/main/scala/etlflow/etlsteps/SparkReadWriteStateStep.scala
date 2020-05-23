@@ -11,7 +11,7 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
           val name : String
           ,input_location: Seq[String]
           ,input_type: IOType
-          ,input_columns: Seq[String] = Seq("*")
+          // ,input_columns: Seq[String] = Seq("*")
           ,input_filter: String = "1 = 1"
           ,output_location: String
           ,output_type: IOType
@@ -39,7 +39,7 @@ extends EtlStep[IPSTATE,OPSTATE] {
     })
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting ETL Step : $name")
-    val ds = ReadApi.LoadDS[T](input_location,input_type,input_filter,input_columns)(sp)
+    val ds = ReadApi.LoadDS[T](input_location,input_type,input_filter)(sp)
 
     transform_function match {
       case Left(tf) =>
@@ -93,7 +93,7 @@ object SparkReadTransformWriteStateStep {
            name: String
            ,input_location: Seq[String]
            ,input_type: IOType
-           ,input_columns: Seq[String] = Seq("*")
+           //,input_columns: Seq[String] = Seq("*")
            ,input_filter: String = "1 = 1"
            ,output_location: String
            ,output_type: IOType
@@ -103,7 +103,7 @@ object SparkReadTransformWriteStateStep {
            ,output_repartitioning: Boolean = false
            ,transform_with_state: (SparkSession,DatasetWithState[T, IPSTATE]) => DatasetWithState[O, OPSTATE]
          ): SparkReadWriteStateStep[T, IPSTATE, O, OPSTATE] = {
-    new SparkReadWriteStateStep[T, IPSTATE, O, OPSTATE](name, input_location, input_type, input_columns, input_filter, output_location,
+    new SparkReadWriteStateStep[T, IPSTATE, O, OPSTATE](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, Left(Some(transform_with_state)))
   }
 }
@@ -113,7 +113,7 @@ object SparkReadWriteStateStep {
            name: String
            ,input_location: Seq[String]
            ,input_type: IOType
-           ,input_columns: Seq[String] = Seq("*")
+           //,input_columns: Seq[String] = Seq("*")
            ,input_filter: String = "1 = 1"
            ,output_location: String
            ,output_type: IOType
@@ -122,7 +122,7 @@ object SparkReadWriteStateStep {
            ,output_save_mode: SaveMode = SaveMode.Append
            ,output_repartitioning: Boolean = false
          ): SparkReadWriteStateStep[T, IPSTATE, T, OPSTATE] = {
-    new SparkReadWriteStateStep[T, IPSTATE, T, OPSTATE](name, input_location, input_type, input_columns, input_filter, output_location,
+    new SparkReadWriteStateStep[T, IPSTATE, T, OPSTATE](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning, Left(None))
   }
 }

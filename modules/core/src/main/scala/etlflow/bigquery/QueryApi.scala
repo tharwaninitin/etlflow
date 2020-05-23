@@ -1,13 +1,12 @@
 package etlflow.bigquery
 
-import org.apache.log4j.Logger
 import java.util.UUID
-
 import com.google.cloud.bigquery.JobStatistics.QueryStatistics
 import com.google.cloud.bigquery.{BigQuery, FieldValueList, JobId, JobInfo, QueryJobConfiguration, TableResult}
+import org.slf4j.LoggerFactory
 
 object QueryApi {
-  private val query_logger = Logger.getLogger(getClass.getName)
+  private val query_logger = LoggerFactory.getLogger(getClass.getName)
   query_logger.info(s"Loaded ${getClass.getName}")
 
   def getDataFromBQ(bq: BigQuery, query: String): Iterable[FieldValueList] = {
@@ -43,7 +42,7 @@ object QueryApi {
     if (queryJob == null)
       throw new RuntimeException("Job no longer exists")
     else if (queryJob.getStatus.getError != null) {
-      query_logger.error(queryJob.getStatus.getState)
+      query_logger.error(queryJob.getStatus.getState.toString)
       throw new RuntimeException(s"Error ${queryJob.getStatus.getError.getMessage}")
     }
     else {

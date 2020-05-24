@@ -21,7 +21,6 @@ import zio._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
-  lazy val logger: Logger        = LoggerFactory.getLogger(getClass.getName)
   lazy val root_logger: LBLogger = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
   root_logger.setLevel(Level.WARN)
 
@@ -187,6 +186,30 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       querySchema[CronJobDB]("cronjob")
     }
     dc.run(query).transact(transactor).map(x => x.map(x => CronJob(x.job_name, Cron.unsafeParse(x.schedule))))
+  }
+
+  def triggerJob(cronJob: CronJob): Task[EtlJob] = {
+
+    val etlJobDetails: Task[(EJN, EtlFlowEtlJob)] = Task {
+      val job_name      = UF.getEtlJobName[EJN](cronJob.job_name, etl_job_name_package)
+      val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(Map.empty),globalProperties)
+      etl_job.job_name  = job_name.toString
+      (job_name,etl_job)
+    }.mapError(e => ExecutionError(e.getMessage))
+
+    val job = for {
+      (job_name,etl_job)  <- etlJobDetails
+      _                    <- Task(logger.info(s"Starting CRONJOB ${cronJob.job_name} for schedule ${cronJob.schedule} at ${UF.getCurrentTimestampAsString()}"))
+      execution_props     <- Task {
+                                UF.convertToJsonByRemovingKeysAsMap(job_name.getActualProperties(Map.empty), List.empty)
+                                  .map(x => (x._1, x._2.toString))
+                              }.mapError{ e =>
+                                logger.error(e.getMessage)
+                                ExecutionError(e.getMessage)
+                              }
+      _                   <- etl_job.execute().forkDaemon
+    } yield EtlJob(cronJob.job_name,execution_props)
+    job
   }
 
   private def getJobProps(job_name: String): Map[String, String] = {

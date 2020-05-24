@@ -58,7 +58,7 @@ object UtilityFunctions {
 
   def getCurrentTimestamp: Long = System.currentTimeMillis()
 
-  def getCurrentTimestampAsString(pattern: String): String = DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now)
+  def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String = DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now)
 
   def roundAt(p: Int)(n: Double): Double = { val s = math pow (10, p); (math round n * s) / s }
 

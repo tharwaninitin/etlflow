@@ -3,7 +3,7 @@ package etlflow.scheduler
 import caliban.{CalibanError, GraphQLInterpreter, Http4sAdapter}
 import doobie.hikari.HikariTransactor
 import etlflow.jdbc.DbManager
-import etlflow.scheduler.EtlFlowHelper.CronJob
+import etlflow.scheduler.EtlFlowHelper.{CronJob, EtlJob}
 import etlflow.utils.JDBC
 import etlflow.{BuildInfo => BI}
 import org.http4s.HttpRoutes
@@ -14,15 +14,21 @@ import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.CORS
 import zio.console.putStrLn
 import zio.interop.catz._
+import zio.interop.catz.implicits._
+import eu.timepit.fs2cron.schedule
 import zio.{RIO, ZIO, _}
-
+import zio.duration.Duration
+import fs2.Stream
+import org.slf4j.{Logger, LoggerFactory}
 import scala.concurrent.duration._
 
 private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with BootstrapRuntime {
+  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   val credentials: JDBC
 
   def etlFlowHttp4sInterpreter(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]]): ZIO[Any, CalibanError, GraphQLInterpreter[ZEnv, Throwable]]
   def getCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]]
+  def triggerJob(cronJob: CronJob): Task[EtlJob]
 
   type EtlFlowTask[A] = RIO[ZEnv, A]
 
@@ -37,12 +43,19 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
       _                    <- runDbMigration(credentials).toManaged_
       dbTransactor         <- createDbTransactorManagedJDBC(credentials, platform.executor.asEC, "EtlFlowScheduler-Pool")
       cronJobs             <- Ref.make(List.empty[CronJob]).toManaged_
-      dbCronJobs           <- getCronJobsDB(dbTransactor).toManaged_
-      _                    <- cronJobs.update(_ => dbCronJobs).toManaged_
+       _                   <- (for {
+                                dbCronJobs      <- getCronJobsDB(dbTransactor)
+                                _               <- Task(logger.info(s"Starting CRON JOB SCHEDULING ${dbCronJobs.toString}"))
+                                scheduledJobs   = schedule(dbCronJobs.map(cj => (cj.schedule,Stream.eval(triggerJob(cj)))))
+                                 x              <- scheduledJobs.compile.drain.fork
+                                //schedule      = Schedule.spaced(Duration.fromScala(60.seconds))
+                                updateJob       <- cronJobs.update{_ => dbCronJobs}.fork
+                                //_             <- updateJob.repeat(schedule).fork
+                              } yield ()).toManaged_
       etlFlowInterpreter   <- etlFlowHttp4sInterpreter(dbTransactor,cronJobs).toManaged_
       server               <- BlazeServerBuilder[EtlFlowTask]
                                  .bindHttp(8080, "0.0.0.0")
-                                 .withConnectorPoolSize(2)
+                                 .withConnectorPoolSize(10)
                                  .withResponseHeaderTimeout(55.seconds)
                                  .withIdleTimeout(60.seconds)
                                  .withExecutionContext(platform.executor.asEC)

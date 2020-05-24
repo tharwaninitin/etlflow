@@ -11,7 +11,7 @@ ThisBuild / developers := List(Developer("tharwaninitin",
                              "Nitin Tharwani",
                              "tharwaninitin182@gmail.com",
                              url("https://github.com/tharwaninitin")))
-ThisBuild / description := "Scala Etl library for Spark and Bigquery"
+ThisBuild / description := "Functional, Composable library in Scala for writing ETL jobs"
 ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / homepage := Some(url("https://github.com/tharwaninitin/etljobs"))
 

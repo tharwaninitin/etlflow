@@ -55,7 +55,8 @@ object Dependencies {
   lazy val caliban = List(
     "com.github.ghostdogpr" %% "caliban" % calibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion,
-    "eu.timepit" %% "fs2-cron-core" % "0.2.2"
+    "eu.timepit" %% "fs2-cron-core" % "0.2.2",
+    "com.github.alonsodomin.cron4s" %% "cron4s-doobie" % "0.6.0",
   )
 
   lazy val jwt = List(

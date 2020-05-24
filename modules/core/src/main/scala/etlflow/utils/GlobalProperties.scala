@@ -2,11 +2,11 @@ package etlflow.utils
 
 import java.io.FileInputStream
 import java.util.Properties
-import org.apache.log4j.Logger
+import org.slf4j.LoggerFactory
 import scala.util.{Failure, Success, Try}
 
 abstract class GlobalProperties(global_properties_file_path: String, job_properties: Map[String,String] = Map.empty) {
-  private val gp_logger = Logger.getLogger(getClass.getName)
+  private val gp_logger = LoggerFactory.getLogger(getClass.getName)
   gp_logger.info(s"======> Trying to load ${getClass.getName} with path $global_properties_file_path")
 
   val configTry: Try[Properties] = Try {

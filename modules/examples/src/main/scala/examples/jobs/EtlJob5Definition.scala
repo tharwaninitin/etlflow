@@ -18,7 +18,6 @@ case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: O
   private val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
     input_location   = job_props.ratings_input_path,
-    input_columns    = Seq("user_id","movie_id","rating","timestamp"),
     input_type       = PARQUET,
     output_type      = JDBC(global_props.jdbc_url, global_props.jdbc_user, global_props.jdbc_pwd, global_props.jdbc_driver),
     output_location  = job_props.ratings_output_table,
@@ -28,7 +27,6 @@ case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: O
   private val step2 = SparkReadWriteStep[RatingBQ](
     name             = "LoadRatingsBqToJdbc",
     input_location   = Seq("test.ratings"),
-    input_columns    = Seq("user_id","movie_id","rating"),
     input_type       = BQ,
     output_type      = JDBC(global_props.jdbc_url, global_props.jdbc_user, global_props.jdbc_pwd, global_props.jdbc_driver),
     output_location  = job_props.ratings_output_table,

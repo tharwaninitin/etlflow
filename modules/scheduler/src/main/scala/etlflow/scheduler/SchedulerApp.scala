@@ -1,23 +1,23 @@
 package etlflow.scheduler
 
 import java.util.UUID.randomUUID
-import pdi.jwt.{Jwt, JwtAlgorithm}
 import caliban.CalibanError.ExecutionError
 import caliban.{CalibanError, GraphQLInterpreter}
+import ch.qos.logback.classic.{Level, Logger => LBLogger}
+import cron4s.Cron
 import doobie.hikari.HikariTransactor
+import doobie.implicits._
+import doobie.quill.DoobieContext
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.scheduler.EtlFlowHelper._
-import etlflow.{EtlJobName, EtlJobProps}
 import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
-import org.slf4j.{Logger, LoggerFactory}
-import zio.{Queue, Ref, Task, UIO, ZEnv, ZIO, ZLayer}
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.{Logger => LBLogger}
-import doobie.quill.DoobieContext
+import etlflow.{EtlJobName, EtlJobProps}
 import io.getquill.Literal
-import zio.stream.ZStream
-import doobie.implicits._
+import org.slf4j.{Logger, LoggerFactory}
+import pdi.jwt.{Jwt, JwtAlgorithm}
 import zio.interop.catz._
+import zio.stream.ZStream
+import zio._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
@@ -37,23 +37,73 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   val credentials: JDBC = JDBC(DB_URL,DB_USER,DB_PASS,DB_DRIVER)
 
   object EtlFlowService {
-    def liveHttp4s(pgTransactor: HikariTransactor[Task]): ZLayer[Any, Throwable, EtlFlowHas] =
+    def liveHttp4s(pgTransactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]]): ZLayer[Any, Throwable, EtlFlowHas] =
       ZLayer.fromEffect{
         for {
           subscribers <- Ref.make(List.empty[Queue[EtlJobStatus]])
           activeJobs  <- Ref.make(0)
-        } yield EtlFlowService(pgTransactor,activeJobs,subscribers)
+        } yield EtlFlowService(pgTransactor,activeJobs,subscribers,cronJobs)
       }
   }
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String)
   case class UserAuthTokens(token: String)
+  case class CronJobDB(job_name: String, schedule: String)
 
-  final case class EtlFlowService(transactor: HikariTransactor[Task], activeJobs: Ref[Int], subscribers: Ref[List[Queue[EtlJobStatus]]]) extends EtlFlow.Service {
+  val dc = new DoobieContext.Postgres(Literal)
+  import dc._
+
+  final case class EtlFlowService(transactor: HikariTransactor[Task],
+                                  activeJobs: Ref[Int],
+                                  subscribers: Ref[List[Queue[EtlJobStatus]]],
+                                  cronJobs: Ref[List[CronJob]]
+                                 ) extends EtlFlow.Service {
     val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-    val dc = new DoobieContext.Postgres(Literal)
-    import dc._
+
+    override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
+
+      val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
+        val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
+        val props_map     = args.props.map(x => (x.key,x.value)).toMap
+        val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(props_map),globalProperties)
+        etl_job.job_name  = job_name.toString
+        (job_name,etl_job,props_map)
+      }.mapError(e => ExecutionError(e.getMessage))
+
+      val job = for {
+        queues                       <- subscribers.get
+        (job_name,etl_job,props_map) <- etlJobDetails
+        execution_props <- Task {
+                              UF.convertToJsonByRemovingKeysAsMap(job_name.getActualProperties(props_map), List.empty)
+                                .map(x => (x._1, x._2.toString))
+                            }.mapError{ e =>
+                              logger.error(e.getMessage)
+                              ExecutionError(e.getMessage)
+                            }
+        _               <- activeJobs.update(_ + 1)
+        _               <- UIO.foreach(queues){queue =>
+                              queue
+                                .offer(EtlJobStatus(etl_job.job_name,"Started",execution_props))
+                                .catchSomeCause {
+                                  case cause if cause.interrupted =>
+                                    subscribers.update(_.filterNot(_ == queue)).as(false)
+                                } // if queue was shutdown, remove from subscribers
+                            }
+        _               <- etl_job.execute().ensuring{
+                            activeJobs.update(_ - 1) *>
+                              UIO.foreach(queues){queue =>
+                                queue
+                                  .offer(EtlJobStatus(etl_job.job_name,"Completed",execution_props))
+                                  .catchSomeCause {
+                                    case cause if cause.interrupted =>
+                                      subscribers.update(_.filterNot(_ == queue)).as(false)
+                                  } // if queue was shutdown, remove from subscribers
+                              }
+                          }.forkDaemon
+      } yield EtlJob(args.name,execution_props)
+      job
+    }
 
     override def getEtlJobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]] = {
       Task{
@@ -84,55 +134,12 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       })
     }
 
-    override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
-
-      val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
-        val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
-        val props_map     = args.props.map(x => (x.key,x.value)).toMap
-        val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(props_map),globalProperties)
-        etl_job.job_name  = job_name.toString
-        (job_name,etl_job,props_map)
-      }.mapError(e => ExecutionError(e.getMessage))
-
-      val job = for {
-        queues                       <- subscribers.get
-        (job_name,etl_job,props_map) <- etlJobDetails
-        execution_props <- Task {
-                              UF.convertToJsonByRemovingKeysAsMap(job_name.getActualProperties(props_map), List.empty)
-                                .map(x => (x._1, x._2.toString))
-                            }.mapError{ e =>
-                              logger.error(e.getMessage)
-                              ExecutionError(e.getMessage)
-                            }
-        _               <- activeJobs.update(_ + 1)
-        _               <- UIO.foreach(queues){queue =>
-                             queue
-                              .offer(EtlJobStatus(etl_job.job_name,"Started",execution_props))
-                              .catchSomeCause {
-                                case cause if cause.interrupted =>
-                                  subscribers.update(_.filterNot(_ == queue)).as(false)
-                              } // if queue was shutdown, remove from subscribers
-                           }
-        _               <- etl_job.execute().ensuring{
-                            activeJobs.update(_ - 1) *>
-                            UIO.foreach(queues){queue =>
-                              queue
-                                .offer(EtlJobStatus(etl_job.job_name,"Completed",execution_props))
-                                .catchSomeCause {
-                                  case cause if cause.interrupted =>
-                                    subscribers.update(_.filterNot(_ == queue)).as(false)
-                                } // if queue was shutdown, remove from subscribers
-                            }
-                           }.forkDaemon
-      } yield EtlJob(args.name,execution_props)
-      job
-    }
-
     override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {
       for {
         x <- activeJobs.get
         y <- subscribers.get
-      } yield EtlFlowMetrics(x, y.length)
+        z <- cronJobs.get
+      } yield EtlFlowMetrics(x, y.length, 0 , z.length)
     }
 
     override def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus] = ZStream.unwrap {
@@ -142,23 +149,45 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       } yield ZStream.fromQueue(queue).ensuring(queue.shutdown)
     }
 
+    override def addCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob] = {
+      val cronJobDB = CronJobDB(args.job_name, args.schedule.toString)
+      val cronJobString = quote {
+        querySchema[CronJobDB]("cronjob").insert(lift(cronJobDB))
+      }
+      dc.run(cronJobString).transact(transactor).map(_ => args)
+    }.mapError { e =>
+      logger.error(e.getMessage)
+      ExecutionError(e.getMessage)
+    }
+
+    override def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] = {
+      getCronJobsDB(transactor)
+    }
+
     def getStream: ZStream[EtlFlowHas, Throwable, EtlFlowMetrics] = {
-      ZStream.fromIterable(Seq(EtlFlowMetrics(1,1), EtlFlowMetrics(2,2), EtlFlowMetrics(3,3)))
+      ZStream.fromIterable(Seq(EtlFlowMetrics(1,1,1,1), EtlFlowMetrics(2,2,2,2), EtlFlowMetrics(3,3,3,3)))
     }
 
     def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {
       // ZStream.fromIterable(Seq(EtlFlowInfo(1), EtlFlowInfo(2), EtlFlowInfo(3))).runCollect.map(x => x.head)
-      ZStream.fromIterable(Seq(EtlFlowMetrics(1,1), EtlFlowMetrics(2,2), EtlFlowMetrics(3,3))).runCollect.map(x => x.head)
+      ZStream.fromIterable(Seq(EtlFlowMetrics(1,1,1,1), EtlFlowMetrics(2,2,2,2), EtlFlowMetrics(3,3,3,3))).runCollect.map(x => x.head)
       // Command("echo", "-n", "1\n2\n3").linesStream.runCollect.map(x => EtlFlowInfo(x.head.length))
     }
   }
 
-  def etlFlowHttp4sInterpreter(transactor: HikariTransactor[Task]): ZIO[Any, CalibanError, GraphQLInterpreter[ZEnv, Throwable]] =
-    EtlFlowService.liveHttp4s(transactor)
+  def etlFlowHttp4sInterpreter(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]]): ZIO[Any, CalibanError, GraphQLInterpreter[ZEnv, Throwable]] =
+    EtlFlowService.liveHttp4s(transactor,cronJobs)
       .memoize
       .use {
         layer => EtlFlowApi.api.interpreter.map(_.provideCustomLayer(layer))
       }
+
+  def getCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]] = {
+    val query = quote {
+      querySchema[CronJobDB]("cronjob")
+    }
+    dc.run(query).transact(transactor).map(x => x.map(x => CronJob(x.job_name, Cron.unsafeParse(x.schedule))))
+  }
 
   private def getJobProps(job_name: String): Map[String, String] = {
     val name = UF.getEtlJobName[EJN](job_name,etl_job_name_package)

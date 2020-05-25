@@ -1,6 +1,9 @@
 EtlFlow
 ====
 
+![Tests](https://github.com/tharwaninitin/etlflow/workflows/Tests/badge.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
+
 **EtlFlow** is a Functional library in Scala for writing ETL jobs.
 
 ## Documentation

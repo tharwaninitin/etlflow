@@ -49,8 +49,8 @@ object WriteApi {
 
     val df_writer = partition_by match {
       case partition if partition.nonEmpty && repartition =>
-          source.selectExpr(mapping.schema.map(x => x.name):_*).as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
-      case _ => source.selectExpr(mapping.schema.map(x => x.name):_*).as[T](mapping).repartition(n).write.option("compression",compression) //("compression", "gzip","snappy")
+          source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
+      case _ => source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n).write.option("compression",compression) //("compression", "gzip","snappy")
     }
 
     val df_writer_options = output_type match {

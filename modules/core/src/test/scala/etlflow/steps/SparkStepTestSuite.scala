@@ -38,7 +38,7 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
     output_save_mode = SaveMode.Overwrite
   )
 
-  def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
+  def enrichRatingParquetData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
     val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in
@@ -49,11 +49,24 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
     ratings_df.as[RatingOutput](mapping)
   }
 
+  def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutputCsv] = {
+    val mapping = Encoders.product[RatingOutputCsv]
+
+    val ratings_df = in
+        .withColumnRenamed("user_id","User Id")
+        .withColumnRenamed("movie_id","Movie Id")
+        .withColumnRenamed("rating","Ratings")
+        .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
+        .withColumnRenamed("date","Movie Date")
+
+    ratings_df.as[RatingOutputCsv](mapping)
+  }
+
   val step2 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                  = "LoadRatingsCsvToParquet",
     input_location        = Seq(input_path_csv),
     input_type            = CSV(),
-    transform_function    = enrichRatingData,
+    transform_function    = enrichRatingParquetData,
     output_type           = PARQUET,
     output_location       = output_path,
     output_save_mode      = SaveMode.Overwrite,
@@ -61,9 +74,21 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
     output_repartitioning = true  // Setting this to true takes care of creating one file for every partition
   )
 
+  val step3 = SparkReadTransformWriteStep[Rating, RatingOutputCsv](
+    name                  = "LoadRatingsCsvToCsv",
+    input_location        = Seq(input_path_csv),
+    input_type            = CSV(),
+    transform_function    = enrichRatingCsvData,
+    output_type           = CSV(),
+    output_location       = output_path,
+    output_save_mode      = SaveMode.Overwrite,
+    output_filename       = Some("ratings.csv")
+  )
+
   // STEP 3: Run Step
   runtime.unsafeRun(step1.process(spark))
   runtime.unsafeRun(step2.process(spark))
+  runtime.unsafeRun(step3.process(spark))
 
   // STEP 4: Run Test
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)

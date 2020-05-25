@@ -5,13 +5,11 @@ import zio.stream.ZStream
 import zio.{Has, ZIO}
 object EtlFlowHelper {
 
-  // GraphQL ARGS
-  //case class EtlJobNameArgs(name: String)
+  // GraphQL ARGS and Results
   case class Props(key: String, value: String)
   case class EtlJobArgs(name: String, props: List[Props])
   case class UserArgs(user_name: String, password: String)
 
-  // GraphQL Results
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
   case class EtlFlowMetrics(
@@ -21,8 +19,6 @@ object EtlFlowHelper {
                              cron_jobs: Int
                            )
   case class UserAuth(message: String, token: String)
-
-  // DB Objects
   case class CronJob(job_name: String, schedule: CronExpr)
 
   object EtlFlow {

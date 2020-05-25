@@ -82,7 +82,7 @@ object ReadApi {
     read_logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
     mapping.schema.printTreeString
 
-    df.selectExpr(mapping.schema.map(x => x.name):_*).as[T](mapping)
+    df.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping)
   }
 
 }

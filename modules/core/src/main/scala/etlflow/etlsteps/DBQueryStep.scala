@@ -11,11 +11,10 @@ class DBQueryStep private[etlflow](
                 credentials: JDBC
               )
   extends EtlStep[Unit,Unit]
-  with BootstrapRuntime
   with DbManager{
 
   lazy val db: Managed[Throwable, HikariTransactor[Task]] =
-    createDbTransactorManagedJDBC(credentials, platform.executor.asEC,  name + "-Pool")
+    createDbTransactorManagedJDBC(credentials, scala.concurrent.ExecutionContext.Implicits.global,  name + "-Pool")
 
   final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)

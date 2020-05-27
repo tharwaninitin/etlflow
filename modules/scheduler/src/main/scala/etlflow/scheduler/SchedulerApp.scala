@@ -159,6 +159,20 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       ExecutionError(e.getMessage)
     }
 
+    override def updateCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob] = {
+      val cronJobStringUpdate = quote {
+        querySchema[CronJobDB]("cronjob")
+          .filter(x => x.job_name == lift(args.job_name))
+          .update{
+            _.schedule -> lift(args.schedule.toString)
+          }
+      }
+      dc.run(cronJobStringUpdate).transact(transactor).map(_ => args)
+      }.mapError { e =>
+        logger.error(e.getMessage)
+        ExecutionError(e.getMessage)
+    }
+
     override def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] = {
       getCronJobsDB(transactor)
     }

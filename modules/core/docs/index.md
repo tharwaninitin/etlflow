@@ -9,8 +9,8 @@ technologies:
  - fourth: ["GCP", "Google Cloud Platform"]
 ---
 
-At a very high level, the library provides abstraction on top of Apache Spark, No SQL Databases, Relational Databases and multiple different datasources that makes it easier to develop ETL applications which can be easily Tested and Composed. 
-This library has many plug-and-play steps that are ready to handle your task on Google Cloud Platform (Support for other cloud providers coming soon). This makes EtlFlow easy to use with your current infrastructure.
+At a very high level, the library provides abstraction on top of Apache Spark, No SQL Databases, Relational Databases and multiple different datasources that makes it easier to develop **ETL applications** which can be easily Tested and Composed together. 
+This library has many **plug-and-play steps** that are ready to handle your task on Google Cloud Platform (Support for other cloud providers coming soon).
 
 ## Requirements and Installation
 

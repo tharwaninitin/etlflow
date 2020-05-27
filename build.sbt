@@ -34,7 +34,7 @@ lazy val core = (project in file("modules/core"))
     crossScalaVersions := supportedScalaVersions,
     initialCommands := "import etlflow._",
     micrositeName := "EtlFlow",
-    micrositeDescription := "EtlFlow is a Functional library in Scala for writing ETL jobs",
+    micrositeDescription := "Functional library in Scala for writing ETL jobs",
     micrositeUrl := "https://tharwaninitin.github.io/etlflow/site/",
     micrositeTheme := "pattern",
     micrositeBaseUrl := "/etlflow/site",
@@ -44,7 +44,7 @@ lazy val core = (project in file("modules/core"))
     micrositeGitterChannel := false,
     micrositeDocumentationLabelDescription := "Documentation",
     micrositeCompilingDocsTool := WithMdoc,
-    micrositeDataDirectory := (resourceDirectory in Compile).value / "docs" / "data",
+    // micrositeDataDirectory := (resourceDirectory in Compile).value / "docs" / "data",
     micrositeAuthor := "Nitin Tharwani",
     buildInfoKeys := Seq[BuildInfoKey](
       resolvers,

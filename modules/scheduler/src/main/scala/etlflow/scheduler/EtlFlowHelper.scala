@@ -29,6 +29,7 @@ object EtlFlowHelper {
       def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
       def addCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob]
+      def updateCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob]
       def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]]
       // def getStream: ZStream[EtlFlowHas, Throwable, EtlFlowInfo]
       // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo]
@@ -54,6 +55,9 @@ object EtlFlowHelper {
 
   def addCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob] =
     ZIO.accessM[EtlFlowHas](_.get.addCronJob(args))
+
+  def updateCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob] =
+    ZIO.accessM[EtlFlowHas](_.get.updateCronJob(args))
 
   def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] =
     ZIO.accessM[EtlFlowHas](_.get.getCronJobs)

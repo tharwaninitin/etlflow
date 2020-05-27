@@ -1,0 +1,18 @@
+options:
+
+    - title: Getting started
+      url: docs/index.html
+
+    - title: Project Structure
+      url: docs/structure.html
+
+    - title: Steps
+      url: docs/steps.html
+
+      nested_options:
+        - title: Spark
+          url: docs/spark.html
+        - title: BigQuery
+          url: docs/bigquery.html
+        - title: JDBC
+          url: docs/jdbc.html

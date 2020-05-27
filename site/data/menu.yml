@@ -1,9 +1,0 @@
-options:
-  - title: Getting Started
-    url: docs/index
-
-  - title: EtlSteps
-    url: docs/steps
-
-  - title: Project Structure
-    url: docs/structure

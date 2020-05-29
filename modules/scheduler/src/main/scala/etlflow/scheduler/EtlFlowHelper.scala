@@ -26,12 +26,12 @@ object EtlFlowHelper {
       def getEtlJobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]]
       def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
-      def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
       def addCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob]
       def updateCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob]
       def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]]
-      // def getStream: ZStream[EtlFlowHas, Throwable, EtlFlowInfo]
+      def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
+      def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
       // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo]
     }
   }
@@ -62,8 +62,8 @@ object EtlFlowHelper {
   def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] =
     ZIO.accessM[EtlFlowHas](_.get.getCronJobs)
 
-  // def getStream: ZStream[EtlFlowHas, Throwable, EtlFlowInfo] =
-  //  ZStream.accessStream[EtlFlowHas](_.get.getStream)
+  def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics] =
+    ZStream.accessStream[EtlFlowHas](_.get.getStream)
   //
   // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {
   //   val x = ZIO.accessM[Blocking](_.get.blocking{

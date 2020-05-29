@@ -34,9 +34,12 @@ class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_n
           )
           lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
           val x: ConnectionIO[Long] = ctx.run(quote {
-            querySchema[StepRun]("step").insert(lift(step))
+            query[StepRun].insert(lift(step))
           })
-          val y: Task[Long] = x.transact(transactor)
+          val y: Task[Long] = x.transact(transactor).mapError{e =>
+            lm_logger.error(s"failed in logging to db ${e.getMessage}")
+            e
+          }
           y
         }
         else {
@@ -44,14 +47,17 @@ class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_n
           val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
           lm_logger.info(s"Updating step info for ${etl_step.name} in db with status => $status")
           ctx.run(quote {
-            querySchema[StepRun]("step")
+            query[StepRun]
               .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
               .update(
                 _.state -> lift(status),
                 _.properties -> lift(UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
                 _.elapsed_time -> lift(elapsed_time)
                 )
-          }).transact(transactor)
+          }).transact(transactor).mapError{e =>
+            lm_logger.error(s"failed in logging to db ${e.getMessage}")
+            e
+          }
         }
     }
 
@@ -67,13 +73,19 @@ class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_n
       lm_logger.info(s"Inserting job info in db with status => $status")
       ctx.run(quote {
         query[JobRun].insert(lift(job))
-      }).transact(transactor)
+      }).transact(transactor).mapError{e =>
+        lm_logger.error(s"failed in logging to db ${e.getMessage}")
+        e
+      }
     }
     else {
       lm_logger.info(s"Updating job info in db with status => $status")
       ctx.run(quote {
         query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(status))
-      }).transact(transactor)
+      }).transact(transactor).mapError{e =>
+        lm_logger.error(s"failed in logging to db ${e.getMessage}")
+        e
+      }
     }
   }
 }

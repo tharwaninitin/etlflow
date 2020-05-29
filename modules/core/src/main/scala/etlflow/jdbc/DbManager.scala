@@ -68,4 +68,15 @@ trait DbManager {
     dataSource.setPoolName(pool_name)
     HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
   }
+
+  def createDbTransactorJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool"): Task[HikariTransactor[Task]] = Task {
+    val dataSource = new HikariDataSource()
+    dataSource.setDriverClassName(credentials.driver)
+    dataSource.setJdbcUrl(credentials.url)
+    dataSource.setUsername(credentials.user)
+    dataSource.setPassword(credentials.password)
+    dataSource.setMaximumPoolSize(2)
+    dataSource.setPoolName(pool_name)
+    HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
+  }
 }

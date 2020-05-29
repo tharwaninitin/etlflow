@@ -27,7 +27,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   final def logStepError(step_start_time: Long, ex: Throwable)(resource: LoggerResource): Task[Long] = {
     resource.slack.foreach(_.updateStepLevelInformation(step_start_time, this, "failed", Some(ex.getMessage)))
     if (resource.db.isDefined) {
-      etl_logger.error(ex.getStackTrace.mkString("\n"))
+      etl_logger.error("Step Error StackTrace:"+"\n"+ex.getStackTrace.mkString("\n"))
       resource.db.get.updateStepLevelInformation(step_start_time, this, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage)).as(1)
     }
     else

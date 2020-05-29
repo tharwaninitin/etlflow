@@ -35,7 +35,10 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                         login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth]
                       )
 
-  case class Subscriptions(notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus])
+  case class Subscriptions(
+                            notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus],
+                            getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
+                          )
 
   val api: GraphQL[Console with Clock with Blocking with EtlFlowHas] =
     graphQL(
@@ -51,7 +54,10 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
           args => updateCronJob(args),
           args => login(args)
         ),
-        Subscriptions(notifications)
+        Subscriptions(
+          notifications,
+          getStream
+        )
       )
     )
 }

@@ -9,6 +9,12 @@ lazy val coreSettings = Seq(
   , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs
     ++ loggingLibs ++ dbLibs ++ miscLibs
     ++ awsLibs ++ testLibs
+  , dependencyOverrides ++= {
+    Seq(
+      "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
+    )
+  }
 )
 
 lazy val schedulerSettings = Seq(

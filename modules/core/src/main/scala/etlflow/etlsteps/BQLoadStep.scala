@@ -19,7 +19,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
             , output_table: String
             , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
             , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-            , val gcp_credential_file_path: Option[String] = None
+            , val credentials: Option[GCP] = None
        )
   extends BQStep {
   var row_count: Map[String, Long] = Map.empty
@@ -122,9 +122,9 @@ object BQLoadStep {
       , output_table: String
       , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
       , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-      , gcp_credential_file_path: Option[String] = None
+      , credentials: Option[GCP] = None
      ): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system
-      , output_dataset, output_table, output_write_disposition, output_create_disposition, gcp_credential_file_path)
+      , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials)
   }
 }

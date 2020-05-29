@@ -12,6 +12,7 @@ object Dependencies {
   private val DoobieVersion = "0.8.8"
   private val calibanVersion = "0.7.5"
   private val FlywayVersion = "6.4.1"
+  private val AwsVersion = "2.13.23"
 
   lazy val loggingLibs = List(
     // "com.jcabi" % "jcabi-log" % "0.17.4",
@@ -22,6 +23,10 @@ object Dependencies {
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
     "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion,
     "com.google.cloud" % "google-cloud-dataproc" % "0.122.1"
+  )
+
+  lazy val awsLibs = List(
+    "software.amazon.awssdk" % "s3" % AwsVersion
   )
 
   lazy val sparkLibs = List(

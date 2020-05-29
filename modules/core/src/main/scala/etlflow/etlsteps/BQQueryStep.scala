@@ -1,12 +1,13 @@
 package etlflow.etlsteps
 
 import etlflow.bigquery.QueryApi
+import etlflow.utils.GCP
 import zio.Task
 
 class BQQueryStep private[etlflow](
                  val name: String
                  , query: => String
-                 ,val gcp_credential_file_path: Option[String] = None
+                 ,val credentials: Option[GCP] = None
            )
   extends BQStep {
 
@@ -25,9 +26,9 @@ object BQQueryStep {
   def apply(
              name: String,
              query: => String,
-             gcp_credential_file_path: Option[String] = None
+             credentials: Option[GCP] = None
            ): BQQueryStep =
-    new BQQueryStep(name, query, gcp_credential_file_path)
+    new BQQueryStep(name, query, credentials)
 }
 
 

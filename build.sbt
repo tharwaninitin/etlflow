@@ -6,7 +6,9 @@ import Dependencies._
 
 lazy val coreSettings = Seq(
   name := "etlflow-core"
-  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
+  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs
+    ++ loggingLibs ++ dbLibs ++ miscLibs
+    ++ awsLibs ++ testLibs
 )
 
 lazy val schedulerSettings = Seq(

@@ -3,11 +3,12 @@ import zio.{Schedule, Task}
 import etlflow.aws._
 import etlflow.utils.AWS
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3AsyncClient
 import zio.clock.Clock
 import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
 
-class S3SensorStep private[etlflow](
+class S3SensorStep private[etlsteps](
                    val name: String,
                    bucket: => String,
                    prefix: => String,
@@ -20,13 +21,20 @@ class S3SensorStep private[etlflow](
                  ) extends EtlStep[Unit,Unit] {
   override def process(input_state: => Unit): Task[Unit] = {
     val env       = S3Client.live >>> S3Api.live
-    val program   = lookupObject(bucket,prefix,key)
+    val lookup    = lookupObject(bucket,prefix,key).provideLayer(env)
+
+    def program(s3: S3AsyncClient): Task[Unit] = (for {
+                    out <- lookup.provide(s3)
+                    _   <- if(out) Task.succeed(etl_logger.info(s"Found key $key in s3 location s3://$bucket/$prefix/"))
+                           else Task.fail(new RuntimeException(s"key $key not found in s3 location s3://$bucket/$prefix/"))
+                  } yield ()).retry(schedule(retry,spaced)).provideLayer(Clock.live)
+
     val runnable  = for {
+                      _   <- Task.succeed(etl_logger.info(s"Starting sensor for s3 location s3://$bucket/$prefix/$key"))
                       s3  <- createClient(region, endpoint_override, credentials)
-                      out <- program.provideLayer(env).provide(s3)
-                      _   <- if(out) Task.succeed(()) else Task.fail(new RuntimeException(s"key not found $key"))
-                    } yield out
-    runnable.retry(schedule(retry,spaced)).as(()).provideLayer(Clock.live)
+                      _   <- program(s3)
+                    } yield ()
+    runnable
   }
 
   def schedule[A](retry: Int, spaced: Duration): Schedule[Clock, A, (Int, Int)] =

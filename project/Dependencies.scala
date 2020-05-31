@@ -22,7 +22,8 @@ object Dependencies {
   lazy val googleCloudLibs = List(
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
     "com.google.cloud" % "google-cloud-bigquery" % GCloudVersion,
-    "com.google.cloud" % "google-cloud-dataproc" % "0.122.1"
+    "com.google.cloud" % "google-cloud-dataproc" % "0.122.1",
+    "com.google.cloud" % "google-cloud-storage" % "1.108.0",
   )
 
   lazy val awsLibs = List(
@@ -70,6 +71,8 @@ object Dependencies {
 
   lazy val testLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
-    "org.testcontainers" % "postgresql" % "1.11.2"
+    "org.testcontainers" % "postgresql" % "1.11.2",
+    "dev.zio" %% "zio-test"     % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion
   ).map(_ % Test)
 }

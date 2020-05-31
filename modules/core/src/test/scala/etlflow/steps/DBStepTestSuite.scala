@@ -3,39 +3,47 @@ package etlflow.steps
 import etlflow.TestSuiteHelper
 import etlflow.etlsteps.DBQueryStep
 import etlflow.utils.JDBC
-import org.scalatest.{FlatSpec, Matchers}
 import org.testcontainers.containers.PostgreSQLContainer
+import zio.ZIO
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
 
-class DBStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper {
+class DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  // STEP 1: Setup test containers
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()
 
-  val create_table_script = """
-      CREATE TABLE ratings_par (
-        user_id int
-      , movie_id int
-      , rating int
-      , timestamp int
-      , date date
+  def spec: ZSpec[environment.TestEnvironment, Any] =
+    suite("EtlFlow")(
+      suite("DB Steps")(
+        testM("Execute DB step") {
+          val create_table_script = """
+              CREATE TABLE ratings_par (
+                user_id int
+              , movie_id int
+              , rating int
+              , timestamp int
+              , date date
+              )
+              """
+          val step1 = DBQueryStep(
+            name  = "UpdatePG",
+            query = create_table_script,
+            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver)
+          )
+          val step2 = DBQueryStep(
+            name  = "UpdatePG",
+            query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
+            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver)
+          )
+          val job = for {
+            _ <- step1.process()
+            _ <- step2.process()
+          } yield ()
+          assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        }
       )
-      """
-
-  val step1 = DBQueryStep(
-    name  = "UpdatePG",
-    query = create_table_script,
-    credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver)
-  )
-
-  val step2 = DBQueryStep(
-    name  = "UpdatePG",
-    query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
-    credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver)
-  )
-
-  runtime.unsafeRun(step1.process())
-  runtime.unsafeRun(step2.process())
+    )
   // STEP 1: Initialize job properties and create BQ tables required for jobs
 //  private val canonical_path = new java.io.File(".").getCanonicalPath
 //  val global_props = new MyGlobalProperties(canonical_path + "/etljobs/src/test/resources/loaddata.properties")

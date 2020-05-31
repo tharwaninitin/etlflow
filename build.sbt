@@ -61,7 +61,8 @@ lazy val core = (project in file("modules/core"))
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow",
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
 
 lazy val scheduler = (project in file("modules/scheduler"))

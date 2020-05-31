@@ -1,15 +1,18 @@
 package etlflow
 
 import java.net.URI
+import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
+
 import etlflow.utils.AWS
 import org.slf4j.{Logger, LoggerFactory}
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+
 import scala.collection.JavaConverters._
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
-import software.amazon.awssdk.services.s3.model.{ListBucketsResponse, ListObjectsV2Request, ListObjectsV2Response}
+import software.amazon.awssdk.services.s3.model.{DeleteObjectRequest, DeleteObjectResponse, GetObjectRequest, GetObjectResponse, ListBucketsResponse, ListObjectsV2Request, ListObjectsV2Response, PutObjectRequest, PutObjectResponse}
 import zio.{Has, IO, Task, ZIO, ZLayer}
 
 package object aws {
@@ -30,8 +33,11 @@ package object aws {
   object S3Api {
     trait Service {
       def listBuckets: Task[ListBucketsResponse]
-      def lookupObject(buck: String, prefix: String, key: String): Task[Boolean]
-      def listBucketObjects(buck: String, prefix: String): Task[ListObjectsV2Response]
+      def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean]
+      def listBucketObjects(bucket: String, prefix: String): Task[ListObjectsV2Response]
+      def putObject(bucket: String, key: String, file: String): Task[PutObjectResponse]
+      def getObject(bucket: String, key: String, file: String): Task[GetObjectResponse]
+      def delObject(bucket: String, key: String): Task[DeleteObjectResponse]
     }
     val any: ZLayer[S3Api, Nothing, S3Api] = ZLayer.requires[S3Api]
     val live: ZLayer[S3Client, Throwable, S3Api] = ZLayer.fromService { deps: S3Client.Service =>
@@ -62,6 +68,24 @@ package object aws {
             res     = list.contents.asScala.exists(_.key == newKey)
             _       = aws_logger.info(s"Object present: ${res.toString}")
           } yield res
+        def putObject(bucket: String, key: String, file: String): Task[PutObjectResponse] = IO.effectAsync[Throwable, PutObjectResponse] { callback =>
+            processResponse(
+              deps.s3.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, Paths.get(file)),
+              callback
+            )
+          }
+        def getObject(bucket: String, key: String, file: String): Task[GetObjectResponse] = IO.effectAsync[Throwable, GetObjectResponse] { callback =>
+            processResponse(
+              deps.s3.getObject(GetObjectRequest.builder.bucket(bucket).key(key).build, Paths.get(file)),
+              callback
+            )
+          }
+        def delObject(bucket: String, key: String): Task[DeleteObjectResponse] = IO.effectAsync[Throwable, DeleteObjectResponse] { callback =>
+            processResponse(
+              deps.s3.deleteObject(DeleteObjectRequest.builder.bucket(bucket).key(key).build),
+              callback
+            )
+          }
         def processResponse[T](fut: CompletableFuture[T], callback: Task[T] => Unit): Unit = fut.handle[Unit] { (response, err) =>
             err match {
               case null => callback(IO.succeed(response))
@@ -100,5 +124,6 @@ package object aws {
 
     Task(client)
   }
+  def putObject(bucket: String, key: String, file: String): ZIO[S3Api, Throwable, PutObjectResponse] = ZIO.accessM(_.get.putObject(bucket,key,file))
   def lookupObject(bucket: String, prefix: String, key: String): ZIO[S3Api, Throwable, Boolean] = ZIO.accessM(_.get.lookupObject(bucket,prefix,key))
 }

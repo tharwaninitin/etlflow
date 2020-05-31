@@ -23,16 +23,19 @@ trait TestSuiteHelper extends SparkManager {
   lazy val spark_jetty_logger: LBLogger = LoggerFactory.getLogger("org.spark_project.jetty").asInstanceOf[LBLogger]
   spark_jetty_logger.setLevel(Level.WARN)
 
-  val canonical_path: String          = new java.io.File(".").getCanonicalPath
-  val global_props: GlobalProperties  = new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}
-  lazy val spark: SparkSession        = createSparkSession(Some(global_props))
-
-  lazy val bq: BigQuery               = {
-    val credentials: GoogleCredentials  = ServiceAccountCredentials.fromStream(
-      new FileInputStream(sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV"))
+  val gcs_bucket: String              = sys.env("GCS_BUCKET")
+  val s3_bucket: String               = sys.env("S3_BUCKET")
+  val bq: BigQuery                    = {
+    val credentials: GoogleCredentials = ServiceAccountCredentials.fromStream(
+      new FileInputStream(sys.env("GOOGLE_APPLICATION_CREDENTIALS"))
     )
     BigQueryOptions.newBuilder().setCredentials(credentials).build().getService
   }
+  val canonical_path: String          = new java.io.File(".").getCanonicalPath
+  val global_props: GlobalProperties  = new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}
+  lazy val spark: SparkSession        = createSparkSession(Some(global_props))
+  val file                            = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+
   def transactor(url: String, user: String, pwd: String): Aux[Task, Unit]
   = Transactor.fromDriverManager[Task](
     global_props.log_db_driver,     // driver classname

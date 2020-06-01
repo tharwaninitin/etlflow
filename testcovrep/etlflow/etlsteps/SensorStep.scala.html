@@ -1,0 +1,301 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/SensorStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.EtlJobException
+</span>4 <span style=''>import org.slf4j.{Logger, LoggerFactory}
+</span>5 <span style=''>import zio.{Schedule, Task}
+</span>6 <span style=''>import zio.clock.Clock
+</span>7 <span style=''>import zio.duration.{Duration =&gt; ZDuration}
+</span>8 <span style=''>import scala.concurrent.duration.Duration
+</span>9 <span style=''>
+</span>10 <span style=''>trait SensorStep {
+</span>11 <span style=''>  val sensor_logger: Logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>12 <span style=''>
+</span>13 <span style=''>  lazy val noThrowable: Schedule[Any, Throwable, Throwable] = Schedule.doWhile {
+</span>14 <span style=''>    case _: EtlJobException =&gt; true
+</span>15 <span style=''>    case _ =&gt; false
+</span>16 <span style=''>  }
+</span>17 <span style=''>
+</span>18 <span style=''>  def schedule[A](retry: Int, spaced: Duration): Schedule[Clock, A, (Int, Int)] =
+</span>19 <span style=''>    </span><span style='background: #AEF1AE'>Schedule.recurs(retry) &amp;&amp; Schedule.spaced(ZDuration.fromScala(spaced)).onDecision((a: A, s) =&gt; s match {
+</span>20 <span style=''></span><span style='background: #AEF1AE'>      case None =&gt; </span><span style='background: #F0ADAD'>Task.succeed(sensor_logger.info(s&quot;done trying&quot;))</span><span style='background: #AEF1AE'>
+</span>21 <span style=''></span><span style='background: #AEF1AE'>      case Some(att) =&gt; </span><span style='background: #F0ADAD'>Task.succeed(sensor_logger.info(s&quot;retry #$att&quot;))</span><span style='background: #AEF1AE'>
+</span>22 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
+</span>23 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          937
+        </td>
+        <td>
+          285
+          -
+          326
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.slf4j.LoggerFactory.getLogger(SensorStep.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          936
+        </td>
+        <td>
+          309
+          -
+          325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          SensorStep.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          938
+        </td>
+        <td>
+          598
+          -
+          625
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.duration.Duration.fromScala
+        </td>
+        <td style="background: #AEF1AE">
+          zio.duration.Duration.fromScala(spaced)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          946
+        </td>
+        <td>
+          556
+          -
+          808
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Schedule.&amp;&amp;
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Schedule.recurs(retry).&amp;&amp;[zio.Has[zio.clock.Clock.Service], A, Int](zio.Schedule.spaced(zio.duration.Duration.fromScala(spaced)).onDecision[A, zio.Has[zio.clock.Clock.Service]](((a: A, s: Option[zio.Schedule[zio.clock.Clock,Any,Int]#State]) =&gt; s match {
+  case scala.None =&gt; zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;done trying&quot;).s()))
+  case (value: zio.Schedule[zio.clock.Clock,Any,Int]#State)Some[zio.Schedule[zio.clock.Clock,Any,Int]#State]((att @ _)) =&gt; zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)))
+})))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          945
+        </td>
+        <td>
+          582
+          -
+          808
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Schedule.onDecision
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Schedule.spaced(zio.duration.Duration.fromScala(spaced)).onDecision[A, zio.Has[zio.clock.Clock.Service]](((a: A, s: Option[zio.Schedule[zio.clock.Clock,Any,Int]#State]) =&gt; s match {
+  case scala.None =&gt; zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;done trying&quot;).s()))
+  case (value: zio.Schedule[zio.clock.Clock,Any,Int]#State)Some[zio.Schedule[zio.clock.Clock,Any,Int]#State]((att @ _)) =&gt; zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          941
+        </td>
+        <td>
+          680
+          -
+          728
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;done trying&quot;).s()))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          940
+        </td>
+        <td>
+          693
+          -
+          727
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;done trying&quot;).s())
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          939
+        </td>
+        <td>
+          712
+          -
+          726
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;done trying&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          944
+        </td>
+        <td>
+          753
+          -
+          801
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          943
+        </td>
+        <td>
+          766
+          -
+          800
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          942
+        </td>
+        <td>
+          785
+          -
+          799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

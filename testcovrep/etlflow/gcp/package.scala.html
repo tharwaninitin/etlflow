@@ -1,0 +1,1309 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/gcp/package.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow
+</span>2 <span style=''>
+</span>3 <span style=''>import java.io.FileInputStream
+</span>4 <span style=''>
+</span>5 <span style=''>import com.google.api.gax.paging.Page
+</span>6 <span style=''>import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+</span>7 <span style=''>import com.google.cloud.storage.BlobId
+</span>8 <span style=''>import com.google.cloud.storage.BlobInfo
+</span>9 <span style=''>import java.nio.file.Files
+</span>10 <span style=''>import java.nio.file.Paths
+</span>11 <span style=''>import scala.collection.JavaConverters._
+</span>12 <span style=''>import com.google.cloud.storage.{Blob, BlobInfo, StorageOptions}
+</span>13 <span style=''>import com.google.cloud.storage.Storage.{BlobListOption, BlobTargetOption}
+</span>14 <span style=''>import etlflow.utils.GCP
+</span>15 <span style=''>import org.slf4j.{Logger, LoggerFactory}
+</span>16 <span style=''>import zio.{Has, IO, Layer, Managed, RIO, Task, ZIO, ZLayer}
+</span>17 <span style=''>
+</span>18 <span style=''>package object gcp {
+</span>19 <span style=''>  val gcp_logger: Logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>20 <span style=''>
+</span>21 <span style=''>  type GCSStorage = Has[GCSStorage.Service]
+</span>22 <span style=''>
+</span>23 <span style=''>  object GCSStorage {
+</span>24 <span style=''>    trait Service {
+</span>25 <span style=''>      def listObjects(bucket: String, options: List[BlobListOption]): ZIO[GCSStorage, Throwable, Page[Blob]]
+</span>26 <span style=''>      def lookupObject(bucket: String, prefix: String, key: String): ZIO[GCSStorage, Throwable, Boolean]
+</span>27 <span style=''>      def putObject(bucket: String, key: String, file: String): ZIO[GCSStorage, Throwable, Blob]
+</span>28 <span style=''>    }
+</span>29 <span style=''>    def live(credentials: Option[GCP] = None): Layer[Throwable, GCSStorage] = </span><span style='background: #AEF1AE'>ZLayer.fromManaged {
+</span>30 <span style=''></span><span style='background: #AEF1AE'>        val acquire = IO.effect{
+</span>31 <span style=''></span><span style='background: #AEF1AE'>          val env_path: String = sys.env.getOrElse(&quot;GOOGLE_APPLICATION_CREDENTIALS&quot;, &quot;NOT_SET_IN_ENV&quot;)
+</span>32 <span style=''></span><span style='background: #AEF1AE'>          def getStorageClient(path: String) = {
+</span>33 <span style=''></span><span style='background: #AEF1AE'>            val credentials: GoogleCredentials = ServiceAccountCredentials.fromStream(new FileInputStream(path))
+</span>34 <span style=''></span><span style='background: #AEF1AE'>            StorageOptions.newBuilder().setCredentials(credentials).build().getService
+</span>35 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>36 <span style=''></span><span style='background: #AEF1AE'>          credentials match {
+</span>37 <span style=''></span><span style='background: #AEF1AE'>            case Some(creds) =&gt;
+</span>38 <span style=''></span><span style='background: #AEF1AE'>              </span><span style='background: #F0ADAD'>gcp_logger.info(&quot;Using GCP credentials from values passed in function&quot;)</span><span style='background: #AEF1AE'>
+</span>39 <span style=''></span><span style='background: #AEF1AE'>              </span><span style='background: #F0ADAD'>getStorageClient(creds.service_account_key_path)</span><span style='background: #AEF1AE'>
+</span>40 <span style=''></span><span style='background: #AEF1AE'>            case None =&gt;
+</span>41 <span style=''></span><span style='background: #AEF1AE'>              if (env_path == &quot;NOT_SET_IN_ENV&quot;) </span><span style='background: #F0ADAD'>{
+</span>42 <span style=''></span><span style='background: #F0ADAD'>                gcp_logger.info(&quot;Using GCP credentials from local sdk&quot;)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>                StorageOptions.newBuilder().build().getService
+</span>44 <span style=''></span><span style='background: #F0ADAD'>              }</span><span style='background: #AEF1AE'>
+</span>45 <span style=''></span><span style='background: #AEF1AE'>              else {
+</span>46 <span style=''></span><span style='background: #AEF1AE'>                gcp_logger.info(&quot;Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS&quot;)
+</span>47 <span style=''></span><span style='background: #AEF1AE'>                getStorageClient(env_path)
+</span>48 <span style=''></span><span style='background: #AEF1AE'>              }
+</span>49 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>50 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>51 <span style=''></span><span style='background: #AEF1AE'>        Managed.fromEffect(acquire).map { storage =&gt;
+</span>52 <span style=''></span><span style='background: #AEF1AE'>          new Service {
+</span>53 <span style=''></span><span style='background: #AEF1AE'>            override def listObjects(bucket: String, options: List[BlobListOption]): Task[Page[Blob]] = Task {
+</span>54 <span style=''></span><span style='background: #AEF1AE'>              storage.list(bucket, options: _*)
+</span>55 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>56 <span style=''></span><span style='background: #AEF1AE'>            override def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean] = {
+</span>57 <span style=''></span><span style='background: #AEF1AE'>              val options: List[BlobListOption] = List(
+</span>58 <span style=''></span><span style='background: #AEF1AE'>                BlobListOption.prefix(prefix)
+</span>59 <span style=''></span><span style='background: #AEF1AE'>              )
+</span>60 <span style=''></span><span style='background: #AEF1AE'>              listObjects(bucket, options)
+</span>61 <span style=''></span><span style='background: #AEF1AE'>                .map(_.iterateAll().asScala)
+</span>62 <span style=''></span><span style='background: #AEF1AE'>                .map { blobs =&gt;
+</span>63 <span style=''></span><span style='background: #AEF1AE'>                  if (blobs.nonEmpty) gcp_logger.info(&quot;Objects \n&quot;+blobs.mkString(&quot;\n&quot;))
+</span>64 <span style=''></span><span style='background: #AEF1AE'>                  else </span><span style='background: #F0ADAD'>gcp_logger.info(s&quot;No Objects found under gs://$bucket/$prefix&quot;)</span><span style='background: #AEF1AE'>
+</span>65 <span style=''></span><span style='background: #AEF1AE'>                  blobs.exists(_.getName == prefix+&quot;/&quot;+key)
+</span>66 <span style=''></span><span style='background: #AEF1AE'>                }
+</span>67 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>68 <span style=''></span><span style='background: #AEF1AE'>            override def putObject(bucket: String, key: String, file: String): Task[Blob] = Task{
+</span>69 <span style=''></span><span style='background: #AEF1AE'>              val blobId = BlobId.of(bucket, key)
+</span>70 <span style=''></span><span style='background: #AEF1AE'>              val blobInfo = BlobInfo.newBuilder(blobId).build
+</span>71 <span style=''></span><span style='background: #AEF1AE'>              storage.create(blobInfo, Files.readAllBytes(Paths.get(file)))
+</span>72 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>73 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>74 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>75 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>76 <span style=''>  }
+</span>77 <span style=''>
+</span>78 <span style=''>  def putObject(bucket: String, key: String, file: String): ZIO[GCSStorage, Throwable, Blob] =
+</span>79 <span style=''>    </span><span style='background: #AEF1AE'>ZIO.accessM(_.get.putObject(bucket,key,file))</span><span style=''>
+</span>80 <span style=''>
+</span>81 <span style=''>  def lookupObject(bucket: String, prefix: String, key: String): ZIO[GCSStorage, Throwable, Boolean] =
+</span>82 <span style=''>    </span><span style='background: #AEF1AE'>ZIO.accessM(_.get.lookupObject(bucket,prefix,key))</span><span style=''>
+</span>83 <span style=''>
+</span>84 <span style=''>  def listObjects(bucket: String, options: List[BlobListOption]): ZIO[GCSStorage, Throwable, Page[Blob]] =
+</span>85 <span style=''>    </span><span style='background: #F0ADAD'>ZIO.accessM(_.get.listObjects(bucket,options))</span><span style=''>
+</span>86 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1174
+        </td>
+        <td>
+          655
+          -
+          696
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.slf4j.LoggerFactory.getLogger(`package`.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1173
+        </td>
+        <td>
+          679
+          -
+          695
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1217
+        </td>
+        <td>
+          1180
+          -
+          3439
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZLayer.fromManaged
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZLayer.fromManaged[Any, Throwable, etlflow.gcp.package.GCSStorage.Service]({
+  val acquire: zio.Task[com.google.cloud.storage.Storage] = zio.IO.effect[com.google.cloud.storage.Storage]({
+    val env_path: String = scala.sys.`package`.env.getOrElse[String](&quot;GOOGLE_APPLICATION_CREDENTIALS&quot;, &quot;NOT_SET_IN_ENV&quot;);
+    def getStorageClient(path: String): com.google.cloud.storage.Storage = {
+      val credentials: com.google.auth.oauth2.GoogleCredentials = com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(path));
+      com.google.cloud.storage.StorageOptions.newBuilder().setCredentials(credentials).build().getService()
+    };
+    credentials match {
+      case (value: etlflow.utils.GCP)Some[etlflow.utils.GCP]((creds @ _)) =&gt; {
+        `package`.this.gcp_logger.info(&quot;Using GCP credentials from values passed in function&quot;);
+        getStorageClient(creds.service_account_key_path)
+      }
+      case scala.None =&gt; if (env_path.==(&quot;NOT_SET_IN_ENV&quot;))
+        {
+          `package`.this.gcp_logger.info(&quot;Using GCP credentials from local sdk&quot;);
+          com.google.cloud.storage.StorageOptions.newBuilder().build().getService()
+        }
+      else
+        {
+          `package`.this.gcp_logger.info(&quot;Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS&quot;);
+          getStorageClient(env_path)
+        }
+    }
+  });
+  zio.Managed.fromEffect[Throwable, com.google.cloud.storage.Storage](acquire).map[etlflow.gcp.GCSStorage.Service{def listObjects(bucket: String,options: List[com.google.cloud.storage.Storage.BlobListOption]): zio.Task[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]]; def lookupObject(bucket: String,prefix: String,key: String): zio.Task[Boolean]; def putObject(bucket: String,key: String,file: String): zio.Task[com.google.cloud.storage.Blob]}](((storage: com.google.cloud.storage.Storage) =&gt; {
+    final class $anon extends AnyRef with etlflow.gcp.GCSStorage.Service {
+      def &lt;init&gt;(): &lt;$anon: etlflow.gcp.GCSStorage.Service&gt; = {
+        $anon.super.&lt;init&gt;();
+        ()
+      };
+      override def listObjects(bucket: String, options: List[com.google.cloud.storage.Storage.BlobListOption]): zio.Task[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]] = zio.Task.apply[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]](storage.list(bucket, (options: _*)));
+      override def lookupObject(bucket: String, prefix: String, key: String): zio.Task[Boolean] = {
+        val options: List[com.google.cloud.storage.Storage.BlobListOption] = scala.collection.immutable.List.apply[com.google.cloud.storage.Storage.BlobListOption](com.google.cloud.storage.Storage.BlobListOption.prefix(prefix));
+        $anon.this.listObjects(bucket, options).map[Iterable[com.google.cloud.storage.Blob]](((x$1: com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]) =&gt; scala.collection.JavaConverters.iterableAsScalaIterableConverter[com.google.cloud.storage.Blob](x$1.iterateAll()).asScala)).map[Boolean](((blobs: Iterable[com.google.cloud.storage.Blob]) =&gt; {
+          if (blobs.nonEmpty)
+            `package`.this.gcp_logger.info(&quot;Objects \n&quot;.+(blobs.mkString(&quot;\n&quot;)))
+          else
+            `package`.this.gcp_logger.info(scala.StringContext.apply(&quot;No Objects found under gs://&quot;, &quot;/&quot;, &quot;&quot;).s(bucket, prefix));
+          blobs.exists(((x$2: com.google.cloud.storage.Blob) =&gt; x$2.getName().==(prefix.+(&quot;/&quot;).+(key))))
+        }))
+      };
+      override def putObject(bucket: String, key: String, file: String): zio.Task[com.google.cloud.storage.Blob] = zio.Task.apply[com.google.cloud.storage.Blob]({
+        val blobId: com.google.cloud.storage.BlobId = com.google.cloud.storage.BlobId.of(bucket, key);
+        val blobInfo: com.google.cloud.storage.BlobInfo = com.google.cloud.storage.BlobInfo.newBuilder(blobId).build();
+        storage.create(blobInfo, java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file)))
+      })
+    };
+    new $anon()
+  }))
+})((izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service]))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1189
+        </td>
+        <td>
+          1223
+          -
+          2250
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.effect
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.effect[com.google.cloud.storage.Storage]({
+  val env_path: String = scala.sys.`package`.env.getOrElse[String](&quot;GOOGLE_APPLICATION_CREDENTIALS&quot;, &quot;NOT_SET_IN_ENV&quot;);
+  def getStorageClient(path: String): com.google.cloud.storage.Storage = {
+    val credentials: com.google.auth.oauth2.GoogleCredentials = com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(path));
+    com.google.cloud.storage.StorageOptions.newBuilder().setCredentials(credentials).build().getService()
+  };
+  credentials match {
+    case (value: etlflow.utils.GCP)Some[etlflow.utils.GCP]((creds @ _)) =&gt; {
+      `package`.this.gcp_logger.info(&quot;Using GCP credentials from values passed in function&quot;);
+      getStorageClient(creds.service_account_key_path)
+    }
+    case scala.None =&gt; if (env_path.==(&quot;NOT_SET_IN_ENV&quot;))
+      {
+        `package`.this.gcp_logger.info(&quot;Using GCP credentials from local sdk&quot;);
+        com.google.cloud.storage.StorageOptions.newBuilder().build().getService()
+      }
+    else
+      {
+        `package`.this.gcp_logger.info(&quot;Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS&quot;);
+        getStorageClient(env_path)
+      }
+  }
+})
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1175
+        </td>
+        <td>
+          1267
+          -
+          1336
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;GOOGLE_APPLICATION_CREDENTIALS&quot;, &quot;NOT_SET_IN_ENV&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1177
+        </td>
+        <td>
+          1435
+          -
+          1498
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.auth.oauth2.ServiceAccountCredentials.fromStream
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(path))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1176
+        </td>
+        <td>
+          1472
+          -
+          1497
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.io.FileInputStream.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.io.FileInputStream(path)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1178
+        </td>
+        <td>
+          1511
+          -
+          1585
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.storage.StorageOptions.newBuilder().setCredentials(credentials).build().getService()
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1179
+        </td>
+        <td>
+          1674
+          -
+          1745
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          `package`.this.gcp_logger.info(&quot;Using GCP credentials from values passed in function&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1180
+        </td>
+        <td>
+          1777
+          -
+          1807
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.GCP.service_account_key_path
+        </td>
+        <td style="background: #F0ADAD">
+          creds.service_account_key_path
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1181
+        </td>
+        <td>
+          1760
+          -
+          1808
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.getStorageClient
+        </td>
+        <td style="background: #F0ADAD">
+          getStorageClient(creds.service_account_key_path)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1185
+        </td>
+        <td>
+          1882
+          -
+          2034
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  `package`.this.gcp_logger.info(&quot;Using GCP credentials from local sdk&quot;);
+  com.google.cloud.storage.StorageOptions.newBuilder().build().getService()
+}
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1182
+        </td>
+        <td>
+          1852
+          -
+          1880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          env_path.==(&quot;NOT_SET_IN_ENV&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1183
+        </td>
+        <td>
+          1900
+          -
+          1955
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          `package`.this.gcp_logger.info(&quot;Using GCP credentials from local sdk&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1184
+        </td>
+        <td>
+          1972
+          -
+          2018
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.storage.StorageOptions.newBuilder().build().getService()
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1188
+        </td>
+        <td>
+          2054
+          -
+          2228
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  `package`.this.gcp_logger.info(&quot;Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS&quot;);
+  getStorageClient(env_path)
+}
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1186
+        </td>
+        <td>
+          2072
+          -
+          2169
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.gcp_logger.info(&quot;Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          1187
+        </td>
+        <td>
+          2186
+          -
+          2212
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.getStorageClient
+        </td>
+        <td style="background: #AEF1AE">
+          getStorageClient(env_path)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1216
+        </td>
+        <td>
+          2259
+          -
+          3431
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZManaged.map
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Managed.fromEffect[Throwable, com.google.cloud.storage.Storage](acquire).map[etlflow.gcp.GCSStorage.Service{def listObjects(bucket: String,options: List[com.google.cloud.storage.Storage.BlobListOption]): zio.Task[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]]; def lookupObject(bucket: String,prefix: String,key: String): zio.Task[Boolean]; def putObject(bucket: String,key: String,file: String): zio.Task[com.google.cloud.storage.Blob]}](((storage: com.google.cloud.storage.Storage) =&gt; {
+  final class $anon extends AnyRef with etlflow.gcp.GCSStorage.Service {
+    def &lt;init&gt;(): &lt;$anon: etlflow.gcp.GCSStorage.Service&gt; = {
+      $anon.super.&lt;init&gt;();
+      ()
+    };
+    override def listObjects(bucket: String, options: List[com.google.cloud.storage.Storage.BlobListOption]): zio.Task[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]] = zio.Task.apply[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]](storage.list(bucket, (options: _*)));
+    override def lookupObject(bucket: String, prefix: String, key: String): zio.Task[Boolean] = {
+      val options: List[com.google.cloud.storage.Storage.BlobListOption] = scala.collection.immutable.List.apply[com.google.cloud.storage.Storage.BlobListOption](com.google.cloud.storage.Storage.BlobListOption.prefix(prefix));
+      $anon.this.listObjects(bucket, options).map[Iterable[com.google.cloud.storage.Blob]](((x$1: com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]) =&gt; scala.collection.JavaConverters.iterableAsScalaIterableConverter[com.google.cloud.storage.Blob](x$1.iterateAll()).asScala)).map[Boolean](((blobs: Iterable[com.google.cloud.storage.Blob]) =&gt; {
+        if (blobs.nonEmpty)
+          `package`.this.gcp_logger.info(&quot;Objects \n&quot;.+(blobs.mkString(&quot;\n&quot;)))
+        else
+          `package`.this.gcp_logger.info(scala.StringContext.apply(&quot;No Objects found under gs://&quot;, &quot;/&quot;, &quot;&quot;).s(bucket, prefix));
+        blobs.exists(((x$2: com.google.cloud.storage.Blob) =&gt; x$2.getName().==(prefix.+(&quot;/&quot;).+(key))))
+      }))
+    };
+    override def putObject(bucket: String, key: String, file: String): zio.Task[com.google.cloud.storage.Blob] = zio.Task.apply[com.google.cloud.storage.Blob]({
+      val blobId: com.google.cloud.storage.BlobId = com.google.cloud.storage.BlobId.of(bucket, key);
+      val blobInfo: com.google.cloud.storage.BlobInfo = com.google.cloud.storage.BlobInfo.newBuilder(blobId).build();
+      storage.create(blobInfo, java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file)))
+    })
+  };
+  new $anon()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          1215
+        </td>
+        <td>
+          2314
+          -
+          2317
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.$anon.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anon()
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          1191
+        </td>
+        <td>
+          2432
+          -
+          2500
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.apply[com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]](storage.list(bucket, (options: _*)))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          1190
+        </td>
+        <td>
+          2453
+          -
+          2486
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.storage.Storage.list
+        </td>
+        <td style="background: #AEF1AE">
+          storage.list(bucket, (options: _*))
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1193
+        </td>
+        <td>
+          2653
+          -
+          2720
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.immutable.List.apply[com.google.cloud.storage.Storage.BlobListOption](com.google.cloud.storage.Storage.BlobListOption.prefix(prefix))
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1192
+        </td>
+        <td>
+          2675
+          -
+          2704
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.storage.Storage.BlobListOption.prefix
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.storage.Storage.BlobListOption.prefix(prefix)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          1195
+        </td>
+        <td>
+          2785
+          -
+          2807
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.convert.Decorators.AsScala.asScala
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.JavaConverters.iterableAsScalaIterableConverter[com.google.cloud.storage.Blob](x$1.iterateAll()).asScala
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          1194
+        </td>
+        <td>
+          2785
+          -
+          2799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.api.gax.paging.Page.iterateAll
+        </td>
+        <td style="background: #AEF1AE">
+          x$1.iterateAll()
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          1208
+        </td>
+        <td>
+          2735
+          -
+          3094
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #AEF1AE">
+          $anon.this.listObjects(bucket, options).map[Iterable[com.google.cloud.storage.Blob]](((x$1: com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]) =&gt; scala.collection.JavaConverters.iterableAsScalaIterableConverter[com.google.cloud.storage.Blob](x$1.iterateAll()).asScala)).map[Boolean](((blobs: Iterable[com.google.cloud.storage.Blob]) =&gt; {
+  if (blobs.nonEmpty)
+    `package`.this.gcp_logger.info(&quot;Objects \n&quot;.+(blobs.mkString(&quot;\n&quot;)))
+  else
+    `package`.this.gcp_logger.info(scala.StringContext.apply(&quot;No Objects found under gs://&quot;, &quot;/&quot;, &quot;&quot;).s(bucket, prefix));
+  blobs.exists(((x$2: com.google.cloud.storage.Blob) =&gt; x$2.getName().==(prefix.+(&quot;/&quot;).+(key))))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1196
+        </td>
+        <td>
+          2863
+          -
+          2877
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          blobs.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1198
+        </td>
+        <td>
+          2908
+          -
+          2928
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #AEF1AE">
+          blobs.mkString(&quot;\n&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1201
+        </td>
+        <td>
+          2879
+          -
+          2929
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.gcp_logger.info(&quot;Objects \n&quot;.+(blobs.mkString(&quot;\n&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1200
+        </td>
+        <td>
+          2879
+          -
+          2929
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.gcp_logger.info(&quot;Objects \n&quot;.+(blobs.mkString(&quot;\n&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1197
+        </td>
+        <td>
+          2895
+          -
+          2907
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Objects \n&quot;
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1199
+        </td>
+        <td>
+          2895
+          -
+          2928
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Objects \n&quot;.+(blobs.mkString(&quot;\n&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1204
+        </td>
+        <td>
+          2953
+          -
+          3016
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          `package`.this.gcp_logger.info(scala.StringContext.apply(&quot;No Objects found under gs://&quot;, &quot;/&quot;, &quot;&quot;).s(bucket, prefix))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1203
+        </td>
+        <td>
+          2953
+          -
+          3016
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          `package`.this.gcp_logger.info(scala.StringContext.apply(&quot;No Objects found under gs://&quot;, &quot;/&quot;, &quot;&quot;).s(bucket, prefix))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1202
+        </td>
+        <td>
+          2969
+          -
+          3015
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;No Objects found under gs://&quot;, &quot;/&quot;, &quot;&quot;).s(bucket, prefix)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1205
+        </td>
+        <td>
+          3061
+          -
+          3075
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          prefix.+(&quot;/&quot;).+(key)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1207
+        </td>
+        <td>
+          3035
+          -
+          3076
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.exists
+        </td>
+        <td style="background: #AEF1AE">
+          blobs.exists(((x$2: com.google.cloud.storage.Blob) =&gt; x$2.getName().==(prefix.+(&quot;/&quot;).+(key))))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1206
+        </td>
+        <td>
+          3048
+          -
+          3075
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          x$2.getName().==(prefix.+(&quot;/&quot;).+(key))
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1214
+        </td>
+        <td>
+          3201
+          -
+          3409
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.apply[com.google.cloud.storage.Blob]({
+  val blobId: com.google.cloud.storage.BlobId = com.google.cloud.storage.BlobId.of(bucket, key);
+  val blobInfo: com.google.cloud.storage.BlobInfo = com.google.cloud.storage.BlobInfo.newBuilder(blobId).build();
+  storage.create(blobInfo, java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file)))
+})
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1209
+        </td>
+        <td>
+          3234
+          -
+          3256
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.storage.BlobId.of
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.storage.BlobId.of(bucket, key)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1210
+        </td>
+        <td>
+          3286
+          -
+          3319
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.storage.BlobInfo.Builder.build
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.storage.BlobInfo.newBuilder(blobId).build()
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1213
+        </td>
+        <td>
+          3334
+          -
+          3395
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.storage.Storage.create
+        </td>
+        <td style="background: #AEF1AE">
+          storage.create(blobInfo, java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file)))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1212
+        </td>
+        <td>
+          3359
+          -
+          3394
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.nio.file.Files.readAllBytes
+        </td>
+        <td style="background: #AEF1AE">
+          java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1211
+        </td>
+        <td>
+          3378
+          -
+          3393
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.nio.file.Paths.get
+        </td>
+        <td style="background: #AEF1AE">
+          java.nio.file.Paths.get(file)
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          1219
+        </td>
+        <td>
+          3544
+          -
+          3589
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.AccessMPartiallyApplied.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZIO.accessM[etlflow.gcp.package.GCSStorage].apply[Throwable, com.google.cloud.storage.Blob](((x$3: etlflow.gcp.package.GCSStorage) =&gt; zio.this.Has.HasSyntax[etlflow.gcp.package.GCSStorage](x$3).get[etlflow.gcp.package.GCSStorage.Service](scala.Predef.$conforms[etlflow.gcp.package.GCSStorage], (izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service])).putObject(bucket, key, file)))
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          1218
+        </td>
+        <td>
+          3556
+          -
+          3588
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.Service.putObject
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.Has.HasSyntax[etlflow.gcp.package.GCSStorage](x$3).get[etlflow.gcp.package.GCSStorage.Service](scala.Predef.$conforms[etlflow.gcp.package.GCSStorage], (izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service])).putObject(bucket, key, file)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1221
+        </td>
+        <td>
+          3698
+          -
+          3748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.AccessMPartiallyApplied.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZIO.accessM[etlflow.gcp.package.GCSStorage].apply[Throwable, Boolean](((x$4: etlflow.gcp.package.GCSStorage) =&gt; zio.this.Has.HasSyntax[etlflow.gcp.package.GCSStorage](x$4).get[etlflow.gcp.package.GCSStorage.Service](scala.Predef.$conforms[etlflow.gcp.package.GCSStorage], (izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service])).lookupObject(bucket, prefix, key)))
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1220
+        </td>
+        <td>
+          3710
+          -
+          3747
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.Service.lookupObject
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.Has.HasSyntax[etlflow.gcp.package.GCSStorage](x$4).get[etlflow.gcp.package.GCSStorage.Service](scala.Predef.$conforms[etlflow.gcp.package.GCSStorage], (izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service])).lookupObject(bucket, prefix, key)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1222
+        </td>
+        <td>
+          3873
+          -
+          3906
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.Service.listObjects
+        </td>
+        <td style="background: #F0ADAD">
+          zio.this.Has.HasSyntax[etlflow.gcp.package.GCSStorage](x$5).get[etlflow.gcp.package.GCSStorage.Service](scala.Predef.$conforms[etlflow.gcp.package.GCSStorage], (izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service])).listObjects(bucket, options)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1223
+        </td>
+        <td>
+          3861
+          -
+          3907
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.AccessMPartiallyApplied.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.accessM[etlflow.gcp.package.GCSStorage].apply[Throwable, com.google.api.gax.paging.Page[com.google.cloud.storage.Blob]](((x$5: etlflow.gcp.package.GCSStorage) =&gt; zio.this.Has.HasSyntax[etlflow.gcp.package.GCSStorage](x$5).get[etlflow.gcp.package.GCSStorage.Service](scala.Predef.$conforms[etlflow.gcp.package.GCSStorage], (izumi.reflect.Tags.Tag.apply[etlflow.gcp.package.GCSStorage.Service](classOf[etlflow.gcp.package$$GCSStorage$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-185256725: Int), (&quot;\u0004\u0000\u0003\u0000\u001Eetlflow.gcp.GCSStorage.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0016etlflow.gcp.GCSStorage\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.gcp.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.gcp.package.GCSStorage.Service])).listObjects(bucket, options)))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

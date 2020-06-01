@@ -1,0 +1,544 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/package.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>import etlflow.etlsteps.EtlStep
+</span>2 <span style=''>import etlflow.log.{DbLogManager, SlackLogManager}
+</span>3 <span style=''>import org.apache.log4j.Logger
+</span>4 <span style=''>import etlflow.utils.{UtilityFunctions =&gt; UF}
+</span>5 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>6 <span style=''>
+</span>7 <span style=''>package object etlflow {
+</span>8 <span style=''>  lazy val etl_jobs_logger: Logger = Logger.getLogger(getClass.getName)
+</span>9 <span style=''>
+</span>10 <span style=''>  case class EtlJobException(msg : String) extends RuntimeException(msg)
+</span>11 <span style=''>  case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
+</span>12 <span style=''>
+</span>13 <span style=''>  case class LoggerResource(db: Option[DbLogManager], slack: Option[SlackLogManager])
+</span>14 <span style=''>
+</span>15 <span style=''>  abstract class EtlJobName[+EJP : TypeTag] {
+</span>16 <span style=''>    final val default_properties_map: Map[String,String] = </span><span style='background: #F0ADAD'>UF.getEtlJobProps[EJP]()</span><span style=''>
+</span>17 <span style=''>    final val job_name_package = </span><span style='background: #F0ADAD'>getClass.getName</span><span style=''>
+</span>18 <span style=''>    val default_properties: EJP
+</span>19 <span style=''>    def getActualProperties(job_properties: Map[String, String]): EJP
+</span>20 <span style=''>  }
+</span>21 <span style=''>
+</span>22 <span style=''>  trait EtlJobSchema extends Product
+</span>23 <span style=''>
+</span>24 <span style=''>  trait EtlJobProps {
+</span>25 <span style=''>    val job_properties: Map[String,String]    = </span><span style='background: #F0ADAD'>Map.empty</span><span style=''>
+</span>26 <span style=''>    val job_run_id: String                    = </span><span style='background: #F0ADAD'>java.util.UUID.randomUUID.toString</span><span style=''>
+</span>27 <span style=''>    val job_description: String               = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_description&quot;, &quot;&quot;)</span><span style=''>
+</span>28 <span style=''>    val job_aggregate_error: Boolean          = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_aggregate_error&quot;, &quot;false&quot;).toBoolean</span><span style=''>
+</span>29 <span style=''>    val job_send_slack_notification: Boolean  = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_send_slack_notification&quot;, &quot;false&quot;).toBoolean</span><span style=''>
+</span>30 <span style=''>    val job_notification_level: String        = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_notification_level&quot;, &quot;debug&quot;)</span><span style=''> //info or debug
+</span>31 <span style=''>  }
+</span>32 <span style=''>
+</span>33 <span style=''>  object EtlStepList {
+</span>34 <span style=''>    def apply(args: EtlStep[_,_]*): List[EtlStep[_,_]] = {
+</span>35 <span style=''>      val seq = </span><span style='background: #F0ADAD'>List(args:_*)</span><span style=''>
+</span>36 <span style=''>      if (</span><span style='background: #F0ADAD'>seq.map(x =&gt; x.name).distinct.length == seq.map(x =&gt; x.name).length</span><span style=''>)
+</span>37 <span style=''>        </span><span style='background: #F0ADAD'>seq</span><span style=''>
+</span>38 <span style=''>      else </span><span style='background: #F0ADAD'>throw EtlJobException(s&quot;Duplicate step name detected from ${seq.map(x =&gt; x.name)}&quot;)</span><span style=''>
+</span>39 <span style=''>    }
+</span>40 <span style=''>  }
+</span>41 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1461
+        </td>
+        <td>
+          674
+          -
+          674
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobName.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobName.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1460
+        </td>
+        <td>
+          669
+          -
+          669
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getEtlJobProps$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getEtlJobProps$default$1[EJP]
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1462
+        </td>
+        <td>
+          652
+          -
+          676
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getEtlJobProps
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getEtlJobProps[EJP](etlflow.utils.UtilityFunctions.getEtlJobProps$default$1[EJP])(EtlJobName.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1463
+        </td>
+        <td>
+          710
+          -
+          726
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobName.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1464
+        </td>
+        <td>
+          942
+          -
+          951
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.Map.empty
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.empty[String, Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1465
+        </td>
+        <td>
+          1000
+          -
+          1034
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.UUID.toString
+        </td>
+        <td style="background: #F0ADAD">
+          java.util.UUID.randomUUID().toString()
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1466
+        </td>
+        <td>
+          1083
+          -
+          1130
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobProps.this.job_properties.getOrElse[String](&quot;job_description&quot;, &quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1468
+        </td>
+        <td>
+          1179
+          -
+          1245
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toBoolean
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(EtlJobProps.this.job_properties.getOrElse[String](&quot;job_aggregate_error&quot;, &quot;false&quot;)).toBoolean
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1467
+        </td>
+        <td>
+          1179
+          -
+          1235
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobProps.this.job_properties.getOrElse[String](&quot;job_aggregate_error&quot;, &quot;false&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1470
+        </td>
+        <td>
+          1294
+          -
+          1368
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toBoolean
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(EtlJobProps.this.job_properties.getOrElse[String](&quot;job_send_slack_notification&quot;, &quot;false&quot;)).toBoolean
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1469
+        </td>
+        <td>
+          1294
+          -
+          1358
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobProps.this.job_properties.getOrElse[String](&quot;job_send_slack_notification&quot;, &quot;false&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1471
+        </td>
+        <td>
+          1417
+          -
+          1476
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobProps.this.job_properties.getOrElse[String](&quot;job_notification_level&quot;, &quot;debug&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1472
+        </td>
+        <td>
+          1596
+          -
+          1609
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[etlflow.etlsteps.EtlStep[_$1,_$2]]((args: _*))
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1474
+        </td>
+        <td>
+          1627
+          -
+          1627
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          immutable.this.List.canBuildFrom[String]
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1476
+        </td>
+        <td>
+          1667
+          -
+          1667
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          immutable.this.List.canBuildFrom[String]
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1473
+        </td>
+        <td>
+          1633
+          -
+          1639
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          x.name
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1475
+        </td>
+        <td>
+          1673
+          -
+          1679
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          x.name
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1478
+        </td>
+        <td>
+          1620
+          -
+          1687
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #F0ADAD">
+          seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).distinct.length.==(seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).length)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1477
+        </td>
+        <td>
+          1660
+          -
+          1687
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.LinearSeqOptimized.length
+        </td>
+        <td style="background: #F0ADAD">
+          seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).length
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1479
+        </td>
+        <td>
+          1697
+          -
+          1700
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          etlflow.EtlStepList.seq
+        </td>
+        <td style="background: #F0ADAD">
+          seq
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1481
+        </td>
+        <td>
+          1712
+          -
+          1795
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw `package`.this.EtlJobException.apply(scala.StringContext.apply(&quot;Duplicate step name detected from &quot;, &quot;&quot;).s(seq.map[String, Any](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String])))
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1480
+        </td>
+        <td>
+          1712
+          -
+          1795
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw `package`.this.EtlJobException.apply(scala.StringContext.apply(&quot;Duplicate step name detected from &quot;, &quot;&quot;).s(seq.map[String, Any](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String])))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

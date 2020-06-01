@@ -1,0 +1,2216 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/log/DbLogManager.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.log
+</span>2 <span style=''>
+</span>3 <span style=''>import doobie.free.connection.ConnectionIO
+</span>4 <span style=''>import doobie.hikari.HikariTransactor
+</span>5 <span style=''>import doobie.implicits._
+</span>6 <span style=''>import doobie.quill.DoobieContext
+</span>7 <span style=''>import etlflow.EtlJobProps
+</span>8 <span style=''>import etlflow.etlsteps.EtlStep
+</span>9 <span style=''>import etlflow.utils.{UtilityFunctions =&gt; UF}
+</span>10 <span style=''>import io.getquill.Literal
+</span>11 <span style=''>import zio.interop.catz._
+</span>12 <span style=''>import zio.{Task, ZManaged}
+</span>13 <span style=''>import scala.util.Try
+</span>14 <span style=''>
+</span>15 <span style=''>class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
+</span>16 <span style=''>
+</span>17 <span style=''>  private val ctx = </span><span style='background: #F0ADAD'>new DoobieContext.Postgres(Literal)</span><span style=''> // Literal naming scheme
+</span>18 <span style=''>  import ctx._
+</span>19 <span style=''>
+</span>20 <span style=''>  def updateStepLevelInformation(
+</span>21 <span style=''>      execution_start_time: Long,
+</span>22 <span style=''>      etl_step: EtlStep[_,_],
+</span>23 <span style=''>      state_status: String,
+</span>24 <span style=''>      error_message: Option[String] = None,
+</span>25 <span style=''>      mode: String = &quot;update&quot;
+</span>26 <span style=''>    ): Task[Long] = {
+</span>27 <span style=''>        if (</span><span style='background: #F0ADAD'>mode == &quot;insert&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>{
+</span>28 <span style=''></span><span style='background: #F0ADAD'>          val step = StepRun(
+</span>29 <span style=''></span><span style='background: #F0ADAD'>            job_properties.job_run_id,
+</span>30 <span style=''></span><span style='background: #F0ADAD'>            etl_step.name,
+</span>31 <span style=''></span><span style='background: #F0ADAD'>            UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
+</span>32 <span style=''></span><span style='background: #F0ADAD'>            state_status.toLowerCase(),
+</span>33 <span style=''></span><span style='background: #F0ADAD'>            &quot;...&quot;
+</span>34 <span style=''></span><span style='background: #F0ADAD'>          )
+</span>35 <span style=''></span><span style='background: #F0ADAD'>          lm_logger.info(s&quot;Inserting step info for ${etl_step.name} in db with status =&gt; ${state_status.toLowerCase()}&quot;)
+</span>36 <span style=''></span><span style='background: #F0ADAD'>          val x: ConnectionIO[Long] = ctx.run(quote {
+</span>37 <span style=''></span><span style='background: #F0ADAD'>            query[StepRun].insert(lift(step))
+</span>38 <span style=''></span><span style='background: #F0ADAD'>          })
+</span>39 <span style=''></span><span style='background: #F0ADAD'>          val y: Task[Long] = x.transact(transactor).mapError{e =&gt;
+</span>40 <span style=''></span><span style='background: #F0ADAD'>            lm_logger.error(s&quot;failed in logging to db ${e.getMessage}&quot;)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>            e
+</span>42 <span style=''></span><span style='background: #F0ADAD'>          }
+</span>43 <span style=''></span><span style='background: #F0ADAD'>          y
+</span>44 <span style=''></span><span style='background: #F0ADAD'>        }</span><span style=''>
+</span>45 <span style=''>        else </span><span style='background: #F0ADAD'>{
+</span>46 <span style=''></span><span style='background: #F0ADAD'>          val status = if (error_message.isDefined) state_status.toLowerCase() + &quot; with error: &quot; + error_message.get else state_status.toLowerCase()
+</span>47 <span style=''></span><span style='background: #F0ADAD'>          val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
+</span>48 <span style=''></span><span style='background: #F0ADAD'>          lm_logger.info(s&quot;Updating step info for ${etl_step.name} in db with status =&gt; $status&quot;)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>          ctx.run(quote {
+</span>50 <span style=''></span><span style='background: #F0ADAD'>            query[StepRun]
+</span>51 <span style=''></span><span style='background: #F0ADAD'>              .filter(x =&gt; x.job_run_id == lift(job_properties.job_run_id) &amp;&amp; x.step_name == lift(etl_step.name))
+</span>52 <span style=''></span><span style='background: #F0ADAD'>              .update(
+</span>53 <span style=''></span><span style='background: #F0ADAD'>                _.state -&gt; lift(status),
+</span>54 <span style=''></span><span style='background: #F0ADAD'>                _.properties -&gt; lift(UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
+</span>55 <span style=''></span><span style='background: #F0ADAD'>                _.elapsed_time -&gt; lift(elapsed_time)
+</span>56 <span style=''></span><span style='background: #F0ADAD'>                )
+</span>57 <span style=''></span><span style='background: #F0ADAD'>          }).transact(transactor).mapError{e =&gt;
+</span>58 <span style=''></span><span style='background: #F0ADAD'>            lm_logger.error(s&quot;failed in logging to db ${e.getMessage}&quot;)
+</span>59 <span style=''></span><span style='background: #F0ADAD'>            e
+</span>60 <span style=''></span><span style='background: #F0ADAD'>          }
+</span>61 <span style=''></span><span style='background: #F0ADAD'>        }</span><span style=''>
+</span>62 <span style=''>    }
+</span>63 <span style=''>
+</span>64 <span style=''>  def updateJobInformation(status: String, mode: String = &quot;update&quot;): Task[Long] = {
+</span>65 <span style=''>    import ctx._
+</span>66 <span style=''>    if (</span><span style='background: #F0ADAD'>mode == &quot;insert&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>{
+</span>67 <span style=''></span><span style='background: #F0ADAD'>      val job = JobRun(
+</span>68 <span style=''></span><span style='background: #F0ADAD'>        job_properties.job_run_id, job_name.toString,
+</span>69 <span style=''></span><span style='background: #F0ADAD'>        job_properties.job_description,
+</span>70 <span style=''></span><span style='background: #F0ADAD'>        UF.convertToJsonByRemovingKeys(job_properties, List(&quot;job_run_id&quot;,&quot;job_description&quot;,&quot;job_properties&quot;,&quot;job_aggregate_error&quot;)),
+</span>71 <span style=''></span><span style='background: #F0ADAD'>        &quot;started&quot;, UF.getCurrentTimestamp
+</span>72 <span style=''></span><span style='background: #F0ADAD'>      )
+</span>73 <span style=''></span><span style='background: #F0ADAD'>      lm_logger.info(s&quot;Inserting job info in db with status =&gt; $status&quot;)
+</span>74 <span style=''></span><span style='background: #F0ADAD'>      ctx.run(quote {
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        query[JobRun].insert(lift(job))
+</span>76 <span style=''></span><span style='background: #F0ADAD'>      }).transact(transactor).mapError{e =&gt;
+</span>77 <span style=''></span><span style='background: #F0ADAD'>        lm_logger.error(s&quot;failed in logging to db ${e.getMessage}&quot;)
+</span>78 <span style=''></span><span style='background: #F0ADAD'>        e
+</span>79 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>80 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>81 <span style=''>    else </span><span style='background: #F0ADAD'>{
+</span>82 <span style=''></span><span style='background: #F0ADAD'>      lm_logger.info(s&quot;Updating job info in db with status =&gt; $status&quot;)
+</span>83 <span style=''></span><span style='background: #F0ADAD'>      ctx.run(quote {
+</span>84 <span style=''></span><span style='background: #F0ADAD'>        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -&gt; lift(status))
+</span>85 <span style=''></span><span style='background: #F0ADAD'>      }).transact(transactor).mapError{e =&gt;
+</span>86 <span style=''></span><span style='background: #F0ADAD'>        lm_logger.error(s&quot;failed in logging to db ${e.getMessage}&quot;)
+</span>87 <span style=''></span><span style='background: #F0ADAD'>        e
+</span>88 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>89 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>90 <span style=''>  }
+</span>91 <span style=''>}
+</span>92 <span style=''>
+</span>93 <span style=''>object DbLogManager {
+</span>94 <span style=''>
+</span>95 <span style=''>  def createDbLoggerManaged(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): ZManaged[Any, Nothing, DbLogManager] =
+</span>96 <span style=''>    </span><span style='background: #F0ADAD'>Task.succeed(new DbLogManager(transactor, job_name, job_properties)).toManaged_</span><span style=''>
+</span>97 <span style=''>
+</span>98 <span style=''>  def createDbLoggerOption(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): Option[DbLogManager] =
+</span>99 <span style=''>    </span><span style='background: #F0ADAD'>Try(new DbLogManager(transactor,job_name, job_properties)).toOption</span><span style=''>
+</span>100 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1321
+        </td>
+        <td>
+          578
+          -
+          585
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.getquill.Literal
+        </td>
+        <td style="background: #F0ADAD">
+          io.getquill.Literal
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1322
+        </td>
+        <td>
+          551
+          -
+          586
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          doobie.quill.DoobieContext.Postgres.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type](io.getquill.Literal)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1348
+        </td>
+        <td>
+          880
+          -
+          1565
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val step: etlflow.log.StepRun = StepRun.apply(DbLogManager.this.job_properties.job_run_id, etl_step.name, etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)), state_status.toLowerCase(), &quot;...&quot;);
+  DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Inserting step info for &quot;, &quot; in db with status =&gt; &quot;, &quot;&quot;).s(etl_step.name, state_status.toLowerCase()));
+  val x: doobie.free.connection.ConnectionIO[Long] = {
+    import scala.language.reflectiveCalls;
+    scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+    val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+      &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$1: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+        case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+      };
+      val idiom: io.getquill.PostgresDialect.type = x$1._1;
+      val naming: io.getquill.Literal.type = x$1._2;
+      &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$2: (io.getquill.ast.Insert, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Insert, io.getquill.idiom.Statement](io.getquill.ast.Insert.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;StepRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;step.job_run_id&quot;, step.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;step_name&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;step.step_name&quot;, step.step_name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;properties&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;step.properties&quot;, step.properties, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;step.state&quot;, step.state, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;elapsed_time&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;step.elapsed_time&quot;, step.elapsed_time, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;INSERT INTO StepRun (job_run_id,step_name,properties,state,elapsed_time) VALUES (&quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;step.job_run_id&quot;, step.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;step.step_name&quot;, step.step_name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;step.properties&quot;, step.properties, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;step.state&quot;, step.state, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;step.elapsed_time&quot;, step.elapsed_time, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;)&quot;)))): (io.getquill.ast.Insert, io.getquill.idiom.Statement) @unchecked) match {
+        case (_1: io.getquill.ast.Insert, _2: io.getquill.idiom.Statement)(io.getquill.ast.Insert, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Insert, io.getquill.idiom.Statement](ast, statement)
+      };
+      val ast: io.getquill.ast.Insert = x$2._1;
+      val statement: io.getquill.idiom.Statement = x$2._2;
+      io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+    };
+    DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+  };
+  val y: zio.Task[Long] = doobie.`package`.implicits.toConnectionIOOps[Long](x).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+    DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+    e
+  }))(zio.this.CanFail.canFail[Any]);
+  y
+}
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1323
+        </td>
+        <td>
+          862
+          -
+          878
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          mode.==(&quot;insert&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1331
+        </td>
+        <td>
+          903
+          -
+          1144
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.StepRun.apply
+        </td>
+        <td style="background: #F0ADAD">
+          StepRun.apply(DbLogManager.this.job_properties.job_run_id, etl_step.name, etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)), state_status.toLowerCase(), &quot;...&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1324
+        </td>
+        <td>
+          924
+          -
+          949
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_run_id
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.job_properties.job_run_id
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1325
+        </td>
+        <td>
+          963
+          -
+          976
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          etl_step.name
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1327
+        </td>
+        <td>
+          1007
+          -
+          1072
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.getStepProperties
+        </td>
+        <td style="background: #F0ADAD">
+          etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1326
+        </td>
+        <td>
+          1034
+          -
+          1071
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_notification_level
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.job_properties.job_notification_level
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1328
+        </td>
+        <td>
+          990
+          -
+          1073
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.convertToJson
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level))
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1329
+        </td>
+        <td>
+          1087
+          -
+          1113
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.toLowerCase
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1330
+        </td>
+        <td>
+          1127
+          -
+          1132
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;...&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1333
+        </td>
+        <td>
+          1212
+          -
+          1235
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; in db with status =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1336
+        </td>
+        <td>
+          1236
+          -
+          1262
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.toLowerCase
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase()
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1338
+        </td>
+        <td>
+          1155
+          -
+          1265
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Inserting step info for &quot;, &quot; in db with status =&gt; &quot;, &quot;&quot;).s(etl_step.name, state_status.toLowerCase()))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1332
+        </td>
+        <td>
+          1172
+          -
+          1197
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Inserting step info for &quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1335
+        </td>
+        <td>
+          1198
+          -
+          1211
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          etl_step.name
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1334
+        </td>
+        <td>
+          1263
+          -
+          1264
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1337
+        </td>
+        <td>
+          1170
+          -
+          1264
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Inserting step info for &quot;, &quot; in db with status =&gt; &quot;, &quot;&quot;).s(etl_step.name, state_status.toLowerCase())
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1339
+        </td>
+        <td>
+          1420
+          -
+          1430
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.transactor
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.transactor
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1347
+        </td>
+        <td>
+          1409
+          -
+          1543
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZIO.mapError
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.`package`.implicits.toConnectionIOOps[Long](x).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+  DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+  e
+}))(zio.this.CanFail.canFail[Any])
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1346
+        </td>
+        <td>
+          1440
+          -
+          1440
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1340
+        </td>
+        <td>
+          1419
+          -
+          1419
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1342
+        </td>
+        <td>
+          1515
+          -
+          1516
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1345
+        </td>
+        <td>
+          1458
+          -
+          1517
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1341
+        </td>
+        <td>
+          1476
+          -
+          1501
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed in logging to db &quot;
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1344
+        </td>
+        <td>
+          1474
+          -
+          1516
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1343
+        </td>
+        <td>
+          1502
+          -
+          1514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          e.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1373
+        </td>
+        <td>
+          1579
+          -
+          2512
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val status: String = if (error_message.isDefined)
+    state_status.toLowerCase().+(&quot; with error: &quot;).+(error_message.get)
+  else
+    state_status.toLowerCase();
+  val elapsed_time: String = etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(execution_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp);
+  DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Updating step info for &quot;, &quot; in db with status =&gt; &quot;, &quot;&quot;).s(etl_step.name, status));
+  doobie.`package`.implicits.toConnectionIOOps[Long]({
+  import scala.language.reflectiveCalls;
+  scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+  val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$3: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+      case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+    };
+    val idiom: io.getquill.PostgresDialect.type = x$3._1;
+    val naming: io.getquill.Literal.type = x$3._2;
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$4: (io.getquill.ast.Update, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](io.getquill.ast.Update.apply(io.getquill.ast.Filter.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;StepRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), io.getquill.ast.Ident.apply(&quot;x&quot;), io.getquill.ast.BinaryOperation.apply(io.getquill.ast.BinaryOperation.apply(io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.EqualityOperator.==, io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.BooleanOperator.&amp;&amp;, io.getquill.ast.BinaryOperation.apply(io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x&quot;), &quot;step_name&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.EqualityOperator.==, io.getquill.ast.ScalarValueLift.apply(&quot;etl_step.name&quot;, etl_step.name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x1&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x1&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x2&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x2&quot;), &quot;properties&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level))&quot;, etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)), scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x3&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x3&quot;), &quot;elapsed_time&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;elapsed_time&quot;, elapsed_time, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;UPDATE StepRun SET state = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, properties = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level))&quot;, etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)), scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, elapsed_time = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;elapsed_time&quot;, elapsed_time, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot; WHERE job_run_id = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot; AND step_name = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;etl_step.name&quot;, etl_step.name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder)))))): (io.getquill.ast.Update, io.getquill.idiom.Statement) @unchecked) match {
+      case (_1: io.getquill.ast.Update, _2: io.getquill.idiom.Statement)(io.getquill.ast.Update, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](ast, statement)
+    };
+    val ast: io.getquill.ast.Update = x$4._1;
+    val statement: io.getquill.idiom.Statement = x$4._2;
+    io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+  };
+  DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+}).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+    DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+    e
+  }))(zio.this.CanFail.canFail[Any])
+}
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1351
+        </td>
+        <td>
+          1680
+          -
+          1697
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          error_message.get
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1354
+        </td>
+        <td>
+          1703
+          -
+          1729
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.toLowerCase
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1350
+        </td>
+        <td>
+          1662
+          -
+          1677
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; with error: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1353
+        </td>
+        <td>
+          1633
+          -
+          1697
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase().+(&quot; with error: &quot;).+(error_message.get)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1352
+        </td>
+        <td>
+          1633
+          -
+          1697
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase().+(&quot; with error: &quot;).+(error_message.get)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1355
+        </td>
+        <td>
+          1703
+          -
+          1729
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          java.lang.String.toLowerCase
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1349
+        </td>
+        <td>
+          1608
+          -
+          1631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          error_message.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          1357
+        </td>
+        <td>
+          1759
+          -
+          1833
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getTimeDifferenceAsString
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(execution_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          1356
+        </td>
+        <td>
+          1810
+          -
+          1832
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1360
+        </td>
+        <td>
+          1929
+          -
+          1930
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1363
+        </td>
+        <td>
+          1844
+          -
+          1931
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Updating step info for &quot;, &quot; in db with status =&gt; &quot;, &quot;&quot;).s(etl_step.name, status))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1359
+        </td>
+        <td>
+          1900
+          -
+          1923
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; in db with status =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1362
+        </td>
+        <td>
+          1859
+          -
+          1930
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Updating step info for &quot;, &quot; in db with status =&gt; &quot;, &quot;&quot;).s(etl_step.name, status)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1361
+        </td>
+        <td>
+          1886
+          -
+          1899
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          etl_step.name
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1358
+        </td>
+        <td>
+          1861
+          -
+          1885
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Updating step info for &quot;
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1372
+        </td>
+        <td>
+          1942
+          -
+          2502
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZIO.mapError
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.`package`.implicits.toConnectionIOOps[Long]({
+  import scala.language.reflectiveCalls;
+  scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+  val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$3: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+      case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+    };
+    val idiom: io.getquill.PostgresDialect.type = x$3._1;
+    val naming: io.getquill.Literal.type = x$3._2;
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$4: (io.getquill.ast.Update, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](io.getquill.ast.Update.apply(io.getquill.ast.Filter.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;StepRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), io.getquill.ast.Ident.apply(&quot;x&quot;), io.getquill.ast.BinaryOperation.apply(io.getquill.ast.BinaryOperation.apply(io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.EqualityOperator.==, io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.BooleanOperator.&amp;&amp;, io.getquill.ast.BinaryOperation.apply(io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x&quot;), &quot;step_name&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.EqualityOperator.==, io.getquill.ast.ScalarValueLift.apply(&quot;etl_step.name&quot;, etl_step.name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x1&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x1&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x2&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x2&quot;), &quot;properties&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level))&quot;, etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)), scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x3&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x3&quot;), &quot;elapsed_time&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;elapsed_time&quot;, elapsed_time, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;UPDATE StepRun SET state = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, properties = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level))&quot;, etlflow.utils.UtilityFunctions.convertToJson(etl_step.getStepProperties(DbLogManager.this.job_properties.job_notification_level)), scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, elapsed_time = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;elapsed_time&quot;, elapsed_time, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot; WHERE job_run_id = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot; AND step_name = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;etl_step.name&quot;, etl_step.name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder)))))): (io.getquill.ast.Update, io.getquill.idiom.Statement) @unchecked) match {
+      case (_1: io.getquill.ast.Update, _2: io.getquill.idiom.Statement)(io.getquill.ast.Update, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](ast, statement)
+    };
+    val ast: io.getquill.ast.Update = x$4._1;
+    val statement: io.getquill.idiom.Statement = x$4._2;
+    io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+  };
+  DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+}).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+  DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+  e
+}))(zio.this.CanFail.canFail[Any])
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1365
+        </td>
+        <td>
+          2378
+          -
+          2378
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1371
+        </td>
+        <td>
+          2399
+          -
+          2399
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1364
+        </td>
+        <td>
+          2379
+          -
+          2389
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.transactor
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.transactor
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1366
+        </td>
+        <td>
+          2435
+          -
+          2460
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed in logging to db &quot;
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1369
+        </td>
+        <td>
+          2433
+          -
+          2475
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1368
+        </td>
+        <td>
+          2461
+          -
+          2473
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          e.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1370
+        </td>
+        <td>
+          2417
+          -
+          2476
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1367
+        </td>
+        <td>
+          2474
+          -
+          2475
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1374
+        </td>
+        <td>
+          2629
+          -
+          2645
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          mode.==(&quot;insert&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1395
+        </td>
+        <td>
+          2647
+          -
+          3220
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val job: etlflow.log.JobRun = JobRun.apply(DbLogManager.this.job_properties.job_run_id, DbLogManager.this.job_name.toString(), DbLogManager.this.job_properties.job_description, etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(DbLogManager.this.job_properties, scala.collection.immutable.List.apply[String](&quot;job_run_id&quot;, &quot;job_description&quot;, &quot;job_properties&quot;, &quot;job_aggregate_error&quot;)), &quot;started&quot;, etlflow.utils.UtilityFunctions.getCurrentTimestamp);
+  DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Inserting job info in db with status =&gt; &quot;, &quot;&quot;).s(status));
+  doobie.`package`.implicits.toConnectionIOOps[Long]({
+  import scala.language.reflectiveCalls;
+  scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+  val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$1: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+      case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+    };
+    val idiom: io.getquill.PostgresDialect.type = x$1._1;
+    val naming: io.getquill.Literal.type = x$1._2;
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$2: (io.getquill.ast.Insert, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Insert, io.getquill.idiom.Statement](io.getquill.ast.Insert.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;JobRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.job_run_id&quot;, job.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;job_name&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.job_name&quot;, job.job_name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;description&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.description&quot;, job.description, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;properties&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.properties&quot;, job.properties, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.state&quot;, job.state, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;inserted_at&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.inserted_at&quot;, job.inserted_at, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[Long]](DbLogManager.this.ctx.longEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;INSERT INTO JobRun (job_run_id,job_name,description,properties,state,inserted_at) VALUES (&quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.job_run_id&quot;, job.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.job_name&quot;, job.job_name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.description&quot;, job.description, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.properties&quot;, job.properties, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.state&quot;, job.state, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.inserted_at&quot;, job.inserted_at, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[Long]](DbLogManager.this.ctx.longEncoder))), io.getquill.idiom.StringToken.apply(&quot;)&quot;)))): (io.getquill.ast.Insert, io.getquill.idiom.Statement) @unchecked) match {
+      case (_1: io.getquill.ast.Insert, _2: io.getquill.idiom.Statement)(io.getquill.ast.Insert, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Insert, io.getquill.idiom.Statement](ast, statement)
+    };
+    val ast: io.getquill.ast.Insert = x$2._1;
+    val statement: io.getquill.idiom.Statement = x$2._2;
+    io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+  };
+  DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+}).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+    DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+    e
+  }))(zio.this.CanFail.canFail[Any])
+}
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1383
+        </td>
+        <td>
+          2665
+          -
+          2949
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.JobRun.apply
+        </td>
+        <td style="background: #F0ADAD">
+          JobRun.apply(DbLogManager.this.job_properties.job_run_id, DbLogManager.this.job_name.toString(), DbLogManager.this.job_properties.job_description, etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(DbLogManager.this.job_properties, scala.collection.immutable.List.apply[String](&quot;job_run_id&quot;, &quot;job_description&quot;, &quot;job_properties&quot;, &quot;job_aggregate_error&quot;)), &quot;started&quot;, etlflow.utils.UtilityFunctions.getCurrentTimestamp)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1375
+        </td>
+        <td>
+          2681
+          -
+          2706
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_run_id
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.job_properties.job_run_id
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1376
+        </td>
+        <td>
+          2708
+          -
+          2725
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.toString
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.job_name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1377
+        </td>
+        <td>
+          2735
+          -
+          2765
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_description
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.job_properties.job_description
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1378
+        </td>
+        <td>
+          2806
+          -
+          2820
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.job_properties
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.job_properties
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1380
+        </td>
+        <td>
+          2775
+          -
+          2898
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(DbLogManager.this.job_properties, scala.collection.immutable.List.apply[String](&quot;job_run_id&quot;, &quot;job_description&quot;, &quot;job_properties&quot;, &quot;job_aggregate_error&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1379
+        </td>
+        <td>
+          2822
+          -
+          2897
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[String](&quot;job_run_id&quot;, &quot;job_description&quot;, &quot;job_properties&quot;, &quot;job_aggregate_error&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1381
+        </td>
+        <td>
+          2908
+          -
+          2917
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;started&quot;
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1382
+        </td>
+        <td>
+          2919
+          -
+          2941
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1384
+        </td>
+        <td>
+          2971
+          -
+          3021
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Inserting job info in db with status =&gt; &quot;, &quot;&quot;).s(status)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1385
+        </td>
+        <td>
+          2956
+          -
+          3022
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Inserting job info in db with status =&gt; &quot;, &quot;&quot;).s(status))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1393
+        </td>
+        <td>
+          3123
+          -
+          3123
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1387
+        </td>
+        <td>
+          3102
+          -
+          3102
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1386
+        </td>
+        <td>
+          3103
+          -
+          3113
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.transactor
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.transactor
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1394
+        </td>
+        <td>
+          3029
+          -
+          3214
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZIO.mapError
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.`package`.implicits.toConnectionIOOps[Long]({
+  import scala.language.reflectiveCalls;
+  scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+  val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$1: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+      case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+    };
+    val idiom: io.getquill.PostgresDialect.type = x$1._1;
+    val naming: io.getquill.Literal.type = x$1._2;
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$2: (io.getquill.ast.Insert, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Insert, io.getquill.idiom.Statement](io.getquill.ast.Insert.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;JobRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.job_run_id&quot;, job.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;job_name&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.job_name&quot;, job.job_name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;description&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.description&quot;, job.description, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;properties&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.properties&quot;, job.properties, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.state&quot;, job.state, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;v&quot;), &quot;inserted_at&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;job.inserted_at&quot;, job.inserted_at, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[Long]](DbLogManager.this.ctx.longEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;INSERT INTO JobRun (job_run_id,job_name,description,properties,state,inserted_at) VALUES (&quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.job_run_id&quot;, job.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.job_name&quot;, job.job_name, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.description&quot;, job.description, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.properties&quot;, job.properties, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.state&quot;, job.state, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot;, &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;job.inserted_at&quot;, job.inserted_at, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[Long]](DbLogManager.this.ctx.longEncoder))), io.getquill.idiom.StringToken.apply(&quot;)&quot;)))): (io.getquill.ast.Insert, io.getquill.idiom.Statement) @unchecked) match {
+      case (_1: io.getquill.ast.Insert, _2: io.getquill.idiom.Statement)(io.getquill.ast.Insert, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Insert, io.getquill.idiom.Statement](ast, statement)
+    };
+    val ast: io.getquill.ast.Insert = x$2._1;
+    val statement: io.getquill.idiom.Statement = x$2._2;
+    io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+  };
+  DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+}).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+  DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+  e
+}))(zio.this.CanFail.canFail[Any])
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1390
+        </td>
+        <td>
+          3181
+          -
+          3193
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          e.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1389
+        </td>
+        <td>
+          3194
+          -
+          3195
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1392
+        </td>
+        <td>
+          3137
+          -
+          3196
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1388
+        </td>
+        <td>
+          3155
+          -
+          3180
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed in logging to db &quot;
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1391
+        </td>
+        <td>
+          3153
+          -
+          3195
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1407
+        </td>
+        <td>
+          3230
+          -
+          3571
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Updating job info in db with status =&gt; &quot;, &quot;&quot;).s(status));
+  doobie.`package`.implicits.toConnectionIOOps[Long]({
+  import scala.language.reflectiveCalls;
+  scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+  val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$3: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+      case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+    };
+    val idiom: io.getquill.PostgresDialect.type = x$3._1;
+    val naming: io.getquill.Literal.type = x$3._2;
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$4: (io.getquill.ast.Update, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](io.getquill.ast.Update.apply(io.getquill.ast.Filter.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;JobRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), io.getquill.ast.Ident.apply(&quot;x4&quot;), io.getquill.ast.BinaryOperation.apply(io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x4&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.EqualityOperator.==, io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder)))), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x5&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x5&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;UPDATE JobRun SET state = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot; WHERE job_run_id = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder)))))): (io.getquill.ast.Update, io.getquill.idiom.Statement) @unchecked) match {
+      case (_1: io.getquill.ast.Update, _2: io.getquill.idiom.Statement)(io.getquill.ast.Update, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](ast, statement)
+    };
+    val ast: io.getquill.ast.Update = x$4._1;
+    val statement: io.getquill.idiom.Statement = x$4._2;
+    io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+  };
+  DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+}).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+    DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+    e
+  }))(zio.this.CanFail.canFail[Any])
+}
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1396
+        </td>
+        <td>
+          3253
+          -
+          3302
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Updating job info in db with status =&gt; &quot;, &quot;&quot;).s(status)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1397
+        </td>
+        <td>
+          3238
+          -
+          3303
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.info(scala.StringContext.apply(&quot;Updating job info in db with status =&gt; &quot;, &quot;&quot;).s(status))
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1405
+        </td>
+        <td>
+          3474
+          -
+          3474
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1399
+        </td>
+        <td>
+          3453
+          -
+          3453
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1398
+        </td>
+        <td>
+          3454
+          -
+          3464
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.transactor
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.transactor
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1406
+        </td>
+        <td>
+          3310
+          -
+          3565
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZIO.mapError
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.`package`.implicits.toConnectionIOOps[Long]({
+  import scala.language.reflectiveCalls;
+  scala.collection.immutable.Nil.asInstanceOf[AnyRef{def size: Unit}].size;
+  val expanded: io.getquill.context.Expand[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]] = {
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$3: (io.getquill.PostgresDialect.type, io.getquill.Literal.type) = (scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](DbLogManager.this.ctx.idiom, DbLogManager.this.ctx.naming): (io.getquill.PostgresDialect.type, io.getquill.Literal.type) @unchecked) match {
+      case (_1: io.getquill.PostgresDialect.type, _2: io.getquill.Literal.type)(io.getquill.PostgresDialect.type, io.getquill.Literal.type)((idiom @ _), (naming @ _)) =&gt; scala.Tuple2.apply[io.getquill.PostgresDialect.type, io.getquill.Literal.type](idiom, naming)
+    };
+    val idiom: io.getquill.PostgresDialect.type = x$3._1;
+    val naming: io.getquill.Literal.type = x$3._2;
+    &lt;synthetic&gt; &lt;artifact&gt; private[this] val x$4: (io.getquill.ast.Update, io.getquill.idiom.Statement) = (scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](io.getquill.ast.Update.apply(io.getquill.ast.Filter.apply(io.getquill.ast.Entity.Opinionated.apply(&quot;JobRun&quot;, scala.collection.immutable.Nil, io.getquill.ast.Renameable.ByStrategy), io.getquill.ast.Ident.apply(&quot;x4&quot;), io.getquill.ast.BinaryOperation.apply(io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x4&quot;), &quot;job_run_id&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.EqualityOperator.==, io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder)))), scala.collection.immutable.List.apply[io.getquill.ast.Assignment](io.getquill.ast.Assignment.apply(io.getquill.ast.Ident.apply(&quot;x5&quot;), io.getquill.ast.Property.Opinionated.apply(io.getquill.ast.Ident.apply(&quot;x5&quot;), &quot;state&quot;, io.getquill.ast.Renameable.ByStrategy, io.getquill.ast.Visibility.Visible), io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))))), io.getquill.idiom.Statement.apply(scala.collection.immutable.List.apply[Product with Serializable with io.getquill.idiom.Token](io.getquill.idiom.StringToken.apply(&quot;UPDATE JobRun SET state = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;status&quot;, status, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder))), io.getquill.idiom.StringToken.apply(&quot; WHERE job_run_id = &quot;), io.getquill.idiom.ScalarLiftToken.apply(io.getquill.ast.ScalarValueLift.apply(&quot;DbLogManager.this.job_properties.job_run_id&quot;, DbLogManager.this.job_properties.job_run_id, scala.Predef.implicitly[DbLogManager.this.ctx.Encoder[String]](DbLogManager.this.ctx.stringEncoder)))))): (io.getquill.ast.Update, io.getquill.idiom.Statement) @unchecked) match {
+      case (_1: io.getquill.ast.Update, _2: io.getquill.idiom.Statement)(io.getquill.ast.Update, io.getquill.idiom.Statement)((ast @ _), (statement @ _)) =&gt; scala.Tuple2.apply[io.getquill.ast.Update, io.getquill.idiom.Statement](ast, statement)
+    };
+    val ast: io.getquill.ast.Update = x$4._1;
+    val statement: io.getquill.idiom.Statement = x$4._2;
+    io.getquill.context.Expand.apply[doobie.quill.DoobieContext.Postgres[io.getquill.Literal.type]](DbLogManager.this.ctx, ast, statement, idiom, naming)
+  };
+  DbLogManager.this.ctx.executeAction[Nothing](expanded.string, expanded.prepare)
+}).transact[zio.Task](DbLogManager.this.transactor)(zio.interop.catz.taskConcurrentInstance[Any]).mapError[Throwable](((e: Throwable) =&gt; {
+  DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()));
+  e
+}))(zio.this.CanFail.canFail[Any])
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          1402
+        </td>
+        <td>
+          3532
+          -
+          3544
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          e.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          1401
+        </td>
+        <td>
+          3545
+          -
+          3546
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          1404
+        </td>
+        <td>
+          3488
+          -
+          3547
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          DbLogManager.this.lm_logger.error(scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          1403
+        </td>
+        <td>
+          3504
+          -
+          3546
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;failed in logging to db &quot;, &quot;&quot;).s(e.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          1400
+        </td>
+        <td>
+          3506
+          -
+          3531
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed in logging to db &quot;
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          1408
+        </td>
+        <td>
+          3770
+          -
+          3824
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new DbLogManager(transactor, job_name, job_properties)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          1409
+        </td>
+        <td>
+          3757
+          -
+          3836
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          zio.ZIO.toManaged_
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[etlflow.log.DbLogManager](new DbLogManager(transactor, job_name, job_properties)).toManaged_
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          1411
+        </td>
+        <td>
+          3976
+          -
+          4043
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.util.Try.toOption
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[etlflow.log.DbLogManager](new DbLogManager(transactor, job_name, job_properties)).toOption
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          1410
+        </td>
+        <td>
+          3980
+          -
+          4033
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new DbLogManager(transactor, job_name, job_properties)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

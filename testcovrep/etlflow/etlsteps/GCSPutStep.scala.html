@@ -1,0 +1,834 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/GCSPutStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.gcp._
+</span>4 <span style=''>import etlflow.utils.GCP
+</span>5 <span style=''>import zio.Task
+</span>6 <span style=''>
+</span>7 <span style=''>class GCSPutStep private[etlsteps](
+</span>8 <span style=''>                   val name: String,
+</span>9 <span style=''>                   bucket: =&gt; String,
+</span>10 <span style=''>                   key: =&gt; String,
+</span>11 <span style=''>                   file: =&gt; String,
+</span>12 <span style=''>                   credentials: Option[GCP] = None
+</span>13 <span style=''>                 ) extends EtlStep[Unit,Unit] {
+</span>14 <span style=''>  override def process(input_state: =&gt; Unit): Task[Unit] = {
+</span>15 <span style=''>    val env       = </span><span style='background: #AEF1AE'>GCSStorage.live(credentials)</span><span style=''>
+</span>16 <span style=''>    val program   = </span><span style='background: #AEF1AE'>putObject(bucket,key,file)</span><span style=''>
+</span>17 <span style=''>    val runnable  = </span><span style='background: #AEF1AE'>for {
+</span>18 <span style=''></span><span style='background: #AEF1AE'>                      _   &lt;- Task.succeed(etl_logger.info(s&quot;Starting upload for file $file in location gs://$bucket/$key&quot;))
+</span>19 <span style=''></span><span style='background: #AEF1AE'>                      _   &lt;- program.provideLayer(env).foldM(
+</span>20 <span style=''></span><span style='background: #AEF1AE'>                              ex =&gt; </span><span style='background: #F0ADAD'>Task.succeed(etl_logger.error(ex.getMessage)) *&gt; Task.fail(ex)</span><span style='background: #AEF1AE'>,
+</span>21 <span style=''></span><span style='background: #AEF1AE'>                              _  =&gt; Task.succeed(etl_logger.info(s&quot;Successfully uploaded file $file in location gs://$bucket/$key&quot;))
+</span>22 <span style=''></span><span style='background: #AEF1AE'>                            )
+</span>23 <span style=''></span><span style='background: #AEF1AE'>                    } yield ()</span><span style=''>
+</span>24 <span style=''>    runnable
+</span>25 <span style=''>  }
+</span>26 <span style=''>}
+</span>27 <span style=''>
+</span>28 <span style=''>object GCSPutStep {
+</span>29 <span style=''>
+</span>30 <span style=''>  def apply(name: String,
+</span>31 <span style=''>            bucket: =&gt; String,
+</span>32 <span style=''>            key: =&gt; String,
+</span>33 <span style=''>            file: =&gt; String,
+</span>34 <span style=''>            credentials: Option[GCP] = None
+</span>35 <span style=''>           ): GCSPutStep =
+</span>36 <span style=''>    </span><span style='background: #AEF1AE'>new GCSPutStep(name, bucket, key, file, credentials)</span><span style=''>
+</span>37 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          738
+        </td>
+        <td>
+          451
+          -
+          479
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.live
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.gcp.`package`.GCSStorage.live(GCSPutStep.this.credentials)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          737
+        </td>
+        <td>
+          467
+          -
+          478
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.credentials
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.credentials
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          741
+        </td>
+        <td>
+          521
+          -
+          525
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.file
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.file
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          740
+        </td>
+        <td>
+          517
+          -
+          520
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          742
+        </td>
+        <td>
+          500
+          -
+          526
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.putObject
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.gcp.`package`.putObject(GCSPutStep.this.bucket, GCSPutStep.this.key, GCSPutStep.this.file)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          739
+        </td>
+        <td>
+          510
+          -
+          516
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          747
+        </td>
+        <td>
+          639
+          -
+          643
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.file
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.file
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          750
+        </td>
+        <td>
+          611
+          -
+          674
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Starting upload for file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          771
+        </td>
+        <td>
+          547
+          -
+          1032
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting upload for file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key))).flatMap[Any, Throwable, Unit](((_: Unit) =&gt; program.provideLayer[Throwable, Any, etlflow.gcp.GCSStorage](env)(scala.Predef.$conforms[etlflow.gcp.GCSStorage], zio.this.NeedsEnv.needsEnv[Nothing]).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))), ((x$1: com.google.cloud.storage.Blob) =&gt; zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key)))))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Unit) =&gt; ()))))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          744
+        </td>
+        <td>
+          643
+          -
+          662
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; in location gs://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          743
+        </td>
+        <td>
+          613
+          -
+          639
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Starting upload for file &quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          746
+        </td>
+        <td>
+          673
+          -
+          674
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          749
+        </td>
+        <td>
+          670
+          -
+          673
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          751
+        </td>
+        <td>
+          595
+          -
+          675
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting upload for file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          745
+        </td>
+        <td>
+          668
+          -
+          670
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          748
+        </td>
+        <td>
+          662
+          -
+          668
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          768
+        </td>
+        <td>
+          737
+          -
+          737
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          753
+        </td>
+        <td>
+          726
+          -
+          726
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.NeedsEnv.needsEnv
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.NeedsEnv.needsEnv[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          770
+        </td>
+        <td>
+          699
+          -
+          1032
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #AEF1AE">
+          program.provideLayer[Throwable, Any, etlflow.gcp.GCSStorage](env)(scala.Predef.$conforms[etlflow.gcp.GCSStorage], zio.this.NeedsEnv.needsEnv[Nothing]).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))), ((x$1: com.google.cloud.storage.Blob) =&gt; zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key)))))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Unit) =&gt; ()))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          752
+        </td>
+        <td>
+          726
+          -
+          726
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[etlflow.gcp.GCSStorage]
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          756
+        </td>
+        <td>
+          824
+          -
+          837
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(ex)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          755
+        </td>
+        <td>
+          788
+          -
+          819
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          GCSPutStep.this.etl_logger.error(ex.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          757
+        </td>
+        <td>
+          775
+          -
+          837
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.*&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          754
+        </td>
+        <td>
+          805
+          -
+          818
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          ex.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          765
+        </td>
+        <td>
+          904
+          -
+          969
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          759
+        </td>
+        <td>
+          938
+          -
+          957
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; in location gs://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          762
+        </td>
+        <td>
+          934
+          -
+          938
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.file
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.file
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          761
+        </td>
+        <td>
+          968
+          -
+          969
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          764
+        </td>
+        <td>
+          965
+          -
+          968
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          767
+        </td>
+        <td>
+          875
+          -
+          971
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.succeed
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.succeed[Unit](GCSPutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key)))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          758
+        </td>
+        <td>
+          906
+          -
+          934
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Successfully uploaded file &quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          766
+        </td>
+        <td>
+          888
+          -
+          970
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location gs://&quot;, &quot;/&quot;, &quot;&quot;).s(GCSPutStep.this.file, GCSPutStep.this.bucket, GCSPutStep.this.key))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          760
+        </td>
+        <td>
+          963
+          -
+          965
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          763
+        </td>
+        <td>
+          957
+          -
+          963
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          GCSPutStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          769
+        </td>
+        <td>
+          1030
+          -
+          1032
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          772
+        </td>
+        <td>
+          1263
+          -
+          1315
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.GCSPutStep.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new GCSPutStep(name, bucket, key, file, credentials)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,279 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/SparkETLStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import org.apache.spark.sql.SparkSession
+</span>4 <span style=''>import zio.Task
+</span>5 <span style=''>
+</span>6 <span style=''>class SparkETLStep (
+</span>7 <span style=''>                  val name: String
+</span>8 <span style=''>                  ,transform_function: SparkSession =&gt; Unit
+</span>9 <span style=''>                  )
+</span>10 <span style=''>extends EtlStep[SparkSession,Unit]
+</span>11 <span style=''>{
+</span>12 <span style=''>  final def process(spark: =&gt;SparkSession): Task[Unit] = </span><span style='background: #F0ADAD'>Task {
+</span>13 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(&quot;#################################################################################################&quot;)
+</span>14 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(s&quot;Starting Spark ETL Step : $name&quot;)
+</span>15 <span style=''></span><span style='background: #F0ADAD'>    transform_function(spark)
+</span>16 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(&quot;#################################################################################################&quot;)
+</span>17 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>18 <span style=''>}
+</span>19 <span style=''>
+</span>20 <span style=''>object SparkETLStep {
+</span>21 <span style=''>  def apply(name: String, transform_function: SparkSession =&gt; Unit): SparkETLStep =
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>new SparkETLStep(name, transform_function)</span><span style=''>
+</span>23 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          955
+        </td>
+        <td>
+          314
+          -
+          652
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[Unit]({
+  SparkETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;);
+  SparkETLStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting Spark ETL Step : &quot;, &quot;&quot;).s(SparkETLStep.this.name));
+  SparkETLStep.this.transform_function.apply(spark);
+  SparkETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+})
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          947
+        </td>
+        <td>
+          325
+          -
+          441
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          950
+        </td>
+        <td>
+          491
+          -
+          495
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.SparkETLStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          SparkETLStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          949
+        </td>
+        <td>
+          495
+          -
+          496
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          952
+        </td>
+        <td>
+          446
+          -
+          497
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkETLStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting Spark ETL Step : &quot;, &quot;&quot;).s(SparkETLStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          948
+        </td>
+        <td>
+          464
+          -
+          491
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Starting Spark ETL Step : &quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          951
+        </td>
+        <td>
+          462
+          -
+          496
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Starting Spark ETL Step : &quot;, &quot;&quot;).s(SparkETLStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          953
+        </td>
+        <td>
+          502
+          -
+          527
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          SparkETLStep.this.transform_function.apply(spark)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          954
+        </td>
+        <td>
+          532
+          -
+          648
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          SparkETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          956
+        </td>
+        <td>
+          766
+          -
+          808
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.SparkETLStep.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new SparkETLStep(name, transform_function)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

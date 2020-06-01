@@ -1,0 +1,1998 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/spark/ReadApi.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.spark
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.utils._
+</span>4 <span style=''>import org.apache.spark.sql.functions.{col, split}
+</span>5 <span style=''>import org.apache.spark.sql._
+</span>6 <span style=''>import org.slf4j.LoggerFactory
+</span>7 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>8 <span style=''>
+</span>9 <span style=''>object ReadApi {
+</span>10 <span style=''>
+</span>11 <span style=''>  private val read_logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>12 <span style=''>  </span><span style='background: #AEF1AE'>read_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  def LoadDF(location: Seq[String], input_type: IOType, where_clause : String = &quot;1 = 1&quot;, select_clause: Seq[String] = Seq(&quot;*&quot;))(implicit spark: SparkSession): Dataset[Row] = {
+</span>15 <span style=''>    val df_reader = </span><span style='background: #F0ADAD'>spark.read</span><span style=''>
+</span>16 <span style=''>
+</span>17 <span style=''>    </span><span style='background: #F0ADAD'>read_logger.info(&quot;Input file paths: &quot; + location.toList)</span><span style=''>
+</span>18 <span style=''>
+</span>19 <span style=''>    val df_reader_options = input_type match {
+</span>20 <span style=''>      case CSV(delimiter,header_present,_,quotechar) =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;,quotechar).option(&quot;header&quot;, header_present)</span><span style=''>
+</span>21 <span style=''>      case PARQUET =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;parquet&quot;)</span><span style=''>
+</span>22 <span style=''>      case ORC =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;orc&quot;)</span><span style=''>
+</span>23 <span style=''>      case JSON(multi_line) =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;json&quot;).option(&quot;multiline&quot;,multi_line)</span><span style=''>
+</span>24 <span style=''>      case MCSV(_,_) | TEXT =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;text&quot;)</span><span style=''>
+</span>25 <span style=''>      case _ =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;text&quot;)</span><span style=''>
+</span>26 <span style=''>    }
+</span>27 <span style=''>
+</span>28 <span style=''>    val df = input_type match {
+</span>29 <span style=''>      case MCSV(delimiter,column_count) =&gt; {
+</span>30 <span style=''>        val columns: IndexedSeq[Column] = (</span><span style='background: #F0ADAD'>0 to column_count).map(id =&gt; col(s&quot;value&quot;)(id).as(s&quot;value${id+1}&quot;))</span><span style=''>
+</span>31 <span style=''>        </span><span style='background: #F0ADAD'>df_reader_options.load(location: _*)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>          .withColumn(&quot;value&quot; , split(col(&quot;value&quot;), delimiter))
+</span>33 <span style=''></span><span style='background: #F0ADAD'>          .select(columns: _*)</span><span style=''>
+</span>34 <span style=''>      }
+</span>35 <span style=''>      case _ =&gt; </span><span style='background: #F0ADAD'>df_reader_options.load(location: _*).where(where_clause).selectExpr(select_clause: _*)</span><span style=''>
+</span>36 <span style=''>    }
+</span>37 <span style=''>
+</span>38 <span style=''>    //(df, Map(&quot;Read paths&quot;-&gt;paths.toList.mkString(&quot;,&quot;), &quot;File Type&quot;-&gt;fileType.toString))
+</span>39 <span style=''>    df
+</span>40 <span style=''>  }
+</span>41 <span style=''>
+</span>42 <span style=''>  def LoadDSHelper[T &lt;: Product : TypeTag](level: String,location: Seq[String], input_type: IOType, where_clause : String = &quot;1 = 1&quot;) : Map[String,String] = {
+</span>43 <span style=''>    val mapping = </span><span style='background: #F0ADAD'>Encoders.product[T]</span><span style=''>
+</span>44 <span style=''>    if (</span><span style='background: #F0ADAD'>level.equalsIgnoreCase(&quot;info&quot;)</span><span style=''>){
+</span>45 <span style=''>     </span><span style='background: #F0ADAD'>Map(&quot;input_location&quot;-&gt;location.mkString(&quot;,&quot;)
+</span>46 <span style=''></span><span style='background: #F0ADAD'>      , &quot;input_type&quot;-&gt;input_type.toString
+</span>47 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>}else{
+</span>48 <span style=''>      </span><span style='background: #F0ADAD'>Map(&quot;input_location&quot;-&gt;location.mkString(&quot;,&quot;)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>        , &quot;input_type&quot;-&gt;input_type.toString
+</span>50 <span style=''></span><span style='background: #F0ADAD'>        , &quot;input_class&quot; -&gt; mapping.schema.toDDL
+</span>51 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>52 <span style=''>    }
+</span>53 <span style=''>  }
+</span>54 <span style=''>
+</span>55 <span style=''>  def LoadDS[T &lt;: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = &quot;1 = 1&quot;)(spark: SparkSession) : Dataset[T] = {
+</span>56 <span style=''>    val mapping = </span><span style='background: #AEF1AE'>Encoders.product[T]</span><span style=''>
+</span>57 <span style=''>
+</span>58 <span style=''>    val df_reader = </span><span style='background: #AEF1AE'>spark.read</span><span style=''>
+</span>59 <span style=''>
+</span>60 <span style=''>    </span><span style='background: #AEF1AE'>read_logger.info(&quot;Input location: &quot; + location.toList)</span><span style=''>
+</span>61 <span style=''>
+</span>62 <span style=''>    val df_reader_options = input_type match {
+</span>63 <span style=''>      case CSV(delimiter,header_present,parse_mode,quotechar) =&gt; </span><span style='background: #AEF1AE'>df_reader.format(&quot;csv&quot;).schema(mapping.schema)
+</span>64 <span style=''></span><span style='background: #AEF1AE'>        .option(&quot;columnNameOfCorruptRecord&quot;,&quot;_corrupt_record&quot;).option(&quot;delimiter&quot;, delimiter)
+</span>65 <span style=''></span><span style='background: #AEF1AE'>        .option(&quot;quote&quot;,quotechar).option(&quot;header&quot;, header_present).option(&quot;mode&quot;, parse_mode)</span><span style=''>
+</span>66 <span style=''>      case JSON(multi_line) =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;json&quot;).option(&quot;multiline&quot;,multi_line).schema(mapping.schema)</span><span style=''>
+</span>67 <span style=''>      case PARQUET =&gt; </span><span style='background: #AEF1AE'>df_reader.format(&quot;parquet&quot;)</span><span style=''>
+</span>68 <span style=''>      case ORC =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;orc&quot;)</span><span style=''>
+</span>69 <span style=''>      case JDBC(url, user, password, driver) =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;jdbc&quot;)
+</span>70 <span style=''></span><span style='background: #F0ADAD'>        .option(&quot;url&quot;, url).option(&quot;dbtable&quot;, location.mkString).option(&quot;user&quot;, user).option(&quot;password&quot;, password).option(&quot;driver&quot;, driver)</span><span style=''>
+</span>71 <span style=''>      case BQ =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;bigquery&quot;).option(&quot;table&quot;, location.mkString)</span><span style=''>
+</span>72 <span style=''>      case _ =&gt; </span><span style='background: #F0ADAD'>df_reader.format(&quot;text&quot;)</span><span style=''>
+</span>73 <span style=''>    }
+</span>74 <span style=''>
+</span>75 <span style=''>    val df = input_type match {
+</span>76 <span style=''>      case JDBC(_,_,_,_) | BQ =&gt; </span><span style='background: #F0ADAD'>df_reader_options.load().where(where_clause)</span><span style=''>
+</span>77 <span style=''>      case _ =&gt; </span><span style='background: #AEF1AE'>df_reader_options.load(location: _*).where(where_clause)</span><span style=''>
+</span>78 <span style=''>    }
+</span>79 <span style=''>
+</span>80 <span style=''>    </span><span style='background: #AEF1AE'>read_logger.info(&quot;#&quot;*20 + &quot; Actual Input Schema &quot; + &quot;#&quot;*20)</span><span style=''>
+</span>81 <span style=''>    </span><span style='background: #AEF1AE'>df.schema.printTreeString</span><span style=''> // df.schema.foreach(x =&gt; read_logger.info(x.toString))
+</span>82 <span style=''>    </span><span style='background: #AEF1AE'>read_logger.info(&quot;#&quot;*20 + &quot; Provided Input Case Class Schema &quot; + &quot;#&quot;*20)</span><span style=''>
+</span>83 <span style=''>    </span><span style='background: #AEF1AE'>mapping.schema.printTreeString</span><span style=''>
+</span>84 <span style=''>
+</span>85 <span style=''>    </span><span style='background: #AEF1AE'>df.select(mapping.schema.map(x =&gt; col(x.name)):_*).as[T](mapping)</span><span style=''>
+</span>86 <span style=''>  }
+</span>87 <span style=''>
+</span>88 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          1483
+        </td>
+        <td>
+          251
+          -
+          292
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.slf4j.LoggerFactory.getLogger(ReadApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          1482
+        </td>
+        <td>
+          275
+          -
+          291
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1485
+        </td>
+        <td>
+          340
+          -
+          341
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1488
+        </td>
+        <td>
+          295
+          -
+          342
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.read_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(ReadApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1484
+        </td>
+        <td>
+          314
+          -
+          322
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Loaded &quot;
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1487
+        </td>
+        <td>
+          312
+          -
+          341
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(ReadApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1486
+        </td>
+        <td>
+          323
+          -
+          339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          1489
+        </td>
+        <td>
+          540
+          -
+          550
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.SparkSession.read
+        </td>
+        <td style="background: #F0ADAD">
+          spark.read
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1492
+        </td>
+        <td>
+          573
+          -
+          611
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Input file paths: &quot;.+(location.toList)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1491
+        </td>
+        <td>
+          596
+          -
+          611
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toList
+        </td>
+        <td style="background: #F0ADAD">
+          location.toList
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1490
+        </td>
+        <td>
+          573
+          -
+          593
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Input file paths: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1493
+        </td>
+        <td>
+          556
+          -
+          612
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          ReadApi.this.read_logger.info(&quot;Input file paths: &quot;.+(location.toList))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1494
+        </td>
+        <td>
+          717
+          -
+          830
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;csv&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;, quotechar).option(&quot;header&quot;, header_present)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          1495
+        </td>
+        <td>
+          853
+          -
+          880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;parquet&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          1496
+        </td>
+        <td>
+          899
+          -
+          922
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;orc&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1497
+        </td>
+        <td>
+          954
+          -
+          1009
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;json&quot;).option(&quot;multiline&quot;, multi_line)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          1498
+        </td>
+        <td>
+          1041
+          -
+          1065
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1499
+        </td>
+        <td>
+          1082
+          -
+          1106
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1501
+        </td>
+        <td>
+          1267
+          -
+          1275
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;value&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1500
+        </td>
+        <td>
+          1234
+          -
+          1235
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1503
+        </td>
+        <td>
+          1298
+          -
+          1299
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1506
+        </td>
+        <td>
+          1263
+          -
+          1300
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Column.as
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;value&quot;).s()).apply(id).as(scala.StringContext.apply(&quot;value&quot;, &quot;&quot;).s(id.+(1)))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1508
+        </td>
+        <td>
+          1234
+          -
+          1301
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.intWrapper(0).to(column_count).map[org.apache.spark.sql.Column, IndexedSeq[org.apache.spark.sql.Column]](((id: Int) =&gt; org.apache.spark.sql.functions.col(scala.StringContext.apply(&quot;value&quot;).s()).apply(id).as(scala.StringContext.apply(&quot;value&quot;, &quot;&quot;).s(id.+(1)))))(immutable.this.IndexedSeq.canBuildFrom[org.apache.spark.sql.Column])
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1502
+        </td>
+        <td>
+          1286
+          -
+          1292
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;value&quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1505
+        </td>
+        <td>
+          1284
+          -
+          1299
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;value&quot;, &quot;&quot;).s(id.+(1))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1504
+        </td>
+        <td>
+          1293
+          -
+          1297
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.+
+        </td>
+        <td style="background: #F0ADAD">
+          id.+(1)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1507
+        </td>
+        <td>
+          1256
+          -
+          1256
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.IndexedSeq.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          immutable.this.IndexedSeq.canBuildFrom[org.apache.spark.sql.Column]
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1510
+        </td>
+        <td>
+          1385
+          -
+          1397
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.functions.col
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.functions.col(&quot;value&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1509
+        </td>
+        <td>
+          1369
+          -
+          1376
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;value&quot;
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1511
+        </td>
+        <td>
+          1379
+          -
+          1409
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.functions.split
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.functions.split(org.apache.spark.sql.functions.col(&quot;value&quot;), delimiter)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1512
+        </td>
+        <td>
+          1310
+          -
+          1441
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.select
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader_options.load((location: _*)).withColumn(&quot;value&quot;, org.apache.spark.sql.functions.split(org.apache.spark.sql.functions.col(&quot;value&quot;), delimiter)).select((columns: _*))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1513
+        </td>
+        <td>
+          1466
+          -
+          1552
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.selectExpr
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader_options.load((location: _*)).where(where_clause).selectExpr((select_clause: _*))
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1514
+        </td>
+        <td>
+          1838
+          -
+          1857
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.apache.spark.sql.Encoders.product
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.spark.sql.Encoders.product[T](evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1515
+        </td>
+        <td>
+          1866
+          -
+          1896
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.equalsIgnoreCase
+        </td>
+        <td style="background: #F0ADAD">
+          level.equalsIgnoreCase(&quot;info&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1518
+        </td>
+        <td>
+          1908
+          -
+          1948
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;input_location&quot;).-&gt;[String](location.mkString(&quot;,&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1523
+        </td>
+        <td>
+          1904
+          -
+          1996
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;input_location&quot;).-&gt;[String](location.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;input_type&quot;).-&gt;[String](input_type.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1517
+        </td>
+        <td>
+          1926
+          -
+          1948
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          location.mkString(&quot;,&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1522
+        </td>
+        <td>
+          1904
+          -
+          1996
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;input_location&quot;).-&gt;[String](location.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;input_type&quot;).-&gt;[String](input_type.toString()))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1516
+        </td>
+        <td>
+          1908
+          -
+          1924
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;input_location&quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1519
+        </td>
+        <td>
+          1957
+          -
+          1969
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;input_type&quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1521
+        </td>
+        <td>
+          1957
+          -
+          1990
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;input_type&quot;).-&gt;[String](input_type.toString())
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1520
+        </td>
+        <td>
+          1971
+          -
+          1990
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          input_type.toString()
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1524
+        </td>
+        <td>
+          2013
+          -
+          2029
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;input_location&quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1533
+        </td>
+        <td>
+          2009
+          -
+          2153
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;input_location&quot;).-&gt;[String](location.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;input_type&quot;).-&gt;[String](input_type.toString()), scala.Predef.ArrowAssoc[String](&quot;input_class&quot;).-&gt;[String](mapping.schema.toDDL))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1526
+        </td>
+        <td>
+          2013
+          -
+          2053
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;input_location&quot;).-&gt;[String](location.mkString(&quot;,&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1525
+        </td>
+        <td>
+          2031
+          -
+          2053
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          location.mkString(&quot;,&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1534
+        </td>
+        <td>
+          2009
+          -
+          2153
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;input_location&quot;).-&gt;[String](location.mkString(&quot;,&quot;)), scala.Predef.ArrowAssoc[String](&quot;input_type&quot;).-&gt;[String](input_type.toString()), scala.Predef.ArrowAssoc[String](&quot;input_class&quot;).-&gt;[String](mapping.schema.toDDL))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1528
+        </td>
+        <td>
+          2078
+          -
+          2097
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          input_type.toString()
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1527
+        </td>
+        <td>
+          2064
+          -
+          2076
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;input_type&quot;
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1529
+        </td>
+        <td>
+          2064
+          -
+          2097
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;input_type&quot;).-&gt;[String](input_type.toString())
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1530
+        </td>
+        <td>
+          2108
+          -
+          2121
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;input_class&quot;
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1532
+        </td>
+        <td>
+          2108
+          -
+          2145
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;input_class&quot;).-&gt;[String](mapping.schema.toDDL)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1531
+        </td>
+        <td>
+          2125
+          -
+          2145
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.types.StructType.toDDL
+        </td>
+        <td style="background: #F0ADAD">
+          mapping.schema.toDDL
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          1535
+        </td>
+        <td>
+          2333
+          -
+          2352
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.apache.spark.sql.Encoders.product
+        </td>
+        <td style="background: #AEF1AE">
+          org.apache.spark.sql.Encoders.product[T](evidence$2)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1536
+        </td>
+        <td>
+          2374
+          -
+          2384
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.SparkSession.read
+        </td>
+        <td style="background: #AEF1AE">
+          spark.read
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1539
+        </td>
+        <td>
+          2407
+          -
+          2443
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Input location: &quot;.+(location.toList)
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1538
+        </td>
+        <td>
+          2428
+          -
+          2443
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toList
+        </td>
+        <td style="background: #AEF1AE">
+          location.toList
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1537
+        </td>
+        <td>
+          2407
+          -
+          2425
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Input location: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1540
+        </td>
+        <td>
+          2390
+          -
+          2444
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.read_logger.info(&quot;Input location: &quot;.+(location.toList))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1541
+        </td>
+        <td>
+          2558
+          -
+          2793
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.option
+        </td>
+        <td style="background: #AEF1AE">
+          df_reader.format(&quot;csv&quot;).schema(mapping.schema).option(&quot;columnNameOfCorruptRecord&quot;, &quot;_corrupt_record&quot;).option(&quot;delimiter&quot;, delimiter).option(&quot;quote&quot;, quotechar).option(&quot;header&quot;, header_present).option(&quot;mode&quot;, parse_mode)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1545
+        </td>
+        <td>
+          2825
+          -
+          2903
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.schema
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;json&quot;).option(&quot;multiline&quot;, multi_line).schema(mapping.schema)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1542
+        </td>
+        <td>
+          2842
+          -
+          2848
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;json&quot;
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1544
+        </td>
+        <td>
+          2888
+          -
+          2902
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.apache.spark.sql.Encoder.schema
+        </td>
+        <td style="background: #F0ADAD">
+          mapping.schema
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1543
+        </td>
+        <td>
+          2857
+          -
+          2868
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;multiline&quot;
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1546
+        </td>
+        <td>
+          2926
+          -
+          2953
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #AEF1AE">
+          df_reader.format(&quot;parquet&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1547
+        </td>
+        <td>
+          2972
+          -
+          2995
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;orc&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1548
+        </td>
+        <td>
+          3044
+          -
+          3208
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;jdbc&quot;).option(&quot;url&quot;, url).option(&quot;dbtable&quot;, location.mkString).option(&quot;user&quot;, user).option(&quot;password&quot;, password).option(&quot;driver&quot;, driver)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1551
+        </td>
+        <td>
+          3271
+          -
+          3288
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          location.mkString
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1550
+        </td>
+        <td>
+          3262
+          -
+          3269
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;table&quot;
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1549
+        </td>
+        <td>
+          3243
+          -
+          3253
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;bigquery&quot;
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1552
+        </td>
+        <td>
+          3226
+          -
+          3289
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.option
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;bigquery&quot;).option(&quot;table&quot;, location.mkString)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1553
+        </td>
+        <td>
+          3306
+          -
+          3330
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.DataFrameReader.format
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader.format(&quot;text&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1554
+        </td>
+        <td>
+          3403
+          -
+          3447
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.where
+        </td>
+        <td style="background: #F0ADAD">
+          df_reader_options.load().where(where_clause)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1555
+        </td>
+        <td>
+          3464
+          -
+          3520
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.where
+        </td>
+        <td style="background: #AEF1AE">
+          df_reader_options.load((location: _*)).where(where_clause)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1560
+        </td>
+        <td>
+          3549
+          -
+          3590
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(&quot;#&quot;).*(20).+(&quot; Actual Input Schema &quot;).+(scala.Predef.augmentString(&quot;#&quot;).*(20))
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1557
+        </td>
+        <td>
+          3553
+          -
+          3555
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          20
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1559
+        </td>
+        <td>
+          3584
+          -
+          3590
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.*
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(&quot;#&quot;).*(20)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1556
+        </td>
+        <td>
+          3549
+          -
+          3552
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;#&quot;
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1558
+        </td>
+        <td>
+          3558
+          -
+          3581
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; Actual Input Schema &quot;
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1561
+        </td>
+        <td>
+          3532
+          -
+          3591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.read_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(20).+(&quot; Actual Input Schema &quot;).+(scala.Predef.augmentString(&quot;#&quot;).*(20)))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1562
+        </td>
+        <td>
+          3596
+          -
+          3621
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.types.StructType.printTreeString
+        </td>
+        <td style="background: #AEF1AE">
+          df.schema.printTreeString()
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1563
+        </td>
+        <td>
+          3699
+          -
+          3702
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;#&quot;
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1566
+        </td>
+        <td>
+          3747
+          -
+          3753
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.*
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(&quot;#&quot;).*(20)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1568
+        </td>
+        <td>
+          3682
+          -
+          3754
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          ReadApi.this.read_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(20).+(&quot; Provided Input Case Class Schema &quot;).+(scala.Predef.augmentString(&quot;#&quot;).*(20)))
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1565
+        </td>
+        <td>
+          3708
+          -
+          3744
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; Provided Input Case Class Schema &quot;
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1564
+        </td>
+        <td>
+          3703
+          -
+          3705
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          20
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1567
+        </td>
+        <td>
+          3699
+          -
+          3753
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(&quot;#&quot;).*(20).+(&quot; Provided Input Case Class Schema &quot;).+(scala.Predef.augmentString(&quot;#&quot;).*(20))
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          1569
+        </td>
+        <td>
+          3759
+          -
+          3789
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.types.StructType.printTreeString
+        </td>
+        <td style="background: #AEF1AE">
+          mapping.schema.printTreeString()
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1570
+        </td>
+        <td>
+          3795
+          -
+          3860
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.spark.sql.Dataset.as
+        </td>
+        <td style="background: #AEF1AE">
+          df.select((mapping.schema.map[org.apache.spark.sql.Column, Seq[org.apache.spark.sql.Column]](((x: org.apache.spark.sql.types.StructField) =&gt; org.apache.spark.sql.functions.col(x.name)))(collection.this.Seq.canBuildFrom[org.apache.spark.sql.Column]): _*)).as[T](mapping)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

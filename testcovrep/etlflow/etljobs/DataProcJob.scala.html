@@ -1,0 +1,1287 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etljobs/DataProcJob.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etljobs
+</span>2 <span style=''>
+</span>3 <span style=''>import java.util.concurrent.TimeUnit
+</span>4 <span style=''>import com.google.cloud.dataproc.v1._
+</span>5 <span style=''>import etlflow.utils.GlobalProperties
+</span>6 <span style=''>import org.apache.log4j.Logger
+</span>7 <span style=''>import scala.collection.JavaConverters._
+</span>8 <span style=''>
+</span>9 <span style=''>trait DataProcJob[EJGP &lt;: GlobalProperties] {
+</span>10 <span style=''>
+</span>11 <span style=''>  lazy val dp_logger: Logger = Logger.getLogger(getClass.getName)
+</span>12 <span style=''>
+</span>13 <span style=''>  val main_class: String = </span><span style='background: #F0ADAD'>getClass.getName.replace(&quot;$&quot;,&quot;&quot;)</span><span style=''>
+</span>14 <span style=''>  val dp_libs: List[String] = </span><span style='background: #F0ADAD'>List.empty</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  def executeDataProcJob(job_name: String, job_properties: Map[String,String],global_properties: Option[EJGP]): Unit = {
+</span>17 <span style=''>    val gcp_region: String = </span><span style='background: #F0ADAD'>global_properties.map(x =&gt; x.gcp_region).getOrElse(&quot;&lt;not_set&gt;&quot;)</span><span style=''>
+</span>18 <span style=''>    val gcp_project: String = </span><span style='background: #F0ADAD'>global_properties.map(x =&gt; x.gcp_project).getOrElse(&quot;&lt;not_set&gt;&quot;)</span><span style=''>
+</span>19 <span style=''>    val gcp_dp_endpoint: String = </span><span style='background: #F0ADAD'>global_properties.map(x =&gt; x.gcp_dp_endpoint).getOrElse(&quot;&lt;not_set&gt;&quot;)</span><span style=''>
+</span>20 <span style=''>    val gcp_dp_cluster_name: String = </span><span style='background: #F0ADAD'>global_properties.map(x =&gt; x.gcp_dp_cluster_name).getOrElse(&quot;&lt;not_set&gt;&quot;)</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>    val props = </span><span style='background: #F0ADAD'>job_properties.map(x =&gt; s&quot;${x._1}=${x._2}&quot;).mkString(&quot;,&quot;)</span><span style=''>
+</span>23 <span style=''>    val args =
+</span>24 <span style=''>      if (</span><span style='background: #F0ADAD'>props != &quot;&quot;</span><span style=''>)
+</span>25 <span style=''>        </span><span style='background: #F0ADAD'>List(&quot;run_job&quot;, &quot;--job_name&quot;, job_name, &quot;--props&quot;, props)</span><span style=''>
+</span>26 <span style=''>      else
+</span>27 <span style=''>        </span><span style='background: #F0ADAD'>List(&quot;run_job&quot;, &quot;--job_name&quot;, job_name)</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>    </span><span style='background: #F0ADAD'>dp_logger.info(s&quot;&quot;&quot;gcp_region =&gt; $gcp_region
+</span>30 <span style=''></span><span style='background: #F0ADAD'>         |gcp_project =&gt; $gcp_project
+</span>31 <span style=''></span><span style='background: #F0ADAD'>         |gcp_dp_endpoint =&gt; $gcp_dp_endpoint
+</span>32 <span style=''></span><span style='background: #F0ADAD'>         |gcp_dp_cluster_name =&gt; $gcp_dp_cluster_name
+</span>33 <span style=''></span><span style='background: #F0ADAD'>         |main_class =&gt; $main_class
+</span>34 <span style=''></span><span style='background: #F0ADAD'>         |args =&gt; $args&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>dp_logger.info(&quot;dp_libs&quot;)</span><span style=''>
+</span>36 <span style=''>    </span><span style='background: #F0ADAD'>dp_libs.foreach(dp_logger.info(_))</span><span style=''>
+</span>37 <span style=''>
+</span>38 <span style=''>    val jobControllerSettings = </span><span style='background: #F0ADAD'>JobControllerSettings.newBuilder().setEndpoint(gcp_dp_endpoint).build()</span><span style=''>
+</span>39 <span style=''>    val jobControllerClient = </span><span style='background: #F0ADAD'>JobControllerClient.create(jobControllerSettings)</span><span style=''>
+</span>40 <span style=''>    val jobPlacement = </span><span style='background: #F0ADAD'>JobPlacement.newBuilder().setClusterName(gcp_dp_cluster_name).build()</span><span style=''>
+</span>41 <span style=''>    val sparkJob = </span><span style='background: #F0ADAD'>SparkJob.newBuilder()
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      .addAllJarFileUris(dp_libs.asJava)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>      .setMainClass(main_class)
+</span>44 <span style=''></span><span style='background: #F0ADAD'>      .addAllArgs(args.asJava)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>      .build()</span><span style=''>
+</span>46 <span style=''>    val job = </span><span style='background: #F0ADAD'>Job.newBuilder().setPlacement(jobPlacement).setSparkJob(sparkJob).build()</span><span style=''>
+</span>47 <span style=''>    val request = </span><span style='background: #F0ADAD'>jobControllerClient.submitJob(gcp_project, gcp_region, job)</span><span style=''>
+</span>48 <span style=''>    val jobId = </span><span style='background: #F0ADAD'>request.getReference.getJobId</span><span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>dp_logger.info(s&quot;Submitted job $jobId&quot;)</span><span style=''>
+</span>50 <span style=''>    </span><span style='background: #F0ADAD'>waitForJobCompletion(jobControllerClient, gcp_project, gcp_region, jobId)</span><span style=''>
+</span>51 <span style=''>  }
+</span>52 <span style=''>
+</span>53 <span style=''>  private def waitForJobCompletion(jobControllerClient: JobControllerClient, projectId: String, region: String, jobId: String): Unit = {
+</span>54 <span style=''>    var continue = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>55 <span style=''>    var jobInfo = </span><span style='background: #F0ADAD'>jobControllerClient.getJob(projectId, region, jobId)</span><span style=''>
+</span>56 <span style=''>    var jobState = </span><span style='background: #F0ADAD'>jobInfo.getStatus.getState.toString</span><span style=''>
+</span>57 <span style=''>    while (continue) </span><span style='background: #F0ADAD'>{
+</span>58 <span style=''></span><span style='background: #F0ADAD'>      jobInfo = jobControllerClient.getJob(projectId, region, jobId)
+</span>59 <span style=''></span><span style='background: #F0ADAD'>      jobState = jobInfo.getStatus.getState.toString
+</span>60 <span style=''></span><span style='background: #F0ADAD'>      dp_logger.info(s&quot;Job Status $jobState&quot;)
+</span>61 <span style=''></span><span style='background: #F0ADAD'>      jobInfo.getStatus.getState.toString match {
+</span>62 <span style=''></span><span style='background: #F0ADAD'>        case &quot;DONE&quot; =&gt;
+</span>63 <span style=''></span><span style='background: #F0ADAD'>          dp_logger.info(s&quot;Job $jobId completed successfully with state $jobState&quot;)
+</span>64 <span style=''></span><span style='background: #F0ADAD'>          continue = false
+</span>65 <span style=''></span><span style='background: #F0ADAD'>        case &quot;CANCELLED&quot; | &quot;ERROR&quot; =&gt;
+</span>66 <span style=''></span><span style='background: #F0ADAD'>          dp_logger.info(s&quot;Job $jobId failed with state $jobState&quot;)
+</span>67 <span style=''></span><span style='background: #F0ADAD'>          throw new RuntimeException(&quot;Job failed&quot;)
+</span>68 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt;
+</span>69 <span style=''></span><span style='background: #F0ADAD'>          TimeUnit.SECONDS.sleep(2)
+</span>70 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>71 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>72 <span style=''>  }
+</span>73 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          352
+          -
+          384
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.replace
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.getClass().getName().replace(&quot;$&quot;, &quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          339
+        </td>
+        <td>
+          415
+          -
+          425
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.empty
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.empty[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          340
+        </td>
+        <td>
+          577
+          -
+          640
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x: EJGP) =&gt; x.gcp_region)).getOrElse[String](&quot;&lt;not_set&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          341
+        </td>
+        <td>
+          671
+          -
+          735
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x: EJGP) =&gt; x.gcp_project)).getOrElse[String](&quot;&lt;not_set&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          770
+          -
+          838
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x: EJGP) =&gt; x.gcp_dp_endpoint)).getOrElse[String](&quot;&lt;not_set&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          343
+        </td>
+        <td>
+          877
+          -
+          949
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x: EJGP) =&gt; x.gcp_dp_cluster_name)).getOrElse[String](&quot;&lt;not_set&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          344
+        </td>
+        <td>
+          967
+          -
+          1024
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          job_properties.map[String, scala.collection.immutable.Iterable[String]](((x: (String, String)) =&gt; scala.StringContext.apply(&quot;&quot;, &quot;=&quot;, &quot;&quot;).s(x._1, x._2)))(immutable.this.Iterable.canBuildFrom[String]).mkString(&quot;,&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          345
+        </td>
+        <td>
+          1050
+          -
+          1061
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          props.!=(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          346
+        </td>
+        <td>
+          1071
+          -
+          1128
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[String](&quot;run_job&quot;, &quot;--job_name&quot;, job_name, &quot;--props&quot;, props)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          347
+        </td>
+        <td>
+          1071
+          -
+          1128
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[String](&quot;run_job&quot;, &quot;--job_name&quot;, job_name, &quot;--props&quot;, props)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          349
+        </td>
+        <td>
+          1148
+          -
+          1187
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[String](&quot;run_job&quot;, &quot;--job_name&quot;, job_name)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          348
+        </td>
+        <td>
+          1148
+          -
+          1187
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[String](&quot;run_job&quot;, &quot;--job_name&quot;, job_name)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          358
+        </td>
+        <td>
+          1208
+          -
+          1438
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;gcp_region =&gt; &quot;, &quot;\n         |gcp_project =&gt; &quot;, &quot;\n         |gcp_dp_endpoint =&gt; &quot;, &quot;\n         |gcp_dp_cluster_name =&gt; &quot;, &quot;\n         |main_class =&gt; &quot;, &quot;\n         |args =&gt; &quot;, &quot;&quot;).s(gcp_region, gcp_project, gcp_dp_endpoint, gcp_dp_cluster_name, DataProcJob.this.main_class, args)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          1193
+          -
+          1451
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;gcp_region =&gt; &quot;, &quot;\n         |gcp_project =&gt; &quot;, &quot;\n         |gcp_dp_endpoint =&gt; &quot;, &quot;\n         |gcp_dp_cluster_name =&gt; &quot;, &quot;\n         |main_class =&gt; &quot;, &quot;\n         |args =&gt; &quot;, &quot;&quot;).s(gcp_region, gcp_project, gcp_dp_endpoint, gcp_dp_cluster_name, DataProcJob.this.main_class, args)).stripMargin)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          351
+        </td>
+        <td>
+          1237
+          -
+          1264
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n         |gcp_project =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          350
+        </td>
+        <td>
+          1212
+          -
+          1227
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;gcp_region =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          352
+        </td>
+        <td>
+          1275
+          -
+          1306
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n         |gcp_dp_endpoint =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          353
+        </td>
+        <td>
+          1321
+          -
+          1356
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n         |gcp_dp_cluster_name =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          354
+        </td>
+        <td>
+          1375
+          -
+          1401
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n         |main_class =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          355
+        </td>
+        <td>
+          1411
+          -
+          1431
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n         |args =&gt; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          1401
+          -
+          1411
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etljobs.DataProcJob.main_class
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.main_class
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          359
+        </td>
+        <td>
+          1208
+          -
+          1450
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.stripMargin
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(scala.StringContext.apply(&quot;gcp_region =&gt; &quot;, &quot;\n         |gcp_project =&gt; &quot;, &quot;\n         |gcp_dp_endpoint =&gt; &quot;, &quot;\n         |gcp_dp_cluster_name =&gt; &quot;, &quot;\n         |main_class =&gt; &quot;, &quot;\n         |args =&gt; &quot;, &quot;&quot;).s(gcp_region, gcp_project, gcp_dp_endpoint, gcp_dp_cluster_name, DataProcJob.this.main_class, args)).stripMargin
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          356
+        </td>
+        <td>
+          1435
+          -
+          1438
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          361
+        </td>
+        <td>
+          1456
+          -
+          1481
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(&quot;dp_libs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          363
+        </td>
+        <td>
+          1486
+          -
+          1520
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_libs.foreach[Unit](((x$1: String) =&gt; DataProcJob.this.dp_logger.info(x$1)))
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          1502
+          -
+          1519
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(x$1)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          364
+        </td>
+        <td>
+          1554
+          -
+          1625
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobControllerSettings.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.dataproc.v1.JobControllerSettings.newBuilder().setEndpoint(gcp_dp_endpoint).build()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          1656
+          -
+          1705
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobControllerClient.create
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.dataproc.v1.JobControllerClient.create(jobControllerSettings)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          1729
+          -
+          1798
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobPlacement.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.dataproc.v1.JobPlacement.newBuilder().setClusterName(gcp_dp_cluster_name).build()
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          1818
+          -
+          1958
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.SparkJob.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.dataproc.v1.SparkJob.newBuilder().addAllJarFileUris(scala.collection.JavaConverters.seqAsJavaListConverter[String](DataProcJob.this.dp_libs).asJava).setMainClass(DataProcJob.this.main_class).addAllArgs(scala.collection.JavaConverters.seqAsJavaListConverter[String](args).asJava).build()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          1973
+          -
+          2046
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.Job.Builder.build
+        </td>
+        <td style="background: #F0ADAD">
+          com.google.cloud.dataproc.v1.Job.newBuilder().setPlacement(jobPlacement).setSparkJob(sparkJob).build()
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          2065
+          -
+          2124
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobControllerClient.submitJob
+        </td>
+        <td style="background: #F0ADAD">
+          jobControllerClient.submitJob(gcp_project, gcp_region, job)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          370
+        </td>
+        <td>
+          2141
+          -
+          2170
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobReference.getJobId
+        </td>
+        <td style="background: #F0ADAD">
+          request.getReference().getJobId()
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          2175
+          -
+          2214
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Submitted job &quot;, &quot;&quot;).s(jobId))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          2190
+          -
+          2213
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Submitted job &quot;, &quot;&quot;).s(jobId)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          373
+        </td>
+        <td>
+          2219
+          -
+          2292
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.DataProcJob.waitForJobCompletion
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.waitForJobCompletion(jobControllerClient, gcp_project, gcp_region, jobId)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          374
+        </td>
+        <td>
+          2454
+          -
+          2458
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          375
+        </td>
+        <td>
+          2477
+          -
+          2529
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobControllerClient.getJob
+        </td>
+        <td style="background: #F0ADAD">
+          jobControllerClient.getJob(projectId, region, jobId)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          376
+        </td>
+        <td>
+          2549
+          -
+          2584
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          jobInfo.getStatus().getState().toString()
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          391
+        </td>
+        <td>
+          2589
+          -
+          2589
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          390
+        </td>
+        <td>
+          2606
+          -
+          3184
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  {
+    jobInfo = jobControllerClient.getJob(projectId, region, jobId);
+    jobState = jobInfo.getStatus().getState().toString();
+    DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Job Status &quot;, &quot;&quot;).s(jobState));
+    jobInfo.getStatus().getState().toString() match {
+      case &quot;DONE&quot; =&gt; {
+        DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Job &quot;, &quot; completed successfully with state &quot;, &quot;&quot;).s(jobId, jobState));
+        continue = false
+      }
+      case (&quot;CANCELLED&quot;| &quot;ERROR&quot;) =&gt; {
+        DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Job &quot;, &quot; failed with state &quot;, &quot;&quot;).s(jobId, jobState));
+        throw new scala.`package`.RuntimeException(&quot;Job failed&quot;)
+      }
+      case _ =&gt; SECONDS.sleep(2L)
+    }
+  };
+  while$1()
+}
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          392
+        </td>
+        <td>
+          2589
+          -
+          2589
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          2606
+          -
+          2606
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.DataProcJob.while$1
+        </td>
+        <td style="background: #F0ADAD">
+          while$1()
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          377
+        </td>
+        <td>
+          2624
+          -
+          2676
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.dataproc.v1.JobControllerClient.getJob
+        </td>
+        <td style="background: #F0ADAD">
+          jobControllerClient.getJob(projectId, region, jobId)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          378
+        </td>
+        <td>
+          2694
+          -
+          2729
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          jobInfo.getStatus().getState().toString()
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          2751
+          -
+          2774
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Job Status &quot;, &quot;&quot;).s(jobState)
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          2736
+          -
+          2775
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Job Status &quot;, &quot;&quot;).s(jobState))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          381
+        </td>
+        <td>
+          2782
+          -
+          2817
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          jobInfo.getStatus().getState().toString()
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          2874
+          -
+          2931
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Job &quot;, &quot; completed successfully with state &quot;, &quot;&quot;).s(jobId, jobState)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          2859
+          -
+          2932
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Job &quot;, &quot; completed successfully with state &quot;, &quot;&quot;).s(jobId, jobState))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          2954
+          -
+          2959
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          false
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          385
+        </td>
+        <td>
+          3023
+          -
+          3064
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Job &quot;, &quot; failed with state &quot;, &quot;&quot;).s(jobId, jobState)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          3008
+          -
+          3065
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          DataProcJob.this.dp_logger.info(scala.StringContext.apply(&quot;Job &quot;, &quot; failed with state &quot;, &quot;&quot;).s(jobId, jobState))
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          3076
+          -
+          3116
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw new scala.`package`.RuntimeException(&quot;Job failed&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          388
+        </td>
+        <td>
+          3145
+          -
+          3170
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.concurrent.TimeUnit.sleep
+        </td>
+        <td style="background: #F0ADAD">
+          SECONDS.sleep(2L)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

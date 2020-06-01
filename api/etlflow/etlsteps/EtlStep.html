@@ -106,11 +106,15 @@
                         <a class="class" href="BQLoadStep.html" title=""></a>
                         <a href="BQLoadStep.html" title="">BQLoadStep</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
+                        <a class="object" href="BQQueryStep$.html" title=""></a>
                         <a class="class" href="BQQueryStep.html" title=""></a>
                         <a href="BQQueryStep.html" title="">BQQueryStep</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="trait" href="BQStep.html" title=""></a>
+                        <a href="BQStep.html" title="">BQStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="DBQueryStep$.html" title=""></a>
                         <a class="class" href="DBQueryStep.html" title=""></a>
                         <a href="DBQueryStep.html" title="">DBQueryStep</a>
                       </li><li class="current-entities indented2">
@@ -122,9 +126,29 @@
                         <a class="trait" href="" title=""></a>
                         <a href="" title="">EtlStep</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="GCSPutStep$.html" title=""></a>
+                        <a class="class" href="GCSPutStep.html" title=""></a>
+                        <a href="GCSPutStep.html" title="">GCSPutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="GCSSensorStep$.html" title=""></a>
+                        <a class="class" href="GCSSensorStep.html" title=""></a>
+                        <a href="GCSSensorStep.html" title="">GCSSensorStep</a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericETLStep.html" title=""></a>
                         <a href="GenericETLStep.html" title="">GenericETLStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3PutStep$.html" title=""></a>
+                        <a class="class" href="S3PutStep.html" title=""></a>
+                        <a href="S3PutStep.html" title="">S3PutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3SensorStep$.html" title=""></a>
+                        <a class="class" href="S3SensorStep.html" title=""></a>
+                        <a href="S3SensorStep.html" title="">S3SensorStep</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="SensorStep.html" title=""></a>
+                        <a href="SensorStep.html" title="">SensorStep</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SparkETLStep$.html" title=""></a>
                         <a class="class" href="SparkETLStep.html" title=""></a>
@@ -182,7 +206,7 @@
             <span class="toggle">
               Known Subclasses
             </span>
-            <div class="subClasses hiddenContent"><a href="BQLoadStep.html" class="extype" name="etlflow.etlsteps.BQLoadStep">BQLoadStep</a>, <a href="BQQueryStep.html" class="extype" name="etlflow.etlsteps.BQQueryStep">BQQueryStep</a>, <a href="DBQueryStep.html" class="extype" name="etlflow.etlsteps.DBQueryStep">DBQueryStep</a>, <a href="GenericETLStep.html" class="extype" name="etlflow.etlsteps.GenericETLStep">GenericETLStep</a>, <a href="SparkETLStep.html" class="extype" name="etlflow.etlsteps.SparkETLStep">SparkETLStep</a>, <a href="SparkReadWriteStateStep.html" class="extype" name="etlflow.etlsteps.SparkReadWriteStateStep">SparkReadWriteStateStep</a>, <a href="SparkReadWriteStep.html" class="extype" name="etlflow.etlsteps.SparkReadWriteStep">SparkReadWriteStep</a></div>
+            <div class="subClasses hiddenContent"><a href="BQLoadStep.html" class="extype" name="etlflow.etlsteps.BQLoadStep">BQLoadStep</a>, <a href="BQQueryStep.html" class="extype" name="etlflow.etlsteps.BQQueryStep">BQQueryStep</a>, <a href="BQStep.html" class="extype" name="etlflow.etlsteps.BQStep">BQStep</a>, <a href="DBQueryStep.html" class="extype" name="etlflow.etlsteps.DBQueryStep">DBQueryStep</a>, <a href="GCSPutStep.html" class="extype" name="etlflow.etlsteps.GCSPutStep">GCSPutStep</a>, <a href="GCSSensorStep.html" class="extype" name="etlflow.etlsteps.GCSSensorStep">GCSSensorStep</a>, <a href="GenericETLStep.html" class="extype" name="etlflow.etlsteps.GenericETLStep">GenericETLStep</a>, <a href="S3PutStep.html" class="extype" name="etlflow.etlsteps.S3PutStep">S3PutStep</a>, <a href="S3SensorStep.html" class="extype" name="etlflow.etlsteps.S3SensorStep">S3SensorStep</a>, <a href="SparkETLStep.html" class="extype" name="etlflow.etlsteps.SparkETLStep">SparkETLStep</a>, <a href="SparkReadWriteStateStep.html" class="extype" name="etlflow.etlsteps.SparkReadWriteStateStep">SparkReadWriteStateStep</a>, <a href="SparkReadWriteStep.html" class="extype" name="etlflow.etlsteps.SparkReadWriteStep">SparkReadWriteStep</a></div>
           </div></div>
         
 
@@ -249,9 +273,9 @@
       
       
     </li><li name="etlflow.etlsteps.EtlStep#process" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="process(input_state:IPSTATE):zio.Task[OPSTATE]"></a><a id="process(IPSTATE):Task[OPSTATE]"></a>
+      <a id="process(input_state:=&gt;IPSTATE):zio.Task[OPSTATE]"></a><a id="process(⇒IPSTATE):Task[OPSTATE]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/EtlStep.html#process(input_state:IPSTATE):zio.Task[OPSTATE]" title="Permalink">
+      <a href="../../etlflow/etlsteps/EtlStep.html#process(input_state:=&gt;IPSTATE):zio.Task[OPSTATE]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -260,7 +284,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">process</span><span class="params">(<span name="input_state">input_state: <span class="extype" name="etlflow.etlsteps.EtlStep.IPSTATE">IPSTATE</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="etlflow.etlsteps.EtlStep.OPSTATE">OPSTATE</span>]</span>
+        <span class="name">process</span><span class="params">(<span name="input_state">input_state: ⇒ <span class="extype" name="etlflow.etlsteps.EtlStep.IPSTATE">IPSTATE</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="etlflow.etlsteps.EtlStep.OPSTATE">OPSTATE</span>]</span>
       </span>
       
       
@@ -391,9 +415,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="etlflow.etlsteps.EtlStep#etl_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="etl_logger:org.apache.log4j.Logger"></a><a id="etl_logger:Logger"></a>
+      <a id="etl_logger:org.slf4j.Logger"></a><a id="etl_logger:Logger"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/EtlStep.html#etl_logger:org.apache.log4j.Logger" title="Permalink">
+      <a href="../../etlflow/etlsteps/EtlStep.html#etl_logger:org.slf4j.Logger" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -402,14 +426,14 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.apache.log4j.Logger">Logger</span></span>
+        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.slf4j.Logger">Logger</span></span>
       </span>
       
       
     </li><li name="etlflow.etlsteps.EtlStep#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="execute(input_state:IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="execute(IPSTATE)(LoggerResource):Task[Unit]"></a>
+      <a id="execute(input_state:=&gt;IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="execute(⇒IPSTATE)(LoggerResource):Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/EtlStep.html#execute(input_state:IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
+      <a href="../../etlflow/etlsteps/EtlStep.html#execute(input_state:=&gt;IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -418,7 +442,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">execute</span><span class="params">(<span name="input_state">input_state: <span class="extype" name="etlflow.etlsteps.EtlStep.IPSTATE">IPSTATE</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">execute</span><span class="params">(<span name="input_state">input_state: ⇒ <span class="extype" name="etlflow.etlsteps.EtlStep.IPSTATE">IPSTATE</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       

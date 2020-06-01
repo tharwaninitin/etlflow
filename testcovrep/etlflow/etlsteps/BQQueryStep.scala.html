@@ -1,0 +1,541 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/BQQueryStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.bigquery.QueryApi
+</span>4 <span style=''>import etlflow.utils.GCP
+</span>5 <span style=''>import zio.Task
+</span>6 <span style=''>
+</span>7 <span style=''>class BQQueryStep private[etlflow](
+</span>8 <span style=''>                 val name: String
+</span>9 <span style=''>                 , query: =&gt; String
+</span>10 <span style=''>                 ,val credentials: Option[GCP] = None
+</span>11 <span style=''>           )
+</span>12 <span style=''>  extends BQStep {
+</span>13 <span style=''>
+</span>14 <span style=''>  final def process(input: =&gt;Unit): Task[Unit] = </span><span style='background: #F0ADAD'>Task {
+</span>15 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(&quot;#&quot;*100)
+</span>16 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(s&quot;Starting BQ Query Step: $name&quot;)
+</span>17 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(s&quot;Query: $query&quot;)
+</span>18 <span style=''></span><span style='background: #F0ADAD'>    QueryApi.executeQuery(bq, query)
+</span>19 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(&quot;#&quot;*100)
+</span>20 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>  override def getStepProperties(level: String): Map[String, String] = </span><span style='background: #F0ADAD'>Map(&quot;query&quot; -&gt; query)</span><span style=''>
+</span>23 <span style=''>}
+</span>24 <span style=''>
+</span>25 <span style=''>object BQQueryStep {
+</span>26 <span style=''>  def apply(
+</span>27 <span style=''>             name: String,
+</span>28 <span style=''>             query: =&gt; String,
+</span>29 <span style=''>             credentials: Option[GCP] = None
+</span>30 <span style=''>           ): BQQueryStep =
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>new BQQueryStep(name, query, credentials)</span><span style=''>
+</span>32 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          651
+        </td>
+        <td>
+          343
+          -
+          540
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[Unit]({
+  BQQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100));
+  BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Query Step: &quot;, &quot;&quot;).s(BQQueryStep.this.name));
+  BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Query: &quot;, &quot;&quot;).s(BQQueryStep.this.query));
+  etlflow.bigquery.QueryApi.executeQuery(BQQueryStep.this.bq, BQQueryStep.this.query);
+  BQQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
+})
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          636
+        </td>
+        <td>
+          354
+          -
+          378
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          635
+        </td>
+        <td>
+          370
+          -
+          377
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.*
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(&quot;#&quot;).*(100)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          639
+        </td>
+        <td>
+          426
+          -
+          430
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.BQQueryStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          641
+        </td>
+        <td>
+          383
+          -
+          432
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Query Step: &quot;, &quot;&quot;).s(BQQueryStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          638
+        </td>
+        <td>
+          430
+          -
+          431
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          399
+          -
+          431
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Starting BQ Query Step: &quot;, &quot;&quot;).s(BQQueryStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          637
+        </td>
+        <td>
+          401
+          -
+          426
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Starting BQ Query Step: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          645
+        </td>
+        <td>
+          453
+          -
+          469
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Query: &quot;, &quot;&quot;).s(BQQueryStep.this.query)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          455
+          -
+          463
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Query: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          644
+        </td>
+        <td>
+          463
+          -
+          468
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.BQQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          646
+        </td>
+        <td>
+          437
+          -
+          470
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Query: &quot;, &quot;&quot;).s(BQQueryStep.this.query))
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          643
+        </td>
+        <td>
+          468
+          -
+          469
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          475
+          -
+          507
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.bigquery.QueryApi.executeQuery
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.bigquery.QueryApi.executeQuery(BQQueryStep.this.bq, BQQueryStep.this.query)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          647
+        </td>
+        <td>
+          501
+          -
+          506
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.BQQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          512
+          -
+          536
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          528
+          -
+          535
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.*
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(&quot;#&quot;).*(100)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          654
+        </td>
+        <td>
+          617
+          -
+          633
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;query&quot;).-&gt;[String](BQQueryStep.this.query)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          628
+          -
+          633
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.BQQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          655
+        </td>
+        <td>
+          613
+          -
+          634
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;query&quot;).-&gt;[String](BQQueryStep.this.query))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          617
+          -
+          624
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;query&quot;
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          656
+        </td>
+        <td>
+          807
+          -
+          848
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.BQQueryStep.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new BQQueryStep(name, query, credentials)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

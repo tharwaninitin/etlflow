@@ -1,0 +1,252 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/GenericETLStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import zio.Task
+</span>4 <span style=''>
+</span>5 <span style=''>class GenericETLStep (
+</span>6 <span style=''>                  val name: String
+</span>7 <span style=''>                  ,transform_function: () =&gt; Unit
+</span>8 <span style=''>                  )
+</span>9 <span style=''>extends EtlStep[Unit,Unit]
+</span>10 <span style=''>{
+</span>11 <span style=''>  final def process(in: =&gt;Unit): Task[Unit] = </span><span style='background: #F0ADAD'>Task {
+</span>12 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(&quot;#################################################################################################&quot;)
+</span>13 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(s&quot;Starting Generic ETL Step : $name&quot;)
+</span>14 <span style=''></span><span style='background: #F0ADAD'>    transform_function()
+</span>15 <span style=''></span><span style='background: #F0ADAD'>    etl_logger.info(&quot;#################################################################################################&quot;)
+</span>16 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>17 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          835
+        </td>
+        <td>
+          246
+          -
+          581
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[Unit]({
+  GenericETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;);
+  GenericETLStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting Generic ETL Step : &quot;, &quot;&quot;).s(GenericETLStep.this.name));
+  GenericETLStep.this.transform_function.apply();
+  GenericETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+})
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          827
+        </td>
+        <td>
+          257
+          -
+          373
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          GenericETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          828
+        </td>
+        <td>
+          396
+          -
+          425
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Starting Generic ETL Step : &quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          831
+        </td>
+        <td>
+          394
+          -
+          430
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Starting Generic ETL Step : &quot;, &quot;&quot;).s(GenericETLStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          830
+        </td>
+        <td>
+          425
+          -
+          429
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GenericETLStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          GenericETLStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          829
+        </td>
+        <td>
+          429
+          -
+          430
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          832
+        </td>
+        <td>
+          378
+          -
+          431
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          GenericETLStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting Generic ETL Step : &quot;, &quot;&quot;).s(GenericETLStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          833
+        </td>
+        <td>
+          436
+          -
+          456
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function0.apply
+        </td>
+        <td style="background: #F0ADAD">
+          GenericETLStep.this.transform_function.apply()
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          834
+        </td>
+        <td>
+          461
+          -
+          577
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          GenericETLStep.this.etl_logger.info(&quot;#################################################################################################&quot;)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

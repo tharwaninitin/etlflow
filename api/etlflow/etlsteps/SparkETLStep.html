@@ -106,11 +106,15 @@
                         <a class="class" href="BQLoadStep.html" title=""></a>
                         <a href="BQLoadStep.html" title="">BQLoadStep</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
+                        <a class="object" href="BQQueryStep$.html" title=""></a>
                         <a class="class" href="BQQueryStep.html" title=""></a>
                         <a href="BQQueryStep.html" title="">BQQueryStep</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="trait" href="BQStep.html" title=""></a>
+                        <a href="BQStep.html" title="">BQStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="DBQueryStep$.html" title=""></a>
                         <a class="class" href="DBQueryStep.html" title=""></a>
                         <a href="DBQueryStep.html" title="">DBQueryStep</a>
                       </li><li class="current-entities indented2">
@@ -122,9 +126,29 @@
                         <a class="trait" href="EtlStep.html" title=""></a>
                         <a href="EtlStep.html" title="">EtlStep</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="GCSPutStep$.html" title=""></a>
+                        <a class="class" href="GCSPutStep.html" title=""></a>
+                        <a href="GCSPutStep.html" title="">GCSPutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="GCSSensorStep$.html" title=""></a>
+                        <a class="class" href="GCSSensorStep.html" title=""></a>
+                        <a href="GCSSensorStep.html" title="">GCSSensorStep</a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericETLStep.html" title=""></a>
                         <a href="GenericETLStep.html" title="">GenericETLStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3PutStep$.html" title=""></a>
+                        <a class="class" href="S3PutStep.html" title=""></a>
+                        <a href="S3PutStep.html" title="">S3PutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3SensorStep$.html" title=""></a>
+                        <a class="class" href="S3SensorStep.html" title=""></a>
+                        <a href="S3SensorStep.html" title="">S3SensorStep</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="SensorStep.html" title=""></a>
+                        <a href="SensorStep.html" title="">SensorStep</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SparkETLStep$.html" title=""></a>
                         <a class="class" href="" title=""></a>
@@ -372,9 +396,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="etlflow.etlsteps.EtlStep#etl_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="etl_logger:org.apache.log4j.Logger"></a><a id="etl_logger:Logger"></a>
+      <a id="etl_logger:org.slf4j.Logger"></a><a id="etl_logger:Logger"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/SparkETLStep.html#etl_logger:org.apache.log4j.Logger" title="Permalink">
+      <a href="../../etlflow/etlsteps/SparkETLStep.html#etl_logger:org.slf4j.Logger" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -383,14 +407,14 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.apache.log4j.Logger">Logger</span></span>
+        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.slf4j.Logger">Logger</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
     </li><li name="etlflow.etlsteps.EtlStep#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="execute(input_state:IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="execute(SparkSession)(LoggerResource):Task[Unit]"></a>
+      <a id="execute(input_state:=&gt;IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="execute(⇒SparkSession)(LoggerResource):Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/SparkETLStep.html#execute(input_state:IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
+      <a href="../../etlflow/etlsteps/SparkETLStep.html#execute(input_state:=&gt;IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -399,7 +423,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">execute</span><span class="params">(<span name="input_state">input_state: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">execute</span><span class="params">(<span name="input_state">input_state: ⇒ <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
@@ -630,18 +654,18 @@
               
         </dd></dl></div>
     </li><li name="etlflow.etlsteps.SparkETLStep#process" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="process(spark:org.apache.spark.sql.SparkSession):zio.Task[Unit]"></a><a id="process(SparkSession):Task[Unit]"></a>
+      <a id="process(spark:=&gt;org.apache.spark.sql.SparkSession):zio.Task[Unit]"></a><a id="process(⇒SparkSession):Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/SparkETLStep.html#process(spark:org.apache.spark.sql.SparkSession):zio.Task[Unit]" title="Permalink">
+      <a href="../../etlflow/etlsteps/SparkETLStep.html#process(spark:=&gt;org.apache.spark.sql.SparkSession):zio.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">process</span><span class="params">(<span name="spark">spark: <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">process</span><span class="params">(<span name="spark">spark: ⇒ <span class="extype" name="org.apache.spark.sql.SparkSession">SparkSession</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etlsteps.SparkETLStep">SparkETLStep</a> → <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>

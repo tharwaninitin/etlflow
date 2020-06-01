@@ -1,0 +1,3098 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/utils/UtilityFunctions.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import java.time.LocalDateTime
+</span>4 <span style=''>import java.time.format.DateTimeFormatter
+</span>5 <span style=''>
+</span>6 <span style=''>import etlflow.{EtlJobName, EtlJobNotFoundException, EtlJobProps}
+</span>7 <span style=''>import org.apache.log4j.Logger
+</span>8 <span style=''>import org.json4s.JsonAST.JNothing
+</span>9 <span style=''>import org.json4s.jackson.JsonMethods._
+</span>10 <span style=''>import org.json4s.jackson.Serialization.writePretty
+</span>11 <span style=''>import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, JValue, _}
+</span>12 <span style=''>
+</span>13 <span style=''>import scala.reflect.ClassTag
+</span>14 <span style=''>import scala.reflect.runtime.universe.{TypeTag, _}
+</span>15 <span style=''>import scala.reflect.runtime.{universe =&gt; ru}
+</span>16 <span style=''>import scala.util.{Failure, Success, Try}
+</span>17 <span style=''>
+</span>18 <span style=''>object UtilityFunctions {
+</span>19 <span style=''>  lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
+</span>20 <span style=''>
+</span>21 <span style=''>  def parser(args: Array[String]): Map[String, String] = {
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>args.map {
+</span>23 <span style=''></span><span style='background: #F0ADAD'>      case arg =&gt; {
+</span>24 <span style=''></span><span style='background: #F0ADAD'>        val keyValue = arg.split(&quot;==&quot;);
+</span>25 <span style=''></span><span style='background: #F0ADAD'>        keyValue(0) -&gt; keyValue(1)
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    }.toMap</span><span style=''>
+</span>28 <span style=''>  }
+</span>29 <span style=''>
+</span>30 <span style=''>  def convertToJson(entity: AnyRef): String = {
+</span>31 <span style=''>    implicit val formats = </span><span style='background: #F0ADAD'>DefaultFormats</span><span style=''>
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>writePretty(entity)</span><span style=''>
+</span>33 <span style=''>  }
+</span>34 <span style=''>
+</span>35 <span style=''>  // https://stackoverflow.com/questions/29296335/json4s-jackson-how-to-ignore-field-using-annotations
+</span>36 <span style=''>  def convertToJsonByRemovingKeys(entity: AnyRef, keys: List[String]): String = {
+</span>37 <span style=''>    // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
+</span>38 <span style=''>    val customSerializer1 = </span><span style='background: #F0ADAD'>new CustomSerializer[EtlJobName[EtlJobProps]](_ =&gt;
+</span>39 <span style=''></span><span style='background: #F0ADAD'>      (PartialFunction.empty, { case _: EtlJobName[_] =&gt; JNothing })
+</span>40 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>
+</span>41 <span style=''>    // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
+</span>42 <span style=''>    val customSerializer2 = </span><span style='background: #F0ADAD'>new FieldSerializer[EtlJobProps]</span><span style=''>
+</span>43 <span style=''>    implicit val formats = </span><span style='background: #F0ADAD'>DefaultFormats + customSerializer1 + customSerializer2</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #F0ADAD'>writePretty(Extraction.decompose(entity).removeField { x =&gt; keys.contains(x._1)})</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>  def convertToJsonByRemovingKeysAsMap(entity: AnyRef, keys: List[String]): Map[String,Any] = {
+</span>48 <span style=''>    // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
+</span>49 <span style=''>    val customSerializer1 = </span><span style='background: #F0ADAD'>new CustomSerializer[EtlJobName[EtlJobProps]](_ =&gt;
+</span>50 <span style=''></span><span style='background: #F0ADAD'>      (PartialFunction.empty, { case _: EtlJobName[_] =&gt; JNothing })
+</span>51 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>
+</span>52 <span style=''>    // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
+</span>53 <span style=''>    val customSerializer2 = </span><span style='background: #F0ADAD'>new FieldSerializer[EtlJobProps]</span><span style=''>
+</span>54 <span style=''>    implicit val formats: Formats = </span><span style='background: #F0ADAD'>DefaultFormats + customSerializer1 + customSerializer2</span><span style=''>
+</span>55 <span style=''>    val json: JValue = </span><span style='background: #F0ADAD'>Extraction.decompose(entity).removeField { x =&gt; keys.contains(x._1)}</span><span style=''>
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>parse(writePretty(json)).extract[Map[String, Any]]</span><span style=''>
+</span>57 <span style=''>  }
+</span>58 <span style=''>
+</span>59 <span style=''>  def getCurrentTimestamp: Long = </span><span style='background: #F0ADAD'>System.currentTimeMillis()</span><span style=''>
+</span>60 <span style=''>
+</span>61 <span style=''>  def getCurrentTimestampAsString(pattern: String = &quot;yyyy-MM-dd HH:mm:ss&quot;): String = </span><span style='background: #F0ADAD'>DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now)</span><span style=''>
+</span>62 <span style=''>
+</span>63 <span style=''>  def roundAt(p: Int)(n: Double): Double = { val s = </span><span style='background: #F0ADAD'>math pow (10, p)</span><span style=''>; </span><span style='background: #F0ADAD'>(math round n * s) / s</span><span style=''> }
+</span>64 <span style=''>
+</span>65 <span style=''>  def getTimeDifferenceAsString(start_ts: Long, end_ts: Long): String = {
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>Try((end_ts - start_ts) / 1000.0).map{value =&gt;
+</span>67 <span style=''></span><span style='background: #F0ADAD'>      if (value &gt; 60) roundAt(2)(value/60.0) + &quot; mins&quot;
+</span>68 <span style=''></span><span style='background: #F0ADAD'>      else roundAt(2)(value) + &quot; secs&quot;
+</span>69 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>70 <span style=''>      case Success(value) =&gt; value
+</span>71 <span style=''>      case Failure(e) =&gt;
+</span>72 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.error(s&quot;Error in converting ts(Long) to String, ${e.getMessage}&quot;)</span><span style=''>
+</span>73 <span style=''>        (</span><span style='background: #F0ADAD'>end_ts - start_ts).toString</span><span style=''>
+</span>74 <span style=''>    }
+</span>75 <span style=''>  }
+</span>76 <span style=''>
+</span>77 <span style=''>  def printEtlJobs[T: TypeTag]: Unit = {
+</span>78 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
+</span>79 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
+</span>80 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
+</span>81 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.foreach(x =&gt; uf_logger.info(x.name))</span><span style=''>
+</span>82 <span style=''>  }
+</span>83 <span style=''>
+</span>84 <span style=''>  def getEtlJobs[T: TypeTag]: Set[String] = {
+</span>85 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
+</span>86 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
+</span>87 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
+</span>88 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.map(x =&gt; x.name.toString)</span><span style=''>
+</span>89 <span style=''>  }
+</span>90 <span style=''>
+</span>91 <span style=''>  def getEtlJobProps[T: TypeTag](excludeColumnList: Set[String] = Set(&quot;job_run_id&quot;,&quot;job_description&quot;,&quot;job_properties&quot;,&quot;job_name&quot;)): Map[String,String] =
+</span>92 <span style=''>    </span><span style='background: #F0ADAD'>typeOf[T].members.collect {
+</span>93 <span style=''></span><span style='background: #F0ADAD'>      case m: MethodSymbol if m.isCaseAccessor =&gt; (m.name.toString, m.returnType.toString)
+</span>94 <span style=''></span><span style='background: #F0ADAD'>      case m: MethodSymbol if (m.isVar || m.isVal) &amp;&amp; m.isGetter =&gt; (m.name.toString, m.returnType.toString)
+</span>95 <span style=''></span><span style='background: #F0ADAD'>    }.toList.filterNot(x =&gt; excludeColumnList.contains(x._1)).toMap</span><span style=''>
+</span>96 <span style=''>
+</span>97 <span style=''>  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package: String = &quot;etlflow.schema.EtlJobList$&quot;): T = {
+</span>98 <span style=''>    val fullClassName = </span><span style='background: #F0ADAD'>etl_job_list_package + job_name + &quot;$&quot;</span><span style=''>
+</span>99 <span style=''>    try {
+</span>100 <span style=''>      </span><span style='background: #F0ADAD'>val classVal = Class.forName(fullClassName)
+</span>101 <span style=''></span><span style='background: #F0ADAD'>      val constructor = classVal.getConstructor()
+</span>102 <span style=''></span><span style='background: #F0ADAD'>      constructor.newInstance().asInstanceOf[T]</span><span style=''>
+</span>103 <span style=''>    }
+</span>104 <span style=''>    catch {
+</span>105 <span style=''>      case e: ClassNotFoundException =&gt;
+</span>106 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.error(s&quot;Tried creating object with path $fullClassName, but failed with error&quot;)</span><span style=''>
+</span>107 <span style=''>        </span><span style='background: #F0ADAD'>throw EtlJobNotFoundException(s&quot;$job_name not present&quot;)</span><span style=''>
+</span>108 <span style=''>    }
+</span>109 <span style=''>  }
+</span>110 <span style=''>
+</span>111 <span style=''>  def getEtlJobNameGeneric[T: TypeTag](job_name: String): T = {
+</span>112 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
+</span>113 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
+</span>114 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
+</span>115 <span style=''>    val fullName = </span><span style='background: #F0ADAD'>allJobNames.filter(x =&gt; x.name.toString.contains(job_name)).head.fullName</span><span style=''>
+</span>116 <span style=''>    val name = </span><span style='background: #F0ADAD'>allJobNames.filter(x =&gt; x.name.toString.contains(job_name)).head.name.toString</span><span style=''>
+</span>117 <span style=''>    val finalName = </span><span style='background: #F0ADAD'>fullName.replace(&quot;.&quot; + name,&quot;$&quot; + name + &quot;$&quot;)</span><span style=''>
+</span>118 <span style=''>    val classVal = </span><span style='background: #F0ADAD'>Class.forName(finalName)</span><span style=''>
+</span>119 <span style=''>    val constructor = </span><span style='background: #F0ADAD'>classVal.getConstructor()</span><span style=''>
+</span>120 <span style=''>    </span><span style='background: #F0ADAD'>constructor.newInstance().asInstanceOf[T]</span><span style=''>
+</span>121 <span style=''>  }
+</span>122 <span style=''>
+</span>123 <span style=''>  def getGlobalPropertiesUsingReflection[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(implicit tag: ClassTag[T]): Option[T] = {
+</span>124 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>125 <span style=''></span><span style='background: #F0ADAD'>      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
+</span>126 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>127 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
+</span>128 <span style=''>      case Failure(exception) =&gt;
+</span>129 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.printStackTrace())</span><span style=''>
+</span>130 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>131 <span style=''>    }
+</span>132 <span style=''>  }
+</span>133 <span style=''>
+</span>134 <span style=''>  def getGlobalProperties[T &lt;: GlobalProperties](path: String = &quot;loaddata.properties&quot;)(fct: String =&gt; T): Option[T] = {
+</span>135 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>136 <span style=''></span><span style='background: #F0ADAD'>      fct(path)
+</span>137 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
+</span>138 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
+</span>139 <span style=''>      case Failure(exception) =&gt;
+</span>140 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.getMessage)</span><span style=''>
+</span>141 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>142 <span style=''>    }
+</span>143 <span style=''>  }
+</span>144 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          1973
+        </td>
+        <td>
+          750
+          -
+          750
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.Array.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          1974
+        </td>
+        <td>
+          741
+          -
+          860
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.refArrayOps[String](args).map[(String, String), Array[(String, String)]](((x0$1: String) =&gt; x0$1 match {
+  case (arg @ _) =&gt; {
+    val keyValue: Array[String] = arg.split(&quot;==&quot;);
+    scala.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+  }
+}))(scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)])))
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          1969
+        </td>
+        <td>
+          795
+          -
+          810
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.split
+        </td>
+        <td style="background: #F0ADAD">
+          arg.split(&quot;==&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1970
+        </td>
+        <td>
+          820
+          -
+          831
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(0)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1972
+        </td>
+        <td>
+          820
+          -
+          846
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1971
+        </td>
+        <td>
+          835
+          -
+          846
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1976
+        </td>
+        <td>
+          741
+          -
+          866
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toMap
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.refArrayOps[(String, String)](scala.Predef.refArrayOps[String](args).map[(String, String), Array[(String, String)]](((x0$1: String) =&gt; x0$1 match {
+  case (arg @ _) =&gt; {
+    val keyValue: Array[String] = arg.split(&quot;==&quot;);
+    scala.Predef.ArrowAssoc[String](keyValue.apply(0)).-&gt;[String](keyValue.apply(1))
+  }
+}))(scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)])))).toMap[String, String](scala.Predef.$conforms[(String, String)])
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1975
+        </td>
+        <td>
+          861
+          -
+          861
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.$conforms[(String, String)]
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1977
+        </td>
+        <td>
+          947
+          -
+          961
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.DefaultFormats
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.DefaultFormats
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1978
+        </td>
+        <td>
+          966
+          -
+          985
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.jackson.Serialization.writePretty
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.Serialization.writePretty[AnyRef](entity)(formats)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1985
+        </td>
+        <td>
+          1316
+          -
+          1316
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1984
+        </td>
+        <td>
+          1316
+          -
+          1316
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1983
+        </td>
+        <td>
+          1316
+          -
+          1316
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          classOf[etlflow.package$$EtlJobName]
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1986
+        </td>
+        <td>
+          1316
+          -
+          1441
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.CustomSerializer.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.json4s.CustomSerializer[etlflow.EtlJobName[etlflow.EtlJobProps]](((x$1: org.json4s.Formats) =&gt; scala.Tuple2.apply[PartialFunction[Any,Nothing], PartialFunction[Any,org.json4s.JValue]](scala.PartialFunction.empty[Any, Nothing], ({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,org.json4s.JValue] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; org.json4s.JValue&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: org.json4s.JValue](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; org.json4s.JsonAST.JNothing
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,org.json4s.JValue]))))(scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1979
+        </td>
+        <td>
+          1374
+          -
+          1395
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.PartialFunction.empty
+        </td>
+        <td style="background: #F0ADAD">
+          scala.PartialFunction.empty[Any, Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1982
+        </td>
+        <td>
+          1373
+          -
+          1435
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[PartialFunction[Any,Nothing], PartialFunction[Any,org.json4s.JValue]](scala.PartialFunction.empty[Any, Nothing], ({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,org.json4s.JValue] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; org.json4s.JValue&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: org.json4s.JValue](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; org.json4s.JsonAST.JNothing
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,org.json4s.JValue]))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1981
+        </td>
+        <td>
+          1397
+          -
+          1397
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1980
+        </td>
+        <td>
+          1424
+          -
+          1432
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.JsonAST.JNothing
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.JsonAST.JNothing
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1988
+        </td>
+        <td>
+          1569
+          -
+          1569
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1991
+        </td>
+        <td>
+          1569
+          -
+          1601
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.json4s.FieldSerializer[etlflow.EtlJobProps](json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps])(scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1987
+        </td>
+        <td>
+          1569
+          -
+          1569
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1990
+        </td>
+        <td>
+          1569
+          -
+          1569
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1989
+        </td>
+        <td>
+          1569
+          -
+          1569
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1992
+        </td>
+        <td>
+          1629
+          -
+          1683
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.json4s.Formats.+
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.DefaultFormats.+(customSerializer1).+[etlflow.EtlJobProps](customSerializer2)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1993
+        </td>
+        <td>
+          1688
+          -
+          1769
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.jackson.Serialization.writePretty
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](org.json4s.`package`.jvalue2monadic(org.json4s.Extraction.decompose(entity)(formats)).removeField(((x: org.json4s.JField) =&gt; keys.contains[String](x._1))))(formats)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          2000
+        </td>
+        <td>
+          2011
+          -
+          2011
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1999
+        </td>
+        <td>
+          2011
+          -
+          2011
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1998
+        </td>
+        <td>
+          2011
+          -
+          2011
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          classOf[etlflow.package$$EtlJobName]
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          2001
+        </td>
+        <td>
+          2011
+          -
+          2136
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.CustomSerializer.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.json4s.CustomSerializer[etlflow.EtlJobName[etlflow.EtlJobProps]](((x$2: org.json4s.Formats) =&gt; scala.Tuple2.apply[PartialFunction[Any,Nothing], PartialFunction[Any,org.json4s.JValue]](scala.PartialFunction.empty[Any, Nothing], ({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,org.json4s.JValue] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; org.json4s.JValue&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: org.json4s.JValue](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; org.json4s.JsonAST.JNothing
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,org.json4s.JValue]))))(scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1994
+        </td>
+        <td>
+          2069
+          -
+          2090
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.PartialFunction.empty
+        </td>
+        <td style="background: #F0ADAD">
+          scala.PartialFunction.empty[Any, Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1997
+        </td>
+        <td>
+          2068
+          -
+          2130
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[PartialFunction[Any,Nothing], PartialFunction[Any,org.json4s.JValue]](scala.PartialFunction.empty[Any, Nothing], ({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,org.json4s.JValue] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; org.json4s.JValue&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: org.json4s.JValue](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; org.json4s.JsonAST.JNothing
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (_: etlflow.EtlJobName[_]) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,org.json4s.JValue]))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1996
+        </td>
+        <td>
+          2092
+          -
+          2092
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1995
+        </td>
+        <td>
+          2119
+          -
+          2127
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.JsonAST.JNothing
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.JsonAST.JNothing
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2003
+        </td>
+        <td>
+          2264
+          -
+          2264
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2006
+        </td>
+        <td>
+          2264
+          -
+          2296
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.json4s.FieldSerializer[etlflow.EtlJobProps](json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps])(scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2002
+        </td>
+        <td>
+          2264
+          -
+          2264
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2005
+        </td>
+        <td>
+          2264
+          -
+          2264
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2004
+        </td>
+        <td>
+          2264
+          -
+          2264
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          2007
+        </td>
+        <td>
+          2333
+          -
+          2387
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.json4s.Formats.+
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.DefaultFormats.+(customSerializer1).+[etlflow.EtlJobProps](customSerializer2)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          2009
+        </td>
+        <td>
+          2473
+          -
+          2477
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          x._1
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          2011
+        </td>
+        <td>
+          2411
+          -
+          2479
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.json4s.MonadicJValue.removeField
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.`package`.jvalue2monadic(org.json4s.Extraction.decompose(entity)(formats)).removeField(((x: org.json4s.JField) =&gt; keys.contains[String](x._1)))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          2008
+        </td>
+        <td>
+          2411
+          -
+          2439
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.Extraction.decompose
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.Extraction.decompose(entity)(formats)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          2010
+        </td>
+        <td>
+          2459
+          -
+          2478
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.LinearSeqOptimized.contains
+        </td>
+        <td style="background: #F0ADAD">
+          keys.contains[String](x._1)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2012
+        </td>
+        <td>
+          2490
+          -
+          2507
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.jackson.Serialization.writePretty
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2021
+        </td>
+        <td>
+          2484
+          -
+          2534
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.ExtractableJsonAstNode.extract
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.`package`.jvalue2extractable(org.json4s.jackson.JsonMethods.parse(org.json4s.`package`.string2JsonInput(org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)), org.json4s.jackson.JsonMethods.parse$default$2, org.json4s.jackson.JsonMethods.parse$default$3)).extract[Map[String,Any]](formats, scala.reflect.ManifestFactory.classType[Map[String,Any]](classOf[scala.collection.immutable.Map], scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String]), scala.reflect.ManifestFactory.Any))
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2015
+        </td>
+        <td>
+          2484
+          -
+          2484
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.jackson.JsonMethods.parse$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.JsonMethods.parse$default$3
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2018
+        </td>
+        <td>
+          2516
+          -
+          2516
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String])
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2017
+        </td>
+        <td>
+          2516
+          -
+          2516
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          classOf[scala.collection.immutable.Map]
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2020
+        </td>
+        <td>
+          2516
+          -
+          2516
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[Map[String,Any]](classOf[scala.collection.immutable.Map], scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String]), scala.reflect.ManifestFactory.Any)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2014
+        </td>
+        <td>
+          2484
+          -
+          2484
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.jackson.JsonMethods.parse$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.JsonMethods.parse$default$2
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2016
+        </td>
+        <td>
+          2484
+          -
+          2508
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.json4s.jackson.JsonMethods.parse
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.JsonMethods.parse(org.json4s.`package`.string2JsonInput(org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)), org.json4s.jackson.JsonMethods.parse$default$2, org.json4s.jackson.JsonMethods.parse$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2019
+        </td>
+        <td>
+          2516
+          -
+          2516
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.Any
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.Any
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2013
+        </td>
+        <td>
+          2490
+          -
+          2507
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          org.json4s.string2JsonInput
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.`package`.string2JsonInput(org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats))
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          2022
+        </td>
+        <td>
+          2574
+          -
+          2600
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.currentTimeMillis
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.currentTimeMillis()
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          2024
+        </td>
+        <td>
+          2687
+          -
+          2749
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.format.DateTimeFormatter.format
+        </td>
+        <td style="background: #F0ADAD">
+          java.time.format.DateTimeFormatter.ofPattern(pattern).format(java.time.LocalDateTime.now())
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          2023
+        </td>
+        <td>
+          2731
+          -
+          2748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.LocalDateTime.now
+        </td>
+        <td style="background: #F0ADAD">
+          java.time.LocalDateTime.now()
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          2027
+        </td>
+        <td>
+          2804
+          -
+          2820
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.math.pow
+        </td>
+        <td style="background: #F0ADAD">
+          scala.math.`package`.pow(10.0, p.toDouble)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          2026
+        </td>
+        <td>
+          2818
+          -
+          2819
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          p.toDouble
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          2025
+        </td>
+        <td>
+          2814
+          -
+          2816
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          10.0
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          2028
+        </td>
+        <td>
+          2822
+          -
+          2844
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Long./
+        </td>
+        <td style="background: #F0ADAD">
+          scala.math.`package`.round(n.*(s))./(s)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          2035
+        </td>
+        <td>
+          2926
+          -
+          3072
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.map
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[Double](end_ts.-(start_ts)./(1000.0)).map[String](((value: Double) =&gt; if (value.&gt;(60))
+  UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
+else
+  UtilityFunctions.this.roundAt(2)(value).+(&quot; secs&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          2029
+        </td>
+        <td>
+          2930
+          -
+          2958
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Long./
+        </td>
+        <td style="background: #F0ADAD">
+          end_ts.-(start_ts)./(1000.0)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          2030
+        </td>
+        <td>
+          2983
+          -
+          2993
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          value.&gt;(60)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          2032
+        </td>
+        <td>
+          2995
+          -
+          3027
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          2031
+        </td>
+        <td>
+          2995
+          -
+          3027
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          2033
+        </td>
+        <td>
+          3039
+          -
+          3066
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.roundAt(2)(value).+(&quot; secs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          2034
+        </td>
+        <td>
+          3039
+          -
+          3066
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.roundAt(2)(value).+(&quot; secs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2039
+        </td>
+        <td>
+          3165
+          -
+          3223
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Error in converting ts(Long) to String, &quot;, &quot;&quot;).s(e.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2036
+        </td>
+        <td>
+          3167
+          -
+          3208
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Error in converting ts(Long) to String, &quot;
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2038
+        </td>
+        <td>
+          3209
+          -
+          3221
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          e.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2040
+        </td>
+        <td>
+          3149
+          -
+          3224
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.error
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Error in converting ts(Long) to String, &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2037
+        </td>
+        <td>
+          3222
+          -
+          3223
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          2041
+        </td>
+        <td>
+          3234
+          -
+          3261
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          end_ts.-(start_ts).toString()
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          2042
+        </td>
+        <td>
+          3328
+          -
+          3340
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.reflect.api.TypeTags.typeOf
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.runtime.`package`.universe.typeOf[T](evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          2043
+        </td>
+        <td>
+          3357
+          -
+          3379
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.SymbolApi.asClass
+        </td>
+        <td style="background: #F0ADAD">
+          tpe.typeSymbol.asClass
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          2044
+        </td>
+        <td>
+          3402
+          -
+          3429
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.ClassSymbolApi.knownDirectSubclasses
+        </td>
+        <td style="background: #F0ADAD">
+          clazz.knownDirectSubclasses
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          2045
+        </td>
+        <td>
+          3474
+          -
+          3480
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.SymbolApi.name
+        </td>
+        <td style="background: #F0ADAD">
+          x.name
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          2047
+        </td>
+        <td>
+          3434
+          -
+          3482
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          allJobNames.foreach[Unit](((x: reflect.runtime.universe.Symbol) =&gt; UtilityFunctions.this.uf_logger.info(x.name)))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          2046
+        </td>
+        <td>
+          3459
+          -
+          3481
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(x.name)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          2048
+        </td>
+        <td>
+          3548
+          -
+          3560
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.reflect.api.TypeTags.typeOf
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.runtime.`package`.universe.typeOf[T](evidence$2)
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          2049
+        </td>
+        <td>
+          3577
+          -
+          3599
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.SymbolApi.asClass
+        </td>
+        <td style="background: #F0ADAD">
+          tpe.typeSymbol.asClass
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          2050
+        </td>
+        <td>
+          3622
+          -
+          3649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.ClassSymbolApi.knownDirectSubclasses
+        </td>
+        <td style="background: #F0ADAD">
+          clazz.knownDirectSubclasses
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          2051
+        </td>
+        <td>
+          3675
+          -
+          3690
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          x.name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          2053
+        </td>
+        <td>
+          3654
+          -
+          3691
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.SetLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          allJobNames.map[String, Set[String]](((x: reflect.runtime.universe.Symbol) =&gt; x.name.toString()))(immutable.this.Set.canBuildFrom[String])
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          2052
+        </td>
+        <td>
+          3669
+          -
+          3669
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.Set.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          immutable.this.Set.canBuildFrom[String]
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          2065
+        </td>
+        <td>
+          3880
+          -
+          3880
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Iterable.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          collection.this.Iterable.canBuildFrom[(String, String)]
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          2064
+        </td>
+        <td>
+          3880
+          -
+          3880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          2057
+        </td>
+        <td>
+          3932
+          -
+          3972
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](m.name.toString(), m.returnType.toString())
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          2056
+        </td>
+        <td>
+          3950
+          -
+          3971
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          m.returnType.toString()
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          2055
+        </td>
+        <td>
+          3933
+          -
+          3948
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          m.name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          2054
+        </td>
+        <td>
+          3912
+          -
+          3928
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.TermSymbolApi.isCaseAccessor
+        </td>
+        <td style="background: #F0ADAD">
+          m.isCaseAccessor
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2060
+        </td>
+        <td>
+          4003
+          -
+          4037
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          m.isVar.||(m.isVal).&amp;&amp;(m.isGetter)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2062
+        </td>
+        <td>
+          4059
+          -
+          4080
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          m.returnType.toString()
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2059
+        </td>
+        <td>
+          4027
+          -
+          4037
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.TermSymbolApi.isGetter
+        </td>
+        <td style="background: #F0ADAD">
+          m.isGetter
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2058
+        </td>
+        <td>
+          4015
+          -
+          4022
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.TermSymbolApi.isVal
+        </td>
+        <td style="background: #F0ADAD">
+          m.isVal
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2061
+        </td>
+        <td>
+          4042
+          -
+          4057
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          m.name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2063
+        </td>
+        <td>
+          4041
+          -
+          4081
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](m.name.toString(), m.returnType.toString())
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          2066
+        </td>
+        <td>
+          4137
+          -
+          4141
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          x._1
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          2069
+        </td>
+        <td>
+          3854
+          -
+          4149
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toMap
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.runtime.`package`.universe.typeOf[T](evidence$3).members.collect[(String, String), Iterable[(String, String)]](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[reflect.runtime.universe.Symbol,(String, String)] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: reflect.runtime.universe.Symbol =&gt; (String, String)&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: reflect.runtime.universe.Symbol, B1 &gt;: (String, String)](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[reflect.runtime.universe.Symbol]: reflect.runtime.universe.Symbol): reflect.runtime.universe.Symbol @unchecked) match {
+      case (m @ scala.reflect.runtime.`package`.universe.MethodSymbolTag.unapply(&lt;unapply-selector&gt;) &lt;unapply&gt; ((_: reflect.runtime.universe.MethodSymbol))) if m.isCaseAccessor =&gt; scala.Tuple2.apply[String, String](m.name.toString(), m.returnType.toString())
+      case (m @ scala.reflect.runtime.`package`.universe.MethodSymbolTag.unapply(&lt;unapply-selector&gt;) &lt;unapply&gt; ((_: reflect.runtime.universe.MethodSymbol))) if m.isVar.||(m.isVal).&amp;&amp;(m.isGetter) =&gt; scala.Tuple2.apply[String, String](m.name.toString(), m.returnType.toString())
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: reflect.runtime.universe.Symbol): Boolean = ((x1.asInstanceOf[reflect.runtime.universe.Symbol]: reflect.runtime.universe.Symbol): reflect.runtime.universe.Symbol @unchecked) match {
+      case (m @ scala.reflect.runtime.`package`.universe.MethodSymbolTag.unapply(&lt;unapply-selector&gt;) &lt;unapply&gt; ((_: reflect.runtime.universe.MethodSymbol))) if m.isCaseAccessor =&gt; true
+      case (m @ scala.reflect.runtime.`package`.universe.MethodSymbolTag.unapply(&lt;unapply-selector&gt;) &lt;unapply&gt; ((_: reflect.runtime.universe.MethodSymbol))) if m.isVar.||(m.isVal).&amp;&amp;(m.isGetter) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[reflect.runtime.universe.Symbol,(String, String)]))(collection.this.Iterable.canBuildFrom[(String, String)]).toList.filterNot(((x: (String, String)) =&gt; excludeColumnList.contains(x._1))).toMap[String, String](scala.Predef.$conforms[(String, String)])
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          2068
+        </td>
+        <td>
+          4144
+          -
+          4144
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.$conforms[(String, String)]
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          2067
+        </td>
+        <td>
+          4110
+          -
+          4142
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.SetLike.contains
+        </td>
+        <td style="background: #F0ADAD">
+          excludeColumnList.contains(x._1)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          2070
+        </td>
+        <td>
+          4293
+          -
+          4330
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job_list_package.+(job_name).+(&quot;$&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          2074
+        </td>
+        <td>
+          4347
+          -
+          4488
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val classVal: Class[_] = java.lang.Class.forName(fullClassName);
+  val constructor: java.lang.reflect.Constructor[_] = classVal.getConstructor();
+  constructor.newInstance().asInstanceOf[T]
+}
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          2071
+        </td>
+        <td>
+          4362
+          -
+          4390
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.forName
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.Class.forName(fullClassName)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          2072
+        </td>
+        <td>
+          4415
+          -
+          4440
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getConstructor
+        </td>
+        <td style="background: #F0ADAD">
+          classVal.getConstructor()
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          2073
+        </td>
+        <td>
+          4447
+          -
+          4488
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          constructor.newInstance().asInstanceOf[T]
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          2075
+        </td>
+        <td>
+          4571
+          -
+          4643
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Tried creating object with path &quot;, &quot;, but failed with error&quot;).s(fullClassName)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          2076
+        </td>
+        <td>
+          4555
+          -
+          4644
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.error
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Tried creating object with path &quot;, &quot;, but failed with error&quot;).s(fullClassName))
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          2077
+        </td>
+        <td>
+          4653
+          -
+          4708
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw etlflow.`package`.EtlJobNotFoundException.apply(scala.StringContext.apply(&quot;&quot;, &quot; not present&quot;).s(job_name))
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          2078
+        </td>
+        <td>
+          4798
+          -
+          4810
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.reflect.api.TypeTags.typeOf
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.runtime.`package`.universe.typeOf[T](evidence$5)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          2079
+        </td>
+        <td>
+          4827
+          -
+          4849
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.SymbolApi.asClass
+        </td>
+        <td style="background: #F0ADAD">
+          tpe.typeSymbol.asClass
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          2080
+        </td>
+        <td>
+          4872
+          -
+          4899
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.ClassSymbolApi.knownDirectSubclasses
+        </td>
+        <td style="background: #F0ADAD">
+          clazz.knownDirectSubclasses
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          2082
+        </td>
+        <td>
+          4919
+          -
+          4992
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.reflect.api.Symbols.SymbolApi.fullName
+        </td>
+        <td style="background: #F0ADAD">
+          allJobNames.filter(((x: reflect.runtime.universe.Symbol) =&gt; x.name.toString().contains(job_name))).head.fullName
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          2081
+        </td>
+        <td>
+          4943
+          -
+          4977
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.contains
+        </td>
+        <td style="background: #F0ADAD">
+          x.name.toString().contains(job_name)
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          2083
+        </td>
+        <td>
+          5008
+          -
+          5086
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          allJobNames.filter(((x: reflect.runtime.universe.Symbol) =&gt; x.name.toString().contains(job_name))).head.name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          2084
+        </td>
+        <td>
+          5124
+          -
+          5134
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;.&quot;.+(name)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          2086
+        </td>
+        <td>
+          5107
+          -
+          5152
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.replace
+        </td>
+        <td style="background: #F0ADAD">
+          fullName.replace(&quot;.&quot;.+(name), &quot;$&quot;.+(name).+(&quot;$&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          2085
+        </td>
+        <td>
+          5135
+          -
+          5151
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;$&quot;.+(name).+(&quot;$&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          2087
+        </td>
+        <td>
+          5172
+          -
+          5196
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.forName
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.Class.forName(finalName)
+        </td>
+      </tr><tr>
+        <td>
+          119
+        </td>
+        <td>
+          2088
+        </td>
+        <td>
+          5219
+          -
+          5244
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getConstructor
+        </td>
+        <td style="background: #F0ADAD">
+          classVal.getConstructor()
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          2089
+        </td>
+        <td>
+          5249
+          -
+          5290
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          constructor.newInstance().asInstanceOf[T]
+        </td>
+      </tr><tr>
+        <td>
+          124
+        </td>
+        <td>
+          2092
+        </td>
+        <td>
+          5444
+          -
+          5544
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[T](tag.runtimeClass.getConstructor(classOf[java.lang.String]).newInstance(path).asInstanceOf[T])
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          2091
+        </td>
+        <td>
+          5456
+          -
+          5538
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          tag.runtimeClass.getConstructor(classOf[java.lang.String]).newInstance(path).asInstanceOf[T]
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          2090
+        </td>
+        <td>
+          5488
+          -
+          5503
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          classOf[java.lang.String]
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          2093
+        </td>
+        <td>
+          5582
+          -
+          5593
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[T](value)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          2095
+        </td>
+        <td>
+          5635
+          -
+          5678
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.printStackTrace())
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          2094
+        </td>
+        <td>
+          5650
+          -
+          5677
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.printStackTrace
+        </td>
+        <td style="background: #F0ADAD">
+          exception.printStackTrace()
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          2096
+        </td>
+        <td>
+          5687
+          -
+          5691
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          2098
+        </td>
+        <td>
+          5827
+          -
+          5854
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[T](fct.apply(path))
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          2097
+        </td>
+        <td>
+          5839
+          -
+          5848
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          fct.apply(path)
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          2099
+        </td>
+        <td>
+          5892
+          -
+          5903
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[T](value)
+        </td>
+      </tr><tr>
+        <td>
+          140
+        </td>
+        <td>
+          2101
+        </td>
+        <td>
+          5945
+          -
+          5981
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          140
+        </td>
+        <td>
+          2100
+        </td>
+        <td>
+          5960
+          -
+          5980
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          exception.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          141
+        </td>
+        <td>
+          2102
+        </td>
+        <td>
+          5990
+          -
+          5994
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

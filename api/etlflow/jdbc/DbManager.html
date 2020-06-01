@@ -288,9 +288,9 @@
               
         </dd></dl></div>
     </li><li name="etlflow.jdbc.DbManager#createDbTransactor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="createDbTransactor(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext):doobie.hikari.HikariTransactor[zio.Task]"></a><a id="createDbTransactor(Option[GlobalProperties],ExecutionContext):HikariTransactor[Task]"></a>
+      <a id="createDbTransactor(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):doobie.hikari.HikariTransactor[zio.Task]"></a><a id="createDbTransactor(Option[GlobalProperties],ExecutionContext,String):HikariTransactor[Task]"></a>
       <span class="permalink">
-      <a href="../../etlflow/jdbc/DbManager.html#createDbTransactor(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext):doobie.hikari.HikariTransactor[zio.Task]" title="Permalink">
+      <a href="../../etlflow/jdbc/DbManager.html#createDbTransactor(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):doobie.hikari.HikariTransactor[zio.Task]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -299,14 +299,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">createDbTransactor</span><span class="params">(<span name="global_properties">global_properties: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]</span>
+        <span class="name">createDbTransactor</span><span class="params">(<span name="global_properties">global_properties: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]</span>
       </span>
       
       
-    </li><li name="etlflow.jdbc.DbManager#createDbTransactorManaged" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="createDbTransactorManaged(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorManaged(Option[GlobalProperties],ExecutionContext,String):ZManaged[Any,Throwable,HikariTransactor[Task]]"></a>
+    </li><li name="etlflow.jdbc.DbManager#createDbTransactorJDBC" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="createDbTransactorJDBC(credentials:etlflow.utils.JDBC,ec:scala.concurrent.ExecutionContext,pool_name:String):zio.Task[doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorJDBC(JDBC,ExecutionContext,String):Task[HikariTransactor[Task]]"></a>
       <span class="permalink">
-      <a href="../../etlflow/jdbc/DbManager.html#createDbTransactorManaged(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
+      <a href="../../etlflow/jdbc/DbManager.html#createDbTransactorJDBC(credentials:etlflow.utils.JDBC,ec:scala.concurrent.ExecutionContext,pool_name:String):zio.Task[doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -315,7 +315,39 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">createDbTransactorManaged</span><span class="params">(<span name="global_properties">global_properties: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="zio.ZManaged">ZManaged</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
+        <span class="name">createDbTransactorJDBC</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
+      </span>
+      
+      
+    </li><li name="etlflow.jdbc.DbManager#createDbTransactorManagedGP" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="createDbTransactorManagedGP(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorManagedGP(Option[GlobalProperties],ExecutionContext,String):ZManaged[Any,Throwable,HikariTransactor[Task]]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/jdbc/DbManager.html#createDbTransactorManagedGP(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">createDbTransactorManagedGP</span><span class="params">(<span name="global_properties">global_properties: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="zio.ZManaged">ZManaged</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
+      </span>
+      
+      
+    </li><li name="etlflow.jdbc.DbManager#createDbTransactorManagedJDBC" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="createDbTransactorManagedJDBC(credentials:etlflow.utils.JDBC):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorManagedJDBC(JDBC):ZManaged[Any,Throwable,HikariTransactor[Task]]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/jdbc/DbManager.html#createDbTransactorManagedJDBC(credentials:etlflow.utils.JDBC):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">createDbTransactorManagedJDBC</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>)</span><span class="result">: <span class="extype" name="zio.ZManaged">ZManaged</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
       </span>
       
       
@@ -497,6 +529,22 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etlflow.jdbc.DbManager#runDbMigration" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="runDbMigration(credentials:etlflow.utils.JDBC):zio.Task[Int]"></a><a id="runDbMigration(JDBC):Task[Int]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/jdbc/DbManager.html#runDbMigration(credentials:etlflow.utils.JDBC):zio.Task[Int]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runDbMigration</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">

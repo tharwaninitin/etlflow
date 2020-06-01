@@ -106,11 +106,15 @@
                         <a class="class" href="BQLoadStep.html" title=""></a>
                         <a href="BQLoadStep.html" title="">BQLoadStep</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
+                        <a class="object" href="BQQueryStep$.html" title=""></a>
                         <a class="class" href="" title=""></a>
                         <a href="" title="">BQQueryStep</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="trait" href="BQStep.html" title=""></a>
+                        <a href="BQStep.html" title="">BQStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="DBQueryStep$.html" title=""></a>
                         <a class="class" href="DBQueryStep.html" title=""></a>
                         <a href="DBQueryStep.html" title="">DBQueryStep</a>
                       </li><li class="current-entities indented2">
@@ -122,9 +126,29 @@
                         <a class="trait" href="EtlStep.html" title=""></a>
                         <a href="EtlStep.html" title="">EtlStep</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="GCSPutStep$.html" title=""></a>
+                        <a class="class" href="GCSPutStep.html" title=""></a>
+                        <a href="GCSPutStep.html" title="">GCSPutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="GCSSensorStep$.html" title=""></a>
+                        <a class="class" href="GCSSensorStep.html" title=""></a>
+                        <a href="GCSSensorStep.html" title="">GCSSensorStep</a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericETLStep.html" title=""></a>
                         <a href="GenericETLStep.html" title="">GenericETLStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3PutStep$.html" title=""></a>
+                        <a class="class" href="S3PutStep.html" title=""></a>
+                        <a href="S3PutStep.html" title="">S3PutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3SensorStep$.html" title=""></a>
+                        <a class="class" href="S3SensorStep.html" title=""></a>
+                        <a href="S3SensorStep.html" title="">S3SensorStep</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="SensorStep.html" title=""></a>
+                        <a href="SensorStep.html" title="">SensorStep</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SparkETLStep$.html" title=""></a>
                         <a class="class" href="SparkETLStep.html" title=""></a>
@@ -152,23 +176,25 @@
           <div id="content">
             <body class="class type">
       <div id="definition">
-        <div class="big-circle class">c</div>
+        <a href="BQQueryStep$.html" title="See companion object"><div class="big-circle class-companion-object">c</div></a>
         <p id="owner"><a href="../index.html" class="extype" name="etlflow">etlflow</a>.<a href="index.html" class="extype" name="etlflow.etlsteps">etlsteps</a></p>
-        <h1>BQQueryStep<span class="permalink">
+        <h1><a href="BQQueryStep$.html" title="See companion object">BQQueryStep</a><span class="permalink">
       <a href="../../etlflow/etlsteps/BQQueryStep.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="BQQueryStep$.html" title="See companion object">object BQQueryStep</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">case class</span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">BQQueryStep</span><span class="result"> extends <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span>, <span class="extype" name="scala.Unit">Unit</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">BQQueryStep</span><span class="result"> extends <a href="BQStep.html" class="extype" name="etlflow.etlsteps.BQStep">BQStep</a></span>
       </span>
       </h4>
 
@@ -177,7 +203,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span>, <span class="extype" name="scala.Unit">Unit</span>], <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="BQStep.html" class="extype" name="etlflow.etlsteps.BQStep">BQStep</a>, <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>], <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -203,7 +229,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="etlflow.etlsteps.BQQueryStep"><span>BQQueryStep</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="etlflow.etlsteps.EtlStep"><span>EtlStep</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="etlflow.etlsteps.BQQueryStep"><span>BQQueryStep</span></li><li class="in" name="etlflow.etlsteps.BQStep"><span>BQStep</span></li><li class="in" name="etlflow.etlsteps.EtlStep"><span>EtlStep</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -294,6 +320,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="etlflow.etlsteps.BQStep#bq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bq:com.google.cloud.bigquery.BigQuery"></a><a id="bq:BigQuery"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#bq:com.google.cloud.bigquery.BigQuery" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bq</span><span class="result">: <span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="BQStep.html" class="extype" name="etlflow.etlsteps.BQStep">BQStep</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -318,6 +360,22 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etlflow.etlsteps.BQQueryStep#credentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="credentials:Option[etlflow.utils.GCP]"></a><a id="credentials:Option[GCP]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#credentials:Option[etlflow.utils.GCP]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">credentials</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/package$$GCP.html" class="extype" name="etlflow.utils.GCP">GCP</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etlsteps.BQQueryStep">BQQueryStep</a> → <a href="BQStep.html" class="extype" name="etlflow.etlsteps.BQStep">BQStep</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -334,10 +392,26 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="etlflow.etlsteps.EtlStep#etl_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="etl_logger:org.apache.log4j.Logger"></a><a id="etl_logger:Logger"></a>
+    </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/BQQueryStep.html#etl_logger:org.apache.log4j.Logger" title="Permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#equals(x$1:Any):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="etlflow.etlsteps.EtlStep#etl_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="etl_logger:org.slf4j.Logger"></a><a id="etl_logger:Logger"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#etl_logger:org.slf4j.Logger" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -346,14 +420,14 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.apache.log4j.Logger">Logger</span></span>
+        <span class="name">etl_logger</span><span class="result">: <span class="extype" name="org.slf4j.Logger">Logger</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
     </li><li name="etlflow.etlsteps.EtlStep#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="execute(input_state:IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="execute(BigQuery)(LoggerResource):Task[Unit]"></a>
+      <a id="execute(input_state:=&gt;IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="execute(⇒Unit)(LoggerResource):Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/BQQueryStep.html#execute(input_state:IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#execute(input_state:=&gt;IPSTATE)(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -362,7 +436,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">execute</span><span class="params">(<span name="input_state">input_state: <span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">execute</span><span class="params">(<span name="input_state">input_state: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
@@ -439,6 +513,25 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etlsteps.BQQueryStep">BQQueryStep</a> → <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#hashCode():Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
+                <span class="name">@native</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -574,37 +667,21 @@
               
         </dd></dl></div>
     </li><li name="etlflow.etlsteps.BQQueryStep#process" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="process(bq:com.google.cloud.bigquery.BigQuery):zio.Task[Unit]"></a><a id="process(BigQuery):Task[Unit]"></a>
+      <a id="process(input:=&gt;Unit):zio.Task[Unit]"></a><a id="process(⇒Unit):Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/BQQueryStep.html#process(bq:com.google.cloud.bigquery.BigQuery):zio.Task[Unit]" title="Permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#process(input:=&gt;Unit):zio.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">process</span><span class="params">(<span name="bq">bq: <span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">process</span><span class="params">(<span name="input">input: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etlsteps.BQQueryStep">BQQueryStep</a> → <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a></dd></dl></div>
-    </li><li name="etlflow.etlsteps.BQQueryStep#query" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="query:String"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etlsteps/BQQueryStep.html#query:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">query</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -621,6 +698,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etlsteps/BQQueryStep.html#toString():String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -699,16 +792,10 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
-            </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+        <div class="parent" name="etlflow.etlsteps.BQStep">
+              <h3>Inherited from <a href="BQStep.html" class="extype" name="etlflow.etlsteps.BQStep">BQStep</a></h3>
             </div><div class="parent" name="etlflow.etlsteps.EtlStep">
-              <h3>Inherited from <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="com.google.cloud.bigquery.BigQuery">BigQuery</span>, <span class="extype" name="scala.Unit">Unit</span>]</h3>
+              <h3>Inherited from <a href="EtlStep.html" class="extype" name="etlflow.etlsteps.EtlStep">EtlStep</a>[<span class="extype" name="scala.Unit">Unit</span>, <span class="extype" name="scala.Unit">Unit</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

@@ -106,11 +106,15 @@
                         <a class="class" href="BQLoadStep.html" title=""></a>
                         <a href="BQLoadStep.html" title="">BQLoadStep</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
+                        <a class="object" href="BQQueryStep$.html" title=""></a>
                         <a class="class" href="BQQueryStep.html" title=""></a>
                         <a href="BQQueryStep.html" title="">BQQueryStep</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="trait" href="BQStep.html" title=""></a>
+                        <a href="BQStep.html" title="">BQStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="DBQueryStep$.html" title=""></a>
                         <a class="class" href="DBQueryStep.html" title=""></a>
                         <a href="DBQueryStep.html" title="">DBQueryStep</a>
                       </li><li class="current-entities indented2">
@@ -122,9 +126,29 @@
                         <a class="trait" href="EtlStep.html" title=""></a>
                         <a href="EtlStep.html" title="">EtlStep</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="GCSPutStep$.html" title=""></a>
+                        <a class="class" href="GCSPutStep.html" title=""></a>
+                        <a href="GCSPutStep.html" title="">GCSPutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="GCSSensorStep$.html" title=""></a>
+                        <a class="class" href="GCSSensorStep.html" title=""></a>
+                        <a href="GCSSensorStep.html" title="">GCSSensorStep</a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericETLStep.html" title=""></a>
                         <a href="GenericETLStep.html" title="">GenericETLStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3PutStep$.html" title=""></a>
+                        <a class="class" href="S3PutStep.html" title=""></a>
+                        <a href="S3PutStep.html" title="">S3PutStep</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="S3SensorStep$.html" title=""></a>
+                        <a class="class" href="S3SensorStep.html" title=""></a>
+                        <a href="S3SensorStep.html" title="">S3SensorStep</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="SensorStep.html" title=""></a>
+                        <a href="SensorStep.html" title="">SensorStep</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SparkETLStep$.html" title=""></a>
                         <a class="class" href="SparkETLStep.html" title=""></a>
@@ -281,9 +305,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="etlflow.etlsteps.BQLoadStep#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[T&lt;:Product](name:String,input_location:=&gt;Either[String,Seq[(String,String)]],input_type:etlflow.utils.IOType,input_file_system:etlflow.utils.FSType,output_dataset:String,output_table:String,output_write_disposition:com.google.cloud.bigquery.JobInfo.WriteDisposition,output_create_disposition:com.google.cloud.bigquery.JobInfo.CreateDisposition)(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):etlflow.etlsteps.BQLoadStep[T]"></a><a id="apply[T&lt;:Product](String,⇒Either[String,Seq[(String,String)]],IOType,FSType,String,String,WriteDisposition,CreateDisposition)(scala.reflect.api.JavaUniverse.TypeTag[T]):BQLoadStep[T]"></a>
+      <a id="apply[T&lt;:Product](name:String,input_location:=&gt;Either[String,Seq[(String,String)]],input_type:etlflow.utils.IOType,input_file_system:etlflow.utils.FSType,output_dataset:String,output_table:String,output_write_disposition:com.google.cloud.bigquery.JobInfo.WriteDisposition,output_create_disposition:com.google.cloud.bigquery.JobInfo.CreateDisposition,credentials:Option[etlflow.utils.GCP])(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):etlflow.etlsteps.BQLoadStep[T]"></a><a id="apply[T&lt;:Product](String,⇒Either[String,Seq[(String,String)]],IOType,FSType,String,String,WriteDisposition,CreateDisposition,Option[GCP])(scala.reflect.api.JavaUniverse.TypeTag[T]):BQLoadStep[T]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etlsteps/BQLoadStep$.html#apply[T&lt;:Product](name:String,input_location:=&gt;Either[String,Seq[(String,String)]],input_type:etlflow.utils.IOType,input_file_system:etlflow.utils.FSType,output_dataset:String,output_table:String,output_write_disposition:com.google.cloud.bigquery.JobInfo.WriteDisposition,output_create_disposition:com.google.cloud.bigquery.JobInfo.CreateDisposition)(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):etlflow.etlsteps.BQLoadStep[T]" title="Permalink">
+      <a href="../../etlflow/etlsteps/BQLoadStep$.html#apply[T&lt;:Product](name:String,input_location:=&gt;Either[String,Seq[(String,String)]],input_type:etlflow.utils.IOType,input_file_system:etlflow.utils.FSType,output_dataset:String,output_table:String,output_write_disposition:com.google.cloud.bigquery.JobInfo.WriteDisposition,output_create_disposition:com.google.cloud.bigquery.JobInfo.CreateDisposition,credentials:Option[etlflow.utils.GCP])(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):etlflow.etlsteps.BQLoadStep[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -292,7 +316,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="scala.Product">Product</span></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="input_location">input_location: ⇒ <a href="../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<span class="extype" name="scala.Predef.String">String</span>, <a href="../../scala/index.html#Seq[+A]=Seq[A]" class="extmbr" name="scala.Seq">Seq</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]]</span>, <span name="input_type">input_type: <a href="../utils/package$$IOType.html" class="extype" name="etlflow.utils.IOType">IOType</a></span>, <span name="input_file_system">input_file_system: <a href="../utils/package$$FSType.html" class="extype" name="etlflow.utils.FSType">FSType</a> = <span class="symbol"><span class="name"><a href="../index.html">GCS</a></span></span></span>, <span name="output_dataset">output_dataset: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="output_table">output_table: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="output_write_disposition">output_write_disposition: <span class="extype" name="com.google.cloud.bigquery.JobInfo.WriteDisposition">WriteDisposition</span> = <span class="defval" name="JobInfo.WriteDisposition.WRITE_TRUNCATE">...</span></span>, <span name="output_create_disposition">output_create_disposition: <span class="extype" name="com.google.cloud.bigquery.JobInfo.CreateDisposition">CreateDisposition</span> = <span class="defval" name="JobInfo.CreateDisposition.CREATE_NEVER">...</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etlflow.etlsteps.BQLoadStep.apply.T">T</span>]</span>)</span><span class="result">: <a href="BQLoadStep.html" class="extype" name="etlflow.etlsteps.BQLoadStep">BQLoadStep</a>[<span class="extype" name="etlflow.etlsteps.BQLoadStep.apply.T">T</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="scala.Product">Product</span></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="input_location">input_location: ⇒ <a href="../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<span class="extype" name="scala.Predef.String">String</span>, <a href="../../scala/index.html#Seq[+A]=Seq[A]" class="extmbr" name="scala.Seq">Seq</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]]</span>, <span name="input_type">input_type: <a href="../utils/package$$IOType.html" class="extype" name="etlflow.utils.IOType">IOType</a></span>, <span name="input_file_system">input_file_system: <a href="../utils/package$$FSType.html" class="extype" name="etlflow.utils.FSType">FSType</a> = <span class="symbol"><span class="name"><a href="../index.html">GCS</a></span></span></span>, <span name="output_dataset">output_dataset: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="output_table">output_table: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="output_write_disposition">output_write_disposition: <span class="extype" name="com.google.cloud.bigquery.JobInfo.WriteDisposition">WriteDisposition</span> = <span class="defval" name="JobInfo.WriteDisposition.WRITE_TRUNCATE">...</span></span>, <span name="output_create_disposition">output_create_disposition: <span class="extype" name="com.google.cloud.bigquery.JobInfo.CreateDisposition">CreateDisposition</span> = <span class="defval" name="JobInfo.CreateDisposition.CREATE_NEVER">...</span></span>, <span name="credentials">credentials: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/package$$GCP.html" class="extype" name="etlflow.utils.GCP">GCP</a>] = <span class="symbol"><span class="name"><a href="../../scala/index.html">None</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etlflow.etlsteps.BQLoadStep.apply.T">T</span>]</span>)</span><span class="result">: <a href="BQLoadStep.html" class="extype" name="etlflow.etlsteps.BQLoadStep">BQLoadStep</a>[<span class="extype" name="etlflow.etlsteps.BQLoadStep.apply.T">T</span>]</span>
       </span>
       
       

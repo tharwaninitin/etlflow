@@ -1,0 +1,1896 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/utils/EtlJobArgsParser.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import scopt.OptionParser
+</span>4 <span style=''>import etlflow.{BuildInfo =&gt; BI}
+</span>5 <span style=''>
+</span>6 <span style=''>object EtlJobArgsParser {
+</span>7 <span style=''>  case class EtlJobConfig(
+</span>8 <span style=''>                           list_jobs: Boolean = false,
+</span>9 <span style=''>                           default_values: Boolean = false,
+</span>10 <span style=''>                           actual_values: Boolean = false,
+</span>11 <span style=''>                           show_job_props: Boolean = false,
+</span>12 <span style=''>                           show_step_props: Boolean = false,
+</span>13 <span style=''>                           run_job: Boolean = false,
+</span>14 <span style=''>                           run_job_remote: Boolean = false,
+</span>15 <span style=''>                           job_name: String = &quot;&quot;,
+</span>16 <span style=''>                           job_properties: Map[String,String] = Map.empty
+</span>17 <span style=''>                         )
+</span>18 <span style=''>  val parser: OptionParser[EtlJobConfig] = </span><span style='background: #F0ADAD'>new</span><span style=''> OptionParser[EtlJobConfig](&quot;etljobs-cli&quot;) {
+</span>19 <span style=''>    </span><span style='background: #F0ADAD'>head(BI.name, BI.version, s&quot;Build with scala version ${BI.scalaVersion}&quot;)</span><span style=''>
+</span>20 <span style=''>    </span><span style='background: #F0ADAD'>help(&quot;help&quot;)</span><span style=''>
+</span>21 <span style=''>    </span><span style='background: #F0ADAD'>opt[Unit]('l', &quot;list_jobs&quot;)
+</span>22 <span style=''></span><span style='background: #F0ADAD'>      .action((_, c) =&gt; c.copy(list_jobs = true))
+</span>23 <span style=''></span><span style='background: #F0ADAD'>      .text(&quot;List jobs in etljobs&quot;)</span><span style=''>
+</span>24 <span style=''>    </span><span style='background: #F0ADAD'>cmd(&quot;show_job_props&quot;)
+</span>25 <span style=''></span><span style='background: #F0ADAD'>      .action((_, c) =&gt; c.copy(show_job_props = true))
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      .text(&quot;Show jobs props in etljobs&quot;)
+</span>27 <span style=''></span><span style='background: #F0ADAD'>      .children(
+</span>28 <span style=''></span><span style='background: #F0ADAD'>        opt[String](&quot;job_name&quot;)
+</span>29 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_name = x))
+</span>30 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;job_name is a EtlJobName&quot;),
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        opt[Unit]('d',&quot;default_values&quot;)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>          .action((_, c) =&gt; c.copy(default_values = true))
+</span>33 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;Default Properties&quot;),
+</span>34 <span style=''></span><span style='background: #F0ADAD'>        opt[Unit]('a',&quot;actual_values&quot;)
+</span>35 <span style=''></span><span style='background: #F0ADAD'>          .action((_, c) =&gt; c.copy(actual_values = true))
+</span>36 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;Actual Properties&quot;),
+</span>37 <span style=''></span><span style='background: #F0ADAD'>        opt[Map[String, String]](&quot;props&quot;)
+</span>38 <span style=''></span><span style='background: #F0ADAD'>          .valueName(&quot;k1=v1,k2=v2...&quot;)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_properties = x))
+</span>40 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;other arguments&quot;)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>cmd(&quot;show_step_props&quot;)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>      .action((_, c) =&gt; c.copy(show_step_props = true))
+</span>44 <span style=''></span><span style='background: #F0ADAD'>      .text(&quot;Show job step props in etljobs&quot;)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>      .children(
+</span>46 <span style=''></span><span style='background: #F0ADAD'>        opt[String](&quot;job_name&quot;)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_name = x))
+</span>48 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;job_name is a EtlJobName&quot;),
+</span>49 <span style=''></span><span style='background: #F0ADAD'>        opt[Map[String, String]](&quot;props&quot;)
+</span>50 <span style=''></span><span style='background: #F0ADAD'>          .valueName(&quot;k1=v1,k2=v2...&quot;)
+</span>51 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_properties = x))
+</span>52 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;other arguments&quot;)
+</span>53 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>54 <span style=''>    </span><span style='background: #F0ADAD'>cmd(&quot;run_job&quot;)
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      .action((_, c) =&gt; c.copy(run_job = true))
+</span>56 <span style=''></span><span style='background: #F0ADAD'>      .text(&quot;run job in etljobs&quot;)
+</span>57 <span style=''></span><span style='background: #F0ADAD'>      .children(
+</span>58 <span style=''></span><span style='background: #F0ADAD'>        opt[String](&quot;job_name&quot;)
+</span>59 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_name = x))
+</span>60 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;job_name is a EtlJobName&quot;),
+</span>61 <span style=''></span><span style='background: #F0ADAD'>        opt[Map[String, String]](&quot;props&quot;)
+</span>62 <span style=''></span><span style='background: #F0ADAD'>          .valueName(&quot;k1=v1,k2=v2...&quot;)
+</span>63 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_properties = x))
+</span>64 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;other arguments&quot;)
+</span>65 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>cmd(&quot;run_job_remote&quot;)
+</span>67 <span style=''></span><span style='background: #F0ADAD'>      .action((_, c) =&gt; c.copy(run_job_remote = true))
+</span>68 <span style=''></span><span style='background: #F0ADAD'>      .text(&quot;Submit job to cluster&quot;)
+</span>69 <span style=''></span><span style='background: #F0ADAD'>      .children(
+</span>70 <span style=''></span><span style='background: #F0ADAD'>        opt[String](&quot;job_name&quot;)
+</span>71 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_name = x))
+</span>72 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;job_name is a EtlJobName&quot;),
+</span>73 <span style=''></span><span style='background: #F0ADAD'>        opt[Map[String, String]](&quot;props&quot;)
+</span>74 <span style=''></span><span style='background: #F0ADAD'>          .valueName(&quot;k1=v1,k2=v2...&quot;)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>          .action((x, c) =&gt; c.copy(job_properties = x))
+</span>76 <span style=''></span><span style='background: #F0ADAD'>          .text(&quot;other arguments&quot;)
+</span>77 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>78 <span style=''>  }
+</span>79 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1950
+        </td>
+        <td>
+          738
+          -
+          741
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.$anon.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anon()
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1883
+        </td>
+        <td>
+          845
+          -
+          860
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.scalaVersion
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.BuildInfo.scalaVersion
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1880
+        </td>
+        <td>
+          804
+          -
+          814
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.version
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.BuildInfo.version
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1882
+        </td>
+        <td>
+          861
+          -
+          862
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1885
+        </td>
+        <td>
+          790
+          -
+          863
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionParser.head
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.head(etlflow.BuildInfo.name, etlflow.BuildInfo.version, scala.StringContext.apply(&quot;Build with scala version &quot;, &quot;&quot;).s(etlflow.BuildInfo.scalaVersion))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1879
+        </td>
+        <td>
+          795
+          -
+          802
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.name
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.BuildInfo.name
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1881
+        </td>
+        <td>
+          818
+          -
+          844
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Build with scala version &quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1884
+        </td>
+        <td>
+          816
+          -
+          862
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Build with scala version &quot;, &quot;&quot;).s(etlflow.BuildInfo.scalaVersion)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1886
+        </td>
+        <td>
+          868
+          -
+          880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionParser.help
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.help(&quot;help&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1887
+        </td>
+        <td>
+          885
+          -
+          998
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Unit]('l', &quot;list_jobs&quot;)(scopt.this.Read.unitRead).action(((x$1: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; c.copy(true, c.copy$default$2, c.copy$default$3, c.copy$default$4, c.copy$default$5, c.copy$default$6, c.copy$default$7, c.copy$default$8, c.copy$default$9))).text(&quot;List jobs in etljobs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          1888
+        </td>
+        <td>
+          1007
+          -
+          1023
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;show_job_props&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1892
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$3
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1895
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$7
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$7
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1889
+        </td>
+        <td>
+          1073
+          -
+          1077
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1898
+        </td>
+        <td>
+          1049
+          -
+          1078
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy(x$2, x$3, x$4, x$1, x$5, x$6, x$7, x$8, x$9)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1897
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$9
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$9
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1891
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$2
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1894
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$6
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1896
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$8
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$8
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1890
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$1
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1893
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$5
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1899
+        </td>
+        <td>
+          1092
+          -
+          1120
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Show jobs props in etljobs&quot;
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1904
+        </td>
+        <td>
+          1003
+          -
+          1718
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.children
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.cmd(&quot;show_job_props&quot;).action(((x$2: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$1: Boolean = true;
+  &lt;artifact&gt; val x$2: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$3: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$4: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$5: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$6: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$7: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$8: String = c.copy$default$8;
+  &lt;artifact&gt; val x$9: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$2, x$3, x$4, x$1, x$5, x$6, x$7, x$8, x$9)
+})).text(&quot;Show jobs props in etljobs&quot;).children($anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$10: String = x;
+  &lt;artifact&gt; val x$11: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$12: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$13: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$14: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$15: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$16: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$17: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$18: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$11, x$12, x$13, x$14, x$15, x$16, x$17, x$10, x$18)
+})).text(&quot;job_name is a EtlJobName&quot;), $anon.this.opt[Unit]('d', &quot;default_values&quot;)(scopt.this.Read.unitRead).action(((x$3: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$19: Boolean = true;
+  &lt;artifact&gt; val x$20: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$21: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$22: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$23: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$24: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$25: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$26: String = c.copy$default$8;
+  &lt;artifact&gt; val x$27: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$20, x$19, x$21, x$22, x$23, x$24, x$25, x$26, x$27)
+})).text(&quot;Default Properties&quot;), $anon.this.opt[Unit]('a', &quot;actual_values&quot;)(scopt.this.Read.unitRead).action(((x$4: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$28: Boolean = true;
+  &lt;artifact&gt; val x$29: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$30: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$31: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$32: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$33: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$34: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$35: String = c.copy$default$8;
+  &lt;artifact&gt; val x$36: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$29, x$30, x$28, x$31, x$32, x$33, x$34, x$35, x$36)
+})).text(&quot;Actual Properties&quot;), $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$37: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$38: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$39: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$40: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$41: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$42: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$43: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$44: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$45: String = c.copy$default$8;
+  c.copy(x$38, x$39, x$40, x$41, x$42, x$43, x$44, x$45, x$37)
+})).text(&quot;other arguments&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1900
+        </td>
+        <td>
+          1147
+          -
+          1264
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$10: String = x;
+  &lt;artifact&gt; val x$11: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$12: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$13: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$14: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$15: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$16: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$17: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$18: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$11, x$12, x$13, x$14, x$15, x$16, x$17, x$10, x$18)
+})).text(&quot;job_name is a EtlJobName&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1901
+        </td>
+        <td>
+          1274
+          -
+          1402
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Unit]('d', &quot;default_values&quot;)(scopt.this.Read.unitRead).action(((x$3: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$19: Boolean = true;
+  &lt;artifact&gt; val x$20: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$21: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$22: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$23: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$24: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$25: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$26: String = c.copy$default$8;
+  &lt;artifact&gt; val x$27: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$20, x$19, x$21, x$22, x$23, x$24, x$25, x$26, x$27)
+})).text(&quot;Default Properties&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1902
+        </td>
+        <td>
+          1412
+          -
+          1537
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Unit]('a', &quot;actual_values&quot;)(scopt.this.Read.unitRead).action(((x$4: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$28: Boolean = true;
+  &lt;artifact&gt; val x$29: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$30: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$31: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$32: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$33: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$34: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$35: String = c.copy$default$8;
+  &lt;artifact&gt; val x$36: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$29, x$30, x$28, x$31, x$32, x$33, x$34, x$35, x$36)
+})).text(&quot;Actual Properties&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1903
+        </td>
+        <td>
+          1547
+          -
+          1710
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$37: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$38: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$39: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$40: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$41: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$42: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$43: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$44: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$45: String = c.copy$default$8;
+  c.copy(x$38, x$39, x$40, x$41, x$42, x$43, x$44, x$45, x$37)
+})).text(&quot;other arguments&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1905
+        </td>
+        <td>
+          1727
+          -
+          1744
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;show_step_props&quot;
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1910
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$4
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1913
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$8
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$8
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1907
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$1
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1906
+        </td>
+        <td>
+          1795
+          -
+          1799
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1915
+        </td>
+        <td>
+          1770
+          -
+          1800
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy(x$47, x$48, x$49, x$50, x$46, x$51, x$52, x$53, x$54)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1909
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$3
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1912
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$7
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$7
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1914
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$9
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$9
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1908
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$2
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1911
+        </td>
+        <td>
+          1772
+          -
+          1772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$6
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1916
+        </td>
+        <td>
+          1814
+          -
+          1846
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Show job step props in etljobs&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1919
+        </td>
+        <td>
+          1723
+          -
+          2171
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.children
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.cmd(&quot;show_step_props&quot;).action(((x$5: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$46: Boolean = true;
+  &lt;artifact&gt; val x$47: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$48: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$49: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$50: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$51: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$52: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$53: String = c.copy$default$8;
+  &lt;artifact&gt; val x$54: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$47, x$48, x$49, x$50, x$46, x$51, x$52, x$53, x$54)
+})).text(&quot;Show job step props in etljobs&quot;).children($anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$55: String = x;
+  &lt;artifact&gt; val x$56: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$57: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$58: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$59: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$60: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$61: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$62: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$63: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$56, x$57, x$58, x$59, x$60, x$61, x$62, x$55, x$63)
+})).text(&quot;job_name is a EtlJobName&quot;), $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$64: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$65: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$66: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$67: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$68: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$69: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$70: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$71: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$72: String = c.copy$default$8;
+  c.copy(x$65, x$66, x$67, x$68, x$69, x$70, x$71, x$72, x$64)
+})).text(&quot;other arguments&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1917
+        </td>
+        <td>
+          1873
+          -
+          1990
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$55: String = x;
+  &lt;artifact&gt; val x$56: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$57: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$58: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$59: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$60: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$61: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$62: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$63: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$56, x$57, x$58, x$59, x$60, x$61, x$62, x$55, x$63)
+})).text(&quot;job_name is a EtlJobName&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          1918
+        </td>
+        <td>
+          2000
+          -
+          2163
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$64: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$65: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$66: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$67: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$68: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$69: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$70: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$71: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$72: String = c.copy$default$8;
+  c.copy(x$65, x$66, x$67, x$68, x$69, x$70, x$71, x$72, x$64)
+})).text(&quot;other arguments&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          1920
+        </td>
+        <td>
+          2180
+          -
+          2189
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;run_job&quot;
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1928
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$8
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$8
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1922
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$1
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1925
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$4
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1924
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$3
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1927
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$7
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$7
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1921
+        </td>
+        <td>
+          2232
+          -
+          2236
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1930
+        </td>
+        <td>
+          2215
+          -
+          2237
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy(x$74, x$75, x$76, x$77, x$78, x$73, x$79, x$80, x$81)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1929
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$9
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$9
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1923
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$2
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1926
+        </td>
+        <td>
+          2217
+          -
+          2217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$5
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          1931
+        </td>
+        <td>
+          2251
+          -
+          2271
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;run job in etljobs&quot;
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1934
+        </td>
+        <td>
+          2176
+          -
+          2596
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.children
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.cmd(&quot;run_job&quot;).action(((x$6: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$73: Boolean = true;
+  &lt;artifact&gt; val x$74: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$75: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$76: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$77: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$78: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$79: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$80: String = c.copy$default$8;
+  &lt;artifact&gt; val x$81: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$74, x$75, x$76, x$77, x$78, x$73, x$79, x$80, x$81)
+})).text(&quot;run job in etljobs&quot;).children($anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$82: String = x;
+  &lt;artifact&gt; val x$83: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$84: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$85: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$86: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$87: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$88: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$89: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$90: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$83, x$84, x$85, x$86, x$87, x$88, x$89, x$82, x$90)
+})).text(&quot;job_name is a EtlJobName&quot;), $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$91: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$92: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$93: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$94: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$95: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$96: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$97: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$98: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$99: String = c.copy$default$8;
+  c.copy(x$92, x$93, x$94, x$95, x$96, x$97, x$98, x$99, x$91)
+})).text(&quot;other arguments&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1932
+        </td>
+        <td>
+          2298
+          -
+          2415
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$82: String = x;
+  &lt;artifact&gt; val x$83: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$84: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$85: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$86: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$87: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$88: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$89: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$90: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$83, x$84, x$85, x$86, x$87, x$88, x$89, x$82, x$90)
+})).text(&quot;job_name is a EtlJobName&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1933
+        </td>
+        <td>
+          2425
+          -
+          2588
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$91: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$92: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$93: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$94: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$95: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$96: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$97: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$98: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$99: String = c.copy$default$8;
+  c.copy(x$92, x$93, x$94, x$95, x$96, x$97, x$98, x$99, x$91)
+})).text(&quot;other arguments&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1935
+        </td>
+        <td>
+          2605
+          -
+          2621
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;run_job_remote&quot;
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1943
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$8
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$8
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1937
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$1
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1940
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$4
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1942
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$6
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1945
+        </td>
+        <td>
+          2647
+          -
+          2676
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy(x$101, x$102, x$103, x$104, x$105, x$106, x$100, x$107, x$108)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1936
+        </td>
+        <td>
+          2671
+          -
+          2675
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1939
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$3
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1938
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$2
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1941
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$5
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1944
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.copy$default$9
+        </td>
+        <td style="background: #F0ADAD">
+          c.copy$default$9
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1946
+        </td>
+        <td>
+          2690
+          -
+          2713
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Submit job to cluster&quot;
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1949
+        </td>
+        <td>
+          2601
+          -
+          3038
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.children
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.cmd(&quot;run_job_remote&quot;).action(((x$7: Unit, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$100: Boolean = true;
+  &lt;artifact&gt; val x$101: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$102: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$103: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$104: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$105: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$106: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$107: String = c.copy$default$8;
+  &lt;artifact&gt; val x$108: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$101, x$102, x$103, x$104, x$105, x$106, x$100, x$107, x$108)
+})).text(&quot;Submit job to cluster&quot;).children($anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$109: String = x;
+  &lt;artifact&gt; val x$110: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$111: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$112: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$113: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$114: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$115: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$116: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$117: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$110, x$111, x$112, x$113, x$114, x$115, x$116, x$109, x$117)
+})).text(&quot;job_name is a EtlJobName&quot;), $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$118: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$119: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$120: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$121: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$122: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$123: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$124: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$125: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$126: String = c.copy$default$8;
+  c.copy(x$119, x$120, x$121, x$122, x$123, x$124, x$125, x$126, x$118)
+})).text(&quot;other arguments&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1947
+        </td>
+        <td>
+          2740
+          -
+          2857
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[String](&quot;job_name&quot;)(scopt.this.Read.stringRead).action(((x: String, c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$109: String = x;
+  &lt;artifact&gt; val x$110: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$111: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$112: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$113: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$114: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$115: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$116: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$117: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = c.copy$default$9;
+  c.copy(x$110, x$111, x$112, x$113, x$114, x$115, x$116, x$109, x$117)
+})).text(&quot;job_name is a EtlJobName&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1948
+        </td>
+        <td>
+          2867
+          -
+          3030
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionDef.text
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.opt[Map[String,String]](&quot;props&quot;)(scopt.this.Read.mapRead[String, String](scopt.this.Read.stringRead, scopt.this.Read.stringRead)).valueName(&quot;k1=v1,k2=v2...&quot;).action(((x: Map[String,String], c: etlflow.utils.EtlJobArgsParser.EtlJobConfig) =&gt; {
+  &lt;artifact&gt; val x$118: Map[String,String] @scala.reflect.internal.annotations.uncheckedBounds = x;
+  &lt;artifact&gt; val x$119: Boolean = c.copy$default$1;
+  &lt;artifact&gt; val x$120: Boolean = c.copy$default$2;
+  &lt;artifact&gt; val x$121: Boolean = c.copy$default$3;
+  &lt;artifact&gt; val x$122: Boolean = c.copy$default$4;
+  &lt;artifact&gt; val x$123: Boolean = c.copy$default$5;
+  &lt;artifact&gt; val x$124: Boolean = c.copy$default$6;
+  &lt;artifact&gt; val x$125: Boolean = c.copy$default$7;
+  &lt;artifact&gt; val x$126: String = c.copy$default$8;
+  c.copy(x$119, x$120, x$121, x$122, x$123, x$124, x$125, x$126, x$118)
+})).text(&quot;other arguments&quot;)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

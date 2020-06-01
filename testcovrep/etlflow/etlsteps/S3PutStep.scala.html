@@ -1,0 +1,944 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/S3PutStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.aws._
+</span>4 <span style=''>import etlflow.utils.AWS
+</span>5 <span style=''>import software.amazon.awssdk.regions.Region
+</span>6 <span style=''>import zio.Task
+</span>7 <span style=''>
+</span>8 <span style=''>class S3PutStep private[etlsteps](
+</span>9 <span style=''>                   val name: String,
+</span>10 <span style=''>                   bucket: =&gt; String,
+</span>11 <span style=''>                   key: =&gt; String,
+</span>12 <span style=''>                   file: =&gt; String,
+</span>13 <span style=''>                   region: Region,
+</span>14 <span style=''>                   endpoint_override: Option[String] = None,
+</span>15 <span style=''>                   credentials: Option[AWS] = None
+</span>16 <span style=''>                 ) extends EtlStep[Unit,Unit] {
+</span>17 <span style=''>  override def process(input_state: =&gt; Unit): Task[Unit] = {
+</span>18 <span style=''>    val env       = </span><span style='background: #AEF1AE'>S3Client.live &gt;&gt;&gt; S3Api.live</span><span style=''>
+</span>19 <span style=''>    val program   = </span><span style='background: #AEF1AE'>putObject(bucket,key,file)</span><span style=''>
+</span>20 <span style=''>    val runnable  = </span><span style='background: #AEF1AE'>for {
+</span>21 <span style=''></span><span style='background: #AEF1AE'>                      _   &lt;- Task.succeed(etl_logger.info(s&quot;Starting upload for file $file in location s3://$bucket/$key&quot;))
+</span>22 <span style=''></span><span style='background: #AEF1AE'>                      s3  &lt;- createClient(region, endpoint_override, credentials)
+</span>23 <span style=''></span><span style='background: #AEF1AE'>                      _   &lt;- program.provideLayer(env).provide(s3).foldM(
+</span>24 <span style=''></span><span style='background: #AEF1AE'>                              ex =&gt; </span><span style='background: #F0ADAD'>Task.succeed(etl_logger.error(ex.getMessage)) *&gt; Task.fail(ex)</span><span style='background: #AEF1AE'>,
+</span>25 <span style=''></span><span style='background: #AEF1AE'>                              _  =&gt; Task.succeed(etl_logger.info(s&quot;Successfully uploaded file $file in location s3://$bucket/$key&quot;))
+</span>26 <span style=''></span><span style='background: #AEF1AE'>                            )
+</span>27 <span style=''></span><span style='background: #AEF1AE'>                    } yield ()</span><span style=''>
+</span>28 <span style=''>    runnable
+</span>29 <span style=''>  }
+</span>30 <span style=''>}
+</span>31 <span style=''>
+</span>32 <span style=''>object S3PutStep {
+</span>33 <span style=''>  def apply(name: String,
+</span>34 <span style=''>            bucket: =&gt; String,
+</span>35 <span style=''>            key: =&gt; String,
+</span>36 <span style=''>            file: =&gt; String,
+</span>37 <span style=''>            region: Region,
+</span>38 <span style=''>            endpoint_override: Option[String] = None,
+</span>39 <span style=''>            credentials: Option[AWS] = None
+</span>40 <span style=''>           ): S3PutStep =
+</span>41 <span style=''>    </span><span style='background: #AEF1AE'>new S3PutStep(name, bucket, key, file, region, endpoint_override, credentials)</span><span style=''>
+</span>42 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          837
+        </td>
+        <td>
+          591
+          -
+          619
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZLayer.&gt;&gt;&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.aws.`package`.S3Client.live.&gt;&gt;&gt;[Throwable, etlflow.aws.S3Api](etlflow.aws.`package`.S3Api.live)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          836
+        </td>
+        <td>
+          609
+          -
+          619
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.aws.S3Api.live
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.aws.`package`.S3Api.live
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          839
+        </td>
+        <td>
+          657
+          -
+          660
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          838
+        </td>
+        <td>
+          650
+          -
+          656
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          841
+        </td>
+        <td>
+          640
+          -
+          666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.putObject
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.aws.`package`.putObject(S3PutStep.this.bucket, S3PutStep.this.key, S3PutStep.this.file)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          840
+        </td>
+        <td>
+          661
+          -
+          665
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.file
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.file
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          846
+        </td>
+        <td>
+          779
+          -
+          783
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.file
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.file
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          848
+        </td>
+        <td>
+          810
+          -
+          813
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          875
+        </td>
+        <td>
+          687
+          -
+          1266
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.succeed[Unit](S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting upload for file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key))).flatMap[Any, Throwable, Unit](((_: Unit) =&gt; etlflow.aws.`package`.createClient(S3PutStep.this.region, S3PutStep.this.endpoint_override, S3PutStep.this.credentials).flatMap[Any, Throwable, Unit](((s3: software.amazon.awssdk.services.s3.S3AsyncClient) =&gt; program.provideLayer[Throwable, software.amazon.awssdk.services.s3.S3AsyncClient, etlflow.aws.S3Api](env)(scala.Predef.$conforms[etlflow.aws.S3Api], zio.this.NeedsEnv.needsEnv[Nothing]).provide(s3)(zio.this.NeedsEnv.needsEnv[Nothing]).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; zio.Task.succeed[Unit](S3PutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))), ((x$1: software.amazon.awssdk.services.s3.model.PutObjectResponse) =&gt; zio.Task.succeed[Unit](S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key)))))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Unit) =&gt; ()))))))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          842
+        </td>
+        <td>
+          753
+          -
+          779
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Starting upload for file &quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          845
+        </td>
+        <td>
+          813
+          -
+          814
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          844
+        </td>
+        <td>
+          808
+          -
+          810
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          847
+        </td>
+        <td>
+          802
+          -
+          808
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          850
+        </td>
+        <td>
+          735
+          -
+          815
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting upload for file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          849
+        </td>
+        <td>
+          751
+          -
+          814
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Starting upload for file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          843
+        </td>
+        <td>
+          783
+          -
+          802
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; in location s3://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          851
+        </td>
+        <td>
+          859
+          -
+          865
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.region
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.region
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          853
+        </td>
+        <td>
+          886
+          -
+          897
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.credentials
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.credentials
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          874
+        </td>
+        <td>
+          839
+          -
+          1266
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.aws.`package`.createClient(S3PutStep.this.region, S3PutStep.this.endpoint_override, S3PutStep.this.credentials).flatMap[Any, Throwable, Unit](((s3: software.amazon.awssdk.services.s3.S3AsyncClient) =&gt; program.provideLayer[Throwable, software.amazon.awssdk.services.s3.S3AsyncClient, etlflow.aws.S3Api](env)(scala.Predef.$conforms[etlflow.aws.S3Api], zio.this.NeedsEnv.needsEnv[Nothing]).provide(s3)(zio.this.NeedsEnv.needsEnv[Nothing]).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; zio.Task.succeed[Unit](S3PutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))), ((x$1: software.amazon.awssdk.services.s3.model.PutObjectResponse) =&gt; zio.Task.succeed[Unit](S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key)))))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Unit) =&gt; ()))))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          867
+          -
+          884
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.endpoint_override
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.endpoint_override
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          855
+        </td>
+        <td>
+          948
+          -
+          948
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.NeedsEnv.needsEnv
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.NeedsEnv.needsEnv[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          873
+        </td>
+        <td>
+          921
+          -
+          1266
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #AEF1AE">
+          program.provideLayer[Throwable, software.amazon.awssdk.services.s3.S3AsyncClient, etlflow.aws.S3Api](env)(scala.Predef.$conforms[etlflow.aws.S3Api], zio.this.NeedsEnv.needsEnv[Nothing]).provide(s3)(zio.this.NeedsEnv.needsEnv[Nothing]).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; zio.Task.succeed[Unit](S3PutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))), ((x$1: software.amazon.awssdk.services.s3.model.PutObjectResponse) =&gt; zio.Task.succeed[Unit](S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key)))))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Unit) =&gt; ()))
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          854
+        </td>
+        <td>
+          948
+          -
+          948
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[etlflow.aws.S3Api]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          871
+        </td>
+        <td>
+          971
+          -
+          971
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          856
+        </td>
+        <td>
+          961
+          -
+          961
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.NeedsEnv.needsEnv
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.NeedsEnv.needsEnv[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          857
+        </td>
+        <td>
+          1039
+          -
+          1052
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          ex.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          860
+        </td>
+        <td>
+          1009
+          -
+          1071
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.*&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[Unit](S3PutStep.this.etl_logger.error(ex.getMessage())).*&gt;[Any, Throwable, Nothing](zio.Task.fail(ex))
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          859
+        </td>
+        <td>
+          1058
+          -
+          1071
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(ex)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          858
+        </td>
+        <td>
+          1022
+          -
+          1053
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          S3PutStep.this.etl_logger.error(ex.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          864
+        </td>
+        <td>
+          1202
+          -
+          1203
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          863
+        </td>
+        <td>
+          1197
+          -
+          1199
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          866
+        </td>
+        <td>
+          1191
+          -
+          1197
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          869
+        </td>
+        <td>
+          1122
+          -
+          1204
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          862
+        </td>
+        <td>
+          1172
+          -
+          1191
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; in location s3://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          865
+        </td>
+        <td>
+          1168
+          -
+          1172
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.file
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.file
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          868
+        </td>
+        <td>
+          1138
+          -
+          1203
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          867
+        </td>
+        <td>
+          1199
+          -
+          1202
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          S3PutStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          861
+        </td>
+        <td>
+          1140
+          -
+          1168
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Successfully uploaded file &quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          870
+        </td>
+        <td>
+          1109
+          -
+          1205
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.succeed
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.succeed[Unit](S3PutStep.this.etl_logger.info(scala.StringContext.apply(&quot;Successfully uploaded file &quot;, &quot; in location s3://&quot;, &quot;/&quot;, &quot;&quot;).s(S3PutStep.this.file, S3PutStep.this.bucket, S3PutStep.this.key)))
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          872
+        </td>
+        <td>
+          1264
+          -
+          1266
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          876
+        </td>
+        <td>
+          1576
+          -
+          1654
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.S3PutStep.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new S3PutStep(name, bucket, key, file, region, endpoint_override, credentials)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

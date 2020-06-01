@@ -1,0 +1,2076 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/EtlJobApp.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow
+</span>2 <span style=''>
+</span>3 <span style=''>import etljobs.{DataProcJob, EtlJob, SequentialEtlJob}
+</span>4 <span style=''>import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
+</span>5 <span style=''>import etlflow.utils.{GlobalProperties, UtilityFunctions =&gt; UF}
+</span>6 <span style=''>import org.apache.log4j.Logger
+</span>7 <span style=''>import zio.{Runtime,ZEnv}
+</span>8 <span style=''>import scala.reflect.runtime.universe.TypeTag
+</span>9 <span style=''>
+</span>10 <span style=''>// Either use =&gt;
+</span>11 <span style=''>// 1) abstract class EtlJobApp[EJN: TypeTag]
+</span>12 <span style=''>// 2) Or below &quot;trait with type&quot; like this =&gt; trait EtlJobApp[T] { type EJN = TypeTag[T] }
+</span>13 <span style=''>abstract class EtlJobApp[EJN &lt;: EtlJobName[EJP] : TypeTag, EJP &lt;: EtlJobProps : TypeTag, EJGP &lt;: GlobalProperties : TypeTag] extends DataProcJob[EJGP] {
+</span>14 <span style=''>  lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
+</span>15 <span style=''>
+</span>16 <span style=''>  def globalProperties: Option[EJGP]
+</span>17 <span style=''>  val etl_job_name_package: String
+</span>18 <span style=''>
+</span>19 <span style=''>  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) =&gt; EtlJob
+</span>20 <span style=''>
+</span>21 <span style=''>  def main(args: Array[String]): Unit = {
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>parser.parse(args, EtlJobConfig())</span><span style=''> match {
+</span>23 <span style=''>      case Some(serverConfig) =&gt; serverConfig match {
+</span>24 <span style=''>        case EtlJobConfig(true,false,false,false,false,false,false,&quot;&quot;,_) =&gt; </span><span style='background: #F0ADAD'>UF.printEtlJobs[EJN]</span><span style=''>
+</span>25 <span style=''>        case EtlJobConfig(false,default,actual,true,false,false,false,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
+</span>26 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Executing show_job_props with params: job_name =&gt; $jobName&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>27 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
+</span>28 <span style=''>          </span><span style='background: #F0ADAD'>println(UF.convertToJson(job_name.default_properties_map))</span><span style=''>
+</span>29 <span style=''>          val exclude_keys = </span><span style='background: #F0ADAD'>List(&quot;job_run_id&quot;,&quot;job_description&quot;,&quot;job_properties&quot;)</span><span style=''>
+</span>30 <span style=''>          if (</span><span style='background: #F0ADAD'>default &amp;&amp; !actual</span><span style=''>) {
+</span>31 <span style=''>            </span><span style='background: #F0ADAD'>println(UF.convertToJsonByRemovingKeys(job_name.default_properties,exclude_keys))</span><span style=''>
+</span>32 <span style=''>          }
+</span>33 <span style=''>          else </span><span style='background: #F0ADAD'>if (actual &amp;&amp; !default) {
+</span>34 <span style=''></span><span style='background: #F0ADAD'>            val props = job_name.getActualProperties(jobProps)
+</span>35 <span style=''></span><span style='background: #F0ADAD'>            println(UF.convertToJsonByRemovingKeys(props,exclude_keys))
+</span>36 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style=''>
+</span>37 <span style=''>        case EtlJobConfig(false,false,false,false,true,false,false,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
+</span>38 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Executing show_step_props with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;)</span><span style=''>
+</span>39 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
+</span>40 <span style=''>          val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)</span><span style=''>
+</span>41 <span style=''>          if (</span><span style='background: #F0ADAD'>!etl_job.isInstanceOf[SequentialEtlJob]</span><span style=''>)
+</span>42 <span style=''>            </span><span style='background: #F0ADAD'>println(&quot;Step Props info not available for generic jobs&quot;)</span><span style=''>
+</span>43 <span style=''>          else </span><span style='background: #F0ADAD'>{
+</span>44 <span style=''></span><span style='background: #F0ADAD'>            etl_job.job_name = job_name.toString
+</span>45 <span style=''></span><span style='background: #F0ADAD'>            val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+</span>46 <span style=''></span><span style='background: #F0ADAD'>            println(json)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style=''>
+</span>48 <span style=''>        case EtlJobConfig(false,false,false,false,false,false,true,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
+</span>49 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Submitting job to cluster with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>50 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
+</span>51 <span style=''>          </span><span style='background: #F0ADAD'>executeDataProcJob(job_name.toString,jobProps,globalProperties)</span><span style=''>
+</span>52 <span style=''>        case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
+</span>53 <span style=''>          val runtime: Runtime[ZEnv] = Runtime.default
+</span>54 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Running job with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>55 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
+</span>56 <span style=''>          val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)</span><span style=''>
+</span>57 <span style=''>          </span><span style='background: #F0ADAD'>etl_job.job_name = job_name.toString</span><span style=''>
+</span>58 <span style=''>          </span><span style='background: #F0ADAD'>runtime.unsafeRun(etl_job.execute())</span><span style=''>
+</span>59 <span style=''>        case etlJobConfig if </span><span style='background: #F0ADAD'>(etlJobConfig.show_job_props || etlJobConfig.show_step_props) &amp;&amp; etlJobConfig.job_name == &quot;&quot;</span><span style=''> =&gt;
+</span>60 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.error(s&quot;Need to provide args --job_name&quot;)</span><span style=''>
+</span>61 <span style=''>          </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
+</span>62 <span style=''>        case _ =&gt;
+</span>63 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.error(s&quot;Incorrect input args or no args provided, Try --help for more information.&quot;)</span><span style=''>
+</span>64 <span style=''>          </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
+</span>65 <span style=''>      }
+</span>66 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
+</span>67 <span style=''>    }
+</span>68 <span style=''>  }
+</span>69 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$7
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$7
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          873
+          -
+          887
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply(etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$1, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$2, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$3, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$4, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$5, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$6, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$7, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$8, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$9)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$1
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$4
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$6
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$9
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$9
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          1
+        </td>
+        <td>
+          867
+          -
+          871
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          scala.LowPriorityImplicits.wrapRefArray
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.wrapRefArray[String](args)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$8
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$8
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          854
+          -
+          888
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scopt.OptionParser.parse
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.parser.parse(scala.Predef.wrapRefArray[String](args), etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply(etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$1, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$2, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$3, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$4, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$5, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$6, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$7, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$8, etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$9))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          873
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.apply$default$5
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          1027
+          -
+          1047
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.printEtlJobs
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.printEtlJobs[EJN](EtlJobApp.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          1042
+          -
+          1042
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          1139
+          -
+          1152
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          jobName.!=(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          1181
+          -
+          1258
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.stripMargin
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(scala.StringContext.apply(&quot;Executing show_job_props with params: job_name =&gt; &quot;, &quot;&quot;).s(jobName)).stripMargin
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          1181
+          -
+          1246
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Executing show_job_props with params: job_name =&gt; &quot;, &quot;&quot;).s(jobName)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          1166
+          -
+          1259
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;Executing show_job_props with params: job_name =&gt; &quot;, &quot;&quot;).s(jobName)).stripMargin)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          1306
+          -
+          1306
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          1315
+          -
+          1335
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.etl_job_name_package
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.etl_job_name_package
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1285
+          -
+          1336
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getEtlJobName
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getEtlJobName[EJN](jobName, EtlJobApp.this.etl_job_name_package)(EtlJobApp.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1355
+          -
+          1404
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.convertToJson
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.convertToJson(job_name.default_properties_map)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          1372
+          -
+          1403
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobName.default_properties_map
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.default_properties_map
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          1347
+          -
+          1405
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(etlflow.utils.UtilityFunctions.convertToJson(job_name.default_properties_map))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          1435
+          -
+          1488
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.immutable.List.apply[String](&quot;job_run_id&quot;, &quot;job_description&quot;, &quot;job_properties&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          1514
+          -
+          1521
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #F0ADAD">
+          actual.unary_!
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          1503
+          -
+          1521
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          default.&amp;&amp;(actual.unary_!)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          1545
+          -
+          1617
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(job_name.default_properties, exclude_keys)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          1537
+          -
+          1618
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(job_name.default_properties, exclude_keys))
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          28
+        </td>
+        <td>
+          1576
+          -
+          1603
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobName.default_properties
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.default_properties
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          1537
+          -
+          1618
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(job_name.default_properties, exclude_keys))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          1660
+          -
+          1668
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #F0ADAD">
+          default.unary_!
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          38
+        </td>
+        <td>
+          1646
+          -
+          1646
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          40
+        </td>
+        <td>
+          1646
+          -
+          1818
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          if (actual.&amp;&amp;(default.unary_!))
+  {
+    val props: EJP = job_name.getActualProperties(jobProps);
+    scala.Predef.println(etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(props, exclude_keys))
+  }
+else
+  ()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          1670
+          -
+          1818
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val props: EJP = job_name.getActualProperties(jobProps);
+  scala.Predef.println(etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(props, exclude_keys))
+}
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          39
+        </td>
+        <td>
+          1646
+          -
+          1646
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          1650
+          -
+          1668
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          actual.&amp;&amp;(default.unary_!)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          34
+        </td>
+        <td>
+          1696
+          -
+          1734
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.EtlJobName.getActualProperties
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.getActualProperties(jobProps)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          35
+        </td>
+        <td>
+          1755
+          -
+          1805
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(props, exclude_keys)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          36
+        </td>
+        <td>
+          1747
+          -
+          1806
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(etlflow.utils.UtilityFunctions.convertToJsonByRemovingKeys(props, exclude_keys))
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          41
+        </td>
+        <td>
+          1907
+          -
+          1920
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          jobName.!=(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          43
+        </td>
+        <td>
+          1934
+          -
+          2044
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;Executing show_step_props with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps))
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          42
+        </td>
+        <td>
+          1949
+          -
+          2043
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Executing show_step_props with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          44
+        </td>
+        <td>
+          2100
+          -
+          2120
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.etl_job_name_package
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.etl_job_name_package
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          46
+        </td>
+        <td>
+          2070
+          -
+          2121
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getEtlJobName
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getEtlJobName[EJN](jobName, EtlJobApp.this.etl_job_name_package)(EtlJobApp.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          45
+        </td>
+        <td>
+          2091
+          -
+          2091
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          47
+        </td>
+        <td>
+          2165
+          -
+          2203
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.EtlJobName.getActualProperties
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.getActualProperties(jobProps)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          49
+        </td>
+        <td>
+          2146
+          -
+          2221
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.toEtlJob(job_name).apply(job_name.getActualProperties(jobProps), EtlJobApp.this.globalProperties)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          48
+        </td>
+        <td>
+          2204
+          -
+          2220
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.globalProperties
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.globalProperties
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          50
+        </td>
+        <td>
+          2236
+          -
+          2275
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.isInstanceOf[etlflow.etljobs.SequentialEtlJob].unary_!
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          2289
+          -
+          2346
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(&quot;Step Props info not available for generic jobs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          51
+        </td>
+        <td>
+          2289
+          -
+          2346
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(&quot;Step Props info not available for generic jobs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          59
+        </td>
+        <td>
+          2362
+          -
+          2557
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  etl_job.job_name_=(job_name.toString());
+  val json: String = etlflow.utils.UtilityFunctions.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level));
+  scala.Predef.println(json)
+}
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          53
+        </td>
+        <td>
+          2395
+          -
+          2412
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          2376
+          -
+          2412
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.EtlJob.job_name_=
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.job_name_=(job_name.toString())
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          56
+        </td>
+        <td>
+          2453
+          -
+          2518
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.EtlJob.getJobInfo
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.getJobInfo(etl_job.job_properties.job_notification_level)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          55
+        </td>
+        <td>
+          2472
+          -
+          2517
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_notification_level
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.job_properties.job_notification_level
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          57
+        </td>
+        <td>
+          2436
+          -
+          2519
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.convertToJson
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          58
+        </td>
+        <td>
+          2532
+          -
+          2545
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(json)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          60
+        </td>
+        <td>
+          2646
+          -
+          2659
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          jobName.!=(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          62
+        </td>
+        <td>
+          2688
+          -
+          2794
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.stripMargin
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(scala.StringContext.apply(&quot;Submitting job to cluster with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          61
+        </td>
+        <td>
+          2688
+          -
+          2782
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Submitting job to cluster with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          63
+        </td>
+        <td>
+          2673
+          -
+          2795
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;Submitting job to cluster with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          65
+        </td>
+        <td>
+          2842
+          -
+          2842
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          64
+        </td>
+        <td>
+          2851
+          -
+          2871
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.etl_job_name_package
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.etl_job_name_package
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          66
+        </td>
+        <td>
+          2821
+          -
+          2872
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getEtlJobName
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getEtlJobName[EJN](jobName, EtlJobApp.this.etl_job_name_package)(EtlJobApp.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          68
+        </td>
+        <td>
+          2929
+          -
+          2945
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.globalProperties
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.globalProperties
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          67
+        </td>
+        <td>
+          2902
+          -
+          2919
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          69
+        </td>
+        <td>
+          2883
+          -
+          2946
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.DataProcJob.executeDataProcJob
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.executeDataProcJob(job_name.toString(), jobProps, EtlJobApp.this.globalProperties)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          70
+        </td>
+        <td>
+          3035
+          -
+          3048
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          jobName.!=(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          71
+        </td>
+        <td>
+          3132
+          -
+          3212
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Running job with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          73
+        </td>
+        <td>
+          3117
+          -
+          3225
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.info
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;Running job with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          72
+        </td>
+        <td>
+          3132
+          -
+          3224
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.stripMargin
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(scala.StringContext.apply(&quot;Running job with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          74
+        </td>
+        <td>
+          3281
+          -
+          3301
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.etl_job_name_package
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.etl_job_name_package
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          76
+        </td>
+        <td>
+          3251
+          -
+          3302
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getEtlJobName
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getEtlJobName[EJN](jobName, EtlJobApp.this.etl_job_name_package)(EtlJobApp.this.evidence$1)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          75
+        </td>
+        <td>
+          3272
+          -
+          3272
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          77
+        </td>
+        <td>
+          3346
+          -
+          3384
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.EtlJobName.getActualProperties
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.getActualProperties(jobProps)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          79
+        </td>
+        <td>
+          3327
+          -
+          3402
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.toEtlJob(job_name).apply(job_name.getActualProperties(jobProps), EtlJobApp.this.globalProperties)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          78
+        </td>
+        <td>
+          3385
+          -
+          3401
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.globalProperties
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.globalProperties
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          80
+        </td>
+        <td>
+          3432
+          -
+          3449
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          job_name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          81
+        </td>
+        <td>
+          3413
+          -
+          3449
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.EtlJob.job_name_=
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.job_name_=(job_name.toString())
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          83
+        </td>
+        <td>
+          3460
+          -
+          3496
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Runtime.unsafeRun
+        </td>
+        <td style="background: #F0ADAD">
+          runtime.unsafeRun[Throwable, Unit](etl_job.execute())
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          82
+        </td>
+        <td>
+          3478
+          -
+          3495
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.EtlJob.execute
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.execute()
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          86
+        </td>
+        <td>
+          3526
+          -
+          3618
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          etlJobConfig.show_job_props.||(etlJobConfig.show_step_props).&amp;&amp;(etlJobConfig.job_name.==(&quot;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          85
+        </td>
+        <td>
+          3591
+          -
+          3618
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          etlJobConfig.job_name.==(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          84
+        </td>
+        <td>
+          3558
+          -
+          3586
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.EtlJobArgsParser.EtlJobConfig.show_step_props
+        </td>
+        <td style="background: #F0ADAD">
+          etlJobConfig.show_step_props
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          88
+        </td>
+        <td>
+          3632
+          -
+          3683
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.error
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.ea_logger.error(scala.StringContext.apply(&quot;Need to provide args --job_name&quot;).s())
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          87
+        </td>
+        <td>
+          3648
+          -
+          3682
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Need to provide args --job_name&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          89
+        </td>
+        <td>
+          3694
+          -
+          3708
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(1)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          91
+        </td>
+        <td>
+          3737
+          -
+          3831
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.log4j.Category.error
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.ea_logger.error(scala.StringContext.apply(&quot;Incorrect input args or no args provided, Try --help for more information.&quot;).s())
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          90
+        </td>
+        <td>
+          3753
+          -
+          3830
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Incorrect input args or no args provided, Try --help for more information.&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          92
+        </td>
+        <td>
+          3842
+          -
+          3856
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(1)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          93
+        </td>
+        <td>
+          3884
+          -
+          3898
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(1)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,1788 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/jdbc/DbManager.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.jdbc
+</span>2 <span style=''>
+</span>3 <span style=''>import cats.effect.{Blocker, Resource}
+</span>4 <span style=''>import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+</span>5 <span style=''>import doobie.hikari.HikariTransactor
+</span>6 <span style=''>import doobie.util.ExecutionContexts
+</span>7 <span style=''>import etlflow.utils.{GlobalProperties, JDBC}
+</span>8 <span style=''>import org.flywaydb.core.Flyway
+</span>9 <span style=''>import zio.interop.catz._
+</span>10 <span style=''>import zio.{Task, ZManaged}
+</span>11 <span style=''>import scala.concurrent.ExecutionContext
+</span>12 <span style=''>
+</span>13 <span style=''>trait DbManager {
+</span>14 <span style=''>
+</span>15 <span style=''>  def createDbTransactorManagedGP(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): ZManaged[Any, Throwable, HikariTransactor[Task]] = </span><span style='background: #F0ADAD'>{
+</span>16 <span style=''></span><span style='background: #F0ADAD'>    val config = new HikariConfig()
+</span>17 <span style=''></span><span style='background: #F0ADAD'>    config.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse(&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
+</span>18 <span style=''></span><span style='background: #F0ADAD'>    config.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse(&quot;&lt;use_global_properties_log_db_url&gt;&quot;))
+</span>19 <span style=''></span><span style='background: #F0ADAD'>    config.setUsername(global_properties.map(_.log_db_user).getOrElse(&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
+</span>20 <span style=''></span><span style='background: #F0ADAD'>    config.setPassword(global_properties.map(_.log_db_pwd).getOrElse(&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
+</span>21 <span style=''></span><span style='background: #F0ADAD'>    config.setMaximumPoolSize(2)
+</span>22 <span style=''></span><span style='background: #F0ADAD'>    config.setPoolName(pool_name)
+</span>23 <span style=''></span><span style='background: #F0ADAD'>    HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
+</span>24 <span style=''></span><span style='background: #F0ADAD'>  }.toManagedZIO</span><span style=''>
+</span>25 <span style=''>
+</span>26 <span style=''>  def createDbTransactorManagedJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): ZManaged[Any, Throwable, HikariTransactor[Task]] = </span><span style='background: #F0ADAD'>{
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    val config = new HikariConfig()
+</span>28 <span style=''></span><span style='background: #F0ADAD'>    config.setDriverClassName(credentials.driver)
+</span>29 <span style=''></span><span style='background: #F0ADAD'>    config.setJdbcUrl(credentials.url)
+</span>30 <span style=''></span><span style='background: #F0ADAD'>    config.setUsername(credentials.user)
+</span>31 <span style=''></span><span style='background: #F0ADAD'>    config.setPassword(credentials.password)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>    config.setMaximumPoolSize(2)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>    config.setPoolName(pool_name)
+</span>34 <span style=''></span><span style='background: #F0ADAD'>    HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
+</span>35 <span style=''></span><span style='background: #F0ADAD'>    }.toManagedZIO</span><span style=''>
+</span>36 <span style=''>
+</span>37 <span style=''>  def createDbTransactorManagedJDBC(credentials: JDBC): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
+</span>38 <span style=''>    (</span><span style='background: #F0ADAD'>for {
+</span>39 <span style=''></span><span style='background: #F0ADAD'>      connectEC &lt;- ExecutionContexts.fixedThreadPool[Task](10)
+</span>40 <span style=''></span><span style='background: #F0ADAD'>      xa        &lt;- HikariTransactor.newHikariTransactor[Task](
+</span>41 <span style=''></span><span style='background: #F0ADAD'>        credentials.driver,     // driver classname
+</span>42 <span style=''></span><span style='background: #F0ADAD'>        credentials.url,        // connect URL
+</span>43 <span style=''></span><span style='background: #F0ADAD'>        credentials.user,       // username
+</span>44 <span style=''></span><span style='background: #F0ADAD'>        credentials.password,   // password
+</span>45 <span style=''></span><span style='background: #F0ADAD'>        connectEC,                              // await connection here
+</span>46 <span style=''></span><span style='background: #F0ADAD'>        Blocker.liftExecutionContext(connectEC) // transactEC // execute JDBC operations here
+</span>47 <span style=''></span><span style='background: #F0ADAD'>      )
+</span>48 <span style=''></span><span style='background: #F0ADAD'>    } yield xa).toManagedZIO</span><span style=''>
+</span>49 <span style=''>  }
+</span>50 <span style=''>
+</span>51 <span style=''>  def runDbMigration(credentials: JDBC): Task[Int] = </span><span style='background: #F0ADAD'>Task {
+</span>52 <span style=''></span><span style='background: #F0ADAD'>    Flyway
+</span>53 <span style=''></span><span style='background: #F0ADAD'>      .configure(this.getClass.getClassLoader)
+</span>54 <span style=''></span><span style='background: #F0ADAD'>      .dataSource(credentials.url, credentials.user, credentials.password)
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      .locations(&quot;migration&quot;)
+</span>56 <span style=''></span><span style='background: #F0ADAD'>      .connectRetries(2)
+</span>57 <span style=''></span><span style='background: #F0ADAD'>      .load()
+</span>58 <span style=''></span><span style='background: #F0ADAD'>      .migrate()
+</span>59 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>60 <span style=''>
+</span>61 <span style=''>  def createDbTransactor(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): HikariTransactor[Task] = {
+</span>62 <span style=''>    val dataSource = </span><span style='background: #F0ADAD'>new HikariDataSource()</span><span style=''>
+</span>63 <span style=''>    </span><span style='background: #F0ADAD'>dataSource.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse(&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))</span><span style=''>
+</span>64 <span style=''>    </span><span style='background: #F0ADAD'>dataSource.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse(&quot;&lt;use_global_properties_log_db_url&gt;&quot;))</span><span style=''>
+</span>65 <span style=''>    </span><span style='background: #F0ADAD'>dataSource.setUsername(global_properties.map(_.log_db_user).getOrElse(&quot;&lt;use_global_properties_log_db_user&gt;&quot;))</span><span style=''>
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>dataSource.setPassword(global_properties.map(_.log_db_pwd).getOrElse(&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))</span><span style=''>
+</span>67 <span style=''>    </span><span style='background: #F0ADAD'>dataSource.setMaximumPoolSize(2)</span><span style=''>
+</span>68 <span style=''>    </span><span style='background: #F0ADAD'>dataSource.setPoolName(pool_name)</span><span style=''>
+</span>69 <span style=''>    </span><span style='background: #F0ADAD'>HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))</span><span style=''>
+</span>70 <span style=''>  }
+</span>71 <span style=''>
+</span>72 <span style=''>  def createDbTransactorJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): Task[HikariTransactor[Task]] = </span><span style='background: #F0ADAD'>Task {
+</span>73 <span style=''></span><span style='background: #F0ADAD'>    val dataSource = new HikariDataSource()
+</span>74 <span style=''></span><span style='background: #F0ADAD'>    dataSource.setDriverClassName(credentials.driver)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>    dataSource.setJdbcUrl(credentials.url)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>    dataSource.setUsername(credentials.user)
+</span>77 <span style=''></span><span style='background: #F0ADAD'>    dataSource.setPassword(credentials.password)
+</span>78 <span style=''></span><span style='background: #F0ADAD'>    dataSource.setMaximumPoolSize(2)
+</span>79 <span style=''></span><span style='background: #F0ADAD'>    dataSource.setPoolName(pool_name)
+</span>80 <span style=''></span><span style='background: #F0ADAD'>    HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
+</span>81 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>82 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1224
+        </td>
+        <td>
+          593
+          -
+          611
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new com.zaxxer.hikari.HikariConfig()
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1225
+        </td>
+        <td>
+          642
+          -
+          731
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1226
+        </td>
+        <td>
+          616
+          -
+          732
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setDriverClassName
+        </td>
+        <td style="background: #F0ADAD">
+          config.setDriverClassName(global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1228
+        </td>
+        <td>
+          737
+          -
+          839
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setJdbcUrl
+        </td>
+        <td style="background: #F0ADAD">
+          config.setJdbcUrl(global_properties.map[String](((x$2: etlflow.utils.GlobalProperties) =&gt; x$2.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1227
+        </td>
+        <td>
+          755
+          -
+          838
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$2: etlflow.utils.GlobalProperties) =&gt; x$2.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1230
+        </td>
+        <td>
+          844
+          -
+          949
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setUsername
+        </td>
+        <td style="background: #F0ADAD">
+          config.setUsername(global_properties.map[String](((x$3: etlflow.utils.GlobalProperties) =&gt; x$3.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1229
+        </td>
+        <td>
+          863
+          -
+          948
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$3: etlflow.utils.GlobalProperties) =&gt; x$3.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1231
+        </td>
+        <td>
+          973
+          -
+          1056
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$4: etlflow.utils.GlobalProperties) =&gt; x$4.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1232
+        </td>
+        <td>
+          954
+          -
+          1057
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPassword
+        </td>
+        <td style="background: #F0ADAD">
+          config.setPassword(global_properties.map[String](((x$4: etlflow.utils.GlobalProperties) =&gt; x$4.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          1233
+        </td>
+        <td>
+          1062
+          -
+          1090
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setMaximumPoolSize
+        </td>
+        <td style="background: #F0ADAD">
+          config.setMaximumPoolSize(2)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          1234
+        </td>
+        <td>
+          1095
+          -
+          1124
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPoolName
+        </td>
+        <td style="background: #F0ADAD">
+          config.setPoolName(pool_name)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1237
+        </td>
+        <td>
+          1168
+          -
+          1168
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1236
+        </td>
+        <td>
+          1168
+          -
+          1168
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1235
+        </td>
+        <td>
+          1181
+          -
+          1213
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Blocker.liftExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          cats.effect.Blocker.liftExecutionContext(ec)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1238
+        </td>
+        <td>
+          1129
+          -
+          1214
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          doobie.hikari.HikariTransactor.fromHikariConfig
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.hikari.HikariTransactor.fromHikariConfig[zio.Task](config, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          1239
+        </td>
+        <td>
+          574
+          -
+          1231
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          zio.interop.ZIOResourceSyntax.toManagedZIO
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioResourceSyntax[Any, Throwable, doobie.hikari.HikariTransactor[zio.Task]]({
+  val config: com.zaxxer.hikari.HikariConfig = new com.zaxxer.hikari.HikariConfig();
+  config.setDriverClassName(global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;));
+  config.setJdbcUrl(global_properties.map[String](((x$2: etlflow.utils.GlobalProperties) =&gt; x$2.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;));
+  config.setUsername(global_properties.map[String](((x$3: etlflow.utils.GlobalProperties) =&gt; x$3.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;));
+  config.setPassword(global_properties.map[String](((x$4: etlflow.utils.GlobalProperties) =&gt; x$4.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;));
+  config.setMaximumPoolSize(2);
+  config.setPoolName(pool_name);
+  doobie.hikari.HikariTransactor.fromHikariConfig[zio.Task](config, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+}).toManagedZIO
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          1240
+        </td>
+        <td>
+          1415
+          -
+          1433
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new com.zaxxer.hikari.HikariConfig()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1242
+        </td>
+        <td>
+          1438
+          -
+          1483
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setDriverClassName
+        </td>
+        <td style="background: #F0ADAD">
+          config.setDriverClassName(credentials.driver)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1241
+        </td>
+        <td>
+          1464
+          -
+          1482
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.driver
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.driver
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1243
+        </td>
+        <td>
+          1506
+          -
+          1521
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.url
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.url
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1244
+        </td>
+        <td>
+          1488
+          -
+          1522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setJdbcUrl
+        </td>
+        <td style="background: #F0ADAD">
+          config.setJdbcUrl(credentials.url)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1246
+        </td>
+        <td>
+          1527
+          -
+          1563
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setUsername
+        </td>
+        <td style="background: #F0ADAD">
+          config.setUsername(credentials.user)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1245
+        </td>
+        <td>
+          1546
+          -
+          1562
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.user
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.user
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1248
+        </td>
+        <td>
+          1568
+          -
+          1608
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPassword
+        </td>
+        <td style="background: #F0ADAD">
+          config.setPassword(credentials.password)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1247
+        </td>
+        <td>
+          1587
+          -
+          1607
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.password
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.password
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1249
+        </td>
+        <td>
+          1613
+          -
+          1641
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setMaximumPoolSize
+        </td>
+        <td style="background: #F0ADAD">
+          config.setMaximumPoolSize(2)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1250
+        </td>
+        <td>
+          1646
+          -
+          1675
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPoolName
+        </td>
+        <td style="background: #F0ADAD">
+          config.setPoolName(pool_name)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1252
+        </td>
+        <td>
+          1719
+          -
+          1719
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1254
+        </td>
+        <td>
+          1680
+          -
+          1765
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          doobie.hikari.HikariTransactor.fromHikariConfig
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.hikari.HikariTransactor.fromHikariConfig[zio.Task](config, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1251
+        </td>
+        <td>
+          1732
+          -
+          1764
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Blocker.liftExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          cats.effect.Blocker.liftExecutionContext(ec)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1253
+        </td>
+        <td>
+          1719
+          -
+          1719
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1255
+        </td>
+        <td>
+          1396
+          -
+          1784
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          zio.interop.ZIOResourceSyntax.toManagedZIO
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioResourceSyntax[Any, Throwable, doobie.hikari.HikariTransactor[zio.Task]]({
+  val config: com.zaxxer.hikari.HikariConfig = new com.zaxxer.hikari.HikariConfig();
+  config.setDriverClassName(credentials.driver);
+  config.setJdbcUrl(credentials.url);
+  config.setUsername(credentials.user);
+  config.setPassword(credentials.password);
+  config.setMaximumPoolSize(2);
+  config.setPoolName(pool_name);
+  doobie.hikari.HikariTransactor.fromHikariConfig[zio.Task](config, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+}).toManagedZIO
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1267
+        </td>
+        <td>
+          1900
+          -
+          2408
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Resource.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.util.ExecutionContexts.fixedThreadPool[zio.Task](10)(zio.interop.catz.taskConcurrentInstance[Any]).flatMap[doobie.hikari.HikariTransactor[zio.Task]](((connectEC: scala.concurrent.ExecutionContext) =&gt; doobie.hikari.HikariTransactor.newHikariTransactor[zio.Task](credentials.driver, credentials.url, credentials.user, credentials.password, connectEC, cats.effect.Blocker.liftExecutionContext(connectEC))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable]).map[doobie.hikari.HikariTransactor[zio.Task]](((xa: doobie.hikari.HikariTransactor[zio.Task]) =&gt; xa))(zio.interop.catz.taskConcurrentInstance[Any])))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1257
+        </td>
+        <td>
+          1964
+          -
+          1964
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1256
+        </td>
+        <td>
+          1965
+          -
+          1967
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          10
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1264
+        </td>
+        <td>
+          2030
+          -
+          2030
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1263
+        </td>
+        <td>
+          2030
+          -
+          2030
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1266
+        </td>
+        <td>
+          1975
+          -
+          2408
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          cats.effect.Resource.map
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.hikari.HikariTransactor.newHikariTransactor[zio.Task](credentials.driver, credentials.url, credentials.user, credentials.password, connectEC, cats.effect.Blocker.liftExecutionContext(connectEC))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable]).map[doobie.hikari.HikariTransactor[zio.Task]](((xa: doobie.hikari.HikariTransactor[zio.Task]) =&gt; xa))(zio.interop.catz.taskConcurrentInstance[Any])
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1265
+        </td>
+        <td>
+          1985
+          -
+          1985
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1258
+        </td>
+        <td>
+          2040
+          -
+          2058
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.driver
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.driver
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1259
+        </td>
+        <td>
+          2092
+          -
+          2107
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.url
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.url
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1260
+        </td>
+        <td>
+          2139
+          -
+          2155
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.user
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.user
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1261
+        </td>
+        <td>
+          2183
+          -
+          2203
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.password
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.password
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1262
+        </td>
+        <td>
+          2300
+          -
+          2339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Blocker.liftExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          cats.effect.Blocker.liftExecutionContext(connectEC)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1268
+        </td>
+        <td>
+          1900
+          -
+          2422
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          zio.interop.ZIOResourceSyntax.toManagedZIO
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioResourceSyntax[Any, Throwable, doobie.hikari.HikariTransactor[zio.Task]](doobie.util.ExecutionContexts.fixedThreadPool[zio.Task](10)(zio.interop.catz.taskConcurrentInstance[Any]).flatMap[doobie.hikari.HikariTransactor[zio.Task]](((connectEC: scala.concurrent.ExecutionContext) =&gt; doobie.hikari.HikariTransactor.newHikariTransactor[zio.Task](credentials.driver, credentials.url, credentials.user, credentials.password, connectEC, cats.effect.Blocker.liftExecutionContext(connectEC))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable]).map[doobie.hikari.HikariTransactor[zio.Task]](((xa: doobie.hikari.HikariTransactor[zio.Task]) =&gt; xa))(zio.interop.catz.taskConcurrentInstance[Any])))).toManagedZIO
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1270
+        </td>
+        <td>
+          2481
+          -
+          2710
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[Int](org.flywaydb.core.Flyway.configure(this.getClass().getClassLoader()).dataSource(credentials.url, credentials.user, credentials.password).locations(&quot;migration&quot;).connectRetries(2).load().migrate())
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1269
+        </td>
+        <td>
+          2492
+          -
+          2706
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.flywaydb.core.Flyway.migrate
+        </td>
+        <td style="background: #F0ADAD">
+          org.flywaydb.core.Flyway.configure(this.getClass().getClassLoader()).dataSource(credentials.url, credentials.user, credentials.password).locations(&quot;migration&quot;).connectRetries(2).load().migrate()
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          1271
+        </td>
+        <td>
+          2887
+          -
+          2909
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariDataSource.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new com.zaxxer.hikari.HikariDataSource()
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1273
+        </td>
+        <td>
+          2914
+          -
+          3034
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setDriverClassName
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setDriverClassName(global_properties.map[String](((x$5: etlflow.utils.GlobalProperties) =&gt; x$5.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1272
+        </td>
+        <td>
+          2944
+          -
+          3033
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$5: etlflow.utils.GlobalProperties) =&gt; x$5.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1275
+        </td>
+        <td>
+          3039
+          -
+          3145
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setJdbcUrl
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setJdbcUrl(global_properties.map[String](((x$6: etlflow.utils.GlobalProperties) =&gt; x$6.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1274
+        </td>
+        <td>
+          3061
+          -
+          3144
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$6: etlflow.utils.GlobalProperties) =&gt; x$6.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1276
+        </td>
+        <td>
+          3173
+          -
+          3258
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$7: etlflow.utils.GlobalProperties) =&gt; x$7.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1277
+        </td>
+        <td>
+          3150
+          -
+          3259
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setUsername
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setUsername(global_properties.map[String](((x$7: etlflow.utils.GlobalProperties) =&gt; x$7.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1279
+        </td>
+        <td>
+          3264
+          -
+          3371
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPassword
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setPassword(global_properties.map[String](((x$8: etlflow.utils.GlobalProperties) =&gt; x$8.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1278
+        </td>
+        <td>
+          3287
+          -
+          3370
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$8: etlflow.utils.GlobalProperties) =&gt; x$8.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1280
+        </td>
+        <td>
+          3376
+          -
+          3408
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setMaximumPoolSize
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setMaximumPoolSize(2)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1281
+        </td>
+        <td>
+          3413
+          -
+          3446
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPoolName
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setPoolName(pool_name)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1282
+        </td>
+        <td>
+          3490
+          -
+          3522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Blocker.liftExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          cats.effect.Blocker.liftExecutionContext(ec)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1285
+        </td>
+        <td>
+          3451
+          -
+          3523
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          doobie.hikari.HikariTransactor.apply
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.hikari.HikariTransactor.apply[zio.Task](dataSource, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1284
+        </td>
+        <td>
+          3473
+          -
+          3473
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1283
+        </td>
+        <td>
+          3473
+          -
+          3473
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1301
+        </td>
+        <td>
+          3665
+          -
+          4062
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[doobie.hikari.HikariTransactor[zio.Task]]({
+  val dataSource: com.zaxxer.hikari.HikariDataSource = new com.zaxxer.hikari.HikariDataSource();
+  dataSource.setDriverClassName(credentials.driver);
+  dataSource.setJdbcUrl(credentials.url);
+  dataSource.setUsername(credentials.user);
+  dataSource.setPassword(credentials.password);
+  dataSource.setMaximumPoolSize(2);
+  dataSource.setPoolName(pool_name);
+  doobie.hikari.HikariTransactor.apply[zio.Task](dataSource, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+})
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1286
+        </td>
+        <td>
+          3693
+          -
+          3715
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariDataSource.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new com.zaxxer.hikari.HikariDataSource()
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1288
+        </td>
+        <td>
+          3720
+          -
+          3769
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setDriverClassName
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setDriverClassName(credentials.driver)
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1287
+        </td>
+        <td>
+          3750
+          -
+          3768
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.driver
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.driver
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1290
+        </td>
+        <td>
+          3774
+          -
+          3812
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setJdbcUrl
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setJdbcUrl(credentials.url)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1289
+        </td>
+        <td>
+          3796
+          -
+          3811
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.url
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.url
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1291
+        </td>
+        <td>
+          3840
+          -
+          3856
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.user
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.user
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1292
+        </td>
+        <td>
+          3817
+          -
+          3857
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setUsername
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setUsername(credentials.user)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1294
+        </td>
+        <td>
+          3862
+          -
+          3906
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPassword
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setPassword(credentials.password)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1293
+        </td>
+        <td>
+          3885
+          -
+          3905
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.password
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.password
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          1295
+        </td>
+        <td>
+          3911
+          -
+          3943
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setMaximumPoolSize
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setMaximumPoolSize(2)
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          1296
+        </td>
+        <td>
+          3948
+          -
+          3981
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPoolName
+        </td>
+        <td style="background: #F0ADAD">
+          dataSource.setPoolName(pool_name)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1297
+        </td>
+        <td>
+          4025
+          -
+          4057
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Blocker.liftExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          cats.effect.Blocker.liftExecutionContext(ec)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1300
+        </td>
+        <td>
+          3986
+          -
+          4058
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          doobie.hikari.HikariTransactor.apply
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.hikari.HikariTransactor.apply[zio.Task](dataSource, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1299
+        </td>
+        <td>
+          4008
+          -
+          4008
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1298
+        </td>
+        <td>
+          4008
+          -
+          4008
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

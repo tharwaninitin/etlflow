@@ -103,6 +103,10 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="etlflow">etlflow</a></dd></dl></div>
     </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="class" href="package$$AWS.html" title=""></a>
+                        <a href="package$$AWS.html" title="">AWS</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="object" href="AppLogger$.html" title=""></a>
                         <a href="AppLogger$.html" title="">AppLogger</a>
                       </li><li class="current-entities indented2">
@@ -125,6 +129,10 @@
                         <span class="separator"></span>
                         <a class="trait" href="package$$FSType.html" title=""></a>
                         <a href="package$$FSType.html" title="">FSType</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="class" href="package$$GCP.html" title=""></a>
+                        <a href="package$$GCP.html" title="">GCP</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$GCS$.html" title=""></a>
@@ -161,6 +169,10 @@
                         <span class="separator"></span>
                         <a class="object" href="package$$PARQUET$.html" title=""></a>
                         <a href="package$$PARQUET$.html" title="">PARQUET</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="class" href="package$$REDIS.html" title=""></a>
+                        <a href="package$$REDIS.html" title="">REDIS</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$TEXT$.html" title=""></a>
@@ -374,6 +386,22 @@
       </span>
       
       
+    </li><li name="etlflow.utils.UtilityFunctions#convertToJsonByRemovingKeysAsMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="convertToJsonByRemovingKeysAsMap(entity:AnyRef,keys:List[String]):Map[String,Any]"></a><a id="convertToJsonByRemovingKeysAsMap(AnyRef,List[String]):Map[String,Any]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/utils/UtilityFunctions$.html#convertToJsonByRemovingKeysAsMap(entity:AnyRef,keys:List[String]):Map[String,Any]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertToJsonByRemovingKeysAsMap</span><span class="params">(<span name="entity">entity: <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>, <span name="keys">keys: <a href="../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Any">Any</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -475,14 +503,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getCurrentTimestampAsString</span><span class="params">(<span name="pattern">pattern: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">getCurrentTimestampAsString</span><span class="params">(<span name="pattern">pattern: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;yyyy-MM-dd HH:mm:ss&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       
     </li><li name="etlflow.utils.UtilityFunctions#getEtlJobName" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getEtlJobName[T](job_name:String,etl_job_list_package:String)(implicitevidence$3:reflect.runtime.universe.TypeTag[T]):T"></a><a id="getEtlJobName[T](String,String)(scala.reflect.api.JavaUniverse.TypeTag[T]):T"></a>
+      <a id="getEtlJobName[T](job_name:String,etl_job_list_package:String)(implicitevidence$4:reflect.runtime.universe.TypeTag[T]):T"></a><a id="getEtlJobName[T](String,String)(scala.reflect.api.JavaUniverse.TypeTag[T]):T"></a>
       <span class="permalink">
-      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobName[T](job_name:String,etl_job_list_package:String)(implicitevidence$3:reflect.runtime.universe.TypeTag[T]):T" title="Permalink">
+      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobName[T](job_name:String,etl_job_list_package:String)(implicitevidence$4:reflect.runtime.universe.TypeTag[T]):T" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -491,14 +519,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getEtlJobName</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="job_name">job_name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="etl_job_list_package">etl_job_list_package: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;etljobs.schema.EtlJobList$&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etlflow.utils.UtilityFunctions.getEtlJobName.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="etlflow.utils.UtilityFunctions.getEtlJobName.T">T</span></span>
+        <span class="name">getEtlJobName</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="job_name">job_name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="etl_job_list_package">etl_job_list_package: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;etlflow.schema.EtlJobList$&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etlflow.utils.UtilityFunctions.getEtlJobName.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="etlflow.utils.UtilityFunctions.getEtlJobName.T">T</span></span>
       </span>
       
       
     </li><li name="etlflow.utils.UtilityFunctions#getEtlJobNameGeneric" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getEtlJobNameGeneric[T](job_name:String)(implicitevidence$4:reflect.runtime.universe.TypeTag[T]):T"></a><a id="getEtlJobNameGeneric[T](String)(scala.reflect.api.JavaUniverse.TypeTag[T]):T"></a>
+      <a id="getEtlJobNameGeneric[T](job_name:String)(implicitevidence$5:reflect.runtime.universe.TypeTag[T]):T"></a><a id="getEtlJobNameGeneric[T](String)(scala.reflect.api.JavaUniverse.TypeTag[T]):T"></a>
       <span class="permalink">
-      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobNameGeneric[T](job_name:String)(implicitevidence$4:reflect.runtime.universe.TypeTag[T]):T" title="Permalink">
+      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobNameGeneric[T](job_name:String)(implicitevidence$5:reflect.runtime.universe.TypeTag[T]):T" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -512,9 +540,9 @@
       
       
     </li><li name="etlflow.utils.UtilityFunctions#getEtlJobProps" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getEtlJobProps[T](excludeColumnList:Set[String])(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):Map[String,String]"></a><a id="getEtlJobProps[T](Set[String])(scala.reflect.api.JavaUniverse.TypeTag[T]):Map[String,String]"></a>
+      <a id="getEtlJobProps[T](excludeColumnList:Set[String])(implicitevidence$3:reflect.runtime.universe.TypeTag[T]):Map[String,String]"></a><a id="getEtlJobProps[T](Set[String])(scala.reflect.api.JavaUniverse.TypeTag[T]):Map[String,String]"></a>
       <span class="permalink">
-      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobProps[T](excludeColumnList:Set[String])(implicitevidence$2:reflect.runtime.universe.TypeTag[T]):Map[String,String]" title="Permalink">
+      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobProps[T](excludeColumnList:Set[String])(implicitevidence$3:reflect.runtime.universe.TypeTag[T]):Map[String,String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -524,6 +552,22 @@
       </span>
       <span class="symbol">
         <span class="name">getEtlJobProps</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="excludeColumnList">excludeColumnList: <span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="defval" name='<span class="name"><a href="../../scala/index.html">Set(&quot;job_run_id&quot;,&quot;job_description&quot;,&quot;job_properties&quot;,&quot;job_name&quot;)</a></span>'>...</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etlflow.utils.UtilityFunctions.getEtlJobProps.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      
+      
+    </li><li name="etlflow.utils.UtilityFunctions#getEtlJobs" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getEtlJobs[T](implicitevidence$2:reflect.runtime.universe.TypeTag[T]):Set[String]"></a><a id="getEtlJobs[T](scala.reflect.api.JavaUniverse.TypeTag[T]):Set[String]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/utils/UtilityFunctions$.html#getEtlJobs[T](implicitevidence$2:reflect.runtime.universe.TypeTag[T]):Set[String]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getEtlJobs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.api.TypeTags.TypeTag">scala.reflect.api.JavaUniverse.TypeTag</span>[<span class="extype" name="etlflow.utils.UtilityFunctions.getEtlJobs.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       

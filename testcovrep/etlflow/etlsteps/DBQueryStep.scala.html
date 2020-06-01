@@ -1,0 +1,472 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/DBQueryStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import doobie.hikari.HikariTransactor
+</span>4 <span style=''>import etlflow.jdbc.{DbManager, QueryApi}
+</span>5 <span style=''>import etlflow.utils.JDBC
+</span>6 <span style=''>import zio.{BootstrapRuntime, Managed, Task}
+</span>7 <span style=''>
+</span>8 <span style=''>class DBQueryStep private[etlflow](
+</span>9 <span style=''>                val name: String,
+</span>10 <span style=''>                query: =&gt; String,
+</span>11 <span style=''>                credentials: JDBC
+</span>12 <span style=''>              )
+</span>13 <span style=''>  extends EtlStep[Unit,Unit]
+</span>14 <span style=''>  with DbManager{
+</span>15 <span style=''>
+</span>16 <span style=''>  lazy val db: Managed[Throwable, HikariTransactor[Task]] =
+</span>17 <span style=''>    createDbTransactorManagedJDBC(credentials, scala.concurrent.ExecutionContext.Implicits.global,  name + &quot;-Pool&quot;)
+</span>18 <span style=''>
+</span>19 <span style=''>  final def process(in: =&gt;Unit): Task[Unit] = {
+</span>20 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(&quot;#&quot;*100)</span><span style=''>
+</span>21 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Starting DB Query Step: $name&quot;)</span><span style=''>
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>etl_logger.info(s&quot;Query: $query&quot;)</span><span style=''>
+</span>23 <span style=''>    </span><span style='background: #F0ADAD'>QueryApi.executeQuery(db, query)</span><span style=''>
+</span>24 <span style=''>  }
+</span>25 <span style=''>
+</span>26 <span style=''>  override def getStepProperties(level: String): Map[String, String] = </span><span style='background: #F0ADAD'>Map(&quot;query&quot; -&gt; query)</span><span style=''>
+</span>27 <span style=''>}
+</span>28 <span style=''>
+</span>29 <span style=''>object DBQueryStep {
+</span>30 <span style=''>  def apply(name: String, query: =&gt; String, credentials: JDBC): DBQueryStep =
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>new DBQueryStep(name, query, credentials)</span><span style=''>
+</span>32 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          662
+        </td>
+        <td>
+          609
+          -
+          633
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          661
+        </td>
+        <td>
+          625
+          -
+          632
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.*
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(&quot;#&quot;).*(100)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          663
+        </td>
+        <td>
+          656
+          -
+          681
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Starting DB Query Step: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          666
+        </td>
+        <td>
+          654
+          -
+          686
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Starting DB Query Step: &quot;, &quot;&quot;).s(DBQueryStep.this.name)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          665
+        </td>
+        <td>
+          681
+          -
+          685
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.DBQueryStep.name
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.name
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          664
+        </td>
+        <td>
+          685
+          -
+          686
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          667
+        </td>
+        <td>
+          638
+          -
+          687
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting DB Query Step: &quot;, &quot;&quot;).s(DBQueryStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          669
+        </td>
+        <td>
+          723
+          -
+          724
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          672
+        </td>
+        <td>
+          692
+          -
+          725
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Query: &quot;, &quot;&quot;).s(DBQueryStep.this.query))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          668
+        </td>
+        <td>
+          710
+          -
+          718
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Query: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          671
+        </td>
+        <td>
+          708
+          -
+          724
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Query: &quot;, &quot;&quot;).s(DBQueryStep.this.query)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          670
+        </td>
+        <td>
+          718
+          -
+          723
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.DBQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          674
+        </td>
+        <td>
+          730
+          -
+          762
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.jdbc.QueryApi.executeQuery
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.jdbc.QueryApi.executeQuery(DBQueryStep.this.db, DBQueryStep.this.query)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          673
+        </td>
+        <td>
+          756
+          -
+          761
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.DBQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          678
+        </td>
+        <td>
+          839
+          -
+          860
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;query&quot;).-&gt;[String](DBQueryStep.this.query))
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          675
+        </td>
+        <td>
+          843
+          -
+          850
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;query&quot;
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          677
+        </td>
+        <td>
+          843
+          -
+          859
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.ArrowAssoc.-&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.ArrowAssoc[String](&quot;query&quot;).-&gt;[String](DBQueryStep.this.query)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          676
+        </td>
+        <td>
+          854
+          -
+          859
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.DBQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          679
+        </td>
+        <td>
+          967
+          -
+          1008
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.DBQueryStep.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new DBQueryStep(name, query, credentials)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

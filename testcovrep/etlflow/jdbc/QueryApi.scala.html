@@ -1,0 +1,474 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/jdbc/QueryApi.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.jdbc
+</span>2 <span style=''>
+</span>3 <span style=''>import doobie.hikari.HikariTransactor
+</span>4 <span style=''>import zio.{Managed, Task}
+</span>5 <span style=''>import doobie.implicits._
+</span>6 <span style=''>import doobie.util.fragment.Fragment
+</span>7 <span style=''>import org.slf4j.LoggerFactory
+</span>8 <span style=''>import zio.interop.catz._
+</span>9 <span style=''>
+</span>10 <span style=''>object QueryApi {
+</span>11 <span style=''>  private val query_logger = </span><span style='background: #F0ADAD'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>12 <span style=''>  </span><span style='background: #F0ADAD'>query_logger.info(s&quot;Loaded ${getClass.getName}&quot;)</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  def executeQuery(db: Managed[Throwable, HikariTransactor[Task]], query: String): Task[Unit] = {
+</span>15 <span style=''>    </span><span style='background: #F0ADAD'>db.use{ transactor =&gt;
+</span>16 <span style=''></span><span style='background: #F0ADAD'>      for {
+</span>17 <span style=''></span><span style='background: #F0ADAD'>        n &lt;- Fragment.const(query).update.run.transact(transactor)
+</span>18 <span style=''></span><span style='background: #F0ADAD'>        _ &lt;- Task(query_logger.info(n.toString))
+</span>19 <span style=''></span><span style='background: #F0ADAD'>      } yield ()
+</span>20 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>21 <span style=''>  }
+</span>22 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          1303
+        </td>
+        <td>
+          255
+          -
+          296
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #F0ADAD">
+          org.slf4j.LoggerFactory.getLogger(QueryApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          1302
+        </td>
+        <td>
+          279
+          -
+          295
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #F0ADAD">
+          QueryApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1306
+        </td>
+        <td>
+          328
+          -
+          344
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #F0ADAD">
+          QueryApi.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1305
+        </td>
+        <td>
+          345
+          -
+          346
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1308
+        </td>
+        <td>
+          299
+          -
+          347
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          QueryApi.this.query_logger.info(scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1304
+        </td>
+        <td>
+          319
+          -
+          327
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Loaded &quot;
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1307
+        </td>
+        <td>
+          317
+          -
+          346
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Loaded &quot;, &quot;&quot;).s(QueryApi.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          1320
+        </td>
+        <td>
+          451
+          -
+          623
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZManaged.use
+        </td>
+        <td style="background: #F0ADAD">
+          db.use[Any, Throwable, Unit](((transactor: doobie.hikari.HikariTransactor[zio.Task]) =&gt; doobie.`package`.implicits.toConnectionIOOps[Int]({
+  &lt;artifact&gt; val qual$1: doobie.util.fragment.Fragment = doobie.util.fragment.Fragment.const(query, doobie.util.fragment.Fragment.const$default$2);
+  &lt;artifact&gt; val x$1: doobie.LogHandler = qual$1.update$default$1;
+  qual$1.update(x$1)
+}.run).transact[zio.Task](transactor)(zio.interop.catz.taskConcurrentInstance[Any]).flatMap[Any, Throwable, Unit](((n: Int) =&gt; zio.Task.apply[Unit](QueryApi.this.query_logger.info(n.toString())).map[Unit](((_: Unit) =&gt; ()))))))
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1309
+        </td>
+        <td>
+          507
+          -
+          507
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          doobie.util.fragment.Fragment.const$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.util.fragment.Fragment.const$default$2
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1312
+        </td>
+        <td>
+          498
+          -
+          526
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          doobie.util.fragment.Fragment.update
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.update(x$1)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1314
+        </td>
+        <td>
+          539
+          -
+          539
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1311
+        </td>
+        <td>
+          520
+          -
+          520
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          doobie.util.fragment.Fragment.update$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.update$default$1
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1310
+        </td>
+        <td>
+          498
+          -
+          519
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          doobie.util.fragment.Fragment.const
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.util.fragment.Fragment.const(query, doobie.util.fragment.Fragment.const$default$2)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1319
+        </td>
+        <td>
+          479
+          -
+          617
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          doobie.`package`.implicits.toConnectionIOOps[Int]({
+  &lt;artifact&gt; val qual$1: doobie.util.fragment.Fragment = doobie.util.fragment.Fragment.const(query, doobie.util.fragment.Fragment.const$default$2);
+  &lt;artifact&gt; val x$1: doobie.LogHandler = qual$1.update$default$1;
+  qual$1.update(x$1)
+}.run).transact[zio.Task](transactor)(zio.interop.catz.taskConcurrentInstance[Any]).flatMap[Any, Throwable, Unit](((n: Int) =&gt; zio.Task.apply[Unit](QueryApi.this.query_logger.info(n.toString())).map[Unit](((_: Unit) =&gt; ()))))
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          1313
+        </td>
+        <td>
+          498
+          -
+          530
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          doobie.util.update.Update0.run
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$1: doobie.util.fragment.Fragment = doobie.util.fragment.Fragment.const(query, doobie.util.fragment.Fragment.const$default$2);
+  &lt;artifact&gt; val x$1: doobie.LogHandler = qual$1.update$default$1;
+  qual$1.update(x$1)
+}.run
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1315
+        </td>
+        <td>
+          588
+          -
+          598
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          n.toString()
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1318
+        </td>
+        <td>
+          560
+          -
+          617
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[Unit](QueryApi.this.query_logger.info(n.toString())).map[Unit](((_: Unit) =&gt; ()))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1316
+        </td>
+        <td>
+          570
+          -
+          599
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          QueryApi.this.query_logger.info(n.toString())
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          1317
+        </td>
+        <td>
+          615
+          -
+          617
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

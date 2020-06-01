@@ -1,0 +1,1936 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/aws/package.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow
+</span>2 <span style=''>
+</span>3 <span style=''>import java.net.URI
+</span>4 <span style=''>import java.nio.file.Paths
+</span>5 <span style=''>import java.util.concurrent.CompletableFuture
+</span>6 <span style=''>
+</span>7 <span style=''>import etlflow.utils.AWS
+</span>8 <span style=''>import org.slf4j.{Logger, LoggerFactory}
+</span>9 <span style=''>import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+</span>10 <span style=''>import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+</span>11 <span style=''>
+</span>12 <span style=''>import scala.collection.JavaConverters._
+</span>13 <span style=''>import software.amazon.awssdk.regions.Region
+</span>14 <span style=''>import software.amazon.awssdk.services.s3.S3AsyncClient
+</span>15 <span style=''>import software.amazon.awssdk.services.s3.model.{DeleteObjectRequest, DeleteObjectResponse, GetObjectRequest, GetObjectResponse, ListBucketsResponse, ListObjectsV2Request, ListObjectsV2Response, PutObjectRequest, PutObjectResponse}
+</span>16 <span style=''>import zio.{Has, IO, Task, ZIO, ZLayer}
+</span>17 <span style=''>
+</span>18 <span style=''>package object aws {
+</span>19 <span style=''>  val aws_logger: Logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>20 <span style=''>
+</span>21 <span style=''>  type S3Client = Has[S3Client.Service]
+</span>22 <span style=''>  object S3Client {
+</span>23 <span style=''>    trait Service {
+</span>24 <span style=''>      val s3: S3AsyncClient
+</span>25 <span style=''>    }
+</span>26 <span style=''>    val any: ZLayer[S3Client, Nothing, S3Client] =
+</span>27 <span style=''>      </span><span style='background: #AEF1AE'>ZLayer.requires[S3Client]</span><span style=''>
+</span>28 <span style=''>    val live: ZLayer[S3AsyncClient, Nothing, S3Client] =
+</span>29 <span style=''>      </span><span style='background: #AEF1AE'>ZLayer.fromFunction((curr: S3AsyncClient) =&gt; new S3Client.Service { val s3 = curr })</span><span style=''>
+</span>30 <span style=''>  }
+</span>31 <span style=''>
+</span>32 <span style=''>  type S3Api = Has[S3Api.Service]
+</span>33 <span style=''>  object S3Api {
+</span>34 <span style=''>    trait Service {
+</span>35 <span style=''>      def listBuckets: Task[ListBucketsResponse]
+</span>36 <span style=''>      def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean]
+</span>37 <span style=''>      def listBucketObjects(bucket: String, prefix: String, maxKeys: Int): Task[ListObjectsV2Response]
+</span>38 <span style=''>      def putObject(bucket: String, key: String, file: String): Task[PutObjectResponse]
+</span>39 <span style=''>      def getObject(bucket: String, key: String, file: String): Task[GetObjectResponse]
+</span>40 <span style=''>      def delObject(bucket: String, key: String): Task[DeleteObjectResponse]
+</span>41 <span style=''>    }
+</span>42 <span style=''>    val any: ZLayer[S3Api, Nothing, S3Api] = </span><span style='background: #AEF1AE'>ZLayer.requires[S3Api]</span><span style=''>
+</span>43 <span style=''>    val live: ZLayer[S3Client, Throwable, S3Api] = </span><span style='background: #AEF1AE'>ZLayer.fromService { deps: S3Client.Service =&gt;
+</span>44 <span style=''></span><span style='background: #AEF1AE'>      new Service {
+</span>45 <span style=''></span><span style='background: #AEF1AE'>        def listBuckets: Task[ListBucketsResponse] =
+</span>46 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>IO.effectAsync[Throwable, ListBucketsResponse](callback =&gt; processResponse(deps.s3.listBuckets, callback))</span><span style='background: #AEF1AE'>
+</span>47 <span style=''></span><span style='background: #AEF1AE'>        def listBucketObjects(bucket: String, prefix: String, maxKeys: Int = 20): Task[ListObjectsV2Response] = for {
+</span>48 <span style=''></span><span style='background: #AEF1AE'>            resp &lt;- IO.effect(
+</span>49 <span style=''></span><span style='background: #AEF1AE'>              deps.s3.listObjectsV2(
+</span>50 <span style=''></span><span style='background: #AEF1AE'>                ListObjectsV2Request.builder
+</span>51 <span style=''></span><span style='background: #AEF1AE'>                  .bucket(bucket)
+</span>52 <span style=''></span><span style='background: #AEF1AE'>                  .maxKeys(maxKeys)
+</span>53 <span style=''></span><span style='background: #AEF1AE'>                  .prefix(prefix)
+</span>54 <span style=''></span><span style='background: #AEF1AE'>                  .build
+</span>55 <span style=''></span><span style='background: #AEF1AE'>              )
+</span>56 <span style=''></span><span style='background: #AEF1AE'>            )
+</span>57 <span style=''></span><span style='background: #AEF1AE'>            list &lt;- IO.effectAsync[Throwable, ListObjectsV2Response] { callback =&gt;
+</span>58 <span style=''></span><span style='background: #AEF1AE'>              processResponse(
+</span>59 <span style=''></span><span style='background: #AEF1AE'>                resp,
+</span>60 <span style=''></span><span style='background: #AEF1AE'>                callback
+</span>61 <span style=''></span><span style='background: #AEF1AE'>              )
+</span>62 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>63 <span style=''></span><span style='background: #AEF1AE'>          } yield list
+</span>64 <span style=''></span><span style='background: #AEF1AE'>        def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean] = for {
+</span>65 <span style=''></span><span style='background: #AEF1AE'>            list    &lt;- listBucketObjects(bucket, prefix, Integer.MAX_VALUE)
+</span>66 <span style=''></span><span style='background: #AEF1AE'>            _       = aws_logger.info{
+</span>67 <span style=''></span><span style='background: #AEF1AE'>                      if (list.contents().asScala.nonEmpty)
+</span>68 <span style=''></span><span style='background: #AEF1AE'>                        s&quot;Objects under bucket $bucket with prefix $prefix are \n&quot; + list.contents().asScala.mkString(&quot;\n&quot;)
+</span>69 <span style=''></span><span style='background: #AEF1AE'>                      else </span><span style='background: #F0ADAD'>s&quot;No objects under bucket $bucket with prefix $prefix&quot;</span><span style='background: #AEF1AE'>
+</span>70 <span style=''></span><span style='background: #AEF1AE'>                      }
+</span>71 <span style=''></span><span style='background: #AEF1AE'>            newKey  = prefix + &quot;/&quot; + key
+</span>72 <span style=''></span><span style='background: #AEF1AE'>            res     = list.contents.asScala.exists(_.key == newKey)
+</span>73 <span style=''></span><span style='background: #AEF1AE'>          } yield res
+</span>74 <span style=''></span><span style='background: #AEF1AE'>        def putObject(bucket: String, key: String, file: String): Task[PutObjectResponse] = IO.effectAsync[Throwable, PutObjectResponse] { callback =&gt;
+</span>75 <span style=''></span><span style='background: #AEF1AE'>            processResponse(
+</span>76 <span style=''></span><span style='background: #AEF1AE'>              deps.s3.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, Paths.get(file)),
+</span>77 <span style=''></span><span style='background: #AEF1AE'>              callback
+</span>78 <span style=''></span><span style='background: #AEF1AE'>            )
+</span>79 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>80 <span style=''></span><span style='background: #AEF1AE'>        def getObject(bucket: String, key: String, file: String): Task[GetObjectResponse] = </span><span style='background: #F0ADAD'>IO.effectAsync[Throwable, GetObjectResponse] { callback =&gt;
+</span>81 <span style=''></span><span style='background: #F0ADAD'>            processResponse(
+</span>82 <span style=''></span><span style='background: #F0ADAD'>              deps.s3.getObject(GetObjectRequest.builder.bucket(bucket).key(key).build, Paths.get(file)),
+</span>83 <span style=''></span><span style='background: #F0ADAD'>              callback
+</span>84 <span style=''></span><span style='background: #F0ADAD'>            )
+</span>85 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style='background: #AEF1AE'>
+</span>86 <span style=''></span><span style='background: #AEF1AE'>        def delObject(bucket: String, key: String): Task[DeleteObjectResponse] = </span><span style='background: #F0ADAD'>IO.effectAsync[Throwable, DeleteObjectResponse] { callback =&gt;
+</span>87 <span style=''></span><span style='background: #F0ADAD'>            processResponse(
+</span>88 <span style=''></span><span style='background: #F0ADAD'>              deps.s3.deleteObject(DeleteObjectRequest.builder.bucket(bucket).key(key).build),
+</span>89 <span style=''></span><span style='background: #F0ADAD'>              callback
+</span>90 <span style=''></span><span style='background: #F0ADAD'>            )
+</span>91 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style='background: #AEF1AE'>
+</span>92 <span style=''></span><span style='background: #AEF1AE'>        def processResponse[T](fut: CompletableFuture[T], callback: Task[T] =&gt; Unit): Unit = fut.handle[Unit] { (response, err) =&gt;
+</span>93 <span style=''></span><span style='background: #AEF1AE'>            err match {
+</span>94 <span style=''></span><span style='background: #AEF1AE'>              case null =&gt; callback(IO.succeed(response))
+</span>95 <span style=''></span><span style='background: #AEF1AE'>              case ex =&gt; </span><span style='background: #F0ADAD'>callback(IO.fail(ex))</span><span style='background: #AEF1AE'>
+</span>96 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>97 <span style=''></span><span style='background: #AEF1AE'>          }: Unit
+</span>98 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>99 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>100 <span style=''>  }
+</span>101 <span style=''>
+</span>102 <span style=''>  def createClient(region: Region, endpointOverride: Option[String] = None, credentials: Option[AWS] = None): Task[S3AsyncClient] = {
+</span>103 <span style=''>    val ACCESS_KEY = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;ACCESS_KEY&quot;, &quot;NOT_SET_IN_ENV&quot;)</span><span style=''>
+</span>104 <span style=''>    val SECRET_KEY = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;SECRET_KEY&quot;, &quot;NOT_SET_IN_ENV&quot;)</span><span style=''>
+</span>105 <span style=''>
+</span>106 <span style=''>    val initBuilder = credentials match {
+</span>107 <span style=''>      case Some(creds) =&gt;
+</span>108 <span style=''>        </span><span style='background: #F0ADAD'>aws_logger.info(&quot;Using AWS credentials from credentials passed in function&quot;)</span><span style=''>
+</span>109 <span style=''>        val credentials = </span><span style='background: #F0ADAD'>StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.access_key, creds.secret_key))</span><span style=''>
+</span>110 <span style=''>        </span><span style='background: #F0ADAD'>S3AsyncClient.builder.region(region).credentialsProvider(credentials)</span><span style=''>
+</span>111 <span style=''>      case None =&gt; (ACCESS_KEY, SECRET_KEY) match {
+</span>112 <span style=''>        case (&quot;NOT_SET_IN_ENV&quot;, &quot;NOT_SET_IN_ENV&quot;) =&gt;
+</span>113 <span style=''>          </span><span style='background: #AEF1AE'>aws_logger.info(&quot;Using AWS credentials from local sdk&quot;)</span><span style=''>
+</span>114 <span style=''>          </span><span style='background: #AEF1AE'>S3AsyncClient.builder.region(region)</span><span style=''>
+</span>115 <span style=''>        case keys =&gt;
+</span>116 <span style=''>          </span><span style='background: #F0ADAD'>aws_logger.info(&quot;Using AWS credentials from environment variables(ACCESS_KEY,SECRET_KEY)&quot;)</span><span style=''>
+</span>117 <span style=''>          val credentials = </span><span style='background: #F0ADAD'>StaticCredentialsProvider.create(AwsBasicCredentials.create(keys._1, keys._2))</span><span style=''>
+</span>118 <span style=''>          </span><span style='background: #F0ADAD'>S3AsyncClient.builder.region(region).credentialsProvider(credentials)</span><span style=''>
+</span>119 <span style=''>        }
+</span>120 <span style=''>    }
+</span>121 <span style=''>
+</span>122 <span style=''>    val client = </span><span style='background: #AEF1AE'>endpointOverride
+</span>123 <span style=''></span><span style='background: #AEF1AE'>      .map(URI.create)
+</span>124 <span style=''></span><span style='background: #AEF1AE'>      .map(initBuilder.endpointOverride)
+</span>125 <span style=''></span><span style='background: #AEF1AE'>      .getOrElse(initBuilder)
+</span>126 <span style=''></span><span style='background: #AEF1AE'>      .build</span><span style=''>
+</span>127 <span style=''>
+</span>128 <span style=''>    </span><span style='background: #AEF1AE'>Task(client)</span><span style=''>
+</span>129 <span style=''>  }
+</span>130 <span style=''>  def putObject(bucket: String, key: String, file: String): ZIO[S3Api, Throwable, PutObjectResponse] = </span><span style='background: #AEF1AE'>ZIO.accessM(_.get.putObject(bucket,key,file))</span><span style=''>
+</span>131 <span style=''>  def lookupObject(bucket: String, prefix: String, key: String): ZIO[S3Api, Throwable, Boolean] = </span><span style='background: #AEF1AE'>ZIO.accessM(_.get.lookupObject(bucket,prefix,key))</span><span style=''>
+</span>132 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          95
+        </td>
+        <td>
+          781
+          -
+          822
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.slf4j.LoggerFactory.getLogger(`package`.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          94
+        </td>
+        <td>
+          805
+          -
+          821
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          96
+        </td>
+        <td>
+          995
+          -
+          1020
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.ZLayer.requires
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZLayer.requires[etlflow.aws.package.S3Client]
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          98
+        </td>
+        <td>
+          1084
+          -
+          1168
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZLayer.fromFunction
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZLayer.fromFunction[software.amazon.awssdk.services.s3.S3AsyncClient, etlflow.aws.package.S3Client.Service](((curr: software.amazon.awssdk.services.s3.S3AsyncClient) =&gt; {
+  final class $anon extends AnyRef with etlflow.aws.package.S3Client.Service {
+    def &lt;init&gt;(): &lt;$anon: etlflow.aws.package.S3Client.Service&gt; = {
+      $anon.super.&lt;init&gt;();
+      ()
+    };
+    private[this] val s3: software.amazon.awssdk.services.s3.S3AsyncClient = curr;
+    &lt;stable&gt; &lt;accessor&gt; def s3: software.amazon.awssdk.services.s3.S3AsyncClient = $anon.this.s3
+  };
+  new $anon()
+}))((izumi.reflect.Tags.Tag.apply[etlflow.aws.package.S3Client.Service](classOf[java.lang.Object], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((891196278: Int), (&quot;\u0004\u0000\u0003\u0000\u001Cetlflow.aws.S3Client.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0014etlflow.aws.S3Client\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0001\u0004\u0000\u0003\u0000\u001Cetlflow.aws.S3Client.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0014etlflow.aws.S3Client\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0001\u0004\u0000\u0003\u0000\u0090\u0002\u0002\u0002\u0003\u0000\u0002\u0000\u0090\u0003\u0002\u0002\u0003\u0090\u0005\u0001\u0000\u0003\u0000!etlflow.aws.S3Client.&lt;refinement&gt;\u0002\u0001\u0001\u0000\u0003\u0000\u0090\u0002\u0002\u0002\u0003\u0000\u0002\u0000\u0090\u0003\u0002\u0002\u0003\u0090\u0005\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.package.S3Client.Service]))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          97
+        </td>
+        <td>
+          1129
+          -
+          1132
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Client.$anon.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anon()
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          99
+        </td>
+        <td>
+          1784
+          -
+          1806
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.ZLayer.requires
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZLayer.requires[etlflow.aws.package.S3Api]
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          1858
+          -
+          4619
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZLayer.fromService
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZLayer.fromService[etlflow.aws.package.S3Client.Service, etlflow.aws.S3Api.Service](((deps: etlflow.aws.package.S3Client.Service) =&gt; {
+  final class $anon extends AnyRef with etlflow.aws.S3Api.Service {
+    def &lt;init&gt;(): &lt;$anon: etlflow.aws.S3Api.Service&gt; = {
+      $anon.super.&lt;init&gt;();
+      ()
+    };
+    def listBuckets: zio.Task[software.amazon.awssdk.services.s3.model.ListBucketsResponse] = zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.ListBucketsResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.ListBucketsResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListBucketsResponse](deps.s3.listBuckets(), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListBucketsResponse]);
+    def listBucketObjects(bucket: String, prefix: String, maxKeys: Int = 20): zio.Task[software.amazon.awssdk.services.s3.model.ListObjectsV2Response] = zio.IO.effect[java.util.concurrent.CompletableFuture[software.amazon.awssdk.services.s3.model.ListObjectsV2Response]](deps.s3.listObjectsV2(software.amazon.awssdk.services.s3.model.ListObjectsV2Request.builder().bucket(bucket).maxKeys(scala.Predef.int2Integer(maxKeys)).prefix(prefix).build())).flatMap[Any, Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((resp: java.util.concurrent.CompletableFuture[software.amazon.awssdk.services.s3.model.ListObjectsV2Response]) =&gt; zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.ListObjectsV2Response] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](resp, callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response]).map[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((list: software.amazon.awssdk.services.s3.model.ListObjectsV2Response) =&gt; list))));
+    &lt;synthetic&gt; private def listBucketObjects$default$3: Int = 20;
+    def lookupObject(bucket: String, prefix: String, key: String): zio.Task[Boolean] = $anon.this.listBucketObjects(bucket, prefix, 2147483647).map[(software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean)](((list: software.amazon.awssdk.services.s3.model.ListObjectsV2Response) =&gt; {
+  val x$2: Unit = `package`.this.aws_logger.info(if (scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.nonEmpty)
+    scala.StringContext.apply(&quot;Objects under bucket &quot;, &quot; with prefix &quot;, &quot; are \\n&quot;).s(bucket, prefix).+(scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.mkString(&quot;\n&quot;))
+  else
+    scala.StringContext.apply(&quot;No objects under bucket &quot;, &quot; with prefix &quot;, &quot;&quot;).s(bucket, prefix));
+  val newKey: String = prefix.+(&quot;/&quot;).+(key);
+  val res: Boolean = scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.exists(((x$1: software.amazon.awssdk.services.s3.model.S3Object) =&gt; x$1.key().==(newKey)));
+  scala.Tuple4.apply[software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean](list, x$2, newKey, res)
+})).map[Boolean](((x$3: (software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean)) =&gt; (x$3: (software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean) @unchecked) match {
+      case (_1: software.amazon.awssdk.services.s3.model.ListObjectsV2Response, _2: Unit, _3: String, _4: Boolean)(software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean)((list @ _), _, (newKey @ _), (res @ _)) =&gt; res
+    }));
+    def putObject(bucket: String, key: String, file: String): zio.Task[software.amazon.awssdk.services.s3.model.PutObjectResponse] = zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.PutObjectResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.PutObjectResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.PutObjectResponse](deps.s3.putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file)), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.PutObjectResponse]);
+    def getObject(bucket: String, key: String, file: String): zio.Task[software.amazon.awssdk.services.s3.model.GetObjectResponse] = zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.GetObjectResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.GetObjectResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.GetObjectResponse](deps.s3.getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file)), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.GetObjectResponse]);
+    def delObject(bucket: String, key: String): zio.Task[software.amazon.awssdk.services.s3.model.DeleteObjectResponse] = zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.DeleteObjectResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.DeleteObjectResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.DeleteObjectResponse](deps.s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder().bucket(bucket).key(key).build()), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.DeleteObjectResponse]);
+    private def processResponse[T](fut: java.util.concurrent.CompletableFuture[T], callback: zio.Task[T] =&gt; Unit): Unit = ({
+      fut.handle[Unit](((response: T, err: Throwable) =&gt; err match {
+        case null =&gt; callback.apply(zio.IO.succeed[T](response))
+        case (ex @ _) =&gt; callback.apply(zio.IO.fail[Throwable](ex))
+      }));
+      ()
+    }: Unit)
+  };
+  new $anon()
+}))((izumi.reflect.Tags.Tag.apply[etlflow.aws.package.S3Client.Service](classOf[etlflow.aws.package$$S3Client$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((891196278: Int), (&quot;\u0004\u0000\u0003\u0000\u001Cetlflow.aws.S3Client.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0014etlflow.aws.S3Client\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.package.S3Client.Service]), (izumi.reflect.Tags.Tag.apply[etlflow.aws.S3Api.Service](classOf[java.lang.Object], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-1537904208: Int), (&quot;\u0004\u0000\u0003\u0000\u0019etlflow.aws.S3Api.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0011etlflow.aws.S3Api\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0001\u0004\u0000\u0003\u0000\u0019etlflow.aws.S3Api.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0011etlflow.aws.S3Api\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0001\u0004\u0000\u0003\u0000\u0090\u0002\u0002\u0002\u0003\u0090\u0006\u0001\u0000\u0003\u0000\u001Eetlflow.aws.S3Api.&lt;refinement&gt;\u0002\u0001\u0001\u0000\u0003\u0000\u0090\u0002\u0002\u0002\u0003\u0090\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.S3Api.Service]))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          1911
+          -
+          1914
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.$anon.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anon()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          101
+        </td>
+        <td>
+          2047
+          -
+          2093
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.$anon.processResponse
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListBucketsResponse](deps.s3.listBuckets(), callback)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          100
+        </td>
+        <td>
+          2063
+          -
+          2082
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.S3AsyncClient.listBuckets
+        </td>
+        <td style="background: #F0ADAD">
+          deps.s3.listBuckets()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          1988
+          -
+          2094
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.effectAsync
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.ListBucketsResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.ListBucketsResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListBucketsResponse](deps.s3.listBuckets(), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListBucketsResponse])
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          102
+        </td>
+        <td>
+          2002
+          -
+          2002
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.IO.effectAsync$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListBucketsResponse]
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          109
+        </td>
+        <td>
+          2207
+          -
+          2698
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.effect[java.util.concurrent.CompletableFuture[software.amazon.awssdk.services.s3.model.ListObjectsV2Response]](deps.s3.listObjectsV2(software.amazon.awssdk.services.s3.model.ListObjectsV2Request.builder().bucket(bucket).maxKeys(scala.Predef.int2Integer(maxKeys)).prefix(prefix).build())).flatMap[Any, Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((resp: java.util.concurrent.CompletableFuture[software.amazon.awssdk.services.s3.model.ListObjectsV2Response]) =&gt; zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.ListObjectsV2Response] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](resp, callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response]).map[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((list: software.amazon.awssdk.services.s3.model.ListObjectsV2Response) =&gt; list))))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          105
+        </td>
+        <td>
+          2258
+          -
+          2470
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.S3AsyncClient.listObjectsV2
+        </td>
+        <td style="background: #AEF1AE">
+          deps.s3.listObjectsV2(software.amazon.awssdk.services.s3.model.ListObjectsV2Request.builder().bucket(bucket).maxKeys(scala.Predef.int2Integer(maxKeys)).prefix(prefix).build())
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          104
+        </td>
+        <td>
+          2297
+          -
+          2454
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.utils.builder.SdkBuilder.build
+        </td>
+        <td style="background: #AEF1AE">
+          software.amazon.awssdk.services.s3.model.ListObjectsV2Request.builder().bucket(bucket).maxKeys(scala.Predef.int2Integer(maxKeys)).prefix(prefix).build()
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          107
+        </td>
+        <td>
+          2519
+          -
+          2519
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.IO.effectAsync$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response]
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          108
+        </td>
+        <td>
+          2497
+          -
+          2698
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.ListObjectsV2Response] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](resp, callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.ListObjectsV2Response]).map[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](((list: software.amazon.awssdk.services.s3.model.ListObjectsV2Response) =&gt; list))
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          106
+        </td>
+        <td>
+          2582
+          -
+          2661
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.$anon.processResponse
+        </td>
+        <td style="background: #AEF1AE">
+          $anon.this.processResponse[software.amazon.awssdk.services.s3.model.ListObjectsV2Response](resp, callback)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          110
+        </td>
+        <td>
+          2849
+          -
+          2866
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          2147483647
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          2786
+          -
+          3327
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #AEF1AE">
+          $anon.this.listBucketObjects(bucket, prefix, 2147483647).map[(software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean)](((list: software.amazon.awssdk.services.s3.model.ListObjectsV2Response) =&gt; {
+  val x$2: Unit = `package`.this.aws_logger.info(if (scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.nonEmpty)
+    scala.StringContext.apply(&quot;Objects under bucket &quot;, &quot; with prefix &quot;, &quot; are \\n&quot;).s(bucket, prefix).+(scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.mkString(&quot;\n&quot;))
+  else
+    scala.StringContext.apply(&quot;No objects under bucket &quot;, &quot; with prefix &quot;, &quot;&quot;).s(bucket, prefix));
+  val newKey: String = prefix.+(&quot;/&quot;).+(key);
+  val res: Boolean = scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.exists(((x$1: software.amazon.awssdk.services.s3.model.S3Object) =&gt; x$1.key().==(newKey)));
+  scala.Tuple4.apply[software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean](list, x$2, newKey, res)
+})).map[Boolean](((x$3: (software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean)) =&gt; (x$3: (software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean) @unchecked) match {
+  case (_1: software.amazon.awssdk.services.s3.model.ListObjectsV2Response, _2: Unit, _3: String, _4: Boolean)(software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean)((list @ _), _, (newKey @ _), (res @ _)) =&gt; res
+}))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          2804
+          -
+          2804
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple4.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple4.apply[software.amazon.awssdk.services.s3.model.ListObjectsV2Response, Unit, String, Boolean](list, x$2, newKey, res)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          121
+        </td>
+        <td>
+          2890
+          -
+          3196
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.aws_logger.info(if (scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.nonEmpty)
+  scala.StringContext.apply(&quot;Objects under bucket &quot;, &quot; with prefix &quot;, &quot; are \\n&quot;).s(bucket, prefix).+(scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.mkString(&quot;\n&quot;))
+else
+  scala.StringContext.apply(&quot;No objects under bucket &quot;, &quot; with prefix &quot;, &quot;&quot;).s(bucket, prefix))
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          112
+        </td>
+        <td>
+          2933
+          -
+          2965
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          111
+        </td>
+        <td>
+          2933
+          -
+          2948
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.model.ListObjectsV2Response.contents
+        </td>
+        <td style="background: #AEF1AE">
+          list.contents()
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          113
+        </td>
+        <td>
+          2993
+          -
+          3015
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Objects under bucket &quot;
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          116
+        </td>
+        <td>
+          3052
+          -
+          3090
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.mkString(&quot;\n&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          115
+        </td>
+        <td>
+          3041
+          -
+          3049
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; are \\n&quot;
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          2991
+          -
+          3090
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Objects under bucket &quot;, &quot; with prefix &quot;, &quot; are \\n&quot;).s(bucket, prefix).+(scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.mkString(&quot;\n&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          114
+        </td>
+        <td>
+          3021
+          -
+          3035
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; with prefix &quot;
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          2991
+          -
+          3090
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Objects under bucket &quot;, &quot; with prefix &quot;, &quot; are \\n&quot;).s(bucket, prefix).+(scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.mkString(&quot;\n&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          119
+        </td>
+        <td>
+          3118
+          -
+          3172
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;No objects under bucket &quot;, &quot; with prefix &quot;, &quot;&quot;).s(bucket, prefix)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          120
+        </td>
+        <td>
+          3118
+          -
+          3172
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;No objects under bucket &quot;, &quot; with prefix &quot;, &quot;&quot;).s(bucket, prefix)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          122
+        </td>
+        <td>
+          3219
+          -
+          3237
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          prefix.+(&quot;/&quot;).+(key)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          125
+        </td>
+        <td>
+          3260
+          -
+          3305
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.exists
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.JavaConverters.asScalaBufferConverter[software.amazon.awssdk.services.s3.model.S3Object](list.contents()).asScala.exists(((x$1: software.amazon.awssdk.services.s3.model.S3Object) =&gt; x$1.key().==(newKey)))
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          124
+        </td>
+        <td>
+          3289
+          -
+          3304
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          x$1.key().==(newKey)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          123
+        </td>
+        <td>
+          3260
+          -
+          3273
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.model.ListObjectsV2Response.contents
+        </td>
+        <td style="background: #AEF1AE">
+          list.contents()
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          3420
+          -
+          3662
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.effectAsync
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.PutObjectResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.PutObjectResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.PutObjectResponse](deps.s3.putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file)), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.PutObjectResponse])
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          3434
+          -
+          3434
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.IO.effectAsync$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.PutObjectResponse]
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          3491
+          -
+          3650
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.$anon.processResponse
+        </td>
+        <td style="background: #AEF1AE">
+          $anon.this.processResponse[software.amazon.awssdk.services.s3.model.PutObjectResponse](deps.s3.putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file)), callback)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          3540
+          -
+          3594
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.utils.builder.SdkBuilder.build
+        </td>
+        <td style="background: #AEF1AE">
+          software.amazon.awssdk.services.s3.model.PutObjectRequest.builder().bucket(bucket).key(key).build()
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          3522
+          -
+          3612
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.S3AsyncClient.putObject
+        </td>
+        <td style="background: #AEF1AE">
+          deps.s3.putObject(software.amazon.awssdk.services.s3.model.PutObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          3596
+          -
+          3611
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.nio.file.Paths.get
+        </td>
+        <td style="background: #AEF1AE">
+          java.nio.file.Paths.get(file)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          3755
+          -
+          3997
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.effectAsync
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.GetObjectResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.GetObjectResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.GetObjectResponse](deps.s3.getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file)), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.GetObjectResponse])
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          3769
+          -
+          3769
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.IO.effectAsync$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.GetObjectResponse]
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          3826
+          -
+          3985
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.$anon.processResponse
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.processResponse[software.amazon.awssdk.services.s3.model.GetObjectResponse](deps.s3.getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file)), callback)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          3875
+          -
+          3929
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.utils.builder.SdkBuilder.build
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.services.s3.model.GetObjectRequest.builder().bucket(bucket).key(key).build()
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          3857
+          -
+          3947
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.S3AsyncClient.getObject
+        </td>
+        <td style="background: #F0ADAD">
+          deps.s3.getObject(software.amazon.awssdk.services.s3.model.GetObjectRequest.builder().bucket(bucket).key(key).build(), java.nio.file.Paths.get(file))
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          3931
+          -
+          3946
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.nio.file.Paths.get
+        </td>
+        <td style="background: #F0ADAD">
+          java.nio.file.Paths.get(file)
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          4079
+          -
+          4313
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.effectAsync
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.effectAsync[Throwable, software.amazon.awssdk.services.s3.model.DeleteObjectResponse](((callback: zio.IO[Throwable,software.amazon.awssdk.services.s3.model.DeleteObjectResponse] =&gt; Unit) =&gt; $anon.this.processResponse[software.amazon.awssdk.services.s3.model.DeleteObjectResponse](deps.s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder().bucket(bucket).key(key).build()), callback)), zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.DeleteObjectResponse])
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          4093
+          -
+          4093
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.IO.effectAsync$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.effectAsync$default$2[Throwable, software.amazon.awssdk.services.s3.model.DeleteObjectResponse]
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          4153
+          -
+          4301
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.$anon.processResponse
+        </td>
+        <td style="background: #F0ADAD">
+          $anon.this.processResponse[software.amazon.awssdk.services.s3.model.DeleteObjectResponse](deps.s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder().bucket(bucket).key(key).build()), callback)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          4205
+          -
+          4262
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.utils.builder.SdkBuilder.build
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder().bucket(bucket).key(key).build()
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          4184
+          -
+          4263
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.services.s3.S3AsyncClient.deleteObject
+        </td>
+        <td style="background: #F0ADAD">
+          deps.s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder().bucket(bucket).key(key).build())
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          4407
+          -
+          4599
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.concurrent.CompletableFuture.handle
+        </td>
+        <td style="background: #AEF1AE">
+          fut.handle[Unit](((response: T, err: Throwable) =&gt; err match {
+  case null =&gt; callback.apply(zio.IO.succeed[T](response))
+  case (ex @ _) =&gt; callback.apply(zio.IO.fail[Throwable](ex))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          4424
+          -
+          4424
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          4496
+          -
+          4526
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          callback.apply(zio.IO.succeed[T](response))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          4505
+          -
+          4525
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.succeed
+        </td>
+        <td style="background: #AEF1AE">
+          zio.IO.succeed[T](response)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          4552
+          -
+          4573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          callback.apply(zio.IO.fail[Throwable](ex))
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          4561
+          -
+          4572
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.IO.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.IO.fail[Throwable](ex)
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          4780
+          -
+          4829
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;ACCESS_KEY&quot;, &quot;NOT_SET_IN_ENV&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          4851
+          -
+          4900
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;SECRET_KEY&quot;, &quot;NOT_SET_IN_ENV&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          4978
+          -
+          5054
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          `package`.this.aws_logger.info(&quot;Using AWS credentials from credentials passed in function&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          5114
+          -
+          5176
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(creds.access_key, creds.secret_key)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          5159
+          -
+          5175
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.AWS.secret_key
+        </td>
+        <td style="background: #F0ADAD">
+          creds.secret_key
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          5141
+          -
+          5157
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.AWS.access_key
+        </td>
+        <td style="background: #F0ADAD">
+          creds.access_key
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          5081
+          -
+          5177
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(creds.access_key, creds.secret_key))
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          5186
+          -
+          5255
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.awscore.client.builder.AwsClientBuilder.credentialsProvider
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.services.s3.S3AsyncClient.builder().region(region).credentialsProvider(credentials)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          5371
+          -
+          5426
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          `package`.this.aws_logger.info(&quot;Using AWS credentials from local sdk&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          5437
+          -
+          5473
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.awscore.client.builder.AwsClientBuilder.region
+        </td>
+        <td style="background: #AEF1AE">
+          software.amazon.awssdk.services.s3.S3AsyncClient.builder().region(region)
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          5505
+          -
+          5595
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          `package`.this.aws_logger.info(&quot;Using AWS credentials from environment variables(ACCESS_KEY,SECRET_KEY)&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          164
+        </td>
+        <td>
+          5684
+          -
+          5691
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          keys._1
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          5624
+          -
+          5702
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(keys._1, keys._2))
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          166
+        </td>
+        <td>
+          5657
+          -
+          5701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(keys._1, keys._2)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          165
+        </td>
+        <td>
+          5693
+          -
+          5700
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          keys._2
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          5713
+          -
+          5782
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.awscore.client.builder.AwsClientBuilder.credentialsProvider
+        </td>
+        <td style="background: #F0ADAD">
+          software.amazon.awssdk.services.s3.S3AsyncClient.builder().region(region).credentialsProvider(credentials)
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          169
+        </td>
+        <td>
+          5817
+          -
+          5940
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          software.amazon.awssdk.utils.builder.SdkBuilder.build
+        </td>
+        <td style="background: #AEF1AE">
+          endpointOverride.map[java.net.URI]({
+  ((x$1: String) =&gt; java.net.URI.create(x$1))
+}).map[software.amazon.awssdk.services.s3.S3AsyncClientBuilder]({
+  ((x$1: java.net.URI) =&gt; initBuilder.endpointOverride(x$1))
+}).getOrElse[software.amazon.awssdk.services.s3.S3AsyncClientBuilder](initBuilder).build()
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          5946
+          -
+          5958
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.apply[software.amazon.awssdk.services.s3.S3AsyncClient](client)
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          172
+        </td>
+        <td>
+          6066
+          -
+          6111
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.AccessMPartiallyApplied.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZIO.accessM[etlflow.aws.package.S3Api].apply[Throwable, software.amazon.awssdk.services.s3.model.PutObjectResponse](((x$4: etlflow.aws.package.S3Api) =&gt; zio.this.Has.HasSyntax[etlflow.aws.package.S3Api](x$4).get[etlflow.aws.package.S3Api.Service](scala.Predef.$conforms[etlflow.aws.package.S3Api], (izumi.reflect.Tags.Tag.apply[etlflow.aws.package.S3Api.Service](classOf[etlflow.aws.package$$S3Api$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-1537904208: Int), (&quot;\u0004\u0000\u0003\u0000\u0019etlflow.aws.S3Api.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0011etlflow.aws.S3Api\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.package.S3Api.Service])).putObject(bucket, key, file)))
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          171
+        </td>
+        <td>
+          6078
+          -
+          6110
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.Service.putObject
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.Has.HasSyntax[etlflow.aws.package.S3Api](x$4).get[etlflow.aws.package.S3Api.Service](scala.Predef.$conforms[etlflow.aws.package.S3Api], (izumi.reflect.Tags.Tag.apply[etlflow.aws.package.S3Api.Service](classOf[etlflow.aws.package$$S3Api$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-1537904208: Int), (&quot;\u0004\u0000\u0003\u0000\u0019etlflow.aws.S3Api.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0011etlflow.aws.S3Api\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.package.S3Api.Service])).putObject(bucket, key, file)
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          173
+        </td>
+        <td>
+          6222
+          -
+          6259
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.aws.S3Api.Service.lookupObject
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.Has.HasSyntax[etlflow.aws.package.S3Api](x$5).get[etlflow.aws.package.S3Api.Service](scala.Predef.$conforms[etlflow.aws.package.S3Api], (izumi.reflect.Tags.Tag.apply[etlflow.aws.package.S3Api.Service](classOf[etlflow.aws.package$$S3Api$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-1537904208: Int), (&quot;\u0004\u0000\u0003\u0000\u0019etlflow.aws.S3Api.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0011etlflow.aws.S3Api\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.package.S3Api.Service])).lookupObject(bucket, prefix, key)
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          174
+        </td>
+        <td>
+          6210
+          -
+          6260
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.AccessMPartiallyApplied.apply
+        </td>
+        <td style="background: #AEF1AE">
+          zio.ZIO.accessM[etlflow.aws.package.S3Api].apply[Throwable, Boolean](((x$5: etlflow.aws.package.S3Api) =&gt; zio.this.Has.HasSyntax[etlflow.aws.package.S3Api](x$5).get[etlflow.aws.package.S3Api.Service](scala.Predef.$conforms[etlflow.aws.package.S3Api], (izumi.reflect.Tags.Tag.apply[etlflow.aws.package.S3Api.Service](classOf[etlflow.aws.package$$S3Api$Service], izumi.reflect.macrortti.LightTypeTag.parse[Nothing]((-1537904208: Int), (&quot;\u0004\u0000\u0003\u0000\u0019etlflow.aws.S3Api.Service\u0002\u0002\u0003\u0000\u0002\u0000\u0011etlflow.aws.S3Api\u0002\u0002\u0003\u0000\u0002\u0000\u0013etlflow.aws.package\u0002\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (&quot;\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000&quot;: String), (0: Int))): izumi.reflect.Tags.Tag[etlflow.aws.package.S3Api.Service])).lookupObject(bucket, prefix, key)))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

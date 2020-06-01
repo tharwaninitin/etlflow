@@ -1,0 +1,1321 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/EtlStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.LoggerResource
+</span>4 <span style=''>import org.slf4j.{Logger, LoggerFactory}
+</span>5 <span style=''>import zio.{Task, ZIO}
+</span>6 <span style=''>
+</span>7 <span style=''>trait EtlStep[IPSTATE,OPSTATE] { self =&gt;
+</span>8 <span style=''>  val name: String
+</span>9 <span style=''>  val etl_logger: Logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>10 <span style=''>
+</span>11 <span style=''>  def process(input_state: =&gt;IPSTATE): Task[OPSTATE]
+</span>12 <span style=''>  def getExecutionMetrics: Map[String,Map[String,String]] = </span><span style='background: #F0ADAD'>Map()</span><span style=''>
+</span>13 <span style=''>  def getStepProperties(level: String = &quot;info&quot;): Map[String,String] = </span><span style='background: #F0ADAD'>Map()</span><span style=''>
+</span>14 <span style=''>
+</span>15 <span style=''>  final def logStepInit(step_start_time: Long)(resource: LoggerResource): Task[Long] = {
+</span>16 <span style=''>    if (</span><span style='background: #F0ADAD'>resource.db.isDefined</span><span style=''>)
+</span>17 <span style=''>      </span><span style='background: #F0ADAD'>resource.db.get.updateStepLevelInformation(step_start_time, self, &quot;started&quot;, mode = &quot;insert&quot;)</span><span style=''>
+</span>18 <span style=''>    else </span><span style='background: #F0ADAD'>ZIO.succeed(0)</span><span style=''>
+</span>19 <span style=''>  }
+</span>20 <span style=''>  final def logStepSuccess(step_start_time: Long)(resource: LoggerResource): Task[Long] = {
+</span>21 <span style=''>    </span><span style='background: #F0ADAD'>resource.slack.foreach(_.updateStepLevelInformation(step_start_time, this, &quot;pass&quot;))</span><span style=''>
+</span>22 <span style=''>    if (</span><span style='background: #F0ADAD'>resource.db.isDefined</span><span style=''>)
+</span>23 <span style=''>      </span><span style='background: #F0ADAD'>resource.db.get.updateStepLevelInformation(step_start_time, this, &quot;pass&quot;)</span><span style=''>
+</span>24 <span style=''>    else
+</span>25 <span style=''>      </span><span style='background: #F0ADAD'>ZIO.succeed(0)</span><span style=''>
+</span>26 <span style=''>  }
+</span>27 <span style=''>  final def logStepError(step_start_time: Long, ex: Throwable)(resource: LoggerResource): Task[Long] = {
+</span>28 <span style=''>    </span><span style='background: #F0ADAD'>resource.slack.foreach(_.updateStepLevelInformation(step_start_time, this, &quot;failed&quot;, Some(ex.getMessage)))</span><span style=''>
+</span>29 <span style=''>    if (</span><span style='background: #F0ADAD'>resource.db.isDefined</span><span style=''>) </span><span style='background: #F0ADAD'>{
+</span>30 <span style=''></span><span style='background: #F0ADAD'>      etl_logger.error(&quot;Step Error StackTrace:&quot;+&quot;\n&quot;+ex.getStackTrace.mkString(&quot;\n&quot;))
+</span>31 <span style=''></span><span style='background: #F0ADAD'>      resource.db.get.updateStepLevelInformation(step_start_time, this, &quot;failed&quot;, Some(ex.getMessage)) *&gt; Task.fail(new RuntimeException(ex.getMessage)).as(1)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>33 <span style=''>    else
+</span>34 <span style=''>      </span><span style='background: #F0ADAD'>Task.fail(ex)</span><span style=''>
+</span>35 <span style=''>  }
+</span>36 <span style=''>
+</span>37 <span style=''>  final def execute(input_state: =&gt;IPSTATE)(implicit resource: LoggerResource): Task[Unit] = {
+</span>38 <span style=''>    val step = </span><span style='background: #F0ADAD'>for {
+</span>39 <span style=''></span><span style='background: #F0ADAD'>      step_start_time &lt;- Task.succeed(System.currentTimeMillis())
+</span>40 <span style=''></span><span style='background: #F0ADAD'>      _ &lt;- logStepInit(step_start_time)(resource)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>      _ &lt;- process(input_state) foldM (
+</span>42 <span style=''></span><span style='background: #F0ADAD'>              ex =&gt; logStepError(step_start_time, ex)(resource),
+</span>43 <span style=''></span><span style='background: #F0ADAD'>              _  =&gt; logStepSuccess(step_start_time)(resource)
+</span>44 <span style=''></span><span style='background: #F0ADAD'>           )
+</span>45 <span style=''></span><span style='background: #F0ADAD'>    } yield ()</span><span style=''>
+</span>46 <span style=''>    step
+</span>47 <span style=''>  }
+</span>48 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          681
+        </td>
+        <td>
+          208
+          -
+          249
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.slf4j.LoggerFactory.getLogger(EtlStep.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          680
+        </td>
+        <td>
+          232
+          -
+          248
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          EtlStep.this.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          682
+        </td>
+        <td>
+          364
+          -
+          369
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, Nothing]()
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          683
+        </td>
+        <td>
+          440
+          -
+          445
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, Nothing]()
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          684
+        </td>
+        <td>
+          544
+          -
+          565
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          resource.db.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          687
+        </td>
+        <td>
+          657
+          -
+          665
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;insert&quot;
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          690
+        </td>
+        <td>
+          573
+          -
+          666
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$1: etlflow.log.DbLogManager = resource.db.get;
+  &lt;artifact&gt; val x$1: Long = step_start_time;
+  &lt;artifact&gt; val x$2: etlflow.etlsteps.EtlStep[IPSTATE,OPSTATE] @scala.reflect.internal.annotations.uncheckedBounds = EtlStep.this;
+  &lt;artifact&gt; val x$3: String = &quot;started&quot;;
+  &lt;artifact&gt; val x$4: String = &quot;insert&quot;;
+  &lt;artifact&gt; val x$5: Option[String] @scala.reflect.internal.annotations.uncheckedBounds = qual$1.updateStepLevelInformation$default$4;
+  qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$5, x$4)
+}
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          686
+        </td>
+        <td>
+          639
+          -
+          648
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;started&quot;
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          689
+        </td>
+        <td>
+          573
+          -
+          666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$5, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          685
+        </td>
+        <td>
+          573
+          -
+          588
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          resource.db.get
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          688
+        </td>
+        <td>
+          589
+          -
+          589
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation$default$4
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          692
+        </td>
+        <td>
+          676
+          -
+          690
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.ZIO.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.succeed[Long](0L)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          691
+        </td>
+        <td>
+          676
+          -
+          690
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.succeed[Long](0L)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          696
+        </td>
+        <td>
+          814
+          -
+          873
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateStepLevelInformation
+        </td>
+        <td style="background: #F0ADAD">
+          x$1.updateStepLevelInformation(step_start_time, this, &quot;pass&quot;, x$1.updateStepLevelInformation$default$4, x$1.updateStepLevelInformation$default$5)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          693
+        </td>
+        <td>
+          866
+          -
+          872
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;pass&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          695
+        </td>
+        <td>
+          816
+          -
+          816
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateStepLevelInformation$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          x$1.updateStepLevelInformation$default$5
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          791
+          -
+          874
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          resource.slack.foreach[Unit](((x$1: etlflow.log.SlackLogManager) =&gt; x$1.updateStepLevelInformation(step_start_time, this, &quot;pass&quot;, x$1.updateStepLevelInformation$default$4, x$1.updateStepLevelInformation$default$5)))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          694
+        </td>
+        <td>
+          816
+          -
+          816
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateStepLevelInformation$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          x$1.updateStepLevelInformation$default$4
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          698
+        </td>
+        <td>
+          883
+          -
+          904
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          resource.db.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          699
+        </td>
+        <td>
+          912
+          -
+          927
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          resource.db.get
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          702
+        </td>
+        <td>
+          928
+          -
+          928
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation$default$5
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          701
+        </td>
+        <td>
+          928
+          -
+          928
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation$default$4
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          704
+        </td>
+        <td>
+          912
+          -
+          985
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$1: etlflow.log.DbLogManager = resource.db.get;
+  &lt;artifact&gt; val x$1: Long = step_start_time;
+  &lt;artifact&gt; val x$2: etlflow.etlsteps.EtlStep[IPSTATE,OPSTATE] @scala.reflect.internal.annotations.uncheckedBounds = this;
+  &lt;artifact&gt; val x$3: String = &quot;pass&quot;;
+  &lt;artifact&gt; val x$4: Option[String] @scala.reflect.internal.annotations.uncheckedBounds = qual$1.updateStepLevelInformation$default$4;
+  &lt;artifact&gt; val x$5: String = qual$1.updateStepLevelInformation$default$5;
+  qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$4, x$5)
+}
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          700
+        </td>
+        <td>
+          978
+          -
+          984
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;pass&quot;
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          703
+        </td>
+        <td>
+          912
+          -
+          985
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$4, x$5)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          705
+        </td>
+        <td>
+          1001
+          -
+          1015
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.succeed[Long](0L)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          706
+        </td>
+        <td>
+          1001
+          -
+          1015
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.ZIO.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.succeed[Long](0L)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          708
+        </td>
+        <td>
+          1219
+          -
+          1232
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          ex.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          711
+        </td>
+        <td>
+          1152
+          -
+          1234
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateStepLevelInformation
+        </td>
+        <td style="background: #F0ADAD">
+          x$2.updateStepLevelInformation(step_start_time, this, &quot;failed&quot;, scala.Some.apply[String](ex.getMessage()), x$2.updateStepLevelInformation$default$5)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          710
+        </td>
+        <td>
+          1154
+          -
+          1154
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateStepLevelInformation$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          x$2.updateStepLevelInformation$default$5
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          707
+        </td>
+        <td>
+          1204
+          -
+          1212
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed&quot;
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          709
+        </td>
+        <td>
+          1214
+          -
+          1233
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](ex.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          712
+        </td>
+        <td>
+          1129
+          -
+          1235
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          resource.slack.foreach[Unit](((x$2: etlflow.log.SlackLogManager) =&gt; x$2.updateStepLevelInformation(step_start_time, this, &quot;failed&quot;, scala.Some.apply[String](ex.getMessage()), x$2.updateStepLevelInformation$default$5)))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          726
+        </td>
+        <td>
+          1267
+          -
+          1519
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  EtlStep.this.etl_logger.error(&quot;Step Error StackTrace:\n&quot;.+(scala.Predef.refArrayOps[StackTraceElement](ex.getStackTrace()).mkString(&quot;\n&quot;)));
+  {
+  &lt;artifact&gt; val qual$1: etlflow.log.DbLogManager = resource.db.get;
+  &lt;artifact&gt; val x$1: Long = step_start_time;
+  &lt;artifact&gt; val x$2: etlflow.etlsteps.EtlStep[IPSTATE,OPSTATE] @scala.reflect.internal.annotations.uncheckedBounds = this;
+  &lt;artifact&gt; val x$3: String = &quot;failed&quot;;
+  &lt;artifact&gt; val x$4: Some[String] @scala.reflect.internal.annotations.uncheckedBounds = scala.Some.apply[String](ex.getMessage());
+  &lt;artifact&gt; val x$5: String = qual$1.updateStepLevelInformation$default$5;
+  qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$4, x$5)
+}.*&gt;[Any, Throwable, Long](zio.Task.fail(new scala.`package`.RuntimeException(ex.getMessage())).as[Long](1L))
+}
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          713
+        </td>
+        <td>
+          1244
+          -
+          1265
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          resource.db.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          714
+        </td>
+        <td>
+          1292
+          -
+          1321
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Step Error StackTrace:\n&quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          717
+        </td>
+        <td>
+          1275
+          -
+          1354
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          EtlStep.this.etl_logger.error(&quot;Step Error StackTrace:\n&quot;.+(scala.Predef.refArrayOps[StackTraceElement](ex.getStackTrace()).mkString(&quot;\n&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          716
+        </td>
+        <td>
+          1292
+          -
+          1353
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Step Error StackTrace:\n&quot;.+(scala.Predef.refArrayOps[StackTraceElement](ex.getStackTrace()).mkString(&quot;\n&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          715
+        </td>
+        <td>
+          1322
+          -
+          1353
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.refArrayOps[StackTraceElement](ex.getStackTrace()).mkString(&quot;\n&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          720
+        </td>
+        <td>
+          1442
+          -
+          1455
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          ex.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          723
+        </td>
+        <td>
+          1361
+          -
+          1457
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$4, x$5)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          719
+        </td>
+        <td>
+          1427
+          -
+          1435
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed&quot;
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          722
+        </td>
+        <td>
+          1377
+          -
+          1377
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateStepLevelInformation$default$5
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateStepLevelInformation$default$5
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          725
+        </td>
+        <td>
+          1361
+          -
+          1513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.*&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$1: etlflow.log.DbLogManager = resource.db.get;
+  &lt;artifact&gt; val x$1: Long = step_start_time;
+  &lt;artifact&gt; val x$2: etlflow.etlsteps.EtlStep[IPSTATE,OPSTATE] @scala.reflect.internal.annotations.uncheckedBounds = this;
+  &lt;artifact&gt; val x$3: String = &quot;failed&quot;;
+  &lt;artifact&gt; val x$4: Some[String] @scala.reflect.internal.annotations.uncheckedBounds = scala.Some.apply[String](ex.getMessage());
+  &lt;artifact&gt; val x$5: String = qual$1.updateStepLevelInformation$default$5;
+  qual$1.updateStepLevelInformation(x$1, x$2, x$3, x$4, x$5)
+}.*&gt;[Any, Throwable, Long](zio.Task.fail(new scala.`package`.RuntimeException(ex.getMessage())).as[Long](1L))
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          724
+        </td>
+        <td>
+          1461
+          -
+          1513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.as
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(new scala.`package`.RuntimeException(ex.getMessage())).as[Long](1L)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          718
+        </td>
+        <td>
+          1361
+          -
+          1376
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          resource.db.get
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          721
+        </td>
+        <td>
+          1437
+          -
+          1456
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](ex.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          728
+        </td>
+        <td>
+          1535
+          -
+          1548
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(ex)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          727
+        </td>
+        <td>
+          1535
+          -
+          1548
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(ex)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          729
+        </td>
+        <td>
+          1708
+          -
+          1734
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.currentTimeMillis
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.currentTimeMillis()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          736
+        </td>
+        <td>
+          1664
+          -
+          1980
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[Long](java.lang.System.currentTimeMillis()).flatMap[Any, Throwable, Unit](((step_start_time: Long) =&gt; EtlStep.this.logStepInit(step_start_time)(resource).flatMap[Any, Throwable, Unit](((_: Long) =&gt; EtlStep.this.process(input_state).foldM[Any, Throwable, Long](((ex: Throwable) =&gt; EtlStep.this.logStepError(step_start_time, ex)(resource)), ((x$3: OPSTATE) =&gt; EtlStep.this.logStepSuccess(step_start_time)(resource)))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Long) =&gt; ()))))))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          735
+        </td>
+        <td>
+          1742
+          -
+          1980
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          EtlStep.this.logStepInit(step_start_time)(resource).flatMap[Any, Throwable, Unit](((_: Long) =&gt; EtlStep.this.process(input_state).foldM[Any, Throwable, Long](((ex: Throwable) =&gt; EtlStep.this.logStepError(step_start_time, ex)(resource)), ((x$3: OPSTATE) =&gt; EtlStep.this.logStepSuccess(step_start_time)(resource)))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Long) =&gt; ()))))
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          732
+        </td>
+        <td>
+          1818
+          -
+          1818
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.CanFail.canFail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          734
+        </td>
+        <td>
+          1792
+          -
+          1980
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #F0ADAD">
+          EtlStep.this.process(input_state).foldM[Any, Throwable, Long](((ex: Throwable) =&gt; EtlStep.this.logStepError(step_start_time, ex)(resource)), ((x$3: OPSTATE) =&gt; EtlStep.this.logStepSuccess(step_start_time)(resource)))(zio.this.CanFail.canFail[Any]).map[Unit](((_: Long) =&gt; ()))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          730
+        </td>
+        <td>
+          1846
+          -
+          1889
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.logStepError
+        </td>
+        <td style="background: #F0ADAD">
+          EtlStep.this.logStepError(step_start_time, ex)(resource)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          731
+        </td>
+        <td>
+          1911
+          -
+          1952
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.logStepSuccess
+        </td>
+        <td style="background: #F0ADAD">
+          EtlStep.this.logStepSuccess(step_start_time)(resource)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          733
+        </td>
+        <td>
+          1978
+          -
+          1980
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

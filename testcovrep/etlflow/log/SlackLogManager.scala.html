@@ -1,0 +1,1162 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/log/SlackLogManager.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.log
+</span>2 <span style=''>
+</span>3 <span style=''>import etlflow.EtlJobProps
+</span>4 <span style=''>import etlflow.etlsteps.EtlStep
+</span>5 <span style=''>import etlflow.utils.{GlobalProperties, UtilityFunctions =&gt; UF}
+</span>6 <span style=''>import org.apache.http.client.methods.HttpPost
+</span>7 <span style=''>import org.apache.http.entity.StringEntity
+</span>8 <span style=''>import org.apache.http.impl.client.HttpClients
+</span>9 <span style=''>import zio.Task
+</span>10 <span style=''>import scala.util.Try
+</span>11 <span style=''>
+</span>12 <span style=''>class SlackLogManager private[log] (
+</span>13 <span style=''>                                  val job_name: String,
+</span>14 <span style=''>                                  val job_properties: EtlJobProps,
+</span>15 <span style=''>                                  var final_message: String = &quot;&quot;,
+</span>16 <span style=''>                                  web_hook_url: String = &quot;&quot;,
+</span>17 <span style=''>                                  env: String = &quot;&quot;
+</span>18 <span style=''>                                ) extends LogManager[Unit] {
+</span>19 <span style=''>  /** Slack message templates */
+</span>20 <span style=''>  private def finalMessageTemplate(run_env: String, exec_date: String, message: String, status: String): String = {
+</span>21 <span style=''>    if (</span><span style='background: #F0ADAD'>status == &quot;pass&quot;</span><span style=''>) {
+</span>22 <span style=''>      /** Template for slack success message */
+</span>23 <span style=''>      </span><span style='background: #F0ADAD'>return f&quot;&quot;&quot;
+</span>24 <span style=''></span><span style='background: #F0ADAD'>      :large_blue_circle: $run_env - ${job_name} Process *Success!*
+</span>25 <span style=''></span><span style='background: #F0ADAD'>      *Time of Execution*: $exec_date
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      *Steps (Task - Duration)*: $message
+</span>27 <span style=''></span><span style='background: #F0ADAD'>      &quot;&quot;&quot;</span><span style=''>
+</span>28 <span style=''>    }
+</span>29 <span style=''>    else {
+</span>30 <span style=''>      /** Template for slack failure message **/
+</span>31 <span style=''>      </span><span style='background: #F0ADAD'>return f&quot;&quot;&quot;
+</span>32 <span style=''></span><span style='background: #F0ADAD'>      :red_circle: $run_env - ${job_name} Process *Failed!*
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      *Time of Execution*: $exec_date
+</span>34 <span style=''></span><span style='background: #F0ADAD'>      *Steps (Task - Duration)*: $message
+</span>35 <span style=''></span><span style='background: #F0ADAD'>      &quot;&quot;&quot;</span><span style=''>
+</span>36 <span style=''>    }
+</span>37 <span style=''>  }
+</span>38 <span style=''>
+</span>39 <span style=''>  def updateStepLevelInformation(
+</span>40 <span style=''>                                  execution_start_time: Long, etlstep: EtlStep[_,_], state_status: String
+</span>41 <span style=''>                                 , error_message: Option[String] = None, mode: String = &quot;update&quot;
+</span>42 <span style=''>                                ): Unit = {
+</span>43 <span style=''>    var slackMessageForSteps = </span><span style='background: #F0ADAD'>&quot;&quot;</span><span style=''>
+</span>44 <span style=''>    val elapsedTime = </span><span style='background: #F0ADAD'>UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)</span><span style=''>
+</span>45 <span style=''>    val step_icon = if (</span><span style='background: #F0ADAD'>state_status.toLowerCase() == &quot;pass&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>&quot;\n :small_blue_diamond:&quot;</span><span style=''> else </span><span style='background: #F0ADAD'>&quot;\n :small_orange_diamond:&quot;</span><span style=''>
+</span>46 <span style=''>
+</span>47 <span style=''>    // Update the slackMessageForSteps variable and get the information of step name and its execution time
+</span>48 <span style=''>    slackMessageForSteps = </span><span style='background: #F0ADAD'>step_icon + &quot;*&quot; + etlstep.name + &quot;*&quot; + &quot; - (&quot; + elapsedTime + &quot;)&quot;</span><span style=''>
+</span>49 <span style=''>
+</span>50 <span style=''>    // Update the slackMessageForSteps variable and get the information of etl steps properties
+</span>51 <span style=''>    slackMessageForSteps = </span><span style='background: #F0ADAD'>slackMessageForSteps.concat(&quot;\n\t\t\t &quot; + etlstep.getStepProperties(job_properties.job_notification_level).mkString(&quot;, &quot;) + error_message.map(msg =&gt; f&quot;, error -&gt; $msg&quot;).getOrElse(&quot;&quot;))</span><span style=''>
+</span>52 <span style=''>
+</span>53 <span style=''>    // Concatenate all the messages with finalSlackMessage
+</span>54 <span style=''>    </span><span style='background: #F0ADAD'>final_message = final_message.concat(slackMessageForSteps)</span><span style=''>
+</span>55 <span style=''>  }
+</span>56 <span style=''>
+</span>57 <span style=''>  def updateJobInformation(status: String, mode: String = &quot;update&quot;): Unit = {
+</span>58 <span style=''>    val execution_date_time = </span><span style='background: #F0ADAD'>UF.getCurrentTimestampAsString(&quot;yyyy-MM-dd HH:mm:ss&quot;)</span><span style=''>
+</span>59 <span style=''>
+</span>60 <span style=''>    val data = </span><span style='background: #F0ADAD'>finalMessageTemplate(
+</span>61 <span style=''></span><span style='background: #F0ADAD'>      env,
+</span>62 <span style=''></span><span style='background: #F0ADAD'>      execution_date_time,
+</span>63 <span style=''></span><span style='background: #F0ADAD'>      final_message,
+</span>64 <span style=''></span><span style='background: #F0ADAD'>      status
+</span>65 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>
+</span>66 <span style=''>
+</span>67 <span style=''>    if (</span><span style='background: #F0ADAD'>job_properties.job_notification_level.equalsIgnoreCase(&quot;debug&quot;)</span><span style=''>)
+</span>68 <span style=''>      </span><span style='background: #F0ADAD'>println(data)</span><span style=''>
+</span>69 <span style=''>
+</span>70 <span style=''>    </span><span style='background: #F0ADAD'>Try {
+</span>71 <span style=''></span><span style='background: #F0ADAD'>      val client = HttpClients.createDefault
+</span>72 <span style=''></span><span style='background: #F0ADAD'>      val slackApi = new HttpPost(web_hook_url)
+</span>73 <span style=''></span><span style='background: #F0ADAD'>      val json_data = f&quot;&quot;&quot; { &quot;text&quot; : &quot;$data&quot; } &quot;&quot;&quot;
+</span>74 <span style=''></span><span style='background: #F0ADAD'>      val entity = new StringEntity(json_data)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>      slackApi.setEntity(entity);
+</span>76 <span style=''></span><span style='background: #F0ADAD'>      client.execute(slackApi);
+</span>77 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>78 <span style=''>  }
+</span>79 <span style=''>}
+</span>80 <span style=''>
+</span>81 <span style=''>object SlackLogManager {
+</span>82 <span style=''>  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Option[GlobalProperties]): Task[Option[SlackLogManager]] = </span><span style='background: #F0ADAD'>Task {
+</span>83 <span style=''></span><span style='background: #F0ADAD'>    if (job_properties.job_send_slack_notification)
+</span>84 <span style=''></span><span style='background: #F0ADAD'>      Some(new SlackLogManager(job_name, job_properties,&quot;&quot;,
+</span>85 <span style=''></span><span style='background: #F0ADAD'>        global_properties match {
+</span>86 <span style=''></span><span style='background: #F0ADAD'>          case Some(x) =&gt; x.slack_webhook_url
+</span>87 <span style=''></span><span style='background: #F0ADAD'>          case None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+</span>88 <span style=''></span><span style='background: #F0ADAD'>        },
+</span>89 <span style=''></span><span style='background: #F0ADAD'>        global_properties match {
+</span>90 <span style=''></span><span style='background: #F0ADAD'>          case Some(x) =&gt; x.slack_env
+</span>91 <span style=''></span><span style='background: #F0ADAD'>          case None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+</span>92 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>93 <span style=''></span><span style='background: #F0ADAD'>      ))
+</span>94 <span style=''></span><span style='background: #F0ADAD'>    else
+</span>95 <span style=''></span><span style='background: #F0ADAD'>      None
+</span>96 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>97 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          1414
+        </td>
+        <td>
+          876
+          -
+          892
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          status.==(&quot;pass&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1415
+        </td>
+        <td>
+          950
+          -
+          1119
+        </td>
+        <td>
+          Return
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.finalMessageTemplate
+        </td>
+        <td style="background: #F0ADAD">
+          return ({
+  val arg$macro$1: Any = run_env;
+  val arg$macro$2: Any = SlackLogManager.this.job_name;
+  val arg$macro$3: Any = exec_date;
+  val arg$macro$4: Any = message;
+  new scala.collection.immutable.StringOps(&quot;\n      :large_blue_circle: %s - %s Process *Success!*\n      *Time of Execution*: %s\n      *Steps (Task - Duration)*: %s\n      &quot;).format(arg$macro$1, arg$macro$2, arg$macro$3, arg$macro$4)
+}: String)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1416
+        </td>
+        <td>
+          1192
+          -
+          1353
+        </td>
+        <td>
+          Return
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.finalMessageTemplate
+        </td>
+        <td style="background: #F0ADAD">
+          return ({
+  val arg$macro$5: Any = run_env;
+  val arg$macro$6: Any = SlackLogManager.this.job_name;
+  val arg$macro$7: Any = exec_date;
+  val arg$macro$8: Any = message;
+  new scala.collection.immutable.StringOps(&quot;\n      :red_circle: %s - %s Process *Failed!*\n      *Time of Execution*: %s\n      *Steps (Task - Duration)*: %s\n      &quot;).format(arg$macro$5, arg$macro$6, arg$macro$7, arg$macro$8)
+}: String)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1417
+        </td>
+        <td>
+          1677
+          -
+          1679
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1419
+        </td>
+        <td>
+          1702
+          -
+          1776
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getTimeDifferenceAsString
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(execution_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1418
+        </td>
+        <td>
+          1753
+          -
+          1775
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1420
+        </td>
+        <td>
+          1801
+          -
+          1837
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          state_status.toLowerCase().==(&quot;pass&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1423
+        </td>
+        <td>
+          1870
+          -
+          1897
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_orange_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1422
+        </td>
+        <td>
+          1839
+          -
+          1864
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_blue_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1421
+        </td>
+        <td>
+          1839
+          -
+          1864
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_blue_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1424
+        </td>
+        <td>
+          1870
+          -
+          1897
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_orange_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1425
+        </td>
+        <td>
+          2034
+          -
+          2099
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          step_icon.+(&quot;*&quot;).+(etlstep.name).+(&quot;*&quot;).+(&quot; - (&quot;).+(elapsedTime).+(&quot;)&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1429
+        </td>
+        <td>
+          2252
+          -
+          2406
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n\t\t\t &quot;.+(etlstep.getStepProperties(SlackLogManager.this.job_properties.job_notification_level).mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
+  val arg$macro$1: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$1)
+}: String))).getOrElse[String](&quot;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1428
+        </td>
+        <td>
+          2348
+          -
+          2406
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          error_message.map[String](((msg: String) =&gt; ({
+  val arg$macro$1: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$1)
+}: String))).getOrElse[String](&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1430
+        </td>
+        <td>
+          2224
+          -
+          2407
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.concat
+        </td>
+        <td style="background: #F0ADAD">
+          slackMessageForSteps.concat(&quot;\n\t\t\t &quot;.+(etlstep.getStepProperties(SlackLogManager.this.job_properties.job_notification_level).mkString(&quot;, &quot;)).+(error_message.map[String](((msg: String) =&gt; ({
+  val arg$macro$1: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$1)
+}: String))).getOrElse[String](&quot;&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1427
+        </td>
+        <td>
+          2266
+          -
+          2345
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.mkString
+        </td>
+        <td style="background: #F0ADAD">
+          etlstep.getStepProperties(SlackLogManager.this.job_properties.job_notification_level).mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1426
+        </td>
+        <td>
+          2252
+          -
+          2263
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n\t\t\t &quot;
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          1432
+        </td>
+        <td>
+          2472
+          -
+          2530
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.final_message_=
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.final_message_=(SlackLogManager.this.final_message.concat(slackMessageForSteps))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          1431
+        </td>
+        <td>
+          2488
+          -
+          2530
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.concat
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.final_message.concat(slackMessageForSteps)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1433
+        </td>
+        <td>
+          2644
+          -
+          2697
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getCurrentTimestampAsString
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getCurrentTimestampAsString(&quot;yyyy-MM-dd HH:mm:ss&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1436
+        </td>
+        <td>
+          2714
+          -
+          2813
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.finalMessageTemplate
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.finalMessageTemplate(SlackLogManager.this.env, execution_date_time, SlackLogManager.this.final_message, status)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          1434
+        </td>
+        <td>
+          2742
+          -
+          2745
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.env
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.env
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          1435
+        </td>
+        <td>
+          2780
+          -
+          2793
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.final_message
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.final_message
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1441
+        </td>
+        <td>
+          2819
+          -
+          2819
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1440
+        </td>
+        <td>
+          2819
+          -
+          2819
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1437
+        </td>
+        <td>
+          2823
+          -
+          2886
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.equalsIgnoreCase
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.job_properties.job_notification_level.equalsIgnoreCase(&quot;debug&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1438
+        </td>
+        <td>
+          2894
+          -
+          2907
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(data)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1439
+        </td>
+        <td>
+          2894
+          -
+          2907
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(data)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1449
+        </td>
+        <td>
+          2917
+          -
+          2917
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1448
+        </td>
+        <td>
+          2913
+          -
+          3182
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Try.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Try.apply[org.apache.http.client.methods.CloseableHttpResponse]({
+  val client: org.apache.http.impl.client.CloseableHttpClient = org.apache.http.impl.client.HttpClients.createDefault();
+  val slackApi: org.apache.http.client.methods.HttpPost = new org.apache.http.client.methods.HttpPost(SlackLogManager.this.web_hook_url);
+  val json_data: String = ({
+    val arg$macro$1: Any = data;
+    new scala.collection.immutable.StringOps(&quot; { \&quot;text\&quot; : \&quot;%s\&quot; } &quot;).format(arg$macro$1)
+  }: String);
+  val entity: org.apache.http.entity.StringEntity = new org.apache.http.entity.StringEntity(json_data);
+  slackApi.setEntity(entity);
+  client.execute(slackApi)
+})
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1442
+        </td>
+        <td>
+          2938
+          -
+          2963
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.http.impl.client.HttpClients.createDefault
+        </td>
+        <td style="background: #F0ADAD">
+          org.apache.http.impl.client.HttpClients.createDefault()
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1443
+        </td>
+        <td>
+          2998
+          -
+          3010
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.web_hook_url
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.web_hook_url
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1444
+        </td>
+        <td>
+          2985
+          -
+          3011
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.http.client.methods.HttpPost.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.apache.http.client.methods.HttpPost(SlackLogManager.this.web_hook_url)
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1445
+        </td>
+        <td>
+          3083
+          -
+          3110
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.http.entity.StringEntity.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.apache.http.entity.StringEntity(json_data)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1446
+        </td>
+        <td>
+          3117
+          -
+          3143
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.http.client.methods.HttpEntityEnclosingRequestBase.setEntity
+        </td>
+        <td style="background: #F0ADAD">
+          slackApi.setEntity(entity)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1447
+        </td>
+        <td>
+          3151
+          -
+          3175
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.apache.http.impl.client.CloseableHttpClient.execute
+        </td>
+        <td style="background: #F0ADAD">
+          client.execute(slackApi)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1459
+        </td>
+        <td>
+          3364
+          -
+          3814
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.apply
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.apply[Option[etlflow.log.SlackLogManager]](if (job_properties.job_send_slack_notification)
+  scala.Some.apply[etlflow.log.SlackLogManager](new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
+    case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+    case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+  }, global_properties match {
+    case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+    case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+  }))
+else
+  scala.None)
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          1450
+        </td>
+        <td>
+          3379
+          -
+          3421
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_send_slack_notification
+        </td>
+        <td style="background: #F0ADAD">
+          job_properties.job_send_slack_notification
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          1456
+        </td>
+        <td>
+          3429
+          -
+          3790
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[etlflow.log.SlackLogManager](new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+}, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+}))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          1455
+        </td>
+        <td>
+          3429
+          -
+          3790
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[etlflow.log.SlackLogManager](new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+}, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+}))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          1454
+        </td>
+        <td>
+          3434
+          -
+          3789
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+}, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+})
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          1451
+        </td>
+        <td>
+          3479
+          -
+          3481
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          1452
+        </td>
+        <td>
+          3586
+          -
+          3629
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          1453
+        </td>
+        <td>
+          3736
+          -
+          3771
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&lt;use_global_properties_slack_env&gt;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          1458
+        </td>
+        <td>
+          3806
+          -
+          3810
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          1457
+        </td>
+        <td>
+          3806
+          -
+          3810
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

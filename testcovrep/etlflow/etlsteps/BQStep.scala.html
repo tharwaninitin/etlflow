@@ -1,0 +1,158 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          etlflow/etlsteps/BQStep.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow.etlsteps
+</span>2 <span style=''>
+</span>3 <span style=''>import java.io.FileInputStream
+</span>4 <span style=''>import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+</span>5 <span style=''>import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
+</span>6 <span style=''>import etlflow.utils.GCP
+</span>7 <span style=''>
+</span>8 <span style=''>trait BQStep extends EtlStep[Unit,Unit] {
+</span>9 <span style=''>
+</span>10 <span style=''>  val credentials: Option[GCP]
+</span>11 <span style=''>
+</span>12 <span style=''>  private val env_path: String = </span><span style='background: #AEF1AE'>sys.env.getOrElse(&quot;GOOGLE_APPLICATION_CREDENTIALS&quot;, &quot;NOT_SET_IN_ENV&quot;)</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  private def getBQ(path: String) = {
+</span>15 <span style=''>    val credentials: GoogleCredentials = </span><span style='background: #AEF1AE'>ServiceAccountCredentials.fromStream(new FileInputStream(path))</span><span style=''>
+</span>16 <span style=''>    </span><span style='background: #AEF1AE'>BigQueryOptions.newBuilder().setCredentials(credentials).build().getService</span><span style=''>
+</span>17 <span style=''>  }
+</span>18 <span style=''>
+</span>19 <span style=''>  lazy val bq: BigQuery = credentials match {
+</span>20 <span style=''>    case Some(creds) =&gt;
+</span>21 <span style=''>      etl_logger.info(&quot;Using GCP credentials from values passed in function&quot;)
+</span>22 <span style=''>      getBQ(creds.service_account_key_path)
+</span>23 <span style=''>    case None =&gt;
+</span>24 <span style=''>      if (env_path == &quot;NOT_SET_IN_ENV&quot;) {
+</span>25 <span style=''>        etl_logger.info(&quot;Using GCP credentials from local sdk&quot;)
+</span>26 <span style=''>        BigQueryOptions.getDefaultInstance.getService
+</span>27 <span style=''>      }
+</span>28 <span style=''>      else {
+</span>29 <span style=''>        etl_logger.info(&quot;Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS&quot;)
+</span>30 <span style=''>        getBQ(env_path)
+</span>31 <span style=''>      }
+</span>32 <span style=''>  }
+</span>33 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          657
+        </td>
+        <td>
+          329
+          -
+          398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.sys.`package`.env.getOrElse[String](&quot;GOOGLE_APPLICATION_CREDENTIALS&quot;, &quot;NOT_SET_IN_ENV&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          659
+        </td>
+        <td>
+          479
+          -
+          542
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.auth.oauth2.ServiceAccountCredentials.fromStream
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.auth.oauth2.ServiceAccountCredentials.fromStream(new java.io.FileInputStream(path))
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          658
+        </td>
+        <td>
+          516
+          -
+          541
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.io.FileInputStream.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.io.FileInputStream(path)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          660
+        </td>
+        <td>
+          547
+          -
+          622
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.google.cloud.ServiceOptions.getService
+        </td>
+        <td style="background: #AEF1AE">
+          com.google.cloud.bigquery.BigQueryOptions.newBuilder().setCredentials(credentials).build().getService()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

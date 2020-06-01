@@ -1,6 +1,7 @@
 package etlflow.scheduler
 
 import java.util.UUID.randomUUID
+
 import caliban.CalibanError.ExecutionError
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import cron4s.Cron
@@ -8,6 +9,7 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
+import etlflow.log.JobRun
 import etlflow.scheduler.EtlFlowHelper._
 import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
@@ -20,6 +22,7 @@ import zio._
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import zio.stream.ZStream
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
@@ -170,6 +173,50 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
 
         override def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] = {
           getCronJobsDB(transactor)
+        }
+
+        override def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
+          var q: Quoted[Query[JobRun]] = null
+          try {
+            if (args.jobRunId.isDefined && args.jobName.isEmpty) {
+              q = quote {
+                query[JobRun]
+                  .filter(_.job_run_id == lift(args.jobRunId.get))
+                  .sortBy(p => p.inserted_at)(Ord.desc)
+                  .drop(lift(args.offset))
+                  .take(lift(args.limit))
+              }
+              // logger.info(s"Query Fragment Generated for arguments $args is ")
+            }
+            else if (args.jobRunId.isEmpty && args.jobName.isDefined) {
+              q = quote {
+                query[JobRun]
+                  .filter(_.job_name == lift(args.jobName.get))
+                  .sortBy(p => p.inserted_at)(Ord.desc)
+                  .drop(lift(args.offset))
+                  .take(lift(args.limit))
+              }
+              // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
+            }
+            else {
+              q = quote {
+                query[JobRun]
+                  .sortBy(p => p.inserted_at)(Ord.desc)
+                  .drop(lift(args.offset))
+                  .take(lift(args.limit))
+              }
+              // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
+            }
+            dc.run(q).transact(transactor)
+          }
+          catch {
+            case x: Throwable =>
+              // This below code should be error free always
+              logger.error(s"Exception occurred for arguments $args")
+              x.getStackTrace.foreach(msg => logger.error("=> " + msg.toString))
+              // Throw error here or DummyResults
+              throw x
+          }
         }
 
         override def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus] = ZStream.unwrap {

@@ -6,7 +6,15 @@ import Dependencies._
 
 lazy val coreSettings = Seq(
   name := "etlflow-core"
-  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ loggingLibs ++ dbLibs ++ miscLibs ++ testLibs
+  , libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs
+    ++ loggingLibs ++ dbLibs ++ miscLibs
+    ++ awsLibs ++ testLibs
+  , dependencyOverrides ++= {
+    Seq(
+      "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
+    )
+  }
 )
 
 lazy val schedulerSettings = Seq(
@@ -53,7 +61,8 @@ lazy val core = (project in file("modules/core"))
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow",
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
 
 lazy val scheduler = (project in file("modules/scheduler"))

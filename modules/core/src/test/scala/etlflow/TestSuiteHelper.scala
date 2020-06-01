@@ -13,6 +13,7 @@ import doobie.util.transactor.Transactor.Aux
 import etlflow.spark.SparkManager
 import etlflow.utils.GlobalProperties
 import org.apache.spark.sql.SparkSession
+import software.amazon.awssdk.regions.Region
 import zio.{Runtime, Task, ZEnv}
 import zio.interop.catz._
 
@@ -23,16 +24,20 @@ trait TestSuiteHelper extends SparkManager {
   lazy val spark_jetty_logger: LBLogger = LoggerFactory.getLogger("org.spark_project.jetty").asInstanceOf[LBLogger]
   spark_jetty_logger.setLevel(Level.WARN)
 
-  val canonical_path: String          = new java.io.File(".").getCanonicalPath
-  val global_props: GlobalProperties  = new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}
-  lazy val spark: SparkSession        = createSparkSession(Some(global_props))
-
-  lazy val bq: BigQuery               = {
-    val credentials: GoogleCredentials  = ServiceAccountCredentials.fromStream(
-      new FileInputStream(sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV"))
+  lazy val gcs_bucket: String              = sys.env.getOrElse("GCS_BUCKET","...")
+  lazy val s3_bucket: String               = sys.env.getOrElse("S3_BUCKET","...")
+  lazy val s3_region: Region               = Region.AP_SOUTH_1
+  lazy val bq: BigQuery                    = {
+    val credentials: GoogleCredentials = ServiceAccountCredentials.fromStream(
+      new FileInputStream(sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS","<not_set>"))
     )
     BigQueryOptions.newBuilder().setCredentials(credentials).build().getService
   }
+  val canonical_path: String          = new java.io.File(".").getCanonicalPath
+  val global_props: GlobalProperties  = new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}
+  lazy val spark: SparkSession        = createSparkSession(Some(global_props))
+  val file                            = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+
   def transactor(url: String, user: String, pwd: String): Aux[Task, Unit]
   = Transactor.fromDriverManager[Task](
     global_props.log_db_driver,     // driver classname

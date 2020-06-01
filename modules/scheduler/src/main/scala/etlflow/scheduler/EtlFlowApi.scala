@@ -6,6 +6,7 @@ import caliban.Value.StringValue
 import caliban.schema._
 import caliban.{GraphQL, RootResolver}
 import cron4s._
+import etlflow.log.JobRun
 import etlflow.scheduler.EtlFlowHelper._
 import zio.ZIO
 import zio.blocking.Blocking
@@ -25,6 +26,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
   case class Queries(
                       etljobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]],
                       cronjobs: ZIO[EtlFlowHas, Throwable, List[CronJob]],
+                      jobruns: DbJobRunArgs => ZIO[EtlFlowHas, Throwable, List[JobRun]],
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                     )
 
@@ -46,6 +48,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
         Queries(
           getEtlJobs,
           getCronJobs,
+          args => getDbJobRuns(args),
           getInfo,
         ),
         Mutations(

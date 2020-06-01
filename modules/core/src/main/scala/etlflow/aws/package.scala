@@ -34,7 +34,7 @@ package object aws {
     trait Service {
       def listBuckets: Task[ListBucketsResponse]
       def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean]
-      def listBucketObjects(bucket: String, prefix: String): Task[ListObjectsV2Response]
+      def listBucketObjects(bucket: String, prefix: String, maxKeys: Int): Task[ListObjectsV2Response]
       def putObject(bucket: String, key: String, file: String): Task[PutObjectResponse]
       def getObject(bucket: String, key: String, file: String): Task[GetObjectResponse]
       def delObject(bucket: String, key: String): Task[DeleteObjectResponse]
@@ -44,12 +44,12 @@ package object aws {
       new Service {
         def listBuckets: Task[ListBucketsResponse] =
           IO.effectAsync[Throwable, ListBucketsResponse](callback => processResponse(deps.s3.listBuckets, callback))
-        def listBucketObjects(bucket: String, prefix: String): Task[ListObjectsV2Response] = for {
+        def listBucketObjects(bucket: String, prefix: String, maxKeys: Int = 20): Task[ListObjectsV2Response] = for {
             resp <- IO.effect(
               deps.s3.listObjectsV2(
                 ListObjectsV2Request.builder
                   .bucket(bucket)
-                  .maxKeys(20)
+                  .maxKeys(maxKeys)
                   .prefix(prefix)
                   .build
               )
@@ -62,11 +62,14 @@ package object aws {
             }
           } yield list
         def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean] = for {
-            list    <- listBucketObjects(bucket, prefix)
-            _       = aws_logger.info(s"Objects under bucket $bucket with prefix $prefix are \n" + list.contents().asScala.mkString("\n"))
+            list    <- listBucketObjects(bucket, prefix, Integer.MAX_VALUE)
+            _       = aws_logger.info{
+                      if (list.contents().asScala.nonEmpty)
+                        s"Objects under bucket $bucket with prefix $prefix are \n" + list.contents().asScala.mkString("\n")
+                      else s"No objects under bucket $bucket with prefix $prefix"
+                      }
             newKey  = prefix + "/" + key
             res     = list.contents.asScala.exists(_.key == newKey)
-            _       = aws_logger.info(s"Object present: ${res.toString}")
           } yield res
         def putObject(bucket: String, key: String, file: String): Task[PutObjectResponse] = IO.effectAsync[Throwable, PutObjectResponse] { callback =>
             processResponse(

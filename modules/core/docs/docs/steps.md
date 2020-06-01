@@ -12,4 +12,6 @@ Following is the list of steps available in this library:
 - SparkReadTransformWriteStep
 - BQLoadStep
 - BQQueryStep
+- S3PutStep
+- GCSPutStep
 - DBQueryStep

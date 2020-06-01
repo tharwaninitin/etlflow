@@ -60,7 +60,8 @@ package object gcp {
               listObjects(bucket, options)
                 .map(_.iterateAll().asScala)
                 .map { blobs =>
-                  gcp_logger.info("Objects \n"+blobs.mkString("\n"))
+                  if (blobs.nonEmpty) gcp_logger.info("Objects \n"+blobs.mkString("\n"))
+                  else gcp_logger.info(s"No Objects found under gs://$bucket/$prefix")
                   blobs.exists(_.getName == prefix+"/"+key)
                 }
             }

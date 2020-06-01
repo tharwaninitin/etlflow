@@ -19,7 +19,7 @@ object S3StepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
             bucket  = s3_bucket,
             key     = "temp/ratings.parquet",
             file    = file,
-            region  = Region.AP_SOUTH_1
+            region  = s3_region
           )
           assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
         },
@@ -31,7 +31,7 @@ object S3StepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
             key     = "ratings.parquet",
             retry   = 10,
             spaced  = 5.second,
-            region  = Region.AP_SOUTH_1
+            region  = s3_region
           )
           assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
         }

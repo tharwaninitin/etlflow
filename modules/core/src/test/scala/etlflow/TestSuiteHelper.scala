@@ -24,10 +24,10 @@ trait TestSuiteHelper extends SparkManager {
   lazy val spark_jetty_logger: LBLogger = LoggerFactory.getLogger("org.spark_project.jetty").asInstanceOf[LBLogger]
   spark_jetty_logger.setLevel(Level.WARN)
 
-  val gcs_bucket: String              = sys.env.getOrElse("GCS_BUCKET","...")
-  val s3_bucket: String               = sys.env.getOrElse("S3_BUCKET","...")
-  val s3_region: Region               = Region.AP_SOUTH_1
-  val bq: BigQuery                    = {
+  lazy val gcs_bucket: String              = sys.env.getOrElse("GCS_BUCKET","...")
+  lazy val s3_bucket: String               = sys.env.getOrElse("S3_BUCKET","...")
+  lazy val s3_region: Region               = Region.AP_SOUTH_1
+  lazy val bq: BigQuery                    = {
     val credentials: GoogleCredentials = ServiceAccountCredentials.fromStream(
       new FileInputStream(sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS","<not_set>"))
     )

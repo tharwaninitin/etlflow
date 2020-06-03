@@ -15,11 +15,14 @@ class GCSPutStep private[etlsteps](
     val env       = GCSStorage.live(credentials)
     val program   = putObject(bucket,key,file)
     val runnable  = for {
-                      _   <- Task.succeed(etl_logger.info(s"Starting upload for file $file in location gs://$bucket/$key"))
+                      _   <- Task.succeed(etl_logger.info("#"*100))
+                      _   <- Task.succeed(etl_logger.info(s"Input local path $file"))
+                      _   <- Task.succeed(etl_logger.info(s"Output GCS path gs://$bucket/$key"))
                       _   <- program.provideLayer(env).foldM(
                               ex => Task.succeed(etl_logger.error(ex.getMessage)) *> Task.fail(ex),
                               _  => Task.succeed(etl_logger.info(s"Successfully uploaded file $file in location gs://$bucket/$key"))
                             )
+                      _   <- Task.succeed(etl_logger.info("#"*100))
                     } yield ()
     runnable
   }

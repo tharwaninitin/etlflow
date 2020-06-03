@@ -1,10 +1,10 @@
 ThisBuild / organization := "com.github.tharwaninitin"
 ThisBuild / organizationName := "github"
-ThisBuild / organizationHomepage := Some(url("https://github.com/tharwaninitin/etljobs"))
+ThisBuild / organizationHomepage := Some(url("https://github.com/tharwaninitin/etlflow"))
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/tharwaninitin/etljobs"),
-    "scm:git@github.com:tharwaninitin/etljobs.git"
+    url("https://github.com/tharwaninitin/etlflow"),
+    "scm:git@github.com:tharwaninitin/etlflow.git"
   )
 )
 ThisBuild / developers := List(Developer("tharwaninitin",
@@ -13,7 +13,7 @@ ThisBuild / developers := List(Developer("tharwaninitin",
                              url("https://github.com/tharwaninitin")))
 ThisBuild / description := "Functional, Composable library in Scala for writing ETL jobs"
 ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-ThisBuild / homepage := Some(url("https://github.com/tharwaninitin/etljobs"))
+ThisBuild / homepage := Some(url("https://github.com/tharwaninitin/etlflow"))
 
 // Add sonatype repository settings
 ThisBuild / pomIncludeRepository := { _ => false }

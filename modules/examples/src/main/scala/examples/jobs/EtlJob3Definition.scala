@@ -1,7 +1,7 @@
 package examples.jobs
 
 import etlflow.LoggerResource
-import etlflow.etljobs.EtlJob
+import etlflow.etljobs.GenericEtlJobWithLogging
 import etlflow.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
 import etlflow.utils.CSV
@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import zio.Task
 
-case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends EtlJob with SparkUDF with SparkManager {
+case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends GenericEtlJobWithLogging with SparkUDF with SparkManager {
   lazy val spark: SparkSession = createSparkSession(global_properties)
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private var output_date_paths: Seq[(String,String)] = Seq()
@@ -63,7 +63,7 @@ case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: O
     output_table   = job_props.ratings_output_table_name
   )
 
-  def etlJob(implicit resource: LoggerResource): Task[Unit] = for {
+  def job(implicit resource: LoggerResource): Task[Unit] = for {
     - <- step1.execute(spark)
     _ <- step2.execute()
    } yield ()

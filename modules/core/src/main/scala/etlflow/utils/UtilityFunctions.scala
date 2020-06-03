@@ -4,11 +4,11 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import etlflow.{EtlJobName, EtlJobNotFoundException, EtlJobProps}
-import org.apache.log4j.Logger
 import org.json4s.JsonAST.JNothing
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization.writePretty
 import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, JValue, _}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.{TypeTag, _}
@@ -16,7 +16,7 @@ import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}
 
 object UtilityFunctions {
-  lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
+  lazy val uf_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def parser(args: Array[String]): Map[String, String] = {
     args.map {
@@ -78,7 +78,7 @@ object UtilityFunctions {
     val tpe = ru.typeOf[T]
     val clazz = tpe.typeSymbol.asClass
     val allJobNames = clazz.knownDirectSubclasses
-    allJobNames.foreach(x => uf_logger.info(x.name))
+    allJobNames.foreach(x => uf_logger.info(x.name.toString))
   }
 
   def getEtlJobs[T: TypeTag]: Set[String] = {
@@ -126,7 +126,7 @@ object UtilityFunctions {
     } match {
       case Success(value) => Some(value)
       case Failure(exception) =>
-        uf_logger.info(exception.printStackTrace())
+        uf_logger.info(exception.getStackTrace.mkString("\n"))
         None
     }
   }

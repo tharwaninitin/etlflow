@@ -5,7 +5,7 @@ section: "home"
 technologies:
  - first: ["Scala", "Most amazing JVM language"]
  - second: ["Spark", "Apache Spark™ is a unified analytics engine for large-scale data processing."]
- - third: ["Zio", "Type-safe, composable asynchronous and concurrent programming for Scala"]
+ - third: ["ZIO", "Type-safe, composable asynchronous and concurrent programming for Scala"]
  - fourth: ["GCP", "Google Cloud Platform"]
  - fifth: ["AWS", "Amazon Web Services"]
 ---
@@ -22,13 +22,13 @@ This project is compiled with scala version 2.12.10 and works with Apache Spark 
     <dependency>
         <groupId>com.github.tharwaninitin</groupId>
         <artifactId>etlflow-core_2.12</artifactId>
-        <version>0.7.12</version>
+        <version>0.7.13</version>
     </dependency>
     
 **SBT**
 
-    libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.12"
+    libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.13"
 
-[Download Latest](https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.12)
+[Download Latest](https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.13)
  
 

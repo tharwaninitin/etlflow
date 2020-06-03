@@ -21,7 +21,7 @@ As such, you'll need to make sure you have variables set to a bucket and object 
 Here are all the things you will need to change to run the tests locally:
 
  ```shell
- export GOOGLE_APPLICATION_CREDENTIALS=<...> # this should be full path to Service Account Key Json which should have GCS and Biguery Read/Write access
+ export GOOGLE_APPLICATION_CREDENTIALS=<...> # this should be full path to GCP Service Account Key Json which should have GCS and BigQuery Read/Write access
  export GCS_BUCKET=<...> 
  export ACCESS_KEY=<...>
  export SECRET_KEY=<...>
@@ -45,14 +45,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>0.7.12</version>
+    <version>0.7.13</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.12"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.13"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.12
+__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.13
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

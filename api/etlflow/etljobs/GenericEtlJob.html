@@ -107,12 +107,12 @@
                         <a href="DataProcJob.html" title="">DataProcJob</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="trait" href="" title=""></a>
-                        <a href="" title="">EtlJob</a>
+                        <a class="trait" href="EtlJob.html" title=""></a>
+                        <a href="EtlJob.html" title="">EtlJob</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="trait" href="GenericEtlJob.html" title=""></a>
-                        <a href="GenericEtlJob.html" title="">GenericEtlJob</a>
+                        <a class="trait" href="" title=""></a>
+                        <a href="" title="">GenericEtlJob</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="trait" href="GenericEtlJobWithLogging.html" title=""></a>
@@ -134,8 +134,8 @@
       <div id="definition">
         <div class="big-circle trait">t</div>
         <p id="owner"><a href="../index.html" class="extype" name="etlflow">etlflow</a>.<a href="index.html" class="extype" name="etlflow.etljobs">etljobs</a></p>
-        <h1>EtlJob<span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html" title="Permalink">
+        <h1>GenericEtlJob<span class="permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -148,7 +148,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">EtlJob</span><span class="result"> extends <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">GenericEtlJob</span><span class="result"> extends <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></span>
       </span>
       </h4>
 
@@ -157,12 +157,12 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a>, <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
             </span>
-            <div class="subClasses hiddenContent"><a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a>, <a href="GenericEtlJobWithLogging.html" class="extype" name="etlflow.etljobs.GenericEtlJobWithLogging">GenericEtlJobWithLogging</a>, <a href="SequentialEtlJob.html" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a>, <a href="SequentialEtlJobWithLogging.html" class="extype" name="etlflow.etljobs.SequentialEtlJobWithLogging">SequentialEtlJobWithLogging</a></div>
+            <div class="subClasses hiddenContent"><a href="SequentialEtlJob.html" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a></div>
           </div></div>
         
 
@@ -188,7 +188,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="etlflow.etljobs.EtlJob"><span>EtlJob</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="etlflow.etljobs.GenericEtlJob"><span>GenericEtlJob</span></li><li class="in" name="etlflow.etljobs.EtlJob"><span>EtlJob</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -212,42 +212,10 @@
 
         <div class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="etlflow.etljobs.EtlJob#execute" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="execute():zio.ZIO[Any,Throwable,Unit]"></a><a id="execute():ZIO[Any,Throwable,Unit]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#execute():zio.ZIO[Any,Throwable,Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">execute</span><span class="params">()</span><span class="result">: <span class="extype" name="zio.ZIO">ZIO</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="scala.Unit">Unit</span>]</span>
-      </span>
-      
-      
-    </li><li name="etlflow.etljobs.EtlJob#getJobInfo" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="getJobInfo(level:String):List[(String,Map[String,String])]"></a><a id="getJobInfo(String):List[(String,Map[String,String])]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#getJobInfo(level:String):List[(String,Map[String,String])]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getJobInfo</span><span class="params">(<span name="level">level: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;info&quot;</span></span>)</span><span class="result">: <a href="../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>])]</span>
-      </span>
-      
-      
-    </li><li name="etlflow.etljobs.EtlJob#global_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="etlflow.etljobs.EtlJob#global_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="global_properties:Option[etlflow.utils.GlobalProperties]"></a><a id="global_properties:Option[GlobalProperties]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#global_properties:Option[etlflow.utils.GlobalProperties]" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#global_properties:Option[etlflow.utils.GlobalProperties]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -259,11 +227,27 @@
         <span class="name">global_properties</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>
       </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
+    </li><li name="etlflow.etljobs.GenericEtlJob#job" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="job:zio.Task[Unit]"></a><a id="job:Task[Unit]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#job:zio.Task[Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">job</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
       
-    </li><li name="etlflow.etljobs.EtlJob#job_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      
+    </li><li name="etlflow.etljobs.EtlJob#job_properties" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="job_properties:etlflow.EtlJobProps"></a><a id="job_properties:EtlJobProps"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#job_properties:etlflow.EtlJobProps" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#job_properties:etlflow.EtlJobProps" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -275,23 +259,7 @@
         <span class="name">job_properties</span><span class="result">: <a href="../package$$EtlJobProps.html" class="extype" name="etlflow.EtlJobProps">EtlJobProps</a></span>
       </span>
       
-      
-    </li><li name="etlflow.etljobs.EtlJob#printJobInfo" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="printJobInfo(level:String):Unit"></a><a id="printJobInfo(String):Unit"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#printJobInfo(level:String):Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">printJobInfo</span><span class="params">(<span name="level">level: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;info&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -301,7 +269,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -317,7 +285,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html###():Int" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -333,7 +301,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -349,7 +317,7 @@
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -365,7 +333,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#clone():Object" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -389,7 +357,7 @@
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -405,7 +373,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -418,10 +386,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etlflow.etljobs.EtlJob#etl_job_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="etlflow.etljobs.EtlJob#etl_job_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="etl_job_logger:org.slf4j.Logger"></a><a id="etl_job_logger:Logger"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#etl_job_logger:org.slf4j.Logger" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#etl_job_logger:org.slf4j.Logger" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -433,11 +401,27 @@
         <span class="name">etl_job_logger</span><span class="result">: <span class="extype" name="org.slf4j.Logger">Logger</span></span>
       </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
+    </li><li name="etlflow.etljobs.GenericEtlJob#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="execute():zio.ZIO[Any,Throwable,Unit]"></a><a id="execute():ZIO[Any,Throwable,Unit]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#execute():zio.ZIO[Any,Throwable,Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">execute</span><span class="params">()</span><span class="result">: <span class="extype" name="zio.ZIO">ZIO</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#finalize():Unit" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -459,7 +443,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#getClass():Class[_]" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -475,10 +459,26 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etlflow.etljobs.GenericEtlJob#getJobInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getJobInfo(level:String):List[(String,Map[String,String])]"></a><a id="getJobInfo(String):List[(String,Map[String,String])]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#getJobInfo(level:String):List[(String,Map[String,String])]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getJobInfo</span><span class="params">(<span name="level">level: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;info&quot;</span></span>)</span><span class="result">: <a href="../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>])]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#hashCode():Int" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -497,7 +497,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -510,10 +510,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="etlflow.etljobs.EtlJob#job_name" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="etlflow.etljobs.EtlJob#job_name" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="job_name:String"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#job_name:String" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#job_name:String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -525,11 +525,11 @@
         <span class="name">job_name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      
-    </li><li name="etlflow.etljobs.EtlJob#job_status" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
+    </li><li name="etlflow.etljobs.EtlJob#job_status" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="job_status:zio.UIO[zio.Ref[String]]"></a><a id="job_status:UIO[Ref[String]]"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#job_status:zio.UIO[zio.Ref[String]]" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#job_status:zio.UIO[zio.Ref[String]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -541,11 +541,11 @@
         <span class="name">job_status</span><span class="result">: <span class="extype" name="zio.UIO">UIO</span>[<span class="extype" name="zio.Ref">Ref</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -561,7 +561,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#notify():Unit" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -580,7 +580,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#notifyAll():Unit" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -596,10 +596,26 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="etlflow.etljobs.GenericEtlJob#printJobInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="printJobInfo(level:String):Unit"></a><a id="printJobInfo(String):Unit"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#printJobInfo(level:String):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">printJobInfo</span><span class="params">(<span name="level">level: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;info&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -615,7 +631,7 @@
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#toString():String" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -631,7 +647,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#wait():Unit" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -653,7 +669,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -675,7 +691,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../etlflow/etljobs/EtlJob.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../etlflow/etljobs/GenericEtlJob.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -706,7 +722,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="etlflow.etljobs.EtlJob">
+              <h3>Inherited from <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

@@ -34,16 +34,16 @@
 </span>10 <span style=''>  val libraryDependencies: scala.collection.Seq[String] = </span><span style='background: #F0ADAD'>scala.collection.Seq(&quot;org.scala-lang:scala-library:2.12.10&quot;, &quot;org.tpolecat:tut-core:0.6.13:Tut&quot;, &quot;org.scalameta:mdoc:2.1.5&quot;, &quot;org.scoverage:scalac-scoverage-runtime:1.4.0&quot;, &quot;org.scoverage:scalac-scoverage-plugin:1.4.0:scoveragePlugin&quot;, &quot;dev.zio:zio:1.0.0-RC18-2&quot;, &quot;dev.zio:zio-interop-cats:2.0.0.0-RC11&quot;, &quot;dev.zio:zio-process:0.0.3&quot;, &quot;org.apache.spark:spark-core:2.4.4&quot;, &quot;org.apache.spark:spark-sql:2.4.4&quot;, &quot;com.google.cloud.spark:spark-bigquery-with-dependencies:0.13.1-beta&quot;, &quot;com.google.cloud.bigdataoss:gcs-connector:1.6.1-hadoop2&quot;, &quot;com.google.cloud:google-cloud-bigquery:1.80.0&quot;, &quot;com.google.cloud:google-cloud-dataproc:0.122.1&quot;, &quot;com.google.cloud:google-cloud-storage:1.108.0&quot;, &quot;ch.qos.logback:logback-classic:1.2.3&quot;, &quot;io.getquill:quill-jdbc:3.5.0&quot;, &quot;org.tpolecat:doobie-core:0.8.8&quot;, &quot;org.tpolecat:doobie-postgres:0.8.8&quot;, &quot;org.tpolecat:doobie-h2:0.8.8&quot;, &quot;org.tpolecat:doobie-hikari:0.8.8&quot;, &quot;org.tpolecat:doobie-quill:0.8.8&quot;, &quot;org.flywaydb:flyway-core:6.4.1&quot;, &quot;org.postgresql:postgresql:42.2.8&quot;, &quot;org.hsqldb:hsqldb:2.5.0&quot;, &quot;com.github.scopt:scopt:3.7.1&quot;, &quot;software.amazon.awssdk:s3:2.13.23&quot;, &quot;org.scalatest:scalatest:3.0.5:test&quot;, &quot;org.testcontainers:postgresql:1.11.2:test&quot;, &quot;dev.zio:zio-test:1.0.0-RC18-2:test&quot;, &quot;dev.zio:zio-test-sbt:1.0.0-RC18-2:test&quot;)</span><span style=''>
 </span>11 <span style=''>  /** The value is &quot;etlflow-core&quot;. */
 </span>12 <span style=''>  val name: String = </span><span style='background: #F0ADAD'>&quot;etlflow-core&quot;</span><span style=''>
-</span>13 <span style=''>  /** The value is &quot;0.7.12&quot;. */
-</span>14 <span style=''>  val version: String = </span><span style='background: #F0ADAD'>&quot;0.7.12&quot;</span><span style=''>
+</span>13 <span style=''>  /** The value is &quot;0.7.13&quot;. */
+</span>14 <span style=''>  val version: String = </span><span style='background: #F0ADAD'>&quot;0.7.13&quot;</span><span style=''>
 </span>15 <span style=''>  /** The value is &quot;2.12.10&quot;. */
 </span>16 <span style=''>  val scalaVersion: String = </span><span style='background: #F0ADAD'>&quot;2.12.10&quot;</span><span style=''>
 </span>17 <span style=''>  /** The value is &quot;1.3.7&quot;. */
 </span>18 <span style=''>  val sbtVersion: String = </span><span style='background: #F0ADAD'>&quot;1.3.7&quot;</span><span style=''>
-</span>19 <span style=''>  /** The value is &quot;2020-06-01 23:22:54.942&quot;. */
-</span>20 <span style=''>  val builtAtString: String = </span><span style='background: #F0ADAD'>&quot;2020-06-01 23:22:54.942&quot;</span><span style=''>
-</span>21 <span style=''>  /** The value is 1591053774942L. */
-</span>22 <span style=''>  val builtAtMillis: scala.Long = </span><span style='background: #F0ADAD'>1591053774942L</span><span style=''>
+</span>19 <span style=''>  /** The value is &quot;2020-06-03 23:28:17.527&quot;. */
+</span>20 <span style=''>  val builtAtString: String = </span><span style='background: #F0ADAD'>&quot;2020-06-03 23:28:17.527&quot;</span><span style=''>
+</span>21 <span style=''>  /** The value is 1591226897527L. */
+</span>22 <span style=''>  val builtAtMillis: scala.Long = </span><span style='background: #F0ADAD'>1591226897527L</span><span style=''>
 </span>23 <span style=''>  override val toString: String = {
 </span>24 <span style=''>    </span><span style='background: #F0ADAD'>&quot;resolvers: %s, libraryDependencies: %s, name: %s, version: %s, scalaVersion: %s, sbtVersion: %s, builtAtString: %s, builtAtMillis: %s&quot;.format(
 </span>25 <span style=''></span><span style='background: #F0ADAD'>      resolvers, libraryDependencies, name, version, scalaVersion, sbtVersion, builtAtString, builtAtMillis
@@ -66,7 +66,7 @@
           8
         </td>
         <td>
-          2127
+          2215
         </td>
         <td>
           258
@@ -87,7 +87,7 @@
           10
         </td>
         <td>
-          2128
+          2216
         </td>
         <td>
           1672
@@ -108,7 +108,7 @@
           12
         </td>
         <td>
-          2129
+          2217
         </td>
         <td>
           2992
@@ -129,7 +129,7 @@
           14
         </td>
         <td>
-          2130
+          2218
         </td>
         <td>
           3063
@@ -143,14 +143,14 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;0.7.12&quot;
+          &quot;0.7.13&quot;
         </td>
       </tr><tr>
         <td>
           16
         </td>
         <td>
-          2131
+          2219
         </td>
         <td>
           3134
@@ -171,7 +171,7 @@
           18
         </td>
         <td>
-          2132
+          2220
         </td>
         <td>
           3202
@@ -192,7 +192,7 @@
           20
         </td>
         <td>
-          2133
+          2221
         </td>
         <td>
           3289
@@ -206,14 +206,14 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;2020-06-01 23:22:54.942&quot;
+          &quot;2020-06-03 23:28:17.527&quot;
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          2134
+          2222
         </td>
         <td>
           3387
@@ -227,35 +227,14 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          1591053774942L
+          1591226897527L
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          2135
-        </td>
-        <td>
-          3442
-          -
-          3577
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;resolvers: %s, libraryDependencies: %s, name: %s, version: %s, scalaVersion: %s, sbtVersion: %s, builtAtString: %s, builtAtMillis: %s&quot;
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          2144
+          2232
         </td>
         <td>
           3442
@@ -273,94 +252,31 @@
         </td>
       </tr><tr>
         <td>
-          25
+          24
         </td>
         <td>
-          2138
+          2223
         </td>
         <td>
-          3624
+          3442
           -
-          3628
+          3577
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          etlflow.BuildInfo.name
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          BuildInfo.this.name
+          &quot;resolvers: %s, libraryDependencies: %s, name: %s, version: %s, scalaVersion: %s, sbtVersion: %s, builtAtString: %s, builtAtMillis: %s&quot;
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          2137
-        </td>
-        <td>
-          3603
-          -
-          3622
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.BuildInfo.libraryDependencies
-        </td>
-        <td style="background: #F0ADAD">
-          BuildInfo.this.libraryDependencies
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          2140
-        </td>
-        <td>
-          3639
-          -
-          3651
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.BuildInfo.scalaVersion
-        </td>
-        <td style="background: #F0ADAD">
-          BuildInfo.this.scalaVersion
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          2143
-        </td>
-        <td>
-          3680
-          -
-          3693
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.BuildInfo.builtAtMillis
-        </td>
-        <td style="background: #F0ADAD">
-          BuildInfo.this.builtAtMillis
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          2136
+          2224
         </td>
         <td>
           3592
@@ -381,7 +297,7 @@
           25
         </td>
         <td>
-          2139
+          2227
         </td>
         <td>
           3630
@@ -402,7 +318,7 @@
           25
         </td>
         <td>
-          2142
+          2230
         </td>
         <td>
           3665
@@ -423,7 +339,7 @@
           25
         </td>
         <td>
-          2141
+          2229
         </td>
         <td>
           3653
@@ -438,6 +354,90 @@
         </td>
         <td style="background: #F0ADAD">
           BuildInfo.this.sbtVersion
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          2226
+        </td>
+        <td>
+          3624
+          -
+          3628
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.name
+        </td>
+        <td style="background: #F0ADAD">
+          BuildInfo.this.name
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          2228
+        </td>
+        <td>
+          3639
+          -
+          3651
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.scalaVersion
+        </td>
+        <td style="background: #F0ADAD">
+          BuildInfo.this.scalaVersion
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          2231
+        </td>
+        <td>
+          3680
+          -
+          3693
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.builtAtMillis
+        </td>
+        <td style="background: #F0ADAD">
+          BuildInfo.this.builtAtMillis
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          2225
+        </td>
+        <td>
+          3603
+          -
+          3622
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.BuildInfo.libraryDependencies
+        </td>
+        <td style="background: #F0ADAD">
+          BuildInfo.this.libraryDependencies
         </td>
       </tr>
     </table>

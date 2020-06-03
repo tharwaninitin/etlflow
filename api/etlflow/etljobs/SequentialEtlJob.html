@@ -111,8 +111,20 @@
                         <a href="EtlJob.html" title="">EtlJob</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="trait" href="GenericEtlJob.html" title=""></a>
+                        <a href="GenericEtlJob.html" title="">GenericEtlJob</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="GenericEtlJobWithLogging.html" title=""></a>
+                        <a href="GenericEtlJobWithLogging.html" title="">GenericEtlJobWithLogging</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="trait" href="" title=""></a>
                         <a href="" title="">SequentialEtlJob</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="trait" href="SequentialEtlJobWithLogging.html" title=""></a>
+                        <a href="SequentialEtlJobWithLogging.html" title="">SequentialEtlJobWithLogging</a>
                       </li>
               </ul>
             </div>
@@ -136,7 +148,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">SequentialEtlJob</span><span class="result"> extends <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a> with <a href="../spark/SparkManager.html" class="extype" name="etlflow.spark.SparkManager">SparkManager</a></span>
+        <span class="name">SequentialEtlJob</span><span class="result"> extends <a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> with <a href="../spark/SparkManager.html" class="extype" name="etlflow.spark.SparkManager">SparkManager</a></span>
       </span>
       </h4>
 
@@ -145,7 +157,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../spark/SparkManager.html" class="extype" name="etlflow.spark.SparkManager">SparkManager</a>, <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a>, <a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a>, <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../spark/SparkManager.html" class="extype" name="etlflow.spark.SparkManager">SparkManager</a>, <a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a>, <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a>, <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -171,7 +183,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="etlflow.etljobs.SequentialEtlJob"><span>SequentialEtlJob</span></li><li class="in" name="etlflow.spark.SparkManager"><span>SparkManager</span></li><li class="in" name="etlflow.etljobs.EtlJob"><span>EtlJob</span></li><li class="in" name="etlflow.jdbc.DbManager"><span>DbManager</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="etlflow.etljobs.SequentialEtlJob"><span>SequentialEtlJob</span></li><li class="in" name="etlflow.spark.SparkManager"><span>SparkManager</span></li><li class="in" name="etlflow.etljobs.GenericEtlJob"><span>GenericEtlJob</span></li><li class="in" name="etlflow.etljobs.EtlJob"><span>EtlJob</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -337,86 +349,6 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="etlflow.jdbc.DbManager#createDbTransactor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="createDbTransactor(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):doobie.hikari.HikariTransactor[zio.Task]"></a><a id="createDbTransactor(Option[GlobalProperties],ExecutionContext,String):HikariTransactor[Task]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#createDbTransactor(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):doobie.hikari.HikariTransactor[zio.Task]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createDbTransactor</span><span class="params">(<span name="global_properties">global_properties: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></dd></dl></div>
-    </li><li name="etlflow.jdbc.DbManager#createDbTransactorJDBC" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="createDbTransactorJDBC(credentials:etlflow.utils.JDBC,ec:scala.concurrent.ExecutionContext,pool_name:String):zio.Task[doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorJDBC(JDBC,ExecutionContext,String):Task[HikariTransactor[Task]]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#createDbTransactorJDBC(credentials:etlflow.utils.JDBC,ec:scala.concurrent.ExecutionContext,pool_name:String):zio.Task[doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createDbTransactorJDBC</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></dd></dl></div>
-    </li><li name="etlflow.jdbc.DbManager#createDbTransactorManagedGP" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="createDbTransactorManagedGP(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorManagedGP(Option[GlobalProperties],ExecutionContext,String):ZManaged[Any,Throwable,HikariTransactor[Task]]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#createDbTransactorManagedGP(global_properties:Option[etlflow.utils.GlobalProperties],ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createDbTransactorManagedGP</span><span class="params">(<span name="global_properties">global_properties: <span class="extype" name="scala.Option">Option</span>[<a href="../utils/GlobalProperties.html" class="extype" name="etlflow.utils.GlobalProperties">GlobalProperties</a>]</span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="zio.ZManaged">ZManaged</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></dd></dl></div>
-    </li><li name="etlflow.jdbc.DbManager#createDbTransactorManagedJDBC" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="createDbTransactorManagedJDBC(credentials:etlflow.utils.JDBC):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorManagedJDBC(JDBC):ZManaged[Any,Throwable,HikariTransactor[Task]]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#createDbTransactorManagedJDBC(credentials:etlflow.utils.JDBC):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createDbTransactorManagedJDBC</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>)</span><span class="result">: <span class="extype" name="zio.ZManaged">ZManaged</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></dd></dl></div>
-    </li><li name="etlflow.jdbc.DbManager#createDbTransactorManagedJDBC" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="createDbTransactorManagedJDBC(credentials:etlflow.utils.JDBC,ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]"></a><a id="createDbTransactorManagedJDBC(JDBC,ExecutionContext,String):ZManaged[Any,Throwable,HikariTransactor[Task]]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#createDbTransactorManagedJDBC(credentials:etlflow.utils.JDBC,ec:scala.concurrent.ExecutionContext,pool_name:String):zio.ZManaged[Any,Throwable,doobie.hikari.HikariTransactor[zio.Task]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createDbTransactorManagedJDBC</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="pool_name">pool_name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;LoggerPool&quot;</span></span>)</span><span class="result">: <span class="extype" name="zio.ZManaged">ZManaged</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="doobie.hikari.HikariTransactor">HikariTransactor</span>[<span class="extype" name="zio.Task">Task</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></dd></dl></div>
     </li><li name="etlflow.spark.SparkManager#createSparkSession" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="createSparkSession(gp:Option[etlflow.utils.GlobalProperties]):org.apache.spark.sql.SparkSession"></a><a id="createSparkSession(Option[GlobalProperties]):SparkSession"></a>
       <span class="permalink">
@@ -465,22 +397,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="etlflow.etljobs.SequentialEtlJob#etlJob" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="etlJob(implicitresource:etlflow.LoggerResource):zio.Task[Unit]"></a><a id="etlJob(LoggerResource):Task[Unit]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#etlJob(implicitresource:etlflow.LoggerResource):zio.Task[Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">etlJob</span><span class="params">(<span class="implicit">implicit </span><span name="resource">resource: <a href="../package$$LoggerResource.html" class="extype" name="etlflow.LoggerResource">LoggerResource</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="etlflow.etljobs.EtlJob#etl_job_logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="etl_job_logger:org.slf4j.Logger"></a><a id="etl_job_logger:Logger"></a>
       <span class="permalink">
@@ -497,7 +413,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
-    </li><li name="etlflow.etljobs.EtlJob#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="etlflow.etljobs.GenericEtlJob#execute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="execute():zio.ZIO[Any,Throwable,Unit]"></a><a id="execute():ZIO[Any,Throwable,Unit]"></a>
       <span class="permalink">
       <a href="../../etlflow/etljobs/SequentialEtlJob.html#execute():zio.ZIO[Any,Throwable,Unit]" title="Permalink">
@@ -512,7 +428,7 @@
         <span class="name">execute</span><span class="params">()</span><span class="result">: <span class="extype" name="zio.ZIO">ZIO</span>[<span class="extype" name="scala.Any">Any</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -569,7 +485,7 @@
         <span class="name">getJobInfo</span><span class="params">(<span name="level">level: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;info&quot;</span></span>)</span><span class="result">: <a href="../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>])]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a> → <a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
@@ -605,6 +521,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="etlflow.etljobs.SequentialEtlJob#job" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="job:zio.Task[Unit]"></a><a id="job:Task[Unit]"></a>
+      <span class="permalink">
+      <a href="../../etlflow/etljobs/SequentialEtlJob.html#job:zio.Task[Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">job</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a> → <a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a></dd></dl></div>
     </li><li name="etlflow.etljobs.EtlJob#job_name" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="job_name:String"></a>
       <span class="permalink">
@@ -706,23 +638,7 @@
         <span class="name">printJobInfo</span><span class="params">(<span name="level">level: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;info&quot;</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
-    </li><li name="etlflow.jdbc.DbManager#runDbMigration" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="runDbMigration(credentials:etlflow.utils.JDBC):zio.Task[Int]"></a><a id="runDbMigration(JDBC):Task[Int]"></a>
-      <span class="permalink">
-      <a href="../../etlflow/etljobs/SequentialEtlJob.html#runDbMigration(credentials:etlflow.utils.JDBC):zio.Task[Int]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">runDbMigration</span><span class="params">(<span name="credentials">credentials: <a href="../utils/package$$JDBC.html" class="extype" name="etlflow.utils.JDBC">JDBC</a></span>)</span><span class="result">: <span class="extype" name="zio.Task">Task</span>[<span class="extype" name="scala.Int">Int</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="etlflow.etljobs.SequentialEtlJob">SequentialEtlJob</a> → <a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a> → <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></dd></dl></div>
     </li><li name="etlflow.etljobs.SequentialEtlJob#spark" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="spark:org.apache.spark.sql.SparkSession"></a><a id="spark:SparkSession"></a>
       <span class="permalink">
@@ -851,10 +767,10 @@
         <div id="inheritedMembers">
         <div class="parent" name="etlflow.spark.SparkManager">
               <h3>Inherited from <a href="../spark/SparkManager.html" class="extype" name="etlflow.spark.SparkManager">SparkManager</a></h3>
+            </div><div class="parent" name="etlflow.etljobs.GenericEtlJob">
+              <h3>Inherited from <a href="GenericEtlJob.html" class="extype" name="etlflow.etljobs.GenericEtlJob">GenericEtlJob</a></h3>
             </div><div class="parent" name="etlflow.etljobs.EtlJob">
               <h3>Inherited from <a href="EtlJob.html" class="extype" name="etlflow.etljobs.EtlJob">EtlJob</a></h3>
-            </div><div class="parent" name="etlflow.jdbc.DbManager">
-              <h3>Inherited from <a href="../jdbc/DbManager.html" class="extype" name="etlflow.jdbc.DbManager">DbManager</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

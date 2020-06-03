@@ -86,28 +86,7 @@
           20
         </td>
         <td>
-          774
-        </td>
-        <td>
-          605
-          -
-          633
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.gcp.GCSStorage.live
-        </td>
-        <td style="background: #AEF1AE">
-          etlflow.gcp.`package`.GCSStorage.live(GCSSensorStep.this.credentials)
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          773
+          851
         </td>
         <td>
           621
@@ -125,10 +104,31 @@
         </td>
       </tr><tr>
         <td>
+          20
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          605
+          -
+          633
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.gcp.GCSStorage.live
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.gcp.`package`.GCSStorage.live(GCSSensorStep.this.credentials)
+        </td>
+      </tr><tr>
+        <td>
           21
         </td>
         <td>
-          777
+          855
         </td>
         <td>
           679
@@ -149,7 +149,7 @@
           21
         </td>
         <td>
-          779
+          857
         </td>
         <td>
           696
@@ -170,7 +170,7 @@
           21
         </td>
         <td>
-          776
+          854
         </td>
         <td>
           672
@@ -191,7 +191,7 @@
           21
         </td>
         <td>
-          775
+          853
         </td>
         <td>
           665
@@ -212,7 +212,7 @@
           21
         </td>
         <td>
-          778
+          856
         </td>
         <td>
           696
@@ -233,7 +233,7 @@
           21
         </td>
         <td>
-          780
+          858
         </td>
         <td>
           652
@@ -254,28 +254,28 @@
           25
         </td>
         <td>
-          783
+          864
         </td>
         <td>
-          907
+          901
           -
-          909
+          907
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          etlflow.etlsteps.GCSSensorStep.bucket
         </td>
         <td style="background: #AEF1AE">
-          &quot;/&quot;
+          GCSSensorStep.this.bucket
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          804
+          882
         </td>
         <td>
           818
@@ -299,28 +299,28 @@ else
           25
         </td>
         <td>
-          786
+          863
         </td>
         <td>
-          901
+          875
           -
-          907
+          878
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.etlsteps.GCSSensorStep.bucket
+          etlflow.etlsteps.GCSSensorStep.key
         </td>
         <td style="background: #AEF1AE">
-          GCSSensorStep.this.bucket
+          GCSSensorStep.this.key
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          788
+          866
         </td>
         <td>
           862
@@ -341,7 +341,7 @@ else
           25
         </td>
         <td>
-          782
+          860
         </td>
         <td>
           878
@@ -362,7 +362,7 @@ else
           25
         </td>
         <td>
-          791
+          869
         </td>
         <td>
           833
@@ -383,28 +383,7 @@ else
           25
         </td>
         <td>
-          785
-        </td>
-        <td>
-          875
-          -
-          878
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.GCSSensorStep.key
-        </td>
-        <td style="background: #AEF1AE">
-          GCSSensorStep.this.key
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          784
+          862
         </td>
         <td>
           915
@@ -425,7 +404,7 @@ else
           25
         </td>
         <td>
-          787
+          865
         </td>
         <td>
           909
@@ -446,7 +425,7 @@ else
           25
         </td>
         <td>
-          781
+          859
         </td>
         <td>
           864
@@ -467,7 +446,7 @@ else
           25
         </td>
         <td>
-          790
+          868
         </td>
         <td>
           833
@@ -488,7 +467,7 @@ else
           25
         </td>
         <td>
-          789
+          867
         </td>
         <td>
           846
@@ -506,15 +485,15 @@ else
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          792
+          861
         </td>
         <td>
-          992
+          907
           -
-          997
+          909
         </td>
         <td>
           Literal
@@ -522,36 +501,15 @@ else
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
-          &quot;key &quot;
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          801
-        </td>
-        <td>
-          964
-          -
-          1051
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.Task.fail
-        </td>
-        <td style="background: #F0ADAD">
-          zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in GCS location gs://&quot;, &quot;/&quot;, &quot;/&quot;).s(GCSSensorStep.this.key, GCSSensorStep.this.bucket, GCSSensorStep.this.prefix)))
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          795
+          873
         </td>
         <td>
           1047
@@ -572,7 +530,28 @@ else
           26
         </td>
         <td>
-          797
+          872
+        </td>
+        <td>
+          1039
+          -
+          1041
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          875
         </td>
         <td>
           1033
@@ -593,7 +572,7 @@ else
           26
         </td>
         <td>
-          800
+          878
         </td>
         <td>
           974
@@ -614,91 +593,7 @@ else
           26
         </td>
         <td>
-          794
-        </td>
-        <td>
-          1039
-          -
-          1041
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;/&quot;
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          802
-        </td>
-        <td>
-          964
-          -
-          1051
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.Task.fail
-        </td>
-        <td style="background: #F0ADAD">
-          zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in GCS location gs://&quot;, &quot;/&quot;, &quot;/&quot;).s(GCSSensorStep.this.key, GCSSensorStep.this.bucket, GCSSensorStep.this.prefix)))
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          793
-        </td>
-        <td>
-          1000
-          -
-          1033
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot; not found in GCS location gs://&quot;
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          796
-        </td>
-        <td>
-          997
-          -
-          1000
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.GCSSensorStep.key
-        </td>
-        <td style="background: #F0ADAD">
-          GCSSensorStep.this.key
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          799
+          877
         </td>
         <td>
           990
@@ -719,7 +614,70 @@ else
           26
         </td>
         <td>
-          798
+          871
+        </td>
+        <td>
+          1000
+          -
+          1033
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; not found in GCS location gs://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          880
+        </td>
+        <td>
+          964
+          -
+          1051
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in GCS location gs://&quot;, &quot;/&quot;, &quot;/&quot;).s(GCSSensorStep.this.key, GCSSensorStep.this.bucket, GCSSensorStep.this.prefix)))
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          874
+        </td>
+        <td>
+          997
+          -
+          1000
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSSensorStep.key
+        </td>
+        <td style="background: #F0ADAD">
+          GCSSensorStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          876
         </td>
         <td>
           1041
@@ -737,31 +695,52 @@ else
         </td>
       </tr><tr>
         <td>
-          27
+          26
         </td>
         <td>
-          810
+          870
         </td>
         <td>
-          1152
+          992
           -
-          1162
+          997
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          zio.clock.Clock.live
+          &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          zio.clock.`package`.Clock.live
+        <td style="background: #F0ADAD">
+          &quot;key &quot;
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          879
+        </td>
+        <td>
+          964
+          -
+          1051
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in GCS location gs://&quot;, &quot;/&quot;, &quot;/&quot;).s(GCSSensorStep.this.key, GCSSensorStep.this.bucket, GCSSensorStep.this.prefix)))
         </td>
       </tr><tr>
         <td>
           27
         </td>
         <td>
-          813
+          891
         </td>
         <td>
           734
@@ -785,28 +764,7 @@ else
           27
         </td>
         <td>
-          812
-        </td>
-        <td>
-          1151
-          -
-          1151
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.NeedsEnv.needsEnv
-        </td>
-        <td style="background: #AEF1AE">
-          zio.this.NeedsEnv.needsEnv[Nothing]
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          803
+          881
         </td>
         <td>
           1090
@@ -827,7 +785,28 @@ else
           27
         </td>
         <td>
-          806
+          890
+        </td>
+        <td>
+          1151
+          -
+          1151
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.NeedsEnv.needsEnv
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.NeedsEnv.needsEnv[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          884
         </td>
         <td>
           1130
@@ -848,7 +827,7 @@ else
           27
         </td>
         <td>
-          809
+          887
         </td>
         <td>
           1099
@@ -869,49 +848,7 @@ else
           27
         </td>
         <td>
-          811
-        </td>
-        <td>
-          1151
-          -
-          1151
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.Predef.$conforms
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.$conforms[zio.clock.Clock]
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          805
-        </td>
-        <td>
-          1124
-          -
-          1129
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.GCSSensorStep.retry
-        </td>
-        <td style="background: #AEF1AE">
-          GCSSensorStep.this.retry
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          808
+          886
         </td>
         <td>
           1100
@@ -932,7 +869,49 @@ else
           27
         </td>
         <td>
-          807
+          889
+        </td>
+        <td>
+          1151
+          -
+          1151
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[zio.clock.Clock]
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          883
+        </td>
+        <td>
+          1124
+          -
+          1129
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSSensorStep.retry
+        </td>
+        <td style="background: #AEF1AE">
+          GCSSensorStep.this.retry
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          885
         </td>
         <td>
           1115
@@ -950,52 +929,31 @@ else
         </td>
       </tr><tr>
         <td>
-          30
+          27
         </td>
         <td>
-          819
+          888
         </td>
         <td>
-          1297
+          1152
           -
-          1303
+          1162
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.etlsteps.GCSSensorStep.prefix
+          zio.clock.Clock.live
         </td>
         <td style="background: #AEF1AE">
-          GCSSensorStep.this.prefix
+          zio.clock.`package`.Clock.live
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          822
-        </td>
-        <td>
-          1232
-          -
-          1310
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.slf4j.Logger.info
-        </td>
-        <td style="background: #AEF1AE">
-          GCSSensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting sensor for GCS location gs://&quot;, &quot;/&quot;, &quot;/&quot;, &quot;&quot;).s(GCSSensorStep.this.bucket, GCSSensorStep.this.prefix, GCSSensorStep.this.key))
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          821
+          899
         </td>
         <td>
           1248
@@ -1016,7 +974,7 @@ else
           30
         </td>
         <td>
-          815
+          893
         </td>
         <td>
           1295
@@ -1037,7 +995,7 @@ else
           30
         </td>
         <td>
-          818
+          896
         </td>
         <td>
           1289
@@ -1058,7 +1016,7 @@ else
           30
         </td>
         <td>
-          817
+          895
         </td>
         <td>
           1308
@@ -1079,7 +1037,7 @@ else
           30
         </td>
         <td>
-          820
+          898
         </td>
         <td>
           1305
@@ -1100,7 +1058,7 @@ else
           30
         </td>
         <td>
-          814
+          892
         </td>
         <td>
           1250
@@ -1121,7 +1079,28 @@ else
           30
         </td>
         <td>
-          825
+          900
+        </td>
+        <td>
+          1232
+          -
+          1310
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          GCSSensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting sensor for GCS location gs://&quot;, &quot;/&quot;, &quot;/&quot;, &quot;&quot;).s(GCSSensorStep.this.bucket, GCSSensorStep.this.prefix, GCSSensorStep.this.key))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          903
         </td>
         <td>
           1184
@@ -1142,7 +1121,7 @@ else
           30
         </td>
         <td>
-          816
+          894
         </td>
         <td>
           1303
@@ -1160,10 +1139,31 @@ else
         </td>
       </tr><tr>
         <td>
+          30
+        </td>
+        <td>
+          897
+        </td>
+        <td>
+          1297
+          -
+          1303
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.GCSSensorStep.prefix
+        </td>
+        <td style="background: #AEF1AE">
+          GCSSensorStep.this.prefix
+        </td>
+      </tr><tr>
+        <td>
           31
         </td>
         <td>
-          824
+          902
         </td>
         <td>
           1334
@@ -1184,7 +1184,7 @@ else
           32
         </td>
         <td>
-          823
+          901
         </td>
         <td>
           1377
@@ -1205,7 +1205,7 @@ else
           47
         </td>
         <td>
-          826
+          904
         </td>
         <td>
           1671

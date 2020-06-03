@@ -24,18 +24,18 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package etlflow
 </span>2 <span style=''>
-</span>3 <span style=''>import etljobs.{DataProcJob, EtlJob, SequentialEtlJob}
+</span>3 <span style=''>import etljobs.{DataProcJob, EtlJob, SequentialEtlJob, SequentialEtlJobWithLogging}
 </span>4 <span style=''>import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 </span>5 <span style=''>import etlflow.utils.{GlobalProperties, UtilityFunctions =&gt; UF}
-</span>6 <span style=''>import org.apache.log4j.Logger
-</span>7 <span style=''>import zio.{Runtime,ZEnv}
+</span>6 <span style=''>import org.slf4j.{Logger, LoggerFactory}
+</span>7 <span style=''>import zio.{Runtime, ZEnv}
 </span>8 <span style=''>import scala.reflect.runtime.universe.TypeTag
 </span>9 <span style=''>
 </span>10 <span style=''>// Either use =&gt;
 </span>11 <span style=''>// 1) abstract class EtlJobApp[EJN: TypeTag]
 </span>12 <span style=''>// 2) Or below &quot;trait with type&quot; like this =&gt; trait EtlJobApp[T] { type EJN = TypeTag[T] }
 </span>13 <span style=''>abstract class EtlJobApp[EJN &lt;: EtlJobName[EJP] : TypeTag, EJP &lt;: EtlJobProps : TypeTag, EJGP &lt;: GlobalProperties : TypeTag] extends DataProcJob[EJGP] {
-</span>14 <span style=''>  lazy val ea_logger: Logger = Logger.getLogger(getClass.getName)
+</span>14 <span style=''>  lazy val ea_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 </span>15 <span style=''>
 </span>16 <span style=''>  def globalProperties: Option[EJGP]
 </span>17 <span style=''>  val etl_job_name_package: String
@@ -62,35 +62,36 @@
 </span>38 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Executing show_step_props with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;)</span><span style=''>
 </span>39 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
 </span>40 <span style=''>          val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)</span><span style=''>
-</span>41 <span style=''>          if (</span><span style='background: #F0ADAD'>!etl_job.isInstanceOf[SequentialEtlJob]</span><span style=''>)
-</span>42 <span style=''>            </span><span style='background: #F0ADAD'>println(&quot;Step Props info not available for generic jobs&quot;)</span><span style=''>
-</span>43 <span style=''>          else </span><span style='background: #F0ADAD'>{
-</span>44 <span style=''></span><span style='background: #F0ADAD'>            etl_job.job_name = job_name.toString
-</span>45 <span style=''></span><span style='background: #F0ADAD'>            val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
-</span>46 <span style=''></span><span style='background: #F0ADAD'>            println(json)
-</span>47 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style=''>
-</span>48 <span style=''>        case EtlJobConfig(false,false,false,false,false,false,true,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
-</span>49 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Submitting job to cluster with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;.stripMargin)</span><span style=''>
-</span>50 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
-</span>51 <span style=''>          </span><span style='background: #F0ADAD'>executeDataProcJob(job_name.toString,jobProps,globalProperties)</span><span style=''>
-</span>52 <span style=''>        case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
-</span>53 <span style=''>          val runtime: Runtime[ZEnv] = Runtime.default
-</span>54 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Running job with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;.stripMargin)</span><span style=''>
-</span>55 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
-</span>56 <span style=''>          val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)</span><span style=''>
-</span>57 <span style=''>          </span><span style='background: #F0ADAD'>etl_job.job_name = job_name.toString</span><span style=''>
-</span>58 <span style=''>          </span><span style='background: #F0ADAD'>runtime.unsafeRun(etl_job.execute())</span><span style=''>
-</span>59 <span style=''>        case etlJobConfig if </span><span style='background: #F0ADAD'>(etlJobConfig.show_job_props || etlJobConfig.show_step_props) &amp;&amp; etlJobConfig.job_name == &quot;&quot;</span><span style=''> =&gt;
-</span>60 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.error(s&quot;Need to provide args --job_name&quot;)</span><span style=''>
-</span>61 <span style=''>          </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
-</span>62 <span style=''>        case _ =&gt;
-</span>63 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.error(s&quot;Incorrect input args or no args provided, Try --help for more information.&quot;)</span><span style=''>
-</span>64 <span style=''>          </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
-</span>65 <span style=''>      }
-</span>66 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
-</span>67 <span style=''>    }
-</span>68 <span style=''>  }
-</span>69 <span style=''>}
+</span>41 <span style=''>          if (</span><span style='background: #F0ADAD'>etl_job.isInstanceOf[SequentialEtlJob] || etl_job.isInstanceOf[SequentialEtlJobWithLogging]</span><span style=''>) </span><span style='background: #F0ADAD'>{
+</span>42 <span style=''></span><span style='background: #F0ADAD'>            etl_job.job_name = job_name.toString
+</span>43 <span style=''></span><span style='background: #F0ADAD'>            val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+</span>44 <span style=''></span><span style='background: #F0ADAD'>            println(json)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>          }</span><span style=''>
+</span>46 <span style=''>          else {
+</span>47 <span style=''>            </span><span style='background: #F0ADAD'>println(&quot;Step Props info not available for generic jobs&quot;)</span><span style=''>
+</span>48 <span style=''>          }
+</span>49 <span style=''>        case EtlJobConfig(false,false,false,false,false,false,true,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
+</span>50 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Submitting job to cluster with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>51 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
+</span>52 <span style=''>          </span><span style='background: #F0ADAD'>executeDataProcJob(job_name.toString,jobProps,globalProperties)</span><span style=''>
+</span>53 <span style=''>        case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if </span><span style='background: #F0ADAD'>jobName != &quot;&quot;</span><span style=''> =&gt;
+</span>54 <span style=''>          val runtime: Runtime[ZEnv] = Runtime.default
+</span>55 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.info(s&quot;&quot;&quot;Running job with params: job_name =&gt; $jobName job_properties =&gt; $jobProps&quot;&quot;&quot;.stripMargin)</span><span style=''>
+</span>56 <span style=''>          val job_name = </span><span style='background: #F0ADAD'>UF.getEtlJobName[EJN](jobName,etl_job_name_package)</span><span style=''>
+</span>57 <span style=''>          val etl_job = </span><span style='background: #F0ADAD'>toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)</span><span style=''>
+</span>58 <span style=''>          </span><span style='background: #F0ADAD'>etl_job.job_name = job_name.toString</span><span style=''>
+</span>59 <span style=''>          </span><span style='background: #F0ADAD'>runtime.unsafeRun(etl_job.execute())</span><span style=''>
+</span>60 <span style=''>        case etlJobConfig if </span><span style='background: #F0ADAD'>(etlJobConfig.show_job_props || etlJobConfig.show_step_props) &amp;&amp; etlJobConfig.job_name == &quot;&quot;</span><span style=''> =&gt;
+</span>61 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.error(s&quot;Need to provide args --job_name&quot;)</span><span style=''>
+</span>62 <span style=''>          </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
+</span>63 <span style=''>        case _ =&gt;
+</span>64 <span style=''>          </span><span style='background: #F0ADAD'>ea_logger.error(s&quot;Incorrect input args or no args provided, Try --help for more information.&quot;)</span><span style=''>
+</span>65 <span style=''>          </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
+</span>66 <span style=''>      }
+</span>67 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>System.exit(1)</span><span style=''>
+</span>68 <span style=''>    }
+</span>69 <span style=''>  }
+</span>70 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -110,9 +111,9 @@
           8
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -131,9 +132,9 @@
           11
         </td>
         <td>
-          873
+          920
           -
-          887
+          934
         </td>
         <td>
           Apply
@@ -152,9 +153,9 @@
           2
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -173,9 +174,9 @@
           5
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -194,9 +195,9 @@
           4
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -215,9 +216,9 @@
           7
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -236,9 +237,9 @@
           10
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -257,9 +258,9 @@
           1
         </td>
         <td>
-          867
+          914
           -
-          871
+          918
         </td>
         <td>
           ApplyImplicitView
@@ -278,9 +279,9 @@
           9
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -299,9 +300,9 @@
           3
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -320,9 +321,9 @@
           12
         </td>
         <td>
-          854
+          901
           -
-          888
+          935
         </td>
         <td>
           Apply
@@ -341,9 +342,9 @@
           6
         </td>
         <td>
-          873
+          920
           -
-          873
+          920
         </td>
         <td>
           Select
@@ -362,9 +363,9 @@
           14
         </td>
         <td>
-          1027
+          1074
           -
-          1047
+          1094
         </td>
         <td>
           ApplyToImplicitArgs
@@ -383,9 +384,9 @@
           13
         </td>
         <td>
-          1042
+          1089
           -
-          1042
+          1089
         </td>
         <td>
           Select
@@ -404,9 +405,9 @@
           15
         </td>
         <td>
-          1139
+          1186
           -
-          1152
+          1199
         </td>
         <td>
           Apply
@@ -425,9 +426,9 @@
           17
         </td>
         <td>
-          1181
+          1228
           -
-          1258
+          1305
         </td>
         <td>
           Select
@@ -446,9 +447,9 @@
           16
         </td>
         <td>
-          1181
+          1228
           -
-          1246
+          1293
         </td>
         <td>
           Apply
@@ -467,15 +468,15 @@
           18
         </td>
         <td>
-          1166
+          1213
           -
-          1259
+          1306
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          org.slf4j.Logger.info
         </td>
         <td style="background: #F0ADAD">
           EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;Executing show_job_props with params: job_name =&gt; &quot;, &quot;&quot;).s(jobName)).stripMargin)
@@ -488,9 +489,9 @@
           20
         </td>
         <td>
-          1306
+          1353
           -
-          1306
+          1353
         </td>
         <td>
           Select
@@ -509,9 +510,9 @@
           19
         </td>
         <td>
-          1315
+          1362
           -
-          1335
+          1382
         </td>
         <td>
           Select
@@ -530,9 +531,9 @@
           21
         </td>
         <td>
-          1285
+          1332
           -
-          1336
+          1383
         </td>
         <td>
           ApplyToImplicitArgs
@@ -551,9 +552,9 @@
           23
         </td>
         <td>
-          1355
+          1402
           -
-          1404
+          1451
         </td>
         <td>
           Apply
@@ -572,9 +573,9 @@
           22
         </td>
         <td>
-          1372
+          1419
           -
-          1403
+          1450
         </td>
         <td>
           Select
@@ -593,9 +594,9 @@
           24
         </td>
         <td>
-          1347
+          1394
           -
-          1405
+          1452
         </td>
         <td>
           Apply
@@ -614,9 +615,9 @@
           25
         </td>
         <td>
-          1435
+          1482
           -
-          1488
+          1535
         </td>
         <td>
           Apply
@@ -635,9 +636,9 @@
           26
         </td>
         <td>
-          1514
+          1561
           -
-          1521
+          1568
         </td>
         <td>
           Select
@@ -656,9 +657,9 @@
           27
         </td>
         <td>
-          1503
+          1550
           -
-          1521
+          1568
         </td>
         <td>
           Apply
@@ -677,9 +678,9 @@
           29
         </td>
         <td>
-          1545
+          1592
           -
-          1617
+          1664
         </td>
         <td>
           Apply
@@ -698,9 +699,9 @@
           31
         </td>
         <td>
-          1537
+          1584
           -
-          1618
+          1665
         </td>
         <td>
           Block
@@ -719,9 +720,9 @@
           28
         </td>
         <td>
-          1576
+          1623
           -
-          1603
+          1650
         </td>
         <td>
           Select
@@ -740,9 +741,9 @@
           30
         </td>
         <td>
-          1537
+          1584
           -
-          1618
+          1665
         </td>
         <td>
           Apply
@@ -761,9 +762,9 @@
           32
         </td>
         <td>
-          1660
+          1707
           -
-          1668
+          1715
         </td>
         <td>
           Select
@@ -782,9 +783,9 @@
           38
         </td>
         <td>
-          1646
+          1693
           -
-          1646
+          1693
         </td>
         <td>
           Literal
@@ -803,9 +804,9 @@
           40
         </td>
         <td>
-          1646
+          1693
           -
-          1818
+          1865
         </td>
         <td>
           If
@@ -830,9 +831,9 @@ else
           37
         </td>
         <td>
-          1670
+          1717
           -
-          1818
+          1865
         </td>
         <td>
           Block
@@ -854,9 +855,9 @@ else
           39
         </td>
         <td>
-          1646
+          1693
           -
-          1646
+          1693
         </td>
         <td>
           Block
@@ -875,9 +876,9 @@ else
           33
         </td>
         <td>
-          1650
+          1697
           -
-          1668
+          1715
         </td>
         <td>
           Apply
@@ -896,9 +897,9 @@ else
           34
         </td>
         <td>
-          1696
+          1743
           -
-          1734
+          1781
         </td>
         <td>
           Apply
@@ -917,9 +918,9 @@ else
           35
         </td>
         <td>
-          1755
+          1802
           -
-          1805
+          1852
         </td>
         <td>
           Apply
@@ -938,9 +939,9 @@ else
           36
         </td>
         <td>
-          1747
+          1794
           -
-          1806
+          1853
         </td>
         <td>
           Apply
@@ -959,9 +960,9 @@ else
           41
         </td>
         <td>
-          1907
+          1954
           -
-          1920
+          1967
         </td>
         <td>
           Apply
@@ -980,15 +981,15 @@ else
           43
         </td>
         <td>
-          1934
+          1981
           -
-          2044
+          2091
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          org.slf4j.Logger.info
         </td>
         <td style="background: #F0ADAD">
           EtlJobApp.this.ea_logger.info(scala.StringContext.apply(&quot;Executing show_step_props with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps))
@@ -1001,9 +1002,9 @@ else
           42
         </td>
         <td>
-          1949
+          1996
           -
-          2043
+          2090
         </td>
         <td>
           Apply
@@ -1022,9 +1023,9 @@ else
           44
         </td>
         <td>
-          2100
+          2147
           -
-          2120
+          2167
         </td>
         <td>
           Select
@@ -1043,9 +1044,9 @@ else
           46
         </td>
         <td>
-          2070
+          2117
           -
-          2121
+          2168
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1064,9 +1065,9 @@ else
           45
         </td>
         <td>
-          2091
+          2138
           -
-          2091
+          2138
         </td>
         <td>
           Select
@@ -1085,9 +1086,9 @@ else
           47
         </td>
         <td>
-          2165
+          2212
           -
-          2203
+          2250
         </td>
         <td>
           Apply
@@ -1106,9 +1107,9 @@ else
           49
         </td>
         <td>
-          2146
+          2193
           -
-          2221
+          2268
         </td>
         <td>
           Apply
@@ -1127,9 +1128,9 @@ else
           48
         </td>
         <td>
-          2204
+          2251
           -
-          2220
+          2267
         </td>
         <td>
           Select
@@ -1148,72 +1149,30 @@ else
           50
         </td>
         <td>
-          2236
+          2325
           -
-          2275
+          2374
         </td>
         <td>
-          Select
+          TypeApply
         </td>
         <td>
-          scala.Boolean.unary_!
+          scala.Any.isInstanceOf
         </td>
         <td style="background: #F0ADAD">
-          etl_job.isInstanceOf[etlflow.etljobs.SequentialEtlJob].unary_!
+          etl_job.isInstanceOf[etlflow.etljobs.SequentialEtlJobWithLogging]
         </td>
       </tr><tr>
         <td>
-          42
+          41
         </td>
         <td>
-          52
+          58
         </td>
         <td>
-          2289
+          2376
           -
-          2346
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Predef.println
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.println(&quot;Step Props info not available for generic jobs&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          42
-        </td>
-        <td>
-          51
-        </td>
-        <td>
-          2289
-          -
-          2346
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.println
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.println(&quot;Step Props info not available for generic jobs&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          43
-        </td>
-        <td>
-          59
-        </td>
-        <td>
-          2362
-          -
-          2557
+          2571
         </td>
         <td>
           Block
@@ -1230,36 +1189,36 @@ else
         </td>
       </tr><tr>
         <td>
-          44
+          41
         </td>
         <td>
-          53
+          51
         </td>
         <td>
-          2395
+          2283
           -
-          2412
+          2374
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.toString
+          scala.Boolean.||
         </td>
         <td style="background: #F0ADAD">
-          job_name.toString()
+          etl_job.isInstanceOf[etlflow.etljobs.SequentialEtlJob].||(etl_job.isInstanceOf[etlflow.etljobs.SequentialEtlJobWithLogging])
         </td>
       </tr><tr>
         <td>
-          44
+          42
         </td>
         <td>
-          54
+          53
         </td>
         <td>
-          2376
+          2390
           -
-          2412
+          2426
         </td>
         <td>
           Apply
@@ -1272,57 +1231,36 @@ else
         </td>
       </tr><tr>
         <td>
-          45
+          42
         </td>
         <td>
-          56
+          52
         </td>
         <td>
-          2453
+          2409
           -
-          2518
+          2426
         </td>
         <td>
           Apply
         </td>
         <td>
-          etlflow.etljobs.EtlJob.getJobInfo
+          java.lang.Object.toString
         </td>
         <td style="background: #F0ADAD">
-          etl_job.getJobInfo(etl_job.job_properties.job_notification_level)
+          job_name.toString()
         </td>
       </tr><tr>
         <td>
-          45
+          43
         </td>
         <td>
-          55
+          56
         </td>
         <td>
-          2472
+          2450
           -
-          2517
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.EtlJobProps.job_notification_level
-        </td>
-        <td style="background: #F0ADAD">
-          etl_job.job_properties.job_notification_level
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          57
-        </td>
-        <td>
-          2436
-          -
-          2519
+          2533
         </td>
         <td>
           Apply
@@ -1335,15 +1273,57 @@ else
         </td>
       </tr><tr>
         <td>
-          46
+          43
         </td>
         <td>
-          58
+          55
         </td>
         <td>
-          2532
+          2467
           -
-          2545
+          2532
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etljobs.EtlJob.getJobInfo
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.getJobInfo(etl_job.job_properties.job_notification_level)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          2486
+          -
+          2531
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobProps.job_notification_level
+        </td>
+        <td style="background: #F0ADAD">
+          etl_job.job_properties.job_notification_level
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          57
+        </td>
+        <td>
+          2546
+          -
+          2559
         </td>
         <td>
           Apply
@@ -1356,15 +1336,57 @@ else
         </td>
       </tr><tr>
         <td>
-          48
+          47
+        </td>
+        <td>
+          59
+        </td>
+        <td>
+          2601
+          -
+          2658
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(&quot;Step Props info not available for generic jobs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          47
         </td>
         <td>
           60
         </td>
         <td>
-          2646
+          2601
           -
-          2659
+          2658
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(&quot;Step Props info not available for generic jobs&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          61
+        </td>
+        <td>
+          2759
+          -
+          2772
         </td>
         <td>
           Apply
@@ -1377,36 +1399,15 @@ else
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
           62
         </td>
         <td>
-          2688
+          2801
           -
-          2794
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.immutable.StringLike.stripMargin
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.augmentString(scala.StringContext.apply(&quot;Submitting job to cluster with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          61
-        </td>
-        <td>
-          2688
-          -
-          2782
+          2895
         </td>
         <td>
           Apply
@@ -1419,21 +1420,21 @@ else
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
-          63
+          64
         </td>
         <td>
-          2673
+          2786
           -
-          2795
+          2908
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          org.slf4j.Logger.info
         </td>
         <td style="background: #F0ADAD">
           EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;Submitting job to cluster with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin)
@@ -1443,33 +1444,33 @@ else
           50
         </td>
         <td>
-          65
+          63
         </td>
         <td>
-          2842
+          2801
           -
-          2842
+          2907
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.EtlJobApp.evidence$1
+          scala.collection.immutable.StringLike.stripMargin
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.evidence$1
+          scala.Predef.augmentString(scala.StringContext.apply(&quot;Submitting job to cluster with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin
         </td>
       </tr><tr>
         <td>
-          50
+          51
         </td>
         <td>
-          64
+          65
         </td>
         <td>
-          2851
+          2964
           -
-          2871
+          2984
         </td>
         <td>
           Select
@@ -1482,15 +1483,15 @@ else
         </td>
       </tr><tr>
         <td>
-          50
+          51
         </td>
         <td>
-          66
+          67
         </td>
         <td>
-          2821
+          2934
           -
-          2872
+          2985
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1506,33 +1507,33 @@ else
           51
         </td>
         <td>
-          68
+          66
         </td>
         <td>
-          2929
+          2955
           -
-          2945
+          2955
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.EtlJobApp.globalProperties
+          etlflow.EtlJobApp.evidence$1
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.globalProperties
+          EtlJobApp.this.evidence$1
         </td>
       </tr><tr>
         <td>
-          51
+          52
         </td>
         <td>
-          67
+          68
         </td>
         <td>
-          2902
+          3015
           -
-          2919
+          3032
         </td>
         <td>
           Apply
@@ -1545,15 +1546,15 @@ else
         </td>
       </tr><tr>
         <td>
-          51
+          52
         </td>
         <td>
-          69
+          70
         </td>
         <td>
-          2883
+          2996
           -
-          2946
+          3059
         </td>
         <td>
           Apply
@@ -1569,12 +1570,33 @@ else
           52
         </td>
         <td>
-          70
+          69
         </td>
         <td>
-          3035
+          3042
           -
-          3048
+          3058
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobApp.globalProperties
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobApp.this.globalProperties
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          71
+        </td>
+        <td>
+          3148
+          -
+          3161
         </td>
         <td>
           Apply
@@ -1587,57 +1609,36 @@ else
         </td>
       </tr><tr>
         <td>
-          54
+          55
         </td>
         <td>
-          71
+          74
         </td>
         <td>
-          3132
+          3230
           -
-          3212
+          3338
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;Running job with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          73
-        </td>
-        <td>
-          3117
-          -
-          3225
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
+          org.slf4j.Logger.info
         </td>
         <td style="background: #F0ADAD">
           EtlJobApp.this.ea_logger.info(scala.Predef.augmentString(scala.StringContext.apply(&quot;Running job with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)).stripMargin)
         </td>
       </tr><tr>
         <td>
-          54
+          55
         </td>
         <td>
-          72
+          73
         </td>
         <td>
-          3132
+          3245
           -
-          3224
+          3337
         </td>
         <td>
           Select
@@ -1653,33 +1654,33 @@ else
           55
         </td>
         <td>
-          74
+          72
         </td>
         <td>
-          3281
+          3245
           -
-          3301
+          3325
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          etlflow.EtlJobApp.etl_job_name_package
+          scala.StringContext.s
         </td>
         <td style="background: #F0ADAD">
-          EtlJobApp.this.etl_job_name_package
+          scala.StringContext.apply(&quot;Running job with params: job_name =&gt; &quot;, &quot; job_properties =&gt; &quot;, &quot;&quot;).s(jobName, jobProps)
         </td>
       </tr><tr>
         <td>
-          55
+          56
         </td>
         <td>
-          76
+          77
         </td>
         <td>
-          3251
+          3364
           -
-          3302
+          3415
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1692,15 +1693,15 @@ else
         </td>
       </tr><tr>
         <td>
-          55
+          56
         </td>
         <td>
-          75
+          76
         </td>
         <td>
-          3272
+          3385
           -
-          3272
+          3385
         </td>
         <td>
           Select
@@ -1716,33 +1717,33 @@ else
           56
         </td>
         <td>
-          77
+          75
         </td>
         <td>
-          3346
+          3394
           -
-          3384
+          3414
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          etlflow.EtlJobName.getActualProperties
+          etlflow.EtlJobApp.etl_job_name_package
         </td>
         <td style="background: #F0ADAD">
-          job_name.getActualProperties(jobProps)
+          EtlJobApp.this.etl_job_name_package
         </td>
       </tr><tr>
         <td>
-          56
+          57
         </td>
         <td>
-          79
+          80
         </td>
         <td>
-          3327
+          3440
           -
-          3402
+          3515
         </td>
         <td>
           Apply
@@ -1755,15 +1756,15 @@ else
         </td>
       </tr><tr>
         <td>
-          56
+          57
         </td>
         <td>
-          78
+          79
         </td>
         <td>
-          3385
+          3498
           -
-          3401
+          3514
         </td>
         <td>
           Select
@@ -1779,33 +1780,33 @@ else
           57
         </td>
         <td>
-          80
+          78
         </td>
         <td>
-          3432
+          3459
           -
-          3449
+          3497
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.toString
+          etlflow.EtlJobName.getActualProperties
         </td>
         <td style="background: #F0ADAD">
-          job_name.toString()
+          job_name.getActualProperties(jobProps)
         </td>
       </tr><tr>
         <td>
-          57
+          58
         </td>
         <td>
-          81
+          82
         </td>
         <td>
-          3413
+          3526
           -
-          3449
+          3562
         </td>
         <td>
           Apply
@@ -1821,33 +1822,33 @@ else
           58
         </td>
         <td>
-          83
+          81
         </td>
         <td>
-          3460
+          3545
           -
-          3496
+          3562
         </td>
         <td>
           Apply
         </td>
         <td>
-          zio.Runtime.unsafeRun
+          java.lang.Object.toString
         </td>
         <td style="background: #F0ADAD">
-          runtime.unsafeRun[Throwable, Unit](etl_job.execute())
+          job_name.toString()
         </td>
       </tr><tr>
         <td>
-          58
+          59
         </td>
         <td>
-          82
+          83
         </td>
         <td>
-          3478
+          3591
           -
-          3495
+          3608
         </td>
         <td>
           Apply
@@ -1863,33 +1864,33 @@ else
           59
         </td>
         <td>
-          86
+          84
         </td>
         <td>
-          3526
+          3573
           -
-          3618
+          3609
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Boolean.&amp;&amp;
+          zio.Runtime.unsafeRun
         </td>
         <td style="background: #F0ADAD">
-          etlJobConfig.show_job_props.||(etlJobConfig.show_step_props).&amp;&amp;(etlJobConfig.job_name.==(&quot;&quot;))
+          runtime.unsafeRun[Throwable, Unit](etl_job.execute())
         </td>
       </tr><tr>
         <td>
-          59
+          60
         </td>
         <td>
-          85
+          86
         </td>
         <td>
-          3591
+          3704
           -
-          3618
+          3731
         </td>
         <td>
           Apply
@@ -1902,15 +1903,15 @@ else
         </td>
       </tr><tr>
         <td>
-          59
+          60
         </td>
         <td>
-          84
+          85
         </td>
         <td>
-          3558
+          3671
           -
-          3586
+          3699
         </td>
         <td>
           Select
@@ -1926,33 +1927,54 @@ else
           60
         </td>
         <td>
-          88
+          87
         </td>
         <td>
-          3632
+          3639
           -
-          3683
+          3731
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.error
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          etlJobConfig.show_job_props.||(etlJobConfig.show_step_props).&amp;&amp;(etlJobConfig.job_name.==(&quot;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          89
+        </td>
+        <td>
+          3745
+          -
+          3796
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
         </td>
         <td style="background: #F0ADAD">
           EtlJobApp.this.ea_logger.error(scala.StringContext.apply(&quot;Need to provide args --job_name&quot;).s())
         </td>
       </tr><tr>
         <td>
-          60
+          61
         </td>
         <td>
-          87
+          88
         </td>
         <td>
-          3648
+          3761
           -
-          3682
+          3795
         </td>
         <td>
           Apply
@@ -1965,15 +1987,15 @@ else
         </td>
       </tr><tr>
         <td>
-          61
+          62
         </td>
         <td>
-          89
+          90
         </td>
         <td>
-          3694
+          3807
           -
-          3708
+          3821
         </td>
         <td>
           Apply
@@ -1986,36 +2008,36 @@ else
         </td>
       </tr><tr>
         <td>
-          63
+          64
         </td>
         <td>
-          91
+          92
         </td>
         <td>
-          3737
+          3850
           -
-          3831
+          3944
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.error
+          org.slf4j.Logger.error
         </td>
         <td style="background: #F0ADAD">
           EtlJobApp.this.ea_logger.error(scala.StringContext.apply(&quot;Incorrect input args or no args provided, Try --help for more information.&quot;).s())
         </td>
       </tr><tr>
         <td>
-          63
+          64
         </td>
         <td>
-          90
+          91
         </td>
         <td>
-          3753
+          3866
           -
-          3830
+          3943
         </td>
         <td>
           Apply
@@ -2028,15 +2050,15 @@ else
         </td>
       </tr><tr>
         <td>
-          64
+          65
         </td>
         <td>
-          92
+          93
         </td>
         <td>
-          3842
+          3955
           -
-          3856
+          3969
         </td>
         <td>
           Apply
@@ -2049,15 +2071,15 @@ else
         </td>
       </tr><tr>
         <td>
-          66
+          67
         </td>
         <td>
-          93
+          94
         </td>
         <td>
-          3884
+          3997
           -
-          3898
+          4011
         </td>
         <td>
           Apply

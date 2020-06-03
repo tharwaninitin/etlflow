@@ -28,11 +28,11 @@
 </span>4 <span style=''>import java.time.format.DateTimeFormatter
 </span>5 <span style=''>
 </span>6 <span style=''>import etlflow.{EtlJobName, EtlJobNotFoundException, EtlJobProps}
-</span>7 <span style=''>import org.apache.log4j.Logger
-</span>8 <span style=''>import org.json4s.JsonAST.JNothing
-</span>9 <span style=''>import org.json4s.jackson.JsonMethods._
-</span>10 <span style=''>import org.json4s.jackson.Serialization.writePretty
-</span>11 <span style=''>import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, JValue, _}
+</span>7 <span style=''>import org.json4s.JsonAST.JNothing
+</span>8 <span style=''>import org.json4s.jackson.JsonMethods._
+</span>9 <span style=''>import org.json4s.jackson.Serialization.writePretty
+</span>10 <span style=''>import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, JValue, _}
+</span>11 <span style=''>import org.slf4j.{Logger, LoggerFactory}
 </span>12 <span style=''>
 </span>13 <span style=''>import scala.reflect.ClassTag
 </span>14 <span style=''>import scala.reflect.runtime.universe.{TypeTag, _}
@@ -40,7 +40,7 @@
 </span>16 <span style=''>import scala.util.{Failure, Success, Try}
 </span>17 <span style=''>
 </span>18 <span style=''>object UtilityFunctions {
-</span>19 <span style=''>  lazy val uf_logger: Logger = Logger.getLogger(getClass.getName)
+</span>19 <span style=''>  lazy val uf_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 </span>20 <span style=''>
 </span>21 <span style=''>  def parser(args: Array[String]): Map[String, String] = {
 </span>22 <span style=''>    </span><span style='background: #F0ADAD'>args.map {
@@ -102,7 +102,7 @@
 </span>78 <span style=''>    val tpe = </span><span style='background: #F0ADAD'>ru.typeOf[T]</span><span style=''>
 </span>79 <span style=''>    val clazz = </span><span style='background: #F0ADAD'>tpe.typeSymbol.asClass</span><span style=''>
 </span>80 <span style=''>    val allJobNames = </span><span style='background: #F0ADAD'>clazz.knownDirectSubclasses</span><span style=''>
-</span>81 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.foreach(x =&gt; uf_logger.info(x.name))</span><span style=''>
+</span>81 <span style=''>    </span><span style='background: #F0ADAD'>allJobNames.foreach(x =&gt; uf_logger.info(x.name.toString))</span><span style=''>
 </span>82 <span style=''>  }
 </span>83 <span style=''>
 </span>84 <span style=''>  def getEtlJobs[T: TypeTag]: Set[String] = {
@@ -150,7 +150,7 @@
 </span>126 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> match {
 </span>127 <span style=''>      case Success(value) =&gt; </span><span style='background: #F0ADAD'>Some(value)</span><span style=''>
 </span>128 <span style=''>      case Failure(exception) =&gt;
-</span>129 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.printStackTrace())</span><span style=''>
+</span>129 <span style=''>        </span><span style='background: #F0ADAD'>uf_logger.info(exception.getStackTrace.mkString(&quot;\n&quot;))</span><span style=''>
 </span>130 <span style=''>        </span><span style='background: #F0ADAD'>None</span><span style=''>
 </span>131 <span style=''>    }
 </span>132 <span style=''>  }
@@ -182,33 +182,12 @@
           22
         </td>
         <td>
-          1973
+          2062
         </td>
         <td>
-          750
+          758
           -
-          750
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.Array.canBuildFrom
-        </td>
-        <td style="background: #F0ADAD">
-          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          1974
-        </td>
-        <td>
-          741
-          -
-          860
+          877
         </td>
         <td>
           ApplyToImplicitArgs
@@ -226,15 +205,36 @@
         </td>
       </tr><tr>
         <td>
+          22
+        </td>
+        <td>
+          2061
+        </td>
+        <td>
+          767
+          -
+          767
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.Array.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          scala.this.Array.canBuildFrom[(String, String)]((ClassTag.apply[(String, String)](classOf[scala.Tuple2]): scala.reflect.ClassTag[(String, String)]))
+        </td>
+      </tr><tr>
+        <td>
           24
         </td>
         <td>
-          1969
+          2057
         </td>
         <td>
-          795
+          812
           -
-          810
+          827
         </td>
         <td>
           Apply
@@ -250,33 +250,12 @@
           25
         </td>
         <td>
-          1970
+          2060
         </td>
         <td>
-          820
+          837
           -
-          831
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Array.apply
-        </td>
-        <td style="background: #F0ADAD">
-          keyValue.apply(0)
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          1972
-        </td>
-        <td>
-          820
-          -
-          846
+          863
         </td>
         <td>
           Apply
@@ -292,12 +271,12 @@
           25
         </td>
         <td>
-          1971
+          2059
         </td>
         <td>
-          835
+          852
           -
-          846
+          863
         </td>
         <td>
           Apply
@@ -310,15 +289,36 @@
         </td>
       </tr><tr>
         <td>
+          25
+        </td>
+        <td>
+          2058
+        </td>
+        <td>
+          837
+          -
+          848
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          keyValue.apply(0)
+        </td>
+      </tr><tr>
+        <td>
           27
         </td>
         <td>
-          1976
+          2064
         </td>
         <td>
-          741
+          758
           -
-          866
+          883
         </td>
         <td>
           ApplyToImplicitArgs
@@ -339,12 +339,12 @@
           27
         </td>
         <td>
-          1975
+          2063
         </td>
         <td>
-          861
+          878
           -
-          861
+          878
         </td>
         <td>
           TypeApply
@@ -360,12 +360,12 @@
           31
         </td>
         <td>
-          1977
+          2065
         </td>
         <td>
-          947
+          964
           -
-          961
+          978
         </td>
         <td>
           Select
@@ -381,12 +381,12 @@
           32
         </td>
         <td>
-          1978
+          2066
         </td>
         <td>
-          966
+          983
           -
-          985
+          1002
         </td>
         <td>
           ApplyToImplicitArgs
@@ -402,54 +402,12 @@
           38
         </td>
         <td>
-          1985
+          2071
         </td>
         <td>
-          1316
+          1333
           -
-          1316
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.reflect.ManifestFactory.classType
-        </td>
-        <td style="background: #F0ADAD">
-          scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          1984
-        </td>
-        <td>
-          1316
-          -
-          1316
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.reflect.ManifestFactory.classType
-        </td>
-        <td style="background: #F0ADAD">
-          scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          1983
-        </td>
-        <td>
-          1316
-          -
-          1316
+          1333
         </td>
         <td>
           Literal
@@ -465,12 +423,12 @@
           38
         </td>
         <td>
-          1986
+          2074
         </td>
         <td>
-          1316
+          1333
           -
-          1441
+          1458
         </td>
         <td>
           ApplyToImplicitArgs
@@ -499,15 +457,99 @@
         </td>
       </tr><tr>
         <td>
+          38
+        </td>
+        <td>
+          2073
+        </td>
+        <td>
+          1333
+          -
+          1333
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          2072
+        </td>
+        <td>
+          1333
+          -
+          1333
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps])
+        </td>
+      </tr><tr>
+        <td>
           39
         </td>
         <td>
-          1979
+          2069
         </td>
         <td>
-          1374
+          1414
           -
-          1395
+          1414
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          2068
+        </td>
+        <td>
+          1441
+          -
+          1449
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.JsonAST.JNothing
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.JsonAST.JNothing
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          2067
+        </td>
+        <td>
+          1391
+          -
+          1412
         </td>
         <td>
           TypeApply
@@ -523,12 +565,12 @@
           39
         </td>
         <td>
-          1982
+          2070
         </td>
         <td>
-          1373
+          1390
           -
-          1435
+          1452
         </td>
         <td>
           Apply
@@ -557,99 +599,15 @@
         </td>
       </tr><tr>
         <td>
-          39
-        </td>
-        <td>
-          1981
-        </td>
-        <td>
-          1397
-          -
-          1397
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          1980
-        </td>
-        <td>
-          1424
-          -
-          1432
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.json4s.JsonAST.JNothing
-        </td>
-        <td style="background: #F0ADAD">
-          org.json4s.JsonAST.JNothing
-        </td>
-      </tr><tr>
-        <td>
           42
         </td>
         <td>
-          1988
+          2075
         </td>
         <td>
-          1569
+          1586
           -
-          1569
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          org.json4s.FieldSerializer.&lt;init&gt;$default$2
-        </td>
-        <td style="background: #F0ADAD">
-          json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps]
-        </td>
-      </tr><tr>
-        <td>
-          42
-        </td>
-        <td>
-          1991
-        </td>
-        <td>
-          1569
-          -
-          1601
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          org.json4s.FieldSerializer.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new org.json4s.FieldSerializer[etlflow.EtlJobProps](json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps])(scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
-        </td>
-      </tr><tr>
-        <td>
-          42
-        </td>
-        <td>
-          1987
-        </td>
-        <td>
-          1569
-          -
-          1569
+          1586
         </td>
         <td>
           TypeApply
@@ -665,12 +623,12 @@
           42
         </td>
         <td>
-          1990
+          2078
         </td>
         <td>
-          1569
+          1586
           -
-          1569
+          1586
         </td>
         <td>
           Apply
@@ -686,12 +644,12 @@
           42
         </td>
         <td>
-          1989
+          2077
         </td>
         <td>
-          1569
+          1586
           -
-          1569
+          1586
         </td>
         <td>
           TypeApply
@@ -704,15 +662,57 @@
         </td>
       </tr><tr>
         <td>
+          42
+        </td>
+        <td>
+          2076
+        </td>
+        <td>
+          1586
+          -
+          1586
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          2079
+        </td>
+        <td>
+          1586
+          -
+          1618
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.json4s.FieldSerializer[etlflow.EtlJobProps](json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps])(scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
           43
         </td>
         <td>
-          1992
+          2080
         </td>
         <td>
-          1629
+          1646
           -
-          1683
+          1700
         </td>
         <td>
           Apply
@@ -728,12 +728,12 @@
           44
         </td>
         <td>
-          1993
+          2081
         </td>
         <td>
-          1688
+          1705
           -
-          1769
+          1786
         </td>
         <td>
           ApplyToImplicitArgs
@@ -749,33 +749,12 @@
           49
         </td>
         <td>
-          2000
+          2087
         </td>
         <td>
-          2011
+          2028
           -
-          2011
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.reflect.ManifestFactory.classType
-        </td>
-        <td style="background: #F0ADAD">
-          scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          1999
-        </td>
-        <td>
-          2011
-          -
-          2011
+          2028
         </td>
         <td>
           Apply
@@ -791,12 +770,12 @@
           49
         </td>
         <td>
-          1998
+          2086
         </td>
         <td>
-          2011
+          2028
           -
-          2011
+          2028
         </td>
         <td>
           Literal
@@ -812,12 +791,12 @@
           49
         </td>
         <td>
-          2001
+          2089
         </td>
         <td>
-          2011
+          2028
           -
-          2136
+          2153
         </td>
         <td>
           ApplyToImplicitArgs
@@ -846,36 +825,78 @@
         </td>
       </tr><tr>
         <td>
-          50
+          49
         </td>
         <td>
-          1994
+          2088
         </td>
         <td>
-          2069
+          2028
           -
-          2090
+          2028
         </td>
         <td>
-          TypeApply
+          Apply
         </td>
         <td>
-          scala.PartialFunction.empty
+          scala.reflect.ManifestFactory.classType
         </td>
         <td style="background: #F0ADAD">
-          scala.PartialFunction.empty[Any, Nothing]
+          scala.reflect.ManifestFactory.classType[etlflow.EtlJobName[etlflow.EtlJobProps]](classOf[etlflow.package$$EtlJobName], scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
         </td>
       </tr><tr>
         <td>
           50
         </td>
         <td>
-          1997
+          2084
         </td>
         <td>
-          2068
+          2109
           -
-          2130
+          2109
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          2083
+        </td>
+        <td>
+          2136
+          -
+          2144
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.JsonAST.JNothing
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.JsonAST.JNothing
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          2085
+        </td>
+        <td>
+          2085
+          -
+          2147
         </td>
         <td>
           Apply
@@ -907,117 +928,33 @@
           50
         </td>
         <td>
-          1996
+          2082
         </td>
         <td>
-          2092
+          2086
           -
-          2092
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.utils.UtilityFunctions.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          1995
-        </td>
-        <td>
-          2119
-          -
-          2127
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.json4s.JsonAST.JNothing
-        </td>
-        <td style="background: #F0ADAD">
-          org.json4s.JsonAST.JNothing
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          2003
-        </td>
-        <td>
-          2264
-          -
-          2264
+          2107
         </td>
         <td>
           TypeApply
         </td>
         <td>
-          org.json4s.FieldSerializer.&lt;init&gt;$default$2
+          scala.PartialFunction.empty
         </td>
         <td style="background: #F0ADAD">
-          json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps]
+          scala.PartialFunction.empty[Any, Nothing]
         </td>
       </tr><tr>
         <td>
           53
         </td>
         <td>
-          2006
+          2093
         </td>
         <td>
-          2264
+          2281
           -
-          2296
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          org.json4s.FieldSerializer.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new org.json4s.FieldSerializer[etlflow.EtlJobProps](json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps])(scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          2002
-        </td>
-        <td>
-          2264
-          -
-          2264
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          org.json4s.FieldSerializer.&lt;init&gt;$default$1
-        </td>
-        <td style="background: #F0ADAD">
-          json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps]
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          2005
-        </td>
-        <td>
-          2264
-          -
-          2264
+          2281
         </td>
         <td>
           Apply
@@ -1033,12 +970,12 @@
           53
         </td>
         <td>
-          2004
+          2092
         </td>
         <td>
-          2264
+          2281
           -
-          2264
+          2281
         </td>
         <td>
           TypeApply
@@ -1051,15 +988,78 @@
         </td>
       </tr><tr>
         <td>
+          53
+        </td>
+        <td>
+          2091
+        </td>
+        <td>
+          2281
+          -
+          2281
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2094
+        </td>
+        <td>
+          2281
+          -
+          2313
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new org.json4s.FieldSerializer[etlflow.EtlJobProps](json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$2[etlflow.EtlJobProps], json4s.this.FieldSerializer.&lt;init&gt;$default$3[etlflow.EtlJobProps])(scala.reflect.ManifestFactory.classType[etlflow.EtlJobProps](classOf[etlflow.package$$EtlJobProps]))
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          2090
+        </td>
+        <td>
+          2281
+          -
+          2281
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          org.json4s.FieldSerializer.&lt;init&gt;$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          json4s.this.FieldSerializer.&lt;init&gt;$default$1[etlflow.EtlJobProps]
+        </td>
+      </tr><tr>
+        <td>
           54
         </td>
         <td>
-          2007
+          2095
         </td>
         <td>
-          2333
+          2350
           -
-          2387
+          2404
         </td>
         <td>
           Apply
@@ -1075,54 +1075,12 @@
           55
         </td>
         <td>
-          2009
+          2096
         </td>
         <td>
-          2473
+          2428
           -
-          2477
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._1
-        </td>
-        <td style="background: #F0ADAD">
-          x._1
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          2011
-        </td>
-        <td>
-          2411
-          -
-          2479
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.json4s.MonadicJValue.removeField
-        </td>
-        <td style="background: #F0ADAD">
-          org.json4s.`package`.jvalue2monadic(org.json4s.Extraction.decompose(entity)(formats)).removeField(((x: org.json4s.JField) =&gt; keys.contains[String](x._1)))
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          2008
-        </td>
-        <td>
-          2411
-          -
-          2439
+          2456
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1138,12 +1096,12 @@
           55
         </td>
         <td>
-          2010
+          2098
         </td>
         <td>
-          2459
+          2476
           -
-          2478
+          2495
         </td>
         <td>
           Apply
@@ -1156,99 +1114,78 @@
         </td>
       </tr><tr>
         <td>
-          56
+          55
         </td>
         <td>
-          2012
+          2097
         </td>
         <td>
           2490
           -
-          2507
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          org.json4s.jackson.Serialization.writePretty
-        </td>
-        <td style="background: #F0ADAD">
-          org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          2021
-        </td>
-        <td>
-          2484
-          -
-          2534
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          org.json4s.ExtractableJsonAstNode.extract
-        </td>
-        <td style="background: #F0ADAD">
-          org.json4s.`package`.jvalue2extractable(org.json4s.jackson.JsonMethods.parse(org.json4s.`package`.string2JsonInput(org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)), org.json4s.jackson.JsonMethods.parse$default$2, org.json4s.jackson.JsonMethods.parse$default$3)).extract[Map[String,Any]](formats, scala.reflect.ManifestFactory.classType[Map[String,Any]](classOf[scala.collection.immutable.Map], scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String]), scala.reflect.ManifestFactory.Any))
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          2015
-        </td>
-        <td>
-          2484
-          -
-          2484
+          2494
         </td>
         <td>
           Select
         </td>
         <td>
-          org.json4s.jackson.JsonMethods.parse$default$3
+          scala.Tuple2._1
         </td>
         <td style="background: #F0ADAD">
-          org.json4s.jackson.JsonMethods.parse$default$3
+          x._1
         </td>
       </tr><tr>
         <td>
-          56
+          55
         </td>
         <td>
-          2018
+          2099
         </td>
         <td>
-          2516
+          2428
           -
-          2516
+          2496
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.reflect.ManifestFactory.classType
+          org.json4s.MonadicJValue.removeField
         </td>
         <td style="background: #F0ADAD">
-          scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String])
+          org.json4s.`package`.jvalue2monadic(org.json4s.Extraction.decompose(entity)(formats)).removeField(((x: org.json4s.JField) =&gt; keys.contains[String](x._1)))
         </td>
       </tr><tr>
         <td>
           56
         </td>
         <td>
-          2017
+          2102
         </td>
         <td>
-          2516
+          2501
           -
-          2516
+          2501
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.jackson.JsonMethods.parse$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.JsonMethods.parse$default$2
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2105
+        </td>
+        <td>
+          2533
+          -
+          2533
         </td>
         <td>
           Literal
@@ -1264,54 +1201,12 @@
           56
         </td>
         <td>
-          2020
+          2104
         </td>
         <td>
-          2516
+          2501
           -
-          2516
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.reflect.ManifestFactory.classType
-        </td>
-        <td style="background: #F0ADAD">
-          scala.reflect.ManifestFactory.classType[Map[String,Any]](classOf[scala.collection.immutable.Map], scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String]), scala.reflect.ManifestFactory.Any)
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          2014
-        </td>
-        <td>
-          2484
-          -
-          2484
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          org.json4s.jackson.JsonMethods.parse$default$2
-        </td>
-        <td style="background: #F0ADAD">
-          org.json4s.jackson.JsonMethods.parse$default$2
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          2016
-        </td>
-        <td>
-          2484
-          -
-          2508
+          2525
         </td>
         <td>
           Apply
@@ -1327,12 +1222,12 @@
           56
         </td>
         <td>
-          2019
+          2107
         </td>
         <td>
-          2516
+          2533
           -
-          2516
+          2533
         </td>
         <td>
           Select
@@ -1348,12 +1243,12 @@
           56
         </td>
         <td>
-          2013
+          2101
         </td>
         <td>
-          2490
-          -
           2507
+          -
+          2524
         </td>
         <td>
           ApplyImplicitView
@@ -1366,15 +1261,120 @@
         </td>
       </tr><tr>
         <td>
+          56
+        </td>
+        <td>
+          2100
+        </td>
+        <td>
+          2507
+          -
+          2524
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.jackson.Serialization.writePretty
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2109
+        </td>
+        <td>
+          2501
+          -
+          2551
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          org.json4s.ExtractableJsonAstNode.extract
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.`package`.jvalue2extractable(org.json4s.jackson.JsonMethods.parse(org.json4s.`package`.string2JsonInput(org.json4s.jackson.Serialization.writePretty[org.json4s.JValue](json)(formats)), org.json4s.jackson.JsonMethods.parse$default$2, org.json4s.jackson.JsonMethods.parse$default$3)).extract[Map[String,Any]](formats, scala.reflect.ManifestFactory.classType[Map[String,Any]](classOf[scala.collection.immutable.Map], scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String]), scala.reflect.ManifestFactory.Any))
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2103
+        </td>
+        <td>
+          2501
+          -
+          2501
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          org.json4s.jackson.JsonMethods.parse$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          org.json4s.jackson.JsonMethods.parse$default$3
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2106
+        </td>
+        <td>
+          2533
+          -
+          2533
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String])
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          2108
+        </td>
+        <td>
+          2533
+          -
+          2533
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #F0ADAD">
+          scala.reflect.ManifestFactory.classType[Map[String,Any]](classOf[scala.collection.immutable.Map], scala.reflect.ManifestFactory.classType[String](classOf[java.lang.String]), scala.reflect.ManifestFactory.Any)
+        </td>
+      </tr><tr>
+        <td>
           59
         </td>
         <td>
-          2022
+          2110
         </td>
         <td>
-          2574
+          2591
           -
-          2600
+          2617
         </td>
         <td>
           Apply
@@ -1390,33 +1390,12 @@
           61
         </td>
         <td>
-          2024
+          2111
         </td>
         <td>
-          2687
-          -
-          2749
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.format.DateTimeFormatter.format
-        </td>
-        <td style="background: #F0ADAD">
-          java.time.format.DateTimeFormatter.ofPattern(pattern).format(java.time.LocalDateTime.now())
-        </td>
-      </tr><tr>
-        <td>
-          61
-        </td>
-        <td>
-          2023
-        </td>
-        <td>
-          2731
-          -
           2748
+          -
+          2765
         </td>
         <td>
           Apply
@@ -1429,57 +1408,36 @@
         </td>
       </tr><tr>
         <td>
-          63
+          61
         </td>
         <td>
-          2027
+          2112
         </td>
         <td>
-          2804
+          2704
           -
-          2820
+          2766
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.math.pow
+          java.time.format.DateTimeFormatter.format
         </td>
         <td style="background: #F0ADAD">
-          scala.math.`package`.pow(10.0, p.toDouble)
+          java.time.format.DateTimeFormatter.ofPattern(pattern).format(java.time.LocalDateTime.now())
         </td>
       </tr><tr>
         <td>
           63
         </td>
         <td>
-          2026
+          2113
         </td>
         <td>
-          2818
+          2831
           -
-          2819
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Int.toDouble
-        </td>
-        <td style="background: #F0ADAD">
-          p.toDouble
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          2025
-        </td>
-        <td>
-          2814
-          -
-          2816
+          2833
         </td>
         <td>
           Literal
@@ -1495,12 +1453,12 @@
           63
         </td>
         <td>
-          2028
+          2116
         </td>
         <td>
-          2822
+          2839
           -
-          2844
+          2861
         </td>
         <td>
           Apply
@@ -1513,15 +1471,57 @@
         </td>
       </tr><tr>
         <td>
+          63
+        </td>
+        <td>
+          2115
+        </td>
+        <td>
+          2821
+          -
+          2837
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.math.pow
+        </td>
+        <td style="background: #F0ADAD">
+          scala.math.`package`.pow(10.0, p.toDouble)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          2114
+        </td>
+        <td>
+          2835
+          -
+          2836
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          p.toDouble
+        </td>
+      </tr><tr>
+        <td>
           66
         </td>
         <td>
-          2035
+          2123
         </td>
         <td>
-          2926
+          2943
           -
-          3072
+          3089
         </td>
         <td>
           Apply
@@ -1540,12 +1540,12 @@ else
           66
         </td>
         <td>
-          2029
+          2117
         </td>
         <td>
-          2930
+          2947
           -
-          2958
+          2975
         </td>
         <td>
           Apply
@@ -1561,12 +1561,54 @@ else
           67
         </td>
         <td>
-          2030
+          2120
         </td>
         <td>
-          2983
+          3012
           -
-          2993
+          3044
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          2119
+        </td>
+        <td>
+          3012
+          -
+          3044
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          2118
+        </td>
+        <td>
+          3000
+          -
+          3010
         </td>
         <td>
           Apply
@@ -1579,60 +1621,18 @@ else
         </td>
       </tr><tr>
         <td>
-          67
-        </td>
-        <td>
-          2032
-        </td>
-        <td>
-          2995
-          -
-          3027
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Double.+
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          67
-        </td>
-        <td>
-          2031
-        </td>
-        <td>
-          2995
-          -
-          3027
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.+
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.roundAt(2)(value./(60.0)).+(&quot; mins&quot;)
-        </td>
-      </tr><tr>
-        <td>
           68
         </td>
         <td>
-          2033
+          2122
         </td>
         <td>
-          3039
+          3056
           -
-          3066
+          3083
         </td>
         <td>
-          Apply
+          Block
         </td>
         <td>
           scala.Double.+
@@ -1645,15 +1645,15 @@ else
           68
         </td>
         <td>
-          2034
+          2121
         </td>
         <td>
-          3039
+          3056
           -
-          3066
+          3083
         </td>
         <td>
-          Block
+          Apply
         </td>
         <td>
           scala.Double.+
@@ -1666,12 +1666,54 @@ else
           72
         </td>
         <td>
-          2039
+          2125
         </td>
         <td>
-          3165
+          3239
           -
-          3223
+          3240
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2128
+        </td>
+        <td>
+          3166
+          -
+          3241
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Error in converting ts(Long) to String, &quot;, &quot;&quot;).s(e.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          2127
+        </td>
+        <td>
+          3182
+          -
+          3240
         </td>
         <td>
           Apply
@@ -1687,12 +1729,12 @@ else
           72
         </td>
         <td>
-          2036
+          2124
         </td>
         <td>
-          3167
+          3184
           -
-          3208
+          3225
         </td>
         <td>
           Literal
@@ -1708,12 +1750,12 @@ else
           72
         </td>
         <td>
-          2038
+          2126
         </td>
         <td>
-          3209
+          3226
           -
-          3221
+          3238
         </td>
         <td>
           Apply
@@ -1726,57 +1768,15 @@ else
         </td>
       </tr><tr>
         <td>
-          72
-        </td>
-        <td>
-          2040
-        </td>
-        <td>
-          3149
-          -
-          3224
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.error
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Error in converting ts(Long) to String, &quot;, &quot;&quot;).s(e.getMessage()))
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          2037
-        </td>
-        <td>
-          3222
-          -
-          3223
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
           73
         </td>
         <td>
-          2041
+          2129
         </td>
         <td>
-          3234
+          3251
           -
-          3261
+          3278
         </td>
         <td>
           Apply
@@ -1792,12 +1792,12 @@ else
           78
         </td>
         <td>
-          2042
+          2130
         </td>
         <td>
-          3328
+          3345
           -
-          3340
+          3357
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1813,12 +1813,12 @@ else
           79
         </td>
         <td>
-          2043
+          2131
         </td>
         <td>
-          3357
+          3374
           -
-          3379
+          3396
         </td>
         <td>
           Select
@@ -1834,12 +1834,12 @@ else
           80
         </td>
         <td>
-          2044
+          2132
         </td>
         <td>
-          3402
+          3419
           -
-          3429
+          3446
         </td>
         <td>
           Select
@@ -1855,33 +1855,54 @@ else
           81
         </td>
         <td>
-          2045
+          2134
         </td>
         <td>
-          3474
+          3476
           -
-          3480
+          3507
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          scala.reflect.api.Symbols.SymbolApi.name
+          org.slf4j.Logger.info
         </td>
         <td style="background: #F0ADAD">
-          x.name
+          UtilityFunctions.this.uf_logger.info(x.name.toString())
         </td>
       </tr><tr>
         <td>
           81
         </td>
         <td>
-          2047
+          2133
         </td>
         <td>
-          3434
+          3491
           -
-          3482
+          3506
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          x.name.toString()
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          2135
+        </td>
+        <td>
+          3451
+          -
+          3508
         </td>
         <td>
           Apply
@@ -1890,40 +1911,19 @@ else
           scala.collection.IterableLike.foreach
         </td>
         <td style="background: #F0ADAD">
-          allJobNames.foreach[Unit](((x: reflect.runtime.universe.Symbol) =&gt; UtilityFunctions.this.uf_logger.info(x.name)))
-        </td>
-      </tr><tr>
-        <td>
-          81
-        </td>
-        <td>
-          2046
-        </td>
-        <td>
-          3459
-          -
-          3481
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.info(x.name)
+          allJobNames.foreach[Unit](((x: reflect.runtime.universe.Symbol) =&gt; UtilityFunctions.this.uf_logger.info(x.name.toString())))
         </td>
       </tr><tr>
         <td>
           85
         </td>
         <td>
-          2048
+          2136
         </td>
         <td>
-          3548
+          3574
           -
-          3560
+          3586
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1939,12 +1939,12 @@ else
           86
         </td>
         <td>
-          2049
+          2137
         </td>
         <td>
-          3577
+          3603
           -
-          3599
+          3625
         </td>
         <td>
           Select
@@ -1960,12 +1960,12 @@ else
           87
         </td>
         <td>
-          2050
+          2138
         </td>
         <td>
-          3622
+          3648
           -
-          3649
+          3675
         </td>
         <td>
           Select
@@ -1981,12 +1981,33 @@ else
           88
         </td>
         <td>
-          2051
+          2140
         </td>
         <td>
-          3675
+          3695
           -
-          3690
+          3695
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.Set.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          immutable.this.Set.canBuildFrom[String]
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          2139
+        </td>
+        <td>
+          3701
+          -
+          3716
         </td>
         <td>
           Apply
@@ -2002,12 +2023,12 @@ else
           88
         </td>
         <td>
-          2053
+          2141
         </td>
         <td>
-          3654
+          3680
           -
-          3691
+          3717
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2020,57 +2041,15 @@ else
         </td>
       </tr><tr>
         <td>
-          88
-        </td>
-        <td>
-          2052
-        </td>
-        <td>
-          3669
-          -
-          3669
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.immutable.Set.canBuildFrom
-        </td>
-        <td style="background: #F0ADAD">
-          immutable.this.Set.canBuildFrom[String]
-        </td>
-      </tr><tr>
-        <td>
           92
         </td>
         <td>
-          2065
+          2152
         </td>
         <td>
-          3880
+          3906
           -
-          3880
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Iterable.canBuildFrom
-        </td>
-        <td style="background: #F0ADAD">
-          collection.this.Iterable.canBuildFrom[(String, String)]
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          2064
-        </td>
-        <td>
-          3880
-          -
-          3880
+          3906
         </td>
         <td>
           Apply
@@ -2083,57 +2062,36 @@ else
         </td>
       </tr><tr>
         <td>
-          93
+          92
         </td>
         <td>
-          2057
+          2153
         </td>
         <td>
-          3932
+          3906
           -
-          3972
+          3906
         </td>
         <td>
-          Apply
+          TypeApply
         </td>
         <td>
-          scala.Tuple2.apply
+          scala.collection.Iterable.canBuildFrom
         </td>
         <td style="background: #F0ADAD">
-          scala.Tuple2.apply[String, String](m.name.toString(), m.returnType.toString())
+          collection.this.Iterable.canBuildFrom[(String, String)]
         </td>
       </tr><tr>
         <td>
           93
         </td>
         <td>
-          2056
+          2143
         </td>
         <td>
-          3950
+          3959
           -
-          3971
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.toString
-        </td>
-        <td style="background: #F0ADAD">
-          m.returnType.toString()
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          2055
-        </td>
-        <td>
-          3933
-          -
-          3948
+          3974
         </td>
         <td>
           Apply
@@ -2149,12 +2107,33 @@ else
           93
         </td>
         <td>
-          2054
+          2145
         </td>
         <td>
-          3912
+          3958
           -
-          3928
+          3998
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](m.name.toString(), m.returnType.toString())
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          2142
+        </td>
+        <td>
+          3938
+          -
+          3954
         </td>
         <td>
           Select
@@ -2167,36 +2146,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          93
         </td>
         <td>
-          2060
+          2144
         </td>
         <td>
-          4003
+          3976
           -
-          4037
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Boolean.&amp;&amp;
-        </td>
-        <td style="background: #F0ADAD">
-          m.isVar.||(m.isVal).&amp;&amp;(m.isGetter)
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          2062
-        </td>
-        <td>
-          4059
-          -
-          4080
+          3997
         </td>
         <td>
           Apply
@@ -2212,12 +2170,12 @@ else
           94
         </td>
         <td>
-          2059
+          2147
         </td>
         <td>
-          4027
+          4053
           -
-          4037
+          4063
         </td>
         <td>
           Select
@@ -2233,12 +2191,12 @@ else
           94
         </td>
         <td>
-          2058
+          2146
         </td>
         <td>
-          4015
+          4041
           -
-          4022
+          4048
         </td>
         <td>
           Select
@@ -2254,12 +2212,12 @@ else
           94
         </td>
         <td>
-          2061
+          2149
         </td>
         <td>
-          4042
+          4068
           -
-          4057
+          4083
         </td>
         <td>
           Apply
@@ -2275,12 +2233,12 @@ else
           94
         </td>
         <td>
-          2063
+          2151
         </td>
         <td>
-          4041
+          4067
           -
-          4081
+          4107
         </td>
         <td>
           Apply
@@ -2293,15 +2251,99 @@ else
         </td>
       </tr><tr>
         <td>
+          94
+        </td>
+        <td>
+          2148
+        </td>
+        <td>
+          4029
+          -
+          4063
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          m.isVar.||(m.isVal).&amp;&amp;(m.isGetter)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          2150
+        </td>
+        <td>
+          4085
+          -
+          4106
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.toString
+        </td>
+        <td style="background: #F0ADAD">
+          m.returnType.toString()
+        </td>
+      </tr><tr>
+        <td>
           95
         </td>
         <td>
-          2066
+          2156
         </td>
         <td>
-          4137
+          4170
           -
-          4141
+          4170
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.$conforms[(String, String)]
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          2155
+        </td>
+        <td>
+          4136
+          -
+          4168
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.SetLike.contains
+        </td>
+        <td style="background: #F0ADAD">
+          excludeColumnList.contains(x._1)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          2154
+        </td>
+        <td>
+          4163
+          -
+          4167
         </td>
         <td>
           Select
@@ -2317,12 +2359,12 @@ else
           95
         </td>
         <td>
-          2069
+          2157
         </td>
         <td>
-          3854
+          3880
           -
-          4149
+          4175
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2353,57 +2395,15 @@ else
         </td>
       </tr><tr>
         <td>
-          95
-        </td>
-        <td>
-          2068
-        </td>
-        <td>
-          4144
-          -
-          4144
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.Predef.$conforms
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.$conforms[(String, String)]
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          2067
-        </td>
-        <td>
-          4110
-          -
-          4142
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.SetLike.contains
-        </td>
-        <td style="background: #F0ADAD">
-          excludeColumnList.contains(x._1)
-        </td>
-      </tr><tr>
-        <td>
           98
         </td>
         <td>
-          2070
+          2158
         </td>
         <td>
-          4293
+          4319
           -
-          4330
+          4356
         </td>
         <td>
           Apply
@@ -2419,12 +2419,12 @@ else
           99
         </td>
         <td>
-          2074
+          2162
         </td>
         <td>
-          4347
+          4373
           -
-          4488
+          4514
         </td>
         <td>
           Block
@@ -2444,12 +2444,12 @@ else
           100
         </td>
         <td>
-          2071
+          2159
         </td>
         <td>
-          4362
+          4388
           -
-          4390
+          4416
         </td>
         <td>
           Apply
@@ -2465,12 +2465,12 @@ else
           101
         </td>
         <td>
-          2072
+          2160
         </td>
         <td>
-          4415
+          4441
           -
-          4440
+          4466
         </td>
         <td>
           Apply
@@ -2486,12 +2486,12 @@ else
           102
         </td>
         <td>
-          2073
+          2161
         </td>
         <td>
-          4447
+          4473
           -
-          4488
+          4514
         </td>
         <td>
           TypeApply
@@ -2507,12 +2507,33 @@ else
           106
         </td>
         <td>
-          2075
+          2164
         </td>
         <td>
-          4571
+          4581
           -
-          4643
+          4670
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Tried creating object with path &quot;, &quot;, but failed with error&quot;).s(fullClassName))
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          2163
+        </td>
+        <td>
+          4597
+          -
+          4669
         </td>
         <td>
           Apply
@@ -2525,36 +2546,15 @@ else
         </td>
       </tr><tr>
         <td>
-          106
-        </td>
-        <td>
-          2076
-        </td>
-        <td>
-          4555
-          -
-          4644
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.error
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.error(scala.StringContext.apply(&quot;Tried creating object with path &quot;, &quot;, but failed with error&quot;).s(fullClassName))
-        </td>
-      </tr><tr>
-        <td>
           107
         </td>
         <td>
-          2077
+          2165
         </td>
         <td>
-          4653
+          4679
           -
-          4708
+          4734
         </td>
         <td>
           Throw
@@ -2570,12 +2570,12 @@ else
           112
         </td>
         <td>
-          2078
+          2166
         </td>
         <td>
-          4798
+          4824
           -
-          4810
+          4836
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2591,12 +2591,12 @@ else
           113
         </td>
         <td>
-          2079
+          2167
         </td>
         <td>
-          4827
+          4853
           -
-          4849
+          4875
         </td>
         <td>
           Select
@@ -2612,12 +2612,12 @@ else
           114
         </td>
         <td>
-          2080
+          2168
         </td>
         <td>
-          4872
+          4898
           -
-          4899
+          4925
         </td>
         <td>
           Select
@@ -2633,12 +2633,12 @@ else
           115
         </td>
         <td>
-          2082
+          2170
         </td>
         <td>
-          4919
+          4945
           -
-          4992
+          5018
         </td>
         <td>
           Select
@@ -2654,12 +2654,12 @@ else
           115
         </td>
         <td>
-          2081
+          2169
         </td>
         <td>
-          4943
+          4969
           -
-          4977
+          5003
         </td>
         <td>
           Apply
@@ -2675,12 +2675,12 @@ else
           116
         </td>
         <td>
-          2083
+          2171
         </td>
         <td>
-          5008
+          5034
           -
-          5086
+          5112
         </td>
         <td>
           Apply
@@ -2696,12 +2696,33 @@ else
           117
         </td>
         <td>
-          2084
+          2173
         </td>
         <td>
-          5124
+          5161
           -
-          5134
+          5177
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;$&quot;.+(name).+(&quot;$&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          2172
+        </td>
+        <td>
+          5150
+          -
+          5160
         </td>
         <td>
           Apply
@@ -2717,12 +2738,12 @@ else
           117
         </td>
         <td>
-          2086
+          2174
         </td>
         <td>
-          5107
+          5133
           -
-          5152
+          5178
         </td>
         <td>
           Apply
@@ -2735,36 +2756,15 @@ else
         </td>
       </tr><tr>
         <td>
-          117
-        </td>
-        <td>
-          2085
-        </td>
-        <td>
-          5135
-          -
-          5151
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.+
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;$&quot;.+(name).+(&quot;$&quot;)
-        </td>
-      </tr><tr>
-        <td>
           118
         </td>
         <td>
-          2087
+          2175
         </td>
         <td>
-          5172
+          5198
           -
-          5196
+          5222
         </td>
         <td>
           Apply
@@ -2780,12 +2780,12 @@ else
           119
         </td>
         <td>
-          2088
+          2176
         </td>
         <td>
-          5219
+          5245
           -
-          5244
+          5270
         </td>
         <td>
           Apply
@@ -2801,12 +2801,12 @@ else
           120
         </td>
         <td>
-          2089
+          2177
         </td>
         <td>
-          5249
+          5275
           -
-          5290
+          5316
         </td>
         <td>
           TypeApply
@@ -2822,12 +2822,12 @@ else
           124
         </td>
         <td>
-          2092
+          2180
         </td>
         <td>
-          5444
+          5470
           -
-          5544
+          5570
         </td>
         <td>
           Apply
@@ -2843,12 +2843,12 @@ else
           125
         </td>
         <td>
-          2091
+          2179
         </td>
         <td>
-          5456
+          5482
           -
-          5538
+          5564
         </td>
         <td>
           TypeApply
@@ -2864,12 +2864,12 @@ else
           125
         </td>
         <td>
-          2090
+          2178
         </td>
         <td>
-          5488
+          5514
           -
-          5503
+          5529
         </td>
         <td>
           Literal
@@ -2885,12 +2885,12 @@ else
           127
         </td>
         <td>
-          2093
+          2181
         </td>
         <td>
-          5582
+          5608
           -
-          5593
+          5619
         </td>
         <td>
           Apply
@@ -2906,54 +2906,54 @@ else
           129
         </td>
         <td>
-          2095
+          2182
         </td>
         <td>
-          5635
+          5676
           -
-          5678
+          5714
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.apache.log4j.Category.info
+          scala.collection.TraversableOnce.mkString
         </td>
         <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.info(exception.printStackTrace())
+          scala.Predef.refArrayOps[StackTraceElement](exception.getStackTrace()).mkString(&quot;\n&quot;)
         </td>
       </tr><tr>
         <td>
           129
         </td>
         <td>
-          2094
+          2183
         </td>
         <td>
-          5650
+          5661
           -
-          5677
+          5715
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Throwable.printStackTrace
+          org.slf4j.Logger.info
         </td>
         <td style="background: #F0ADAD">
-          exception.printStackTrace()
+          UtilityFunctions.this.uf_logger.info(scala.Predef.refArrayOps[StackTraceElement](exception.getStackTrace()).mkString(&quot;\n&quot;))
         </td>
       </tr><tr>
         <td>
           130
         </td>
         <td>
-          2096
+          2184
         </td>
         <td>
-          5687
+          5724
           -
-          5691
+          5728
         </td>
         <td>
           Select
@@ -2969,12 +2969,12 @@ else
           135
         </td>
         <td>
-          2098
+          2186
         </td>
         <td>
-          5827
+          5864
           -
-          5854
+          5891
         </td>
         <td>
           Apply
@@ -2990,12 +2990,12 @@ else
           136
         </td>
         <td>
-          2097
+          2185
         </td>
         <td>
-          5839
+          5876
           -
-          5848
+          5885
         </td>
         <td>
           Apply
@@ -3011,12 +3011,12 @@ else
           138
         </td>
         <td>
-          2099
+          2187
         </td>
         <td>
-          5892
+          5929
           -
-          5903
+          5940
         </td>
         <td>
           Apply
@@ -3032,33 +3032,12 @@ else
           140
         </td>
         <td>
-          2101
+          2188
         </td>
         <td>
-          5945
+          5997
           -
-          5981
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.apache.log4j.Category.info
-        </td>
-        <td style="background: #F0ADAD">
-          UtilityFunctions.this.uf_logger.info(exception.getMessage())
-        </td>
-      </tr><tr>
-        <td>
-          140
-        </td>
-        <td>
-          2100
-        </td>
-        <td>
-          5960
-          -
-          5980
+          6017
         </td>
         <td>
           Apply
@@ -3071,15 +3050,36 @@ else
         </td>
       </tr><tr>
         <td>
+          140
+        </td>
+        <td>
+          2189
+        </td>
+        <td>
+          5982
+          -
+          6018
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          UtilityFunctions.this.uf_logger.info(exception.getMessage())
+        </td>
+      </tr><tr>
+        <td>
           141
         </td>
         <td>
-          2102
+          2190
         </td>
         <td>
-          5990
+          6027
           -
-          5994
+          6031
         </td>
         <td>
           Select

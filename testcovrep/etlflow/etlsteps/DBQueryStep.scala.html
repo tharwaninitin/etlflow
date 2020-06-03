@@ -70,28 +70,7 @@
           20
         </td>
         <td>
-          662
-        </td>
-        <td>
-          609
-          -
-          633
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.slf4j.Logger.info
-        </td>
-        <td style="background: #F0ADAD">
-          DBQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          661
+          729
         </td>
         <td>
           625
@@ -109,10 +88,73 @@
         </td>
       </tr><tr>
         <td>
+          20
+        </td>
+        <td>
+          730
+        </td>
+        <td>
+          609
+          -
+          633
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
+        </td>
+      </tr><tr>
+        <td>
           21
         </td>
         <td>
-          663
+          732
+        </td>
+        <td>
+          685
+          -
+          686
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          735
+        </td>
+        <td>
+          638
+          -
+          687
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting DB Query Step: &quot;, &quot;&quot;).s(DBQueryStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          731
         </td>
         <td>
           656
@@ -133,7 +175,7 @@
           21
         </td>
         <td>
-          666
+          734
         </td>
         <td>
           654
@@ -154,7 +196,7 @@
           21
         </td>
         <td>
-          665
+          733
         </td>
         <td>
           681
@@ -172,52 +214,31 @@
         </td>
       </tr><tr>
         <td>
-          21
+          22
         </td>
         <td>
-          664
+          738
         </td>
         <td>
-          685
+          718
           -
-          686
+          723
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          etlflow.etlsteps.DBQueryStep.query
         </td>
         <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          667
-        </td>
-        <td>
-          638
-          -
-          687
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.slf4j.Logger.info
-        </td>
-        <td style="background: #F0ADAD">
-          DBQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting DB Query Step: &quot;, &quot;&quot;).s(DBQueryStep.this.name))
+          DBQueryStep.this.query
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          669
+          737
         </td>
         <td>
           723
@@ -238,7 +259,7 @@
           22
         </td>
         <td>
-          672
+          740
         </td>
         <td>
           692
@@ -259,7 +280,7 @@
           22
         </td>
         <td>
-          668
+          736
         </td>
         <td>
           710
@@ -280,7 +301,7 @@
           22
         </td>
         <td>
-          671
+          739
         </td>
         <td>
           708
@@ -298,52 +319,10 @@
         </td>
       </tr><tr>
         <td>
-          22
-        </td>
-        <td>
-          670
-        </td>
-        <td>
-          718
-          -
-          723
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.DBQueryStep.query
-        </td>
-        <td style="background: #F0ADAD">
-          DBQueryStep.this.query
-        </td>
-      </tr><tr>
-        <td>
           23
         </td>
         <td>
-          674
-        </td>
-        <td>
-          730
-          -
-          762
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.jdbc.QueryApi.executeQuery
-        </td>
-        <td style="background: #F0ADAD">
-          etlflow.jdbc.QueryApi.executeQuery(DBQueryStep.this.db, DBQueryStep.this.query)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          673
+          741
         </td>
         <td>
           756
@@ -361,31 +340,52 @@
         </td>
       </tr><tr>
         <td>
-          26
+          23
         </td>
         <td>
-          678
+          742
         </td>
         <td>
-          839
+          730
           -
-          860
+          762
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.generic.GenMapFactory.apply
+          etlflow.jdbc.QueryApi.executeQuery
         </td>
         <td style="background: #F0ADAD">
-          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;query&quot;).-&gt;[String](DBQueryStep.this.query))
+          etlflow.jdbc.QueryApi.executeQuery(DBQueryStep.this.db, DBQueryStep.this.query)
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          675
+          744
+        </td>
+        <td>
+          854
+          -
+          859
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.DBQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          DBQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          743
         </td>
         <td>
           843
@@ -406,7 +406,28 @@
           26
         </td>
         <td>
-          677
+          746
+        </td>
+        <td>
+          839
+          -
+          860
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, String](scala.Predef.ArrowAssoc[String](&quot;query&quot;).-&gt;[String](DBQueryStep.this.query))
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          745
         </td>
         <td>
           843
@@ -424,31 +445,10 @@
         </td>
       </tr><tr>
         <td>
-          26
-        </td>
-        <td>
-          676
-        </td>
-        <td>
-          854
-          -
-          859
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.DBQueryStep.query
-        </td>
-        <td style="background: #F0ADAD">
-          DBQueryStep.this.query
-        </td>
-      </tr><tr>
-        <td>
           31
         </td>
         <td>
-          679
+          747
         </td>
         <td>
           967

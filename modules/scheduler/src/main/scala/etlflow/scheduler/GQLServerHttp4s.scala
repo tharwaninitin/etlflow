@@ -1,17 +1,20 @@
 package etlflow.scheduler
 
 import caliban.Http4sAdapter
+import cats.data.Kleisli
+import cats.effect.Blocker
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.EtlFlowHelper.EtlFlowHas
 import etlflow.utils.JDBC
 import etlflow.{BuildInfo => BI}
-import org.http4s.HttpRoutes
+import org.http4s.{HttpRoutes, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.CORS
 import org.slf4j.{Logger, LoggerFactory}
+import zio.blocking.Blocking
 import zio.console.putStrLn
 import zio.interop.catz._
 import zio.{RIO, ZIO, _}
@@ -34,6 +37,7 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
     ZIO.runtime[ZEnv with EtlFlowHas]
       .flatMap{implicit runtime =>
         for {
+          blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
           etlFlowInterpreter <- EtlFlowApi.api.interpreter
           _                  <- BlazeServerBuilder[EtlFlowTask]
                                 .bindHttp(8080, "0.0.0.0")
@@ -43,7 +47,9 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
                                 .withExecutionContext(platform.executor.asEC)
                                 .withHttpApp(
                                   Router[EtlFlowTask](
-                                    "/"    -> otherRoutes,
+                                    //"/"    -> otherRoutes(blocker),
+                                    "/"    -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
+                                    "/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/client.js", blocker, None)),
                                     "/api/etlflow"    -> CORS(Http4sAdapter.makeHttpService(etlFlowInterpreter)),
                                     "/ws/etlflow"     -> CORS(Http4sAdapter.makeWebSocketService(etlFlowInterpreter)),
                                   ).orNotFound

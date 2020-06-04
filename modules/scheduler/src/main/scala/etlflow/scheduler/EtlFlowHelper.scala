@@ -11,6 +11,7 @@ object EtlFlowHelper {
   case class EtlJobArgs(name: String, props: List[Props])
   case class UserArgs(user_name: String, password: String)
   case class DbJobRunArgs(jobRunId: Option[String] = None, jobName: Option[String] = None, limit: Int, offset: Int)
+  case class CronJobArgs(job_name: String, schedule: CronExpr)
 
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
@@ -21,7 +22,7 @@ object EtlFlowHelper {
                              cron_jobs: Int
                            )
   case class UserAuth(message: String, token: String)
-  case class CronJob(job_name: String, schedule: CronExpr)
+  case class CronJob(job_name: String, schedule: CronExpr, failed: Long, success: Long)
 
   object EtlFlow {
     trait Service {
@@ -29,9 +30,11 @@ object EtlFlowHelper {
       def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
-      def addCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob]
-      def updateCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob]
+
+      def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
+      def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]]
+
       def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
       def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
       def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
@@ -56,10 +59,10 @@ object EtlFlowHelper {
   def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =
     ZIO.accessM[EtlFlowHas](_.get.login(args))
 
-  def addCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob] =
+  def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] =
     ZIO.accessM[EtlFlowHas](_.get.addCronJob(args))
 
-  def updateCronJob(args: CronJob): ZIO[EtlFlowHas, Throwable, CronJob] =
+  def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] =
     ZIO.accessM[EtlFlowHas](_.get.updateCronJob(args))
 
   def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] =

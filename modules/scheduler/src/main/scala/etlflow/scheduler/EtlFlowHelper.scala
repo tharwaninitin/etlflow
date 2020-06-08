@@ -22,7 +22,8 @@ object EtlFlowHelper {
                              cron_jobs: Int
                            )
   case class UserAuth(message: String, token: String)
-  case class CronJob(job_name: String, schedule: CronExpr, failed: Long, success: Long)
+  case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
+  case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr], failed: Long, success: Long)
 
   object EtlFlow {
     trait Service {
@@ -34,6 +35,8 @@ object EtlFlowHelper {
       def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]]
+
+      def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
 
       def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
       def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
@@ -73,6 +76,9 @@ object EtlFlowHelper {
 
   def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics] =
     ZStream.accessStream[EtlFlowHas](_.get.getStream)
+
+  def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] =
+    ZIO.accessM[EtlFlowHas](_.get.getJobs)
   //
   // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {
   //   val x = ZIO.accessM[Blocking](_.get.blocking{

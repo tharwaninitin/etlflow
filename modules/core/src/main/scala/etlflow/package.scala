@@ -28,6 +28,7 @@ package object etlflow {
     val job_aggregate_error: Boolean          = job_properties.getOrElse("job_aggregate_error", "false").toBoolean
     val job_send_slack_notification: Boolean  = job_properties.getOrElse("job_send_slack_notification", "false").toBoolean
     val job_notification_level: String        = job_properties.getOrElse("job_notification_level", "debug") //info or debug
+    val job_schedule: String                  = ""
   }
 
   object EtlStepList {

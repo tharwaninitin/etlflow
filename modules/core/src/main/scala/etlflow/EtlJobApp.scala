@@ -1,6 +1,6 @@
 package etlflow
 
-import etljobs.{DataProcJob, EtlJob, SequentialEtlJob, SequentialEtlJobWithLogging}
+import etlflow.etljobs.{EtlJob, SequentialEtlJob, SequentialEtlJobWithLogging}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
@@ -10,7 +10,7 @@ import scala.reflect.runtime.universe.TypeTag
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]
 // 2) Or below "trait with type" like this => trait EtlJobApp[T] { type EJN = TypeTag[T] }
-abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends DataProcJob[EJGP] {
+abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] {
   lazy val ea_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def globalProperties: Option[EJGP]
@@ -46,10 +46,6 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           else {
             println("Step Props info not available for generic jobs")
           }
-        case EtlJobConfig(false,false,false,false,false,false,true,jobName,jobProps) if jobName != "" =>
-          ea_logger.info(s"""Submitting job to cluster with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
-          val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          executeDataProcJob(job_name.toString,jobProps,globalProperties)
         case EtlJobConfig(false,false,false,false,false,true,false,jobName,jobProps) if jobName != "" =>
           val runtime: Runtime[ZEnv] = Runtime.default
           ea_logger.info(s"""Running job with params: job_name => $jobName job_properties => $jobProps""".stripMargin)

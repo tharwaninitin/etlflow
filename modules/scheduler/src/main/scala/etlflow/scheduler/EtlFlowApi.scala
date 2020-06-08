@@ -26,6 +26,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
   case class Queries(
                       etljobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]],
                       cronjobs: ZIO[EtlFlowHas, Throwable, List[CronJob]],
+                      jobs: ZIO[EtlFlowHas, Throwable, List[Job]],
                       jobruns: DbJobRunArgs => ZIO[EtlFlowHas, Throwable, List[JobRun]],
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                     )
@@ -48,6 +49,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
         Queries(
           getEtlJobs,
           getCronJobs,
+          getJobs,
           args => getDbJobRuns(args),
           getInfo,
         ),

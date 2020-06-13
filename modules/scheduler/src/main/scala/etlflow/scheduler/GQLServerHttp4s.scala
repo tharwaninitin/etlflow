@@ -47,11 +47,12 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
                                 .withExecutionContext(platform.executor.asEC)
                                 .withHttpApp(
                                   Router[EtlFlowTask](
-                                    //"/"    -> otherRoutes(blocker),
-                                    "/"    -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
+                                    "/about" -> otherRoutes,
+                                    "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                                     "/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/client.js", blocker, None)),
                                     "/api/etlflow"    -> CORS(Http4sAdapter.makeHttpService(etlFlowInterpreter)),
-                                    "/ws/etlflow"     -> CORS(Http4sAdapter.makeWebSocketService(etlFlowInterpreter)),
+                                    //"/ws/etlflow"     -> CORS(Http4sAdapter.makeWebSocketService(etlFlowInterpreter)),
+                                    "/ws/etlflow"     -> CORS(new EtlFlowStreams[EtlFlowTask].streamRoutes),
                                   ).orNotFound
                                 ).resource
                                 .toManaged

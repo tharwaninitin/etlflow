@@ -81,6 +81,11 @@ object UtilityFunctions {
     allJobNames.foreach(x => uf_logger.info(x.name.toString))
   }
 
+  def getJobNamePackage[T: TypeTag]: String = {
+    val tpe = ru.typeOf[T]
+    tpe.typeSymbol.asClass.fullName
+  }
+
   def getEtlJobs[T: TypeTag]: Set[String] = {
     val tpe = ru.typeOf[T]
     val clazz = tpe.typeSymbol.asClass

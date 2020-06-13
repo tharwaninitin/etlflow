@@ -14,7 +14,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
   lazy val ea_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def globalProperties: Option[EJGP]
-  val etl_job_name_package: String
+  val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlJob
 

@@ -12,6 +12,8 @@ import scala.reflect.runtime.universe.TypeTag
 abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
   extends SchedulerApp[EJN,EJP,EJGP] {
 
+  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
+
   final override def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
 
     val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {

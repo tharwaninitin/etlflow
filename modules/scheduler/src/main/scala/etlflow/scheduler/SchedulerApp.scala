@@ -8,7 +8,6 @@ import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
-import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.log.JobRun
 import etlflow.scheduler.EtlFlowHelper._
 import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
@@ -30,8 +29,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   root_logger.setLevel(Level.WARN)
 
   def globalProperties: Option[EJGP]
-  val etl_job_name_package: String
-  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
+  val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
   lazy val global_properties: Option[EJGP] = globalProperties
   val DB_DRIVER: String = global_properties.map(x => x.log_db_driver).getOrElse("<not_set>")
@@ -312,7 +310,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     }
   }
 
-  def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): Task[Long] = {
+  final def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): Task[Long] = {
     val cronJobStringUpdate = quote {
       querySchema[CronJobDB]("cronjob")
         .filter(x => x.job_name == lift(job))
@@ -325,7 +323,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
-  def updateFailedJob(job: String, transactor: HikariTransactor[Task]): Task[Long] = {
+  final def updateFailedJob(job: String, transactor: HikariTransactor[Task]): Task[Long] = {
     val cronJobStringUpdate = quote {
       querySchema[CronJobDB]("cronjob")
         .filter(x => x.job_name == lift(job))

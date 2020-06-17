@@ -1,0 +1,33 @@
+options:
+
+    - title: Getting started
+      url: docs/index.html
+
+    - title: Steps
+      url: docs/steps.html
+
+      nested_options:
+        - title: Spark
+          url: docs/spark.html
+        - title: BigQuery
+          url: docs/bigquery.html
+        - title: GCS
+          url: docs/gcs.html
+        - title: S3
+          url: docs/s3.html
+        - title: JDBC
+          url: docs/jdbc.html
+
+    - title: Job
+      url: docs/job.html
+
+    - title: Sensors
+      url: docs/sensors.html
+
+      nested_options:
+        - title: GCS Sensor
+          url: docs/gcssensor.html
+        - title: S3 Sensor
+          url: docs/s3sensor.html
+        - title: JDBC Sensor
+          url: docs/jdbcsensor.html

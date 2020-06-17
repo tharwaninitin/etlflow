@@ -68,7 +68,7 @@ abstract class DataprocSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: Etl
           logger.info(s"Job $jobId completed successfully with state $jobState")
           continue = false
         case "CANCELLED" | "ERROR" =>
-          logger.info(s"Job $jobId failed with state $jobState")
+          logger.error(s"Job $jobId failed with error ${jobInfo.getStatus.getDetails}")
           throw new RuntimeException("Job failed")
         case _ =>
           TimeUnit.SECONDS.sleep(2)
@@ -92,7 +92,7 @@ abstract class DataprocSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: Etl
                           logger.error(e.getMessage)
                           ExecutionError(e.getMessage)
                         }
-      _  <- executeDataProcJob(job_name.toString,Map.empty).foldM(
+      _  <- executeDataProcJob(job_name.toString,props_map).foldM(
                 ex => updateFailedJob(job_name.toString,transactor),
                 _  => updateSuccessJob(job_name.toString,transactor)
             ).forkDaemon

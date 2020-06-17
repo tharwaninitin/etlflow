@@ -15,7 +15,6 @@ object Dependencies {
   private val AwsVersion = "2.13.23"
 
   lazy val loggingLibs = List(
-    // "com.jcabi" % "jcabi-log" % "0.17.4",
     "ch.qos.logback" % "logback-classic" % "1.2.3"
   )
 

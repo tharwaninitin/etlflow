@@ -32,7 +32,7 @@ You also would need docker installed as some of the tests start/stop database do
 
 Now run tests using below sbt command
  ```shell
- sbt "project etlflow" test
+ sbt "project core" test
  ```
 
 ## Requirements and Installation
@@ -45,14 +45,14 @@ __Maven__
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>0.7.13</version>
+    <version>0.7.14</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.13"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.14"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.13
+__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.14
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

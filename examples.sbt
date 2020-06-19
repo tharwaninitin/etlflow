@@ -1,6 +1,6 @@
 import NativePackagerHelper._
 
-lazy val examples = (project in file("modules/examples"))
+lazy val examples = (project in file("examples"))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
   .settings(

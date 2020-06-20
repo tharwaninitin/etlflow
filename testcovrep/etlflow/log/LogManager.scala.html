@@ -31,7 +31,7 @@
 </span>7 <span style=''>trait LogManager[A] {
 </span>8 <span style=''>  val job_name: String
 </span>9 <span style=''>  val job_properties: EtlJobProps
-</span>10 <span style=''>  val lm_logger: Logger = </span><span style='background: #F0ADAD'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>10 <span style=''>  val lm_logger: Logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
 </span>11 <span style=''>
 </span>12 <span style=''>  def updateStepLevelInformation(
 </span>13 <span style=''>                                  execution_start_time: Long,
@@ -58,7 +58,7 @@
           10
         </td>
         <td>
-          1501
+          1437
         </td>
         <td>
           227
@@ -71,7 +71,7 @@
         <td>
           org.slf4j.LoggerFactory.getLogger
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           org.slf4j.LoggerFactory.getLogger(LogManager.this.getClass().getName())
         </td>
       </tr><tr>
@@ -79,7 +79,7 @@
           10
         </td>
         <td>
-          1500
+          1436
         </td>
         <td>
           251
@@ -92,7 +92,7 @@
         <td>
           java.lang.Class.getName
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           LogManager.this.getClass().getName()
         </td>
       </tr>

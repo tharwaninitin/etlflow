@@ -38,16 +38,16 @@
 </span>14 <span style=''>  def getJobInfo(level: String = &quot;info&quot;): List[(String,Map[String,String])] = </span><span style='background: #F0ADAD'>List.empty</span><span style=''>
 </span>15 <span style=''>
 </span>16 <span style=''>  final def execute(): ZIO[Any, Throwable, Unit] = {
-</span>17 <span style=''>    (</span><span style='background: #F0ADAD'>for {
-</span>18 <span style=''></span><span style='background: #F0ADAD'>      job_status_ref  &lt;- job_status.toManaged_
-</span>19 <span style=''></span><span style='background: #F0ADAD'>      job_start_time  &lt;- UIO.succeed(UF.getCurrentTimestamp).toManaged_
-</span>20 <span style=''></span><span style='background: #F0ADAD'>      resource        &lt;- logger_resource
-</span>21 <span style=''></span><span style='background: #F0ADAD'>      _               &lt;- (job_status_ref.set(&quot;started&quot;) *&gt; logJobInit(resource)).toManaged_
-</span>22 <span style=''></span><span style='background: #F0ADAD'>      _               &lt;- job(resource).foldM(
-</span>23 <span style=''></span><span style='background: #F0ADAD'>                            ex =&gt; job_status_ref.set(&quot;failed&quot;) *&gt; logJobError(ex,job_start_time)(resource),
-</span>24 <span style=''></span><span style='background: #F0ADAD'>                            _  =&gt; job_status_ref.set(&quot;success&quot;) *&gt; logJobSuccess(job_start_time)(resource)
-</span>25 <span style=''></span><span style='background: #F0ADAD'>                          ).toManaged_
-</span>26 <span style=''></span><span style='background: #F0ADAD'>    } yield ()).use_(ZIO.unit)</span><span style=''>
+</span>17 <span style=''>    (</span><span style='background: #AEF1AE'>for {
+</span>18 <span style=''></span><span style='background: #AEF1AE'>      job_status_ref  &lt;- job_status.toManaged_
+</span>19 <span style=''></span><span style='background: #AEF1AE'>      job_start_time  &lt;- UIO.succeed(UF.getCurrentTimestamp).toManaged_
+</span>20 <span style=''></span><span style='background: #AEF1AE'>      resource        &lt;- logger_resource
+</span>21 <span style=''></span><span style='background: #AEF1AE'>      _               &lt;- (job_status_ref.set(&quot;started&quot;) *&gt; logJobInit(resource)).toManaged_
+</span>22 <span style=''></span><span style='background: #AEF1AE'>      _               &lt;- job(resource).foldM(
+</span>23 <span style=''></span><span style='background: #AEF1AE'>                            ex =&gt; </span><span style='background: #F0ADAD'>job_status_ref.set(&quot;failed&quot;) *&gt; logJobError(ex,job_start_time)(resource)</span><span style='background: #AEF1AE'>,
+</span>24 <span style=''></span><span style='background: #AEF1AE'>                            _  =&gt; job_status_ref.set(&quot;success&quot;) *&gt; logJobSuccess(job_start_time)(resource)
+</span>25 <span style=''></span><span style='background: #AEF1AE'>                          ).toManaged_
+</span>26 <span style=''></span><span style='background: #AEF1AE'>    } yield ()).use_(ZIO.unit)</span><span style=''>
 </span>27 <span style=''>  }
 </span>28 <span style=''>
 </span>29 <span style=''>  private[etljobs] lazy val logger_resource: ZManaged[Any, Throwable, LoggerResource] = for {
@@ -57,7 +57,7 @@
 </span>33 <span style=''>  } yield LoggerResource(Option(db),slack)
 </span>34 <span style=''>
 </span>35 <span style=''>  private[etljobs] def logJobInit(res: LoggerResource): Task[Long] =
-</span>36 <span style=''>    if (</span><span style='background: #F0ADAD'>res.db.isDefined</span><span style=''>) </span><span style='background: #F0ADAD'>res.db.get.updateJobInformation(&quot;started&quot;,&quot;insert&quot;)</span><span style=''> else </span><span style='background: #F0ADAD'>ZIO.succeed(0)</span><span style=''>
+</span>36 <span style=''>    if (</span><span style='background: #AEF1AE'>res.db.isDefined</span><span style=''>) </span><span style='background: #AEF1AE'>res.db.get.updateJobInformation(&quot;started&quot;,&quot;insert&quot;)</span><span style=''> else </span><span style='background: #F0ADAD'>ZIO.succeed(0)</span><span style=''>
 </span>37 <span style=''>
 </span>38 <span style=''>  private[etljobs] def logJobError(e: Throwable, job_start_time: Long)(res: LoggerResource): Task[Unit] = {
 </span>39 <span style=''>    if (</span><span style='background: #F0ADAD'>res.slack.isDefined</span><span style=''>) </span><span style='background: #F0ADAD'>res.slack.get.updateJobInformation(&quot;failed&quot;)</span><span style=''>
@@ -66,11 +66,11 @@
 </span>42 <span style=''>  }
 </span>43 <span style=''>
 </span>44 <span style=''>  private[etljobs] def logJobSuccess(job_start_time: Long)(res: LoggerResource): Task[Unit] = {
-</span>45 <span style=''>    </span><span style='background: #F0ADAD'>for {
-</span>46 <span style=''></span><span style='background: #F0ADAD'>      _  &lt;- UIO.succeed(if (res.slack.isDefined) res.slack.get.updateJobInformation(&quot;pass&quot;))
-</span>47 <span style=''></span><span style='background: #F0ADAD'>      _  &lt;- if (res.db.isDefined) res.db.get.updateJobInformation(&quot;pass&quot;) else ZIO.unit
-</span>48 <span style=''></span><span style='background: #F0ADAD'>      _  &lt;- UIO.succeed(etl_job_logger.info(s&quot;Job completed successfully in ${UF.getTimeDifferenceAsString(job_start_time, UF.getCurrentTimestamp)}&quot;))
-</span>49 <span style=''></span><span style='background: #F0ADAD'>    } yield ()</span><span style=''>
+</span>45 <span style=''>    </span><span style='background: #AEF1AE'>for {
+</span>46 <span style=''></span><span style='background: #AEF1AE'>      _  &lt;- UIO.succeed(if (res.slack.isDefined) </span><span style='background: #F0ADAD'>res.slack.get.updateJobInformation(&quot;pass&quot;)</span><span style='background: #AEF1AE'>)
+</span>47 <span style=''></span><span style='background: #AEF1AE'>      _  &lt;- if (res.db.isDefined) res.db.get.updateJobInformation(&quot;pass&quot;) else </span><span style='background: #F0ADAD'>ZIO.unit</span><span style='background: #AEF1AE'>
+</span>48 <span style=''></span><span style='background: #AEF1AE'>      _  &lt;- UIO.succeed(etl_job_logger.info(s&quot;Job completed successfully in ${UF.getTimeDifferenceAsString(job_start_time, UF.getCurrentTimestamp)}&quot;))
+</span>49 <span style=''></span><span style='background: #AEF1AE'>    } yield ()</span><span style=''>
 </span>50 <span style=''>  }
 </span>51 <span style=''>}
 </span></pre>
@@ -89,7 +89,7 @@
           13
         </td>
         <td>
-          441
+          377
         </td>
         <td>
           422
@@ -110,7 +110,7 @@
           14
         </td>
         <td>
-          442
+          378
         </td>
         <td>
           503
@@ -131,28 +131,7 @@
           19
         </td>
         <td>
-          457
-        </td>
-        <td>
-          632
-          -
-          1145
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.ZManaged.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          zio.UIO.succeed[Long](etlflow.utils.UtilityFunctions.getCurrentTimestamp).toManaged_.flatMap[Any, Throwable, Unit](((job_start_time: Long) =&gt; GenericEtlJobWithLogging.this.logger_resource.flatMap[Any, Throwable, Unit](((resource: etlflow.LoggerResource) =&gt; job_status_ref.set(&quot;started&quot;).*&gt;[Any, Throwable, Long](GenericEtlJobWithLogging.this.logJobInit(resource)).toManaged_.flatMap[Any, Throwable, Unit](((_: Long) =&gt; GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ()))))))))
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          443
+          379
         </td>
         <td>
           663
@@ -165,15 +144,36 @@
         <td>
           etlflow.utils.UtilityFunctions.getCurrentTimestamp
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          393
+        </td>
+        <td>
+          632
+          -
+          1145
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZManaged.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          zio.UIO.succeed[Long](etlflow.utils.UtilityFunctions.getCurrentTimestamp).toManaged_.flatMap[Any, Throwable, Unit](((job_start_time: Long) =&gt; GenericEtlJobWithLogging.this.logger_resource.flatMap[Any, Throwable, Unit](((resource: etlflow.LoggerResource) =&gt; job_status_ref.set(&quot;started&quot;).*&gt;[Any, Throwable, Long](GenericEtlJobWithLogging.this.logJobInit(resource)).toManaged_.flatMap[Any, Throwable, Unit](((_: Long) =&gt; GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ()))))))))
         </td>
       </tr><tr>
         <td>
           20
         </td>
         <td>
-          456
+          392
         </td>
         <td>
           704
@@ -186,7 +186,7 @@
         <td>
           zio.ZManaged.flatMap
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           GenericEtlJobWithLogging.this.logger_resource.flatMap[Any, Throwable, Unit](((resource: etlflow.LoggerResource) =&gt; job_status_ref.set(&quot;started&quot;).*&gt;[Any, Throwable, Long](GenericEtlJobWithLogging.this.logJobInit(resource)).toManaged_.flatMap[Any, Throwable, Unit](((_: Long) =&gt; GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ()))))))
         </td>
       </tr><tr>
@@ -194,49 +194,7 @@
           21
         </td>
         <td>
-          445
-        </td>
-        <td>
-          798
-          -
-          818
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.etljobs.GenericEtlJobWithLogging.logJobInit
-        </td>
-        <td style="background: #F0ADAD">
-          GenericEtlJobWithLogging.this.logJobInit(resource)
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          444
-        </td>
-        <td>
-          784
-          -
-          793
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;started&quot;
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          455
+          391
         </td>
         <td>
           745
@@ -249,36 +207,57 @@
         <td>
           zio.ZManaged.flatMap
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           job_status_ref.set(&quot;started&quot;).*&gt;[Any, Throwable, Long](GenericEtlJobWithLogging.this.logJobInit(resource)).toManaged_.flatMap[Any, Throwable, Unit](((_: Long) =&gt; GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ()))))
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          454
+          381
         </td>
         <td>
-          837
+          798
           -
-          1145
+          818
         </td>
         <td>
           Apply
         </td>
         <td>
-          zio.ZManaged.map
+          etlflow.etljobs.GenericEtlJobWithLogging.logJobInit
         </td>
-        <td style="background: #F0ADAD">
-          GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ()))
+        <td style="background: #AEF1AE">
+          GenericEtlJobWithLogging.this.logJobInit(resource)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          784
+          -
+          793
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;started&quot;
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          452
+          388
         </td>
         <td>
           875
@@ -291,15 +270,57 @@
         <td>
           zio.CanFail.canFail
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.this.CanFail.canFail[Any]
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          390
+        </td>
+        <td>
+          837
+          -
+          1145
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZManaged.map
+        </td>
+        <td style="background: #AEF1AE">
+          GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ()))
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          448
+          382
+        </td>
+        <td>
+          930
+          -
+          938
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;failed&quot;
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          384
         </td>
         <td>
           911
@@ -320,7 +341,7 @@
           23
         </td>
         <td>
-          447
+          383
         </td>
         <td>
           943
@@ -338,73 +359,10 @@
         </td>
       </tr><tr>
         <td>
-          23
-        </td>
-        <td>
-          446
-        </td>
-        <td>
-          930
-          -
-          938
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;failed&quot;
-        </td>
-      </tr><tr>
-        <td>
           24
         </td>
         <td>
-          451
-        </td>
-        <td>
-          1019
-          -
-          1091
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.ZIO.*&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          450
-        </td>
-        <td>
-          1052
-          -
-          1091
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.etljobs.GenericEtlJobWithLogging.logJobSuccess
-        </td>
-        <td style="background: #F0ADAD">
-          GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource)
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          449
+          385
         </td>
         <td>
           1038
@@ -417,57 +375,57 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;success&quot;
         </td>
       </tr><tr>
         <td>
-          26
+          24
         </td>
         <td>
-          459
+          387
         </td>
         <td>
-          573
+          1019
           -
-          1161
+          1091
         </td>
         <td>
           Apply
         </td>
         <td>
-          zio.ZManaged.use_
+          zio.ZIO.*&gt;
         </td>
-        <td style="background: #F0ADAD">
-          GenericEtlJobWithLogging.this.job_status.toManaged_.flatMap[Any, Throwable, Unit](((job_status_ref: zio.Ref[String]) =&gt; zio.UIO.succeed[Long](etlflow.utils.UtilityFunctions.getCurrentTimestamp).toManaged_.flatMap[Any, Throwable, Unit](((job_start_time: Long) =&gt; GenericEtlJobWithLogging.this.logger_resource.flatMap[Any, Throwable, Unit](((resource: etlflow.LoggerResource) =&gt; job_status_ref.set(&quot;started&quot;).*&gt;[Any, Throwable, Long](GenericEtlJobWithLogging.this.logJobInit(resource)).toManaged_.flatMap[Any, Throwable, Unit](((_: Long) =&gt; GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ())))))))))).use_[Any, Throwable, Unit](zio.ZIO.unit)
+        <td style="background: #AEF1AE">
+          job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))
         </td>
       </tr><tr>
         <td>
-          26
+          24
         </td>
         <td>
-          453
+          386
         </td>
         <td>
-          1143
+          1052
           -
-          1145
+          1091
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          etlflow.etljobs.GenericEtlJobWithLogging.logJobSuccess
         </td>
-        <td style="background: #F0ADAD">
-          ()
+        <td style="background: #AEF1AE">
+          GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource)
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          458
+          394
         </td>
         <td>
           1152
@@ -480,15 +438,99 @@
         <td>
           zio.ZIO.unit
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.ZIO.unit
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          395
+        </td>
+        <td>
+          573
+          -
+          1161
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZManaged.use_
+        </td>
+        <td style="background: #AEF1AE">
+          GenericEtlJobWithLogging.this.job_status.toManaged_.flatMap[Any, Throwable, Unit](((job_status_ref: zio.Ref[String]) =&gt; zio.UIO.succeed[Long](etlflow.utils.UtilityFunctions.getCurrentTimestamp).toManaged_.flatMap[Any, Throwable, Unit](((job_start_time: Long) =&gt; GenericEtlJobWithLogging.this.logger_resource.flatMap[Any, Throwable, Unit](((resource: etlflow.LoggerResource) =&gt; job_status_ref.set(&quot;started&quot;).*&gt;[Any, Throwable, Long](GenericEtlJobWithLogging.this.logJobInit(resource)).toManaged_.flatMap[Any, Throwable, Unit](((_: Long) =&gt; GenericEtlJobWithLogging.this.job(resource).foldM[Any, Throwable, Unit](((ex: Throwable) =&gt; job_status_ref.set(&quot;failed&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobError(ex, job_start_time)(resource))), ((x$1: Unit) =&gt; job_status_ref.set(&quot;success&quot;).*&gt;[Any, Throwable, Unit](GenericEtlJobWithLogging.this.logJobSuccess(job_start_time)(resource))))(zio.this.CanFail.canFail[Any]).toManaged_.map[Unit](((_: Unit) =&gt; ())))))))))).use_[Any, Throwable, Unit](zio.ZIO.unit)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          1143
+          -
+          1145
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
         </td>
       </tr><tr>
         <td>
           36
         </td>
         <td>
-          460
+          400
+        </td>
+        <td>
+          1780
+          -
+          1794
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.ZIO.succeed
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.succeed[Long](0L)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          397
+        </td>
+        <td>
+          1723
+          -
+          1774
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateJobInformation
+        </td>
+        <td style="background: #AEF1AE">
+          res.db.get.updateJobInformation(&quot;started&quot;, &quot;insert&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          396
         </td>
         <td>
           1705
@@ -501,7 +543,7 @@
         <td>
           scala.Option.isDefined
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           res.db.isDefined
         </td>
       </tr><tr>
@@ -509,7 +551,7 @@
           36
         </td>
         <td>
-          463
+          399
         </td>
         <td>
           1780
@@ -530,7 +572,7 @@
           36
         </td>
         <td>
-          462
+          398
         </td>
         <td>
           1723
@@ -543,162 +585,15 @@
         <td>
           etlflow.log.DbLogManager.updateJobInformation
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           res.db.get.updateJobInformation(&quot;started&quot;, &quot;insert&quot;)
         </td>
       </tr><tr>
         <td>
-          36
-        </td>
-        <td>
-          461
-        </td>
-        <td>
-          1723
-          -
-          1774
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.log.DbLogManager.updateJobInformation
-        </td>
-        <td style="background: #F0ADAD">
-          res.db.get.updateJobInformation(&quot;started&quot;, &quot;insert&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          464
-        </td>
-        <td>
-          1780
-          -
-          1794
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.ZIO.succeed
-        </td>
-        <td style="background: #F0ADAD">
-          zio.ZIO.succeed[Long](0L)
-        </td>
-      </tr><tr>
-        <td>
           39
         </td>
         <td>
-          469
-        </td>
-        <td>
-          1933
-          -
-          1977
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.log.SlackLogManager.updateJobInformation
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.updateJobInformation(x$1, x$2)
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          472
-        </td>
-        <td>
-          1908
-          -
-          1908
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          465
-        </td>
-        <td>
-          1912
-          -
-          1931
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.isDefined
-        </td>
-        <td style="background: #F0ADAD">
-          res.slack.isDefined
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          468
-        </td>
-        <td>
-          1947
-          -
-          1947
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.log.SlackLogManager.updateJobInformation$default$2
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.updateJobInformation$default$2
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          471
-        </td>
-        <td>
-          1908
-          -
-          1908
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          470
+          406
         </td>
         <td>
           1933
@@ -724,7 +619,7 @@
           39
         </td>
         <td>
-          467
+          403
         </td>
         <td>
           1968
@@ -745,7 +640,49 @@
           39
         </td>
         <td>
-          466
+          405
+        </td>
+        <td>
+          1933
+          -
+          1977
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateJobInformation
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateJobInformation(x$1, x$2)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          408
+        </td>
+        <td>
+          1908
+          -
+          1908
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          402
         </td>
         <td>
           1933
@@ -763,36 +700,57 @@
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          478
+          401
         </td>
         <td>
-          1982
+          1912
           -
-          2108
+          1931
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          org.slf4j.Logger.error
+          scala.Option.isDefined
         </td>
         <td style="background: #F0ADAD">
-          GenericEtlJobWithLogging.this.etl_job_logger.error(scala.StringContext.apply(&quot;Job completed with failure in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)))
+          res.slack.isDefined
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          474
+          404
         </td>
         <td>
-          2106
+          1947
           -
-          2107
+          1947
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.log.SlackLogManager.updateJobInformation$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.updateJobInformation$default$2
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          407
+        </td>
+        <td>
+          1908
+          -
+          1908
         </td>
         <td>
           Literal
@@ -801,35 +759,14 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;&quot;
+          ()
         </td>
       </tr><tr>
         <td>
           40
         </td>
         <td>
-          477
-        </td>
-        <td>
-          2003
-          -
-          2107
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;Job completed with failure in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp))
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          473
+          409
         </td>
         <td>
           2005
@@ -850,7 +787,7 @@
           40
         </td>
         <td>
-          476
+          412
         </td>
         <td>
           2037
@@ -871,7 +808,28 @@
           40
         </td>
         <td>
-          475
+          414
+        </td>
+        <td>
+          1982
+          -
+          2108
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          GenericEtlJobWithLogging.this.etl_job_logger.error(scala.StringContext.apply(&quot;Job completed with failure in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          411
         </td>
         <td>
           2082
@@ -889,41 +847,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          40
         </td>
         <td>
-          487
+          410
         </td>
         <td>
-          2135
+          2106
           -
-          2199
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.ZIO.*&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
-  &lt;artifact&gt; val x$3: String = &quot;failed&quot;;
-  &lt;artifact&gt; val x$4: String = qual$2.updateJobInformation$default$2;
-  qual$2.updateJobInformation(x$3, x$4)
-}.as[Unit](()).*&gt;[Any, Throwable, Nothing](zio.Task.fail(e))
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          481
-        </td>
-        <td>
-          2167
-          -
-          2175
+          2107
         </td>
         <td>
           Literal
@@ -932,103 +864,35 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;failed&quot;
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
-          41
+          40
         </td>
         <td>
-          480
+          413
         </td>
         <td>
-          2135
+          2003
           -
-          2145
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.get
-        </td>
-        <td style="background: #F0ADAD">
-          res.db.get
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          489
-        </td>
-        <td>
-          2205
-          -
-          2217
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.Task.fail
-        </td>
-        <td style="background: #F0ADAD">
-          zio.Task.fail(e)
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          483
-        </td>
-        <td>
-          2135
-          -
-          2176
+          2107
         </td>
         <td>
           Apply
         </td>
         <td>
-          etlflow.log.DbLogManager.updateJobInformation
+          scala.StringContext.s
         </td>
         <td style="background: #F0ADAD">
-          qual$2.updateJobInformation(x$3, x$4)
+          scala.StringContext.apply(&quot;Job completed with failure in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp))
         </td>
       </tr><tr>
         <td>
           41
         </td>
         <td>
-          486
-        </td>
-        <td>
-          2135
-          -
-          2199
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.ZIO.*&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
-  &lt;artifact&gt; val x$3: String = &quot;failed&quot;;
-  &lt;artifact&gt; val x$4: String = qual$2.updateJobInformation$default$2;
-  qual$2.updateJobInformation(x$3, x$4)
-}.as[Unit](()).*&gt;[Any, Throwable, Nothing](zio.Task.fail(e))
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          488
+          424
         </td>
         <td>
           2205
@@ -1049,7 +913,7 @@
           41
         </td>
         <td>
-          479
+          415
         </td>
         <td>
           2117
@@ -1070,7 +934,7 @@
           41
         </td>
         <td>
-          482
+          418
         </td>
         <td>
           2146
@@ -1091,7 +955,7 @@
           41
         </td>
         <td>
-          485
+          421
         </td>
         <td>
           2187
@@ -1112,7 +976,7 @@
           41
         </td>
         <td>
-          484
+          420
         </td>
         <td>
           2180
@@ -1130,15 +994,41 @@
         </td>
       </tr><tr>
         <td>
-          46
+          41
         </td>
         <td>
-          496
+          423
         </td>
         <td>
-          2353
+          2135
           -
-          2353
+          2199
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.ZIO.*&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
+  &lt;artifact&gt; val x$3: String = &quot;failed&quot;;
+  &lt;artifact&gt; val x$4: String = qual$2.updateJobInformation$default$2;
+  qual$2.updateJobInformation(x$3, x$4)
+}.as[Unit](()).*&gt;[Any, Throwable, Nothing](zio.Task.fail(e))
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          417
+        </td>
+        <td>
+          2167
+          -
+          2175
         </td>
         <td>
           Literal
@@ -1147,82 +1037,103 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          ()
+          &quot;failed&quot;
         </td>
       </tr><tr>
         <td>
-          46
+          41
         </td>
         <td>
-          490
+          419
         </td>
         <td>
-          2357
+          2135
           -
-          2376
+          2176
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateJobInformation
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.updateJobInformation(x$3, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          422
+        </td>
+        <td>
+          2135
+          -
+          2199
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.*&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
+  &lt;artifact&gt; val x$3: String = &quot;failed&quot;;
+  &lt;artifact&gt; val x$4: String = qual$2.updateJobInformation$default$2;
+  qual$2.updateJobInformation(x$3, x$4)
+}.as[Unit](()).*&gt;[Any, Throwable, Nothing](zio.Task.fail(e))
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          425
+        </td>
+        <td>
+          2205
+          -
+          2217
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(e)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          416
+        </td>
+        <td>
+          2135
+          -
+          2145
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.Option.isDefined
+          scala.Option.get
         </td>
         <td style="background: #F0ADAD">
-          res.slack.isDefined
+          res.db.get
         </td>
       </tr><tr>
         <td>
           46
         </td>
         <td>
-          492
-        </td>
-        <td>
-          2413
-          -
-          2419
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;pass&quot;
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          495
-        </td>
-        <td>
-          2378
-          -
-          2420
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  &lt;artifact&gt; val qual$1: etlflow.log.SlackLogManager = res.slack.get;
-  &lt;artifact&gt; val x$1: String = &quot;pass&quot;;
-  &lt;artifact&gt; val x$2: String = qual$1.updateJobInformation$default$2;
-  qual$1.updateJobInformation(x$1, x$2)
-}
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          497
+          433
         </td>
         <td>
           2353
@@ -1235,7 +1146,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ()
         </td>
       </tr><tr>
@@ -1243,7 +1154,7 @@
           46
         </td>
         <td>
-          515
+          451
         </td>
         <td>
           2323
@@ -1256,7 +1167,7 @@
         <td>
           zio.ZIO.flatMap
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.UIO.succeed[Unit](if (res.slack.isDefined)
   {
     &lt;artifact&gt; val qual$1: etlflow.log.SlackLogManager = res.slack.get;
@@ -1280,7 +1191,7 @@ else
           46
         </td>
         <td>
-          491
+          427
         </td>
         <td>
           2378
@@ -1301,7 +1212,7 @@ else
           46
         </td>
         <td>
-          494
+          430
         </td>
         <td>
           2378
@@ -1322,7 +1233,7 @@ else
           46
         </td>
         <td>
-          493
+          429
         </td>
         <td>
           2392
@@ -1340,10 +1251,188 @@ else
         </td>
       </tr><tr>
         <td>
+          46
+        </td>
+        <td>
+          432
+        </td>
+        <td>
+          2353
+          -
+          2353
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          426
+        </td>
+        <td>
+          2357
+          -
+          2376
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #AEF1AE">
+          res.slack.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          428
+        </td>
+        <td>
+          2413
+          -
+          2419
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;pass&quot;
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          431
+        </td>
+        <td>
+          2378
+          -
+          2420
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$1: etlflow.log.SlackLogManager = res.slack.get;
+  &lt;artifact&gt; val x$1: String = &quot;pass&quot;;
+  &lt;artifact&gt; val x$2: String = qual$1.updateJobInformation$default$2;
+  qual$1.updateJobInformation(x$1, x$2)
+}
+        </td>
+      </tr><tr>
+        <td>
           47
         </td>
         <td>
-          514
+          436
+        </td>
+        <td>
+          2488
+          -
+          2494
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;pass&quot;
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          439
+        </td>
+        <td>
+          2456
+          -
+          2495
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
+  &lt;artifact&gt; val x$3: String = &quot;pass&quot;;
+  &lt;artifact&gt; val x$4: String = qual$2.updateJobInformation$default$2;
+  qual$2.updateJobInformation(x$3, x$4)
+}
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          2456
+          -
+          2495
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.log.DbLogManager.updateJobInformation
+        </td>
+        <td style="background: #AEF1AE">
+          qual$2.updateJobInformation(x$3, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          441
+        </td>
+        <td>
+          2501
+          -
+          2509
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.ZIO.unit
+        </td>
+        <td style="background: #F0ADAD">
+          zio.ZIO.unit
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          450
         </td>
         <td>
           2428
@@ -1356,7 +1445,7 @@ else
         <td>
           zio.ZIO.flatMap
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           if (res.db.isDefined)
   {
     &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
@@ -1372,28 +1461,7 @@ else
           47
         </td>
         <td>
-          505
-        </td>
-        <td>
-          2501
-          -
-          2509
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.ZIO.unit
-        </td>
-        <td style="background: #F0ADAD">
-          zio.ZIO.unit
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          499
+          435
         </td>
         <td>
           2456
@@ -1406,7 +1474,7 @@ else
         <td>
           scala.Option.get
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           res.db.get
         </td>
       </tr><tr>
@@ -1414,28 +1482,7 @@ else
           47
         </td>
         <td>
-          498
-        </td>
-        <td>
-          2438
-          -
-          2454
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Option.isDefined
-        </td>
-        <td style="background: #F0ADAD">
-          res.db.isDefined
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          501
+          437
         </td>
         <td>
           2467
@@ -1448,7 +1495,7 @@ else
         <td>
           etlflow.log.DbLogManager.updateJobInformation$default$2
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           qual$2.updateJobInformation$default$2
         </td>
       </tr><tr>
@@ -1456,7 +1503,7 @@ else
           47
         </td>
         <td>
-          504
+          440
         </td>
         <td>
           2501
@@ -1477,159 +1524,28 @@ else
           47
         </td>
         <td>
-          503
+          434
         </td>
         <td>
-          2456
+          2438
           -
-          2495
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  &lt;artifact&gt; val qual$2: etlflow.log.DbLogManager = res.db.get;
-  &lt;artifact&gt; val x$3: String = &quot;pass&quot;;
-  &lt;artifact&gt; val x$4: String = qual$2.updateJobInformation$default$2;
-  qual$2.updateJobInformation(x$3, x$4)
-}
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          500
-        </td>
-        <td>
-          2488
-          -
-          2494
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;pass&quot;
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          502
-        </td>
-        <td>
-          2456
-          -
-          2495
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.log.DbLogManager.updateJobInformation
-        </td>
-        <td style="background: #F0ADAD">
-          qual$2.updateJobInformation(x$3, x$4)
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          508
-        </td>
-        <td>
-          2633
-          -
-          2655
+          2454
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+          scala.Option.isDefined
         </td>
-        <td style="background: #F0ADAD">
-          etlflow.utils.UtilityFunctions.getCurrentTimestamp
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          507
-        </td>
-        <td>
-          2657
-          -
-          2658
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;&quot;
+        <td style="background: #AEF1AE">
+          res.db.isDefined
         </td>
       </tr><tr>
         <td>
           48
         </td>
         <td>
-          510
-        </td>
-        <td>
-          2554
-          -
-          2658
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;Job completed successfully in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp))
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          513
-        </td>
-        <td>
-          2516
-          -
-          2675
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.ZIO.map
-        </td>
-        <td style="background: #F0ADAD">
-          zio.UIO.succeed[Unit](GenericEtlJobWithLogging.this.etl_job_logger.info(scala.StringContext.apply(&quot;Job completed successfully in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)))).map[Unit](((_: Unit) =&gt; ()))
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          506
+          442
         </td>
         <td>
           2556
@@ -1642,7 +1558,7 @@ else
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Job completed successfully in &quot;
         </td>
       </tr><tr>
@@ -1650,7 +1566,7 @@ else
           48
         </td>
         <td>
-          509
+          445
         </td>
         <td>
           2588
@@ -1663,7 +1579,7 @@ else
         <td>
           etlflow.utils.UtilityFunctions.getTimeDifferenceAsString
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)
         </td>
       </tr><tr>
@@ -1671,7 +1587,7 @@ else
           48
         </td>
         <td>
-          511
+          447
         </td>
         <td>
           2534
@@ -1684,15 +1600,99 @@ else
         <td>
           org.slf4j.Logger.info
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           GenericEtlJobWithLogging.this.etl_job_logger.info(scala.StringContext.apply(&quot;Job completed successfully in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          444
+        </td>
+        <td>
+          2633
+          -
+          2655
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+        <td style="background: #AEF1AE">
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          443
+        </td>
+        <td>
+          2657
+          -
+          2658
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          446
+        </td>
+        <td>
+          2554
+          -
+          2658
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Job completed successfully in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          449
+        </td>
+        <td>
+          2516
+          -
+          2675
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.map
+        </td>
+        <td style="background: #AEF1AE">
+          zio.UIO.succeed[Unit](GenericEtlJobWithLogging.this.etl_job_logger.info(scala.StringContext.apply(&quot;Job completed successfully in &quot;, &quot;&quot;).s(etlflow.utils.UtilityFunctions.getTimeDifferenceAsString(job_start_time, etlflow.utils.UtilityFunctions.getCurrentTimestamp)))).map[Unit](((_: Unit) =&gt; ()))
         </td>
       </tr><tr>
         <td>
           49
         </td>
         <td>
-          512
+          448
         </td>
         <td>
           2673
@@ -1705,7 +1705,7 @@ else
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ()
         </td>
       </tr>

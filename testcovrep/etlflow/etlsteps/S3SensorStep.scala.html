@@ -91,28 +91,7 @@
           24
         </td>
         <td>
-          965
-        </td>
-        <td>
-          843
-          -
-          853
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.aws.S3Api.live
-        </td>
-        <td style="background: #AEF1AE">
-          etlflow.aws.`package`.S3Api.live
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          966
+          902
         </td>
         <td>
           825
@@ -130,94 +109,52 @@
         </td>
       </tr><tr>
         <td>
-          25
+          24
         </td>
         <td>
-          968
+          901
         </td>
         <td>
-          894
+          843
           -
-          900
+          853
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.etlsteps.S3SensorStep.prefix
+          etlflow.aws.S3Api.live
         </td>
         <td style="background: #AEF1AE">
-          S3SensorStep.this.prefix
+          etlflow.aws.`package`.S3Api.live
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          971
+          908
         </td>
         <td>
-          918
+          874
           -
-          918
+          923
         </td>
         <td>
-          TypeApply
+          ApplyToImplicitArgs
         </td>
         <td>
-          zio.NeedsEnv.needsEnv
+          zio.ZIO.provideLayer
         </td>
         <td style="background: #AEF1AE">
-          zio.this.NeedsEnv.needsEnv[Nothing]
+          etlflow.aws.`package`.lookupObject(S3SensorStep.this.bucket, S3SensorStep.this.prefix, S3SensorStep.this.key).provideLayer[Throwable, software.amazon.awssdk.services.s3.S3AsyncClient, etlflow.aws.S3Api](env)(scala.Predef.$conforms[etlflow.aws.S3Api], zio.this.NeedsEnv.needsEnv[Nothing])
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          967
-        </td>
-        <td>
-          887
-          -
-          893
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.S3SensorStep.bucket
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.bucket
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          970
-        </td>
-        <td>
-          918
-          -
-          918
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.Predef.$conforms
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.$conforms[etlflow.aws.S3Api]
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          969
+          905
         </td>
         <td>
           901
@@ -238,28 +175,91 @@
           25
         </td>
         <td>
-          972
+          904
         </td>
         <td>
-          874
+          894
           -
-          923
+          900
         </td>
         <td>
-          ApplyToImplicitArgs
+          Select
         </td>
         <td>
-          zio.ZIO.provideLayer
+          etlflow.etlsteps.S3SensorStep.prefix
         </td>
         <td style="background: #AEF1AE">
-          etlflow.aws.`package`.lookupObject(S3SensorStep.this.bucket, S3SensorStep.this.prefix, S3SensorStep.this.key).provideLayer[Throwable, software.amazon.awssdk.services.s3.S3AsyncClient, etlflow.aws.S3Api](env)(scala.Predef.$conforms[etlflow.aws.S3Api], zio.this.NeedsEnv.needsEnv[Nothing])
+          S3SensorStep.this.prefix
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          907
+        </td>
+        <td>
+          918
+          -
+          918
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.NeedsEnv.needsEnv
+        </td>
+        <td style="background: #AEF1AE">
+          zio.this.NeedsEnv.needsEnv[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          903
+        </td>
+        <td>
+          887
+          -
+          893
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3SensorStep.bucket
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          906
+        </td>
+        <td>
+          918
+          -
+          918
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[etlflow.aws.S3Api]
         </td>
       </tr><tr>
         <td>
           28
         </td>
         <td>
-          973
+          909
         </td>
         <td>
           1022
@@ -280,7 +280,28 @@
           29
         </td>
         <td>
-          983
+          917
+        </td>
+        <td>
+          1091
+          -
+          1145
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          920
         </td>
         <td>
           1062
@@ -288,7 +309,7 @@
           1147
         </td>
         <td>
-          Apply
+          Block
         </td>
         <td>
           zio.Task.succeed
@@ -301,7 +322,49 @@
           29
         </td>
         <td>
-          977
+          911
+        </td>
+        <td>
+          1107
+          -
+          1129
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; in s3 location s3://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          914
+        </td>
+        <td>
+          1104
+          -
+          1107
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3SensorStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          913
         </td>
         <td>
           1143
@@ -322,7 +385,7 @@
           29
         </td>
         <td>
-          980
+          916
         </td>
         <td>
           1137
@@ -343,7 +406,7 @@
           29
         </td>
         <td>
-          974
+          910
         </td>
         <td>
           1093
@@ -364,7 +427,70 @@
           29
         </td>
         <td>
-          997
+          919
+        </td>
+        <td>
+          1062
+          -
+          1147
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.Task.succeed
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.succeed[Unit](S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          918
+        </td>
+        <td>
+          1075
+          -
+          1146
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          912
+        </td>
+        <td>
+          1135
+          -
+          1137
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          933
         </td>
         <td>
           1047
@@ -388,49 +514,7 @@ else
           29
         </td>
         <td>
-          982
-        </td>
-        <td>
-          1075
-          -
-          1146
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.slf4j.Logger.info
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix))
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          976
-        </td>
-        <td>
-          1135
-          -
-          1137
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/&quot;
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          979
+          915
         </td>
         <td>
           1129
@@ -448,57 +532,15 @@ else
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          978
+          923
         </td>
         <td>
-          1104
+          1254
           -
-          1107
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.S3SensorStep.key
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.key
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          981
-        </td>
-        <td>
-          1091
-          -
-          1145
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          975
-        </td>
-        <td>
-          1107
-          -
-          1129
+          1256
         </td>
         <td>
           Literal
@@ -506,78 +548,57 @@ else
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          &quot; in s3 location s3://&quot;
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          984
-        </td>
-        <td>
-          1062
-          -
-          1147
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.Task.succeed
-        </td>
-        <td style="background: #AEF1AE">
-          zio.Task.succeed[Unit](S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)))
+        <td style="background: #F0ADAD">
+          &quot;/&quot;
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          992
+          926
         </td>
         <td>
-          1206
+          1248
           -
-          1264
+          1254
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3SensorStep.bucket
+        </td>
+        <td style="background: #F0ADAD">
+          S3SensorStep.this.bucket
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          929
+        </td>
+        <td>
+          1190
+          -
+          1265
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.StringContext.s
+          etlflow.EtlJobException.apply
         </td>
         <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)
+          etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix))
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          995
-        </td>
-        <td>
-          1180
-          -
-          1266
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          zio.Task.fail
-        </td>
-        <td style="background: #F0ADAD">
-          zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)))
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          986
+          922
         </td>
         <td>
           1216
@@ -598,7 +619,28 @@ else
           30
         </td>
         <td>
-          989
+          931
+        </td>
+        <td>
+          1180
+          -
+          1266
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          zio.Task.fail
+        </td>
+        <td style="background: #F0ADAD">
+          zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          925
         </td>
         <td>
           1213
@@ -619,7 +661,28 @@ else
           30
         </td>
         <td>
-          991
+          928
+        </td>
+        <td>
+          1206
+          -
+          1264
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          927
         </td>
         <td>
           1256
@@ -640,28 +703,7 @@ else
           30
         </td>
         <td>
-          985
-        </td>
-        <td>
-          1208
-          -
-          1213
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;key &quot;
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          994
+          930
         </td>
         <td>
           1180
@@ -682,7 +724,28 @@ else
           30
         </td>
         <td>
-          988
+          921
+        </td>
+        <td>
+          1208
+          -
+          1213
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;key &quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          924
         </td>
         <td>
           1262
@@ -700,223 +763,10 @@ else
         </td>
       </tr><tr>
         <td>
-          30
-        </td>
-        <td>
-          987
-        </td>
-        <td>
-          1254
-          -
-          1256
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;/&quot;
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          990
-        </td>
-        <td>
-          1248
-          -
-          1254
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.S3SensorStep.bucket
-        </td>
-        <td style="background: #F0ADAD">
-          S3SensorStep.this.bucket
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          993
-        </td>
-        <td>
-          1190
-          -
-          1265
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.EtlJobException.apply
-        </td>
-        <td style="background: #F0ADAD">
-          etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix))
-        </td>
-      </tr><tr>
-        <td>
           31
         </td>
         <td>
-          1001
-        </td>
-        <td>
-          1303
-          -
-          1340
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.Schedule.&amp;&amp;
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.noThrowable.&amp;&amp;[zio.clock.Clock, Throwable, (Int, Int)](S3SensorStep.this.schedule[Any](S3SensorStep.this.retry, S3SensorStep.this.spaced))
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          1004
-        </td>
-        <td>
-          1354
-          -
-          1354
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.Predef.$conforms
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.$conforms[zio.clock.Clock]
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          998
-        </td>
-        <td>
-          1327
-          -
-          1332
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.S3SensorStep.retry
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.retry
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          1006
-        </td>
-        <td>
-          975
-          -
-          1366
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          zio.ZIO.provideLayer
-        </td>
-        <td style="background: #AEF1AE">
-          lookup.provide(s3)(zio.this.NeedsEnv.needsEnv[Nothing]).flatMap[Any, Throwable, Unit](((out: Boolean) =&gt; if (out)
-  zio.Task.succeed[Unit](S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)))
-else
-  zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix))).map[Unit](((_: Unit) =&gt; ())))).retry[zio.clock.Clock, Throwable, (Throwable, (Int, Int))](S3SensorStep.this.noThrowable.&amp;&amp;[zio.clock.Clock, Throwable, (Int, Int)](S3SensorStep.this.schedule[Any](S3SensorStep.this.retry, S3SensorStep.this.spaced)))(zio.this.CanFail.canFail[Any]).provideLayer[Throwable, Any, zio.clock.Clock](zio.clock.`package`.Clock.live)(scala.Predef.$conforms[zio.clock.Clock], zio.this.NeedsEnv.needsEnv[Nothing])
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          1000
-        </td>
-        <td>
-          1318
-          -
-          1340
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.etlsteps.SensorStep.schedule
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.schedule[Any](S3SensorStep.this.retry, S3SensorStep.this.spaced)
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          1003
-        </td>
-        <td>
-          1355
-          -
-          1365
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          zio.clock.Clock.live
-        </td>
-        <td style="background: #AEF1AE">
-          zio.clock.`package`.Clock.live
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          996
-        </td>
-        <td>
-          1293
-          -
-          1295
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          1005
+          941
         </td>
         <td>
           1354
@@ -937,7 +787,28 @@ else
           31
         </td>
         <td>
-          999
+          932
+        </td>
+        <td>
+          1293
+          -
+          1295
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          935
         </td>
         <td>
           1333
@@ -958,7 +829,7 @@ else
           31
         </td>
         <td>
-          1002
+          938
         </td>
         <td>
           1302
@@ -976,157 +847,139 @@ else
         </td>
       </tr><tr>
         <td>
-          34
+          31
         </td>
         <td>
-          1010
+          937
         </td>
         <td>
-          1511
+          1303
           -
-          1512
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          1022
-        </td>
-        <td>
-          1388
-          -
-          1668
+          1340
         </td>
         <td>
           Apply
         </td>
         <td>
-          zio.ZIO.flatMap
+          zio.Schedule.&amp;&amp;
         </td>
         <td style="background: #AEF1AE">
-          zio.Task.succeed[Unit](S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting sensor for s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;, &quot;&quot;).s(S3SensorStep.this.bucket, S3SensorStep.this.prefix, S3SensorStep.this.key))).flatMap[Any, Throwable, Unit](((_: Unit) =&gt; etlflow.aws.`package`.createClient(S3SensorStep.this.region, S3SensorStep.this.endpoint_override, S3SensorStep.this.credentials).flatMap[Any, Throwable, Unit](((s3: software.amazon.awssdk.services.s3.S3AsyncClient) =&gt; program(s3).map[Unit](((_: Unit) =&gt; ()))))))
+          S3SensorStep.this.noThrowable.&amp;&amp;[zio.clock.Clock, Throwable, (Int, Int)](S3SensorStep.this.schedule[Any](S3SensorStep.this.retry, S3SensorStep.this.spaced))
         </td>
       </tr><tr>
         <td>
-          34
+          31
         </td>
         <td>
-          1013
+          940
         </td>
         <td>
-          1508
+          1354
           -
-          1511
+          1354
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[zio.clock.Clock]
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          934
+        </td>
+        <td>
+          1327
+          -
+          1332
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.etlsteps.S3SensorStep.key
+          etlflow.etlsteps.S3SensorStep.retry
         </td>
         <td style="background: #AEF1AE">
-          S3SensorStep.this.key
+          S3SensorStep.this.retry
         </td>
       </tr><tr>
         <td>
-          34
+          31
         </td>
         <td>
-          1007
+          936
         </td>
         <td>
-          1454
+          1318
           -
-          1492
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Starting sensor for s3 location s3://&quot;
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          1015
-        </td>
-        <td>
-          1436
-          -
-          1513
+          1340
         </td>
         <td>
           Apply
         </td>
         <td>
-          org.slf4j.Logger.info
+          etlflow.etlsteps.SensorStep.schedule
         </td>
         <td style="background: #AEF1AE">
-          S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting sensor for s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;, &quot;&quot;).s(S3SensorStep.this.bucket, S3SensorStep.this.prefix, S3SensorStep.this.key))
+          S3SensorStep.this.schedule[Any](S3SensorStep.this.retry, S3SensorStep.this.spaced)
         </td>
       </tr><tr>
         <td>
-          34
+          31
         </td>
         <td>
-          1009
+          939
         </td>
         <td>
-          1506
+          1355
           -
-          1508
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/&quot;
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          1012
-        </td>
-        <td>
-          1500
-          -
-          1506
+          1365
         </td>
         <td>
           Select
         </td>
         <td>
-          etlflow.etlsteps.S3SensorStep.prefix
+          zio.clock.Clock.live
         </td>
         <td style="background: #AEF1AE">
-          S3SensorStep.this.prefix
+          zio.clock.`package`.Clock.live
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          942
+        </td>
+        <td>
+          975
+          -
+          1366
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          zio.ZIO.provideLayer
+        </td>
+        <td style="background: #AEF1AE">
+          lookup.provide(s3)(zio.this.NeedsEnv.needsEnv[Nothing]).flatMap[Any, Throwable, Unit](((out: Boolean) =&gt; if (out)
+  zio.Task.succeed[Unit](S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Found key &quot;, &quot; in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix)))
+else
+  zio.Task.fail(etlflow.`package`.EtlJobException.apply(scala.StringContext.apply(&quot;key &quot;, &quot; not found in s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;).s(S3SensorStep.this.key, S3SensorStep.this.bucket, S3SensorStep.this.prefix))).map[Unit](((_: Unit) =&gt; ())))).retry[zio.clock.Clock, Throwable, (Throwable, (Int, Int))](S3SensorStep.this.noThrowable.&amp;&amp;[zio.clock.Clock, Throwable, (Int, Int)](S3SensorStep.this.schedule[Any](S3SensorStep.this.retry, S3SensorStep.this.spaced)))(zio.this.CanFail.canFail[Any]).provideLayer[Throwable, Any, zio.clock.Clock](zio.clock.`package`.Clock.live)(scala.Predef.$conforms[zio.clock.Clock], zio.this.NeedsEnv.needsEnv[Nothing])
         </td>
       </tr><tr>
         <td>
           34
         </td>
         <td>
-          1014
+          950
         </td>
         <td>
           1452
@@ -1147,7 +1000,7 @@ else
           34
         </td>
         <td>
-          1008
+          944
         </td>
         <td>
           1498
@@ -1168,7 +1021,7 @@ else
           34
         </td>
         <td>
-          1011
+          947
         </td>
         <td>
           1492
@@ -1186,10 +1039,178 @@ else
         </td>
       </tr><tr>
         <td>
+          34
+        </td>
+        <td>
+          946
+        </td>
+        <td>
+          1511
+          -
+          1512
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          949
+        </td>
+        <td>
+          1508
+          -
+          1511
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3SensorStep.key
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.key
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          958
+        </td>
+        <td>
+          1388
+          -
+          1668
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.ZIO.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          zio.Task.succeed[Unit](S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting sensor for s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;, &quot;&quot;).s(S3SensorStep.this.bucket, S3SensorStep.this.prefix, S3SensorStep.this.key))).flatMap[Any, Throwable, Unit](((_: Unit) =&gt; etlflow.aws.`package`.createClient(S3SensorStep.this.region, S3SensorStep.this.endpoint_override, S3SensorStep.this.credentials).flatMap[Any, Throwable, Unit](((s3: software.amazon.awssdk.services.s3.S3AsyncClient) =&gt; program(s3).map[Unit](((_: Unit) =&gt; ()))))))
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          943
+        </td>
+        <td>
+          1454
+          -
+          1492
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Starting sensor for s3 location s3://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          945
+        </td>
+        <td>
+          1506
+          -
+          1508
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          948
+        </td>
+        <td>
+          1500
+          -
+          1506
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3SensorStep.prefix
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.prefix
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          951
+        </td>
+        <td>
+          1436
+          -
+          1513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting sensor for s3 location s3://&quot;, &quot;/&quot;, &quot;/&quot;, &quot;&quot;).s(S3SensorStep.this.bucket, S3SensorStep.this.prefix, S3SensorStep.this.key))
+        </td>
+      </tr><tr>
+        <td>
           35
         </td>
         <td>
-          1016
+          953
+        </td>
+        <td>
+          1565
+          -
+          1582
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.S3SensorStep.endpoint_override
+        </td>
+        <td style="background: #AEF1AE">
+          S3SensorStep.this.endpoint_override
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          952
         </td>
         <td>
           1557
@@ -1210,7 +1231,7 @@ else
           35
         </td>
         <td>
-          1018
+          954
         </td>
         <td>
           1584
@@ -1231,7 +1252,7 @@ else
           35
         </td>
         <td>
-          1021
+          957
         </td>
         <td>
           1537
@@ -1249,31 +1270,10 @@ else
         </td>
       </tr><tr>
         <td>
-          35
-        </td>
-        <td>
-          1017
-        </td>
-        <td>
-          1565
-          -
-          1582
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.S3SensorStep.endpoint_override
-        </td>
-        <td style="background: #AEF1AE">
-          S3SensorStep.this.endpoint_override
-        </td>
-      </tr><tr>
-        <td>
           36
         </td>
         <td>
-          1020
+          956
         </td>
         <td>
           1619
@@ -1294,7 +1294,7 @@ else
           37
         </td>
         <td>
-          1019
+          955
         </td>
         <td>
           1666
@@ -1315,7 +1315,7 @@ else
           52
         </td>
         <td>
-          1023
+          959
         </td>
         <td>
           2028

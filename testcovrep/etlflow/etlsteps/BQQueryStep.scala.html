@@ -70,7 +70,7 @@
           14
         </td>
         <td>
-          719
+          655
         </td>
         <td>
           343
@@ -97,28 +97,7 @@
           15
         </td>
         <td>
-          704
-        </td>
-        <td>
-          354
-          -
-          378
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.slf4j.Logger.info
-        </td>
-        <td style="background: #F0ADAD">
-          BQQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          703
+          639
         </td>
         <td>
           370
@@ -136,10 +115,73 @@
         </td>
       </tr><tr>
         <td>
+          15
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          354
+          -
+          378
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.Predef.augmentString(&quot;#&quot;).*(100))
+        </td>
+      </tr><tr>
+        <td>
           16
         </td>
         <td>
-          705
+          645
+        </td>
+        <td>
+          383
+          -
+          432
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.info
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Query Step: &quot;, &quot;&quot;).s(BQQueryStep.this.name))
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          430
+          -
+          431
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          641
         </td>
         <td>
           401
@@ -160,7 +202,7 @@
           16
         </td>
         <td>
-          708
+          644
         </td>
         <td>
           399
@@ -181,7 +223,7 @@
           16
         </td>
         <td>
-          707
+          643
         </td>
         <td>
           426
@@ -199,52 +241,31 @@
         </td>
       </tr><tr>
         <td>
-          16
+          17
         </td>
         <td>
-          706
+          648
         </td>
         <td>
-          430
+          463
           -
-          431
+          468
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          etlflow.etlsteps.BQQueryStep.query
         </td>
         <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          709
-        </td>
-        <td>
-          383
-          -
-          432
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          org.slf4j.Logger.info
-        </td>
-        <td style="background: #F0ADAD">
-          BQQueryStep.this.etl_logger.info(scala.StringContext.apply(&quot;Starting BQ Query Step: &quot;, &quot;&quot;).s(BQQueryStep.this.name))
+          BQQueryStep.this.query
         </td>
       </tr><tr>
         <td>
           17
         </td>
         <td>
-          714
+          650
         </td>
         <td>
           437
@@ -265,7 +286,7 @@
           17
         </td>
         <td>
-          711
+          647
         </td>
         <td>
           468
@@ -286,7 +307,7 @@
           17
         </td>
         <td>
-          710
+          646
         </td>
         <td>
           455
@@ -307,7 +328,7 @@
           17
         </td>
         <td>
-          713
+          649
         </td>
         <td>
           453
@@ -325,52 +346,10 @@
         </td>
       </tr><tr>
         <td>
-          17
-        </td>
-        <td>
-          712
-        </td>
-        <td>
-          463
-          -
-          468
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.BQQueryStep.query
-        </td>
-        <td style="background: #F0ADAD">
-          BQQueryStep.this.query
-        </td>
-      </tr><tr>
-        <td>
           18
         </td>
         <td>
-          716
-        </td>
-        <td>
-          475
-          -
-          507
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.bigquery.QueryApi.executeQuery
-        </td>
-        <td style="background: #F0ADAD">
-          etlflow.bigquery.QueryApi.executeQuery(BQQueryStep.this.bq, BQQueryStep.this.query)
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          715
+          651
         </td>
         <td>
           501
@@ -388,31 +367,31 @@
         </td>
       </tr><tr>
         <td>
-          19
+          18
         </td>
         <td>
-          717
+          652
         </td>
         <td>
-          528
+          475
           -
-          535
+          507
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.immutable.StringLike.*
+          etlflow.bigquery.QueryApi.executeQuery
         </td>
         <td style="background: #F0ADAD">
-          scala.Predef.augmentString(&quot;#&quot;).*(100)
+          etlflow.bigquery.QueryApi.executeQuery(BQQueryStep.this.bq, BQQueryStep.this.query)
         </td>
       </tr><tr>
         <td>
           19
         </td>
         <td>
-          718
+          654
         </td>
         <td>
           512
@@ -430,31 +409,52 @@
         </td>
       </tr><tr>
         <td>
-          22
+          19
         </td>
         <td>
-          720
+          653
         </td>
         <td>
-          617
+          528
           -
-          624
+          535
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.collection.immutable.StringLike.*
         </td>
         <td style="background: #F0ADAD">
-          &quot;query&quot;
+          scala.Predef.augmentString(&quot;#&quot;).*(100)
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          723
+          657
+        </td>
+        <td>
+          628
+          -
+          633
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.BQQueryStep.query
+        </td>
+        <td style="background: #F0ADAD">
+          BQQueryStep.this.query
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          659
         </td>
         <td>
           613
@@ -475,7 +475,28 @@
           22
         </td>
         <td>
-          722
+          656
+        </td>
+        <td>
+          617
+          -
+          624
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;query&quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          658
         </td>
         <td>
           617
@@ -493,31 +514,10 @@
         </td>
       </tr><tr>
         <td>
-          22
-        </td>
-        <td>
-          721
-        </td>
-        <td>
-          628
-          -
-          633
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.BQQueryStep.query
-        </td>
-        <td style="background: #F0ADAD">
-          BQQueryStep.this.query
-        </td>
-      </tr><tr>
-        <td>
           31
         </td>
         <td>
-          724
+          660
         </td>
         <td>
           807

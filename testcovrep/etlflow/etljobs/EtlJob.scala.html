@@ -30,12 +30,12 @@
 </span>6 <span style=''>import zio._
 </span>7 <span style=''>
 </span>8 <span style=''>trait EtlJob {
-</span>9 <span style=''>  final val etl_job_logger: Logger = </span><span style='background: #F0ADAD'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
+</span>9 <span style=''>  final val etl_job_logger: Logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(getClass.getName)</span><span style=''>
 </span>10 <span style=''>
-</span>11 <span style=''>  var job_name: String = </span><span style='background: #F0ADAD'>getClass.getName</span><span style=''>
+</span>11 <span style=''>  var job_name: String = </span><span style='background: #AEF1AE'>getClass.getName</span><span style=''>
 </span>12 <span style=''>  val job_properties: EtlJobProps
 </span>13 <span style=''>  val global_properties: Option[GlobalProperties]
-</span>14 <span style=''>  val job_status: UIO[Ref[String]] = </span><span style='background: #F0ADAD'>Ref.make(&quot;StatusNotSet&quot;)</span><span style=''>
+</span>14 <span style=''>  val job_status: UIO[Ref[String]] = </span><span style='background: #AEF1AE'>Ref.make(&quot;StatusNotSet&quot;)</span><span style=''>
 </span>15 <span style=''>
 </span>16 <span style=''>  def printJobInfo(level: String = &quot;info&quot;): Unit
 </span>17 <span style=''>  def getJobInfo(level: String = &quot;info&quot;): List[(String,Map[String,String])]
@@ -57,28 +57,7 @@
           9
         </td>
         <td>
-          394
-        </td>
-        <td>
-          221
-          -
-          237
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJob.this.getClass().getName()
-        </td>
-      </tr><tr>
-        <td>
-          9
-        </td>
-        <td>
-          395
+          331
         </td>
         <td>
           197
@@ -91,15 +70,36 @@
         <td>
           org.slf4j.LoggerFactory.getLogger
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           org.slf4j.LoggerFactory.getLogger(EtlJob.this.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          330
+        </td>
+        <td>
+          221
+          -
+          237
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJob.this.getClass().getName()
         </td>
       </tr><tr>
         <td>
           11
         </td>
         <td>
-          396
+          332
         </td>
         <td>
           265
@@ -112,7 +112,7 @@
         <td>
           java.lang.Class.getName
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJob.this.getClass().getName()
         </td>
       </tr><tr>
@@ -120,7 +120,7 @@
           14
         </td>
         <td>
-          397
+          333
         </td>
         <td>
           403
@@ -133,7 +133,7 @@
         <td>
           zio.Ref.make
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.Ref.make[String](&quot;StatusNotSet&quot;)
         </td>
       </tr>

@@ -46,23 +46,24 @@
 </span>22 <span style=''>  trait EtlJobSchema extends Product
 </span>23 <span style=''>
 </span>24 <span style=''>  trait EtlJobProps {
-</span>25 <span style=''>    val job_properties: Map[String,String]    = </span><span style='background: #F0ADAD'>Map.empty</span><span style=''>
-</span>26 <span style=''>    val job_run_id: String                    = </span><span style='background: #F0ADAD'>java.util.UUID.randomUUID.toString</span><span style=''>
-</span>27 <span style=''>    val job_description: String               = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_description&quot;, &quot;&quot;)</span><span style=''>
-</span>28 <span style=''>    val job_aggregate_error: Boolean          = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_aggregate_error&quot;, &quot;false&quot;).toBoolean</span><span style=''>
-</span>29 <span style=''>    val job_send_slack_notification: Boolean  = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_send_slack_notification&quot;, &quot;false&quot;).toBoolean</span><span style=''>
-</span>30 <span style=''>    val job_notification_level: String        = </span><span style='background: #F0ADAD'>job_properties.getOrElse(&quot;job_notification_level&quot;, &quot;debug&quot;)</span><span style=''> //info or debug
-</span>31 <span style=''>  }
-</span>32 <span style=''>
-</span>33 <span style=''>  object EtlStepList {
-</span>34 <span style=''>    def apply(args: EtlStep[_,_]*): List[EtlStep[_,_]] = {
-</span>35 <span style=''>      val seq = </span><span style='background: #F0ADAD'>List(args:_*)</span><span style=''>
-</span>36 <span style=''>      if (</span><span style='background: #F0ADAD'>seq.map(x =&gt; x.name).distinct.length == seq.map(x =&gt; x.name).length</span><span style=''>)
-</span>37 <span style=''>        </span><span style='background: #F0ADAD'>seq</span><span style=''>
-</span>38 <span style=''>      else </span><span style='background: #F0ADAD'>throw EtlJobException(s&quot;Duplicate step name detected from ${seq.map(x =&gt; x.name)}&quot;)</span><span style=''>
-</span>39 <span style=''>    }
-</span>40 <span style=''>  }
-</span>41 <span style=''>}
+</span>25 <span style=''>    val job_properties: Map[String,String]    = </span><span style='background: #AEF1AE'>Map.empty</span><span style=''>
+</span>26 <span style=''>    val job_run_id: String                    = </span><span style='background: #AEF1AE'>java.util.UUID.randomUUID.toString</span><span style=''>
+</span>27 <span style=''>    val job_description: String               = </span><span style='background: #AEF1AE'>job_properties.getOrElse(&quot;job_description&quot;, &quot;&quot;)</span><span style=''>
+</span>28 <span style=''>    val job_aggregate_error: Boolean          = </span><span style='background: #AEF1AE'>job_properties.getOrElse(&quot;job_aggregate_error&quot;, &quot;false&quot;).toBoolean</span><span style=''>
+</span>29 <span style=''>    val job_send_slack_notification: Boolean  = </span><span style='background: #AEF1AE'>job_properties.getOrElse(&quot;job_send_slack_notification&quot;, &quot;false&quot;).toBoolean</span><span style=''>
+</span>30 <span style=''>    val job_notification_level: String        = </span><span style='background: #AEF1AE'>job_properties.getOrElse(&quot;job_notification_level&quot;, &quot;debug&quot;)</span><span style=''> //info or debug
+</span>31 <span style=''>    val job_schedule: String                  = </span><span style='background: #AEF1AE'>&quot;&quot;</span><span style=''>
+</span>32 <span style=''>  }
+</span>33 <span style=''>
+</span>34 <span style=''>  object EtlStepList {
+</span>35 <span style=''>    def apply(args: EtlStep[_,_]*): List[EtlStep[_,_]] = {
+</span>36 <span style=''>      val seq = </span><span style='background: #AEF1AE'>List(args:_*)</span><span style=''>
+</span>37 <span style=''>      if (</span><span style='background: #AEF1AE'>seq.map(x =&gt; x.name).distinct.length == seq.map(x =&gt; x.name).length</span><span style=''>)
+</span>38 <span style=''>        </span><span style='background: #AEF1AE'>seq</span><span style=''>
+</span>39 <span style=''>      else </span><span style='background: #F0ADAD'>throw EtlJobException(s&quot;Duplicate step name detected from ${seq.map(x =&gt; x.name)}&quot;)</span><span style=''>
+</span>40 <span style=''>    }
+</span>41 <span style=''>  }
+</span>42 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -79,7 +80,28 @@
           16
         </td>
         <td>
-          1548
+          1485
+        </td>
+        <td>
+          674
+          -
+          674
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.EtlJobName.evidence$1
+        </td>
+        <td style="background: #F0ADAD">
+          EtlJobName.this.evidence$1
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          1484
         </td>
         <td>
           669
@@ -100,7 +122,7 @@
           16
         </td>
         <td>
-          1550
+          1486
         </td>
         <td>
           652
@@ -118,31 +140,10 @@
         </td>
       </tr><tr>
         <td>
-          16
-        </td>
-        <td>
-          1549
-        </td>
-        <td>
-          674
-          -
-          674
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.EtlJobName.evidence$1
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobName.this.evidence$1
-        </td>
-      </tr><tr>
-        <td>
           17
         </td>
         <td>
-          1551
+          1487
         </td>
         <td>
           710
@@ -163,7 +164,7 @@
           25
         </td>
         <td>
-          1552
+          1488
         </td>
         <td>
           942
@@ -176,7 +177,7 @@
         <td>
           scala.collection.immutable.Map.empty
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.Predef.Map.empty[String, Nothing]
         </td>
       </tr><tr>
@@ -184,7 +185,7 @@
           26
         </td>
         <td>
-          1553
+          1489
         </td>
         <td>
           1000
@@ -197,7 +198,7 @@
         <td>
           java.util.UUID.toString
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           java.util.UUID.randomUUID().toString()
         </td>
       </tr><tr>
@@ -205,7 +206,7 @@
           27
         </td>
         <td>
-          1554
+          1490
         </td>
         <td>
           1083
@@ -218,7 +219,7 @@
         <td>
           scala.collection.MapLike.getOrElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJobProps.this.job_properties.getOrElse[String](&quot;job_description&quot;, &quot;&quot;)
         </td>
       </tr><tr>
@@ -226,7 +227,7 @@
           28
         </td>
         <td>
-          1556
+          1492
         </td>
         <td>
           1179
@@ -239,7 +240,7 @@
         <td>
           scala.collection.immutable.StringLike.toBoolean
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.Predef.augmentString(EtlJobProps.this.job_properties.getOrElse[String](&quot;job_aggregate_error&quot;, &quot;false&quot;)).toBoolean
         </td>
       </tr><tr>
@@ -247,7 +248,7 @@
           28
         </td>
         <td>
-          1555
+          1491
         </td>
         <td>
           1179
@@ -260,7 +261,7 @@
         <td>
           scala.collection.MapLike.getOrElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJobProps.this.job_properties.getOrElse[String](&quot;job_aggregate_error&quot;, &quot;false&quot;)
         </td>
       </tr><tr>
@@ -268,28 +269,7 @@
           29
         </td>
         <td>
-          1557
-        </td>
-        <td>
-          1294
-          -
-          1358
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.MapLike.getOrElse
-        </td>
-        <td style="background: #F0ADAD">
-          EtlJobProps.this.job_properties.getOrElse[String](&quot;job_send_slack_notification&quot;, &quot;false&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          1558
+          1494
         </td>
         <td>
           1294
@@ -302,15 +282,36 @@
         <td>
           scala.collection.immutable.StringLike.toBoolean
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.Predef.augmentString(EtlJobProps.this.job_properties.getOrElse[String](&quot;job_send_slack_notification&quot;, &quot;false&quot;)).toBoolean
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          1493
+        </td>
+        <td>
+          1294
+          -
+          1358
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.MapLike.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          EtlJobProps.this.job_properties.getOrElse[String](&quot;job_send_slack_notification&quot;, &quot;false&quot;)
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          1559
+          1495
         </td>
         <td>
           1417
@@ -323,20 +324,41 @@
         <td>
           scala.collection.MapLike.getOrElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           EtlJobProps.this.job_properties.getOrElse[String](&quot;job_notification_level&quot;, &quot;debug&quot;)
         </td>
       </tr><tr>
         <td>
-          35
+          31
         </td>
         <td>
-          1560
+          1496
         </td>
         <td>
-          1596
+          1541
           -
-          1609
+          1543
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          1497
+        </td>
+        <td>
+          1647
+          -
+          1660
         </td>
         <td>
           Apply
@@ -344,62 +366,20 @@
         <td>
           scala.collection.immutable.List.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           scala.collection.immutable.List.apply[etlflow.etlsteps.EtlStep[_$1,_$2]]((args: _*))
         </td>
       </tr><tr>
         <td>
-          36
+          37
         </td>
         <td>
-          1563
+          1501
         </td>
         <td>
-          1673
+          1718
           -
-          1679
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.etlsteps.EtlStep.name
-        </td>
-        <td style="background: #F0ADAD">
-          x.name
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1566
-        </td>
-        <td>
-          1620
-          -
-          1687
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.==
-        </td>
-        <td style="background: #F0ADAD">
-          seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).distinct.length.==(seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).length)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1562
-        </td>
-        <td>
-          1627
-          -
-          1627
+          1718
         </td>
         <td>
           TypeApply
@@ -407,62 +387,20 @@
         <td>
           scala.collection.immutable.List.canBuildFrom
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           immutable.this.List.canBuildFrom[String]
         </td>
       </tr><tr>
         <td>
-          36
+          37
         </td>
         <td>
-          1565
+          1500
         </td>
         <td>
-          1660
+          1724
           -
-          1687
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.LinearSeqOptimized.length
-        </td>
-        <td style="background: #F0ADAD">
-          seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).length
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1564
-        </td>
-        <td>
-          1667
-          -
-          1667
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.immutable.List.canBuildFrom
-        </td>
-        <td style="background: #F0ADAD">
-          immutable.this.List.canBuildFrom[String]
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1561
-        </td>
-        <td>
-          1633
-          -
-          1639
+          1730
         </td>
         <td>
           Select
@@ -470,7 +408,7 @@
         <td>
           etlflow.etlsteps.EtlStep.name
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           x.name
         </td>
       </tr><tr>
@@ -478,12 +416,96 @@
           37
         </td>
         <td>
-          1567
+          1503
         </td>
         <td>
-          1697
+          1671
           -
-          1700
+          1738
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).distinct.length.==(seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).length)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1499
+        </td>
+        <td>
+          1678
+          -
+          1678
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.List.canBuildFrom[String]
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1502
+        </td>
+        <td>
+          1711
+          -
+          1738
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.LinearSeqOptimized.length
+        </td>
+        <td style="background: #AEF1AE">
+          seq.map[String, List[String]](((x: etlflow.etlsteps.EtlStep[_$1,_$2]) =&gt; x.name))(immutable.this.List.canBuildFrom[String]).length
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1498
+        </td>
+        <td>
+          1684
+          -
+          1690
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.name
+        </td>
+        <td style="background: #AEF1AE">
+          x.name
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1504
+        </td>
+        <td>
+          1748
+          -
+          1751
         </td>
         <td>
           Ident
@@ -491,20 +513,20 @@
         <td>
           etlflow.EtlStepList.seq
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           seq
         </td>
       </tr><tr>
         <td>
-          38
+          39
         </td>
         <td>
-          1569
+          1506
         </td>
         <td>
-          1712
+          1763
           -
-          1795
+          1846
         </td>
         <td>
           Block
@@ -517,15 +539,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          39
         </td>
         <td>
-          1568
+          1505
         </td>
         <td>
-          1712
+          1763
           -
-          1795
+          1846
         </td>
         <td>
           Throw

@@ -61,7 +61,7 @@
           11
         </td>
         <td>
-          1025
+          961
         </td>
         <td>
           285
@@ -82,7 +82,7 @@
           11
         </td>
         <td>
-          1024
+          960
         </td>
         <td>
           309
@@ -103,7 +103,28 @@
           19
         </td>
         <td>
-          1034
+          962
+        </td>
+        <td>
+          598
+          -
+          625
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          zio.duration.Duration.fromScala
+        </td>
+        <td style="background: #AEF1AE">
+          zio.duration.Duration.fromScala(spaced)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          970
         </td>
         <td>
           556
@@ -127,7 +148,7 @@
           19
         </td>
         <td>
-          1033
+          969
         </td>
         <td>
           582
@@ -148,31 +169,31 @@
         </td>
       </tr><tr>
         <td>
-          19
+          20
         </td>
         <td>
-          1026
+          965
         </td>
         <td>
-          598
+          680
           -
-          625
+          728
         </td>
         <td>
           Apply
         </td>
         <td>
-          zio.duration.Duration.fromScala
+          zio.Task.succeed
         </td>
-        <td style="background: #AEF1AE">
-          zio.duration.Duration.fromScala(spaced)
+        <td style="background: #F0ADAD">
+          zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;done trying&quot;).s()))
         </td>
       </tr><tr>
         <td>
           20
         </td>
         <td>
-          1028
+          964
         </td>
         <td>
           693
@@ -193,7 +214,7 @@
           20
         </td>
         <td>
-          1027
+          963
         </td>
         <td>
           712
@@ -211,15 +232,15 @@
         </td>
       </tr><tr>
         <td>
-          20
+          21
         </td>
         <td>
-          1029
+          968
         </td>
         <td>
-          680
+          753
           -
-          728
+          801
         </td>
         <td>
           Apply
@@ -228,14 +249,14 @@
           zio.Task.succeed
         </td>
         <td style="background: #F0ADAD">
-          zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;done trying&quot;).s()))
+          zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)))
         </td>
       </tr><tr>
         <td>
           21
         </td>
         <td>
-          1031
+          967
         </td>
         <td>
           766
@@ -256,7 +277,7 @@
           21
         </td>
         <td>
-          1030
+          966
         </td>
         <td>
           785
@@ -271,27 +292,6 @@
         </td>
         <td style="background: #F0ADAD">
           scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          1032
-        </td>
-        <td>
-          753
-          -
-          801
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          zio.Task.succeed
-        </td>
-        <td style="background: #F0ADAD">
-          zio.Task.succeed[Unit](SensorStep.this.sensor_logger.info(scala.StringContext.apply(&quot;retry #&quot;, &quot;&quot;).s(att)))
         </td>
       </tr>
     </table>

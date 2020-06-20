@@ -36,16 +36,16 @@
 </span>12 <span style=''>
 </span>13 <span style=''>trait DbManager {
 </span>14 <span style=''>
-</span>15 <span style=''>  def createDbTransactorManagedGP(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): ZManaged[Any, Throwable, HikariTransactor[Task]] = </span><span style='background: #F0ADAD'>{
-</span>16 <span style=''></span><span style='background: #F0ADAD'>    val config = new HikariConfig()
-</span>17 <span style=''></span><span style='background: #F0ADAD'>    config.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse(&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
-</span>18 <span style=''></span><span style='background: #F0ADAD'>    config.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse(&quot;&lt;use_global_properties_log_db_url&gt;&quot;))
-</span>19 <span style=''></span><span style='background: #F0ADAD'>    config.setUsername(global_properties.map(_.log_db_user).getOrElse(&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
-</span>20 <span style=''></span><span style='background: #F0ADAD'>    config.setPassword(global_properties.map(_.log_db_pwd).getOrElse(&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
-</span>21 <span style=''></span><span style='background: #F0ADAD'>    config.setMaximumPoolSize(2)
-</span>22 <span style=''></span><span style='background: #F0ADAD'>    config.setPoolName(pool_name)
-</span>23 <span style=''></span><span style='background: #F0ADAD'>    HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
-</span>24 <span style=''></span><span style='background: #F0ADAD'>  }.toManagedZIO</span><span style=''>
+</span>15 <span style=''>  def createDbTransactorManagedGP(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): ZManaged[Any, Throwable, HikariTransactor[Task]] = </span><span style='background: #AEF1AE'>{
+</span>16 <span style=''></span><span style='background: #AEF1AE'>    val config = new HikariConfig()
+</span>17 <span style=''></span><span style='background: #AEF1AE'>    config.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse(&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
+</span>18 <span style=''></span><span style='background: #AEF1AE'>    config.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse(&quot;&lt;use_global_properties_log_db_url&gt;&quot;))
+</span>19 <span style=''></span><span style='background: #AEF1AE'>    config.setUsername(global_properties.map(_.log_db_user).getOrElse(&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
+</span>20 <span style=''></span><span style='background: #AEF1AE'>    config.setPassword(global_properties.map(_.log_db_pwd).getOrElse(&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
+</span>21 <span style=''></span><span style='background: #AEF1AE'>    config.setMaximumPoolSize(2)
+</span>22 <span style=''></span><span style='background: #AEF1AE'>    config.setPoolName(pool_name)
+</span>23 <span style=''></span><span style='background: #AEF1AE'>    HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
+</span>24 <span style=''></span><span style='background: #AEF1AE'>  }.toManagedZIO</span><span style=''>
 </span>25 <span style=''>
 </span>26 <span style=''>  def createDbTransactorManagedJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = &quot;LoggerPool&quot;): ZManaged[Any, Throwable, HikariTransactor[Task]] = </span><span style='background: #F0ADAD'>{
 </span>27 <span style=''></span><span style='background: #F0ADAD'>    val config = new HikariConfig()
@@ -120,7 +120,7 @@
           16
         </td>
         <td>
-          1312
+          1248
         </td>
         <td>
           593
@@ -133,7 +133,7 @@
         <td>
           com.zaxxer.hikari.HikariConfig.&lt;init&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           new com.zaxxer.hikari.HikariConfig()
         </td>
       </tr><tr>
@@ -141,28 +141,7 @@
           17
         </td>
         <td>
-          1314
-        </td>
-        <td>
-          616
-          -
-          732
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.zaxxer.hikari.HikariConfig.setDriverClassName
-        </td>
-        <td style="background: #F0ADAD">
-          config.setDriverClassName(global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          17
-        </td>
-        <td>
-          1313
+          1249
         </td>
         <td>
           642
@@ -175,36 +154,36 @@
         <td>
           scala.Option.getOrElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;)
         </td>
       </tr><tr>
         <td>
-          18
+          17
         </td>
         <td>
-          1315
+          1250
         </td>
         <td>
-          755
+          616
           -
-          838
+          732
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Option.getOrElse
+          com.zaxxer.hikari.HikariConfig.setDriverClassName
         </td>
-        <td style="background: #F0ADAD">
-          global_properties.map[String](((x$2: etlflow.utils.GlobalProperties) =&gt; x$2.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;)
+        <td style="background: #AEF1AE">
+          config.setDriverClassName(global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;))
         </td>
       </tr><tr>
         <td>
           18
         </td>
         <td>
-          1316
+          1252
         </td>
         <td>
           737
@@ -217,15 +196,36 @@
         <td>
           com.zaxxer.hikari.HikariConfig.setJdbcUrl
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           config.setJdbcUrl(global_properties.map[String](((x$2: etlflow.utils.GlobalProperties) =&gt; x$2.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1251
+        </td>
+        <td>
+          755
+          -
+          838
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          global_properties.map[String](((x$2: etlflow.utils.GlobalProperties) =&gt; x$2.log_db_url)).getOrElse[String](&quot;&lt;use_global_properties_log_db_url&gt;&quot;)
         </td>
       </tr><tr>
         <td>
           19
         </td>
         <td>
-          1318
+          1254
         </td>
         <td>
           844
@@ -238,7 +238,7 @@
         <td>
           com.zaxxer.hikari.HikariConfig.setUsername
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           config.setUsername(global_properties.map[String](((x$3: etlflow.utils.GlobalProperties) =&gt; x$3.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
         </td>
       </tr><tr>
@@ -246,7 +246,7 @@
           19
         </td>
         <td>
-          1317
+          1253
         </td>
         <td>
           863
@@ -259,7 +259,7 @@
         <td>
           scala.Option.getOrElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           global_properties.map[String](((x$3: etlflow.utils.GlobalProperties) =&gt; x$3.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;)
         </td>
       </tr><tr>
@@ -267,28 +267,7 @@
           20
         </td>
         <td>
-          1320
-        </td>
-        <td>
-          954
-          -
-          1057
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.zaxxer.hikari.HikariConfig.setPassword
-        </td>
-        <td style="background: #F0ADAD">
-          config.setPassword(global_properties.map[String](((x$4: etlflow.utils.GlobalProperties) =&gt; x$4.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          1319
+          1255
         </td>
         <td>
           973
@@ -301,15 +280,36 @@
         <td>
           scala.Option.getOrElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           global_properties.map[String](((x$4: etlflow.utils.GlobalProperties) =&gt; x$4.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1256
+        </td>
+        <td>
+          954
+          -
+          1057
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.zaxxer.hikari.HikariConfig.setPassword
+        </td>
+        <td style="background: #AEF1AE">
+          config.setPassword(global_properties.map[String](((x$4: etlflow.utils.GlobalProperties) =&gt; x$4.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;))
         </td>
       </tr><tr>
         <td>
           21
         </td>
         <td>
-          1321
+          1257
         </td>
         <td>
           1062
@@ -322,7 +322,7 @@
         <td>
           com.zaxxer.hikari.HikariConfig.setMaximumPoolSize
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           config.setMaximumPoolSize(2)
         </td>
       </tr><tr>
@@ -330,7 +330,7 @@
           22
         </td>
         <td>
-          1322
+          1258
         </td>
         <td>
           1095
@@ -343,7 +343,7 @@
         <td>
           com.zaxxer.hikari.HikariConfig.setPoolName
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           config.setPoolName(pool_name)
         </td>
       </tr><tr>
@@ -351,70 +351,7 @@
           23
         </td>
         <td>
-          1324
-        </td>
-        <td>
-          1168
-          -
-          1168
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances1.taskConcurrentInstance
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.taskConcurrentInstance[Any]
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1323
-        </td>
-        <td>
-          1181
-          -
-          1213
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          cats.effect.Blocker.liftExecutionContext
-        </td>
-        <td style="background: #F0ADAD">
-          cats.effect.Blocker.liftExecutionContext(ec)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1326
-        </td>
-        <td>
-          1129
-          -
-          1214
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          doobie.hikari.HikariTransactor.fromHikariConfig
-        </td>
-        <td style="background: #F0ADAD">
-          doobie.hikari.HikariTransactor.fromHikariConfig[zio.Task](config, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1325
+          1261
         </td>
         <td>
           1168
@@ -427,15 +364,78 @@
         <td>
           zio.interop.CatsEffectInstances.zioContextShift
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1260
+        </td>
+        <td>
+          1168
+          -
+          1168
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #AEF1AE">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1259
+        </td>
+        <td>
+          1181
+          -
+          1213
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cats.effect.Blocker.liftExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          cats.effect.Blocker.liftExecutionContext(ec)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1262
+        </td>
+        <td>
+          1129
+          -
+          1214
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          doobie.hikari.HikariTransactor.fromHikariConfig
+        </td>
+        <td style="background: #AEF1AE">
+          doobie.hikari.HikariTransactor.fromHikariConfig[zio.Task](config, ec, cats.effect.Blocker.liftExecutionContext(ec))(zio.interop.catz.taskConcurrentInstance[Any], zio.interop.catz.zioContextShift[Any, Throwable])
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          1327
+          1263
         </td>
         <td>
           574
@@ -448,7 +448,7 @@
         <td>
           zio.interop.ZIOResourceSyntax.toManagedZIO
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.interop.catz.zioResourceSyntax[Any, Throwable, doobie.hikari.HikariTransactor[zio.Task]]({
   val config: com.zaxxer.hikari.HikariConfig = new com.zaxxer.hikari.HikariConfig();
   config.setDriverClassName(global_properties.map[String](((x$1: etlflow.utils.GlobalProperties) =&gt; x$1.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;));
@@ -465,7 +465,7 @@
           27
         </td>
         <td>
-          1328
+          1264
         </td>
         <td>
           1415
@@ -486,7 +486,7 @@
           28
         </td>
         <td>
-          1330
+          1266
         </td>
         <td>
           1438
@@ -507,7 +507,7 @@
           28
         </td>
         <td>
-          1329
+          1265
         </td>
         <td>
           1464
@@ -528,28 +528,7 @@
           29
         </td>
         <td>
-          1332
-        </td>
-        <td>
-          1488
-          -
-          1522
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.zaxxer.hikari.HikariConfig.setJdbcUrl
-        </td>
-        <td style="background: #F0ADAD">
-          config.setJdbcUrl(credentials.url)
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          1331
+          1267
         </td>
         <td>
           1506
@@ -567,31 +546,31 @@
         </td>
       </tr><tr>
         <td>
-          30
+          29
         </td>
         <td>
-          1333
+          1268
         </td>
         <td>
-          1546
+          1488
           -
-          1562
+          1522
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          etlflow.utils.JDBC.user
+          com.zaxxer.hikari.HikariConfig.setJdbcUrl
         </td>
         <td style="background: #F0ADAD">
-          credentials.user
+          config.setJdbcUrl(credentials.url)
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          1334
+          1270
         </td>
         <td>
           1527
@@ -609,10 +588,31 @@
         </td>
       </tr><tr>
         <td>
+          30
+        </td>
+        <td>
+          1269
+        </td>
+        <td>
+          1546
+          -
+          1562
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.user
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.user
+        </td>
+      </tr><tr>
+        <td>
           31
         </td>
         <td>
-          1336
+          1272
         </td>
         <td>
           1568
@@ -633,7 +633,7 @@
           31
         </td>
         <td>
-          1335
+          1271
         </td>
         <td>
           1587
@@ -654,7 +654,7 @@
           32
         </td>
         <td>
-          1337
+          1273
         </td>
         <td>
           1613
@@ -675,7 +675,7 @@
           33
         </td>
         <td>
-          1338
+          1274
         </td>
         <td>
           1646
@@ -696,7 +696,28 @@
           34
         </td>
         <td>
-          1342
+          1276
+        </td>
+        <td>
+          1719
+          -
+          1719
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1278
         </td>
         <td>
           1680
@@ -717,7 +738,7 @@
           34
         </td>
         <td>
-          1339
+          1275
         </td>
         <td>
           1732
@@ -738,7 +759,7 @@
           34
         </td>
         <td>
-          1341
+          1277
         </td>
         <td>
           1719
@@ -756,31 +777,10 @@
         </td>
       </tr><tr>
         <td>
-          34
-        </td>
-        <td>
-          1340
-        </td>
-        <td>
-          1719
-          -
-          1719
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances1.taskConcurrentInstance
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.taskConcurrentInstance[Any]
-        </td>
-      </tr><tr>
-        <td>
           35
         </td>
         <td>
-          1343
+          1279
         </td>
         <td>
           1396
@@ -810,49 +810,7 @@
           39
         </td>
         <td>
-          1345
-        </td>
-        <td>
-          1964
-          -
-          1964
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances1.taskConcurrentInstance
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.taskConcurrentInstance[Any]
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          1344
-        </td>
-        <td>
-          1965
-          -
-          1967
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          10
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          1355
+          1291
         </td>
         <td>
           1900
@@ -870,10 +828,73 @@
         </td>
       </tr><tr>
         <td>
+          39
+        </td>
+        <td>
+          1281
+        </td>
+        <td>
+          1964
+          -
+          1964
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1280
+        </td>
+        <td>
+          1965
+          -
+          1967
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          10
+        </td>
+      </tr><tr>
+        <td>
           40
         </td>
         <td>
-          1351
+          1288
+        </td>
+        <td>
+          2030
+          -
+          2030
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1287
         </td>
         <td>
           2030
@@ -894,7 +915,7 @@
           40
         </td>
         <td>
-          1354
+          1290
         </td>
         <td>
           1975
@@ -915,7 +936,7 @@
           40
         </td>
         <td>
-          1353
+          1289
         </td>
         <td>
           1985
@@ -933,31 +954,10 @@
         </td>
       </tr><tr>
         <td>
-          40
-        </td>
-        <td>
-          1352
-        </td>
-        <td>
-          2030
-          -
-          2030
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances.zioContextShift
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.zioContextShift[Any, Throwable]
-        </td>
-      </tr><tr>
-        <td>
           41
         </td>
         <td>
-          1346
+          1282
         </td>
         <td>
           2040
@@ -978,7 +978,7 @@
           42
         </td>
         <td>
-          1347
+          1283
         </td>
         <td>
           2092
@@ -999,7 +999,7 @@
           43
         </td>
         <td>
-          1348
+          1284
         </td>
         <td>
           2139
@@ -1020,7 +1020,7 @@
           44
         </td>
         <td>
-          1349
+          1285
         </td>
         <td>
           2183
@@ -1041,7 +1041,7 @@
           46
         </td>
         <td>
-          1350
+          1286
         </td>
         <td>
           2300
@@ -1062,7 +1062,7 @@
           48
         </td>
         <td>
-          1356
+          1292
         </td>
         <td>
           1900
@@ -1083,7 +1083,7 @@
           51
         </td>
         <td>
-          1358
+          1294
         </td>
         <td>
           2481
@@ -1104,7 +1104,7 @@
           58
         </td>
         <td>
-          1357
+          1293
         </td>
         <td>
           2492
@@ -1125,7 +1125,7 @@
           62
         </td>
         <td>
-          1359
+          1295
         </td>
         <td>
           2887
@@ -1146,28 +1146,7 @@
           63
         </td>
         <td>
-          1360
-        </td>
-        <td>
-          2944
-          -
-          3033
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.getOrElse
-        </td>
-        <td style="background: #F0ADAD">
-          global_properties.map[String](((x$5: etlflow.utils.GlobalProperties) =&gt; x$5.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          1361
+          1297
         </td>
         <td>
           2914
@@ -1185,10 +1164,31 @@
         </td>
       </tr><tr>
         <td>
+          63
+        </td>
+        <td>
+          1296
+        </td>
+        <td>
+          2944
+          -
+          3033
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$5: etlflow.utils.GlobalProperties) =&gt; x$5.log_db_driver)).getOrElse[String](&quot;&lt;use_global_properties_log_db_driver&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
           64
         </td>
         <td>
-          1363
+          1299
         </td>
         <td>
           3039
@@ -1209,7 +1209,7 @@
           64
         </td>
         <td>
-          1362
+          1298
         </td>
         <td>
           3061
@@ -1230,28 +1230,7 @@
           65
         </td>
         <td>
-          1365
-        </td>
-        <td>
-          3150
-          -
-          3259
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.zaxxer.hikari.HikariConfig.setUsername
-        </td>
-        <td style="background: #F0ADAD">
-          dataSource.setUsername(global_properties.map[String](((x$7: etlflow.utils.GlobalProperties) =&gt; x$7.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          65
-        </td>
-        <td>
-          1364
+          1300
         </td>
         <td>
           3173
@@ -1269,31 +1248,31 @@
         </td>
       </tr><tr>
         <td>
-          66
+          65
         </td>
         <td>
-          1366
+          1301
         </td>
         <td>
-          3287
+          3150
           -
-          3370
+          3259
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Option.getOrElse
+          com.zaxxer.hikari.HikariConfig.setUsername
         </td>
         <td style="background: #F0ADAD">
-          global_properties.map[String](((x$8: etlflow.utils.GlobalProperties) =&gt; x$8.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;)
+          dataSource.setUsername(global_properties.map[String](((x$7: etlflow.utils.GlobalProperties) =&gt; x$7.log_db_user)).getOrElse[String](&quot;&lt;use_global_properties_log_db_user&gt;&quot;))
         </td>
       </tr><tr>
         <td>
           66
         </td>
         <td>
-          1367
+          1303
         </td>
         <td>
           3264
@@ -1311,10 +1290,31 @@
         </td>
       </tr><tr>
         <td>
+          66
+        </td>
+        <td>
+          1302
+        </td>
+        <td>
+          3287
+          -
+          3370
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          global_properties.map[String](((x$8: etlflow.utils.GlobalProperties) =&gt; x$8.log_db_pwd)).getOrElse[String](&quot;&lt;use_global_properties_log_db_pwd&gt;&quot;)
+        </td>
+      </tr><tr>
+        <td>
           67
         </td>
         <td>
-          1368
+          1304
         </td>
         <td>
           3376
@@ -1335,7 +1335,7 @@
           68
         </td>
         <td>
-          1369
+          1305
         </td>
         <td>
           3413
@@ -1356,49 +1356,7 @@
           69
         </td>
         <td>
-          1372
-        </td>
-        <td>
-          3473
-          -
-          3473
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances.zioContextShift
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.zioContextShift[Any, Throwable]
-        </td>
-      </tr><tr>
-        <td>
-          69
-        </td>
-        <td>
-          1371
-        </td>
-        <td>
-          3473
-          -
-          3473
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances1.taskConcurrentInstance
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.taskConcurrentInstance[Any]
-        </td>
-      </tr><tr>
-        <td>
-          69
-        </td>
-        <td>
-          1370
+          1306
         </td>
         <td>
           3490
@@ -1419,7 +1377,7 @@
           69
         </td>
         <td>
-          1373
+          1309
         </td>
         <td>
           3451
@@ -1437,10 +1395,52 @@
         </td>
       </tr><tr>
         <td>
+          69
+        </td>
+        <td>
+          1308
+        </td>
+        <td>
+          3473
+          -
+          3473
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1307
+        </td>
+        <td>
+          3473
+          -
+          3473
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
+        </td>
+      </tr><tr>
+        <td>
           72
         </td>
         <td>
-          1389
+          1325
         </td>
         <td>
           3665
@@ -1470,7 +1470,7 @@
           73
         </td>
         <td>
-          1374
+          1310
         </td>
         <td>
           3693
@@ -1491,28 +1491,7 @@
           74
         </td>
         <td>
-          1375
-        </td>
-        <td>
-          3750
-          -
-          3768
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.utils.JDBC.driver
-        </td>
-        <td style="background: #F0ADAD">
-          credentials.driver
-        </td>
-      </tr><tr>
-        <td>
-          74
-        </td>
-        <td>
-          1376
+          1312
         </td>
         <td>
           3720
@@ -1530,10 +1509,31 @@
         </td>
       </tr><tr>
         <td>
+          74
+        </td>
+        <td>
+          1311
+        </td>
+        <td>
+          3750
+          -
+          3768
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.driver
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.driver
+        </td>
+      </tr><tr>
+        <td>
           75
         </td>
         <td>
-          1378
+          1314
         </td>
         <td>
           3774
@@ -1554,7 +1554,7 @@
           75
         </td>
         <td>
-          1377
+          1313
         </td>
         <td>
           3796
@@ -1575,28 +1575,7 @@
           76
         </td>
         <td>
-          1380
-        </td>
-        <td>
-          3817
-          -
-          3857
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.zaxxer.hikari.HikariConfig.setUsername
-        </td>
-        <td style="background: #F0ADAD">
-          dataSource.setUsername(credentials.user)
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1379
+          1315
         </td>
         <td>
           3840
@@ -1614,31 +1593,31 @@
         </td>
       </tr><tr>
         <td>
-          77
+          76
         </td>
         <td>
-          1381
+          1316
         </td>
         <td>
-          3885
+          3817
           -
-          3905
+          3857
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          etlflow.utils.JDBC.password
+          com.zaxxer.hikari.HikariConfig.setUsername
         </td>
         <td style="background: #F0ADAD">
-          credentials.password
+          dataSource.setUsername(credentials.user)
         </td>
       </tr><tr>
         <td>
           77
         </td>
         <td>
-          1382
+          1318
         </td>
         <td>
           3862
@@ -1656,10 +1635,31 @@
         </td>
       </tr><tr>
         <td>
+          77
+        </td>
+        <td>
+          1317
+        </td>
+        <td>
+          3885
+          -
+          3905
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.JDBC.password
+        </td>
+        <td style="background: #F0ADAD">
+          credentials.password
+        </td>
+      </tr><tr>
+        <td>
           78
         </td>
         <td>
-          1383
+          1319
         </td>
         <td>
           3911
@@ -1680,7 +1680,7 @@
           79
         </td>
         <td>
-          1384
+          1320
         </td>
         <td>
           3948
@@ -1701,49 +1701,7 @@
           80
         </td>
         <td>
-          1387
-        </td>
-        <td>
-          4008
-          -
-          4008
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances.zioContextShift
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.zioContextShift[Any, Throwable]
-        </td>
-      </tr><tr>
-        <td>
-          80
-        </td>
-        <td>
-          1386
-        </td>
-        <td>
-          4008
-          -
-          4008
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          zio.interop.CatsEffectInstances1.taskConcurrentInstance
-        </td>
-        <td style="background: #F0ADAD">
-          zio.interop.catz.taskConcurrentInstance[Any]
-        </td>
-      </tr><tr>
-        <td>
-          80
-        </td>
-        <td>
-          1388
+          1324
         </td>
         <td>
           3986
@@ -1764,7 +1722,7 @@
           80
         </td>
         <td>
-          1385
+          1321
         </td>
         <td>
           4025
@@ -1779,6 +1737,48 @@
         </td>
         <td style="background: #F0ADAD">
           cats.effect.Blocker.liftExecutionContext(ec)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1323
+        </td>
+        <td>
+          4008
+          -
+          4008
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances.zioContextShift
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.zioContextShift[Any, Throwable]
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1322
+        </td>
+        <td>
+          4008
+          -
+          4008
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          zio.interop.CatsEffectInstances1.taskConcurrentInstance
+        </td>
+        <td style="background: #F0ADAD">
+          zio.interop.catz.taskConcurrentInstance[Any]
         </td>
       </tr>
     </table>

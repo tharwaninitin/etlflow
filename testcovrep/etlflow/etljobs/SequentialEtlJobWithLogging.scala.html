@@ -36,19 +36,19 @@
 </span>12 <span style=''>
 </span>13 <span style=''>    def etlStepList: List[EtlStep[_,_]]
 </span>14 <span style=''>
-</span>15 <span style=''>    final override def job(implicit resource: LoggerResource): Task[Unit] = </span><span style='background: #F0ADAD'>for {
-</span>16 <span style=''></span><span style='background: #F0ADAD'>      step_list &lt;- Task.succeed {
-</span>17 <span style=''></span><span style='background: #F0ADAD'>                      etlStepList.map {
-</span>18 <span style=''></span><span style='background: #F0ADAD'>                        case step: BQLoadStep[_] =&gt; step.execute()(resource)
-</span>19 <span style=''></span><span style='background: #F0ADAD'>                        case step: BQQueryStep =&gt; step.execute()(resource)
-</span>20 <span style=''></span><span style='background: #F0ADAD'>                        case step: SparkETLStep =&gt; step.execute(spark)(resource)
-</span>21 <span style=''></span><span style='background: #F0ADAD'>                        case step: SparkReadWriteStep[_, _] =&gt; step.execute(spark)(resource)
-</span>22 <span style=''></span><span style='background: #F0ADAD'>                        case step: DBQueryStep =&gt; step.execute()(resource)
-</span>23 <span style=''></span><span style='background: #F0ADAD'>                        case step: EtlStep[Unit,Unit] =&gt; step.execute()(resource)
-</span>24 <span style=''></span><span style='background: #F0ADAD'>                      }
-</span>25 <span style=''></span><span style='background: #F0ADAD'>                    }
-</span>26 <span style=''></span><span style='background: #F0ADAD'>      job       &lt;- ZIO.collectAll(step_list) *&gt; ZIO.unit
-</span>27 <span style=''></span><span style='background: #F0ADAD'>    } yield job</span><span style=''>
+</span>15 <span style=''>    final override def job(implicit resource: LoggerResource): Task[Unit] = </span><span style='background: #AEF1AE'>for {
+</span>16 <span style=''></span><span style='background: #AEF1AE'>      step_list &lt;- Task.succeed {
+</span>17 <span style=''></span><span style='background: #AEF1AE'>                      etlStepList.map {
+</span>18 <span style=''></span><span style='background: #AEF1AE'>                        case step: BQLoadStep[_] =&gt; step.execute()(resource)
+</span>19 <span style=''></span><span style='background: #AEF1AE'>                        case step: BQQueryStep =&gt; </span><span style='background: #F0ADAD'>step.execute()(resource)</span><span style='background: #AEF1AE'>
+</span>20 <span style=''></span><span style='background: #AEF1AE'>                        case step: SparkETLStep =&gt; </span><span style='background: #F0ADAD'>step.execute(spark)(resource)</span><span style='background: #AEF1AE'>
+</span>21 <span style=''></span><span style='background: #AEF1AE'>                        case step: SparkReadWriteStep[_, _] =&gt; step.execute(spark)(resource)
+</span>22 <span style=''></span><span style='background: #AEF1AE'>                        case step: DBQueryStep =&gt; </span><span style='background: #F0ADAD'>step.execute()(resource)</span><span style='background: #AEF1AE'>
+</span>23 <span style=''></span><span style='background: #AEF1AE'>                        case step: EtlStep[Unit,Unit] =&gt; </span><span style='background: #F0ADAD'>step.execute()(resource)</span><span style='background: #AEF1AE'>
+</span>24 <span style=''></span><span style='background: #AEF1AE'>                      }
+</span>25 <span style=''></span><span style='background: #AEF1AE'>                    }
+</span>26 <span style=''></span><span style='background: #AEF1AE'>      job       &lt;- ZIO.collectAll(step_list) *&gt; ZIO.unit
+</span>27 <span style=''></span><span style='background: #AEF1AE'>    } yield job</span><span style=''>
 </span>28 <span style=''>
 </span>29 <span style=''>    final override def printJobInfo(level: String = &quot;info&quot;): Unit = {
 </span>30 <span style=''>      </span><span style='background: #F0ADAD'>etlStepList.foreach{ etl =&gt;
@@ -78,7 +78,7 @@
           16
         </td>
         <td>
-          550
+          486
         </td>
         <td>
           459
@@ -91,7 +91,7 @@
         <td>
           zio.ZIO.flatMap
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.Task.succeed[List[zio.Task[Unit]]](SequentialEtlJobWithLogging.this.etlStepList.map[zio.Task[Unit], List[zio.Task[Unit]]](((x0$1: etlflow.etlsteps.EtlStep[_, _]) =&gt; x0$1 match {
   case (step @ (_: etlflow.etlsteps.BQLoadStep[_])) =&gt; step.execute(())(resource)
   case (step @ (_: etlflow.etlsteps.BQQueryStep)) =&gt; step.execute(())(resource)
@@ -106,28 +106,7 @@
           17
         </td>
         <td>
-          546
-        </td>
-        <td>
-          537
-          -
-          537
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.immutable.List.canBuildFrom
-        </td>
-        <td style="background: #F0ADAD">
-          immutable.this.List.canBuildFrom[zio.Task[Unit]]
-        </td>
-      </tr><tr>
-        <td>
-          17
-        </td>
-        <td>
-          547
+          483
         </td>
         <td>
           521
@@ -140,7 +119,7 @@
         <td>
           scala.collection.immutable.List.map
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           SequentialEtlJobWithLogging.this.etlStepList.map[zio.Task[Unit], List[zio.Task[Unit]]](((x0$1: etlflow.etlsteps.EtlStep[_, _]) =&gt; x0$1 match {
   case (step @ (_: etlflow.etlsteps.BQLoadStep[_])) =&gt; step.execute(())(resource)
   case (step @ (_: etlflow.etlsteps.BQQueryStep)) =&gt; step.execute(())(resource)
@@ -152,10 +131,31 @@
         </td>
       </tr><tr>
         <td>
+          17
+        </td>
+        <td>
+          482
+        </td>
+        <td>
+          537
+          -
+          537
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.List.canBuildFrom[zio.Task[Unit]]
+        </td>
+      </tr><tr>
+        <td>
           18
         </td>
         <td>
-          540
+          476
         </td>
         <td>
           591
@@ -168,7 +168,7 @@
         <td>
           etlflow.etlsteps.EtlStep.execute
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           step.execute(())(resource)
         </td>
       </tr><tr>
@@ -176,7 +176,7 @@
           19
         </td>
         <td>
-          541
+          477
         </td>
         <td>
           666
@@ -197,7 +197,7 @@
           20
         </td>
         <td>
-          542
+          478
         </td>
         <td>
           742
@@ -218,7 +218,7 @@
           21
         </td>
         <td>
-          543
+          479
         </td>
         <td>
           835
@@ -231,7 +231,7 @@
         <td>
           etlflow.etlsteps.EtlStep.execute
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           step.execute(SequentialEtlJobWithLogging.this.spark)(resource)
         </td>
       </tr><tr>
@@ -239,7 +239,7 @@
           22
         </td>
         <td>
-          544
+          480
         </td>
         <td>
           915
@@ -260,7 +260,7 @@
           23
         </td>
         <td>
-          545
+          481
         </td>
         <td>
           997
@@ -281,7 +281,7 @@
           26
         </td>
         <td>
-          549
+          485
         </td>
         <td>
           1074
@@ -294,7 +294,7 @@
         <td>
           zio.ZIO.map
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.ZIO.collectAll[Any, Throwable, Unit](step_list).*&gt;[Any, Throwable, Unit](zio.ZIO.unit).map[Unit](((job: Unit) =&gt; job))
         </td>
       </tr><tr>
@@ -302,7 +302,7 @@
           26
         </td>
         <td>
-          548
+          484
         </td>
         <td>
           1116
@@ -315,7 +315,7 @@
         <td>
           zio.ZIO.unit
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.ZIO.unit
         </td>
       </tr><tr>
@@ -323,7 +323,7 @@
           30
         </td>
         <td>
-          553
+          489
         </td>
         <td>
           1218
@@ -346,7 +346,28 @@
           31
         </td>
         <td>
-          552
+          487
+        </td>
+        <td>
+          1291
+          -
+          1298
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.println(x)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          488
         </td>
         <td>
           1254
@@ -366,31 +387,10 @@
         </td>
       </tr><tr>
         <td>
-          31
-        </td>
-        <td>
-          551
-        </td>
-        <td>
-          1291
-          -
-          1298
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.println
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.println(x)
-        </td>
-      </tr><tr>
-        <td>
           36
         </td>
         <td>
-          559
+          495
         </td>
         <td>
           1418
@@ -411,7 +411,7 @@
           36
         </td>
         <td>
-          558
+          494
         </td>
         <td>
           1437
@@ -432,49 +432,7 @@
           37
         </td>
         <td>
-          555
-        </td>
-        <td>
-          1480
-          -
-          1513
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          etlflow.etlsteps.EtlStep.getStepProperties
-        </td>
-        <td style="background: #F0ADAD">
-          etl_step.getStepProperties(level)
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          557
-        </td>
-        <td>
-          1459
-          -
-          1514
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.generic.GenMapFactory.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.Map.apply[String, Map[String,String]](scala.Predef.ArrowAssoc[String](etl_step.name).-&gt;[Map[String,String]](etl_step.getStepProperties(level)))
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          554
+          490
         </td>
         <td>
           1463
@@ -495,7 +453,7 @@
           37
         </td>
         <td>
-          556
+          492
         </td>
         <td>
           1463
@@ -510,6 +468,48 @@
         </td>
         <td style="background: #F0ADAD">
           scala.Predef.ArrowAssoc[String](etl_step.name).-&gt;[Map[String,String]](etl_step.getStepProperties(level))
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          491
+        </td>
+        <td>
+          1480
+          -
+          1513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          etlflow.etlsteps.EtlStep.getStepProperties
+        </td>
+        <td style="background: #F0ADAD">
+          etl_step.getStepProperties(level)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          493
+        </td>
+        <td>
+          1459
+          -
+          1514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenMapFactory.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Map.apply[String, Map[String,String]](scala.Predef.ArrowAssoc[String](etl_step.name).-&gt;[Map[String,String]](etl_step.getStepProperties(level)))
         </td>
       </tr>
     </table>

@@ -36,7 +36,7 @@
 </span>12 <span style=''>
 </span>13 <span style=''>  def getFormatOptions(input_type: IOType): FormatOptions = input_type match {
 </span>14 <span style=''>    case PARQUET =&gt; </span><span style='background: #AEF1AE'>FormatOptions.parquet</span><span style=''>
-</span>15 <span style=''>    case ORC =&gt; </span><span style='background: #F0ADAD'>FormatOptions.orc</span><span style=''>
+</span>15 <span style=''>    case ORC =&gt; </span><span style='background: #AEF1AE'>FormatOptions.orc</span><span style=''>
 </span>16 <span style=''>    case CSV(field_delimiter, header_present, _, _) =&gt; </span><span style='background: #F0ADAD'>CsvOptions.newBuilder()
 </span>17 <span style=''></span><span style='background: #F0ADAD'>      .setSkipLeadingRows(if (header_present) 1 else 0)
 </span>18 <span style=''></span><span style='background: #F0ADAD'>      .setFieldDelimiter(field_delimiter)
@@ -175,7 +175,7 @@
           10
         </td>
         <td>
-          176
+          167
         </td>
         <td>
           426
@@ -196,7 +196,7 @@
           10
         </td>
         <td>
-          177
+          168
         </td>
         <td>
           402
@@ -217,7 +217,7 @@
           11
         </td>
         <td>
-          182
+          173
         </td>
         <td>
           446
@@ -238,7 +238,7 @@
           11
         </td>
         <td>
-          178
+          169
         </td>
         <td>
           465
@@ -259,7 +259,7 @@
           11
         </td>
         <td>
-          181
+          172
         </td>
         <td>
           463
@@ -280,7 +280,7 @@
           11
         </td>
         <td>
-          180
+          171
         </td>
         <td>
           474
@@ -301,7 +301,7 @@
           11
         </td>
         <td>
-          179
+          170
         </td>
         <td>
           491
@@ -322,7 +322,7 @@
           14
         </td>
         <td>
-          183
+          174
         </td>
         <td>
           594
@@ -343,7 +343,7 @@
           15
         </td>
         <td>
-          184
+          175
         </td>
         <td>
           632
@@ -356,7 +356,7 @@
         <td>
           com.google.cloud.bigquery.FormatOptions.orc
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           com.google.cloud.bigquery.FormatOptions.orc()
         </td>
       </tr><tr>
@@ -364,7 +364,7 @@
           19
         </td>
         <td>
-          185
+          176
         </td>
         <td>
           705
@@ -388,7 +388,7 @@ else
           20
         </td>
         <td>
-          186
+          177
         </td>
         <td>
           856
@@ -409,7 +409,7 @@ else
           31
         </td>
         <td>
-          218
+          209
         </td>
         <td>
           1351
@@ -448,7 +448,7 @@ else
           31
         </td>
         <td>
-          187
+          178
         </td>
         <td>
           1325
@@ -469,7 +469,7 @@ else
           32
         </td>
         <td>
-          191
+          182
         </td>
         <td>
           1376
@@ -490,7 +490,7 @@ else
           32
         </td>
         <td>
-          190
+          181
         </td>
         <td>
           1401
@@ -511,7 +511,7 @@ else
           32
         </td>
         <td>
-          189
+          180
         </td>
         <td>
           1435
@@ -532,7 +532,7 @@ else
           32
         </td>
         <td>
-          192
+          183
         </td>
         <td>
           1359
@@ -553,7 +553,7 @@ else
           32
         </td>
         <td>
-          188
+          179
         </td>
         <td>
           1378
@@ -574,7 +574,7 @@ else
           33
         </td>
         <td>
-          217
+          208
         </td>
         <td>
           1444
@@ -610,7 +610,7 @@ else
           34
         </td>
         <td>
-          193
+          184
         </td>
         <td>
           1541
@@ -631,7 +631,7 @@ else
           35
         </td>
         <td>
-          194
+          185
         </td>
         <td>
           1607
@@ -652,7 +652,7 @@ else
           36
         </td>
         <td>
-          200
+          191
         </td>
         <td>
           1676
@@ -673,7 +673,7 @@ else
           36
         </td>
         <td>
-          196
+          187
         </td>
         <td>
           1804
@@ -694,7 +694,7 @@ else
           36
         </td>
         <td>
-          199
+          190
         </td>
         <td>
           1781
@@ -715,7 +715,7 @@ else
           36
         </td>
         <td>
-          198
+          189
         </td>
         <td>
           1831
@@ -736,7 +736,7 @@ else
           36
         </td>
         <td>
-          201
+          192
         </td>
         <td>
           1676
@@ -757,7 +757,7 @@ else
           36
         </td>
         <td>
-          195
+          186
         </td>
         <td>
           1680
@@ -778,7 +778,7 @@ else
           36
         </td>
         <td>
-          197
+          188
         </td>
         <td>
           1821
@@ -799,28 +799,7 @@ else
           37
         </td>
         <td>
-          202
-        </td>
-        <td>
-          1872
-          -
-          1908
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;Loading data from path: &quot;, &quot;&quot;).s(src_path)
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          203
+          194
         </td>
         <td>
           1855
@@ -838,10 +817,31 @@ else
         </td>
       </tr><tr>
         <td>
+          37
+        </td>
+        <td>
+          193
+        </td>
+        <td>
+          1872
+          -
+          1908
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Loading data from path: &quot;, &quot;&quot;).s(src_path)
+        </td>
+      </tr><tr>
+        <td>
           38
         </td>
         <td>
-          205
+          196
         </td>
         <td>
           1918
@@ -862,7 +862,7 @@ else
           38
         </td>
         <td>
-          204
+          195
         </td>
         <td>
           1935
@@ -883,7 +883,7 @@ else
           39
         </td>
         <td>
-          207
+          198
         </td>
         <td>
           1983
@@ -904,7 +904,7 @@ else
           39
         </td>
         <td>
-          206
+          197
         </td>
         <td>
           2000
@@ -925,7 +925,7 @@ else
           40
         </td>
         <td>
-          209
+          200
         </td>
         <td>
           2053
@@ -946,7 +946,7 @@ else
           40
         </td>
         <td>
-          208
+          199
         </td>
         <td>
           2053
@@ -967,7 +967,7 @@ else
           41
         </td>
         <td>
-          211
+          202
         </td>
         <td>
           2079
@@ -988,7 +988,7 @@ else
           41
         </td>
         <td>
-          210
+          201
         </td>
         <td>
           2096
@@ -1009,7 +1009,7 @@ else
           42
         </td>
         <td>
-          214
+          205
         </td>
         <td>
           2141
@@ -1030,7 +1030,7 @@ else
           42
         </td>
         <td>
-          216
+          207
         </td>
         <td>
           2129
@@ -1051,7 +1051,7 @@ else
           42
         </td>
         <td>
-          213
+          204
         </td>
         <td>
           2141
@@ -1072,7 +1072,7 @@ else
           42
         </td>
         <td>
-          212
+          203
         </td>
         <td>
           2133
@@ -1093,7 +1093,7 @@ else
           42
         </td>
         <td>
-          215
+          206
         </td>
         <td>
           2129
@@ -1114,7 +1114,7 @@ else
           45
         </td>
         <td>
-          250
+          241
         </td>
         <td>
           2221
@@ -1148,7 +1148,7 @@ else
           46
         </td>
         <td>
-          220
+          211
         </td>
         <td>
           2265
@@ -1169,7 +1169,7 @@ else
           46
         </td>
         <td>
-          219
+          210
         </td>
         <td>
           2246
@@ -1190,7 +1190,7 @@ else
           46
         </td>
         <td>
-          222
+          213
         </td>
         <td>
           2229
@@ -1211,7 +1211,7 @@ else
           46
         </td>
         <td>
-          221
+          212
         </td>
         <td>
           2246
@@ -1232,7 +1232,7 @@ else
           47
         </td>
         <td>
-          223
+          214
         </td>
         <td>
           2320
@@ -1253,7 +1253,7 @@ else
           48
         </td>
         <td>
-          227
+          218
         </td>
         <td>
           2498
@@ -1274,28 +1274,7 @@ else
           48
         </td>
         <td>
-          226
-        </td>
-        <td>
-          2469
-          -
-          2471
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot; &quot;
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          229
+          220
         </td>
         <td>
           2472
@@ -1316,7 +1295,28 @@ else
           48
         </td>
         <td>
-          225
+          217
+        </td>
+        <td>
+          2469
+          -
+          2471
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          216
         </td>
         <td>
           2452
@@ -1337,7 +1337,7 @@ else
           48
         </td>
         <td>
-          228
+          219
         </td>
         <td>
           2429
@@ -1358,7 +1358,7 @@ else
           48
         </td>
         <td>
-          231
+          222
         </td>
         <td>
           2389
@@ -1379,7 +1379,7 @@ else
           48
         </td>
         <td>
-          230
+          221
         </td>
         <td>
           2389
@@ -1400,7 +1400,7 @@ else
           48
         </td>
         <td>
-          224
+          215
         </td>
         <td>
           2393
@@ -1421,7 +1421,7 @@ else
           49
         </td>
         <td>
-          236
+          227
         </td>
         <td>
           2520
@@ -1442,7 +1442,7 @@ else
           49
         </td>
         <td>
-          235
+          226
         </td>
         <td>
           2537
@@ -1463,7 +1463,7 @@ else
           49
         </td>
         <td>
-          232
+          223
         </td>
         <td>
           2539
@@ -1484,7 +1484,7 @@ else
           49
         </td>
         <td>
-          234
+          225
         </td>
         <td>
           2565
@@ -1505,7 +1505,7 @@ else
           49
         </td>
         <td>
-          233
+          224
         </td>
         <td>
           2591
@@ -1526,7 +1526,7 @@ else
           50
         </td>
         <td>
-          238
+          229
         </td>
         <td>
           2600
@@ -1547,7 +1547,7 @@ else
           50
         </td>
         <td>
-          237
+          228
         </td>
         <td>
           2617
@@ -1568,7 +1568,7 @@ else
           51
         </td>
         <td>
-          240
+          231
         </td>
         <td>
           2663
@@ -1589,7 +1589,7 @@ else
           51
         </td>
         <td>
-          239
+          230
         </td>
         <td>
           2680
@@ -1610,7 +1610,7 @@ else
           52
         </td>
         <td>
-          241
+          232
         </td>
         <td>
           2731
@@ -1631,7 +1631,7 @@ else
           52
         </td>
         <td>
-          242
+          233
         </td>
         <td>
           2731
@@ -1652,7 +1652,7 @@ else
           53
         </td>
         <td>
-          244
+          235
         </td>
         <td>
           2755
@@ -1673,7 +1673,7 @@ else
           53
         </td>
         <td>
-          243
+          234
         </td>
         <td>
           2772
@@ -1694,7 +1694,7 @@ else
           54
         </td>
         <td>
-          245
+          236
         </td>
         <td>
           2807
@@ -1715,7 +1715,7 @@ else
           54
         </td>
         <td>
-          247
+          238
         </td>
         <td>
           2815
@@ -1736,7 +1736,7 @@ else
           54
         </td>
         <td>
-          249
+          240
         </td>
         <td>
           2803
@@ -1757,7 +1757,7 @@ else
           54
         </td>
         <td>
-          246
+          237
         </td>
         <td>
           2815
@@ -1778,7 +1778,7 @@ else
           54
         </td>
         <td>
-          248
+          239
         </td>
         <td>
           2803
@@ -1799,7 +1799,7 @@ else
           68
         </td>
         <td>
-          254
+          245
         </td>
         <td>
           3438
@@ -1820,7 +1820,7 @@ else
           68
         </td>
         <td>
-          253
+          244
         </td>
         <td>
           3463
@@ -1841,7 +1841,7 @@ else
           68
         </td>
         <td>
-          252
+          243
         </td>
         <td>
           3494
@@ -1862,7 +1862,7 @@ else
           68
         </td>
         <td>
-          255
+          246
         </td>
         <td>
           3421
@@ -1883,7 +1883,7 @@ else
           68
         </td>
         <td>
-          251
+          242
         </td>
         <td>
           3440
@@ -1904,7 +1904,7 @@ else
           69
         </td>
         <td>
-          259
+          250
         </td>
         <td>
           3537
@@ -1925,7 +1925,7 @@ else
           70
         </td>
         <td>
-          256
+          247
         </td>
         <td>
           3597
@@ -1946,7 +1946,7 @@ else
           71
         </td>
         <td>
-          258
+          249
         </td>
         <td>
           3639
@@ -1967,7 +1967,7 @@ else
           71
         </td>
         <td>
-          257
+          248
         </td>
         <td>
           3639
@@ -1988,7 +1988,7 @@ else
           74
         </td>
         <td>
-          261
+          252
         </td>
         <td>
           3501
@@ -2014,7 +2014,7 @@ else
           74
         </td>
         <td>
-          260
+          251
         </td>
         <td>
           3792
@@ -2035,7 +2035,7 @@ else
           88
         </td>
         <td>
-          262
+          253
         </td>
         <td>
           4356
@@ -2056,7 +2056,7 @@ else
           97
         </td>
         <td>
-          263
+          254
         </td>
         <td>
           4492
@@ -2077,7 +2077,7 @@ else
           105
         </td>
         <td>
-          264
+          255
         </td>
         <td>
           4841
@@ -2098,7 +2098,7 @@ else
           111
         </td>
         <td>
-          265
+          256
         </td>
         <td>
           5130
@@ -2119,7 +2119,7 @@ else
           113
         </td>
         <td>
-          266
+          257
         </td>
         <td>
           5398
@@ -2140,7 +2140,7 @@ else
           117
         </td>
         <td>
-          268
+          259
         </td>
         <td>
           5497
@@ -2161,7 +2161,7 @@ else
           117
         </td>
         <td>
-          267
+          258
         </td>
         <td>
           5506
@@ -2182,7 +2182,7 @@ else
           118
         </td>
         <td>
-          270
+          261
         </td>
         <td>
           5553
@@ -2203,7 +2203,7 @@ else
           118
         </td>
         <td>
-          269
+          260
         </td>
         <td>
           5563
@@ -2224,7 +2224,7 @@ else
           121
         </td>
         <td>
-          271
+          262
         </td>
         <td>
           5685
@@ -2245,7 +2245,7 @@ else
           122
         </td>
         <td>
-          272
+          263
         </td>
         <td>
           5726
@@ -2266,7 +2266,7 @@ else
           124
         </td>
         <td>
-          273
+          264
         </td>
         <td>
           5795
@@ -2287,7 +2287,7 @@ else
           124
         </td>
         <td>
-          293
+          284
         </td>
         <td>
           5836
@@ -2314,7 +2314,7 @@ else
           125
         </td>
         <td>
-          274
+          265
         </td>
         <td>
           5861
@@ -2335,7 +2335,7 @@ else
           125
         </td>
         <td>
-          275
+          266
         </td>
         <td>
           5844
@@ -2356,7 +2356,7 @@ else
           126
         </td>
         <td>
-          277
+          268
         </td>
         <td>
           5897
@@ -2377,7 +2377,7 @@ else
           126
         </td>
         <td>
-          276
+          267
         </td>
         <td>
           5914
@@ -2398,7 +2398,7 @@ else
           127
         </td>
         <td>
-          280
+          271
         </td>
         <td>
           6015
@@ -2419,7 +2419,7 @@ else
           127
         </td>
         <td>
-          279
+          270
         </td>
         <td>
           6047
@@ -2440,7 +2440,7 @@ else
           127
         </td>
         <td>
-          282
+          273
         </td>
         <td>
           5983
@@ -2461,7 +2461,7 @@ else
           127
         </td>
         <td>
-          281
+          272
         </td>
         <td>
           6000
@@ -2482,7 +2482,7 @@ else
           127
         </td>
         <td>
-          278
+          269
         </td>
         <td>
           6002
@@ -2503,28 +2503,7 @@ else
           128
         </td>
         <td>
-          286
-        </td>
-        <td>
-          6073
-          -
-          6119
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;Loaded rows: &quot;, &quot;&quot;).s(destinationTable.getNumRows())
-        </td>
-      </tr><tr>
-        <td>
-          128
-        </td>
-        <td>
-          283
+          274
         </td>
         <td>
           6075
@@ -2545,7 +2524,28 @@ else
           128
         </td>
         <td>
-          285
+          277
+        </td>
+        <td>
+          6073
+          -
+          6119
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;Loaded rows: &quot;, &quot;&quot;).s(destinationTable.getNumRows())
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          276
         </td>
         <td>
           6090
@@ -2566,7 +2566,7 @@ else
           128
         </td>
         <td>
-          284
+          275
         </td>
         <td>
           6118
@@ -2587,7 +2587,7 @@ else
           128
         </td>
         <td>
-          287
+          278
         </td>
         <td>
           6056
@@ -2608,7 +2608,7 @@ else
           129
         </td>
         <td>
-          289
+          280
         </td>
         <td>
           6207
@@ -2629,7 +2629,7 @@ else
           129
         </td>
         <td>
-          292
+          283
         </td>
         <td>
           6127
@@ -2650,7 +2650,7 @@ else
           129
         </td>
         <td>
-          288
+          279
         </td>
         <td>
           6146
@@ -2671,7 +2671,7 @@ else
           129
         </td>
         <td>
-          291
+          282
         </td>
         <td>
           6144
@@ -2692,7 +2692,7 @@ else
           129
         </td>
         <td>
-          290
+          281
         </td>
         <td>
           6166
@@ -2713,7 +2713,7 @@ else
           132
         </td>
         <td>
-          295
+          286
         </td>
         <td>
           6236
@@ -2734,7 +2734,7 @@ else
           132
         </td>
         <td>
-          294
+          285
         </td>
         <td>
           6236
@@ -2755,7 +2755,7 @@ else
           135
         </td>
         <td>
-          298
+          289
         </td>
         <td>
           6474
@@ -2776,7 +2776,7 @@ else
           135
         </td>
         <td>
-          297
+          288
         </td>
         <td>
           6495
@@ -2797,7 +2797,7 @@ else
           135
         </td>
         <td>
-          299
+          290
         </td>
         <td>
           6470
@@ -2818,7 +2818,7 @@ else
           135
         </td>
         <td>
-          296
+          287
         </td>
         <td>
           6495

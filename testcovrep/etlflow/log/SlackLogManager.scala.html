@@ -103,9 +103,9 @@
 </span>79 <span style=''>}
 </span>80 <span style=''>
 </span>81 <span style=''>object SlackLogManager {
-</span>82 <span style=''>  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Option[GlobalProperties]): Task[Option[SlackLogManager]] = </span><span style='background: #F0ADAD'>Task {
-</span>83 <span style=''></span><span style='background: #F0ADAD'>    if (job_properties.job_send_slack_notification)
-</span>84 <span style=''></span><span style='background: #F0ADAD'>      Some(new SlackLogManager(job_name, job_properties,&quot;&quot;,
+</span>82 <span style=''>  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Option[GlobalProperties]): Task[Option[SlackLogManager]] = </span><span style='background: #AEF1AE'>Task {
+</span>83 <span style=''></span><span style='background: #AEF1AE'>    if (job_properties.job_send_slack_notification)
+</span>84 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>Some(new SlackLogManager(job_name, job_properties,&quot;&quot;,
 </span>85 <span style=''></span><span style='background: #F0ADAD'>        global_properties match {
 </span>86 <span style=''></span><span style='background: #F0ADAD'>          case Some(x) =&gt; x.slack_webhook_url
 </span>87 <span style=''></span><span style='background: #F0ADAD'>          case None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
@@ -114,10 +114,10 @@
 </span>90 <span style=''></span><span style='background: #F0ADAD'>          case Some(x) =&gt; x.slack_env
 </span>91 <span style=''></span><span style='background: #F0ADAD'>          case None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
 </span>92 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>93 <span style=''></span><span style='background: #F0ADAD'>      ))
-</span>94 <span style=''></span><span style='background: #F0ADAD'>    else
-</span>95 <span style=''></span><span style='background: #F0ADAD'>      None
-</span>96 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>93 <span style=''></span><span style='background: #F0ADAD'>      ))</span><span style='background: #AEF1AE'>
+</span>94 <span style=''></span><span style='background: #AEF1AE'>    else
+</span>95 <span style=''></span><span style='background: #AEF1AE'>      None
+</span>96 <span style=''></span><span style='background: #AEF1AE'>  }</span><span style=''>
 </span>97 <span style=''>}
 </span></pre>
           </div>
@@ -135,7 +135,7 @@
           21
         </td>
         <td>
-          1502
+          1438
         </td>
         <td>
           876
@@ -156,7 +156,7 @@
           23
         </td>
         <td>
-          1503
+          1439
         </td>
         <td>
           950
@@ -183,7 +183,7 @@
           31
         </td>
         <td>
-          1504
+          1440
         </td>
         <td>
           1192
@@ -210,7 +210,7 @@
           43
         </td>
         <td>
-          1505
+          1441
         </td>
         <td>
           1677
@@ -231,28 +231,7 @@
           44
         </td>
         <td>
-          1506
-        </td>
-        <td>
-          1753
-          -
-          1775
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          etlflow.utils.UtilityFunctions.getCurrentTimestamp
-        </td>
-        <td style="background: #F0ADAD">
-          etlflow.utils.UtilityFunctions.getCurrentTimestamp
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          1507
+          1443
         </td>
         <td>
           1702
@@ -270,10 +249,52 @@
         </td>
       </tr><tr>
         <td>
+          44
+        </td>
+        <td>
+          1442
+        </td>
+        <td>
+          1753
+          -
+          1775
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+        <td style="background: #F0ADAD">
+          etlflow.utils.UtilityFunctions.getCurrentTimestamp
+        </td>
+      </tr><tr>
+        <td>
           45
         </td>
         <td>
-          1510
+          1447
+        </td>
+        <td>
+          1870
+          -
+          1897
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_orange_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1446
         </td>
         <td>
           1839
@@ -294,28 +315,7 @@
           45
         </td>
         <td>
-          1509
-        </td>
-        <td>
-          1839
-          -
-          1864
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n :small_blue_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1512
+          1448
         </td>
         <td>
           1870
@@ -336,7 +336,28 @@
           45
         </td>
         <td>
-          1508
+          1445
+        </td>
+        <td>
+          1839
+          -
+          1864
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n :small_blue_diamond:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1444
         </td>
         <td>
           1801
@@ -354,31 +375,10 @@
         </td>
       </tr><tr>
         <td>
-          45
-        </td>
-        <td>
-          1511
-        </td>
-        <td>
-          1870
-          -
-          1897
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n :small_orange_diamond:&quot;
-        </td>
-      </tr><tr>
-        <td>
           48
         </td>
         <td>
-          1513
+          1449
         </td>
         <td>
           2034
@@ -399,7 +399,52 @@
           51
         </td>
         <td>
-          1518
+          1450
+        </td>
+        <td>
+          2252
+          -
+          2263
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;\n\t\t\t &quot;
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1452
+        </td>
+        <td>
+          2348
+          -
+          2406
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          error_message.map[String](((msg: String) =&gt; ({
+  val arg$macro$1: Any = msg;
+  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$1)
+}: String))).getOrElse[String](&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1454
         </td>
         <td>
           2224
@@ -423,7 +468,7 @@
           51
         </td>
         <td>
-          1515
+          1451
         </td>
         <td>
           2266
@@ -444,28 +489,7 @@
           51
         </td>
         <td>
-          1514
-        </td>
-        <td>
-          2252
-          -
-          2263
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;\n\t\t\t &quot;
-        </td>
-      </tr><tr>
-        <td>
-          51
-        </td>
-        <td>
-          1517
+          1453
         </td>
         <td>
           2252
@@ -486,55 +510,10 @@
         </td>
       </tr><tr>
         <td>
-          51
-        </td>
-        <td>
-          1516
-        </td>
-        <td>
-          2348
-          -
-          2406
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.getOrElse
-        </td>
-        <td style="background: #F0ADAD">
-          error_message.map[String](((msg: String) =&gt; ({
-  val arg$macro$1: Any = msg;
-  new scala.collection.immutable.StringOps(&quot;, error -&gt; %s&quot;).format(arg$macro$1)
-}: String))).getOrElse[String](&quot;&quot;)
-        </td>
-      </tr><tr>
-        <td>
           54
         </td>
         <td>
-          1519
-        </td>
-        <td>
-          2488
-          -
-          2530
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.String.concat
-        </td>
-        <td style="background: #F0ADAD">
-          SlackLogManager.this.final_message.concat(slackMessageForSteps)
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          1520
+          1456
         </td>
         <td>
           2472
@@ -552,10 +531,31 @@
         </td>
       </tr><tr>
         <td>
+          54
+        </td>
+        <td>
+          1455
+        </td>
+        <td>
+          2488
+          -
+          2530
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.concat
+        </td>
+        <td style="background: #F0ADAD">
+          SlackLogManager.this.final_message.concat(slackMessageForSteps)
+        </td>
+      </tr><tr>
+        <td>
           58
         </td>
         <td>
-          1521
+          1457
         </td>
         <td>
           2644
@@ -576,7 +576,7 @@
           60
         </td>
         <td>
-          1524
+          1460
         </td>
         <td>
           2714
@@ -597,7 +597,7 @@
           61
         </td>
         <td>
-          1522
+          1458
         </td>
         <td>
           2742
@@ -618,7 +618,7 @@
           63
         </td>
         <td>
-          1523
+          1459
         </td>
         <td>
           2780
@@ -639,28 +639,7 @@
           67
         </td>
         <td>
-          1528
-        </td>
-        <td>
-          2819
-          -
-          2819
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          67
-        </td>
-        <td>
-          1529
+          1465
         </td>
         <td>
           2819
@@ -681,7 +660,7 @@
           67
         </td>
         <td>
-          1525
+          1461
         </td>
         <td>
           2823
@@ -699,10 +678,31 @@
         </td>
       </tr><tr>
         <td>
+          67
+        </td>
+        <td>
+          1464
+        </td>
+        <td>
+          2819
+          -
+          2819
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
           68
         </td>
         <td>
-          1527
+          1463
         </td>
         <td>
           2894
@@ -723,7 +723,7 @@
           68
         </td>
         <td>
-          1526
+          1462
         </td>
         <td>
           2894
@@ -744,7 +744,28 @@
           70
         </td>
         <td>
-          1536
+          1473
+        </td>
+        <td>
+          2917
+          -
+          2917
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1472
         </td>
         <td>
           2913
@@ -772,31 +793,10 @@
         </td>
       </tr><tr>
         <td>
-          70
-        </td>
-        <td>
-          1537
-        </td>
-        <td>
-          2917
-          -
-          2917
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
           71
         </td>
         <td>
-          1530
+          1466
         </td>
         <td>
           2938
@@ -817,7 +817,7 @@
           72
         </td>
         <td>
-          1532
+          1468
         </td>
         <td>
           2985
@@ -838,7 +838,7 @@
           72
         </td>
         <td>
-          1531
+          1467
         </td>
         <td>
           2998
@@ -859,7 +859,7 @@
           74
         </td>
         <td>
-          1533
+          1469
         </td>
         <td>
           3083
@@ -880,7 +880,7 @@
           75
         </td>
         <td>
-          1534
+          1470
         </td>
         <td>
           3117
@@ -901,7 +901,7 @@
           76
         </td>
         <td>
-          1535
+          1471
         </td>
         <td>
           3151
@@ -922,7 +922,7 @@
           82
         </td>
         <td>
-          1547
+          1483
         </td>
         <td>
           3364
@@ -935,7 +935,7 @@
         <td>
           zio.Task.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           zio.Task.apply[Option[etlflow.log.SlackLogManager]](if (job_properties.job_send_slack_notification)
   scala.Some.apply[etlflow.log.SlackLogManager](new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
     case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
@@ -952,7 +952,7 @@ else
           83
         </td>
         <td>
-          1538
+          1474
         </td>
         <td>
           3379
@@ -965,7 +965,7 @@ else
         <td>
           etlflow.EtlJobProps.job_send_slack_notification
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           job_properties.job_send_slack_notification
         </td>
       </tr><tr>
@@ -973,7 +973,34 @@ else
           84
         </td>
         <td>
-          1539
+          1479
+        </td>
+        <td>
+          3429
+          -
+          3790
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[etlflow.log.SlackLogManager](new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
+}, global_properties match {
+  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
+  case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
+}))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          1475
         </td>
         <td>
           3479
@@ -994,7 +1021,7 @@ else
           84
         </td>
         <td>
-          1542
+          1478
         </td>
         <td>
           3434
@@ -1021,7 +1048,7 @@ else
           84
         </td>
         <td>
-          1544
+          1480
         </td>
         <td>
           3429
@@ -1045,37 +1072,10 @@ else
         </td>
       </tr><tr>
         <td>
-          84
-        </td>
-        <td>
-          1543
-        </td>
-        <td>
-          3429
-          -
-          3790
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Some.apply[etlflow.log.SlackLogManager](new SlackLogManager(job_name, job_properties, &quot;&quot;, global_properties match {
-  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_webhook_url
-  case scala.None =&gt; &quot;&lt;use_global_properties_slack_webhook_url&gt;&quot;
-}, global_properties match {
-  case (value: etlflow.utils.GlobalProperties)Some[etlflow.utils.GlobalProperties]((x @ _)) =&gt; x.slack_env
-  case scala.None =&gt; &quot;&lt;use_global_properties_slack_env&gt;&quot;
-}))
-        </td>
-      </tr><tr>
-        <td>
           87
         </td>
         <td>
-          1540
+          1476
         </td>
         <td>
           3586
@@ -1096,7 +1096,7 @@ else
           91
         </td>
         <td>
-          1541
+          1477
         </td>
         <td>
           3736
@@ -1117,28 +1117,7 @@ else
           95
         </td>
         <td>
-          1545
-        </td>
-        <td>
-          3806
-          -
-          3810
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #F0ADAD">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          1546
+          1482
         </td>
         <td>
           3806
@@ -1151,7 +1130,28 @@ else
         <td>
           scala.None
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          1481
+        </td>
+        <td>
+          3806
+          -
+          3810
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #AEF1AE">
           scala.None
         </td>
       </tr>

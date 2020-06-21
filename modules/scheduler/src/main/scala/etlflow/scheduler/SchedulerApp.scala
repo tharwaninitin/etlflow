@@ -3,7 +3,6 @@ package etlflow.scheduler
 import java.util.UUID.randomUUID
 
 import caliban.CalibanError.ExecutionError
-import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
@@ -15,7 +14,6 @@ import etlflow.{EtlJobName, EtlJobProps}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
 import io.getquill.Literal
-import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zio._
 import zio.interop.catz._
@@ -25,8 +23,6 @@ import zio.stream.ZStream
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
-  lazy val root_logger: LBLogger = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
-  root_logger.setLevel(Level.WARN)
 
   def globalProperties: Option[EJGP]
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"

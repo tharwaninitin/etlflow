@@ -1,11 +1,9 @@
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbLogManager, SlackLogManager}
-import org.apache.log4j.Logger
 import etlflow.utils.{UtilityFunctions => UF}
 import scala.reflect.runtime.universe.TypeTag
 
 package object etlflow {
-  lazy val etl_jobs_logger: Logger = Logger.getLogger(getClass.getName)
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
   case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)

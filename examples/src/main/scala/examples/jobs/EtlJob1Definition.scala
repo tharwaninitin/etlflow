@@ -2,7 +2,7 @@ package examples.jobs
 
 import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
-import etlflow.etljobs.SequentialEtlJob
+import etlflow.etljobs.SequentialEtlJobWithLogging
 import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
 import etlflow.utils.{ORC, PARQUET}
 import examples.MyGlobalProperties
@@ -10,7 +10,7 @@ import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.RatingOutput
 
-case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob {
+case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJobWithLogging {
 
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private val job_props = job_properties.asInstanceOf[EtlJob1Props]

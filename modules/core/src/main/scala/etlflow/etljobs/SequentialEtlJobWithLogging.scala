@@ -10,18 +10,11 @@ trait SequentialEtlJobWithLogging extends GenericEtlJobWithLogging with SparkMan
 
     lazy val spark: SparkSession = createSparkSession(global_properties)
 
-    def etlStepList: List[EtlStep[_,_]]
+    def etlStepList: List[EtlStep[Unit,Unit]]
 
     final override def job(implicit resource: LoggerResource): Task[Unit] = for {
       step_list <- Task.succeed {
-                      etlStepList.map {
-                        case step: BQLoadStep[_] => step.execute()(resource)
-                        case step: BQQueryStep => step.execute()(resource)
-                        case step: SparkETLStep => step.execute(spark)(resource)
-                        case step: SparkReadWriteStep[_, _] => step.execute(spark)(resource)
-                        case step: DBQueryStep => step.execute()(resource)
-                        case step: EtlStep[Unit,Unit] => step.execute()(resource)
-                      }
+                      etlStepList.map(_.execute()(resource))
                     }
       job       <- ZIO.collectAll(step_list) *> ZIO.unit
     } yield job

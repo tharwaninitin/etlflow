@@ -33,5 +33,5 @@ case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: O
     output_save_mode = SaveMode.Overwrite
   )
 
-  val etlStepList: List[EtlStep[_,_]] = EtlStepList(step1,step2)
+  val etlStepList = EtlStepList(step1,step2)
 }

@@ -30,7 +30,7 @@ package object etlflow {
   }
 
   object EtlStepList {
-    def apply(args: EtlStep[_,_]*): List[EtlStep[_,_]] = {
+    def apply(args: EtlStep[Unit,Unit]*): List[EtlStep[Unit,Unit]] = {
       val seq = List(args:_*)
       if (seq.map(x => x.name).distinct.length == seq.map(x => x.name).length)
         seq

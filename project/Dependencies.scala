@@ -9,14 +9,14 @@ object Dependencies {
   private val ZioVersion = "1.0.0-RC18-2"
   private val ZioCatsInteropVersion = "2.0.0.0-RC11"
   private val DoobieVersion = "0.8.8"
-  private val calibanVersion = "0.7.5"
+  private val CalibanVersion = "0.7.5"
   private val FlywayVersion = "6.4.1"
   private val AwsS3Version = "2.13.23"
   private val LogbackVersion = "1.2.3"
 
   private val ScalaTestVersion = "3.0.5"
   private val TestContainerVersion = "1.11.2"
-  private val SparkBQVersion = "0.13.1-beta"
+  private val SparkBQVersion = "0.16.1"
   private val HadoopGCSVersion = "1.6.1-hadoop2"
   private val PgVersion = "42.2.8"
 
@@ -53,8 +53,8 @@ object Dependencies {
   )
 
   lazy val caliban = List(
-    "com.github.ghostdogpr" %% "caliban" % calibanVersion,
-    "com.github.ghostdogpr" %% "caliban-http4s" % calibanVersion,
+    "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
+    "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
     "eu.timepit" %% "fs2-cron-core" % "0.2.2",
   )
 

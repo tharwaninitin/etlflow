@@ -59,8 +59,15 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       } yield new EtlFlow.Service {
 
         override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
-          runEtlJob(args,transactor)
-          //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
+          val job_deploy_mode = UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
+          if(job_deploy_mode.equalsIgnoreCase("remote")) {
+            logger.info("Submitting job using dataproc scheduler ")
+            runEtlJob(args, transactor)
+          } else {
+            logger.info("Submitting job through local scheduler ")
+            runEtlJobLocal(args, transactor)
+          }
+        //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
           //            val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
           //            val props_map     = args.props.map(x => (x.key,x.value)).toMap
           //            val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(props_map),globalProperties)
@@ -334,6 +341,8 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   }
 
   def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+
+  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   val etlFlowLayer: Layer[Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s
 }

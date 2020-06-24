@@ -1,10 +1,6 @@
 package etlflow.scheduler
 
-import java.util.concurrent.TimeUnit
-
-import scala.collection.JavaConverters._
 import caliban.CalibanError.ExecutionError
-import com.google.cloud.dataproc.v1.{Job, JobControllerClient, JobControllerSettings, JobPlacement, SparkJob}
 import doobie.hikari.HikariTransactor
 import etlflow.scheduler.EtlFlowHelper._
 import etlflow.utils.{DataprocHelper, GlobalProperties, UtilityFunctions => UF}
@@ -23,7 +19,7 @@ abstract class DataprocSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: Etl
   val gcp_dp_endpoint: String
   val gcp_dp_cluster_name: String
 
-  final override def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
     val etlJobDetails: Task[(EJN, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
       val props_map     = args.props.map(x => (x.key,x.value)).toMap
@@ -45,4 +41,9 @@ abstract class DataprocSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: Etl
             ).forkDaemon
     } yield EtlJob(args.name,execution_props)
   }
+
+  final override def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = Task(
+    throw new NotImplementedError("Local job is not available for dataproc scheduler. Please run job in remote mode")
+  )
+
 }

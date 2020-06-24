@@ -1,21 +1,17 @@
 package etlflow.scheduler
 
 
-import java.util.concurrent.TimeUnit
-
-import scala.collection.JavaConverters._
 import caliban.CalibanError.ExecutionError
-import com.google.cloud.dataproc.v1.{Job, JobControllerClient, JobControllerSettings, JobPlacement, SparkJob}
 import doobie.hikari.HikariTransactor
+import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.scheduler.EtlFlowHelper._
 import etlflow.utils.{DataprocHelper, GlobalProperties, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 
 import scala.reflect.runtime.universe.TypeTag
-import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 
-abstract class Schedulers[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
+abstract class CustomScheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
   extends SchedulerApp[EJN,EJP,EJGP] with DataprocHelper  {
 
   val main_class: String
@@ -27,7 +23,7 @@ abstract class Schedulers[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps :
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 
-  final override def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
     val etlJobDetails: Task[(EJN, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
       val props_map     = args.props.map(x => (x.key,x.value)).toMap

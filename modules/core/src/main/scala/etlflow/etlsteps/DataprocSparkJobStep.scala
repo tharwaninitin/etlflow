@@ -11,12 +11,12 @@ class DataprocSparkJobStep(
                                  )
   extends EtlStep[Unit,Unit] with DataprocHelper {
 
-  override val gcp_region: String = global_properties.map(x => x.gcp_region).getOrElse("asia-south1")
-  override val gcp_project: String = global_properties.map(x => x.gcp_project).getOrElse("mint-bi-reporting")
-  override val gcp_dp_endpoint: String = global_properties.map(x => x.gcp_dp_endpoint).getOrElse("asia-south1-dataproc.googleapis.com:443")
-  override val gcp_dp_cluster_name: String = global_properties.map(x => x.gcp_dp_cluster_name).getOrElse("non-prod")
-  override val main_class: String = global_properties.map(x => x.main_class).getOrElse("etljobs.Loaddata")
-  override val dp_libs: List[String] = global_properties.map(x => x.dep_libs).getOrElse("none").split(",").toList
+  override val gcp_region: String = global_properties.map(x => x.gcp_region).get
+  override val gcp_project: String = global_properties.map(x => x.gcp_project).get
+  override val gcp_dp_endpoint: String = global_properties.map(x => x.gcp_dp_endpoint).get
+  override val gcp_dp_cluster_name: String = global_properties.map(x => x.gcp_dp_cluster_name).get
+  override val main_class: String = global_properties.map(x => x.main_class).get
+  override val dp_libs: List[String] = global_properties.map(x => x.dep_libs).get.split(",").toList
 
   final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)

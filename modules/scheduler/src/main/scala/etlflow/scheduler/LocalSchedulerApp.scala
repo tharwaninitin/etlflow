@@ -14,7 +14,7 @@ abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJob
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 
-  final override def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
+  final override def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
 
     val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
@@ -39,4 +39,8 @@ abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJob
                             ).forkDaemon
     } yield EtlJob(args.name,execution_props)
   }
+
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = Task(
+   throw new NotImplementedError("Remote job is not available for local scheduler. Please run job in local mode")
+  )
 }

@@ -28,7 +28,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           println(UF.convertToJson(job_name.default_properties_map))
           val exclude_keys = List("job_run_id","job_description","job_properties")
           if (default && !actual) {
-            println(UF.convertToJsonByRemovingKeys(job_name.default_properties,exclude_keys))
+            println(UF.convertToJsonByRemovingKeys(job_name.getActualProperties(Map.empty),exclude_keys))
           }
           else if (actual && !default) {
             val props = job_name.getActualProperties(jobProps)

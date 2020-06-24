@@ -18,6 +18,7 @@ object Dependencies {
   private val TestContainerVersion = "1.11.2"
   private val SparkBQVersion = "0.16.1"
   private val HadoopGCSVersion = "1.6.1-hadoop2"
+  private val HadoopS3Version = "2.10.0"
   private val PgVersion = "42.2.8"
 
   lazy val googleCloudLibs = List(
@@ -69,6 +70,8 @@ object Dependencies {
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
+    "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
+    "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "org.postgresql" % "postgresql" % PgVersion,
   ).map(_ % Test)

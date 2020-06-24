@@ -15,7 +15,7 @@ object Schema {
     ratings_input_table_name: String = "ratings",
     ratings_intermediate_bucket: String = s"gs://${sys.env("GCS_BUCKET")}/intermediate/ratings",
     ratings_output_bucket_1: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/csv",
-    ratings_output_bucket_2: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/parquet",
+    ratings_output_bucket_2: String = s"s3a://${sys.env("S3_BUCKET")}/temp/output/ratings/parquet",
     ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
     ratings_output_file_name: Option[String] = Some("ratings.csv"),
   ) extends EtlJobProps

@@ -109,7 +109,7 @@ package object aws {
         val credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.access_key, creds.secret_key))
         S3AsyncClient.builder.region(region).credentialsProvider(credentials)
       case None => (ACCESS_KEY, SECRET_KEY) match {
-        case ("NOT_SET_IN_ENV", "NOT_SET_IN_ENV") =>
+        case (access_key, secret_key) if access_key == "NOT_SET_IN_ENV" || secret_key == "NOT_SET_IN_ENV" =>
           aws_logger.info("Using AWS credentials from local sdk")
           S3AsyncClient.builder.region(region)
         case keys =>

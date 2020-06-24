@@ -2,11 +2,10 @@ package etlflow.scheduler
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
-import etlflow.scheduler.EtlFlowHelper._
+import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.utils.{DataprocHelper, GlobalProperties, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
-
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class DataprocSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
@@ -24,7 +23,10 @@ abstract class DataprocSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: Etl
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
       val props_map     = args.props.map(x => (x.key,x.value)).toMap
       (job_name,props_map)
-    }.mapError(e => ExecutionError(e.getMessage))
+    }.mapError{e =>
+      logger.error(e.getMessage)
+      ExecutionError(e.getMessage)
+    }
 
     for {
       (job_name,props_map) <- etlJobDetails

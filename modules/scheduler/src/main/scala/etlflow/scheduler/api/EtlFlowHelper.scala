@@ -1,9 +1,10 @@
-package etlflow.scheduler
+package etlflow.scheduler.api
 
 import cron4s.CronExpr
 import etlflow.log.JobRun
 import zio.stream.ZStream
 import zio.{Has, ZIO}
+
 object EtlFlowHelper {
 
   // GraphQL ARGS and Results
@@ -27,18 +28,15 @@ object EtlFlowHelper {
 
   object EtlFlow {
     trait Service {
-      def getEtlJobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]]
       def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
-      def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
-
       def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
-      def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]]
 
+      def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
-
       def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
+
       def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
       def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
       // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo]
@@ -46,9 +44,6 @@ object EtlFlowHelper {
   }
 
   type EtlFlowHas = Has[EtlFlow.Service]
-
-  def getEtlJobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]] =
-    ZIO.accessM[EtlFlowHas](_.get.getEtlJobs)
 
   def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] =
     ZIO.accessM[EtlFlowHas](_.get.runJob(args))
@@ -67,9 +62,6 @@ object EtlFlowHelper {
 
   def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] =
     ZIO.accessM[EtlFlowHas](_.get.updateCronJob(args))
-
-  def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] =
-    ZIO.accessM[EtlFlowHas](_.get.getCronJobs)
 
   def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] =
     ZIO.accessM[EtlFlowHas](_.get.getDbJobRuns(args))

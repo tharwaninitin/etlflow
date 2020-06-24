@@ -12,8 +12,6 @@ package object etlflow {
 
   abstract class EtlJobName[+EJP : TypeTag] {
     final val default_properties_map: Map[String,String] = UF.getEtlJobProps[EJP]()
-    final val job_name_package = getClass.getName
-    val default_properties: EJP
     def getActualProperties(job_properties: Map[String, String]): EJP
   }
 

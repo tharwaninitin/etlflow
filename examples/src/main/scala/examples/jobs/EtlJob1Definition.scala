@@ -16,12 +16,15 @@ case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: O
   private val job_props = job_properties.asInstanceOf[EtlJob1Props]
 
   val step1 = SparkReadWriteStep[RatingOutput](
-    name            = "LoadRatingsParquet",
-    input_location  = job_props.ratings_input_path,
-    input_type      = PARQUET,
-    output_type     = ORC,
-    output_location = gcs_output_path,
-    output_filename = job_props.ratings_output_file_name
+    name                      = "LoadRatingsParquet",
+    input_location            = job_props.ratings_input_path,
+    input_type                = PARQUET,
+    output_type               = ORC,
+    output_location           = gcs_output_path,
+    output_repartitioning     = true,
+    output_repartitioning_num = 1,
+    output_filename           = job_props.ratings_output_file_name,
+    global_properties         = global_properties
   )
 
   val step2 = BQLoadStep(

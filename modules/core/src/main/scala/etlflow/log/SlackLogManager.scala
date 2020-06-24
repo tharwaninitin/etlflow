@@ -54,7 +54,7 @@ class SlackLogManager private[log] (
     final_message = final_message.concat(slackMessageForSteps)
   }
 
-  def updateJobInformation(status: String, mode: String = "update"): Unit = {
+  def updateJobInformation(status: String, mode: String = "update", error_message: Option[String] = None): Unit = {
     val execution_date_time = UF.getCurrentTimestampAsString("yyyy-MM-dd HH:mm:ss")
 
     val data = finalMessageTemplate(

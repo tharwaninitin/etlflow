@@ -1,32 +1,27 @@
 package etlflow.scheduler
 
 import java.util.UUID.randomUUID
-
 import caliban.CalibanError.ExecutionError
-import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.log.JobRun
-import etlflow.scheduler.EtlFlowHelper._
+import etlflow.scheduler.api.EtlFlowHelper._
+import etlflow.scheduler.api.GQLServerHttp4s
 import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
 import io.getquill.Literal
-import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zio._
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import zio.stream.ZStream
-
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
-  lazy val root_logger: LBLogger = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
-  root_logger.setLevel(Level.WARN)
 
   def globalProperties: Option[EJGP]
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
@@ -63,8 +58,15 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       } yield new EtlFlow.Service {
 
         override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
-          runEtlJob(args,transactor)
-          //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
+          val job_deploy_mode = UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
+          if(job_deploy_mode.equalsIgnoreCase("remote")) {
+            logger.info("Running job in remote mode ")
+            runEtlJobRemote(args, transactor)
+          } else {
+            logger.info("Running job in local mode ")
+            runEtlJobLocal(args, transactor)
+          }
+        //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
           //            val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
           //            val props_map     = args.props.map(x => (x.key,x.value)).toMap
           //            val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(props_map),globalProperties)
@@ -104,15 +106,6 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           //                              }.forkDaemon
           //          } yield EtlJob(args.name,execution_props)
           //          job
-        }
-
-        override def getEtlJobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]] = {
-          Task{
-            UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobDefaultProps(x))).toList
-          }.mapError{ e =>
-            logger.error(e.getMessage)
-            ExecutionError(e.getMessage)
-          }
         }
 
         override def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =  {
@@ -167,14 +160,6 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           }.mapError { e =>
           logger.error(e.getMessage)
           ExecutionError(e.getMessage)
-        }
-
-        override def getCronJobs: ZIO[EtlFlowHas, Throwable, List[CronJob]] = {
-          val selectQuery = quote {
-            querySchema[CronJobDB]("cronjob")
-          }
-          dc.run(selectQuery).transact(transactor)
-            .map(y => y.map(x => CronJob(x.job_name, Cron(x.schedule).toOption, x.failed, x.success)))
         }
 
         override def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
@@ -253,6 +238,15 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       }
     }
 
+    def getEtlJobs: Task[List[EtlJob]] = {
+      Task{
+        UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobActualProps(x))).toList
+      }.mapError{ e =>
+        logger.error(e.getMessage)
+        ExecutionError(e.getMessage)
+      }
+    }
+
     def updateCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]] = {
 
       val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
@@ -291,16 +285,18 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           List.empty
       }
       val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval(
-          UIO(logger.info(s"Starting CRON JOB ${cj.job_name} with schedule ${cj.schedule.toString} at ${UF.getCurrentTimestampAsString()}")) *>
-            runEtlJob(EtlJobArgs(cj.job_name,List.empty),transactor)
+          UIO(logger.info(s"Starting CRON JOB ${cj.job_name} with schedule ${cj.schedule.toString} at ${UF.getCurrentTimestampAsString()}")) *> {
+            val job_deploy_mode = UF.getEtlJobName[EJN](cj.job_name, etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
+            if (job_deploy_mode.equalsIgnoreCase("remote")) {
+              logger.info(s"Scheduled job ${cj.job_name} in remote mode ")
+              runEtlJobRemote(EtlJobArgs(cj.job_name,List.empty), transactor)
+            } else {
+              logger.info(s"Scheduled job ${cj.job_name} in local mode ")
+              runEtlJobLocal(EtlJobArgs(cj.job_name,List.empty), transactor)
+            }
+          }
       ))))
       cronSchedule.compile.drain
-    }
-
-    def getJobDefaultProps(jobName: String): Map[String, String] = {
-      val name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-      val exclude_keys = List("job_run_id","job_description","job_properties")
-      UF.convertToJsonByRemovingKeysAsMap(name.default_properties,exclude_keys).map(x =>(x._1,x._2.toString))
     }
 
     def getJobActualProps(jobName: String): Map[String, String] = {
@@ -337,7 +333,8 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       ExecutionError(e.getMessage)
   }
 
-  def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   val etlFlowLayer: Layer[Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s
 }

@@ -36,10 +36,12 @@ object WriteApi {
     }
   }
 
-  def WriteDS[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
-                                      , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
-                                      , n : Int = 1, compression : String = "none", repartition : Boolean = false)
-                                     (source: Dataset[T], spark : SparkSession) : Unit = {
+  def WriteDS[T <: Product : TypeTag](
+          output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String],
+          save_mode: SaveMode = SaveMode.Append, output_filename: Option[String] = None,
+          n: Int = 1, compression: String = "none", //("compression", "gzip","snappy")
+          repartition: Boolean = false
+       )(source: Dataset[T], spark: SparkSession) : Unit = {
     val mapping = Encoders.product[T]
 
     write_logger.info("#"*20 + " Actual Output Schema " + "#"*20)
@@ -49,8 +51,12 @@ object WriteApi {
 
     val df_writer = partition_by match {
       case partition if partition.nonEmpty && repartition =>
-          source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
-      case _ => source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n).write.option("compression",compression) //("compression", "gzip","snappy")
+        write_logger.info(s"Will generate $n repartitioned output files inside partitions $partition_by")
+        source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
+      case partition if partition.isEmpty && repartition =>
+        write_logger.info(s"Will generate $n repartitioned output files")
+        source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n).write.option("compression",compression)
+      case _ => source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).write.option("compression",compression)
     }
 
     val df_writer_options = output_type match {
@@ -89,7 +95,12 @@ object WriteApi {
     output_filename.foreach { output_file =>
       val path = s"$output_location/"
       val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
-      val fileName = fs.globStatus(new Path(path + "part*"))(0).getPath.getName
+      val fileStatus = fs.globStatus(new Path(path + "part*"))
+      if (fileStatus.size > 1) {
+        write_logger.error("multiple output files found, expected single file")
+        throw new RuntimeException("multiple output files found, expected single file")
+      }
+      val fileName = fileStatus(0).getPath.getName
       fs.rename(new Path(path + fileName), new Path(path + output_file))
       write_logger.info(s"Renamed file path $path$fileName to $path$output_file")
       fs.close()

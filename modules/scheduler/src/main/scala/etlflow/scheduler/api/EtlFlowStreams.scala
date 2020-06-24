@@ -1,16 +1,14 @@
-package etlflow.scheduler
+package etlflow.scheduler.api
 
-import cats.{Applicative, Functor}
 import cats.effect.{ContextShift, Sync, Timer}
+import cats.{Applicative, Functor}
 import fs2.{Pipe, Stream}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import org.slf4j.{Logger, LoggerFactory}
-
 import scala.concurrent.duration._
-import scala.util.Random
 
 class EtlFlowStreams[F[_]: Sync: ContextShift: Timer] extends Http4sDsl[F] {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)

@@ -3,17 +3,15 @@ package etlflow.steps
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import etlflow.Schema._
-import etlflow.etlsteps.{SparkReadTransformWriteStep, SparkReadWriteStep}
+import etlflow.TestSuiteHelper
+import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.{ReadApi, SparkUDF}
-import etlflow.utils.{CSV, JDBC, PARQUET}
-import org.apache.spark.sql.{Dataset, Encoders, Row, SaveMode, SparkSession}
+import etlflow.utils.{JDBC, PARQUET}
+import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.{FlatSpec, Matchers}
+import org.testcontainers.containers.PostgreSQLContainer
 import zio.Task
 import zio.interop.catz._
-import etlflow.TestSuiteHelper
-import org.apache.spark.sql.functions.{col, from_unixtime}
-import org.apache.spark.sql.types.{DateType, IntegerType}
-import org.testcontainers.containers.PostgreSQLContainer
 
 class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper with SparkUDF {
 
@@ -38,57 +36,8 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
     output_save_mode = SaveMode.Overwrite
   )
 
-  def enrichRatingParquetData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
-    val mapping = Encoders.product[RatingOutput]
-
-    val ratings_df = in
-      .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
-      .withColumn(partition_date_col, get_formatted_date("date","yyyy-MM-dd","yyyyMMdd").cast(IntegerType))
-      .where(f"$partition_date_col in ('20160101', '20160102')")
-
-    ratings_df.as[RatingOutput](mapping)
-  }
-
-  def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutputCsv] = {
-    val mapping = Encoders.product[RatingOutputCsv]
-
-    val ratings_df = in
-        .withColumnRenamed("user_id","User Id")
-        .withColumnRenamed("movie_id","Movie Id")
-        .withColumnRenamed("rating","Ratings")
-        .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
-        .withColumnRenamed("date","Movie Date")
-
-    ratings_df.as[RatingOutputCsv](mapping)
-  }
-
-  val step2 = SparkReadTransformWriteStep[Rating, RatingOutput](
-    name                  = "LoadRatingsCsvToParquet",
-    input_location        = Seq(input_path_csv),
-    input_type            = CSV(),
-    transform_function    = enrichRatingParquetData,
-    output_type           = PARQUET,
-    output_location       = output_path,
-    output_save_mode      = SaveMode.Overwrite,
-    output_partition_col  = Seq(s"$partition_date_col"),
-    output_repartitioning = true  // Setting this to true takes care of creating one file for every partition
-  )
-
-  val step3 = SparkReadTransformWriteStep[Rating, RatingOutputCsv](
-    name                  = "LoadRatingsCsvToCsv",
-    input_location        = Seq(input_path_csv),
-    input_type            = CSV(),
-    transform_function    = enrichRatingCsvData,
-    output_type           = CSV(),
-    output_location       = output_path,
-    output_save_mode      = SaveMode.Overwrite,
-    output_filename       = Some("ratings.csv")
-  )
-
   // STEP 3: Run Step
   runtime.unsafeRun(step1.process(spark))
-  runtime.unsafeRun(step2.process(spark))
-  runtime.unsafeRun(step3.process(spark))
 
   // STEP 4: Run Test
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)

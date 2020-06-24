@@ -7,9 +7,11 @@ lazy val coreSettings = Seq(
   name := "etlflow-core",
   organization := "com.github.tharwaninitin",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs
-    ++ loggingLibs ++ dbLibs ++ miscLibs
-    ++ awsLibs ++ testLibs,
+  libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ dbLibs ++ miscLibs ++ awsLibs ++ testLibs,
+  excludeDependencies ++= Seq(
+    "org.slf4j" % "slf4j-log4j12",
+    //"log4j" % "log4j"
+  ),
   dependencyOverrides ++= {
     Seq(
       "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",

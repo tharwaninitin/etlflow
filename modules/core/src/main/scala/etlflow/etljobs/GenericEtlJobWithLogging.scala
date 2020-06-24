@@ -38,7 +38,7 @@ trait GenericEtlJobWithLogging extends EtlJob with DbManager {
   private[etljobs] def logJobError(e: Throwable, job_start_time: Long)(res: LoggerResource): Task[Unit] = {
     if (res.slack.isDefined) res.slack.get.updateJobInformation("failed")
     etl_job_logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(job_start_time, UF.getCurrentTimestamp)}")
-    if (res.db.isDefined) res.db.get.updateJobInformation("failed").as(()) *> Task.fail(e) else Task.fail(e)
+    if (res.db.isDefined) res.db.get.updateJobInformation("failed",error_message = Some(e.getMessage)).as(()) *> Task.fail(e) else Task.fail(e)
   }
 
   private[etljobs] def logJobSuccess(job_start_time: Long)(res: LoggerResource): Task[Unit] = {

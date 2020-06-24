@@ -40,19 +40,20 @@ This project is compiled with scala version 2.12.10 and works with Apache Spark 
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core). 
 Add the latest release as a dependency to your project
 
+[![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
+
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>0.7.14</version>
+    <version>x.x.x</version>
 </dependency>
 ```
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "0.7.14"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 ```
-__Download Latest JAR__ https://github.com/tharwaninitin/etlflow/releases/tag/v0.7.14
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

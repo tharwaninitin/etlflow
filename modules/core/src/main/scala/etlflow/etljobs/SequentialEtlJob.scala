@@ -2,27 +2,17 @@ package etlflow.etljobs
 
 import etlflow.LoggerResource
 import etlflow.etlsteps._
-import etlflow.spark.SparkManager
-import org.apache.spark.sql.SparkSession
 import zio.{Task, ZIO}
 
-trait SequentialEtlJob extends GenericEtlJob with SparkManager {
+trait SequentialEtlJob extends GenericEtlJob {
 
-    lazy val spark: SparkSession = createSparkSession(global_properties)
     private lazy val resource = LoggerResource(None, None)
 
-    def etlStepList: List[EtlStep[_,_]]
+    def etlStepList: List[EtlStep[Unit,Unit]]
 
     final override val job: Task[Unit] = for {
       step_list <- Task.succeed {
-                      etlStepList.map {
-                        case step: BQLoadStep[_] => step.execute()(resource)
-                        case step: BQQueryStep => step.execute()(resource)
-                        case step: SparkETLStep => step.execute(spark)(resource)
-                        case step: SparkReadWriteStep[_, _] => step.execute(spark)(resource)
-                        case step: DBQueryStep => step.execute()(resource)
-                        case step: EtlStep[Unit,Unit] => step.execute()(resource)
-                      }
+                      etlStepList.map(_.execute()(resource))
                     }
       job       <- ZIO.collectAll(step_list) *> ZIO.unit
     } yield job

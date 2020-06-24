@@ -61,7 +61,7 @@ class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_n
         }
     }
 
-  def updateJobInformation(status: String, mode: String = "update"): Task[Long] = {
+  def updateJobInformation(status: String, mode: String = "update", error_message: Option[String] = None): Task[Long] = {
     import ctx._
     if (mode == "insert") {
       val job = JobRun(
@@ -80,8 +80,9 @@ class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_n
     }
     else {
       lm_logger.info(s"Updating job info in db with status => $status")
+      val job_status = if (error_message.isDefined) status.toLowerCase() + " with error: " + error_message.get else status.toLowerCase()
       ctx.run(quote {
-        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(status))
+        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(job_status))
       }).transact(transactor).mapError{e =>
         lm_logger.error(s"failed in logging to db ${e.getMessage}")
         e

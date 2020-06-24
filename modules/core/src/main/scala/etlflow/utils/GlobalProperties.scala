@@ -36,6 +36,8 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   lazy val gcp_region: String               = sys.env.getOrElse("GCP_REGION", config.getProperty("gcp_region"))
   lazy val gcp_dp_endpoint: String          = sys.env.getOrElse("GCP_DP_ENDPOINT", config.getProperty("gcp_dp_endpoint"))
   lazy val gcp_dp_cluster_name: String      = sys.env.getOrElse("GCP_DP_CLUSTER_NAME", config.getProperty("gcp_dp_cluster_name"))
+  lazy val main_class: String      = sys.env.getOrElse("MAIN_CLASS", config.getProperty("main_class"))
+  lazy val dep_libs: String      = sys.env.getOrElse("DEP_LIBS", config.getProperty("dep_libs"))
 
   lazy val send_notification: String        = sys.env.getOrElse("SEND_NOTIFICATION", config.getProperty("send_notification"))
   lazy val notification_level: String       = sys.env.getOrElse("NOTIFICATION_LEVEL", config.getProperty("notification_level"))

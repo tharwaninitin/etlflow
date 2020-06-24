@@ -28,12 +28,16 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   lazy val spark_shuffle_partitions: String = config.getOrDefault("spark_shuffle_partitions", "1").toString
   lazy val spark_output_partition_overwrite_mode: String = config.getOrDefault("spark_output_partition_overwrite_mode","dynamic").toString
   lazy val running_environment: String      = config.getOrDefault("running_environment","local").toString
-  
+  lazy val aws_access_key: String      = config.getOrDefault("aws_access_key","").toString
+  lazy val aws_secret_access_key: String      = config.getOrDefault("aws_secret_access_key","").toString
+
   lazy val gcp_project: String              = sys.env.getOrElse("GCP_PROJECT", config.getProperty("gcp_project"))
   lazy val gcp_credential_file_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", config.getProperty("gcp_credential_file_path"))
   lazy val gcp_region: String               = sys.env.getOrElse("GCP_REGION", config.getProperty("gcp_region"))
   lazy val gcp_dp_endpoint: String          = sys.env.getOrElse("GCP_DP_ENDPOINT", config.getProperty("gcp_dp_endpoint"))
   lazy val gcp_dp_cluster_name: String      = sys.env.getOrElse("GCP_DP_CLUSTER_NAME", config.getProperty("gcp_dp_cluster_name"))
+  lazy val main_class: String      = sys.env.getOrElse("MAIN_CLASS", config.getProperty("main_class"))
+  lazy val dep_libs: String      = sys.env.getOrElse("DEP_LIBS", config.getProperty("dep_libs"))
 
   lazy val send_notification: String        = sys.env.getOrElse("SEND_NOTIFICATION", config.getProperty("send_notification"))
   lazy val notification_level: String       = sys.env.getOrElse("NOTIFICATION_LEVEL", config.getProperty("notification_level"))

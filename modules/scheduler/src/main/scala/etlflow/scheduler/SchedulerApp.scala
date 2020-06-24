@@ -59,8 +59,15 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       } yield new EtlFlow.Service {
 
         override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
-          runEtlJob(args,transactor)
-          //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
+          val job_deploy_mode = UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
+          if(job_deploy_mode.equalsIgnoreCase("remote")) {
+            logger.info("Running job in remote mode ")
+            runEtlJobRemote(args, transactor)
+          } else {
+            logger.info("Running job in local mode ")
+            runEtlJobLocal(args, transactor)
+          }
+        //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
           //            val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
           //            val props_map     = args.props.map(x => (x.key,x.value)).toMap
           //            val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(props_map),globalProperties)
@@ -287,8 +294,16 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           List.empty
       }
       val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval(
-          UIO(logger.info(s"Starting CRON JOB ${cj.job_name} with schedule ${cj.schedule.toString} at ${UF.getCurrentTimestampAsString()}")) *>
-            runEtlJob(EtlJobArgs(cj.job_name,List.empty),transactor)
+          UIO(logger.info(s"Starting CRON JOB ${cj.job_name} with schedule ${cj.schedule.toString} at ${UF.getCurrentTimestampAsString()}")) *> {
+            val job_deploy_mode = UF.getEtlJobName[EJN](cj.job_name, etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
+            if (job_deploy_mode.equalsIgnoreCase("remote")) {
+              logger.info(s"Scheduled job ${cj.job_name} in remote mode ")
+              runEtlJobRemote(EtlJobArgs(cj.job_name,List.empty), transactor)
+            } else {
+              logger.info(s"Scheduled job ${cj.job_name} in local mode ")
+              runEtlJobLocal(EtlJobArgs(cj.job_name,List.empty), transactor)
+            }
+          }
       ))))
       cronSchedule.compile.drain
     }
@@ -333,7 +348,9 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       ExecutionError(e.getMessage)
   }
 
-  def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+
+  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   val etlFlowLayer: Layer[Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s
 }

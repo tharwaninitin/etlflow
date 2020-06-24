@@ -23,6 +23,13 @@ trait SparkManager  {
             .config("spark.sql.shuffle.partitions", ss.spark_shuffle_partitions)
             .config("spark.scheduler.mode", "FAIR")
             .config("spark.sql.sources.partitionOverwriteMode", ss.spark_output_partition_overwrite_mode)
+            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+            .config("spark.hadoop.fs.s3a.access.key", ss.aws_access_key)
+            .config("spark.hadoop.fs.s3a.secret.key", ss.aws_secret_access_key)
+            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+            .config("spark.hadoop.fs.s3a.multiobjectdelete.enable","false")
+            .config("spark.hadoop.fs.s3a.fast.upload","true")
+            .config("spark.speculation", "false")
             .enableHiveSupport()
             .getOrCreate()
 

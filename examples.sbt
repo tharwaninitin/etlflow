@@ -1,11 +1,7 @@
 import NativePackagerHelper._
+import Dependencies._
 
-val SparkBQVersion = "0.13.1-beta"
-val HadoopGCSVersion = "1.6.1-hadoop2"
-val HadoopS3Version = "2.10.0"
-val LogbackVersion = "1.2.3"
-val EtlFlowVersion = "0.7.14"
-val PgVersion = "42.2.8"
+val EtlFlowVersion = "0.7.16"
 
 lazy val loggerTask = TaskKey[Unit]("loggerTask")
 

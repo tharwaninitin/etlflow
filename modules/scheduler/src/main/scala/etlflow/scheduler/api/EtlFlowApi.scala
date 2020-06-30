@@ -31,6 +31,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
 
   case class Mutations(
                         run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
+                        update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth]
@@ -51,6 +52,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
         ),
         Mutations(
           args => runJob(args),
+          args => updateJobState(args),
           args => addCronJob(args),
           args => updateCronJob(args),
           args => login(args)

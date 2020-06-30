@@ -2,17 +2,15 @@ package etlflow.etlsteps
 
 import zio.Task
 
-class GenericETLStep (
-                  val name: String
-                  ,transform_function: () => Unit
-                  )
-extends EtlStep[Unit,Unit]
+case class GenericETLStep[IP,OP](name: String, transform_function: IP => OP)
+extends EtlStep[IP,OP]
 {
-  final def process(in: =>Unit): Task[Unit] = Task {
+  final def process(input: =>IP): Task[OP] = Task {
     etl_logger.info("#################################################################################################")
-    etl_logger.info(s"Starting Generic ETL Step : $name")
-    transform_function()
+    etl_logger.info(s"Starting Generic ETL Step: $name")
+    val op = transform_function(input)
     etl_logger.info("#################################################################################################")
+    op
   }
 }
 

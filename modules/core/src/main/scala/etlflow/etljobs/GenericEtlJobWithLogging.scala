@@ -9,7 +9,7 @@ import zio.{Task, UIO, ZIO, ZManaged}
 
 trait GenericEtlJobWithLogging extends EtlJob with DbManager {
 
-  def job(implicit resource: LoggerResource): Task[Unit]
+  val job: ZIO[LoggerResource, Throwable, Unit]
   def printJobInfo(level: String = "info"): Unit = {}
   def getJobInfo(level: String = "info"): List[(String,Map[String,String])] = List.empty
 
@@ -19,7 +19,7 @@ trait GenericEtlJobWithLogging extends EtlJob with DbManager {
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
       resource        <- logger_resource
       _               <- (job_status_ref.set("started") *> logJobInit(resource)).toManaged_
-      _               <- job(resource).foldM(
+      _               <- job.provide(resource).foldM(
                             ex => job_status_ref.set("failed") *> logJobError(ex,job_start_time)(resource),
                             _  => job_status_ref.set("success") *> logJobSuccess(job_start_time)(resource)
                           ).toManaged_

@@ -5,24 +5,29 @@ import etlflow.utils.GlobalProperties
 import org.apache.spark.sql.SparkSession
 import zio.Task
 
-class SparkETLStep (
+class SparkETLStep[IP,OP] (
                   val name: String
-                  ,transform_function: SparkSession => Unit
+                  ,transform_function: (SparkSession,IP) => OP
                   ,global_properties: Option[GlobalProperties] = None
                   )
-extends EtlStep[Unit,Unit] with SparkManager
+extends EtlStep[IP,OP] with SparkManager
 {
   lazy val spark: SparkSession = createSparkSession(global_properties)
 
-  final def process(input_state: =>Unit): Task[Unit] = Task {
+  final def process(input_state: =>IP): Task[OP] = Task {
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting Spark ETL Step: $name")
-    transform_function(spark)
+    val op = transform_function(spark,input_state)
     etl_logger.info("#################################################################################################")
+    op
   }
 }
 
 object SparkETLStep {
-  def apply(name: String, transform_function: SparkSession => Unit, global_properties: Option[GlobalProperties] = None): SparkETLStep =
-    new SparkETLStep(name, transform_function)
+  def apply[IP,OP](
+                    name: String,
+                    transform_function: (SparkSession,IP) => OP,
+                    global_properties: Option[GlobalProperties] = None
+                  ): SparkETLStep[IP,OP] =
+    new SparkETLStep[IP,OP](name, transform_function)
 }

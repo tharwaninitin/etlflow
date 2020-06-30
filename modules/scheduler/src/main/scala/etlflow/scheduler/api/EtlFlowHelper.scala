@@ -9,6 +9,7 @@ object EtlFlowHelper {
 
   // GraphQL ARGS and Results
   case class Props(key: String, value: String)
+  case class EtlJobStateArgs(name: String, state: Boolean)
   case class EtlJobArgs(name: String, props: List[Props])
   case class UserArgs(user_name: String, password: String)
   case class DbJobRunArgs(jobRunId: Option[String] = None, jobName: Option[String] = None, limit: Int, offset: Int)
@@ -29,6 +30,7 @@ object EtlFlowHelper {
   object EtlFlow {
     trait Service {
       def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
+      def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
       def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
@@ -47,6 +49,9 @@ object EtlFlowHelper {
 
   def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] =
     ZIO.accessM[EtlFlowHas](_.get.runJob(args))
+
+  def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] =
+    ZIO.accessM[EtlFlowHas](_.get.updateJobState(args))
 
   def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] =
     ZIO.accessM[EtlFlowHas](_.get.getInfo)

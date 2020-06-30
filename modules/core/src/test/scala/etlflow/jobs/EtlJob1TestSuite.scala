@@ -6,7 +6,7 @@ import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
 
-object EtlJobTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object EtlJob1TestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(

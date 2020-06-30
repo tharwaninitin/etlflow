@@ -48,8 +48,15 @@ class SlackLogManager private[log] (
     slackMessageForSteps = step_icon + "*" + etlstep.name + "*" + " - (" + elapsedTime + ")"
 
     // Update the slackMessageForSteps variable and get the information of etl steps properties
-    slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties(job_properties.job_notification_level).mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
-
+    if(job_properties.job_notification_level.equalsIgnoreCase("debug"))
+      slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties(job_properties.job_notification_level).mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
+    else {
+      val error = error_message.map(msg => f"error -> $msg").getOrElse("")
+      if (error.isEmpty)
+        slackMessageForSteps = slackMessageForSteps
+      else
+        slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + error)
+    }
     // Concatenate all the messages with finalSlackMessage
     final_message = final_message.concat(slackMessageForSteps)
   }

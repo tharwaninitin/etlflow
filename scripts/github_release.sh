@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-git tag 0.7.15
+git tag 0.7.16
 
 git push origin master --tags
 
@@ -11,5 +11,5 @@ echo $GITHUB_TOKEN
 
 # https://github.com/tcnksm/ghr
 # Uploads jar to Github releases page
-ghr 0.7.15 modules/core/target/scala-2.12/etlflow-core_2.12-0.7.15.jar
-ghr 0.7.15 modules/scheduler/target/scala-2.12/etlflow-scheduler_2.12-0.7.15.jar
+ghr 0.7.16 modules/core/target/scala-2.12/etlflow-core_2.12-0.7.16.jar
+ghr 0.7.16 modules/scheduler/target/scala-2.12/etlflow-scheduler_2.12-0.7.16.jar

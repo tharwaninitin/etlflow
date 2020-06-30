@@ -43,6 +43,14 @@ lazy val core = (project in file("modules/core"))
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow",
+    test in assembly := {},
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+      case x => MergeStrategy.first
+    },
+    assemblyShadeRules in assembly := Seq(
+      ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll
+    ),
     Test / parallelExecution := false,
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )

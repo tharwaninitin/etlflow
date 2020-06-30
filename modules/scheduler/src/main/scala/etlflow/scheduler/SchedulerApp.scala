@@ -36,7 +36,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String)
   case class UserAuthTokens(token: String)
-  case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long)
+  case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
 
   val dc = new DoobieContext.Postgres(Literal)
   import dc._
@@ -53,7 +53,6 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
         dbCronJobs    <- updateCronJobsDB(transactor)
         _             <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
         _             <- Task(logger.info(s"Added/Updated jobs in database \n${dbCronJobs.mkString("\n")}"))
-        _             <- Task(logger.info(s"Starting CRON JOB SCHEDULING for \n${dbCronJobs.filter(_.schedule.isDefined).mkString("\n")}"))
         scheduledFork <- scheduledTask(dbCronJobs,transactor).fork
       } yield new EtlFlow.Service {
 
@@ -108,6 +107,20 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           //          job
         }
 
+        override def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] = {
+          val cronJobStringUpdate = quote {
+            querySchema[CronJobDB]("cronjob")
+              .filter(x => x.job_name == lift(args.name))
+              .update{
+                _.is_active -> lift(args.state)
+              }
+          }
+          dc.run(cronJobStringUpdate).transact(transactor).map(_ => args.state)
+          }.mapError { e =>
+          logger.error(e.getMessage)
+          ExecutionError(e.getMessage)
+        }
+
         override def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =  {
           val q = quote {
             query[UserInfo].filter(x => x.user_name == lift(args.user_name) && x.password == lift(args.password))
@@ -138,7 +151,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
         }
 
         override def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] = {
-          val cronJobDB = CronJobDB(args.job_name, args.schedule.toString,0,0)
+          val cronJobDB = CronJobDB(args.job_name, args.schedule.toString,0,0,true)
           val cronJobString = quote {
             querySchema[CronJobDB]("cronjob").insert(lift(cronJobDB))
           }
@@ -254,7 +267,8 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           x,
           UF.getEtlJobName[EJN](x,etl_job_name_package).getActualProperties(Map.empty).job_schedule,
           0,
-          0
+          0,
+          true
         )
       }
 
@@ -284,18 +298,26 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
         else
           List.empty
       }
-      val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval(
-          UIO(logger.info(s"Starting CRON JOB ${cj.job_name} with schedule ${cj.schedule.toString} at ${UF.getCurrentTimestampAsString()}")) *> {
-            val job_deploy_mode = UF.getEtlJobName[EJN](cj.job_name, etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
-            if (job_deploy_mode.equalsIgnoreCase("remote")) {
-              logger.info(s"Scheduled job ${cj.job_name} in remote mode ")
-              runEtlJobRemote(EtlJobArgs(cj.job_name,List.empty), transactor)
-            } else {
-              logger.info(s"Scheduled job ${cj.job_name} in local mode ")
-              runEtlJobLocal(EtlJobArgs(cj.job_name,List.empty), transactor)
-            }
-          }
-      ))))
+
+      val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval {
+        val job_deploy_mode = UF.getEtlJobName[EJN](cj.job_name, etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
+        if (job_deploy_mode.equalsIgnoreCase("remote")) {
+          logger.info(
+            s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
+            s"at ${UF.getCurrentTimestampAsString()} in remote mode "
+          )
+          runActiveEtlJobRemote(EtlJobArgs(cj.job_name, List.empty), transactor)
+        } else if (job_deploy_mode.equalsIgnoreCase("local")) {
+          logger.info(
+            s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
+            s"at ${UF.getCurrentTimestampAsString()} in local mode "
+          )
+          runActiveEtlJobLocal(EtlJobArgs(cj.job_name, List.empty), transactor)
+        } else {
+          logger.warn(s"Job not scheduled due to incorrect job_deploy_mode for job ${cj.job_name}, allowed values are local,remote")
+          ZIO.unit
+        }
+      })))
       cronSchedule.compile.drain
     }
 
@@ -306,7 +328,17 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     }
   }
 
-  final def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): Task[Long] = {
+  final def getCronJobFromDB(name: String, transactor: HikariTransactor[Task]): IO[ExecutionError, CronJobDB] = {
+    val cj = quote {
+      querySchema[CronJobDB]("cronjob")
+        .filter(x => x.job_name == lift(name))
+    }
+    dc.run(cj).transact(transactor).map(x => x.head)
+    }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+  final def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
     val cronJobStringUpdate = quote {
       querySchema[CronJobDB]("cronjob")
         .filter(x => x.job_name == lift(job))
@@ -319,7 +351,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
-  final def updateFailedJob(job: String, transactor: HikariTransactor[Task]): Task[Long] = {
+  final def updateFailedJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
     val cronJobStringUpdate = quote {
       querySchema[CronJobDB]("cronjob")
         .filter(x => x.job_name == lift(job))
@@ -332,6 +364,30 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       logger.error(e.getMessage)
       ExecutionError(e.getMessage)
   }
+  final def runActiveEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
+    for {
+      cj <- getCronJobFromDB(args.name,transactor)
+      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobRemote(args,transactor)
+            else UIO(
+                logger.info(
+                  s"Skipping inactive cron job ${cj.job_name} with schedule " +
+                  s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
+                )
+            )
+    } yield ()
+  }
+  final def runActiveEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
+    for {
+      cj <- getCronJobFromDB(args.name,transactor)
+      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobLocal(args,transactor) else UIO(
+                logger.info(
+                  s"Skipping inactive cron job ${cj.job_name} with schedule " +
+                  s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
+                )
+            )
+    } yield ()
+  }
+
 
   def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]

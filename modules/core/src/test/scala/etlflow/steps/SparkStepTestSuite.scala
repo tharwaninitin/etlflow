@@ -23,9 +23,6 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
   val input_path_parquet  = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet"
   val output_table        = "ratings"
-  val input_path_csv      = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_csv/*"
-  val output_path         = s"$canonical_path/modules/core/src/test/resources/output/movies/ratings"
-  val partition_date_col  = "date_int"
 
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",

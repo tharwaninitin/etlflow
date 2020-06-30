@@ -41,7 +41,6 @@ trait SparkManager  {
               .config("spark.hadoop.fs.s3a.secret.key", ss.aws_secret_key)
               .enableHiveSupport()
               .getOrCreate()
-            spark.conf.set("credentialsFile", ss.gcp_credential_file_path)
             showSparkProperties(spark)
             spark
           }

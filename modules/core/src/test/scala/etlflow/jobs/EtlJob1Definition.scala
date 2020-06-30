@@ -10,7 +10,8 @@ import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 
-case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Option[GlobalProperties]) extends SequentialEtlJobWithLogging with SparkUDF {
+case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Option[GlobalProperties])
+  extends SequentialEtlJobWithLogging with SparkUDF {
 
   val partition_date_col  = "date_int"
 
@@ -76,7 +77,7 @@ case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Op
     global_properties    = global_properties
   )
 
-  val step23 = SparkReadTransformWriteStep[Rating, RatingOutput](
+  val step3 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                      = "LoadRatingsCsvToJson",
     input_location            = Seq(job_properties.ratings_intermediate_bucket),
     input_type                = CSV(),
@@ -90,7 +91,7 @@ case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Op
     global_properties         = global_properties
   )
 
-  val parstep = ParallelETLStep(step21,step22,step23)
+  val parstep = ParallelETLStep("ParallelStep")(step21,step22)
 
-  val etlStepList: List[EtlStep[Unit, Unit]] = EtlStepList(step1,parstep)
+  val etlStepList: List[EtlStep[Unit, Unit]] = EtlStepList(step1,parstep,step3)
 }

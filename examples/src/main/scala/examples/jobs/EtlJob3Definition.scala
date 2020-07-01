@@ -63,7 +63,7 @@ case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: O
     output_table   = job_props.ratings_output_table_name
   )
 
-  def job(implicit resource: LoggerResource): Task[Unit] = for {
+  val job = for {
     - <- step1.execute(spark)
     _ <- step2.execute()
    } yield ()

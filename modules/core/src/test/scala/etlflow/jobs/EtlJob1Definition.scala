@@ -1,6 +1,6 @@
 package etlflow.jobs
 
-import etlflow.EtlStepList
+import etlflow.{EtlJobProps, EtlStepList}
 import etlflow.Schema.{EtlJob1Props, Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.etljobs.SequentialEtlJobWithLogging
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
@@ -10,17 +10,17 @@ import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 
-case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Option[GlobalProperties])
+case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties])
   extends SequentialEtlJobWithLogging with SparkUDF {
-
+  val job_props: EtlJob1Props = job_properties.asInstanceOf[EtlJob1Props]
   val partition_date_col  = "date_int"
 
   val step1 = SparkReadWriteStep[RatingBQ](
     name                      = "LoadRatingsBQtoCSV",
-    input_location            = Seq(job_properties.ratings_input_dataset + "." + job_properties.ratings_input_table_name),
+    input_location            = Seq(job_props.ratings_input_dataset + "." + job_props.ratings_input_table_name),
     input_type                = BQ,
     output_type               = CSV(),
-    output_location           = job_properties.ratings_intermediate_bucket,
+    output_location           = job_props.ratings_intermediate_bucket,
     output_save_mode          = SaveMode.Overwrite,
     output_repartitioning     = true,
     output_repartitioning_num = 3,
@@ -42,15 +42,15 @@ case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Op
 
   val step21 = SparkReadTransformWriteStep[Rating, RatingOutputCsv](
     name                      = "LoadRatingsCsvToCsv",
-    input_location            = Seq(job_properties.ratings_intermediate_bucket),
+    input_location            = Seq(job_props.ratings_intermediate_bucket),
     input_type                = CSV(),
     transform_function        = enrichRatingCsvData,
     output_type               = CSV(),
-    output_location           = job_properties.ratings_output_bucket_1,
+    output_location           = job_props.ratings_output_bucket_1,
     output_save_mode          = SaveMode.Overwrite,
     output_repartitioning     = true,
     output_repartitioning_num = 1,
-    output_filename           = job_properties.ratings_output_file_name,
+    output_filename           = job_props.ratings_output_file_name,
     global_properties         = global_properties
   )
 
@@ -67,11 +67,11 @@ case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Op
 
   val step22 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                 = "LoadRatingsCsvToParquet",
-    input_location       = Seq(job_properties.ratings_intermediate_bucket),
+    input_location       = Seq(job_props.ratings_intermediate_bucket),
     input_type           = CSV(),
     transform_function   = enrichRatingData,
     output_type          = PARQUET,
-    output_location      = job_properties.ratings_output_bucket_2,
+    output_location      = job_props.ratings_output_bucket_2,
     output_save_mode     = SaveMode.Overwrite,
     output_partition_col = Seq(s"$partition_date_col"),
     global_properties    = global_properties
@@ -79,11 +79,11 @@ case class EtlJob1Definition(job_properties: EtlJob1Props, global_properties: Op
 
   val step3 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                      = "LoadRatingsCsvToJson",
-    input_location            = Seq(job_properties.ratings_intermediate_bucket),
+    input_location            = Seq(job_props.ratings_intermediate_bucket),
     input_type                = CSV(),
     transform_function        = enrichRatingData,
     output_type               = JSON(),
-    output_location           = job_properties.ratings_output_bucket_3,
+    output_location           = job_props.ratings_output_bucket_3,
     output_save_mode          = SaveMode.Overwrite,
     output_partition_col      = Seq(s"$partition_date_col"),
     output_repartitioning     = true,

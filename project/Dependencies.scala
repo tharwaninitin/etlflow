@@ -21,10 +21,14 @@ object Dependencies {
   val HadoopS3Version = "2.10.0"
   val PgVersion = "42.2.8"
 
+  val redisVesrion = "3.30"
+  val scalajHttpVesrion = "2.4.2"
+  val mailVersion = "1.6.2"
+
   lazy val googleCloudLibs = List(
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
-    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
+    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion
   )
 
   lazy val awsLibs = List(
@@ -32,7 +36,21 @@ object Dependencies {
   )
 
   lazy val sparkLibs = List(
-    "org.apache.spark" %% "spark-sql" % SparkVersion,
+    "org.apache.spark" %% "spark-sql" % SparkVersion
+  )
+
+  lazy val redis = List(
+    "net.debasishg" %% "redisclient" % redisVesrion
+  )
+
+  lazy val scalajHttp = List(
+    "org.scalaj" %% "scalaj-http" % scalajHttpVesrion
+  )
+
+  lazy val mail = List(
+    "javax.mail" % "javax.mail-api" % mailVersion,
+    "com.sun.mail" % "javax.mail"   % mailVersion
+
   )
 
   lazy val dbLibs = List(
@@ -41,12 +59,12 @@ object Dependencies {
     "org.tpolecat" %% "doobie-h2"       % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
     "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
-    "org.flywaydb" % "flyway-core"      % FlywayVersion,
+    "org.flywaydb" % "flyway-core"      % FlywayVersion
   )
 
   lazy val zioLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion,
+    "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion
   )
 
   lazy val miscLibs = List(
@@ -56,7 +74,7 @@ object Dependencies {
   lazy val caliban = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
-    "eu.timepit" %% "fs2-cron-core" % "0.2.2",
+    "eu.timepit" %% "fs2-cron-core" % "0.2.2"
   )
 
   lazy val jwt = List(
@@ -65,7 +83,7 @@ object Dependencies {
 
   lazy val testLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
-    "org.testcontainers" % "postgresql" % TestContainerVersion,
+    "org.testcontainers" % "postgresql" % TestContainerVersion
     "dev.zio" %% "zio-test"     % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
@@ -73,6 +91,6 @@ object Dependencies {
     "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
     "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
-    "org.postgresql" % "postgresql" % PgVersion,
+    "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
 }

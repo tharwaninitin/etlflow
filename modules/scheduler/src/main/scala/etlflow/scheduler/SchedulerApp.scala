@@ -366,6 +366,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   }
   final def runActiveEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
     for {
+      _  <- UIO(logger.info(s"Checking if job  ${args.name} is active/incative at ${UF.getCurrentTimestampAsString()}"))
       cj <- getCronJobFromDB(args.name,transactor)
       _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobRemote(args,transactor)
             else UIO(
@@ -378,6 +379,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   }
   final def runActiveEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
     for {
+      _  <- UIO(logger.info(s"Checking if job  ${args.name} is active/incative at ${UF.getCurrentTimestampAsString()}"))
       cj <- getCronJobFromDB(args.name,transactor)
       _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobLocal(args,transactor) else UIO(
                 logger.info(

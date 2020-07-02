@@ -7,7 +7,7 @@ lazy val coreSettings = Seq(
   name := "etlflow-core",
   organization := "com.github.tharwaninitin",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ dbLibs ++ miscLibs ++ awsLibs ++ testLibs,
+  libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ dbLibs ++ miscLibs ++ awsLibs ++ testLibs ++ redis ++ scalajHttp ++ mail   ,
   excludeDependencies ++= Seq(
     "org.slf4j" % "slf4j-log4j12",
     //"log4j" % "log4j"

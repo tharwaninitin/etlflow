@@ -20,12 +20,18 @@ package object utils {
   final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
     override def toString: String = s"JDBC with url => $url"
   }
-  final case class REDIS(url: String, user: String, password: String, port: String) extends IOType {
+  final case class REDIS(url: String, user: String, password: String, port: Int) extends IOType {
     override def toString: String = s"REDIS with url $url and port $port"
   }
   final case class JSON(multi_line: Boolean = false) extends IOType {
     override def toString: String = s"Json with multiline  => $multi_line"
   }
+
+  final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") extends IOType {
+    override def toString: String = s"SMTP with host  => $host and user => $user"
+  }
+
+
   case object BQ extends IOType
   case object PARQUET extends IOType
   case object ORC extends IOType

@@ -1,10 +1,10 @@
-package etlflow.scheduler
+package etlflow.scheduler.api
 
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
 import etlflow.jdbc.DbManager
-import etlflow.scheduler.EtlFlowHelper.EtlFlowHas
+import etlflow.scheduler.api.EtlFlowHelper.EtlFlowHas
 import etlflow.utils.JDBC
 import etlflow.{BuildInfo => BI}
 import org.http4s.{HttpRoutes, StaticFile}
@@ -51,7 +51,6 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
                                     "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                                     "/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/client.js", blocker, None)),
                                     "/api/etlflow"    -> CORS(Http4sAdapter.makeHttpService(etlFlowInterpreter)),
-                                    //"/ws/etlflow"     -> CORS(Http4sAdapter.makeWebSocketService(etlFlowInterpreter)),
                                     "/ws/etlflow"     -> CORS(new EtlFlowStreams[EtlFlowTask].streamRoutes),
                                   ).orNotFound
                                 ).resource

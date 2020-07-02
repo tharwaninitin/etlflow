@@ -8,7 +8,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
 
-class DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()

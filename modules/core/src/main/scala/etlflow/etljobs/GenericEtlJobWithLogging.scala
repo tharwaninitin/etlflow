@@ -9,7 +9,7 @@ import zio.{Task, UIO, ZIO, ZManaged}
 
 trait GenericEtlJobWithLogging extends EtlJob with DbManager {
 
-  def job(implicit resource: LoggerResource): Task[Unit]
+  val job: ZIO[LoggerResource, Throwable, Unit]
   def printJobInfo(level: String = "info"): Unit = {}
   def getJobInfo(level: String = "info"): List[(String,Map[String,String])] = List.empty
 
@@ -19,7 +19,7 @@ trait GenericEtlJobWithLogging extends EtlJob with DbManager {
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
       resource        <- logger_resource
       _               <- (job_status_ref.set("started") *> logJobInit(resource)).toManaged_
-      _               <- job(resource).foldM(
+      _               <- job.provide(resource).foldM(
                             ex => job_status_ref.set("failed") *> logJobError(ex,job_start_time)(resource),
                             _  => job_status_ref.set("success") *> logJobSuccess(job_start_time)(resource)
                           ).toManaged_
@@ -38,7 +38,7 @@ trait GenericEtlJobWithLogging extends EtlJob with DbManager {
   private[etljobs] def logJobError(e: Throwable, job_start_time: Long)(res: LoggerResource): Task[Unit] = {
     if (res.slack.isDefined) res.slack.get.updateJobInformation("failed")
     etl_job_logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(job_start_time, UF.getCurrentTimestamp)}")
-    if (res.db.isDefined) res.db.get.updateJobInformation("failed").as(()) *> Task.fail(e) else Task.fail(e)
+    if (res.db.isDefined) res.db.get.updateJobInformation("failed",error_message = Some(e.getMessage)).as(()) *> Task.fail(e) else Task.fail(e)
   }
 
   private[etljobs] def logJobSuccess(job_start_time: Long)(res: LoggerResource): Task[Unit] = {

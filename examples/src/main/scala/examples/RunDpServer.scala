@@ -4,7 +4,7 @@ import etlflow.scheduler.DataprocSchedulerApp
 import examples.schema.{MyEtlJobName, MyEtlJobProps}
 import scala.util.Try
 
-object RunServer extends DataprocSchedulerApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, MyGlobalProperties] {
+object RunDpServer extends DataprocSchedulerApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, MyGlobalProperties] {
 
   override def globalProperties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(sys.env.getOrElse("PROPERTIES_FILE_PATH","loaddata.properties"))).toOption
 

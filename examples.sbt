@@ -1,4 +1,9 @@
 import NativePackagerHelper._
+import Dependencies._
+
+val EtlFlowVersion = "0.7.16"
+
+lazy val loggerTask = TaskKey[Unit]("loggerTask")
 
 lazy val examples = (project in file("examples"))
   .enablePlugins(JavaAppPackaging)
@@ -8,12 +13,31 @@ lazy val examples = (project in file("examples"))
     organization := "com.github.tharwaninitin",
     scalaVersion := "2.12.10",
     libraryDependencies ++= List(
-        "com.github.tharwaninitin" %% "etlflow-core" % "0.7.14",
-        "com.github.tharwaninitin" %% "etlflow-scheduler" % "0.7.14",
+        "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
+        "com.github.tharwaninitin" %% "etlflow-scheduler" % EtlFlowVersion,
+        "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
+        "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
+        "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
+        "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
+        "ch.qos.logback" % "logback-classic" % LogbackVersion,
+        "org.postgresql" % "postgresql" % PgVersion,
+    ),
+    loggerTask := {
+        val logger = org.slf4j.LoggerFactory.getLogger("sbt")
+        println(logger.getClass.getName)
+    },
+    dependencyOverrides ++= {
+        Seq(
+            "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
+            "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
+        )
+    },
+    excludeDependencies ++= Seq(
+        "org.slf4j" % "slf4j-log4j12",
+        //"log4j" % "log4j"
     ),
     packageName in Docker := "etlflow",
-    // mainClass in Compile := Some("examples.LoadData"),
-    mainClass in Compile := Some("examples.RunServer"),
+    mainClass in Compile := Some("examples.RunCustomServer"),
     dockerBaseImage := "openjdk:jre",
     dockerExposedPorts ++= Seq(8080),
     maintainer := "tharwaninitin182@gmail.com",

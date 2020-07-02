@@ -2,7 +2,7 @@ package etlflow.scheduler
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
-import etlflow.scheduler.EtlFlowHelper._
+import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
@@ -14,7 +14,7 @@ abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJob
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 
-  final override def runEtlJob(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
+  final override def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
 
     val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
@@ -22,7 +22,10 @@ abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJob
       val etl_job       = toEtlJob(job_name)(job_name.getActualProperties(props_map),globalProperties)
       etl_job.job_name  = job_name.toString
       (job_name,etl_job,props_map)
-    }.mapError(e => ExecutionError(e.getMessage))
+    }.mapError{e =>
+      logger.error(e.getMessage)
+      ExecutionError(e.getMessage)
+    }
 
     for {
       (job_name,etl_job,props_map) <- etlJobDetails
@@ -39,4 +42,8 @@ abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJob
                             ).forkDaemon
     } yield EtlJob(args.name,execution_props)
   }
+
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = Task(
+   throw new NotImplementedError("Remote job is not available for local scheduler. Please run job in local mode")
+  )
 }

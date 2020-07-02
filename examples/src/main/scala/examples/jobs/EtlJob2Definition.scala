@@ -31,7 +31,7 @@ case class EtlJob2Definition(job_properties: MyEtlJobProps, global_properties: O
     ratings_df.as[RatingOutput](mapping)
   }
 
-  def addFilePaths(job_properties: EtlJob23Props)(spark: SparkSession)(): Unit = {
+  def addFilePaths(job_properties: EtlJob23Props)(spark: SparkSession, ip: Unit): Unit = {
     import spark.implicits._
 
     output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(gcs_output_path),PARQUET)(spark)
@@ -58,12 +58,13 @@ case class EtlJob2Definition(job_properties: MyEtlJobProps, global_properties: O
     output_repartitioning = true  // Setting this to true takes care of creating one file for every partition
   )
 
-  private val step2 = new SparkETLStep(
+  private val step2 = SparkETLStep(
     name               = "GenerateFilePaths",
     transform_function = addFilePaths(job_props)
-  ) {
-    override def getStepProperties(level: String) : Map[String,String] = Map("paths" -> output_date_paths.mkString(","))
-  }
+  )
+//  {
+//    override def getStepProperties(level: String) : Map[String,String] = Map("paths" -> output_date_paths.mkString(","))
+//  }
 
   private val step3 = BQLoadStep(
     name              = "LoadRatingBQ",
@@ -73,5 +74,5 @@ case class EtlJob2Definition(job_properties: MyEtlJobProps, global_properties: O
     output_table      = job_props.ratings_output_table_name
   )
 
-  val etlStepList: List[EtlStep[_,_]] = EtlStepList(step1,step2,step3)
+  val etlStepList = EtlStepList(step1,step2,step3)
 }

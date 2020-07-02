@@ -47,5 +47,5 @@ case class EtlJob4Definition(job_properties: MyEtlJobProps, global_properties: O
     output_table   = "ratings_grouped_par"
   )
 
-  val etlStepList: List[EtlStep[_,_]] = EtlStepList(step1,step2)
+  val etlStepList = EtlStepList(step1,step2)
 }

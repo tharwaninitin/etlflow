@@ -43,5 +43,5 @@ case class EtlJob6Definition(job_properties: MyEtlJobProps, global_properties: O
     credentials = JDBC(global_props.log_db_url, global_props.log_db_user, global_props.log_db_pwd, global_props.jdbc_driver)
   )
 
-  val etlStepList: List[EtlStep[_,_]] = EtlStepList(step1,step2,step3,step4)
+  val etlStepList = EtlStepList(step1,step2,step3,step4)
 }

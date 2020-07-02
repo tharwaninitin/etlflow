@@ -16,5 +16,5 @@ trait LogManager[A] {
                                   error_message: Option[String] = None,
                                   mode: String = "update"
                                 ): A
-  def updateJobInformation(status: String, mode: String = "update"): A
+  def updateJobInformation(status: String, mode: String = "update", error_message: Option[String] = None): A
 }

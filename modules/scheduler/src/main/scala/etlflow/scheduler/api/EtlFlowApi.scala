@@ -1,13 +1,13 @@
-package etlflow.scheduler
+package etlflow.scheduler.api
 
 import caliban.CalibanError.ExecutionError
 import caliban.GraphQL.graphQL
 import caliban.Value.StringValue
-import caliban.schema._
+import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
-import cron4s._
+import cron4s.{Cron, CronExpr}
 import etlflow.log.JobRun
-import etlflow.scheduler.EtlFlowHelper._
+import etlflow.scheduler.api.EtlFlowHelper._
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -24,8 +24,6 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
   }
 
   case class Queries(
-                      etljobs: ZIO[EtlFlowHas, Throwable, List[EtlJob]],
-                      cronjobs: ZIO[EtlFlowHas, Throwable, List[CronJob]],
                       jobs: ZIO[EtlFlowHas, Throwable, List[Job]],
                       jobruns: DbJobRunArgs => ZIO[EtlFlowHas, Throwable, List[JobRun]],
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
@@ -33,6 +31,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
 
   case class Mutations(
                         run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
+                        update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth]
@@ -47,14 +46,13 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
     graphQL(
       RootResolver(
         Queries(
-          getEtlJobs,
-          getCronJobs,
           getJobs,
           args => getDbJobRuns(args),
           getInfo,
         ),
         Mutations(
           args => runJob(args),
+          args => updateJobState(args),
           args => addCronJob(args),
           args => updateCronJob(args),
           args => login(args)

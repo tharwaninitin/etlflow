@@ -3,7 +3,7 @@ package etlflow.jobs
 import etlflow.{EtlJobProps, LoggerResource}
 import etlflow.Schema.{EtlJob2Props, Rating}
 import etlflow.etljobs.GenericEtlJobWithLogging
-import etlflow.etlsteps.{GenericETLStep, SparkETLStep, SparkReadWriteStep}
+import etlflow.etlsteps.{GenericETLStep, HttpStep, SparkETLStep, SparkReadWriteStep}
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
 import etlflow.utils.{GlobalProperties, PARQUET}
 import org.apache.spark.sql.functions.{col, from_unixtime}
@@ -51,9 +51,16 @@ case class EtlJob2Definition(job_properties: EtlJobProps, global_properties: Opt
     transform_function = processData,
   )
 
+  val step4 = HttpStep(
+    name = "HttpTest",
+    http_method = "get",
+    url = "https://httpbin.org/get"
+  )
+
   val job: ZIO[LoggerResource, Throwable, Unit] =
     for {
       _   <- step1.execute()
+      _   <- step4.execute()
       op2 <- step2.execute()
       _   <- step3.execute(op2)
     } yield ()

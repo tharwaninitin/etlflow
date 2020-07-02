@@ -83,7 +83,7 @@ object Dependencies {
 
   lazy val testLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
-    "org.testcontainers" % "postgresql" % TestContainerVersion
+    "org.testcontainers" % "postgresql" % TestContainerVersion,
     "dev.zio" %% "zio-test"     % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,

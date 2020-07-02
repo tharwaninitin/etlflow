@@ -3,6 +3,7 @@ EtlFlow
 
 ![Tests](https://github.com/tharwaninitin/etlflow/workflows/Tests/badge.svg)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftharwaninitin%2Fetlflow.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftharwaninitin%2Fetlflow?ref=badge_shield)
 
 **EtlFlow** is a Functional library in Scala for writing ETL jobs.
 
@@ -57,3 +58,7 @@ libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftharwaninitin%2Fetlflow.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftharwaninitin%2Fetlflow?ref=badge_large)

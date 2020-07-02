@@ -1,38 +1,79 @@
 package etlflow.etlsteps
 
 import etlflow.utils.HttpClientApi
-import zio.Task
+import zio.{Task, ZIO}
+import scalaj.http._
 
-class HttpStep(
-                    val name: String,
-                    val http_method:String,
-                    val url: String,
-                    val jsonBody: Option[String] = None,
-                    val headers: Map[String,String] = Map("content-type"->"application/json")
-                  )
-  extends EtlStep[Unit,Unit] {
+sealed trait HttpMethod
+
+object HttpMethod {
+  case object GET extends HttpMethod
+  case object POST extends HttpMethod
+}
+
+case class HttpStep(
+      name: String,
+      url: String,
+      http_method: HttpMethod,
+      params: Either[String, Seq[(String,String)]] = Left(""),
+      headers: Map[String,String] = Map.empty,
+      log_response: Boolean = false
+    )
+  extends EtlStep[Unit, Unit] {
 
   final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)
-    etl_logger.info(s"Starting HttpPostStep Query Step: $name")
-    etl_logger.info(s"URL : $url")
+    etl_logger.info(s"Starting HttpStep: $name")
+    etl_logger.info(s"URL: $url")
 
-    if(http_method=="post") {
-      etl_logger.info(s"HTTP Method : " + http_method)
-      Task(HttpClientApi.post(url, jsonBody,headers))
-    }
-    else {
-      etl_logger.info(s"HTTP Method : " + http_method)
-      Task(HttpClientApi.get(url,headers))
+    http_method match {
+      case HttpMethod.POST =>
+        HttpClientApi.postUnit(url, params, headers, log_response)
+      case HttpMethod.GET =>
+        params match {
+          case Left(value) => HttpClientApi.getUnit(url, Nil, headers, log_response)
+          case Right(value) => HttpClientApi.getUnit(url, value, headers, log_response)
+        }
     }
   }
 
-  override def getStepProperties(level: String): Map[String, String] = Map("Url" -> url,"Http Method" -> http_method)
+  override def getStepProperties(level: String): Map[String, String] =
+    Map(
+      "url" -> url,
+      "http_method" -> http_method.toString
+    )
 }
 
-object HttpStep {
-  def apply(name: String,http_method:String,url: String,jsonBody: Option[String] = None,headers:Map[String,String] = Map("content-type"->"application/json")): HttpStep =
-    new HttpStep(name,http_method,url,jsonBody,headers)
-}
+case class HttpResponseStep(
+      name: String,
+      url: String,
+      http_method: HttpMethod,
+      params: Either[String, Seq[(String,String)]] = Left(""),
+      headers: Map[String,String] = Map.empty,
+      log_response: Boolean = false
+    )
+  extends EtlStep[Unit, HttpResponse[String]] {
 
+  final def process(in: =>Unit): Task[HttpResponse[String]] = {
+    etl_logger.info("#"*100)
+    etl_logger.info(s"Starting HttpResponseStep: $name")
+    etl_logger.info(s"URL: $url")
+
+    http_method match {
+      case HttpMethod.POST =>
+        HttpClientApi.post(url, params, headers, log_response)
+      case HttpMethod.GET =>
+        params match {
+          case Left(value) => HttpClientApi.get(url, Nil, headers, log_response)
+          case Right(value) => HttpClientApi.get(url, value, headers, log_response)
+        }
+    }
+  }
+
+  override def getStepProperties(level: String): Map[String, String] =
+    Map(
+      "url" -> url,
+      "http_method" -> http_method.toString
+    )
+}
 

@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.utils.JDBC
+import etlflow.utils.{JDBC, SMTP}
 
 object Schema {
   case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long)
@@ -25,7 +25,8 @@ object Schema {
   case class EtlJob2Props (
     ratings_input_path: List[String] = List(input_file_path),
     ratings_output_table_name: String = "ratings",
-    ratings_output_type: JDBC
+    ratings_output_type: JDBC,
+    smtp_creds: SMTP
   ) extends EtlJobProps
 }
 

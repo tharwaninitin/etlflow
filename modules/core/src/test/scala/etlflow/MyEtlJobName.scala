@@ -1,7 +1,7 @@
 package etlflow
 
 import Schema._
-import etlflow.utils.JDBC
+import etlflow.utils.{JDBC, SMTP}
 
 sealed trait MyEtlJobName[+EJP] extends EtlJobName[EJP]
 
@@ -16,6 +16,12 @@ object MyEtlJobName {
         job_properties("user"),
         job_properties("pass"),
         "org.postgresql.Driver"
+      ),
+      smtp_creds = SMTP(
+        sys.env.getOrElse("SMTP_PORT","587"),
+        sys.env.getOrElse("SMTP_HOST","..."),
+        sys.env.getOrElse("SMTP_USER","..."),
+        sys.env.getOrElse("SMTP_PASS","..."),
       )
     )
   }

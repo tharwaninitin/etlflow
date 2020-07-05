@@ -1,28 +1,32 @@
 version: '3.4'
 services:
-        postgres:
-                image: 'postgres:9.6'
-                deploy:
-                        resources:
-                                limits:
-                                        memory: 512M
-                environment:
-                        - POSTGRES_USER=etlflow
-                        - POSTGRES_PASSWORD=etlflow
-                        - POSTGRES_DB=etlflow
-                ports:
-                        - '5432:5432'
-        job:
-                image: 'etlflow'
-                restart: always
-                depends_on:
-                        - postgres
-                environment:
-                        PROPERTIES_FILE_PATH: /opt/docker/conf/loaddata.properties
-                        GOOGLE_APPLICATION_CREDENTIALS: /opt/docker/conf/cred.json
-                        LOG_DB_URL: 'jdbc:postgresql://postgres:5432/etlflow'
-                        LOG_DB_USER: etlflow
-                        LOG_DB_PWD: etlflow
-                        LOG_DB_DRIVER: org.postgresql.Driver
-                ports:
-                        - '8080:8080'
+  postgres:
+    image: 'postgres:9.6'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+    - POSTGRES_USER=etlflow
+    - POSTGRES_PASSWORD=etlflow
+    - POSTGRES_DB=etlflow
+    ports:
+    - '5432:5432'
+  webserver:
+    image: 'etlflow:0.7.16'
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    restart: always
+    depends_on:
+     - postgres
+    environment:
+        PROPERTIES_FILE_PATH: /opt/docker/conf/loaddata.properties
+        GOOGLE_APPLICATION_CREDENTIALS: /opt/docker/conf/cred.json
+        LOG_DB_URL: 'jdbc:postgresql://postgres:5432/etlflow'
+        LOG_DB_USER: etlflow
+        LOG_DB_PWD: etlflow
+        LOG_DB_DRIVER: org.postgresql.Driver
+    ports:
+    - '8080:8080'

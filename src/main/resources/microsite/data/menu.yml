@@ -1,19 +1,19 @@
 options:
 
   - title: Introduction
-    url: docs/introduction.html
-
-  - title: Getting started
     url: docs/index.html
 
-  - title: Installation
-    url: docs/installation.html
+  - title: Quick Start
+    url: docs/quickstart.html
+
+  - title: Usage Guide
+    url: docs/usage.html
 
     nested_options:
-      - title: Core Installation
-        url: docs/deployment.html
-      - title: Scheduler Installation
-        url: docs/dockerdeployment.html
+      - title: GCP Dataproc (core) 
+        url: docs/gcpdp.html
+      - title: Local Docker (scheduler) 
+        url: docs/localdocker.html
 
   - title: Steps
     url: docs/steps.html

@@ -1,0 +1,123 @@
+<!DOCTYPE html><html><head><title>EtlFlow: Scheduler Installation</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="com.github.tharwaninitin" /><meta name="description" content="Functional library in Scala for writing ETL jobs" /><meta name="og:image" content="/etlflow/site/img/poster.png" /><meta name="image" property="og:image" content="/etlflow/site/img/poster.png" /><meta name="og:title" content="EtlFlow: Scheduler Installation" /><meta name="title" property="og:title" content="EtlFlow: Scheduler Installation" /><meta name="og:site_name" content="EtlFlow" /><meta name="og:url" content="" /><meta name="og:type" content="website" /><meta name="og:description" content="Functional library in Scala for writing ETL jobs" /><link rel="icon" type="image/png" href="/etlflow/site/img/favicon.png" /><meta name="twitter:title" content="EtlFlow: Scheduler Installation" /><meta name="twitter:image" content="https://tharwaninitin.github.io/etlflow/site//etlflow/site/img/poster.png" /><meta name="twitter:description" content="Functional library in Scala for writing ETL jobs" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/etlflow/site/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/etlflow/site/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/etlflow/site/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/etlflow/site/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/etlflow/site/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/etlflow/site/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/etlflow/site/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/etlflow/site/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/etlflow/site/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/etlflow/site/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/etlflow/site/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/etlflow/site/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/etlflow/site/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/etlflow/site/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/etlflow/site/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/etlflow/site/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/etlflow/site/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/etlflow/site/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/etlflow/site/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/etlflow/site/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/etlflow/site/highlight/styles/vs.css" /><link rel="stylesheet" href="/etlflow/site/css/pattern-style.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/etlflow/site/" class="brand"><div class="brand-wrapper"><span>EtlFlow</span></div></a></li> <li><a href="/etlflow/site/docs/index.html" class="">Introduction</a></li> <li><a href="/etlflow/site/docs/quickstart.html" class="">Quick Start</a></li> <li><a href="/etlflow/site/docs/usage.html" class="">Usage Guide</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/gcpdp.html" class="">GCP Dataproc (core)</a></li> <li><a href="/etlflow/site/docs/localdocker.html" class="">Local Docker (scheduler)</a></li></ul></li> <li><a href="/etlflow/site/docs/steps.html" class="">Steps</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/spark.html" class="">Spark</a></li> <li><a href="/etlflow/site/docs/bigquery.html" class="">BigQuery</a></li> <li><a href="/etlflow/site/docs/gcs.html" class="">GCS</a></li> <li><a href="/etlflow/site/docs/s3.html" class="">S3</a></li> <li><a href="/etlflow/site/docs/jdbc.html" class="">JDBC</a></li> <li><a href="/etlflow/site/docs/http.html" class="">HTTP</a></li> <li><a href="/etlflow/site/docs/redisquery.html" class="">Redis</a></li> <li><a href="/etlflow/site/docs/sendmail.html" class="">Send Mail</a></li></ul></li> <li><a href="/etlflow/site/docs/job.html" class="">Job</a></li> <li><a href="/etlflow/site/docs/sensors.html" class="">Sensors</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/gcssensor.html" class="">GCS Sensor</a></li> <li><a href="/etlflow/site/docs/s3sensor.html" class="">S3 Sensor</a></li> <li><a href="/etlflow/site/docs/jdbcsensor.html" class="">JDBC Sensor</a></li></ul></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/tharwaninitin/etlflow" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/tharwaninitin/etlflow" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('EtlFlow Functional library in Scala for writing ETL jobs');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('EtlFlow Functional library in Scala for writing ETL jobs');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="tharwaninitin" data-github-repo="etlflow"><div class="content-wrapper"><section><h2 id="using-etlflow-scheduler-library-on-local-environment-with-docker-compose">Using Etlflow scheduler library on local environment with Docker Compose</h2>
+
+<h3 id="prerequisite">Prerequisite</h3>
+<ul>
+  <li>Your system should have <a href="https://docs.docker.com/get-docker/">Docker</a> installed.</li>
+  <li>You should have GCP service account access with appropriate permissions for GCS, BigQuery, Submitting jobs on Dataproc etc.</li>
+</ul>
+
+<h3 id="step-1-building-docker-image-for-examples-project">STEP 1) Building docker image for examples project.</h3>
+<ul>
+  <li>
+    <p>Update the file <strong>examples/src/main/conf/loaddata.properties</strong> with below content :</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gcp_project = &lt;PROJECT-NAME&gt;
+  running_environment = local
+  gcs_output_bucket = &lt;BUCKET-NAME&gt;
+  log_db_url=&lt;log_db_url&gt;
+  log_db_user=&lt;log_db_user&gt;
+  log_db_pwd=&lt;log_db_pwd&gt;
+  log_db_driver=org.postgresql.Driver
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Copy GCP service account json file at location <strong>examples/src/main/conf</strong> with name <strong>cred.json</strong></p>
+  </li>
+  <li>
+    <p>To build docker image we have to run below commands.</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   &gt; sbt
+   &gt; project examples
+   &gt; docker:publishLocal
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h3 id="step-2-now-we-have-successfully-built-an-image-lets-run-this-image-with-help-of-docker-compose-file">STEP 2) Now we have successfully built an image. Let’s run this image with help of docker-compose file.</h3>
+
+<p>Below Docker compose file file contains the two services :</p>
+<ul>
+  <li>postgres Service: Required to log information in postgres db.</li>
+  <li>
+    <p>webserver Service: Scheduler and webserver for running etljobs based on cron.</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>version: '3.4'
+services:
+  postgres:
+    image: 'postgres:9.6'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+    - POSTGRES_USER=etlflow
+    - POSTGRES_PASSWORD=etlflow
+    - POSTGRES_DB=etlflow
+    ports:
+    - '5432:5432'
+  webserver:
+    image: 'etlflow:0.7.16'
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    restart: always
+    depends_on:
+    - postgres
+    environment:
+        PROPERTIES_FILE_PATH: /opt/docker/conf/loaddata.properties
+        GOOGLE_APPLICATION_CREDENTIALS: /opt/docker/conf/cred.json
+        LOG_DB_URL: 'jdbc:postgresql://postgres:5432/etlflow'
+        LOG_DB_USER: etlflow
+        LOG_DB_PWD: etlflow
+        LOG_DB_DRIVER: org.postgresql.Driver
+    ports:
+    - '8080:8080'
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Use below commands to run/stop containers defined by docker-compose file:</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker-compose --compatibility config (To check config)
+docker-compose --compatibility up -d (To start the service in background)
+docker-compose --compatibility down  (To stop the service)
+docker logs etlflow_webserver_1 (To check the deployed container logs)
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h2 id="note">Note</h2>
+<ul>
+  <li>
+    <p>Below are the settings for docker configuration in examples.sbt:</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>packageName in Docker := "etlflow",
+mainClass in Compile := Some("examples.RunCustomServer"),
+dockerBaseImage := "openjdk:jre",
+dockerExposedPorts ++= Seq(8080),
+mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
+mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json")
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Here you can see we are copying the loaddata.properties file and cred.json file inside docker image.</p>
+  </li>
+</ul>
+</section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
+// For all code blocks, copy the language from the containing div
+// to the inner code tag (where hljs expects it to be)
+const langPrefix = 'language-';
+document.querySelectorAll(`div[class^='${langPrefix}']`).forEach(function(div) {
+  div.classList.forEach(function(cssClass) {
+    if (cssClass.startsWith(langPrefix)) {
+      const lang = cssClass.substring(langPrefix.length);
+      div.querySelectorAll('pre code').forEach(function(code) {
+        code.classList.add(lang);
+      });
+    }
+  });
+});
+
+hljs.configure({languages:['scala','java','bash']});
+hljs.initHighlightingOnLoad();
+      </script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/etlflow/site/js/main.js"></script></body></html>

@@ -15,7 +15,6 @@ object MyEtlJobProps {
                             override val job_deploy_mode: String = "local"
                           ) extends MyEtlJobProps
   case class EtlJob23Props (
-                            override val job_properties: Map[String,String],
                             ratings_input_path: String = "",
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = ""

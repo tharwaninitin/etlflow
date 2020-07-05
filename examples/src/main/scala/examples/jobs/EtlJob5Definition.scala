@@ -4,13 +4,15 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, SparkReadWriteStep}
 import etlflow.utils.{BQ, JDBC, PARQUET}
+import etlflow.spark.SparkManager
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob5Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingBQ}
 import org.apache.spark.sql.SaveMode
 
-case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob {
+case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties])
+  extends SequentialEtlJob with SparkManager {
 
   private val global_props = global_properties.get
   private val job_props = job_properties.asInstanceOf[EtlJob5Props]

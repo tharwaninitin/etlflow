@@ -2,16 +2,17 @@ package etlflow.jobs
 
 import etlflow.{EtlJobProps, EtlStepList}
 import etlflow.Schema.{EtlJob1Props, Rating, RatingBQ, RatingOutput, RatingOutputCsv}
-import etlflow.etljobs.SequentialEtlJobWithLogging
+import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
-import etlflow.spark.SparkUDF
+import etlflow.spark.{SparkManager, SparkUDF}
 import etlflow.utils.{BQ, CSV, GlobalProperties, JSON, PARQUET}
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 
 case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties])
-  extends SequentialEtlJobWithLogging with SparkUDF {
+  extends SequentialEtlJob with SparkManager with SparkUDF {
+  
   val job_props: EtlJob1Props = job_properties.asInstanceOf[EtlJob1Props]
   val partition_date_col  = "date_int"
 
@@ -24,7 +25,6 @@ case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Opt
     output_save_mode          = SaveMode.Overwrite,
     output_repartitioning     = true,
     output_repartitioning_num = 3,
-    global_properties         = global_properties
   )
 
   def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutputCsv] = {
@@ -51,7 +51,6 @@ case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Opt
     output_repartitioning     = true,
     output_repartitioning_num = 1,
     output_filename           = job_props.ratings_output_file_name,
-    global_properties         = global_properties
   )
 
   def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
@@ -74,7 +73,6 @@ case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Opt
     output_location      = job_props.ratings_output_bucket_2,
     output_save_mode     = SaveMode.Overwrite,
     output_partition_col = Seq(s"$partition_date_col"),
-    global_properties    = global_properties
   )
 
   val step3 = SparkReadTransformWriteStep[Rating, RatingOutput](
@@ -88,7 +86,6 @@ case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Opt
     output_partition_col      = Seq(s"$partition_date_col"),
     output_repartitioning     = true,
     output_repartitioning_num = 1,
-    global_properties         = global_properties
   )
 
   val parstep = ParallelETLStep("ParallelStep")(step21,step22)

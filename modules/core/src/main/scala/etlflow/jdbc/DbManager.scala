@@ -1,11 +1,12 @@
 package etlflow.jdbc
 
-import cats.effect.{Blocker, Resource}
+import cats.effect.Blocker
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import etlflow.utils.{GlobalProperties, JDBC}
 import org.flywaydb.core.Flyway
+import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{Task, ZManaged}
 import scala.concurrent.ExecutionContext
@@ -49,13 +50,16 @@ trait DbManager {
   }
 
   def runDbMigration(credentials: JDBC): Task[Int] = Task {
-    Flyway
+    val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+    val configuration = Flyway
       .configure(this.getClass.getClassLoader)
       .dataSource(credentials.url, credentials.user, credentials.password)
       .locations("migration")
-      .connectRetries(2)
+      .connectRetries(10)
       .load()
-      .migrate()
+    logger.info("Running db migration from paths:")
+    logger.info(configuration.info().all().toList.map(x => x.getPhysicalLocation).mkString("\n","\n",""))
+    configuration.migrate()
   }
 
   def createDbTransactor(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = "LoggerPool"): HikariTransactor[Task] = {

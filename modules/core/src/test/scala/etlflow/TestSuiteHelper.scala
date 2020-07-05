@@ -12,10 +12,10 @@ import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor.Aux
 import etlflow.spark.SparkManager
 import etlflow.utils.GlobalProperties
-import org.apache.spark.sql.SparkSession
 import software.amazon.awssdk.regions.Region
 import zio.{Runtime, Task, ZEnv}
 import zio.interop.catz._
+import scala.util.Try
 
 trait TestSuiteHelper extends SparkManager {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -34,13 +34,13 @@ trait TestSuiteHelper extends SparkManager {
     BigQueryOptions.newBuilder().setCredentials(credentials).build().getService
   }
   val canonical_path: String          = new java.io.File(".").getCanonicalPath
-  val global_props: GlobalProperties  = new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}
-  lazy val spark: SparkSession        = createSparkSession(Some(global_props))
+  override val global_properties: Option[GlobalProperties] =
+    Try(new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}).toOption
   val file                            = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
 
   def transactor(url: String, user: String, pwd: String): Aux[Task, Unit]
   = Transactor.fromDriverManager[Task](
-    global_props.log_db_driver,     // driver classname
+    global_properties.get.log_db_driver,     // driver classname
     url,        // connect URL (driver-specific)
     user,       // user
     pwd,        // password

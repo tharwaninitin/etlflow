@@ -26,7 +26,8 @@ object Schema {
     ratings_input_path: List[String] = List(input_file_path),
     ratings_output_table_name: String = "ratings",
     ratings_output_type: JDBC,
-    smtp_creds: SMTP
+    smtp_creds: SMTP,
+    override val job_enable_db_logging: Boolean = false
   ) extends EtlJobProps
 }
 

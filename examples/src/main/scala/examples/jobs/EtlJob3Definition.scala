@@ -1,10 +1,11 @@
 package examples.jobs
 
 import etlflow.LoggerResource
-import etlflow.etljobs.GenericEtlJobWithLogging
+import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
 import etlflow.utils.CSV
+import etlflow.spark.SparkManager
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob23Props
@@ -12,10 +13,10 @@ import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
-import zio.Task
 
-case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends GenericEtlJobWithLogging with SparkUDF with SparkManager {
-  lazy val spark: SparkSession = createSparkSession(global_properties)
+case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties])
+  extends GenericEtlJob with SparkUDF with SparkManager {
+
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private var output_date_paths: Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"
@@ -64,7 +65,7 @@ case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: O
   )
 
   val job = for {
-    - <- step1.execute(spark)
+    - <- step1.execute()
     _ <- step2.execute()
    } yield ()
 }

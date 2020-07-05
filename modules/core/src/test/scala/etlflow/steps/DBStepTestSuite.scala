@@ -29,12 +29,12 @@ object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
           val step1 = DBQueryStep(
             name  = "UpdatePG",
             query = create_table_script,
-            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver)
+            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.get.log_db_driver)
           )
           val step2 = DBQueryStep(
             name  = "UpdatePG",
             query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
-            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver)
+            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.get.log_db_driver)
           )
           val job = for {
             _ <- step1.process()

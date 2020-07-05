@@ -4,9 +4,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import etlflow.{EtlJobProps, LoggerResource}
 import etlflow.Schema.{EtlJob2Props, Rating}
-import etlflow.etljobs.GenericEtlJobWithLogging
+import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{GenericETLStep, HttpMethod, HttpResponseStep, HttpStep, SendMailStep, SparkETLStep, SparkReadWriteStep}
-import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
+import etlflow.spark.{ReadApi, SparkManager, SparkUDF, WriteApi}
 import etlflow.utils.{GlobalProperties, PARQUET}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
@@ -14,7 +14,7 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.ZIO
 
 case class EtlJob2Definition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties])
-  extends GenericEtlJobWithLogging with SparkUDF {
+  extends GenericEtlJob with SparkManager with SparkUDF {
 
   val job_props: EtlJob2Props = job_properties.asInstanceOf[EtlJob2Props]
 

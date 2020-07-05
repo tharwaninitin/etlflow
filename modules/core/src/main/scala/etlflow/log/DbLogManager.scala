@@ -6,13 +6,15 @@ import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{UtilityFunctions => UF}
+import etlflow.jdbc.DbManager
+import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import io.getquill.Literal
 import zio.interop.catz._
-import zio.{Task, ZManaged}
+import zio.{Managed, Task, ZManaged}
+import scala.concurrent.ExecutionContext
 import scala.util.Try
 
-class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
+class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
@@ -91,11 +93,27 @@ class DbLogManager private[log](val transactor: HikariTransactor[Task],val job_n
   }
 }
 
-object DbLogManager {
+object DbLogManager extends DbManager{
 
   def createDbLoggerManaged(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): ZManaged[Any, Nothing, DbLogManager] =
     Task.succeed(new DbLogManager(transactor, job_name, job_properties)).toManaged_
 
   def createDbLoggerOption(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): Option[DbLogManager] =
     Try(new DbLogManager(transactor,job_name, job_properties)).toOption
+
+  def createOptionDbTransactorManagedGP(
+       global_properties: Option[GlobalProperties],
+       ec: ExecutionContext,
+       pool_name: String = "LoggerPool",
+       job_name: String,
+       job_properties: EtlJobProps
+     ): Managed[Throwable, Option[DbLogManager]] =
+    if (job_properties.job_enable_db_logging) {
+      createDbTransactorManagedGP(global_properties,ec,pool_name)
+        .map { transactor =>
+          Some(new DbLogManager(transactor, job_name, job_properties))
+        }
+    } else {
+      Managed.unit.map(_ => None)
+    }
 }

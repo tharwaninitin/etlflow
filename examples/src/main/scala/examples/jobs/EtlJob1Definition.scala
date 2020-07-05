@@ -2,15 +2,16 @@ package examples.jobs
 
 import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
-import etlflow.etljobs.SequentialEtlJobWithLogging
+import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
 import etlflow.utils.{ORC, PARQUET}
+import etlflow.spark.SparkManager
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.RatingOutput
 
-case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJobWithLogging {
+case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob with SparkManager {
 
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private val job_props = job_properties.asInstanceOf[EtlJob1Props]
@@ -24,7 +25,6 @@ case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: O
     output_repartitioning     = true,
     output_repartitioning_num = 1,
     output_filename           = job_props.ratings_output_file_name,
-    global_properties         = global_properties
   )
 
   val step2 = BQLoadStep(

@@ -1,34 +1,37 @@
 package etlflow.etljobs
 
+import etlflow.LoggerResource
+import etlflow.log.EtlLogger.JobLogger
+import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{UtilityFunctions => UF}
-import zio._
+import zio.internal.Platform
+import zio.{UIO, ZIO, Managed}
 
 trait GenericEtlJob extends EtlJob {
 
-  val job: Task[Unit]
+  val job: ZIO[LoggerResource, Throwable, Unit]
   def printJobInfo(level: String = "info"): Unit = {}
   def getJobInfo(level: String = "info"): List[(String,Map[String,String])] = List.empty
 
   final def execute(): ZIO[Any, Throwable, Unit] = {
-    for {
-      job_status_ref  <- job_status
-      job_start_time  <- UIO.succeed(UF.getCurrentTimestamp)
-      _               <- job_status_ref.set("started") *> logJobInit
-      _               <- job.foldM(
-                            ex => job_status_ref.set(s"failed with error ${ex.getMessage}") *> logJobError(ex,job_start_time),
-                            _  => job_status_ref.set("success") *> logJobSuccess(job_start_time)
-                          )
-    } yield ()
+    (for {
+      job_status_ref  <- job_status.toManaged_
+      resource        <- logger_resource
+      log             = JobLogger.live(resource)
+      job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
+      _               <- (job_status_ref.set("started") *> log.logInit(job_start_time)).toManaged_
+      _               <- job.provide(resource).foldM(
+                            ex => job_status_ref.set("failed") *> log.logError(job_start_time,ex),
+                            _  => job_status_ref.set("success") *> log.logSuccess(job_start_time)
+                          ).toManaged_
+    } yield ()).use_(ZIO.unit)
   }
 
-  private val logJobInit: Task[Unit] = Task.succeed(etl_job_logger.info(s"""Starting Job $job_name"""))
-
-  private def logJobError(e: Throwable, job_start_time: Long): Task[Unit] = Task {
-    etl_job_logger.error(s"""Job completed with failure ${e.getMessage} in ${UF.getTimeDifferenceAsString(job_start_time, UF.getCurrentTimestamp)}""")
-    throw e
-  }
-
-  private def logJobSuccess(job_start_time: Long): Task[Unit] = Task {
-    etl_job_logger.info(s"Job completed successfully in ${UF.getTimeDifferenceAsString(job_start_time, UF.getCurrentTimestamp)}")
-  }
+  private[etljobs] lazy val logger_resource: Managed[Throwable, LoggerResource] = for {
+    db         <- DbLogManager.createOptionDbTransactorManagedGP(
+                      global_properties, Platform.default.executor.asEC,
+                      job_name + "-Pool", job_name, job_properties
+                  )
+    slack      <- SlackLogManager.createSlackLogger(job_name, job_properties, global_properties).toManaged_
+  } yield LoggerResource(db,slack)
 }

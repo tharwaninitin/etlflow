@@ -18,14 +18,13 @@ package object etlflow {
   trait EtlJobSchema extends Product
 
   trait EtlJobProps {
-    val job_properties: Map[String,String]    = Map.empty
     val job_run_id: String                    = java.util.UUID.randomUUID.toString
-    val job_description: String               = job_properties.getOrElse("job_description", "")
-    val job_aggregate_error: Boolean          = job_properties.getOrElse("job_aggregate_error", "false").toBoolean
-    val job_send_slack_notification: Boolean  = job_properties.getOrElse("job_send_slack_notification", "false").toBoolean
-    val job_notification_level: String        = job_properties.getOrElse("job_notification_level", "info") //info or debug
-    val job_schedule: String                  = job_properties.getOrElse("job_notification_level", "")
-    val job_deploy_mode: String               = job_properties.getOrElse("job_notification_level", "local")
+    val job_description: String               = ""
+    val job_enable_db_logging: Boolean        = true
+    val job_send_slack_notification: Boolean  = false
+    val job_notification_level: String        = "info" //info or debug
+    val job_schedule: String                  = ""
+    val job_deploy_mode: String               = "local"
   }
 
   object EtlStepList {

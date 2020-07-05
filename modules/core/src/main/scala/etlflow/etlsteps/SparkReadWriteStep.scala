@@ -20,12 +20,11 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
           ,output_repartitioning: Boolean = false
           ,output_repartitioning_num: Int = 1
           ,transform_function: Option[(SparkSession,Dataset[I]) => Dataset[O]]
-          ,global_properties: Option[GlobalProperties] = None
-        )
-extends EtlStep[Unit,Unit] with SparkManager {
+        )(implicit spark: SparkSession)
+extends EtlStep[Unit,Unit] {
   private var recordsWrittenCount = 0L
   private var recordsReadCount = 0L
-  lazy val spark: SparkSession = createSparkSession(global_properties)
+
   output_filename match {
     case Some(_) =>
       if (output_repartitioning_num != 1 || !output_repartitioning || output_partition_col.nonEmpty)
@@ -118,11 +117,10 @@ object SparkReadTransformWriteStep {
            ,output_repartitioning: Boolean = false
            ,output_repartitioning_num: Int = 1
            ,transform_function: (SparkSession,Dataset[T]) => Dataset[O]
-           ,global_properties: Option[GlobalProperties] = None
-         ): SparkReadWriteStep[T, O] = {
+          )(implicit spark: SparkSession): SparkReadWriteStep[T, O] = {
     new SparkReadWriteStep[T, O](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,
-      output_repartitioning_num,Some(transform_function),global_properties)
+      output_repartitioning_num, Some(transform_function))
   }
 }
 
@@ -139,10 +137,9 @@ object SparkReadWriteStep {
            ,output_save_mode: SaveMode = SaveMode.Append
            ,output_repartitioning: Boolean = false
            ,output_repartitioning_num: Int = 1
-           ,global_properties: Option[GlobalProperties] = None
-         ): SparkReadWriteStep[T, T] = {
+         )(implicit spark: SparkSession): SparkReadWriteStep[T, T] = {
     new SparkReadWriteStep[T, T](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,
-      output_repartitioning_num, None,global_properties)
+      output_repartitioning_num, None)
   }
 }

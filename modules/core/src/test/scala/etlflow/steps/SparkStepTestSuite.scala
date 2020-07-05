@@ -6,7 +6,7 @@ import etlflow.Schema._
 import etlflow.TestSuiteHelper
 import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.{ReadApi, SparkUDF}
-import etlflow.utils.{JDBC, PARQUET}
+import etlflow.utils.{GlobalProperties, JDBC, PARQUET}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.{FlatSpec, Matchers}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -28,7 +28,7 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
     name             = "LoadRatingsParquetToJdbc",
     input_location   = Seq(input_path_parquet),
     input_type       = PARQUET,
-    output_type      = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_props.log_db_driver),
+    output_type      = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.get.log_db_driver),
     output_location  = "ratings",
     output_save_mode = SaveMode.Overwrite
   )

@@ -20,7 +20,6 @@ object MyEtlJobName {
   }
   case object EtlJob2CSVtoPARQUETtoBQLocalWith3Steps extends MyEtlJobName[EtlJob23Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob23Props = EtlJob23Props(
-      job_properties = job_properties,
       ratings_input_path = job_properties.getOrElse("ratings_input_path",default_ratings_input_path),
       ratings_output_dataset = job_properties.getOrElse("ratings_output_dataset",default_output_dataset),
       ratings_output_table_name = job_properties.getOrElse("ratings_output_table_name","ratings_par")
@@ -28,7 +27,6 @@ object MyEtlJobName {
   }
   case object EtlJob3CSVtoCSVtoBQGcsWith2Steps extends MyEtlJobName[EtlJob23Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob23Props = EtlJob23Props(
-      job_properties = job_properties,
       ratings_input_path = job_properties.getOrElse("ratings_input_path",default_ratings_input_path_csv),
       ratings_output_dataset = job_properties.getOrElse("ratings_output_dataset",default_output_dataset),
       ratings_output_table_name = job_properties.getOrElse("ratings_output_table_name","ratings_par")

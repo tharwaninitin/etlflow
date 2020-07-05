@@ -7,6 +7,10 @@ import org.slf4j.LoggerFactory
 trait SparkManager  {
   private val ic_logger = LoggerFactory.getLogger(getClass.getName)
 
+  val global_properties: Option[GlobalProperties]
+
+  lazy implicit val spark: SparkSession = createSparkSession(global_properties)
+
   private def showSparkProperties(spark: SparkSession): Unit = {
     ic_logger.info("spark.scheduler.mode = " + spark.sparkContext.getSchedulingMode)
     ic_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)

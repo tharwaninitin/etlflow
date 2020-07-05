@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.etljobs.{EtlJob, SequentialEtlJob, SequentialEtlJobWithLogging}
+import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
@@ -38,7 +38,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName job_properties => $jobProps""")
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
           val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)
-          if (etl_job.isInstanceOf[SequentialEtlJob] || etl_job.isInstanceOf[SequentialEtlJobWithLogging]) {
+          if (etl_job.isInstanceOf[SequentialEtlJob]) {
             etl_job.job_name = job_name.toString
             val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
             println(json)

@@ -7,7 +7,7 @@ import etlflow.utils.GlobalProperties
 
 object LoadData extends EtlJobApp[MyEtlJobName[EtlJobProps], EtlJobProps, GlobalProperties] with TestSuiteHelper {
 
-  override def globalProperties: Option[GlobalProperties] = Some(global_props)
+  override def globalProperties: Option[GlobalProperties] = global_properties
   override def toEtlJob(job_name: MyEtlJobName[EtlJobProps]): (EtlJobProps, Option[GlobalProperties]) => EtlJob = {
     job_name match {
       case EtlJob1 => EtlJob1Definition

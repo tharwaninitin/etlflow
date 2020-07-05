@@ -43,6 +43,7 @@ lazy val examples = (project in file("examples"))
     maintainer := "tharwaninitin182@gmail.com",
     // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
     mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
+    mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json"),
     mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
     Test / parallelExecution := false
   )

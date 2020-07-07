@@ -25,5 +25,9 @@ object MyEtlJobName {
       )
     )
   }
+
+  case object EtlJob3 extends MyEtlJobName[EtlJob3Props] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
+  }
 }
 

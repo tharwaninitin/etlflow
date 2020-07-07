@@ -8,6 +8,7 @@ object Schema {
   case class RatingOutput(user_id: Int, movie_id: Int, rating: Double, timestamp: Long, date: java.sql.Date, date_int: Int)
   case class RatingOutputCsv(`User Id`: Int, `Movie Id`: Int, `Ratings`: Double, `Movie Date`: java.sql.Date)
   case class RatingsMetrics(sum_ratings: Double, count_ratings: Long)
+  case class PostgresData(job_name: String, job_run_id:String, state:String)
 
   private val canonical_path = new java.io.File(".").getCanonicalPath
 
@@ -27,6 +28,10 @@ object Schema {
     ratings_output_table_name: String = "ratings",
     ratings_output_type: JDBC,
     smtp_creds: SMTP,
+    override val job_enable_db_logging: Boolean = false
+  ) extends EtlJobProps
+
+  case class EtlJob3Props (
     override val job_enable_db_logging: Boolean = false
   ) extends EtlJobProps
 }

@@ -24,6 +24,7 @@ object Dependencies {
   val redisVesrion = "3.30"
   val scalajHttpVesrion = "2.4.2"
   val mailVersion = "1.6.2"
+  private val http4sVersion    = "0.21.3"
 
   lazy val googleCloudLibs = List(
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
@@ -93,4 +94,9 @@ object Dependencies {
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
+
+  lazy val http4s = List(
+    "org.http4s" %% "http4s-prometheus-metrics" % http4sVersion
+  )
+
 }

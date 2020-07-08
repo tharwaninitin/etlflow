@@ -3,7 +3,7 @@ package etlflow.etlsteps
 import doobie.hikari.HikariTransactor
 import etlflow.jdbc.{DbManager, QueryApi}
 import etlflow.utils.JDBC
-import zio.{BootstrapRuntime, Managed, Task}
+import zio.{Managed, Task}
 
 class DBQueryStep private[etlflow](
                 val name: String,

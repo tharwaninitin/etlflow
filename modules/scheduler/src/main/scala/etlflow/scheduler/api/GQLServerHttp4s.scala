@@ -7,12 +7,14 @@ import etlflow.jdbc.DbManager
 import etlflow.scheduler.api.EtlFlowHelper.EtlFlowHas
 import etlflow.utils.JDBC
 import etlflow.{BuildInfo => BI}
+import io.prometheus.client.CollectorRegistry
+import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.{HttpRoutes, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.middleware.CORS
+import org.http4s.server.middleware.{CORS, Metrics}
 import org.slf4j.{Logger, LoggerFactory}
 import zio.blocking.Blocking
 import zio.console.putStrLn
@@ -36,9 +38,11 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
   override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     ZIO.runtime[ZEnv with EtlFlowHas]
       .flatMap{implicit runtime =>
-        for {
-          blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
-          etlFlowInterpreter <- EtlFlowApi.api.interpreter
+        (for {
+          metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
+          metrics            <- Prometheus.metricsOps[EtlFlowTask](CollectorRegistry.defaultRegistry, "server").toManagedZIO
+          blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
+          etlFlowInterpreter <- EtlFlowApi.api.interpreter.toManaged_
           _                  <- BlazeServerBuilder[EtlFlowTask]
                                 .bindHttp(8080, "0.0.0.0")
                                 .withConnectorPoolSize(10)
@@ -49,14 +53,14 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager with Boo
                                   Router[EtlFlowTask](
                                     "/about" -> otherRoutes,
                                     "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
+                                    "/etlflow"        -> metricsSvc.routes,
                                     "/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/client.js", blocker, None)),
-                                    "/api/etlflow"    -> CORS(Http4sAdapter.makeHttpService(etlFlowInterpreter)),
+                                    "/api/etlflow"    -> CORS(Metrics[EtlFlowTask](metrics)(Http4sAdapter.makeHttpService(etlFlowInterpreter))),
                                     "/ws/etlflow"     -> CORS(new EtlFlowStreams[EtlFlowTask].streamRoutes),
                                   ).orNotFound
                                 ).resource
-                                .toManaged
-                                .useForever
-        } yield 0
+                                .toManagedZIO
+        } yield 0).useForever
       }
       .provideCustomLayer(etlFlowLayer)
       .catchAll(err => putStrLn(err.toString).as(1))

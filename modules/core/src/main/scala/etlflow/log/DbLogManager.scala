@@ -7,7 +7,7 @@ import doobie.quill.DoobieContext
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.DbManager
-import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
+import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import io.getquill.Literal
 import zio.interop.catz._
 import zio.{Managed, Task, ZManaged}
@@ -30,7 +30,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
           val step = StepRun(
             job_properties.job_run_id,
             etl_step.name,
-            UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
+            JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
             state_status.toLowerCase(),
             "..."
           )
@@ -53,7 +53,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
               .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
               .update(
                 _.state -> lift(status),
-                _.properties -> lift(UF.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
+                _.properties -> lift(JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
                 _.elapsed_time -> lift(elapsed_time)
                 )
           }).transact(transactor).mapError{e =>
@@ -69,7 +69,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
       val job = JobRun(
         job_properties.job_run_id, job_name.toString,
         job_properties.job_description,
-        UF.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
+        JsonJackson.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
         "started", UF.getCurrentTimestamp
       )
       lm_logger.info(s"Inserting job info in db with status => $status")

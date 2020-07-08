@@ -9,7 +9,7 @@ import doobie.quill.DoobieContext
 import etlflow.log.JobRun
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.api.GQLServerHttp4s
-import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
+import etlflow.utils.{GlobalProperties, JDBC, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
@@ -324,7 +324,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     def getJobActualProps(jobName: String): Map[String, String] = {
       val name = UF.getEtlJobName[EJN](jobName, etl_job_name_package)
       val exclude_keys = List("job_run_id","job_description","job_properties")
-      UF.convertToJsonByRemovingKeysAsMap(name.getActualProperties(Map.empty), exclude_keys).map(x => (x._1, x._2.toString))
+      JsonJackson.convertToJsonByRemovingKeysAsMap(name.getActualProperties(Map.empty), exclude_keys).map(x => (x._1, x._2.toString))
     }
   }
 

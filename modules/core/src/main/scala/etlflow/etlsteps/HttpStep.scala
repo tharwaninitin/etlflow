@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.utils.HttpClientApi
-import zio.{Task, ZIO}
+import etlflow.utils.{HttpClientApi, JsonJackson}
 import scalaj.http._
+import zio.Task
 
 sealed trait HttpMethod
 
@@ -31,7 +31,7 @@ case class HttpStep(
         HttpClientApi.postUnit(url, params, headers, log_response)
       case HttpMethod.GET =>
         params match {
-          case Left(value) => HttpClientApi.getUnit(url, Nil, headers, log_response)
+          case Left(_) => HttpClientApi.getUnit(url, Nil, headers, log_response)
           case Right(value) => HttpClientApi.getUnit(url, value, headers, log_response)
         }
     }
@@ -64,7 +64,7 @@ case class HttpResponseStep(
         HttpClientApi.post(url, params, headers, log_response)
       case HttpMethod.GET =>
         params match {
-          case Left(value) => HttpClientApi.get(url, Nil, headers, log_response)
+          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response)
           case Right(value) => HttpClientApi.get(url, value, headers, log_response)
         }
     }
@@ -77,3 +77,35 @@ case class HttpResponseStep(
     )
 }
 
+case class HttpParsedResponseStep[T: Manifest](
+        name: String,
+        url: String,
+        http_method: HttpMethod,
+        params: Either[String, Seq[(String,String)]] = Left(""),
+        headers: Map[String,String] = Map.empty,
+        log_response: Boolean = false
+      )
+  extends EtlStep[Unit, T] {
+
+  final def process(in: =>Unit): Task[T] = {
+    etl_logger.info("#"*100)
+    etl_logger.info(s"Starting HttpParsedResponseStep: $name")
+    etl_logger.info(s"URL: $url")
+
+    http_method match {
+      case HttpMethod.POST =>
+        HttpClientApi.post(url, params, headers, log_response).map(x => JsonJackson.convertToObject[T](x.body))
+      case HttpMethod.GET =>
+        params match {
+          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response).map(x => JsonJackson.convertToObject[T](x.body))
+          case Right(value) => HttpClientApi.get(url, value, headers, log_response).map(x => JsonJackson.convertToObject[T](x.body))
+        }
+    }
+  }
+
+  override def getStepProperties(level: String): Map[String, String] =
+    Map(
+      "url" -> url,
+      "http_method" -> http_method.toString
+    )
+}

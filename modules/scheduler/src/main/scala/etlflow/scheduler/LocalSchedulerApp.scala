@@ -3,7 +3,7 @@ package etlflow.scheduler
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
 import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
+import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
@@ -30,7 +30,7 @@ abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJob
     for {
       (job_name,etl_job,props_map) <- etlJobDetails
       execution_props   <- Task {
-                             UF.convertToJsonByRemovingKeysAsMap(job_name.getActualProperties(props_map), List.empty)
+        JsonJackson.convertToJsonByRemovingKeysAsMap(job_name.getActualProperties(props_map), List.empty)
                                .map(x => (x._1, x._2.toString))
                            }.mapError{ e =>
                              logger.error(e.getMessage)

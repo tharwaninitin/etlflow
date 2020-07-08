@@ -10,6 +10,7 @@ object Dependencies {
   val ZioCatsInteropVersion = "2.0.0.0-RC11"
   val DoobieVersion = "0.8.8"
   val CalibanVersion = "0.7.5"
+  val Http4sVersion = "0.21.3"
   val FlywayVersion = "6.4.1"
   val AwsS3Version = "2.13.23"
   val LogbackVersion = "1.2.3"
@@ -74,6 +75,7 @@ object Dependencies {
   lazy val caliban = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
+    "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
     "eu.timepit" %% "fs2-cron-core" % "0.2.2"
   )
 

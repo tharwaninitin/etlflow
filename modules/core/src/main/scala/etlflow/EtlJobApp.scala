@@ -2,7 +2,7 @@ package etlflow
 
 import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
-import etlflow.utils.{GlobalProperties, UtilityFunctions => UF}
+import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Runtime, ZEnv}
 import scala.reflect.runtime.universe.TypeTag
@@ -25,14 +25,14 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         case EtlJobConfig(false,default,actual,true,false,false,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_job_props with params: job_name => $jobName""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          println(UF.convertToJson(job_name.default_properties_map))
+          println(JsonJackson.convertToJson(job_name.default_properties_map))
           val exclude_keys = List("job_run_id","job_description","job_properties")
           if (default && !actual) {
-            println(UF.convertToJsonByRemovingKeys(job_name.getActualProperties(Map.empty),exclude_keys))
+            println(JsonJackson.convertToJsonByRemovingKeys(job_name.getActualProperties(Map.empty),exclude_keys))
           }
           else if (actual && !default) {
             val props = job_name.getActualProperties(jobProps)
-            println(UF.convertToJsonByRemovingKeys(props,exclude_keys))
+            println(JsonJackson.convertToJsonByRemovingKeys(props,exclude_keys))
           }
         case EtlJobConfig(false,false,false,false,true,false,false,jobName,jobProps) if jobName != "" =>
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName job_properties => $jobProps""")
@@ -40,7 +40,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
           val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),globalProperties)
           if (etl_job.isInstanceOf[SequentialEtlJob]) {
             etl_job.job_name = job_name.toString
-            val json = UF.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+            val json = JsonJackson.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
             println(json)
           }
           else {

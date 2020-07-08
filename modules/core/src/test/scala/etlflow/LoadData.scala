@@ -12,6 +12,7 @@ object LoadData extends EtlJobApp[MyEtlJobName[EtlJobProps], EtlJobProps, Global
     job_name match {
       case EtlJob1 => EtlJob1Definition
       case EtlJob2 => EtlJob2Definition
+      case EtlJob3 => EtlJob3Definition
     }
   }
 }

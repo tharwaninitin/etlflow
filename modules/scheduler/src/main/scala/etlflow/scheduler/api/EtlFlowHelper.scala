@@ -18,11 +18,15 @@ object EtlFlowHelper {
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
   case class EtlFlowMetrics(
-                             active_jobs: Int,
-                             active_subscribers: Int,
-                             etl_jobs: Int,
-                             cron_jobs: Int
-                           )
+           active_jobs: Int,
+           active_subscribers: Int,
+           etl_jobs: Int,
+           cron_jobs: Int,
+           used_memory: String,
+           free_memory: String,
+           total_memory: String,
+           max_memory: String,
+         )
   case class UserAuth(message: String, token: String)
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
   case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr], failed: Long, success: Long)

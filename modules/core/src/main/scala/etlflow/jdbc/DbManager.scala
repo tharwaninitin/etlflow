@@ -5,6 +5,7 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import etlflow.utils.{GlobalProperties, JDBC}
+import io.getquill.{LowerCase, PostgresJdbcContext}
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
@@ -24,13 +25,13 @@ trait DbManager {
     HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
   }.toManagedZIO
 
-  def createDbTransactorManagedJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool"): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
+  def createDbTransactorManagedJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool", pool_size: Int = 2): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
     val config = new HikariConfig()
     config.setDriverClassName(credentials.driver)
     config.setJdbcUrl(credentials.url)
     config.setUsername(credentials.user)
     config.setPassword(credentials.password)
-    config.setMaximumPoolSize(2)
+    config.setMaximumPoolSize(pool_size)
     config.setPoolName(pool_name)
     HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
     }.toManagedZIO
@@ -73,14 +74,26 @@ trait DbManager {
     HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
   }
 
-  def createDbTransactorJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool"): Task[HikariTransactor[Task]] = Task {
+  def createDbTransactorJDBC(credentials: JDBC, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool", pool_size: Int = 2): Task[HikariTransactor[Task]] = Task {
     val dataSource = new HikariDataSource()
     dataSource.setDriverClassName(credentials.driver)
     dataSource.setJdbcUrl(credentials.url)
     dataSource.setUsername(credentials.user)
     dataSource.setPassword(credentials.password)
-    dataSource.setMaximumPoolSize(2)
+    dataSource.setMaximumPoolSize(pool_size)
     dataSource.setPoolName(pool_name)
-    HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
+    HikariTransactor[Task](dataSource, ec, blocker)
+  }
+
+  def createDbContextJDBC(credentials: JDBC, pool_name: String = "LoggerPool", pool_size: Int = 2): Task[PostgresJdbcContext[LowerCase.type]] = Task {
+    val pgDataSource = new org.postgresql.ds.PGSimpleDataSource()
+    pgDataSource.setURL(credentials.url)
+    pgDataSource.setUser(credentials.user)
+    pgDataSource.setPassword(credentials.password)
+    val config = new HikariConfig()
+    config.setDataSource(pgDataSource)
+    config.setMaximumPoolSize(pool_size)
+    config.setPoolName(pool_name)
+    new PostgresJdbcContext(LowerCase, new HikariDataSource(config))
   }
 }

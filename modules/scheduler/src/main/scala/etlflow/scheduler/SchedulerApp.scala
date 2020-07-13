@@ -16,12 +16,14 @@ import fs2.Stream
 import io.getquill.Literal
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zio._
+import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import zio.stream.ZStream
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] extends GQLServerHttp4s {
+abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
+  extends GQLServerHttp4s {
 
   def globalProperties: Option[EJGP]
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
@@ -35,21 +37,21 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String)
-  case class UserAuthTokens(token: String)
   case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
 
+  val javaRuntime: java.lang.Runtime = java.lang.Runtime.getRuntime
+  val mb: Int = 1024*1024
   val dc = new DoobieContext.Postgres(Literal)
   import dc._
 
   object EtlFlowService {
 
-    val liveHttp4s: Layer[Throwable, EtlFlowHas] = ZLayer.fromEffect{
+    def liveHttp4s(transactor: HikariTransactor[Task]): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
       for {
         _             <- runDbMigration(credentials)
         subscribers   <- Ref.make(List.empty[Queue[EtlJobStatus]])
         activeJobs    <- Ref.make(0)
         cronJobs      <- Ref.make(List.empty[CronJob])
-        transactor    <- createDbTransactorJDBC(credentials, platform.executor.asEC, "EtlFlowScheduler-Pool")
         dbCronJobs    <- updateCronJobsDB(transactor)
         _             <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
         _             <- Task(logger.info(s"Added/Updated jobs in database \n${dbCronJobs.mkString("\n")}"))
@@ -147,7 +149,16 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
             y <- subscribers.get
             z <- cronJobs.get
             a <- getEtlJobs
-          } yield EtlFlowMetrics(x, y.length, a.length, z.length)
+          } yield EtlFlowMetrics(
+            x,
+            y.length,
+            a.length,
+            z.length,
+            used_memory = ((javaRuntime.totalMemory - javaRuntime.freeMemory) / mb).toString,
+            free_memory = (javaRuntime.freeMemory / mb).toString,
+            total_memory = (javaRuntime.totalMemory / mb).toString,
+            max_memory = (javaRuntime.maxMemory / mb).toString,
+          )
         }
 
         override def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] = {
@@ -227,7 +238,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           } yield ZStream.fromQueue(queue).ensuring(queue.shutdown)
         }
 
-        override def getStream: ZStream[Any, Nothing, EtlFlowMetrics] = ZStream(EtlFlowMetrics(1,1,1,1))
+        override def getStream: ZStream[Any, Nothing, EtlFlowMetrics] = ZStream(EtlFlowMetrics(1,1,1,1,"","","",""))
 
         override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
           val selectQuery = quote {
@@ -243,11 +254,11 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           ExecutionError(e.getMessage)
         }
 
-        def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {
+        //def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {
           // ZStream.fromIterable(Seq(EtlFlowInfo(1), EtlFlowInfo(2), EtlFlowInfo(3))).runCollect.map(x => x.head)
-          ZStream.fromIterable(Seq(EtlFlowMetrics(1,1,1,1), EtlFlowMetrics(2,2,2,2), EtlFlowMetrics(3,3,3,3))).runCollect.map(x => x.head)
+          // ZStream.fromIterable(Seq(EtlFlowMetrics(1,1,1,1), EtlFlowMetrics(2,2,2,2), EtlFlowMetrics(3,3,3,3))).runCollect.map(x => x.head)
           // Command("echo", "-n", "1\n2\n3").linesStream.runCollect.map(x => EtlFlowInfo(x.head.length))
-        }
+        //}
       }
     }
 
@@ -394,5 +405,5 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
-  val etlFlowLayer: Layer[Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s
+  def etlFlowLayer(transactor: HikariTransactor[Task]): ZLayer[Blocking, Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s(transactor)
 }

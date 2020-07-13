@@ -65,6 +65,7 @@ trait SparkManager  {
             val spark = sparkBuilder
               .config("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
               .config("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+              .config("spark.ui.enabled", "false")
               .config("fs.gs.project.id", ss.gcp_project)
               .config("google.cloud.auth.service.account.json.keyfile", ss.gcp_credential_file_path)
               .config("fs.gs.auth.service.account.enable", "true")

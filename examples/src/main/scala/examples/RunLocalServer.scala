@@ -1,7 +1,7 @@
 package examples
 
 import etlflow.etljobs.EtlJob
-import etlflow.scheduler.LocalSchedulerApp
+import etlflow.scheduler.executor.LocalExecutor
 import examples.jobs._
 import examples.schema.MyEtlJobName._
 import examples.schema.{MyEtlJobName, MyEtlJobProps}
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import scala.util.Try
 
-object RunLocalServer extends LocalSchedulerApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, MyGlobalProperties] {
+object RunLocalServer extends LocalExecutor[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, MyGlobalProperties] {
 
   val spark_logger: LBLogger = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
   spark_logger.setLevel(Level.WARN)

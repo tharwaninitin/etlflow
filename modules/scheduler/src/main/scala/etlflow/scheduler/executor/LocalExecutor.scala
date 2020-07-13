@@ -1,4 +1,4 @@
-package etlflow.scheduler
+package etlflow.scheduler.executor
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
@@ -7,9 +7,10 @@ import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
+import etlflow.scheduler.SchedulerApp
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class LocalSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
+abstract class LocalExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
   extends SchedulerApp[EJN,EJP,EJGP] {
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob

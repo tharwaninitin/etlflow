@@ -1,15 +1,16 @@
-package etlflow.scheduler
+package etlflow.scheduler.executor
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
+import etlflow.scheduler.SchedulerApp
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.utils.{DataprocHelper, GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class CustomSchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
+abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
   extends SchedulerApp[EJN,EJP,EJGP] with DataprocHelper  {
 
   val main_class: String

@@ -11,7 +11,7 @@ object MyEtlJobProps {
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),
-                            override val job_schedule: String = "0 */1 * * * ?",
+                            override val job_schedule: String = "0 */15 * * * ?",
                             override val job_deploy_mode: String = "local"
                           ) extends MyEtlJobProps
   case class EtlJob23Props (

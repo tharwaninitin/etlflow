@@ -34,7 +34,6 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                         update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
-                        login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth]
                       )
 
   case class Subscriptions(
@@ -55,7 +54,6 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
           args => updateJobState(args),
           args => addCronJob(args),
           args => updateCronJob(args),
-          args => login(args)
         ),
         Subscriptions(
           notifications,

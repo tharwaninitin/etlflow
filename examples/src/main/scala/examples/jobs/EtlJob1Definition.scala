@@ -3,23 +3,24 @@ package examples.jobs
 import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
-import etlflow.utils.{ORC, PARQUET}
+import etlflow.etlsteps.{BQLoadStep, SparkReadWriteStep}
 import etlflow.spark.SparkManager
+import etlflow.utils.{CSV, ORC}
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob1Props
-import examples.schema.MyEtlJobSchema.RatingOutput
+import examples.schema.MyEtlJobSchema.Rating
 
 case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob with SparkManager {
 
+  private val gcs_input_path = f"gs://${global_properties.get.gcs_output_bucket}/input/ratings"
   private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private val job_props = job_properties.asInstanceOf[EtlJob1Props]
 
-  val step1 = SparkReadWriteStep[RatingOutput](
+  val step1 = SparkReadWriteStep[Rating](
     name                      = "LoadRatingsParquet",
-    input_location            = job_props.ratings_input_path,
-    input_type                = PARQUET,
+    input_location            = Seq(gcs_input_path),
+    input_type                = CSV(",", true, "FAILFAST"),
     output_type               = ORC,
     output_location           = gcs_output_path,
     output_repartitioning     = true,

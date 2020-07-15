@@ -20,12 +20,12 @@ object DPSparkStepTestSuite extends DefaultRunnableSpec {
         val libs = sys.env("DP_LIBS").split(",").toList
 
         val step = DPSparkJobStep(
-          name = "DPSparkJobStepExample",
-          job_name = sys.env("DP_JOB_NAME"),
-          props = Map.empty,
-          dpConfig,
-          sys.env("DP_MAIN_CLASS"),
-          libs
+          name        = "DPSparkJobStepExample",
+          job_name    = sys.env("DP_JOB_NAME"),
+          props       = Map.empty,
+          config      = dpConfig,
+          main_class  = sys.env("DP_MAIN_CLASS"),
+          libs        = libs
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

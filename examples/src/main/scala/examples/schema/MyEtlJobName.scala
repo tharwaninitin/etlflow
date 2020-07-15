@@ -9,7 +9,9 @@ object MyEtlJobName {
   val default_ratings_input_path = "data/movies/ratings_parquet/*"
   val default_ratings_input_path_csv = "data/movies/ratings/*"
   val default_output_dataset = "test"
-
+  case object EtlJob1DPTrigger extends MyEtlJobName[EtlJob1TriggerProps] {
+    override def getActualProperties(job_properties: Map[String, String]): EtlJob1TriggerProps = EtlJob1TriggerProps()
+  }
   case object EtlJob1PARQUETtoORCtoBQLocalWith2Steps extends MyEtlJobName[EtlJob1Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props(
       ratings_input_path = List(job_properties.getOrElse("ratings_input_path",default_ratings_input_path)),

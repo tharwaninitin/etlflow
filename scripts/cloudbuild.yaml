@@ -1,8 +1,12 @@
 steps:
   #This step will copy core jar to gcs location.
   - name: 'asia.gcr.io/$PROJECT_ID/scala-sbt'
-    args: ['project core', 'clean', 'assembly']
+    args: ['project core', 'clean', 'assembly', 'project root', 'publishLocal', 'project examples', 'package']
 
   #This step will copy core jar to gcs location.
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp','/workspace/modules/core/target/scala-2.12/etlflow-core-assembly-0.7.18.jar','${_GCS_BUCKET}']
+
+  #This step will copy examples jar to gcs location.
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp','/workspace/modules/core/target/scala-2.12/etlflow-examples_2.12-0.7.18.jar','${_GCS_BUCKET}']

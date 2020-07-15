@@ -1,12 +1,13 @@
 package etlflow.scheduler
 
 import java.util.UUID.randomUUID
+
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
-import etlflow.log.JobRun
+import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.api.GQLServerHttp4s
 import etlflow.utils.{GlobalProperties, JDBC, JsonJackson, UtilityFunctions => UF}
@@ -20,6 +21,7 @@ import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import zio.stream.ZStream
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
@@ -184,6 +186,23 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           }.mapError { e =>
           logger.error(e.getMessage)
           ExecutionError(e.getMessage)
+        }
+
+        override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {
+          try {
+            val q = quote {
+              query[StepRun]
+                .filter(_.job_run_id == lift(args.job_run_id))
+                .sortBy(p => p.inserted_at)(Ord.desc)
+            }
+            dc.run(q).transact(transactor)
+          }
+          catch {
+            case x: Throwable =>
+              logger.error(s"Exception occurred for arguments $args")
+              x.getStackTrace.foreach(msg => logger.error("=> " + msg.toString))
+              throw x
+          }
         }
 
         override def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {

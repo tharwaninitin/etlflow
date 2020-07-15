@@ -6,5 +6,6 @@ case class JobRun(
                    description: String,
                    properties: String,
                    state: String,
+                   start_time: String,
                    inserted_at: Long
                  )

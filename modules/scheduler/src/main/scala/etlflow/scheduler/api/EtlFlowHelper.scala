@@ -1,7 +1,7 @@
 package etlflow.scheduler.api
 
 import cron4s.CronExpr
-import etlflow.log.JobRun
+import etlflow.log.{JobRun, StepRun}
 import zio.stream.ZStream
 import zio.{Has, ZIO}
 
@@ -13,6 +13,7 @@ object EtlFlowHelper {
   case class EtlJobArgs(name: String, props: List[Props])
   case class UserArgs(user_name: String, password: String)
   case class DbJobRunArgs(jobRunId: Option[String] = None, jobName: Option[String] = None, limit: Int, offset: Int)
+  case class DbStepRunArgs(job_run_id: String)
   case class CronJobArgs(job_name: String, schedule: CronExpr)
 
   case class EtlJob(name: String, props: Map[String,String])
@@ -42,6 +43,7 @@ object EtlFlowHelper {
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
       def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
+      def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]]
 
       def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
       def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
@@ -74,6 +76,9 @@ object EtlFlowHelper {
 
   def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] =
     ZIO.accessM[EtlFlowHas](_.get.getDbJobRuns(args))
+
+  def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] =
+    ZIO.accessM[EtlFlowHas](_.get.getDbStepRuns(args))
 
   def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics] =
     ZStream.accessStream[EtlFlowHas](_.get.getStream)

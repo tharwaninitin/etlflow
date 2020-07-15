@@ -32,6 +32,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
             etl_step.name,
             JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
             state_status.toLowerCase(),
+            UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
             "..."
           )
           lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
@@ -70,7 +71,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
         job_properties.job_run_id, job_name.toString,
         job_properties.job_description,
         JsonJackson.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
-        "started", UF.getCurrentTimestamp
+        "started", UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp
       )
       lm_logger.info(s"Inserting job info in db with status => $status")
       ctx.run(quote {

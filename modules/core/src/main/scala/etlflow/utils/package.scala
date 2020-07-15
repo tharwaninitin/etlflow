@@ -5,6 +5,10 @@ package object utils {
   case object LOCAL extends FSType
   case object GCS extends FSType
 
+  sealed trait Executor
+  case object LocalExecutor extends Executor
+  case class DataprocExecutor(project: String, region: String, endpoint: String, cluster_name: String) extends Executor
+
   final case class GCP(service_account_key_path: String) {
     override def toString: String = "****service_account_key_path****"
   }

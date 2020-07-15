@@ -1,22 +1,22 @@
 package etlflow.etlsteps
 
-import etlflow.bigquery.QueryApi
-import etlflow.utils.GCP
+import etlflow.gcp._
+import etlflow.utils
 import zio.Task
 
 class BQQueryStep private[etlflow](
-                 val name: String
-                 , query: => String
-                 ,val credentials: Option[GCP] = None
-           )
-  extends BQStep {
+       val name: String,
+       query: => String,
+       credentials: Option[utils.GCP] = None
+     )
+  extends EtlStep[Unit, Unit] {
 
-  final def process(input: =>Unit): Task[Unit] = Task {
+  final def process(input: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)
+    val env = BQ.live(credentials)
     etl_logger.info(s"Starting BQ Query Step: $name")
     etl_logger.info(s"Query: $query")
-    QueryApi.executeQuery(bq, query)
-    etl_logger.info("#"*100)
+    BQService.executeQuery(query).provideLayer(env)
   }
 
   override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
@@ -26,7 +26,7 @@ object BQQueryStep {
   def apply(
              name: String,
              query: => String,
-             credentials: Option[GCP] = None
+             credentials: Option[utils.GCP] = None
            ): BQQueryStep =
     new BQQueryStep(name, query, credentials)
 }

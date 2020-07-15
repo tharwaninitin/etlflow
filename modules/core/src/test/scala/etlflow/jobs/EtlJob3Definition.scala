@@ -85,10 +85,10 @@ case class EtlJob3Definition(job_properties: EtlJobProps, global_properties: Opt
   )
 
   val job: ZIO[LoggerResource, Throwable, Unit] = for {
-//    _     <-  step1.execute()
-//    op1   <-  step2.execute()
-//    _     <-  step3.execute()
-//    op3   <-  step4.execute()
+    _     <-  step1.execute()
+    op1   <-  step2.execute()
+    _     <-  step3.execute()
+    op3   <-  step4.execute()
     op4   <-  step5.execute()
     _     <-  step6.execute(op4)
   } yield ()

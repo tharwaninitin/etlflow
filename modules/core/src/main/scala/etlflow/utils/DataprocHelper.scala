@@ -1,7 +1,6 @@
 package etlflow.utils
 
 import java.util.concurrent.TimeUnit
-
 import com.google.cloud.dataproc.v1.{Job, JobControllerClient, JobControllerSettings, JobPlacement, SparkJob}
 import org.slf4j.{Logger, LoggerFactory}
 import zio.Task

@@ -12,8 +12,8 @@ class GCSPutStep private[etlsteps](
                    credentials: Option[GCP] = None
                  ) extends EtlStep[Unit,Unit] {
   override def process(input_state: => Unit): Task[Unit] = {
-    val env       = GCSStorage.live(credentials)
-    val program   = putObject(bucket,key,file)
+    val env       = GCS.live(credentials)
+    val program   = GCSService.putObject(bucket,key,file)
     val runnable  = for {
                       _   <- Task.succeed(etl_logger.info("#"*100))
                       _   <- Task.succeed(etl_logger.info(s"Input local path $file"))

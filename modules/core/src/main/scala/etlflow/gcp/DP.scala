@@ -1,7 +1,7 @@
 package etlflow.gcp
 
 import java.util.concurrent.TimeUnit
-import com.google.cloud.dataproc.v1.{HiveJob, Job, JobControllerClient, JobControllerSettings, JobPlacement, SparkJob}
+import com.google.cloud.dataproc.v1.{HiveJob, Job, JobControllerClient, JobControllerSettings, JobPlacement, QueryList, SparkJob}
 import etlflow.utils.DataprocExecutor
 import zio.{Layer, Task, ZIO, ZLayer}
 import scala.collection.JavaConverters._
@@ -68,7 +68,10 @@ object DP {
         }
 
         override def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = Task {
-          val hiveJob = HiveJob.newBuilder().build()
+          val queryList = QueryList.newBuilder().addQueries(query)
+          val hiveJob = HiveJob.newBuilder()
+            .setQueryList(queryList)
+            .build()
           val job = Job.newBuilder().setPlacement(jobPlacement).setHiveJob(hiveJob).build()
           submitAndWaitForJobCompletion(jobControllerClient, config.project, config.region, job)
         }

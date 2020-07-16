@@ -10,6 +10,7 @@ import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.Rating
+import org.apache.spark.sql.SaveMode
 
 case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob with SparkManager {
 
@@ -25,6 +26,7 @@ case class EtlJob1Definition(job_properties: MyEtlJobProps, global_properties: O
     output_location           = gcs_output_path,
     output_repartitioning     = true,
     output_repartitioning_num = 1,
+    output_save_mode          = SaveMode.Overwrite,
     output_filename           = job_props.ratings_output_file_name,
   )
 

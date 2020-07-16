@@ -266,7 +266,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           dc.run(selectQuery)
             .transact(transactor)
             .map(y => y.map{x =>
-              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption, x.failed, x.success)
+              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption, x.failed, x.success, x.is_active)
             })
         }.mapError{ e =>
           logger.error(e.getMessage)

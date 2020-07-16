@@ -9,22 +9,29 @@ import zio.test.Assertion._
 object DPStepsTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow Steps") {
-      val dpConfig = DataprocExecutor(
-        sys.env("DP_PROJECT_ID"),
-        sys.env("DP_REGION"),
-        sys.env("DP_ENDPOINT"),
-        sys.env("DP_CLUSTER_NAME")
-      )
+    suite("EtlFlow Steps") (
+      suite("EtlFlow Steps") (
       testM("Execute DPHiveJob step") {
+        val dpConfig = DataprocExecutor(
+          sys.env("DP_PROJECT_ID"),
+          sys.env("DP_REGION"),
+          sys.env("DP_ENDPOINT"),
+          sys.env("DP_CLUSTER_NAME")
+        )
         val step = DPHiveJobStep(
           name = "DPHiveJobStepExample",
           query = "SELECT 1 AS ONE",
           config = dpConfig,
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      }
+      },
       testM("Execute DPSparkJob step") {
+        val dpConfig = DataprocExecutor(
+          sys.env("DP_PROJECT_ID"),
+          sys.env("DP_REGION"),
+          sys.env("DP_ENDPOINT"),
+          sys.env("DP_CLUSTER_NAME")
+        )
         val libs = sys.env("DP_LIBS").split(",").toList
         val step = DPSparkJobStep(
           name        = "DPSparkJobStepExample",
@@ -36,5 +43,6 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    }
+    )
+  )
 }

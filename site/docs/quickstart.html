@@ -7,8 +7,8 @@
 
 <p><strong>Import core packages</strong></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import etlflow.etlsteps.SparkReadWriteStep
-import etlflow.utils.{CSV,ORC}
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import etlflow.etlsteps._
+import etlflow.utils._
 </code></pre></div></div>
 
 <p><strong>Define Job input and ouput locations</strong></p>
@@ -27,7 +27,7 @@ val job_properties: Map[String,String] = Map(
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, Logger}
 LoggerFactory.getLogger("org").asInstanceOf[Logger].setLevel(Level.WARN)
-implicit val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
+implicit lazy val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
 </code></pre></div></div>
 
 <p><strong>Define ETL Step which will load ratings data with below schema as specified from CSV to ORC</strong></p>
@@ -83,9 +83,7 @@ val step1 = SparkReadWriteStep[Rating](
 
 <p><strong>Now our step would change to something like this</strong></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> import etlflow.etlsteps.SparkReadTransformWriteStep
- 
- val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
      name                       = "ConvertRatingsCSVtoORC",
      input_location             = Seq(job_properties("ratings_input_path")),
      input_type                 = CSV(),
@@ -106,10 +104,7 @@ val step1 = SparkReadWriteStep[Rating](
 For this step to work correctly <a href="https://cloud.google.com/sdk/install">Google Cloud SDK</a> needs to be installed and configured, 
 as in this library upload from local file to BigQuery uses <a href="https://cloud.google.com/bigquery/docs/bq-command-line-tool">bq command</a> which is only recommended to be used in testing environments as in production files should be present on Google Cloud Storage when uploading to BigQuery</strong></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import etlflow.etlsteps.BQLoadStep
-import etlflow.utils.LOCAL
-
-// Adding two new properties for Bigquery table and Dataset
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Adding two new properties for Bigquery table and Dataset
 val job_properties: Map[String,String] = Map(
     "ratings_input_path" -&gt; s"$canonical_path/examples/src/main/data/movies/ratings/*",
     "ratings_output_path" -&gt; s"$canonical_path/examples/src/main/data/movies/output/ratings",

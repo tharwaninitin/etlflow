@@ -11,8 +11,8 @@ Clone this git repo and go inside repo root folder and enter below command (make
 
 **Import core packages**
 
-    import etlflow.etlsteps.SparkReadWriteStep
-    import etlflow.utils.{CSV,ORC}
+    import etlflow.etlsteps._
+    import etlflow.utils._
     
 **Define Job input and ouput locations**
 
@@ -29,7 +29,7 @@ Clone this git repo and go inside repo root folder and enter below command (make
     import org.slf4j.LoggerFactory
     import ch.qos.logback.classic.{Level, Logger}
     LoggerFactory.getLogger("org").asInstanceOf[Logger].setLevel(Level.WARN)
-    implicit val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
+    implicit lazy val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()
 
 **Define ETL Step which will load ratings data with below schema as specified from CSV to ORC**          
           
@@ -80,8 +80,6 @@ Clone this git repo and go inside repo root folder and enter below command (make
        
 **Now our step would change to something like this**
      
-     import etlflow.etlsteps.SparkReadTransformWriteStep
-     
      val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
          name                       = "ConvertRatingsCSVtoORC",
          input_location             = Seq(job_properties("ratings_input_path")),
@@ -101,9 +99,6 @@ Clone this git repo and go inside repo root folder and enter below command (make
 **Lets add another step which will copy this transformed ORC data in BigQuery table. 
 For this step to work correctly [Google Cloud SDK](https://cloud.google.com/sdk/install) needs to be installed and configured, 
 as in this library upload from local file to BigQuery uses [bq command](https://cloud.google.com/bigquery/docs/bq-command-line-tool) which is only recommended to be used in testing environments as in production files should be present on Google Cloud Storage when uploading to BigQuery**
-
-    import etlflow.etlsteps.BQLoadStep
-    import etlflow.utils.LOCAL
     
     // Adding two new properties for Bigquery table and Dataset
     val job_properties: Map[String,String] = Map(

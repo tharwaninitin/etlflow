@@ -51,7 +51,7 @@ Below Docker compose file file contains the two services :
           ports:
           - '5432:5432'
         webserver:
-          image: 'etlflow:0.7.16'
+          image: 'etlflow:0.7.18'
           deploy:
             resources:
               limits:

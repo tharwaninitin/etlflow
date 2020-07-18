@@ -24,9 +24,10 @@ To build an assembly jar for an etlflow core library we need to perform some ste
 
 ### STEP 2) Copy the etlflow core assembly jar to gcs bucket using below command
  
- 
-      gsutil cp modules/core/target/scala-2.12/etlflow-core-assembly-0.7.16.jar gs://<BUCKET-NAME>/jars/examples
+      gsutil cp modules/core/target/scala-2.12/etlflow-core-assembly-x.x.x.jar gs://<BUCKET-NAME>/jars/examples
       
+Replace x.x.x with the latest version [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
+
 ### Note
 Sometime spark applications may fail if spark application dependencies conflict with Dataproc Hadoop's dependencies. This conflict can arise because Hadoop injects its dependencies into the application's classpath, so its dependencies take precedence over the application's dependencies. When a conflict occurs, NoSuchMethodError or other errors can be generated. 
 
@@ -58,8 +59,9 @@ For reference: [manage-spark-dependencies](https://cloud.google.com/dataproc/doc
        
 ### STEP 4) Copy the examples jar to gcs bucket using below command:
  
- 
-      gsutil cp examples/target/scala-2.12/etlflow-examples_2.12-0.7.16.jar  gs://<BUCKET-NAME>/jars/examples
+      gsutil cp examples/target/scala-2.12/etlflow-examples_2.12-x.x.x.jar  gs://<BUCKET-NAME>/jars/examples
+
+Replace x.x.x with the latest version [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
       
 ### STEP 5) Provide below detials in file **examples/src/main/conf/loaddata.properties**:
 

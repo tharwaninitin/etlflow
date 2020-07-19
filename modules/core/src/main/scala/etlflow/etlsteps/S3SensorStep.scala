@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.EtlJobException
 import etlflow.aws._
-import etlflow.utils.AWS
+import etlflow.utils.Environment.AWS
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import zio.Task
@@ -21,9 +21,7 @@ class S3SensorStep private[etlsteps](
                    credentials: Option[AWS] = None
                  ) extends EtlStep[Unit,Unit] with SensorStep {
   override def process(input_state: => Unit): Task[Unit] = {
-    val env       = S3Client.live >>> S3Api.live
-    val lookup    = lookupObject(bucket,prefix,key).provideLayer(env)
-
+    val lookup = S3Api.lookupObject(bucket,prefix,key)
     def program(s3: S3AsyncClient): Task[Unit] = (for {
                     out <- lookup.provide(s3)
                     _   <- if(out) Task.succeed(etl_logger.info(s"Found key $key in s3 location s3://$bucket/$prefix/"))
@@ -32,7 +30,7 @@ class S3SensorStep private[etlsteps](
 
     val runnable  = for {
                       _   <- Task.succeed(etl_logger.info(s"Starting sensor for s3 location s3://$bucket/$prefix/$key"))
-                      s3  <- createClient(region, endpoint_override, credentials)
+                      s3  <- S3Api.createClient(region, endpoint_override, credentials)
                       _   <- program(s3)
                     } yield ()
     runnable

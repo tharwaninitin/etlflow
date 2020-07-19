@@ -23,7 +23,7 @@ trait TestSuiteHelper extends SparkManager {
   lazy val gcs_bucket: String              = sys.env.getOrElse("GCS_BUCKET","...")
   lazy val s3_bucket: String               = sys.env.getOrElse("S3_BUCKET","...")
   lazy val s3_region: Region               = Region.AP_SOUTH_1
-val canonical_path: String                = new java.io.File(".").getCanonicalPath
+  val canonical_path: String               = new java.io.File(".").getCanonicalPath
   override val global_properties: Option[GlobalProperties] =
     Try(new GlobalProperties(canonical_path + "/modules/core/src/test/resources/loaddata.properties") {}).toOption
   val file                            = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"

@@ -4,12 +4,12 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{DPSparkJobStep, EtlStep}
 import etlflow.spark.SparkManager
-import etlflow.utils.DataprocExecutor
+import etlflow.utils.Executor.DATAPROC
 import examples.MyGlobalProperties
 import examples.schema.MyEtlJobProps
 
 case class EtlJob1Trigger(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob with SparkManager {
-  val dpConfig = DataprocExecutor(
+  val dpConfig = DATAPROC(
     sys.env("DP_PROJECT_ID"),
     sys.env("DP_REGION"),
     sys.env("DP_ENDPOINT"),

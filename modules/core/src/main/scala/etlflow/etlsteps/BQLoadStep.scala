@@ -3,7 +3,7 @@ package etlflow.etlsteps
 import java.util
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
 import etlflow.gcp._
-import etlflow.utils
+import etlflow.utils.{FSType,IOType,Environment}
 import org.apache.spark.sql.Encoders
 import zio.Task
 import scala.collection.JavaConverters._
@@ -13,13 +13,13 @@ import scala.util.Try
 class BQLoadStep[T <: Product : TypeTag] private[etlflow](
             val name: String
             , input_location: => Either[String, Seq[(String, String)]]
-            , input_type: utils.IOType
-            , input_file_system: utils.FSType = utils.GCS
+            , input_type: IOType
+            , input_file_system: FSType = FSType.GCS
             , output_dataset: String
             , output_table: String
             , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
             , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-            , val credentials: Option[utils.GCP] = None
+            , val credentials: Option[Environment.GCP] = None
        )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
@@ -49,13 +49,13 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
     val env = BQ.live(credentials)
 
     input_file_system match {
-      case utils.LOCAL =>
+      case FSType.LOCAL =>
         etl_logger.info(s"FileSystem: $input_file_system")
         BQService.loadIntoBQFromLocalFile(
           input_location, input_type, output_dataset, output_table,
           output_write_disposition, output_create_disposition
         ).provideLayer(env)
-      case utils.GCS =>
+      case FSType.GCS =>
         input_location match {
           case Left(value) =>
             etl_logger.info(s"FileSystem: $input_file_system")
@@ -123,13 +123,13 @@ object BQLoadStep {
   def apply[T <: Product : TypeTag]
       (name: String
       , input_location: => Either[String, Seq[(String, String)]]
-      , input_type: utils.IOType
-      , input_file_system: utils.FSType = utils.GCS
+      , input_type: IOType
+      , input_file_system: FSType = FSType.GCS
       , output_dataset: String
       , output_table: String
       , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
       , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-      , credentials: Option[utils.GCP] = None
+      , credentials: Option[Environment.GCP] = None
      ): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system
       , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials)

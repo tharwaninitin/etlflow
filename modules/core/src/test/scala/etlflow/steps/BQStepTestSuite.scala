@@ -4,7 +4,7 @@ import com.google.cloud.bigquery.FieldValueList
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
 import etlflow.spark.ReadApi
 import etlflow.Schema._
-import etlflow.utils.{LOCAL, PARQUET}
+import etlflow.utils.PARQUET
 import org.apache.spark.sql.{Dataset, Row}
 import org.scalatest.{FlatSpec, Matchers}
 import etlflow.TestSuiteHelper

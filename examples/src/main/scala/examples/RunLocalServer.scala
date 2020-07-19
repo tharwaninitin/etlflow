@@ -20,6 +20,7 @@ object RunLocalServer extends LocalExecutor[MyEtlJobName[MyEtlJobProps], MyEtlJo
 
   override def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps, Option[MyGlobalProperties]) => EtlJob = {
     job_name match {
+      case EtlJob1DPTrigger => EtlJob1Trigger
       case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => EtlJob1Definition
       case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => EtlJob2Definition
       case EtlJob3CSVtoCSVtoBQGcsWith2Steps => EtlJob3Definition

@@ -1,7 +1,7 @@
 package etlflow.steps
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.utils.DataprocExecutor
+import etlflow.utils.Executor.DATAPROC
 import zio.ZIO
 import zio.test._
 import zio.test.Assertion._
@@ -12,7 +12,7 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
     suite("EtlFlow Steps") (
       suite("EtlFlow Steps") (
       testM("Execute DPHiveJob step") {
-        val dpConfig = DataprocExecutor(
+        val dpConfig = DATAPROC(
           sys.env("DP_PROJECT_ID"),
           sys.env("DP_REGION"),
           sys.env("DP_ENDPOINT"),
@@ -26,7 +26,7 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
-        val dpConfig = DataprocExecutor(
+        val dpConfig = DATAPROC(
           sys.env("DP_PROJECT_ID"),
           sys.env("DP_REGION"),
           sys.env("DP_ENDPOINT"),

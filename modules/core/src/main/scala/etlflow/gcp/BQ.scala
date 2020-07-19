@@ -5,7 +5,7 @@ import java.util.UUID
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
 import etlflow.utils
-import etlflow.utils.{CSV, GCP, IOType, ORC, PARQUET}
+import etlflow.utils.{CSV, Environment, IOType, ORC, PARQUET}
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
 import scala.sys.process._
 
@@ -26,7 +26,7 @@ object BQ {
     case _ => FormatOptions.parquet
   }
 
-  def live(credentials: Option[GCP] = None): Layer[Throwable, BQService] = ZLayer.fromManaged {
+  def live(credentials: Option[Environment.GCP] = None): Layer[Throwable, BQService] = ZLayer.fromManaged {
     val acquire = IO.effect{
       val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
       credentials match {

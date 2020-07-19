@@ -1,19 +1,33 @@
 package etlflow
 
 package object utils {
+
   sealed trait FSType
-  case object LOCAL extends FSType
-  case object GCS extends FSType
+  object FSType {
+    case object LOCAL extends FSType
+    case object GCS extends FSType
+  }
 
   sealed trait Executor
-  case object LocalExecutor extends Executor
-  case class DataprocExecutor(project: String, region: String, endpoint: String, cluster_name: String) extends Executor
-
-  final case class GCP(service_account_key_path: String) {
-    override def toString: String = "****service_account_key_path****"
+  object Executor {
+    case object LOCAL extends Executor
+    case class DATAPROC(project: String, region: String, endpoint: String, cluster_name: String) extends Executor
+    case class LIVY(url: String) extends Executor
   }
-  final case class AWS(access_key: String, secret_key: String) {
-    override def toString: String = "****access_key****secret_key****"
+
+  sealed trait Environment
+  object Environment {
+    final case class GCP(service_account_key_path: String, project_id: String = "") extends Environment {
+      override def toString: String = "****service_account_key_path****"
+    }
+    final case class AWS(access_key: String, secret_key: String) extends Environment {
+      override def toString: String = "****access_key****secret_key****"
+    }
+    case object LOCAL extends Environment
+  }
+
+  final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") {
+    override def toString: String = s"SMTP with host  => $host and user => $user"
   }
 
   sealed trait IOType extends Serializable
@@ -30,12 +44,6 @@ package object utils {
   final case class JSON(multi_line: Boolean = false) extends IOType {
     override def toString: String = s"Json with multiline  => $multi_line"
   }
-
-  final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") extends IOType {
-    override def toString: String = s"SMTP with host  => $host and user => $user"
-  }
-
-
   case object BQ extends IOType
   case object PARQUET extends IOType
   case object ORC extends IOType

@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.utils.GCP
+import etlflow.utils.Environment.GCP
 import zio.Task
 
 class GCSPutStep private[etlsteps](

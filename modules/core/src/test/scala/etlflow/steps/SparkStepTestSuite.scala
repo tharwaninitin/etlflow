@@ -4,9 +4,9 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import etlflow.Schema._
 import etlflow.TestSuiteHelper
-import etlflow.etlsteps.SparkReadWriteStep
+import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
 import etlflow.spark.{ReadApi, SparkUDF}
-import etlflow.utils.{GlobalProperties, JDBC, PARQUET}
+import etlflow.utils.{JDBC, PARQUET}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.{FlatSpec, Matchers}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -33,8 +33,16 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
     output_save_mode = SaveMode.Overwrite
   )
 
+  val step2 = SparkReadStep[Rating](
+    name             = "LoadRatingsParquet",
+    input_location   = Seq(input_path_parquet),
+    input_type       = PARQUET,
+  )
+
   // STEP 3: Run Step
   runtime.unsafeRun(step1.process(spark))
+  val op: Dataset[Rating] = runtime.unsafeRun(step2.process(spark))
+  op.show(10)
 
   // STEP 4: Run Test
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)

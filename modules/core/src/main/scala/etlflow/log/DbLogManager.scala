@@ -20,58 +20,58 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
   import ctx._
 
   def updateStepLevelInformation(
-      execution_start_time: Long,
-      etl_step: EtlStep[_,_],
-      state_status: String,
-      error_message: Option[String] = None,
-      mode: String = "update"
-    ): Task[Long] = {
-        if (mode == "insert") {
-          val step = StepRun(
-            job_properties.job_run_id,
-            etl_step.name,
-            JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
-            state_status.toLowerCase(),
-            UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
-            "..."
-          )
-          lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
-          val x: ConnectionIO[Long] = ctx.run(quote {
-            query[StepRun].insert(lift(step))
-          })
-          val y: Task[Long] = x.transact(transactor).mapError{e =>
-            lm_logger.error(s"failed in logging to db ${e.getMessage}")
-            e
-          }
-          y
-        }
-        else {
-          val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
-          val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
-          lm_logger.info(s"Updating step info for ${etl_step.name} in db with status => $status")
-          ctx.run(quote {
-            query[StepRun]
-              .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
-              .update(
-                _.state -> lift(status),
-                _.properties -> lift(JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
-                _.elapsed_time -> lift(elapsed_time)
-                )
-          }).transact(transactor).mapError{e =>
-            lm_logger.error(s"failed in logging to db ${e.getMessage}")
-            e
-          }
-        }
+                                  execution_start_time: Long,
+                                  etl_step: EtlStep[_,_],
+                                  state_status: String,
+                                  error_message: Option[String] = None,
+                                  mode: String = "update"
+                                ): Task[Long] = {
+    if (mode == "insert") {
+      val step = StepRun(
+        job_properties.job_run_id,
+        etl_step.name,
+        JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
+        state_status.toLowerCase(),
+        UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
+        "..."
+      )
+      lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
+      val x: ConnectionIO[Long] = ctx.run(quote {
+        query[StepRun].insert(lift(step))
+      })
+      val y: Task[Long] = x.transact(transactor).mapError{e =>
+        lm_logger.error(s"failed in logging to db ${e.getMessage}")
+        e
+      }
+      y
     }
+    else {
+      val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
+      val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
+      lm_logger.info(s"Updating step info for ${etl_step.name} in db with status => $status")
+      ctx.run(quote {
+        query[StepRun]
+          .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
+          .update(
+            _.state -> lift(status),
+            _.properties -> lift(JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
+            _.elapsed_time -> lift(elapsed_time)
+          )
+      }).transact(transactor).mapError{e =>
+        lm_logger.error(s"failed in logging to db ${e.getMessage}")
+        e
+      }
+    }
+  }
 
-  def updateJobInformation(status: String, mode: String = "update", error_message: Option[String] = None): Task[Long] = {
+  def updateJobInformation(execution_start_time: Long,status: String, mode: String = "update", error_message: Option[String] = None): Task[Long] = {
     import ctx._
     if (mode == "insert") {
       val job = JobRun(
         job_properties.job_run_id, job_name.toString,
         job_properties.job_description,
         JsonJackson.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
-        "started", UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp
+        "started", UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp, "..."
       )
       lm_logger.info(s"Inserting job info in db with status => $status")
       ctx.run(quote {
@@ -84,8 +84,13 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     else {
       lm_logger.info(s"Updating job info in db with status => $status")
       val job_status = if (error_message.isDefined) status.toLowerCase() + " with error: " + error_message.get else status.toLowerCase()
+      val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
       ctx.run(quote {
-        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id)).update(_.state -> lift(job_status))
+        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id))
+          .update(
+            _.state -> lift(job_status),
+            _.elapsed_time -> lift(elapsed_time)
+          )
       }).transact(transactor).mapError{e =>
         lm_logger.error(s"failed in logging to db ${e.getMessage}")
         e
@@ -103,12 +108,12 @@ object DbLogManager extends DbManager{
     Try(new DbLogManager(transactor,job_name, job_properties)).toOption
 
   def createOptionDbTransactorManagedGP(
-       global_properties: Option[GlobalProperties],
-       ec: ExecutionContext,
-       pool_name: String = "LoggerPool",
-       job_name: String,
-       job_properties: EtlJobProps
-     ): Managed[Throwable, Option[DbLogManager]] =
+                                         global_properties: Option[GlobalProperties],
+                                         ec: ExecutionContext,
+                                         pool_name: String = "LoggerPool",
+                                         job_name: String,
+                                         job_properties: EtlJobProps
+                                       ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
       createDbTransactorManagedGP(global_properties,ec,pool_name)
         .map { transactor =>

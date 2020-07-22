@@ -59,23 +59,23 @@ object EtlLogger {
   object JobLogger {
     def live(res: LoggerResource): LoggerService = new LoggerService {
       override def logInit(start_time: Long): Task[Unit] = {
-        if (res.db.isDefined) res.db.get.updateJobInformation("started","insert").as(())
+        if (res.db.isDefined) res.db.get.updateJobInformation(start_time,"started","insert").as(())
         else
           ZIO.unit
       }
       override def logSuccess(start_time: Long): Task[Unit] = {
         for {
-          _  <- UIO.succeed(if (res.slack.isDefined) res.slack.get.updateJobInformation("pass"))
-          _  <- if (res.db.isDefined) res.db.get.updateJobInformation("pass") else ZIO.unit
+          _  <- UIO.succeed(if (res.slack.isDefined) res.slack.get.updateJobInformation(start_time,"pass"))
+          _  <- if (res.db.isDefined) res.db.get.updateJobInformation(start_time,"pass") else ZIO.unit
           _  <- UIO.succeed(logger.info(s"Job completed successfully in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}"))
         } yield ()
       }
       override def logError(start_time: Long, ex: Throwable): Task[Unit] = {
         if (res.slack.isDefined)
-          res.slack.get.updateJobInformation("failed")
+          res.slack.get.updateJobInformation(start_time,"failed")
         logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
         if (res.db.isDefined)
-          res.db.get.updateJobInformation("failed",error_message = Some(ex.getMessage)).as(()) *> Task.fail(ex)
+          res.db.get.updateJobInformation(start_time,"failed",error_message = Some(ex.getMessage)).as(()) *> Task.fail(ex)
         else
           Task.fail(ex)
       }

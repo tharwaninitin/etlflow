@@ -7,5 +7,7 @@ case class JobRun(
                    properties: String,
                    state: String,
                    start_time: String,
-                   inserted_at: Long
+                   inserted_at: Long,
+                   elapsed_time: String,
+
                  )

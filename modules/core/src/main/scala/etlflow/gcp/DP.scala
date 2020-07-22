@@ -2,7 +2,7 @@ package etlflow.gcp
 
 import java.util.concurrent.TimeUnit
 import com.google.cloud.dataproc.v1.{HiveJob, Job, JobControllerClient, JobControllerSettings, JobPlacement, QueryList, SparkJob}
-import etlflow.utils.DataprocExecutor
+import etlflow.utils.Executor.DATAPROC
 import zio.{Layer, Task, ZIO, ZLayer}
 import scala.collection.JavaConverters._
 
@@ -33,7 +33,7 @@ object DP {
     }
   }
 
-  def live(config: DataprocExecutor): Layer[Throwable, DPService] = ZLayer.fromEffect {
+  def live(config: DATAPROC): Layer[Throwable, DPService] = ZLayer.fromEffect {
     Task {
       val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
       val jobControllerClient = JobControllerClient.create(jobControllerSettings)

@@ -1,9 +1,9 @@
 package etlflow.etlsteps
 
-import etlflow.spark.ReadApi
+import etlflow.spark._
 import etlflow.utils.IOType
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
-import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
+import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 import zio.Task
 import scala.reflect.runtime.universe.TypeTag
 
@@ -17,7 +17,9 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
 extends EtlStep[Unit,Dataset[O]] {
   private var recordsReadCount = 0L
 
-  final def process(input_state: =>Unit): Task[Dataset[O]] = Task {
+  final def process(input_state: =>Unit): Task[Dataset[O]] = {
+    val program = SparkApi.LoadDS[I](input_location,input_type,input_filter)
+
     spark.sparkContext.addSparkListener(new SparkListener() {
       override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
         synchronized {
@@ -27,14 +29,13 @@ extends EtlStep[Unit,Dataset[O]] {
     })
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting Spark Read Step : $name")
-    val ds = ReadApi.LoadDS[I](input_location,input_type,input_filter)(spark)
 
     transform_function match {
       case Some(transformFunc) =>
-        transformFunc(spark,ds)
+        program.map(ds => transformFunc(spark,ds)).provide(spark)
       case None =>
         val mapping = Encoders.product[O]
-        ds.as[O](mapping)
+        program.map(ds => ds.as[O](mapping)).provide(spark)
     }
   }
 

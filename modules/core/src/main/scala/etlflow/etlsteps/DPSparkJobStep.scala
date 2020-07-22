@@ -1,14 +1,14 @@
 package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPService}
-import etlflow.utils.DataprocExecutor
+import etlflow.utils.Executor.DATAPROC
 import zio.Task
 
 case class DPSparkJobStep(
                            name: String,
                            job_name: String,
                            props: Map[String,String],
-                           config: DataprocExecutor,
+                           config: DATAPROC,
                            main_class: String,
                            libs: List[String]
      )

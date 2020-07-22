@@ -1,13 +1,13 @@
 package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPService}
-import etlflow.utils.DataprocExecutor
+import etlflow.utils.Executor.DATAPROC
 import zio.Task
 
 case class DPHiveJobStep(
                           name: String,
                           query: String,
-                          config: DataprocExecutor,
+                          config: DATAPROC,
      )
   extends EtlStep[Unit,Unit] {
 

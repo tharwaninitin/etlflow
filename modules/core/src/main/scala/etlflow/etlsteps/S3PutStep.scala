@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.aws._
-import etlflow.utils.AWS
+import etlflow.utils.Environment.AWS
 import software.amazon.awssdk.regions.Region
 import zio.Task
 
@@ -15,14 +15,13 @@ class S3PutStep private[etlsteps](
                    credentials: Option[AWS] = None
                  ) extends EtlStep[Unit,Unit] {
   override def process(input_state: => Unit): Task[Unit] = {
-    val env       = S3Client.live >>> S3Api.live
-    val program   = putObject(bucket,key,file)
+    val program   = S3Api.putObject(bucket,key,file)
     val runnable  = for {
                       _   <- Task.succeed(etl_logger.info("#"*100))
                       _   <- Task.succeed(etl_logger.info(s"Input local path $file"))
                       _   <- Task.succeed(etl_logger.info(s"Output S3 path s3://$bucket/$key"))
-                      s3  <- createClient(region, endpoint_override, credentials)
-                      _   <- program.provideLayer(env).provide(s3).foldM(
+                      s3  <- S3Api.createClient(region, endpoint_override, credentials)
+                      _   <- program.provide(s3).foldM(
                               ex => Task.succeed(etl_logger.error(ex.getMessage)) *> Task.fail(ex),
                               _  => Task.succeed(etl_logger.info(s"Successfully uploaded file $file in location s3://$bucket/$key"))
                             )

@@ -102,7 +102,9 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
                                   "/about" -> otherRoutes,
                                   "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                                   "/etlflow"        -> metricsSvc.routes,
-                                  "/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/client.js", blocker, None)),
+                                  "/assets/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/client.js", blocker, None)),
+                                  "/assets/signin.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/signin.css", blocker, None)),
+                                  "/assets/icons8-refresh.svg"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/icons8-refresh.svg", blocker, None)),
                                   "/api/etlflow"    -> CORS(Metrics[EtlFlowTask](metrics)(
                                     AuthMiddleware(
                                       Http4sAdapter.makeHttpService(etlFlowInterpreter),

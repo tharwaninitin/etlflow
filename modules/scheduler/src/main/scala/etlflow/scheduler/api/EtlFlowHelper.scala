@@ -27,6 +27,7 @@ object EtlFlowHelper {
            free_memory: String,
            total_memory: String,
            max_memory: String,
+           current_time: String
          )
   case class UserAuth(message: String, token: String)
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)

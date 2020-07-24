@@ -9,6 +9,7 @@ object MyEtlJobProps {
   case class EtlJob1TriggerProps() extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
+                            ratings_intermediate_path: String = "",
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),

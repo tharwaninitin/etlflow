@@ -88,14 +88,14 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
     .flatMap{implicit runtime =>
       (for {
         metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
-        metrics            <- Prometheus.metricsOps[EtlFlowTask](CollectorRegistry.defaultRegistry, "server").toManagedZIO
+        metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
         etlFlowInterpreter <- EtlFlowApi.api.interpreter.toManaged_
         loginInterpreter   <- LoginApi.api.interpreter.toManaged_
         _                  <- BlazeServerBuilder[EtlFlowTask]
                               .bindHttp(8080, "0.0.0.0")
-                              .withConnectorPoolSize(10)
-                              .withResponseHeaderTimeout(55.seconds)
-                              .withIdleTimeout(60.seconds)
+                              .withConnectorPoolSize(20)
+                              .withResponseHeaderTimeout(110.seconds)
+                              .withIdleTimeout(120.seconds)
                               .withExecutionContext(platform.executor.asEC)
                               .withHttpApp(
                                 Router[EtlFlowTask](

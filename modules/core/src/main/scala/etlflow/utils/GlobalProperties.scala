@@ -31,24 +31,24 @@ abstract class GlobalProperties(global_properties_file_path: String, job_propert
   lazy val spark_scheduler_mode: String     = config.getOrDefault("spark_scheduler_mode", "FAIR").toString
 
   lazy val aws_access_key: String           = sys.env.getOrElse("ACCESS_KEY", config.getOrDefault("aws_access_key","").toString)
-  lazy val aws_secret_key: String           = sys.env.getOrElse("SECRET_KEY", config.getProperty("aws_secret_key","").toString)
+  lazy val aws_secret_key: String           = sys.env.getOrElse("SECRET_KEY", config.getOrDefault("aws_secret_key","").toString)
 
-  lazy val gcp_project: String              = sys.env.getOrElse("GCP_PROJECT", config.getProperty("gcp_project"))
-  lazy val gcp_credential_file_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", config.getProperty("gcp_credential_file_path"))
-  lazy val gcp_region: String               = sys.env.getOrElse("GCP_REGION", config.getProperty("gcp_region"))
-  lazy val gcp_dp_endpoint: String          = sys.env.getOrElse("GCP_DP_ENDPOINT", config.getProperty("gcp_dp_endpoint"))
-  lazy val gcp_dp_cluster_name: String      = sys.env.getOrElse("GCP_DP_CLUSTER_NAME", config.getProperty("gcp_dp_cluster_name"))
-  lazy val main_class: String               = sys.env.getOrElse("MAIN_CLASS", config.getProperty("main_class"))
-  lazy val dep_libs: String                 = sys.env.getOrElse("DEP_LIBS", config.getProperty("dep_libs"))
+  lazy val gcp_project: String              = sys.env.getOrElse("GCP_PROJECT", config.getOrDefault("gcp_project","").toString)
+  lazy val gcp_credential_file_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", config.getOrDefault("gcp_credential_file_path","").toString)
+  lazy val gcp_region: String               = sys.env.getOrElse("GCP_REGION", config.getOrDefault("gcp_region","").toString)
+  lazy val gcp_dp_endpoint: String          = sys.env.getOrElse("GCP_DP_ENDPOINT", config.getOrDefault("gcp_dp_endpoint","").toString)
+  lazy val gcp_dp_cluster_name: String      = sys.env.getOrElse("GCP_DP_CLUSTER_NAME", config.getOrDefault("gcp_dp_cluster_name","").toString)
+  lazy val main_class: String               = sys.env.getOrElse("MAIN_CLASS", config.getOrDefault("main_class","").toString)
+  lazy val dep_libs: String                 = sys.env.getOrElse("DEP_LIBS", config.getOrDefault("dep_libs","").toString)
 
-  lazy val send_notification: String        = sys.env.getOrElse("SEND_NOTIFICATION", config.getProperty("send_notification"))
-  lazy val notification_level: String       = sys.env.getOrElse("NOTIFICATION_LEVEL", config.getProperty("notification_level"))
+  lazy val send_notification: String        = sys.env.getOrElse("SEND_NOTIFICATION", config.getOrDefault("send_notification","").toString)
+  lazy val notification_level: String       = sys.env.getOrElse("NOTIFICATION_LEVEL", config.getOrDefault("notification_level","").toString)
 
-  lazy val slack_webhook_url: String        = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getProperty("slack_webhook_url"))
-  lazy val slack_env: String                = sys.env.getOrElse("SLACK_ENV", config.getProperty("slack_env"))
+  lazy val slack_webhook_url: String        = sys.env.getOrElse("SLACK_WEBHOOK_URL", config.getOrDefault("slack_webhook_url","").toString)
+  lazy val slack_env: String                = sys.env.getOrElse("SLACK_ENV", config.getOrDefault("slack_env","").toString)
 
-  lazy val log_db_driver: String            = sys.env.getOrElse("LOG_DB_DRIVER", config.getProperty("log_db_driver"))
-  lazy val log_db_url: String               = sys.env.getOrElse("LOG_DB_URL", config.getProperty("log_db_url"))
-  lazy val log_db_user: String              = sys.env.getOrElse("LOG_DB_USER", config.getProperty("log_db_user"))
-  lazy val log_db_pwd: String               = sys.env.getOrElse("LOG_DB_PWD", config.getProperty("log_db_pwd"))
+  lazy val log_db_driver: String            = sys.env.getOrElse("LOG_DB_DRIVER", config.getOrDefault("log_db_driver","").toString)
+  lazy val log_db_url: String               = sys.env.getOrElse("LOG_DB_URL", config.getOrDefault("log_db_url","").toString)
+  lazy val log_db_user: String              = sys.env.getOrElse("LOG_DB_USER", config.getOrDefault("log_db_user","").toString)
+  lazy val log_db_pwd: String               = sys.env.getOrElse("LOG_DB_PWD", config.getOrDefault("log_db_pwd","").toString)
 }

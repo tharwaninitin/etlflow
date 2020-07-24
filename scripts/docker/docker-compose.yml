@@ -13,7 +13,7 @@ services:
     ports:
     - '5432:5432'
   webserver:
-    image: 'etlflow:0.7.17'
+    image: 'etlflow:0.7.19'
     deploy:
       resources:
         limits:

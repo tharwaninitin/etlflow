@@ -95,4 +95,8 @@ object Dependencies {
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
+
+  lazy val scalacache_caffeine = List(
+    "com.github.cb372" %% "scalacache-caffeine" % "0.28.0"
+  )
 }

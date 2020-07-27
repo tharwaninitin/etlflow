@@ -3,28 +3,32 @@ package etlflow.scheduler.api
 import caliban.Http4sAdapter
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Blocker
-import doobie.implicits._
+import com.github.benmanes.caffeine.cache.Caffeine
 import doobie.hikari.HikariTransactor
+import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.api.EtlFlowHelper.EtlFlowHas
 import etlflow.utils.JDBC
-import etlflow.{BuildInfo => BI}
-import io.getquill.{Literal, LowerCase, PostgresJdbcContext}
-import io.prometheus.client.CollectorRegistry
-import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
-import org.http4s.{HttpRoutes, Request, StaticFile}
+import io.getquill.Literal
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
+import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.{HttpRoutes, Request, StaticFile}
 import org.slf4j.{Logger, LoggerFactory}
+import scalacache.Entry
+import scalacache.caffeine.CaffeineCache
+import scalacache.modes.sync._
 import zio.blocking.Blocking
 import zio.console.putStrLn
 import zio.interop.catz._
 import zio.{RIO, ZIO, _}
+import etlflow.{BuildInfo => BI}
+
 
 import scala.concurrent.duration._
 
@@ -37,6 +41,8 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
   object ioz extends Http4sDsl[EtlFlowTask]
   import ioz._
 
+  var caffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Entry[String]]
+
   val otherRoutes:HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
@@ -47,21 +53,31 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
   case class UserAuthTokens(token: String)
 
   def AuthMiddleware(service: HttpRoutes[EtlFlowTask],
-         authEnabled: Boolean,
-         transactor: HikariTransactor[Task]
-        ): HttpRoutes[EtlFlowTask] = Kleisli {
-      req: Request[EtlFlowTask] =>
-        if(authEnabled) {
-          req.headers.get(CaseInsensitiveString("Authorization")) match {
-            case Some(value) => {
-              logger.info("Token: " + value)
-              val token = value.value
-              val isTokenValid = {
+                     authEnabled: Boolean,
+                     transactor: HikariTransactor[Task]
+                    ): HttpRoutes[EtlFlowTask] = Kleisli {
+    req: Request[EtlFlowTask] =>
+      if(authEnabled) {
+        req.headers.get(CaseInsensitiveString("Authorization")) match {
+          case Some(value) => {
+            var isTokenValid = false
+            logger.info("Token: " + value)
+            val token = value.value
+            if (CaffeineCache(caffeineCache).doGet(token).getOrElse("NA") == token) {
+              isTokenValid = true
+              logger.info("Accessed token from cache")
+              logger.info("Is Token Valid => " + isTokenValid)
+              service(req)
+            } else {
+              logger.info("Token is not present in cache. Accessing it from db ...")
+              isTokenValid = {
                 val q = quote {
                   query[UserAuthTokens].filter(x => x.token == lift(token)).nonEmpty
                 }
                 runtime.unsafeRun(doobieContext.run(q).transact(transactor))
               }
+              logger.info("Inserted token in cache")
+              CaffeineCache(caffeineCache).doPut(token, token, ttl = Some(60.seconds))
               logger.info("Is Token Valid => " + isTokenValid)
 
               if (isTokenValid) {
@@ -72,16 +88,18 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
                 OptionT.liftF(Forbidden())
               }
             }
-            case None => {
-              logger.info("Header not present. Invalid Requests !! ")
-              OptionT.liftF(Forbidden())
-            }
           }
-        } else{
-          //Return response as it is when authentication is disabled
-          service(req)
+          case None => {
+            logger.info("Header not present. Invalid Requests !! ")
+            OptionT.liftF(Forbidden())
+          }
         }
-    }
+      } else{
+        //Return response as it is when authentication is disabled
+        service(req)
+      }
+  }
+
 
   def etlFlowRunner(blocker: Blocker, transactor: HikariTransactor[Task]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]

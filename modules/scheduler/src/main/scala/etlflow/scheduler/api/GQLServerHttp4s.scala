@@ -3,15 +3,14 @@ package etlflow.scheduler.api
 import caliban.Http4sAdapter
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Blocker
-import doobie.implicits._
+//import doobie.implicits._
 import doobie.hikari.HikariTransactor
-import doobie.quill.DoobieContext
+//import doobie.quill.DoobieContext
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.api.EtlFlowHelper.EtlFlowHas
 import etlflow.utils.JDBC
 import etlflow.{BuildInfo => BI}
-import io.getquill.{Literal, LowerCase, PostgresJdbcContext}
-import io.prometheus.client.CollectorRegistry
+//import io.getquill.Literal
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.{HttpRoutes, Request, StaticFile}
 import org.http4s.dsl.Http4sDsl
@@ -25,13 +24,14 @@ import zio.blocking.Blocking
 import zio.console.putStrLn
 import zio.interop.catz._
 import zio.{RIO, ZIO, _}
-
 import scala.concurrent.duration._
+import etlflow.scheduler.CacheHelper
+import scalacache.Cache
 
 private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   val credentials: JDBC
-  def etlFlowLayer(transactor: HikariTransactor[Task]): ZLayer[Blocking, Throwable, EtlFlowHas]
+  def etlFlowLayer(transactor: HikariTransactor[Task], cache: Cache[String]): ZLayer[Blocking, Throwable, EtlFlowHas]
 
   type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
   object ioz extends Http4sDsl[EtlFlowTask]
@@ -41,39 +41,40 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  val doobieContext = new DoobieContext.Postgres(Literal)
-  import doobieContext._
+  //val doobieContext = new DoobieContext.Postgres(Literal)
+  //import doobieContext._
 
   case class UserAuthTokens(token: String)
 
   def AuthMiddleware(service: HttpRoutes[EtlFlowTask],
          authEnabled: Boolean,
-         transactor: HikariTransactor[Task]
+         transactor: HikariTransactor[Task],
+         cache: Cache[String]
         ): HttpRoutes[EtlFlowTask] = Kleisli {
       req: Request[EtlFlowTask] =>
         if(authEnabled) {
           req.headers.get(CaseInsensitiveString("Authorization")) match {
             case Some(value) => {
-              logger.info("Token: " + value)
               val token = value.value
               val isTokenValid = {
-                val q = quote {
-                  query[UserAuthTokens].filter(x => x.token == lift(token)).nonEmpty
-                }
-                runtime.unsafeRun(doobieContext.run(q).transact(transactor))
+                //val q = quote {
+                //  query[UserAuthTokens].filter(x => x.token == lift(token)).nonEmpty
+                //}
+                //runtime.unsafeRun(doobieContext.run(q).transact(transactor))
+                CacheHelper.getKey(cache,token).getOrElse("NA") == token
               }
-              logger.info("Is Token Valid => " + isTokenValid)
 
               if (isTokenValid) {
                 //Return response as it it in case of success
                 service(req)
               } else {
                 //Return forbidden error as request is invalid
+                logger.warn(s"Invalid token $token")
                 OptionT.liftF(Forbidden())
               }
             }
             case None => {
-              logger.info("Header not present. Invalid Requests !! ")
+              logger.warn("Header not present. Invalid Request !! ")
               OptionT.liftF(Forbidden())
             }
           }
@@ -83,7 +84,7 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
         }
     }
 
-  def etlFlowRunner(blocker: Blocker, transactor: HikariTransactor[Task]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
+  def etlFlowRunner(blocker: Blocker, transactor: HikariTransactor[Task], cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
     .flatMap{implicit runtime =>
       (for {
@@ -109,7 +110,8 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
                                     AuthMiddleware(
                                       Http4sAdapter.makeHttpService(etlFlowInterpreter),
                                       true,
-                                      transactor
+                                      transactor,
+                                      cache
                                     ))
                                   ),
                                   "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
@@ -124,7 +126,8 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
     val finalRunner = for {
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
       transactor  <- createDbTransactorJDBC(credentials, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
-      _           <- etlFlowRunner(blocker,transactor).provideCustomLayer(etlFlowLayer(transactor))
+      cache       = CacheHelper.createCache[String](60)
+      _           <- etlFlowRunner(blocker,transactor,cache).provideCustomLayer(etlFlowLayer(transactor,cache))
     } yield ()
 
     finalRunner.catchAll(err => putStrLn(err.toString)).as(1)

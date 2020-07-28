@@ -16,6 +16,7 @@ import eu.timepit.fs2cron.schedule
 import fs2.Stream
 import io.getquill.Literal
 import pdi.jwt.{Jwt, JwtAlgorithm}
+import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.interop.catz._
@@ -48,7 +49,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
 
   object EtlFlowService {
 
-    def liveHttp4s(transactor: HikariTransactor[Task]): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
+    def liveHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
       for {
         _             <- runDbMigration(credentials)
         subscribers   <- Ref.make(List.empty[Queue[EtlJobStatus]])
@@ -134,13 +135,17 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
               Task(UserAuth("Invalid User", ""))
             }
             else {
-              val number = randomUUID().toString.split("-")(0)
-              val token = Jwt.encode(s"""${args.user_name}:$number""", "secretKey", JwtAlgorithm.HS256)
-              logger.info("Token generated " + token)
-              val userAuthToken = quote {
-                query[UserAuthTokens].insert(lift(UserAuthTokens(token)))
+              Task {
+                val number = randomUUID().toString.split("-")(0)
+                val token = Jwt.encode(s"""${args.user_name}:$number""", "secretKey", JwtAlgorithm.HS256)
+                logger.info("Token generated " + token)
+                //val userAuthToken = quote {
+                //  query[UserAuthTokens].insert(lift(UserAuthTokens(token)))
+                //}
+                //dc.run(userAuthToken).transact(transactor).map(z => UserAuth("Valid User", token))
+                CacheHelper.putKey(cache,token,token)
+                UserAuth("Valid User", token)
               }
-              dc.run(userAuthToken).transact(transactor).map(z => UserAuth("Valid User", token))
             }
           })
         }
@@ -425,5 +430,5 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
-  def etlFlowLayer(transactor: HikariTransactor[Task]): ZLayer[Blocking, Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s(transactor)
+  def etlFlowLayer(transactor: HikariTransactor[Task], cache: Cache[String]): ZLayer[Blocking, Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s(transactor,cache)
 }

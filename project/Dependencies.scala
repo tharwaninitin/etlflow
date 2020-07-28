@@ -76,7 +76,8 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
-    "eu.timepit" %% "fs2-cron-core" % "0.2.2"
+    "eu.timepit" %% "fs2-cron-core" % "0.2.2",
+    "com.github.cb372" %% "scalacache-caffeine" % "0.28.0"
   )
 
   lazy val jwt = List(

@@ -15,6 +15,14 @@ package object utils {
     case class LIVY(url: String) extends Executor
   }
 
+  sealed trait LoggingLevel
+  object LoggingLevel {
+    case object JOB extends LoggingLevel
+    case object STEP extends LoggingLevel
+    case object DEBUG extends LoggingLevel
+    case object INFO extends LoggingLevel
+  }
+
   sealed trait Environment
   object Environment {
     final case class GCP(service_account_key_path: String, project_id: String = "") extends Environment {

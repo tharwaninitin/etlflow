@@ -111,4 +111,13 @@ object UtilityFunctions {
         None
     }
   }
+
+  def getLoggingLevel(loggingLevel: String):LoggingLevel={
+    loggingLevel match {
+      case "job"    => LoggingLevel.JOB
+      case "step"   => LoggingLevel.STEP
+      case "debug"  => LoggingLevel.DEBUG
+      case "info"   => LoggingLevel.INFO
+    }
+  }
 }

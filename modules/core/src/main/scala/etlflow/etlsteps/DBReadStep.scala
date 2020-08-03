@@ -3,14 +3,14 @@ package etlflow.etlsteps
 import doobie.hikari.HikariTransactor
 import doobie.util.Read
 import etlflow.jdbc.{DbManager, QueryApi}
-import etlflow.utils.JDBC
+import etlflow.utils.{JDBC, LoggingLevel}
 import zio.{Managed, Task}
 
 class DBReadStep[T <: Product : Read] private[etlflow](
-     val name: String,
-     query: => String,
-     credentials: JDBC
-   )
+                                                        val name: String,
+                                                        query: => String,
+                                                        credentials: JDBC
+                                                      )
   extends EtlStep[Unit,List[T]]
     with DbManager {
 
@@ -24,7 +24,7 @@ class DBReadStep[T <: Product : Read] private[etlflow](
     QueryApi.executeQueryWithResponse[T](db, query)
   }
 
-  override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
+  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
 }
 
 

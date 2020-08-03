@@ -2,13 +2,14 @@ package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPService}
 import etlflow.utils.Executor.DATAPROC
+import etlflow.utils.LoggingLevel
 import zio.Task
 
 case class DPHiveJobStep(
                           name: String,
                           query: String,
                           config: DATAPROC,
-     )
+                        )
   extends EtlStep[Unit,Unit] {
 
   final def process(in: =>Unit): Task[Unit] = {
@@ -18,7 +19,7 @@ case class DPHiveJobStep(
     DPService.executeHiveJob(query).provideLayer(env)
   }
 
-  override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
+  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
 }
 
 

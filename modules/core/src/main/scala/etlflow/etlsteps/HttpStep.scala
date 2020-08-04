@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.utils.{HttpClientApi, JsonJackson}
+import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
 import scalaj.http._
 import zio.Task
 
@@ -12,13 +12,13 @@ object HttpMethod {
 }
 
 case class HttpStep(
-      name: String,
-      url: String,
-      http_method: HttpMethod,
-      params: Either[String, Seq[(String,String)]] = Left(""),
-      headers: Map[String,String] = Map.empty,
-      log_response: Boolean = false
-    )
+                     name: String,
+                     url: String,
+                     http_method: HttpMethod,
+                     params: Either[String, Seq[(String,String)]] = Left(""),
+                     headers: Map[String,String] = Map.empty,
+                     log_response: Boolean = false
+                   )
   extends EtlStep[Unit, Unit] {
 
   final def process(in: =>Unit): Task[Unit] = {
@@ -37,7 +37,7 @@ case class HttpStep(
     }
   }
 
-  override def getStepProperties(level: String): Map[String, String] =
+  override def getStepProperties(level: LoggingLevel): Map[String, String] =
     Map(
       "url" -> url,
       "http_method" -> http_method.toString
@@ -45,13 +45,13 @@ case class HttpStep(
 }
 
 case class HttpResponseStep(
-      name: String,
-      url: String,
-      http_method: HttpMethod,
-      params: Either[String, Seq[(String,String)]] = Left(""),
-      headers: Map[String,String] = Map.empty,
-      log_response: Boolean = false
-    )
+                             name: String,
+                             url: String,
+                             http_method: HttpMethod,
+                             params: Either[String, Seq[(String,String)]] = Left(""),
+                             headers: Map[String,String] = Map.empty,
+                             log_response: Boolean = false
+                           )
   extends EtlStep[Unit, HttpResponse[String]] {
 
   final def process(in: =>Unit): Task[HttpResponse[String]] = {
@@ -70,7 +70,7 @@ case class HttpResponseStep(
     }
   }
 
-  override def getStepProperties(level: String): Map[String, String] =
+  override def getStepProperties(level: LoggingLevel): Map[String, String] =
     Map(
       "url" -> url,
       "http_method" -> http_method.toString
@@ -78,13 +78,13 @@ case class HttpResponseStep(
 }
 
 case class HttpParsedResponseStep[T: Manifest](
-        name: String,
-        url: String,
-        http_method: HttpMethod,
-        params: Either[String, Seq[(String,String)]] = Left(""),
-        headers: Map[String,String] = Map.empty,
-        log_response: Boolean = false
-      )
+                                                name: String,
+                                                url: String,
+                                                http_method: HttpMethod,
+                                                params: Either[String, Seq[(String,String)]] = Left(""),
+                                                headers: Map[String,String] = Map.empty,
+                                                log_response: Boolean = false
+                                              )
   extends EtlStep[Unit, T] {
 
   final def process(in: =>Unit): Task[T] = {
@@ -103,7 +103,7 @@ case class HttpParsedResponseStep[T: Manifest](
     }
   }
 
-  override def getStepProperties(level: String): Map[String, String] =
+  override def getStepProperties(level: LoggingLevel): Map[String, String] =
     Map(
       "url" -> url,
       "http_method" -> http_method.toString

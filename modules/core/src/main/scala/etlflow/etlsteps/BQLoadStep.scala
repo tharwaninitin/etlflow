@@ -1,26 +1,28 @@
 package etlflow.etlsteps
 
 import java.util
+
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
 import etlflow.gcp._
-import etlflow.utils.{FSType,IOType,Environment}
+import etlflow.utils.{Environment, FSType, IOType, LoggingLevel}
 import org.apache.spark.sql.Encoders
 import zio.Task
+
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
 
 class BQLoadStep[T <: Product : TypeTag] private[etlflow](
-            val name: String
-            , input_location: => Either[String, Seq[(String, String)]]
-            , input_type: IOType
-            , input_file_system: FSType = FSType.GCS
-            , output_dataset: String
-            , output_table: String
-            , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
-            , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-            , val credentials: Option[Environment.GCP] = None
-       )
+                                                           val name: String
+                                                           , input_location: => Either[String, Seq[(String, String)]]
+                                                           , input_type: IOType
+                                                           , input_file_system: FSType = FSType.GCS
+                                                           , output_dataset: String
+                                                           , output_table: String
+                                                           , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+                                                           , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+                                                           , val credentials: Option[Environment.GCP] = None
+                                                         )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
@@ -28,7 +30,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
     etl_logger.info("#################################################################################################")
     etl_logger.info(s"Starting BQ Data Load Step : $name")
 
-     def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
+    def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
       case "StringType"   => LegacySQLTypeName.STRING
       case "IntegerType"  => LegacySQLTypeName.INTEGER
       case "LongType"     => LegacySQLTypeName.INTEGER
@@ -85,8 +87,8 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
     )
   }
 
-  override def getStepProperties(level: String): Map[String, String] = {
-    if (level.equalsIgnoreCase("info"))
+  override def getStepProperties(level: LoggingLevel): Map[String, String] = {
+    if (level == LoggingLevel.INFO)
     {
       Map(
         "input_type" -> input_type.toString
@@ -121,16 +123,16 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
 
 object BQLoadStep {
   def apply[T <: Product : TypeTag]
-      (name: String
-      , input_location: => Either[String, Seq[(String, String)]]
-      , input_type: IOType
-      , input_file_system: FSType = FSType.GCS
-      , output_dataset: String
-      , output_table: String
-      , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
-      , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-      , credentials: Option[Environment.GCP] = None
-     ): BQLoadStep[T] = {
+  (name: String
+   , input_location: => Either[String, Seq[(String, String)]]
+   , input_type: IOType
+   , input_file_system: FSType = FSType.GCS
+   , output_dataset: String
+   , output_table: String
+   , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+   , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+   , credentials: Option[Environment.GCP] = None
+  ): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system
       , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials)
   }

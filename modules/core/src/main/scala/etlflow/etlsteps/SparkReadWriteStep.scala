@@ -5,23 +5,26 @@ import etlflow.utils.{GlobalProperties, IOType}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import zio.Task
+import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
+
+
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
-          val name: String
-          ,input_location: => Seq[String]
-          ,input_type: IOType
-          ,input_filter: String = "1 = 1"
-          ,output_location: String
-          ,output_type: IOType
-          ,output_filename: Option[String] = None
-          ,output_partition_col: Seq[String] = Seq.empty[String]
-          ,output_save_mode: SaveMode = SaveMode.Append
-          ,output_repartitioning: Boolean = false
-          ,output_repartitioning_num: Int = 1
-          ,transform_function: Option[(SparkSession,Dataset[I]) => Dataset[O]]
-        )(implicit spark: SparkSession)
-extends EtlStep[Unit,Unit] {
+                                                                                           val name: String
+                                                                                           ,input_location: => Seq[String]
+                                                                                           ,input_type: IOType
+                                                                                           ,input_filter: String = "1 = 1"
+                                                                                           ,output_location: String
+                                                                                           ,output_type: IOType
+                                                                                           ,output_filename: Option[String] = None
+                                                                                           ,output_partition_col: Seq[String] = Seq.empty[String]
+                                                                                           ,output_save_mode: SaveMode = SaveMode.Append
+                                                                                           ,output_repartitioning: Boolean = false
+                                                                                           ,output_repartitioning_num: Int = 1
+                                                                                           ,transform_function: Option[(SparkSession,Dataset[I]) => Dataset[O]]
+                                                                                         )(implicit spark: SparkSession)
+  extends EtlStep[Unit,Unit] {
   private var recordsWrittenCount = 0L
   private var recordsReadCount = 0L
 
@@ -30,9 +33,9 @@ extends EtlStep[Unit,Unit] {
       if (output_repartitioning_num != 1 || !output_repartitioning || output_partition_col.nonEmpty)
         throw new RuntimeException(
           s"""Error in step $name, output_filename option can only be used when
-              |output_repartitioning is set to true and
-              |output_repartitioning_num is set to 1
-              |output_partition_col is empty""".stripMargin
+             |output_repartitioning is set to true and
+             |output_repartitioning_num is set to 1
+             |output_partition_col is empty""".stripMargin
         )
     case None =>
   }
@@ -77,7 +80,7 @@ extends EtlStep[Unit,Unit] {
     }
   }
 
-  override def getStepProperties(level: String) : Map[String,String] = {
+  override def getStepProperties(level: LoggingLevel) : Map[String,String] = {
     val in_map = ReadApi.LoadDSHelper[I](level,input_location,input_type).toList
     val out_map = WriteApi.WriteDSHelper[O](
       level,output_type, output_location, output_partition_col,
@@ -95,7 +98,7 @@ extends EtlStep[Unit,Unit] {
       )
     )
   }
-  
+
   def showCorruptedData(): Unit = {
     etl_logger.info(s"Corrupted data for job $name:")
     val ds = ReadApi.LoadDS[O](input_location,input_type)(spark)
@@ -105,19 +108,19 @@ extends EtlStep[Unit,Unit] {
 
 object SparkReadTransformWriteStep {
   def apply[T <: Product : TypeTag, O <: Product : TypeTag](
-           name: String
-           ,input_location: Seq[String]
-           ,input_type: IOType
-           ,input_filter: String = "1 = 1"
-           ,output_location: String
-           ,output_type: IOType
-           ,output_filename: Option[String] = None
-           ,output_partition_col: Seq[String] = Seq.empty[String]
-           ,output_save_mode: SaveMode = SaveMode.Append
-           ,output_repartitioning: Boolean = false
-           ,output_repartitioning_num: Int = 1
-           ,transform_function: (SparkSession,Dataset[T]) => Dataset[O]
-          )(implicit spark: SparkSession): SparkReadWriteStep[T, O] = {
+                                                             name: String
+                                                             ,input_location: Seq[String]
+                                                             ,input_type: IOType
+                                                             ,input_filter: String = "1 = 1"
+                                                             ,output_location: String
+                                                             ,output_type: IOType
+                                                             ,output_filename: Option[String] = None
+                                                             ,output_partition_col: Seq[String] = Seq.empty[String]
+                                                             ,output_save_mode: SaveMode = SaveMode.Append
+                                                             ,output_repartitioning: Boolean = false
+                                                             ,output_repartitioning_num: Int = 1
+                                                             ,transform_function: (SparkSession,Dataset[T]) => Dataset[O]
+                                                           )(implicit spark: SparkSession): SparkReadWriteStep[T, O] = {
     new SparkReadWriteStep[T, O](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,
       output_repartitioning_num, Some(transform_function))
@@ -126,18 +129,18 @@ object SparkReadTransformWriteStep {
 
 object SparkReadWriteStep {
   def apply[T <: Product : TypeTag](
-           name: String
-           ,input_location: => Seq[String]
-           ,input_type: IOType
-           ,input_filter: String = "1 = 1"
-           ,output_location: String
-           ,output_type: IOType
-           ,output_filename: Option[String] = None
-           ,output_partition_col: Seq[String] = Seq.empty[String]
-           ,output_save_mode: SaveMode = SaveMode.Append
-           ,output_repartitioning: Boolean = false
-           ,output_repartitioning_num: Int = 1
-         )(implicit spark: SparkSession): SparkReadWriteStep[T, T] = {
+                                     name: String
+                                     ,input_location: => Seq[String]
+                                     ,input_type: IOType
+                                     ,input_filter: String = "1 = 1"
+                                     ,output_location: String
+                                     ,output_type: IOType
+                                     ,output_filename: Option[String] = None
+                                     ,output_partition_col: Seq[String] = Seq.empty[String]
+                                     ,output_save_mode: SaveMode = SaveMode.Append
+                                     ,output_repartitioning: Boolean = false
+                                     ,output_repartitioning_num: Int = 1
+                                   )(implicit spark: SparkSession): SparkReadWriteStep[T, T] = {
     new SparkReadWriteStep[T, T](name, input_location, input_type, input_filter, output_location,
       output_type, output_filename, output_partition_col, output_save_mode, output_repartitioning,
       output_repartitioning_num, None)

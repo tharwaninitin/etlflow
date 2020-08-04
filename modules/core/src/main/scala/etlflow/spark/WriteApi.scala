@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql._
 import org.slf4j.LoggerFactory
+
 import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi {
@@ -13,13 +14,13 @@ object WriteApi {
   private val write_logger = LoggerFactory.getLogger(getClass.getName)
   write_logger.info(s"Loaded ${getClass.getName}")
 
-  def WriteDSHelper[T <: Product : TypeTag](level: String,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
+  def WriteDSHelper[T <: Product : TypeTag](level: LoggingLevel,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
                                             , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
                                             , recordsWrittenCount:Long,n : Int = 1, compression : String = "none", repartition : Boolean = false
                                            ) : Map[String,String] = {
     val mapping = Encoders.product[T]
 
-    if (level.equalsIgnoreCase("info")){
+    if (level == LoggingLevel.INFO){
       Map("output_location"->output_location
         , "output_filename"->output_filename.getOrElse("NA")
         , "output_type"->output_type.toString
@@ -37,11 +38,11 @@ object WriteApi {
   }
 
   def WriteDS[T <: Product : TypeTag](
-          output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String],
-          save_mode: SaveMode = SaveMode.Append, output_filename: Option[String] = None,
-          n: Int = 1, compression: String = "none", //("compression", "gzip","snappy")
-          repartition: Boolean = false
-       )(source: Dataset[T], spark: SparkSession) : Unit = {
+                                       output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String],
+                                       save_mode: SaveMode = SaveMode.Append, output_filename: Option[String] = None,
+                                       n: Int = 1, compression: String = "none", //("compression", "gzip","snappy")
+                                       repartition: Boolean = false
+                                     )(source: Dataset[T], spark: SparkSession) : Unit = {
     val mapping = Encoders.product[T]
 
     write_logger.info("#"*20 + " Actual Output Schema " + "#"*20)

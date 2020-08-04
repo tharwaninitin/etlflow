@@ -3,14 +3,16 @@ package etlflow.etlsteps
 import com.redis._
 import etlflow.utils.REDIS
 import zio.Task
+import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
+
 
 class RedisQueryStep (
-                    val name: String,
-                    val query: String,
-                    val prefix: Option[String] = None,
-                    val credentials :REDIS
+                       val name: String,
+                       val query: String,
+                       val prefix: Option[String] = None,
+                       val credentials :REDIS
 
-                  )
+                     )
   extends EtlStep[Unit,Unit] {
 
   val redisClient = new RedisClient(credentials.user, credentials.port,secret=Some(credentials.password))
@@ -23,15 +25,15 @@ class RedisQueryStep (
       case "flushall" => Task(redisClient.flushall)
       case "set" => Task(redisClient.set(name,name))
       case "delete" => {
-          val name = prefix
-          val keys = redisClient.keys(name)
-          etl_logger.info("KEYS ARE : " + name)
-          Task(redisClient.del(keys))
+        val name = prefix
+        val keys = redisClient.keys(name)
+        etl_logger.info("KEYS ARE : " + name)
+        Task(redisClient.del(keys))
       }
     }
   }
 
-  override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
+  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
 }
 
 object RedisQueryStep {

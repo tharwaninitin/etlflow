@@ -7,6 +7,7 @@ import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
+import doobie.util.fragment.Fragment
 import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.api.GQLServerHttp4s
@@ -51,14 +52,15 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
 
     def liveHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
       for {
-        _             <- runDbMigration(credentials)
-        subscribers   <- Ref.make(List.empty[Queue[EtlJobStatus]])
-        activeJobs    <- Ref.make(0)
-        cronJobs      <- Ref.make(List.empty[CronJob])
-        dbCronJobs    <- updateCronJobsDB(transactor)
-        _             <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
-        _             <- Task(logger.info(s"Added/Updated jobs in database \n${dbCronJobs.mkString("\n")}"))
-        scheduledFork <- scheduledTask(dbCronJobs,transactor).fork
+        _                 <- runDbMigration(credentials)
+        subscribers       <- Ref.make(List.empty[Queue[EtlJobStatus]])
+        activeJobs        <- Ref.make(0)
+        cronJobs          <- Ref.make(List.empty[CronJob])
+        deleteCronJobsDB  <- deleteCronJobsDB(transactor)
+        dbCronJobs        <- updateCronJobsDB(transactor)
+        _                 <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
+        _                 <- Task(logger.info(s"Added/Updated jobs in database \n${dbCronJobs.mkString("\n")}"))
+        scheduledFork     <- scheduledTask(dbCronJobs,transactor).fork
       } yield new EtlFlow.Service {
 
         override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
@@ -165,7 +167,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
             free_memory = (javaRuntime.freeMemory / mb).toString,
             total_memory = (javaRuntime.totalMemory / mb).toString,
             max_memory = (javaRuntime.maxMemory / mb).toString,
-            current_time = UF.getCurrentTimestampAsString(),
+            current_time = UF.getCurrentTimestampAsString()
           )
         }
 
@@ -296,6 +298,12 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       }
     }
 
+    def deleteCronJobsDB(transactor: HikariTransactor[Task]):Task[Int] = {
+      val query = "DELETE FROM cronjob WHERE job_name NOT IN " +  "('" + UF.getEtlJobs[EJN].map(x => x).toList.mkString("','") +  "')"
+      logger.info("query : "+ query)
+      Fragment.const(query).update.run.transact(transactor)
+    }
+
     def updateCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]] = {
 
       val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
@@ -313,7 +321,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
           querySchema[CronJobDB]("cronjob")
             .insert(e)
             .onConflictUpdate(_.job_name)(
-              _.schedule -> _.schedule,
+              _.schedule -> _.schedule
             )
         }
       }

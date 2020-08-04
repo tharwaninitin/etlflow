@@ -4,6 +4,8 @@ import etlflow.utils._
 import org.apache.spark.sql.functions.{col, split}
 import org.apache.spark.sql._
 import org.slf4j.LoggerFactory
+import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
+
 import scala.reflect.runtime.universe.TypeTag
 
 object ReadApi {
@@ -39,12 +41,12 @@ object ReadApi {
     df
   }
 
-  def LoadDSHelper[T <: Product : TypeTag](level: String,location: Seq[String], input_type: IOType, where_clause : String = "1 = 1") : Map[String,String] = {
+  def LoadDSHelper[T <: Product : TypeTag](level: LoggingLevel,location: Seq[String], input_type: IOType, where_clause : String = "1 = 1") : Map[String,String] = {
     val mapping = Encoders.product[T]
-    if (level.equalsIgnoreCase("info")){
-     Map("input_location"->location.mkString(",")
-      , "input_type"->input_type.toString
-    )}else{
+    if (level == LoggingLevel.INFO){
+      Map("input_location"->location.mkString(",")
+        , "input_type"->input_type.toString
+      )}else{
       Map("input_location"->location.mkString(",")
         , "input_type"->input_type.toString
         , "input_class" -> mapping.schema.toDDL

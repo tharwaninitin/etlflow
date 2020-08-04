@@ -2,16 +2,16 @@ package etlflow.etlsteps
 
 import doobie.hikari.HikariTransactor
 import etlflow.jdbc.{DbManager, QueryApi}
-import etlflow.utils.JDBC
+import etlflow.utils.{JDBC, LoggingLevel}
 import zio.{Managed, Task}
 
 class DBQueryStep private[etlflow](
-                val name: String,
-                query: => String,
-                credentials: JDBC
-              )
+                                    val name: String,
+                                    query: => String,
+                                    credentials: JDBC
+                                  )
   extends EtlStep[Unit,Unit]
-  with DbManager{
+    with DbManager{
 
   lazy val db: Managed[Throwable, HikariTransactor[Task]] =
     createDbTransactorManagedJDBC(credentials, scala.concurrent.ExecutionContext.Implicits.global,  name + "-Pool")
@@ -23,7 +23,7 @@ class DBQueryStep private[etlflow](
     QueryApi.executeQuery(db, query)
   }
 
-  override def getStepProperties(level: String): Map[String, String] = Map("query" -> query)
+  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
 }
 
 object DBQueryStep {

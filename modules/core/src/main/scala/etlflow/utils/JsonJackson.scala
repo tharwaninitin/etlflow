@@ -2,7 +2,7 @@ package etlflow.utils
 
 import etlflow.{EtlJobName, EtlJobProps}
 import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
-import org.json4s.JsonAST.JNothing
+import org.json4s.JsonAST.{JNothing, JString}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.jackson.Serialization.writePretty
 import org.slf4j.{Logger, LoggerFactory}
@@ -17,25 +17,62 @@ object JsonJackson {
 
   // https://stackoverflow.com/questions/29296335/json4s-jackson-how-to-ignore-field-using-annotations
   def convertToJsonByRemovingKeys(entity: AnyRef, keys: List[String]): String = {
+
     // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
     val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
       (PartialFunction.empty, { case _: EtlJobName[_] => JNothing })
     )
+
+    val customSerializer3 = new CustomSerializer[LoggingLevel](formats =>
+      ( {
+        case JString(s) => s match {
+          case "info" => LoggingLevel.INFO
+          case "debug" => LoggingLevel.DEBUG
+          case "job" => LoggingLevel.JOB
+        }
+      }, {
+        case loggingLevel: LoggingLevel => loggingLevel match {
+          case LoggingLevel.INFO => JString("info")
+          case LoggingLevel.DEBUG => JString("debug")
+          case LoggingLevel.JOB => JString("job")
+        }
+      })
+    )
+
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]
-    implicit val formats = DefaultFormats + customSerializer1 + customSerializer2
+    implicit val formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3
     writePretty(Extraction.decompose(entity).removeField { x => keys.contains(x._1)})
   }
 
   def convertToJsonByRemovingKeysAsMap(entity: AnyRef, keys: List[String]): Map[String,Any] = {
+
     // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
     val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
       (PartialFunction.empty, { case _: EtlJobName[_] => JNothing })
     )
+
+    val customSerializer3 = new CustomSerializer[LoggingLevel](formats =>
+      ( {
+        case JString(s) => s match {
+          case "info" => LoggingLevel.INFO
+          case "debug" => LoggingLevel.DEBUG
+          case "job" => LoggingLevel.JOB
+        }
+      }, {
+        case loggingLevel: LoggingLevel => loggingLevel match {
+          case LoggingLevel.INFO => JString("info")
+          case LoggingLevel.DEBUG => JString("debug")
+          case LoggingLevel.JOB => JString("job")
+        }
+      })
+    )
+
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]
-    implicit val formats: Formats = DefaultFormats + customSerializer1 + customSerializer2
+    implicit val formats: Formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3
     val json: JValue = Extraction.decompose(entity).removeField { x => keys.contains(x._1)}
+    val x = writePretty(json)
     parse(writePretty(json)).extract[Map[String, Any]]
   }
 

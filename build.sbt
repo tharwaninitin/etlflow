@@ -22,7 +22,7 @@ lazy val coreSettings = Seq(
 
 lazy val schedulerSettings = Seq(
   name := "etlflow-scheduler"
-  , libraryDependencies ++= caliban ++ jwt
+  , libraryDependencies ++= caliban ++ jwt ++ testLibs
 )
 
 lazy val root = (project in file("."))
@@ -59,7 +59,8 @@ lazy val scheduler = (project in file("modules/scheduler"))
   .settings(schedulerSettings)
   .settings(
     scalacOptions ++= Seq("-Ypartial-unification"),
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
   .dependsOn(core)
 

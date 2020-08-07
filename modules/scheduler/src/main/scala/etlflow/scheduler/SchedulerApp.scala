@@ -9,6 +9,7 @@ import doobie.implicits._
 import doobie.quill.DoobieContext
 import doobie.util.fragment.Fragment
 import etlflow.log.{JobRun, StepRun}
+import etlflow.scheduler.api.EtlFlowHelper.Creds.AWS
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.api.GQLServerHttp4s
 import etlflow.utils.{GlobalProperties, JDBC, JsonJackson, UtilityFunctions => UF}
@@ -42,6 +43,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String)
   case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
+  case class CredentialDB(name: String, `type`: String, value: String)
 
   val javaRuntime: java.lang.Runtime = java.lang.Runtime.getRuntime
   val mb: Int = 1024*1024
@@ -169,6 +171,42 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
             max_memory = (javaRuntime.maxMemory / mb).toString,
             current_time = UF.getCurrentTimestampAsString()
           )
+        }
+
+        override def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] = {
+
+          val credentialsDB = CredentialDB(
+            args.name,
+            args.`type`.get match {
+              case etlflow.scheduler.api.EtlFlowHelper.Creds.JDBC => "jdbc"
+              case AWS => "aws"
+            },
+            JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+          )
+          val credentialString = quote {
+            querySchema[CredentialDB]("credentials").insert(lift(credentialsDB))
+          }
+          dc.run(credentialString).transact(transactor).map(_ => Credentials(credentialsDB.name,credentialsDB.`type`,credentialsDB.value))
+        }.mapError { e =>
+          logger.error(e.getMessage)
+          ExecutionError(e.getMessage)
+        }
+
+        override def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] = {
+
+          val value = JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+
+          val cronJobStringUpdate = quote {
+            querySchema[CredentialDB]("credentials")
+              .filter(x => x.name == lift(args.name))
+              .update{
+                _.value -> lift(value)
+              }
+          }
+          dc.run(cronJobStringUpdate).transact(transactor).map(_ => Credentials(args.name,"",value))
+        }.mapError { e =>
+          logger.error(e.getMessage)
+          ExecutionError(e.getMessage)
         }
 
         override def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] = {

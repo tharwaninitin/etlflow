@@ -8,7 +8,7 @@ import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
 import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper._
-import zio.ZIO
+import zio.{URIO, ZIO}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
@@ -35,6 +35,8 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                         update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
+                        add_credentials: CredentialsArgs => ZIO[EtlFlowHas, Throwable, Credentials],
+                        update_credentials: CredentialsArgs => ZIO[EtlFlowHas, Throwable, Credentials],
                       )
 
   case class Subscriptions(
@@ -49,13 +51,15 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
           getJobs,
           args => getDbJobRuns(args),
           args => getDbStepRuns(args),
-          getInfo,
+          getInfo
         ),
         Mutations(
           args => runJob(args),
           args => updateJobState(args),
           args => addCronJob(args),
           args => updateCronJob(args),
+          args => addCredentials(args),
+          args => updateCredentials(args)
         ),
         Subscriptions(
           notifications,

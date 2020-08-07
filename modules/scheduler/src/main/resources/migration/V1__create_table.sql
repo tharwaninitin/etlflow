@@ -18,3 +18,4 @@ CREATE TABLE steprun(job_run_id varchar(100),
     );
 CREATE TABLE userinfo(user_name varchar(100) PRIMARY KEY, password varchar(100), user_active varchar(100));
 CREATE TABLE userauthtokens(token varchar(100) PRIMARY KEY);
+CREATE TABLE credentials(name varchar(100) PRIMARY KEY,type varchar(100), value text);

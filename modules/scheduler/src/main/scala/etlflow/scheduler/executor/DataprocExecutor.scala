@@ -2,15 +2,18 @@ package etlflow.scheduler.executor
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
+import etlflow.gcp.{DP, DPService}
 import etlflow.scheduler.SchedulerApp
 import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.utils.{DataprocHelper, GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.Executor.DATAPROC
+import etlflow.utils.{ GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class DataprocExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends SchedulerApp[EJN,EJP,EJGP] with DataprocHelper {
+  extends SchedulerApp[EJN,EJP,EJGP] {
 
   val main_class: String
   val dp_libs: List[String]
@@ -18,6 +21,8 @@ abstract class DataprocExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobP
   val gcp_project: String
   val gcp_dp_endpoint: String
   val gcp_dp_cluster_name: String
+
+  val config = DATAPROC(globalProperties.get.gcp_project, globalProperties.get.gcp_region,globalProperties.get.gcp_dp_endpoint,globalProperties.get.gcp_dp_cluster_name )
 
   final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
     val etlJobDetails: Task[(EJN, Map[String, String])] = Task {
@@ -38,7 +43,7 @@ abstract class DataprocExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobP
                           logger.error(e.getMessage)
                           ExecutionError(e.getMessage)
                         }
-      _  <- executeDataProcJob(job_name.toString,props_map).foldM(
+      _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(config)).foldM(
                 ex => updateFailedJob(job_name.toString,transactor),
                 _  => updateSuccessJob(job_name.toString,transactor)
             ).forkDaemon

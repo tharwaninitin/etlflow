@@ -46,6 +46,8 @@ object Schema {
                              override val job_notification_level: LoggingLevel = LoggingLevel.DEBUG,
                            ) extends EtlJobProps
 
+  case class EtlJob4Props(override val job_deploy_mode: String = "remote") extends EtlJobProps
+
   case object EtlJob3Props extends EtlJobProps
 }
 

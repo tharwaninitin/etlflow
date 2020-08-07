@@ -3,11 +3,16 @@ package etlflow.scheduler.api
 import cron4s.CronExpr
 import etlflow.log.{JobRun, StepRun}
 import zio.stream.ZStream
-import zio.{Has, ZIO}
+import zio.{Has, UIO, URIO, ZIO}
 
 object EtlFlowHelper {
 
   // GraphQL ARGS and Results
+  sealed trait Creds
+  object Creds {
+    case object AWS extends Creds
+    case object JDBC extends Creds
+  }
   case class Props(key: String, value: String)
   case class EtlJobStateArgs(name: String, state: Boolean)
   case class EtlJobArgs(name: String, props: List[Props])
@@ -15,6 +20,7 @@ object EtlFlowHelper {
   case class DbJobRunArgs(jobRunId: Option[String] = None, jobName: Option[String] = None, limit: Int, offset: Int)
   case class DbStepRunArgs(job_run_id: String)
   case class CronJobArgs(job_name: String, schedule: CronExpr)
+  case class CredentialsArgs(name: String, `type`: Option[Creds], value: List[Props])
 
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
@@ -31,6 +37,8 @@ object EtlFlowHelper {
          )
   case class UserAuth(message: String, token: String)
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
+  case class Credentials(name: String, `type`: String, value: String)
+
   case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr], failed: Long, success: Long, is_active:Boolean)
 
   object EtlFlow {
@@ -40,6 +48,9 @@ object EtlFlowHelper {
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
       def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
+      def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
+      def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
+
 
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
@@ -86,6 +97,13 @@ object EtlFlowHelper {
 
   def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] =
     ZIO.accessM[EtlFlowHas](_.get.getJobs)
+
+  def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] =
+    ZIO.accessM[EtlFlowHas](_.get.addCredentials(args))
+
+  def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] =
+    ZIO.accessM[EtlFlowHas](_.get.updateCredentials(args))
+
   //
   // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {
   //   val x = ZIO.accessM[Blocking](_.get.blocking{

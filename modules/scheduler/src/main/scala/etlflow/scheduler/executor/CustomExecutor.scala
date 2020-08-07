@@ -10,7 +10,6 @@ import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{ GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
-
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
@@ -42,7 +41,7 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
         ExecutionError(e.getMessage)
       }
       _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(dataproc)).foldM(
-        ex => updateFailedJob(job_name.toString,transactor),
+        ex => UIO(logger.error(ex.getMessage)) *> updateFailedJob(job_name.toString,transactor),
         _  => updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon
     } yield EtlJob(args.name,execution_props)

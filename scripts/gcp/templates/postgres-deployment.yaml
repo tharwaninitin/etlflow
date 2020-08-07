@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: dev
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:9.6
+          env:
+            - name: POSTGRES_USER
+              value: "etlflow"
+            - name: POSTGRES_PASSWORD
+              value: "etlflow"
+            - name: POSTGRES_DB
+              value: "etlflow"
+          volumeMounts:
+            - mountPath: "/mnt/data"
+              name: postgres
+              readOnly: false
+      volumes:
+        - name: postgres
+          persistentVolumeClaim:
+            claimName: postgres

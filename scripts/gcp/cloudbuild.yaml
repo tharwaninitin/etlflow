@@ -41,7 +41,7 @@ steps:
     - '-c'
     - |
       set -x && \
-      sbt "project examples" 'set dockerRepository := Some("$_REGISTRY")' 'set packageName in Docker := "$PROJECT_ID/${_IMAGE}"' docker:publish
+      sbt "project root" publishLocal "project examples" 'set dockerRepository := Some("$_REGISTRY")' 'set packageName in Docker := "$PROJECT_ID/${_IMAGE}"' docker:publish
 
 - id: Deploy to GKE
   name: 'gcr.io/cloud-builders/gcloud'

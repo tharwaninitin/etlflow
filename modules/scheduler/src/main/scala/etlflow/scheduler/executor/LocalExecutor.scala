@@ -8,6 +8,8 @@ import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.scheduler.SchedulerApp
+import etlflow.utils.Executor.DATAPROC
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class LocalExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
@@ -44,7 +46,7 @@ abstract class LocalExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProp
     } yield EtlJob(args.name,execution_props)
   }
 
-  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = Task(
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task],dataproc: DATAPROC): Task[EtlJob] = Task(
    throw new NotImplementedError("Remote job is not available for local scheduler. Please run job in local mode")
   )
 }

@@ -1,5 +1,7 @@
 package etlflow.utils
 
+import etlflow.utils.Environment.LOCAL
+import etlflow.utils.Executor.DATAPROC
 import etlflow.{EtlJobName, EtlJobProps}
 import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
 import org.json4s.JsonAST.{JNothing, JString}
@@ -39,9 +41,27 @@ object JsonJackson {
       })
     )
 
+    val customSerializer4 = new CustomSerializer[Executor](formats =>
+      ({
+        case JString(s) => s match {
+          case "dataproc" => Executor.DATAPROC("","","","")
+          case "local" => Executor.LOCAL
+          case "livy" => Executor.LIVY("")
+        }
+      }, {
+        case executor: Executor => executor match{
+          case Executor.DATAPROC(project, region, endpoint, cluster_name) => {
+            val dataprocList = Map("project name" -> project,"Region" -> region,"endpoint" -> endpoint,"cluster_name" -> cluster_name)
+            JString(dataprocList.toString())
+          }
+          case Executor.LOCAL => JString("local")
+        }
+      })
+    )
+
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]
-    implicit val formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3
+    implicit val formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3 + customSerializer4
     writePretty(Extraction.decompose(entity).removeField { x => keys.contains(x._1)})
   }
 
@@ -68,9 +88,28 @@ object JsonJackson {
       })
     )
 
+    val customSerializer4 = new CustomSerializer[Executor](formats =>
+      ({
+        case JString(s) => s match {
+          case "dataproc" => Executor.DATAPROC("","","","")
+          case "local" => Executor.LOCAL
+          case "livy" => Executor.LIVY("")
+        }
+      }, {
+        case executor: Executor => executor match{
+          case Executor.DATAPROC(project, region, endpoint, cluster_name) => {
+            val dataprocList = Map("project name" -> project,"Region" -> region,"endpoint" -> endpoint,"cluster_name" -> cluster_name)
+            JString(dataprocList.toString())
+          }
+          case Executor.LOCAL => JString("local")
+        }
+      })
+    )
+
+
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]
-    implicit val formats: Formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3
+    implicit val formats: Formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3 + customSerializer4
     val json: JValue = Extraction.decompose(entity).removeField { x => keys.contains(x._1)}
     val x = writePretty(json)
     parse(writePretty(json)).extract[Map[String, Any]]

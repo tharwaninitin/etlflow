@@ -1,6 +1,6 @@
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbLogManager, SlackLogManager}
-import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
+import etlflow.utils.{Executor, LoggingLevel, UtilityFunctions => UF}
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -25,7 +25,7 @@ package object etlflow {
     val job_send_slack_notification: Boolean  = false
     val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
     val job_schedule: String                  = ""
-    val job_deploy_mode: String               = "local"
+    val job_deploy_mode: Executor             = Executor.LOCAL
   }
 
   object EtlStepList {

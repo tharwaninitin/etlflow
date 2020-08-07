@@ -18,16 +18,11 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
 
   val main_class: String
   val dp_libs: List[String]
-  val gcp_region: String
-  val gcp_project: String
-  val gcp_dp_endpoint: String
-  val gcp_dp_cluster_name: String
-
-  val config = DATAPROC(globalProperties.get.gcp_project, globalProperties.get.gcp_region,globalProperties.get.gcp_dp_endpoint,globalProperties.get.gcp_dp_cluster_name )
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 
-  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task],dataproc: DATAPROC): Task[EtlJob] = {
+
     val etlJobDetails: Task[(EJN, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
       val props_map     = args.props.map(x => (x.key,x.value)).toMap
@@ -46,7 +41,7 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
-      _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(config)).foldM(
+      _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(dataproc)).foldM(
         ex => updateFailedJob(job_name.toString,transactor),
         _  => updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon

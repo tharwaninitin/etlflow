@@ -1,8 +1,7 @@
-package etlflow.jobs
+package etlflow.utils
 
-import org.scalatest.{FlatSpec, Matchers}
 import etlflow.Schema._
-import etlflow.utils.{JsonJackson, LoggingLevel}
+import org.scalatest.{FlatSpec, Matchers}
 
 class JsonTestSuite extends FlatSpec with Matchers {
 

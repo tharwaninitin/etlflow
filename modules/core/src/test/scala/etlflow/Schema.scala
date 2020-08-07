@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.utils.{JDBC, LoggingLevel, SMTP}
+import etlflow.utils.{Executor, JDBC, LoggingLevel, SMTP}
 
 object Schema {
   case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long)
@@ -46,7 +46,7 @@ object Schema {
                              override val job_notification_level: LoggingLevel = LoggingLevel.DEBUG,
                            ) extends EtlJobProps
 
-  case class EtlJob4Props(override val job_deploy_mode: String = "remote") extends EtlJobProps
+  case class EtlJob4Props(override val job_deploy_mode: Executor = Executor.LOCAL) extends EtlJobProps
 
   case object EtlJob3Props extends EtlJobProps
 }

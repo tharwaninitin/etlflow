@@ -1,12 +1,14 @@
 package examples.schema
 
 import etlflow.EtlJobProps
-import etlflow.utils.LoggingLevel
+import etlflow.utils.Executor.DATAPROC
+import etlflow.utils.{Executor, LoggingLevel}
 
 sealed trait MyEtlJobProps extends EtlJobProps
 
 object MyEtlJobProps {
 
+  val dataproc = DATAPROC("project-name","region","endpoint","cluster-name")
   case class EtlJob1TriggerProps() extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
@@ -15,7 +17,7 @@ object MyEtlJobProps {
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),
                             override val job_schedule: String = "0 */15 * * * ?",
-                            override val job_deploy_mode: String = "local",
+                            override val job_deploy_mode: Executor = dataproc,
                             override val job_enable_db_logging: Boolean = false
                           ) extends MyEtlJobProps
   case class EtlJob23Props (

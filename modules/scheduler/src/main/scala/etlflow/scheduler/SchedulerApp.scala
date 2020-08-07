@@ -12,7 +12,8 @@ import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper.Creds.AWS
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.api.GQLServerHttp4s
-import etlflow.utils.{GlobalProperties, JDBC, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.Executor.{DATAPROC, LOCAL}
+import etlflow.utils.{ GlobalProperties, JDBC, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
@@ -67,12 +68,15 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
 
         override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
           val job_deploy_mode = UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
-          if(job_deploy_mode.equalsIgnoreCase("remote")) {
-            logger.info("Running job in remote mode ")
-            runEtlJobRemote(args, transactor)
-          } else {
-            logger.info("Running job in local mode ")
-            runEtlJobLocal(args, transactor)
+          job_deploy_mode match {
+            case LOCAL => {
+              logger.info("Running job in local mode ")
+              runEtlJobLocal(args, transactor)
+            }
+            case DATAPROC(project, region, endpoint, cluster_name) =>   {
+              logger.info("Dataproc Parameters are : " + project + "::" + region + "::"  + endpoint +"::" + cluster_name)
+              runEtlJobRemote(args, transactor,DATAPROC(project, region, endpoint, cluster_name))
+            }
           }
           //          val etlJobDetails: Task[(EJN, EtlFlowEtlJob, Map[String, String])] = Task {
           //            val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
@@ -383,21 +387,27 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
 
       val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval {
         val job_deploy_mode = UF.getEtlJobName[EJN](cj.job_name, etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
-        if (job_deploy_mode.equalsIgnoreCase("remote")) {
-          logger.info(
-            s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
-              s"at ${UF.getCurrentTimestampAsString()} in remote mode "
-          )
-          runActiveEtlJobRemote(EtlJobArgs(cj.job_name, List.empty), transactor)
-        } else if (job_deploy_mode.equalsIgnoreCase("local")) {
-          logger.info(
-            s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
-              s"at ${UF.getCurrentTimestampAsString()} in local mode "
-          )
-          runActiveEtlJobLocal(EtlJobArgs(cj.job_name, List.empty), transactor)
-        } else {
-          logger.warn(s"Job not scheduled due to incorrect job_deploy_mode for job ${cj.job_name}, allowed values are local,remote")
-          ZIO.unit
+
+        job_deploy_mode match {
+          case DATAPROC(project, region, endpoint, cluster_name) => {
+            logger.info(
+              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
+                s"at ${UF.getCurrentTimestampAsString()} in remote mode "
+            )
+            runActiveEtlJobRemote(EtlJobArgs(cj.job_name, List.empty), transactor,DATAPROC(project,region,endpoint,cluster_name))
+
+          }
+          case LOCAL => {
+            logger.info(
+              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
+                s"at ${UF.getCurrentTimestampAsString()} in local mode "
+            )
+            runActiveEtlJobLocal(EtlJobArgs(cj.job_name, List.empty), transactor)
+          }
+          case _ =>  {
+            logger.warn(s"Job not scheduled due to incorrect job_deploy_mode for job ${cj.job_name}, allowed values are local,remote")
+            ZIO.unit
+          }
         }
       })))
       cronSchedule.compile.drain
@@ -446,11 +456,11 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
-  final def runActiveEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
+  final def runActiveEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task],dataproc: DATAPROC): Task[Unit] = {
     for {
       _  <- UIO(logger.info(s"Checking if job  ${args.name} is active/incative at ${UF.getCurrentTimestampAsString()}"))
       cj <- getCronJobFromDB(args.name,transactor)
-      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobRemote(args,transactor)
+      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobRemote(args,transactor,dataproc)
       else UIO(
         logger.info(
           s"Skipping inactive cron job ${cj.job_name} with schedule " +
@@ -473,7 +483,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
   }
 
 
-  def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task],dataprocParams: DATAPROC): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   def etlFlowLayer(transactor: HikariTransactor[Task], cache: Cache[String]): ZLayer[Blocking, Throwable, EtlFlowHas] = EtlFlowService.liveHttp4s(transactor,cache)

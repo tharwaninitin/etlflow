@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 
 trait DbManager {
 
-  def createDbTransactorManagedGP(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = "LoggerPool"): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
+  def createDbTransactorManagedGP(global_properties: Option[GlobalProperties], ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool"): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
     val config = new HikariConfig()
     config.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse("<use_global_properties_log_db_driver>"))
     config.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse("<use_global_properties_log_db_url>"))
@@ -22,7 +22,7 @@ trait DbManager {
     config.setPassword(global_properties.map(_.log_db_pwd).getOrElse("<use_global_properties_log_db_pwd>"))
     config.setMaximumPoolSize(2)
     config.setPoolName(pool_name)
-    HikariTransactor.fromHikariConfig[Task](config, ec, Blocker.liftExecutionContext(ec))
+    HikariTransactor.fromHikariConfig[Task](config, ec, blocker)
   }.toManagedZIO
 
   def createDbTransactorManagedJDBC(credentials: JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool", pool_size: Int = 2): ZManaged[Any, Throwable, HikariTransactor[Task]] = {

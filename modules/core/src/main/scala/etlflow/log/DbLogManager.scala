@@ -1,5 +1,6 @@
 package etlflow.log
 
+import cats.effect.Blocker
 import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
@@ -108,14 +109,15 @@ object DbLogManager extends DbManager{
     Try(new DbLogManager(transactor,job_name, job_properties)).toOption
 
   def createOptionDbTransactorManagedGP(
-                                         global_properties: Option[GlobalProperties],
-                                         ec: ExecutionContext,
-                                         pool_name: String = "LoggerPool",
-                                         job_name: String,
-                                         job_properties: EtlJobProps
-                                       ): Managed[Throwable, Option[DbLogManager]] =
+         global_properties: Option[GlobalProperties],
+         ec: ExecutionContext,
+         blocker: Blocker,
+         pool_name: String = "LoggerPool",
+         job_name: String,
+         job_properties: EtlJobProps
+       ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
-      createDbTransactorManagedGP(global_properties,ec,pool_name)
+      createDbTransactorManagedGP(global_properties,ec,blocker,pool_name)
         .map { transactor =>
           Some(new DbLogManager(transactor, job_name, job_properties))
         }

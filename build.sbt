@@ -22,7 +22,7 @@ lazy val coreSettings = Seq(
 
 lazy val schedulerSettings = Seq(
   name := "etlflow-scheduler"
-  , libraryDependencies ++= caliban ++ jwt ++ testLibs
+  , libraryDependencies ++= caliban ++ jwt ++ testLibs ++ http4sclient
 )
 
 lazy val root = (project in file("."))

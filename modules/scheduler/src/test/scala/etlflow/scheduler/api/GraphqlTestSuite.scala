@@ -1,13 +1,14 @@
-package etlflow.scheduler
+package etlflow.scheduler.api
+
 import caliban.Macros.gqldoc
-import etlflow.scheduler.api.{EtlFlowApi, LoginApi}
+import etlflow.scheduler.{TestSchedulerApp, TestSuiteHelper}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
-import zio.test.Assertion._
+import zio.test.Assertion.equalTo
 import zio.test._
 
-object SchedulerTestSuite  extends DefaultRunnableSpec with TestSuiteHelper with TestSchedulerApp {
+object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSchedulerApp {
 
   val env = Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
   val etlFlowInterpreter = EtlFlowApi.api.interpreter

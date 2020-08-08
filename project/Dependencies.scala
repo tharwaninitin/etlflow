@@ -80,6 +80,10 @@ object Dependencies {
     "com.github.cb372" %% "scalacache-caffeine" % "0.28.0"
   )
 
+  lazy val http4sclient = List(
+    "org.http4s" %% "http4s-blaze-client" % Http4sVersion
+  )
+
   lazy val jwt = List(
     "com.pauldijou" %% "jwt-core" % "4.2.0"
   )

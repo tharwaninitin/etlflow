@@ -1,16 +1,14 @@
-package etlflow.steps
+package etlflow.log
 
 import etlflow.Schema.Rating
 import etlflow.etlsteps.{GenericETLStep, SparkReadStep}
 import etlflow.log.EtlLogger.JobLogger
-import etlflow.log.SlackLogManager
 import etlflow.utils.{LoggingLevel, PARQUET, UtilityFunctions => UF}
 import etlflow.{EtlJobProps, LoggerResource, TestSuiteHelper}
 import org.slf4j.{Logger, LoggerFactory}
-import zio.test.Assertion._
+import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{Task, UIO, ZIO}
-
 
 object SlackLoggingTestSuite2 extends DefaultRunnableSpec  with TestSuiteHelper{
 

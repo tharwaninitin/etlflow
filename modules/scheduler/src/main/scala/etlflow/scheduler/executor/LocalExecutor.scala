@@ -7,13 +7,13 @@ import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
-import etlflow.scheduler.SchedulerApp
+import etlflow.scheduler.WebServer
 import etlflow.utils.Executor.DATAPROC
 
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class LocalExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends SchedulerApp[EJN,EJP,EJGP] {
+  extends WebServer[EJN,EJP,EJGP] {
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 

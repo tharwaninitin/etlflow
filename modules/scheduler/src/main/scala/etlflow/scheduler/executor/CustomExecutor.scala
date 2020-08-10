@@ -4,7 +4,7 @@ import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.gcp.{DP, DPService}
-import etlflow.scheduler.SchedulerApp
+import etlflow.scheduler.WebServer
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{ GlobalProperties, JsonJackson, UtilityFunctions => UF}
@@ -13,14 +13,14 @@ import zio._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends SchedulerApp[EJN,EJP,EJGP]   {
+  extends WebServer[EJN,EJP,EJGP] {
 
   val main_class: String
   val dp_libs: List[String]
 
   def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
 
-  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task],dataproc: DATAPROC): Task[EtlJob] = {
+  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob] = {
 
     val etlJobDetails: Task[(EJN, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
@@ -40,7 +40,7 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
-      _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(dataproc)).foldM(
+      _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(config)).foldM(
         ex => UIO(logger.error(ex.getMessage)) *> updateFailedJob(job_name.toString,transactor),
         _  => updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon

@@ -1,90 +1,47 @@
-package etlflow.scheduler.api
+package etlflow.scheduler
 
 import caliban.Http4sAdapter
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect.Blocker
-//import doobie.implicits._
 import doobie.hikari.HikariTransactor
-//import doobie.quill.DoobieContext
 import etlflow.jdbc.DbManager
-import etlflow.scheduler.api.EtlFlowHelper.EtlFlowHas
-import etlflow.utils.JDBC
-import etlflow.{BuildInfo => BI}
-//import io.getquill.Literal
-import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
-import org.http4s.{HttpRoutes, Request, StaticFile}
+import etlflow.scheduler.api.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
+import etlflow.scheduler.api._
+import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
+import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
+import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
-import org.http4s.util.CaseInsensitiveString
-import org.slf4j.{Logger, LoggerFactory}
+import org.http4s.{HttpRoutes, StaticFile}
+import scalacache.Cache
+import zio._
 import zio.blocking.Blocking
 import zio.console.putStrLn
 import zio.interop.catz._
-import zio.{RIO, ZIO, _}
 import scala.concurrent.duration._
-import etlflow.scheduler.CacheHelper
-import scalacache.Cache
+import scala.reflect.runtime.universe.TypeTag
 
-private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-  val credentials: JDBC
-  def etlFlowLayer(transactor: HikariTransactor[Task], cache: Cache[String]): ZLayer[Blocking, Throwable, EtlFlowHas]
+abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
+  extends Scheduler[EJN,EJP] with CatsApp with DbManager with Http4sDsl[EtlFlowTask] with EtlFlowService {
 
-  type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
-  object ioz extends Http4sDsl[EtlFlowTask]
-  import ioz._
+  def globalProperties: Option[EJGP]
+  val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
+
+  lazy val global_properties: Option[EJGP] = globalProperties
+  val DB_DRIVER: String = global_properties.map(x => x.log_db_driver).getOrElse("<not_set>")
+  val DB_URL: String  = global_properties.map(x => x.log_db_url).getOrElse("<not_set>")     // connect URL
+  val DB_USER: String = global_properties.map(x => x.log_db_user).getOrElse("<not_set>")    // username
+  val DB_PASS: String = global_properties.map(x => x.log_db_pwd).getOrElse("<not_set>")    // password
+  val credentials: JDBC = JDBC(DB_URL,DB_USER,DB_PASS,DB_DRIVER)
 
   val otherRoutes:HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  //val doobieContext = new DoobieContext.Postgres(Literal)
-  //import doobieContext._
-
-  case class UserAuthTokens(token: String)
-
-  def AuthMiddleware(service: HttpRoutes[EtlFlowTask],
-         authEnabled: Boolean,
-         transactor: HikariTransactor[Task],
-         cache: Cache[String]
-        ): HttpRoutes[EtlFlowTask] = Kleisli {
-      req: Request[EtlFlowTask] =>
-        if(authEnabled) {
-          req.headers.get(CaseInsensitiveString("Authorization")) match {
-            case Some(value) => {
-              val token = value.value
-              val isTokenValid = {
-                //val q = quote {
-                //  query[UserAuthTokens].filter(x => x.token == lift(token)).nonEmpty
-                //}
-                //runtime.unsafeRun(doobieContext.run(q).transact(transactor))
-                CacheHelper.getKey(cache,token).getOrElse("NA") == token
-              }
-
-              if (isTokenValid) {
-                //Return response as it it in case of success
-                service(req)
-              } else {
-                //Return forbidden error as request is invalid
-                logger.warn(s"Invalid token $token")
-                OptionT.liftF(Forbidden())
-              }
-            }
-            case None => {
-              logger.warn("Header not present. Invalid Request !! ")
-              OptionT.liftF(Forbidden())
-            }
-          }
-        } else{
-          //Return response as it is when authentication is disabled
-          service(req)
-        }
-    }
-
-  def etlFlowRunner(blocker: Blocker, transactor: HikariTransactor[Task], cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
+  def etlFlowWebServer(blocker: Blocker, transactor: HikariTransactor[Task], cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
     .flatMap{implicit runtime =>
       (for {
@@ -109,8 +66,7 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
                                   "/api/etlflow"    -> CORS(Metrics[EtlFlowTask](metrics)(
                                     AuthMiddleware(
                                       Http4sAdapter.makeHttpService(etlFlowInterpreter),
-                                      true,
-                                      transactor,
+                                      authEnabled = true,
                                       cache
                                     ))
                                   ),
@@ -124,10 +80,13 @@ private[scheduler] trait GQLServerHttp4s extends CatsApp with DbManager{
 
   override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     val finalRunner = for {
+      _           <- runDbMigration(credentials)
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
       transactor  <- createDbTransactorJDBC(credentials, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
       cache       = CacheHelper.createCache[String](60)
-      _           <- etlFlowRunner(blocker,transactor,cache).provideCustomLayer(etlFlowLayer(transactor,cache))
+      cronJobs    <- Ref.make(List.empty[CronJob])
+      _           <- etlFlowScheduler(transactor,cronJobs).fork
+      _           <- etlFlowWebServer(blocker,transactor,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs))
     } yield ()
 
     finalRunner.catchAll(err => putStrLn(err.toString)).as(1)

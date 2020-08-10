@@ -3,9 +3,16 @@ package etlflow.scheduler.api
 import cron4s.CronExpr
 import etlflow.log.{JobRun, StepRun}
 import zio.stream.ZStream
-import zio.{Has, UIO, URIO, ZIO}
+import zio.{Has, RIO, ZIO, ZEnv}
 
 object EtlFlowHelper {
+
+  type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
+
+  // DB Objects
+  case class UserInfo(user_name: String, password: String, user_active: String)
+  case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
+  case class CredentialDB(name: String, `type`: String, value: String)
 
   // GraphQL ARGS and Results
   sealed trait Creds

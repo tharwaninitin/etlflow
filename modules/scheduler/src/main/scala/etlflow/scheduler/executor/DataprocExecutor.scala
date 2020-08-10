@@ -3,7 +3,7 @@ package etlflow.scheduler.executor
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
 import etlflow.gcp.{DP, DPService}
-import etlflow.scheduler.SchedulerApp
+import etlflow.scheduler.WebServer
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{ GlobalProperties, JsonJackson, UtilityFunctions => UF}
@@ -13,7 +13,7 @@ import zio._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class DataprocExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends SchedulerApp[EJN,EJP,EJGP] {
+  extends WebServer[EJN,EJP,EJGP] {
 
   val main_class: String
   val dp_libs: List[String]

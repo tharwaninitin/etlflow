@@ -3,9 +3,9 @@ package etlflow.jobs
 import etlflow.{EtlJobProps, EtlStepList}
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, GenericETLStep}
-import etlflow.utils.GlobalProperties
+import etlflow.utils.{Config, GlobalProperties}
 
-case class HelloWorldJob(job_properties: EtlJobProps, global_properties: Option[GlobalProperties]) extends SequentialEtlJob {
+case class HelloWorldJob(job_properties: EtlJobProps, globalProperties: Config) extends SequentialEtlJob {
 
   def processData(ip: Unit): Unit = {
     etl_job_logger.info("Hello World")

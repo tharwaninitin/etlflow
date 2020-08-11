@@ -4,13 +4,11 @@ import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, EtlStep}
-import etlflow.utils.BQ
-import examples.MyGlobalProperties
+import etlflow.utils.{BQ, Config}
 import examples.schema.MyEtlJobProps
 
-case class EtlJob4Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties])
+case class EtlJob4Definition(job_properties: MyEtlJobProps, globalProperties: Config)
   extends SequentialEtlJob  {
-
   private val select_query: String = """
       | SELECT movie_id, COUNT(1) cnt
       | FROM test.ratings

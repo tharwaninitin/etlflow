@@ -2,8 +2,9 @@ package etlflow.scheduler
 import cats.effect.Blocker
 import com.zaxxer.hikari.HikariDataSource
 import doobie.hikari.HikariTransactor
-import etlflow.utils.{GlobalProperties, JDBC}
+import etlflow.utils.{Config, GlobalProperties, JDBC}
 import org.testcontainers.containers.PostgreSQLContainer
+import pureconfig.ConfigSource
 import zio.Task
 import zio.interop.catz._
 
@@ -14,9 +15,10 @@ trait TestSuiteHelper  {
 
   val cache = CacheHelper.createCache[String](60)
   val canonical_path: String               = new java.io.File(".").getCanonicalPath
-  val global_properties: Option[GlobalProperties] =
-    Try(new GlobalProperties(canonical_path + "/modules/scheduler/src/test/resources/loaddata.properties") {}).toOption
+//  val global_properties: Option[GlobalProperties] =
+//    Try(new GlobalProperties(canonical_path + "/modules/scheduler/src/test/resources/loaddata.properties") {}).toOption
 
+  val global_properties: Config = ConfigSource.default.loadOrThrow[Config]
   //Creating postgres test container
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()

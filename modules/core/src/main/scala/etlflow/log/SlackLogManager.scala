@@ -2,7 +2,7 @@ package etlflow.log
 
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{GlobalProperties, LoggingLevel, UtilityFunctions => UF}
+import etlflow.utils.{Config, GlobalProperties, LoggingLevel, UtilityFunctions => UF}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -111,16 +111,16 @@ object SlackLogManager {
     new SlackLogManager(job_name, job_properties,slack_url, env)
   }
 
-  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Option[GlobalProperties]): Task[Option[SlackLogManager]] = Task {
+  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Config): Task[Option[SlackLogManager]] = Task {
     if (job_properties.job_send_slack_notification)
       Some(new SlackLogManager(job_name, job_properties,
         global_properties match {
-          case Some(x) => x.slack_webhook_url
-          case None => "<use_global_properties_slack_webhook_url>"
+          case x => x.slack.url
+          case _ => "<use_global_properties_slack_webhook_url>"
         },
         global_properties match {
-          case Some(x) => x.slack_env
-          case None => "<use_global_properties_slack_env>"
+          case x => x.slack.env
+          case _ => "<use_global_properties_slack_env>"
         }
       ))
     else

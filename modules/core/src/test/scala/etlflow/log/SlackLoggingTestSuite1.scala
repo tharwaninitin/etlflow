@@ -2,8 +2,10 @@ package etlflow.log
 
 import etlflow.etlsteps.GenericETLStep
 import etlflow.log.EtlLogger.JobLogger
+import etlflow.spark.SparkManager
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import etlflow.{EtlJobProps, LoggerResource, TestSuiteHelper}
+import org.apache.spark.sql.SparkSession
 import org.slf4j.{Logger, LoggerFactory}
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -15,6 +17,7 @@ object SlackLoggingTestSuite1 extends DefaultRunnableSpec  with TestSuiteHelper{
   val slack_url = ""
   val env = "dev-testing"
   val job_name = "EtlSlackJob"
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Steps") (

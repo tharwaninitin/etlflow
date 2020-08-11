@@ -2,21 +2,26 @@ package etlflow
 
 import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
-import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
+import pureconfig.ConfigSource
 import zio.{Runtime, ZEnv}
+
 import scala.reflect.runtime.universe.TypeTag
+import pureconfig.generic.auto._
 
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]
 // 2) Or below "trait with type" like this => trait EtlJobApp[T] { type EJN = TypeTag[T] }
-abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag] {
+abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag] {
   lazy val ea_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  def globalProperties: Option[EJGP]
+//  def globalProperties: Option[EJGP]
+  val globalProperties:Config = ConfigSource.default.loadOrThrow[Config]
+
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
-  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlJob
+  def toEtlJob(job_name: EJN): (EJP,Config) => EtlJob
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, EtlJobConfig()) match {

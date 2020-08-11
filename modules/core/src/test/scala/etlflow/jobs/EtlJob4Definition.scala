@@ -1,17 +1,16 @@
 package etlflow.jobs
 
-import etlflow.Schema.{EtlJob4Props, EtlJobRun, Rating}
+import etlflow.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.spark.{SparkManager, SparkUDF}
-import etlflow.utils.{GlobalProperties, JDBC, PARQUET, UtilityFunctions => UF}
+import etlflow.spark.SparkUDF
+import etlflow.utils.{Config, JDBC}
 import etlflow.{EtlJobProps, LoggerResource}
 import zio.ZIO
 
-case class EtlJob4Definition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties])
-  extends GenericEtlJob with SparkManager with SparkUDF {
+case class EtlJob4Definition(job_properties: EtlJobProps, globalProperties: Config)
+  extends GenericEtlJob  with SparkUDF {
 
-  private val global_props = global_properties.get
   val job_props: EtlJob4Props = job_properties.asInstanceOf[EtlJob4Props]
 
   val step1 = DBReadStep[EtlJobRun](

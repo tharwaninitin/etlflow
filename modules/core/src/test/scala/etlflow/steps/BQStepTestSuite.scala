@@ -2,10 +2,10 @@ package etlflow.steps
 
 import com.google.cloud.bigquery.FieldValueList
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
-import etlflow.spark.ReadApi
+import etlflow.spark.{ReadApi, SparkManager}
 import etlflow.Schema._
 import etlflow.utils.PARQUET
-import org.apache.spark.sql.{Dataset, Row}
+import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.scalatest.{FlatSpec, Matchers}
 import etlflow.TestSuiteHelper
 import etlflow.gcp.{BQ, BQService}
@@ -36,6 +36,8 @@ class BQStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper {
   runtime.unsafeRun(step2.process())
 
   // STEP 3: Run Test
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
+
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path), PARQUET)(spark)
   val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
   val query: String = s"SELECT count(*) as count_ratings ,sum(rating) sum_ratings FROM $output_dataset.$output_table"

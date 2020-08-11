@@ -6,6 +6,7 @@ import etlflow.jobs.HelloWorldJob
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
+import etlflow.utils.{Config, GcsBucketName, JDBC, Slack}
 
 object EtlFlowJobStepTestSuite extends DefaultRunnableSpec {
 
@@ -22,7 +23,7 @@ object EtlFlowJobStepTestSuite extends DefaultRunnableSpec {
           name    = "Test",
           job     = HelloWorldJob,
           props   = HelloWorldJobProps,
-          conf    = None
+          conf    = Config(JDBC("","","",""),Slack("","'"),GcsBucketName(""))
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

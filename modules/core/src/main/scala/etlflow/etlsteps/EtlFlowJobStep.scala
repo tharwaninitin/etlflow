@@ -2,17 +2,17 @@ package etlflow.etlsteps
 
 import etlflow.EtlJobProps
 import etlflow.etljobs.EtlJob
-import etlflow.utils.{GlobalProperties, LoggingLevel}
+import etlflow.utils.{Config, GlobalProperties, LoggingLevel}
 import zio.Task
 
 import scala.reflect.runtime.universe.TypeTag
 
-case class EtlFlowJobStep[EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag](
-                                                                                             name: String,
-                                                                                             job: (EJP,Option[EJGP]) => EtlJob,
-                                                                                             props: EJP,
-                                                                                             conf: Option[EJGP]
-                                                                                           )
+case class EtlFlowJobStep[EJP <: EtlJobProps : TypeTag](
+                                              name: String,
+                                              job: (EJP,Config) => EtlJob,
+                                              props: EJP,
+                                              conf: Config
+                                            )
   extends EtlStep[Unit,Unit] {
 
   final def process(in: =>Unit): Task[Unit] = {

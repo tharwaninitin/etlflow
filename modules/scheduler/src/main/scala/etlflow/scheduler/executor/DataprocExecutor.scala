@@ -12,8 +12,8 @@ import zio._
 
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class DataprocExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends WebServer[EJN,EJP,EJGP] {
+abstract class DataprocExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
+  extends WebServer[EJN,EJP] {
 
   val main_class: String
   val dp_libs: List[String]

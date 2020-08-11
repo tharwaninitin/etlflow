@@ -1,12 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.spark.{ReadApi, SparkManager, WriteApi}
-import etlflow.utils.{GlobalProperties, IOType}
+import etlflow.spark.{ReadApi, WriteApi}
+import etlflow.utils.{IOType, LoggingLevel}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import zio.Task
-import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
-
 
 import scala.reflect.runtime.universe.TypeTag
 

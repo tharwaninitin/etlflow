@@ -5,8 +5,9 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import etlflow.EtlJobProps
 import etlflow.jdbc.DbManager
-import etlflow.utils.{GlobalProperties, JDBC, JsonJackson, LoggingLevel}
+import etlflow.utils.{Config, JDBC, JsonJackson, LoggingLevel}
 import org.slf4j.{Logger, LoggerFactory}
+import pureconfig.ConfigSource
 import zio.interop.catz._
 import zio.{Managed, Task, _}
 
@@ -15,7 +16,7 @@ trait EtlJob extends  DbManager{
 
   var job_name: String = getClass.getName
   val job_properties: EtlJobProps
-  val global_properties: Option[GlobalProperties]
+  val globalProperties:Config
   val job_status: UIO[Ref[String]] = Ref.make("StatusNotSet")
 
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit
@@ -23,13 +24,7 @@ trait EtlJob extends  DbManager{
   def execute(): ZIO[Any, Throwable, Unit]
   def getCredentials[T : Manifest](name: String): T = {
 
-    val credentials: JDBC = JDBC(
-      global_properties.get.log_db_url,
-      global_properties.get.log_db_user,
-      global_properties.get.log_db_pwd,
-      global_properties.get.log_db_driver
-    )
-
+    val credentials: JDBC = globalProperties.dbLog
     lazy val db: Managed[Throwable, HikariTransactor[Task]] =
       createDbTransactorManagedJDBC(credentials, scala.concurrent.ExecutionContext.Implicits.global, name + "-Pool")
 

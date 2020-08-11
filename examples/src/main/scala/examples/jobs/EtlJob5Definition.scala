@@ -2,26 +2,24 @@ package examples.jobs
 
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{EtlStep, SparkReadWriteStep}
-import etlflow.utils.{BQ, JDBC, PARQUET}
+import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.SparkManager
-import examples.MyGlobalProperties
+import etlflow.utils.{BQ, Config, PARQUET}
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob5Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingBQ}
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{SaveMode, SparkSession}
 
-case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties])
-  extends SequentialEtlJob with SparkManager {
-
-  private val global_props = global_properties.get
+case class EtlJob5Definition(job_properties: MyEtlJobProps,globalProperties: Config)
+  extends SequentialEtlJob {
+  private val global_props = globalProperties
   private val job_props = job_properties.asInstanceOf[EtlJob5Props]
-
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
   private val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
     input_location   = job_props.ratings_input_path,
     input_type       = PARQUET,
-    output_type      = JDBC(global_props.jdbc_url, global_props.jdbc_user, global_props.jdbc_pwd, global_props.jdbc_driver),
+    output_type      = global_props.dbLog,
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
   )
@@ -30,7 +28,7 @@ case class EtlJob5Definition(job_properties: MyEtlJobProps, global_properties: O
     name             = "LoadRatingsBqToJdbc",
     input_location   = Seq("test.ratings"),
     input_type       = BQ,
-    output_type      = JDBC(global_props.jdbc_url, global_props.jdbc_user, global_props.jdbc_pwd, global_props.jdbc_driver),
+    output_type      = global_props.dbLog,
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
   )

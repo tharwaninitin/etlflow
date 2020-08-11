@@ -7,7 +7,7 @@ lazy val coreSettings = Seq(
   name := "etlflow-core",
   organization := "com.github.tharwaninitin",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ dbLibs ++ miscLibs ++ awsLibs ++ testLibs ++ redis ++ scalajHttp ++ mail   ,
+  libraryDependencies ++= zioLibs ++ sparkLibs ++ googleCloudLibs ++ dbLibs ++ miscLibs ++ awsLibs ++ testLibs ++ redis ++ scalajHttp ++ mail  ++ pureConfig  ,
   excludeDependencies ++= Seq(
     "org.slf4j" % "slf4j-log4j12",
     //"log4j" % "log4j"
@@ -22,7 +22,7 @@ lazy val coreSettings = Seq(
 
 lazy val schedulerSettings = Seq(
   name := "etlflow-scheduler"
-  , libraryDependencies ++= caliban ++ jwt ++ testLibs ++ http4sclient
+  , libraryDependencies ++= caliban ++ jwt ++ testLibs ++ http4sclient ++ pureConfig
 )
 
 lazy val root = (project in file("."))

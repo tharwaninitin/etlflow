@@ -5,23 +5,21 @@ import examples.schema.{MyEtlJobName, MyEtlJobProps}
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import etlflow.etljobs.EtlJob
+import etlflow.utils.Config
 import examples.jobs._
 import examples.schema.MyEtlJobName._
-import scala.util.Try
 
-object RunCustomServer extends CustomExecutor[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, MyGlobalProperties] {
+object RunCustomServer extends CustomExecutor[MyEtlJobName[MyEtlJobProps], MyEtlJobProps] {
 
   val spark_logger: LBLogger = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
   spark_logger.setLevel(Level.WARN)
   lazy val spark_jetty_logger: LBLogger = LoggerFactory.getLogger("org.spark_project.jetty").asInstanceOf[LBLogger]
   spark_jetty_logger.setLevel(Level.WARN)
 
-  override def globalProperties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(sys.env.getOrElse("PROPERTIES_FILE_PATH","loaddata.properties"))).toOption
-
   override val main_class: String = "examples.LoadData"
   override val dp_libs: List[String] = List.empty
 
-  override def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps, Option[MyGlobalProperties]) => EtlJob = {
+  override def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps, Config) => EtlJob = {
     job_name match {
       case EtlJob1DPTrigger => EtlJob1Trigger
       case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => EtlJob1Definition

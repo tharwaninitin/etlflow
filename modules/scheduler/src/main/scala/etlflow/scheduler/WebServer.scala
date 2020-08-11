@@ -7,7 +7,7 @@ import doobie.hikari.HikariTransactor
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.api.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
 import etlflow.scheduler.api._
-import etlflow.utils.{GlobalProperties, JDBC, UtilityFunctions => UF}
+import etlflow.utils.{Config, GlobalProperties, JDBC, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
@@ -16,26 +16,25 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.{HttpRoutes, StaticFile}
+import pureconfig.ConfigSource
 import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.console.putStrLn
 import zio.interop.catz._
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
-
-abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
+import pureconfig.generic.auto._
+abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
   extends Scheduler[EJN,EJP] with CatsApp with DbManager with Http4sDsl[EtlFlowTask] with EtlFlowService {
 
-  def globalProperties: Option[EJGP]
+  val globalProperties:Config = ConfigSource.default.loadOrThrow[Config]
+
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
-  lazy val global_properties: Option[EJGP] = globalProperties
-  val DB_DRIVER: String = global_properties.map(x => x.log_db_driver).getOrElse("<not_set>")
-  val DB_URL: String  = global_properties.map(x => x.log_db_url).getOrElse("<not_set>")     // connect URL
-  val DB_USER: String = global_properties.map(x => x.log_db_user).getOrElse("<not_set>")    // username
-  val DB_PASS: String = global_properties.map(x => x.log_db_pwd).getOrElse("<not_set>")    // password
-  val credentials: JDBC = JDBC(DB_URL,DB_USER,DB_PASS,DB_DRIVER)
+  lazy val global_properties: Config = globalProperties
+  val credentials: JDBC = global_properties.dbLog
 
   val otherRoutes:HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")

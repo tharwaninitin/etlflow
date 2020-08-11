@@ -7,18 +7,19 @@ import etlflow.gcp.{DP, DPService}
 import etlflow.scheduler.WebServer
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.{ GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
+
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends WebServer[EJN,EJP,EJGP] {
+abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
+  extends WebServer[EJN,EJP] {
 
   val main_class: String
   val dp_libs: List[String]
 
-  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
+  def toEtlJob(job_name: EJN): (EJP,Config) => EtlFlowEtlJob
 
   final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob] = {
 

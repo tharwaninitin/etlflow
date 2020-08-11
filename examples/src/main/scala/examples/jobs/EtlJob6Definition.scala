@@ -6,7 +6,7 @@ import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
 import etlflow.utils.Config
 import examples.schema.MyEtlJobProps
 
-case class EtlJob6Definition(job_properties: MyEtlJobProps,globalProperties: Config) extends SequentialEtlJob {
+case class EtlJob6Definition(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
 
   private val query1 = """CREATE OR REPLACE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
                          |BEGIN

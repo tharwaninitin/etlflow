@@ -17,15 +17,15 @@ import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.{HttpRoutes, StaticFile}
 import pureconfig.ConfigSource
+import pureconfig.generic.auto._
 import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.console.putStrLn
 import zio.interop.catz._
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
-import pureconfig.generic.auto._
+
 abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
   extends Scheduler[EJN,EJP] with CatsApp with DbManager with Http4sDsl[EtlFlowTask] with EtlFlowService {
 
@@ -48,9 +48,19 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
         etlFlowInterpreter <- EtlFlowApi.api.interpreter.toManaged_
         loginInterpreter   <- LoginApi.api.interpreter.toManaged_
+        banner = """
+                   |   ________   _________    _____      ________    _____        ___     ____      ____
+                   |  |_   __  | |  _   _  |  |_   _|    |_   __  |  |_   _|     .'   `.  |_  _|    |_  _|
+                   |    | |_ \_| |_/ | | \_|    | |        | |_ \_|    | |      /  .-.  \   \ \  /\  / /
+                   |    |  _| _      | |        | |   _    |  _|       | |   _  | |   | |    \ \/  \/ /
+                   |   _| |__/ |    _| |_      _| |__/ |  _| |_       _| |__/ | \  `-'  /     \  /\  /
+                   |  |________|   |_____|    |________| |_____|     |________|  `.___.'       \/  \/
+                   |
+                   |""".stripMargin.split("\n").toList ++ List(" "*75 + s"${BI.version}", "")
         _                  <- BlazeServerBuilder[EtlFlowTask]
                               .bindHttp(8080, "0.0.0.0")
                               .withConnectorPoolSize(20)
+                              .withBanner(banner)
                               .withResponseHeaderTimeout(110.seconds)
                               .withIdleTimeout(120.seconds)
                               .withExecutionContext(platform.executor.asEC)

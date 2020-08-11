@@ -15,7 +15,7 @@ import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 case class EtlJob2Definition(job_properties: MyEtlJobProps, globalProperties: Config)
   extends SequentialEtlJob  with SparkUDF {
 
-  private val gcs_output_path = f"gs://${globalProperties.gcsBucketName.bucketName}/output/ratings"
+  private val gcs_output_path = f"gs://${sys.env("GCS_BUCKET")}/output/ratings"
 
   private var output_date_paths : Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"

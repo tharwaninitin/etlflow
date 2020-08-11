@@ -1,6 +1,6 @@
 package examples
 
-import etlflow.scheduler.executor.CustomExecutor
+import etlflow.scheduler.Executor
 import examples.schema.{MyEtlJobName, MyEtlJobProps}
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
@@ -9,7 +9,7 @@ import etlflow.utils.Config
 import examples.jobs._
 import examples.schema.MyEtlJobName._
 
-object RunCustomServer extends CustomExecutor[MyEtlJobName[MyEtlJobProps], MyEtlJobProps] {
+object RunServer extends Executor[MyEtlJobName[MyEtlJobProps], MyEtlJobProps] {
 
   val spark_logger: LBLogger = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
   spark_logger.setLevel(Level.WARN)

@@ -37,7 +37,7 @@ lazy val examples = (project in file("examples"))
         //"log4j" % "log4j"
     ),
     packageName in Docker := "etlflow",
-    mainClass in Compile := Some("examples.RunCustomServer"),
+    mainClass in Compile := Some("examples.RunServer"),
     dockerBaseImage := "openjdk:jre",
     dockerExposedPorts ++= Seq(8080),
     maintainer := "tharwaninitin182@gmail.com",

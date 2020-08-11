@@ -1,19 +1,18 @@
-package etlflow.scheduler.executor
+package etlflow.scheduler
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
 import etlflow.gcp.{DP, DPService}
-import etlflow.scheduler.WebServer
 import etlflow.scheduler.api.EtlFlowHelper._
+import etlflow.scheduler.db.Update
 import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
-
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
+abstract class Executor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
   extends WebServer[EJN,EJP] {
 
   val main_class: String
@@ -21,7 +20,7 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
 
   def toEtlJob(job_name: EJN): (EJP,Config) => EtlFlowEtlJob
 
-  final override def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob] = {
+  final override def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob] = {
 
     val etlJobDetails: Task[(EJN, Map[String, String])] = Task {
       val job_name      = UF.getEtlJobName[EJN](args.name, etl_job_name_package)
@@ -42,8 +41,8 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
         ExecutionError(e.getMessage)
       }
       _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(config)).foldM(
-        ex => UIO(logger.error(ex.getMessage)) *> updateFailedJob(job_name.toString,transactor),
-        _  => updateSuccessJob(job_name.toString,transactor)
+        ex => UIO(logger.error(ex.getMessage)) *> Update.updateFailedJob(job_name.toString,transactor),
+        _  => Update.updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon
     } yield EtlJob(args.name,execution_props)
   }
@@ -71,8 +70,8 @@ abstract class CustomExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobPro
         ExecutionError(e.getMessage)
       }
       _                  <- etl_job.execute().foldM(
-        ex => updateFailedJob(job_name.toString,transactor),
-        _  => updateSuccessJob(job_name.toString,transactor)
+        ex => Update.updateFailedJob(job_name.toString,transactor),
+        _  => Update.updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon
     } yield EtlJob(args.name,execution_props)
   }

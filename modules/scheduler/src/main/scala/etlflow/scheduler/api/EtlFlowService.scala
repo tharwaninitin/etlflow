@@ -7,7 +7,7 @@ import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.db.Query
-import etlflow.utils.Executor.{DATAPROC, LOCAL}
+import etlflow.utils.Executor._
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import io.getquill.Literal
@@ -26,7 +26,7 @@ trait EtlFlowService {
   val javaRuntime: java.lang.Runtime = java.lang.Runtime.getRuntime
   val mb: Int = 1024*1024
 
-  def runEtlJobRemote(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
+  def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
@@ -64,7 +64,10 @@ trait EtlFlowService {
             runEtlJobLocal(args, transactor)
           case DATAPROC(project, region, endpoint, cluster_name) =>
             logger.info("Dataproc parameters are : " + project + "::" + region + "::"  + endpoint +"::" + cluster_name)
-            runEtlJobRemote(args, transactor, DATAPROC(project, region, endpoint, cluster_name))
+            runEtlJobDataProc(args, transactor, DATAPROC(project, region, endpoint, cluster_name))
+          case LIVY(_) =>
+            logger.error("Deploy mode livy not yet supported")
+            Task.fail(ExecutionError("Deploy mode livy not yet supported"))
         }
       }
 

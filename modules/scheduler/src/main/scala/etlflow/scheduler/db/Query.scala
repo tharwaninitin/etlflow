@@ -1,7 +1,6 @@
 package etlflow.scheduler.db
 
 import java.util.UUID.randomUUID
-
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
@@ -16,9 +15,8 @@ import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import scalacache.Cache
-import zio.Task
+import zio.{IO, Task}
 import zio.interop.catz._
-
 
 object Query {
 
@@ -55,6 +53,17 @@ object Query {
         }
     }
     dc.run(cronJobStringUpdate).transact(transactor).map(_ => args.state)
+  }.mapError { e =>
+    query_logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+
+  def getCronJobFromDB(name: String, transactor: HikariTransactor[Task]): IO[ExecutionError, CronJobDB] = {
+    val cj = quote {
+      querySchema[CronJobDB]("cronjob")
+        .filter(x => x.job_name == lift(name))
+    }
+    dc.run(cj).transact(transactor).map(x => x.head)
   }.mapError { e =>
     query_logger.error(e.getMessage)
     ExecutionError(e.getMessage)

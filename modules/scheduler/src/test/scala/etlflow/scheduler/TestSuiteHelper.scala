@@ -7,9 +7,8 @@ import org.testcontainers.containers.PostgreSQLContainer
 import pureconfig.ConfigSource
 import zio.Task
 import zio.interop.catz._
-
+import pureconfig.generic.auto._
 import scala.concurrent.ExecutionContext
-import scala.util.Try
 
 trait TestSuiteHelper  {
 

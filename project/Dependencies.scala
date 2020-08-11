@@ -88,6 +88,10 @@ object Dependencies {
     "com.pauldijou" %% "jwt-core" % "4.2.0"
   )
 
+  lazy val pureConfig = List(
+    "com.github.pureconfig" %% "pureconfig" % "0.13.0"
+  )
+
   lazy val testLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "org.testcontainers" % "postgresql" % TestContainerVersion,

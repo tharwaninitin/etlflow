@@ -4,18 +4,21 @@ import etlflow.Schema.{EtlJob2Props, EtlJobRun, Rating}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.spark.{ReadApi, SparkManager, SparkUDF, WriteApi}
-import etlflow.utils.{GlobalProperties, JDBC, PARQUET}
+import etlflow.utils.{Config, GlobalProperties, JDBC, PARQUET}
 import etlflow.{EtlJobProps, LoggerResource}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.ZIO
 
-case class EtlJob2Definition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties])
-  extends GenericEtlJob with SparkManager with SparkUDF {
+case class EtlJob2Definition(job_properties: EtlJobProps,  globalProperties: Config)
+  extends GenericEtlJob  with SparkUDF {
 
-  private val global_props = global_properties.get
+  private val global_props = globalProperties
   val job_props: EtlJob2Props = job_properties.asInstanceOf[EtlJob2Props]
+
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
+
 
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
@@ -55,7 +58,7 @@ case class EtlJob2Definition(job_properties: EtlJobProps, global_properties: Opt
   val step4 = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
-    credentials = JDBC(global_props.log_db_url, global_props.log_db_user, global_props.log_db_pwd, global_props.log_db_driver)
+    credentials = global_props.dbLog
   )
 
   def processData2(ip: List[EtlJobRun]): Unit = {

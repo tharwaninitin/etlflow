@@ -2,16 +2,16 @@ package examples
 
 import etlflow.EtlJobApp
 import etlflow.etljobs.EtlJob
+import etlflow.utils.Config
 import examples.jobs._
 import examples.schema.MyEtlJobName._
 import examples.schema.{MyEtlJobName, MyEtlJobProps}
+
 import scala.util.Try
 
-object LoadData extends EtlJobApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps, MyGlobalProperties] {
+object LoadData extends EtlJobApp[MyEtlJobName[MyEtlJobProps], MyEtlJobProps] {
 
-  override def globalProperties: Option[MyGlobalProperties] = Try(new MyGlobalProperties(sys.env.getOrElse("PROPERTIES_FILE_PATH","loaddata.properties"))).toOption
-
-  def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps,Option[MyGlobalProperties]) => EtlJob = {
+  def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps,Config) => EtlJob = {
     job_name match {
       case EtlJob1DPTrigger => EtlJob1Trigger
       case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => EtlJob1Definition

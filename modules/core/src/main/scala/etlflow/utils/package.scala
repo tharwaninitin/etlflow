@@ -51,6 +51,12 @@ package object utils {
   final case class JSON(multi_line: Boolean = false) extends IOType {
     override def toString: String = s"Json with multiline  => $multi_line"
   }
+
+  case class Config(dbLog: JDBC,slack:Slack,gcsBucketName: GcsBucketName)
+  case class Slack(url:String, env: String)
+  case class GcsBucketName(bucketName: String)
+
+
   case object BQ extends IOType
   case object PARQUET extends IOType
   case object ORC extends IOType

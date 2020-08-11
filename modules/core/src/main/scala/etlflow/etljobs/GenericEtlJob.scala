@@ -31,7 +31,7 @@ trait GenericEtlJob extends EtlJob {
 
   private[etljobs] lazy val logger_resource: ZManaged[Blocking ,Throwable, LoggerResource] = for {
     blocker    <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
-    db         <- DbLogManager.createOptionDbTransactorManagedGP(global_properties, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties)
-    slack      <- SlackLogManager.createSlackLogger(job_name, job_properties, global_properties).toManaged_
+    db         <- DbLogManager.createOptionDbTransactorManagedGP(globalProperties, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties)
+    slack      <- SlackLogManager.createSlackLogger(job_name, job_properties, globalProperties).toManaged_
   } yield LoggerResource(db,slack)
 }

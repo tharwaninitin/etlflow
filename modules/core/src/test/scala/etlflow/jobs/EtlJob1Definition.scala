@@ -5,17 +5,17 @@ import etlflow.Schema.{EtlJob1Props, Rating, RatingBQ, RatingOutput, RatingOutpu
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
-import etlflow.utils.{BQ, CSV, GlobalProperties, JSON, PARQUET}
+import etlflow.utils.{BQ, CSV, Config, GlobalProperties, JSON, PARQUET}
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 
-case class EtlJob1Definition(job_properties: EtlJobProps, global_properties: Option[GlobalProperties])
-  extends SequentialEtlJob with SparkManager with SparkUDF {
-  
+case class EtlJob1Definition(job_properties: EtlJobProps, globalProperties: Config)
+  extends SequentialEtlJob  with SparkUDF {
+
   val job_props: EtlJob1Props = job_properties.asInstanceOf[EtlJob1Props]
   val partition_date_col  = "date_int"
-
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
   val step1 = SparkReadWriteStep[RatingBQ](
     name                      = "LoadRatingsBQtoCSV",
     input_location            = Seq(job_props.ratings_input_dataset + "." + job_props.ratings_input_table_name),

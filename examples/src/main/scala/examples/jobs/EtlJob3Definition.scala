@@ -1,12 +1,9 @@
 package examples.jobs
 
-import etlflow.LoggerResource
-import etlflow.etljobs.{GenericEtlJob}
+import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
-import etlflow.utils.CSV
-import etlflow.spark.SparkManager
-import examples.MyGlobalProperties
+import etlflow.utils.{CSV, Config}
 import examples.schema.MyEtlJobProps
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
@@ -14,14 +11,15 @@ import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 
-case class EtlJob3Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties])
-  extends GenericEtlJob with SparkUDF with SparkManager {
+case class EtlJob3Definition(job_properties: MyEtlJobProps, globalProperties: Config)
+  extends GenericEtlJob with SparkUDF {
+//  private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
+  private val gcs_output_path = f""
 
-  private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private var output_date_paths: Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"
   private val job_props = job_properties.asInstanceOf[EtlJob23Props]
-
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
   private def enrichRatingData(job_properties: EtlJob23Props)(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
 
     val ratings_df = in

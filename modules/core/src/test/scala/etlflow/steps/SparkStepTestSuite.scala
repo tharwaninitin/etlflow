@@ -5,7 +5,7 @@ import doobie.util.fragment.Fragment
 import etlflow.Schema._
 import etlflow.TestSuiteHelper
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
-import etlflow.spark.{ReadApi, SparkUDF}
+import etlflow.spark.{ReadApi, SparkManager, SparkUDF}
 import etlflow.utils.{JDBC, PARQUET}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.{FlatSpec, Matchers}
@@ -23,12 +23,13 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
   val input_path_parquet  = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet"
   val output_table        = "ratings"
-
+  lazy val spark2 = SparkManager.createSparkSession()
+  implicit val spark = spark2
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
     input_location   = Seq(input_path_parquet),
     input_type       = PARQUET,
-    output_type      = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.get.log_db_driver),
+    output_type      = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.dbLog.driver),
     output_location  = "ratings",
     output_save_mode = SaveMode.Overwrite
   )

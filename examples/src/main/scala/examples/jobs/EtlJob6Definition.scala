@@ -2,13 +2,11 @@ package examples.jobs
 
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{BQQueryStep, DBQueryStep, EtlStep}
-import etlflow.utils.JDBC
-import examples.MyGlobalProperties
+import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
+import etlflow.utils.Config
 import examples.schema.MyEtlJobProps
 
-case class EtlJob6Definition(job_properties: MyEtlJobProps, global_properties: Option[MyGlobalProperties]) extends SequentialEtlJob {
-  private val global_props = global_properties.get
+case class EtlJob6Definition(job_properties: MyEtlJobProps,globalProperties: Config) extends SequentialEtlJob {
 
   private val query1 = """CREATE OR REPLACE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
                          |BEGIN
@@ -40,7 +38,7 @@ case class EtlJob6Definition(job_properties: MyEtlJobProps, global_properties: O
   private val step4 = DBQueryStep(
     name  = "UpdatePG",
     query = "BEGIN; DELETE FROM ratings WHERE 1 =1; INSERT INTO ratings SELECT * FROM ratings_temp; COMMIT;",
-    credentials = JDBC(global_props.log_db_url, global_props.log_db_user, global_props.log_db_pwd, global_props.jdbc_driver)
+    credentials = globalProperties.dbLog
   )
 
   val etlStepList = EtlStepList(step1,step2,step3,step4)

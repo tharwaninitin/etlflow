@@ -1,7 +1,5 @@
 package etlflow.etlsteps
 
-import etlflow.spark.SparkManager
-import etlflow.utils.GlobalProperties
 import org.apache.spark.sql.SparkSession
 import zio.Task
 

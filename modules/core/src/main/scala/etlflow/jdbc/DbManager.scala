@@ -4,22 +4,23 @@ import cats.effect.Blocker
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
-import etlflow.utils.{GlobalProperties, JDBC}
+import etlflow.utils.{Config, GlobalProperties, JDBC}
 import io.getquill.{LowerCase, PostgresJdbcContext}
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{Task, ZManaged}
+
 import scala.concurrent.ExecutionContext
 
 trait DbManager {
 
-  def createDbTransactorManagedGP(global_properties: Option[GlobalProperties], ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool"): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
+  def createDbTransactorManagedGP(global_properties: Config, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool"): ZManaged[Any, Throwable, HikariTransactor[Task]] = {
     val config = new HikariConfig()
-    config.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse("<use_global_properties_log_db_driver>"))
-    config.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse("<use_global_properties_log_db_url>"))
-    config.setUsername(global_properties.map(_.log_db_user).getOrElse("<use_global_properties_log_db_user>"))
-    config.setPassword(global_properties.map(_.log_db_pwd).getOrElse("<use_global_properties_log_db_pwd>"))
+    config.setDriverClassName(global_properties.dbLog.driver)
+    config.setJdbcUrl(global_properties.dbLog.url)
+    config.setUsername(global_properties.dbLog.user)
+    config.setPassword(global_properties.dbLog.password)
     config.setMaximumPoolSize(2)
     config.setPoolName(pool_name)
     HikariTransactor.fromHikariConfig[Task](config, ec, blocker)

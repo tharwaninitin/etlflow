@@ -8,13 +8,14 @@ import doobie.quill.DoobieContext
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.DbManager
-import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import io.getquill.Literal
 import zio.interop.catz._
 import zio.{Managed, Task, ZManaged}
+
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-
+import pureconfig.generic.auto._
 class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
@@ -109,7 +110,7 @@ object DbLogManager extends DbManager{
     Try(new DbLogManager(transactor,job_name, job_properties)).toOption
 
   def createOptionDbTransactorManagedGP(
-         global_properties: Option[GlobalProperties],
+         global_properties: Config,
          ec: ExecutionContext,
          blocker: Blocker,
          pool_name: String = "LoggerPool",

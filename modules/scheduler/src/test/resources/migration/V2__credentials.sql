@@ -1,0 +1,1 @@
+CREATE TABLE credentials(name varchar(100) PRIMARY KEY,type varchar(100), value text);

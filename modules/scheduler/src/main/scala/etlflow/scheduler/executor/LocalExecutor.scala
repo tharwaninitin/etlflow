@@ -3,7 +3,7 @@ package etlflow.scheduler.executor
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
 import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.utils.{GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
 import etlflow.etljobs.{EtlJob => EtlFlowEtlJob}
@@ -12,10 +12,10 @@ import etlflow.utils.Executor.DATAPROC
 
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class LocalExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag, EJGP <: GlobalProperties : TypeTag]
-  extends WebServer[EJN,EJP,EJGP] {
+abstract class LocalExecutor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
+  extends WebServer[EJN,EJP] {
 
-  def toEtlJob(job_name: EJN): (EJP,Option[EJGP]) => EtlFlowEtlJob
+  def toEtlJob(job_name: EJN): (EJP,Config) => EtlFlowEtlJob
 
   final override def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob] = {
 

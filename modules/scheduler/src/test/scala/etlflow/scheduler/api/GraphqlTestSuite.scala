@@ -120,7 +120,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with Te
         """
             mutation
               {
-                add_credentials(name: "flyway",
+                add_credentials(name: "flyway_testing",
                 type: JDBC,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres"},
@@ -132,7 +132,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with Te
                 }
                }""")
 
-      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_credentials":{"name":"flyway"}}""".stripMargin)
+      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_credentials":{"name":"flyway_testing"}}""".stripMargin)
       )
     },
     testM("Test add credentials end point negative scenario") {
@@ -140,7 +140,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with Te
         """
             mutation
               {
-                add_credentials(name: "flyway",
+                add_credentials(name: "flyway_testing",
                 type: 123,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres"},
@@ -160,7 +160,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with Te
         """
             mutation
               {
-                update_credentials(name: "flyway",
+                update_credentials(name: "flyway_testing",
                 type: JDBC,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres123"},
@@ -172,7 +172,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with Te
                 }
                }""")
 
-      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"flyway"}}""".stripMargin)
+      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"flyway_testing"}}""".stripMargin)
       )
     }
   )

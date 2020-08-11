@@ -1,12 +1,13 @@
 package etlflow.scheduler
 import cats.effect.Blocker
-import doobie.util.ExecutionContexts
-import doobie.util.transactor.Transactor
-import doobie.util.transactor.Transactor.Aux
-import etlflow.utils.GlobalProperties
+import com.zaxxer.hikari.HikariDataSource
+import doobie.hikari.HikariTransactor
+import etlflow.utils.{GlobalProperties, JDBC}
+import org.testcontainers.containers.PostgreSQLContainer
 import zio.Task
 import zio.interop.catz._
 
+import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 trait TestSuiteHelper  {
@@ -16,12 +17,22 @@ trait TestSuiteHelper  {
   val global_properties: Option[GlobalProperties] =
     Try(new GlobalProperties(canonical_path + "/modules/scheduler/src/test/resources/loaddata.properties") {}).toOption
 
-  val transactor: Aux[Task, Unit] = Transactor.fromDriverManager[Task](
-    global_properties.get.log_db_driver,     // driver classname
-    global_properties.get.log_db_url,     // connect URL (driver-specific)
-    global_properties.get.log_db_user,                  // user
-    global_properties.get.log_db_pwd,                          // password
-      Blocker.liftExecutionContext(ExecutionContexts.synchronous) // just for testing
-    )
+  //Creating postgres test container
+  val container = new PostgreSQLContainer("postgres:latest")
+  container.start()
+  val credentials: JDBC = JDBC(container.getJdbcUrl,container.getUsername,container.getPassword,"org.postgresql.Driver")
+
+  def createTestDbTransactorJDBC(credentials:JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool"): HikariTransactor[Task] = {
+    val dataSource = new HikariDataSource()
+    dataSource.setDriverClassName(credentials.driver)
+    dataSource.setJdbcUrl(credentials.url)
+    dataSource.setUsername(credentials.user)
+    dataSource.setPassword(credentials.password)
+    dataSource.setMaximumPoolSize(2)
+    dataSource.setPoolName(pool_name)
+    HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
+  }
+
+  val transactor = createTestDbTransactorJDBC(credentials,scala.concurrent.ExecutionContext.Implicits.global, "EtlFlowScheduler-testing-Pool")
 
 }

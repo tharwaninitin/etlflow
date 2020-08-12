@@ -49,6 +49,8 @@ steps:
   args:
     - '-c'
     - |
+      set -x && \
+      sed -i 's|git_commit_hash: gsha_.*|git_commit_hash: gsha_'$SHORT_SHA'|g' ${_PATH}/etlflow-deployment.yaml
       gcloud container clusters get-credentials ${_CLUSTER} --region ${_REGION} --project $PROJECT_ID
       kubectl apply -f ${_PATH}
       kubectl set image deployment/etlflow-test etlflow-test=${_REGISTRY}/$PROJECT_ID/${_IMAGE}:$(cat /workspace/version.txt) -n dev

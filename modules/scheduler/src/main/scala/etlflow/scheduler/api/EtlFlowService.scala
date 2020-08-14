@@ -5,11 +5,11 @@ import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
-import etlflow.scheduler.api.EtlFlowHelper._
+import etlflow.scheduler.api.EtlFlowHelper.{CronJob, EtlFlowHas, _}
 import etlflow.scheduler.db.Query
 import etlflow.utils.Executor._
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
@@ -18,7 +18,6 @@ import zio.blocking.Blocking
 import zio.stream.ZStream
 
 import scala.reflect.runtime.universe.TypeTag
-
 trait EtlFlowService {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
@@ -85,6 +84,7 @@ trait EtlFlowService {
           y <- subscribers.get
           z <- cronJobs.get
           a <- getEtlJobs
+          p <- Task(BI.builtAtString)
         } yield EtlFlowMetrics(
           x,
           y.length,
@@ -94,7 +94,8 @@ trait EtlFlowService {
           free_memory = (javaRuntime.freeMemory / mb).toString,
           total_memory = (javaRuntime.totalMemory / mb).toString,
           max_memory = (javaRuntime.maxMemory / mb).toString,
-          current_time = UF.getCurrentTimestampAsString()
+          current_time = UF.getCurrentTimestampAsString(),
+          build_time = (p.toString)
         )
       }
 
@@ -130,7 +131,7 @@ trait EtlFlowService {
         } yield ZStream.fromQueue(queue).ensuring(queue.shutdown)
       }
 
-      override def getStream: ZStream[Any, Nothing, EtlFlowMetrics] = ZStream(EtlFlowMetrics(1,1,1,1,"","","","",""))
+      override def getStream: ZStream[Any, Nothing, EtlFlowMetrics] = ZStream(EtlFlowMetrics(1,1,1,1,"","","","","",""))
 
       override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
         Query.getJobs(transactor)

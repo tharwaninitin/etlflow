@@ -24,7 +24,13 @@ object EtlFlowHelper {
   case class EtlJobStateArgs(name: String, state: Boolean)
   case class EtlJobArgs(name: String, props: List[Props])
   case class UserArgs(user_name: String, password: String)
-  case class DbJobRunArgs(jobRunId: Option[String] = None, jobName: Option[String] = None,startTime: Option[String],endTime: Option[String], limit: Int, offset: Int)
+  case class DbJobRunArgs(
+                           jobRunId: Option[String] = None,
+                           jobName: Option[String] = None,
+                           startTime: Option[String] = None,
+                           endTime: Option[String] = None,
+                           limit: Int, offset: Int
+                         )
   case class DbStepRunArgs(job_run_id: String)
   case class CronJobArgs(job_name: String, schedule: CronExpr)
   case class CredentialsArgs(name: String, `type`: Option[Creds], value: List[Props])

@@ -2,6 +2,7 @@ package etlflow.utils
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.TimeZone
 import etlflow.EtlJobNotFoundException
 import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
@@ -23,7 +24,8 @@ object UtilityFunctions {
 
   def getCurrentTimestamp: Long = System.currentTimeMillis()
 
-  def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String = DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now)
+  def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
+    DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
   def roundAt(p: Int)(n: Double): Double = { val s = math pow (10, p); (math round n * s) / s }
 

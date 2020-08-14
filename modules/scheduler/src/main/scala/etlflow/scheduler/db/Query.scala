@@ -1,18 +1,15 @@
 package etlflow.scheduler.db
 
-import java.text.SimpleDateFormat
 import java.util.UUID.randomUUID
-
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
-import etlflow.scheduler.CacheHelper
 import etlflow.scheduler.api.EtlFlowHelper.Creds.{AWS, JDBC}
 import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.scheduler.util.SchedulerHelper
+import etlflow.scheduler.util.{CacheHelper, DateHelper}
 import etlflow.utils.JsonJackson
 import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
@@ -147,7 +144,7 @@ object Query {
     }
   }
 
-  def getDbJobRuns(args: DbJobRunArgs,transactor: HikariTransactor[Task]): Task[List[JobRun]] = {
+  def getDbJobRuns(args: DbJobRunArgs, transactor: HikariTransactor[Task]): Task[List[JobRun]] = {
 
     var q: Quoted[Query[JobRun]] = null
     try {
@@ -172,7 +169,7 @@ object Query {
         // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
       }
       else if (args.endTime.isDefined) {
-        val (startTime,endTime) = SchedulerHelper.getValidDates(args.startTime,args.endTime)
+        val (startTime,endTime) = DateHelper.getValidDates(args.startTime,args.endTime)
         q = quote {
           query[JobRun]
             .filter(p => p.inserted_at < lift(startTime) && p.inserted_at > lift(endTime))

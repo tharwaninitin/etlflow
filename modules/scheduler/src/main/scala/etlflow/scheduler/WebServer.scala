@@ -7,7 +7,8 @@ import doobie.hikari.HikariTransactor
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.api.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
 import etlflow.scheduler.api._
-import etlflow.utils.{Config, GlobalProperties, JDBC, UtilityFunctions => UF}
+import etlflow.scheduler.util.CacheHelper
+import etlflow.utils.{Config, JDBC, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
@@ -92,7 +93,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
       _           <- runDbMigration(credentials)
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
       transactor  <- createDbTransactorJDBC(credentials, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
-      cache       = CacheHelper.createCache[String](60)
+      cache       = CacheHelper.createCache[String](24 * 60)
       cronJobs    <- Ref.make(List.empty[CronJob])
       _           <- etlFlowScheduler(transactor,cronJobs).fork
       _           <- etlFlowWebServer(blocker,transactor,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs))

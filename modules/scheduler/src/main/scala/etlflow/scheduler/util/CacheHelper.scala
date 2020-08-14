@@ -1,4 +1,4 @@
-package etlflow.scheduler
+package etlflow.scheduler.util
 
 import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
@@ -12,7 +12,8 @@ object CacheHelper {
   def createCache[T](expireAfterWriteInMinutes: Int): Cache[T] = {
     val caffeineCache: CCache[String, Entry[T]] =
       Caffeine.newBuilder()
-        .expireAfterWrite(expireAfterWriteInMinutes, TimeUnit.MINUTES)
+        .expireAfterAccess(expireAfterWriteInMinutes, TimeUnit.MINUTES)
+        .recordStats()
         .maximumSize(1000L)
         .build[String, Entry[T]]
 

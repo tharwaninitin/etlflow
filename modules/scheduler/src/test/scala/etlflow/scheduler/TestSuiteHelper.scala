@@ -1,8 +1,10 @@
 package etlflow.scheduler
+
 import cats.effect.Blocker
 import com.zaxxer.hikari.HikariDataSource
 import doobie.hikari.HikariTransactor
-import etlflow.utils.{Config, GlobalProperties, JDBC}
+import etlflow.scheduler.util.CacheHelper
+import etlflow.utils.{Config, JDBC}
 import org.testcontainers.containers.PostgreSQLContainer
 import pureconfig.ConfigSource
 import zio.Task

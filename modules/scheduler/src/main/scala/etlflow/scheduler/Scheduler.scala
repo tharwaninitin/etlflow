@@ -37,7 +37,7 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
 
   final def runActiveEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[Unit] = {
     for {
-      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active/incative at ${UF.getCurrentTimestampAsString()}"))
+      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
       cj <- Query.getCronJobFromDB(args.name,transactor)
       _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobDataProc(args,transactor,config)
       else UIO(
@@ -50,7 +50,7 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
   }
   final def runActiveEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
     for {
-      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active/incative at ${UF.getCurrentTimestampAsString()}"))
+      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
       cj <- Query.getCronJobFromDB(args.name,transactor)
       _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobLocal(args,transactor)
       else UIO(

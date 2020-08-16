@@ -2,14 +2,12 @@ package etlflow.jobs
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
+import etlflow.EtlJobProps
 import etlflow.Schema.HttpBinResponse
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.spark.SparkUDF
 import etlflow.utils.{Config, SMTP}
-import etlflow.{EtlJobProps, LoggerResource}
-import zio.ZIO
 
 case class EtlJob3Definition(job_properties: EtlJobProps, globalProperties: Config)
   extends GenericEtlJob with SparkUDF {
@@ -85,7 +83,7 @@ case class EtlJob3Definition(job_properties: EtlJobProps, globalProperties: Conf
     )
   )
 
-  val job: ZIO[LoggerResource, Throwable, Unit] = for {
+  val job = for {
     _     <-  step1.execute()
     op1   <-  step2.execute()
     _     <-  step3.execute()

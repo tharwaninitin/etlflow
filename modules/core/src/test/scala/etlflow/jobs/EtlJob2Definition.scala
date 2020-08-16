@@ -77,7 +77,7 @@ case class EtlJob2Definition(job_properties: EtlJobProps,  globalProperties: Con
     input_type       = PARQUET,
   )
 
-  val job: ZIO[LoggerResource, Throwable, Unit] =
+  val job =
     for {
        _   <- step1.execute()
        op1 <- step2.execute()

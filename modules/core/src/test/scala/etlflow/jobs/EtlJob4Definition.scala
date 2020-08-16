@@ -1,12 +1,11 @@
 package etlflow.jobs
 
+import etlflow.EtlJobProps
 import etlflow.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.spark.SparkUDF
 import etlflow.utils.{Config, JDBC}
-import etlflow.{EtlJobProps, LoggerResource}
-import zio.ZIO
 
 case class EtlJob4Definition(job_properties: EtlJobProps, globalProperties: Config)
   extends GenericEtlJob  with SparkUDF {
@@ -29,7 +28,7 @@ case class EtlJob4Definition(job_properties: EtlJobProps, globalProperties: Conf
     transform_function = processData2,
   )
 
-  val job: ZIO[LoggerResource, Throwable, Unit] =
+  val job =
     for {
       op2 <- step1.execute()
       _   <- step2.execute(op2)

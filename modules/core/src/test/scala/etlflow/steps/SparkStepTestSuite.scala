@@ -41,8 +41,8 @@ class SparkStepTestSuite extends FlatSpec with Matchers with TestSuiteHelper wit
   )
 
   // STEP 3: Run Step
-  runtime.unsafeRun(step1.process(spark))
-  val op: Dataset[Rating] = runtime.unsafeRun(step2.process(spark))
+  runtime.unsafeRun(step1.process())
+  val op: Dataset[Rating] = runtime.unsafeRun(step2.process())
   op.show(10)
 
   // STEP 4: Run Test

@@ -21,7 +21,7 @@ trait EtlJob extends  DbManager{
 
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])]
-  def execute(): ZIO[Any, Throwable, Unit]
+  def execute(): ZIO[ZEnv, Throwable, Unit]
   def getCredentials[T : Manifest](name: String): T = {
 
     val credentials: JDBC = globalProperties.dbLog

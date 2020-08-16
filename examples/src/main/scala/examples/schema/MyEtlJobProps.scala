@@ -9,7 +9,7 @@ sealed trait MyEtlJobProps extends EtlJobProps
 object MyEtlJobProps {
 
   val dataproc = DATAPROC("project-name","region","endpoint","cluster-name")
-  case class EtlJob1TriggerProps() extends MyEtlJobProps
+  case class SampleProps() extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
                             ratings_intermediate_path: String = "",

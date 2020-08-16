@@ -21,8 +21,9 @@ object RunServer extends Executor[MyEtlJobName[MyEtlJobProps], MyEtlJobProps] {
 
   override def toEtlJob(job_name: MyEtlJobName[MyEtlJobProps]): (MyEtlJobProps, Config) => EtlJob = {
     job_name match {
-      case EtlJob1DPTrigger => EtlJob1Trigger
-      case EtlJob1PARQUETtoORCtoBQLocalWith2Steps => EtlJob1Definition
+      case Job0DataprocPARQUETtoORCtoBQ => EtlJob0DefinitionDataproc
+      case Job1LocalJobDPSparkStep => EtlJob1DefinitionLocal
+      case Job2LocalJobGenericStep => EtlJob2DefinitionLocal
       case EtlJob2CSVtoPARQUETtoBQLocalWith3Steps => EtlJob2Definition
       case EtlJob3CSVtoCSVtoBQGcsWith2Steps => EtlJob3Definition
       case EtlJob4BQtoBQ => EtlJob4Definition

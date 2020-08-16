@@ -22,7 +22,6 @@ import pureconfig.generic.auto._
 import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
-import zio.console.putStrLn
 import zio.interop.catz._
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
@@ -88,7 +87,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
       } yield 0).useForever
     }
 
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val finalRunner = for {
       _           <- runDbMigration(credentials)
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
@@ -99,6 +98,11 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
       _           <- etlFlowWebServer(blocker,transactor,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs))
     } yield ()
 
-    finalRunner.catchAll(err => putStrLn(err.toString)).as(1)
+    finalRunner.catchAll{err =>
+      UIO {
+        logger.error(err.getMessage)
+        err.getStackTrace.foreach(x => logger.error(x.toString))
+      }
+    }.as(ExitCode.failure)
   }
 }

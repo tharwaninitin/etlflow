@@ -10,7 +10,7 @@ import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
-case class EtlJob1Definition(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
+case class EtlJob0DefinitionDataproc(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
 
   private val job_props = job_properties.asInstanceOf[EtlJob1Props]
   private implicit val spark: SparkSession = SparkSession.builder().getOrCreate()

@@ -7,7 +7,7 @@ import etlflow.utils.Config
 import etlflow.utils.Executor.DATAPROC
 import examples.schema.MyEtlJobProps
 
-case class EtlJob1Trigger(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
+case class EtlJob1DefinitionLocal(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
   val dpConfig = DATAPROC(
     sys.env("DP_PROJECT_ID"),
     sys.env("DP_REGION"),

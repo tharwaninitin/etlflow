@@ -1,6 +1,5 @@
 package etlflow.scheduler.api
 
-import java.util.TimeZone
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor

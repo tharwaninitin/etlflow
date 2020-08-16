@@ -10,6 +10,7 @@ import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import zio._
+import zio.blocking.{Blocking,blocking}
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class Executor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
@@ -40,7 +41,8 @@ abstract class Executor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : T
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
-      _  <- DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(config)).foldM(
+      _  <- blocking(DPService.executeSparkJob(job_name.toString,props_map,main_class,dp_libs).provideLayer(DP.live(config)))
+            .provideLayer(Blocking.live).foldM(
         ex => UIO(logger.error(ex.getMessage)) *> Update.updateFailedJob(job_name.toString,transactor),
         _  => Update.updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon
@@ -69,7 +71,7 @@ abstract class Executor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : T
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
-      _                  <- etl_job.execute().foldM(
+      _                  <- blocking(etl_job.execute()).provideLayer(ZEnv.live).foldM(
         ex => Update.updateFailedJob(job_name.toString,transactor),
         _  => Update.updateSuccessJob(job_name.toString,transactor)
       ).forkDaemon

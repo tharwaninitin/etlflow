@@ -16,6 +16,10 @@ object EtlLogger {
     }
     val live: ZLayer[LoggerResource, Nothing, LoggerResourceClient] =
       ZLayer.fromFunction((curr: LoggerResource) => new LoggerResourceClient.Service { val loggerResource: LoggerResource = curr })
+
+    val newLive: ZLayer[Has[LoggerResource], Nothing, LoggerResourceClient] = ZLayer.fromService { deps =>
+      new LoggerResourceClient.Service { val loggerResource: LoggerResource = deps }
+    }
   }
 
   type LoggingSupport = Has[LoggerService]

@@ -6,10 +6,10 @@ object Dependencies {
   val GcpDpVersion = "0.122.1"
   val GcpGcsVersion = "1.108.0"
   val ScoptVersion = "3.7.1"
-  val ZioVersion = "1.0.0-RC18-2"
-  val ZioCatsInteropVersion = "2.0.0.0-RC11"
-  val DoobieVersion = "0.8.8"
-  val CalibanVersion = "0.7.5"
+  val ZioVersion = "1.0.0"
+  val ZioCatsInteropVersion = "2.1.4.0"
+  val DoobieVersion = "0.9.0"
+  val CalibanVersion = "0.9.1"
   val Http4sVersion = "0.21.3"
   val FlywayVersion = "6.4.1"
   val AwsS3Version = "2.13.23"
@@ -30,6 +30,10 @@ object Dependencies {
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion
+  )
+
+  lazy val cloudLibs = List(
+    "com.github.fs2-blobstore" %% "gcs" % "0.7.3"
   )
 
   lazy val awsLibs = List(
@@ -57,7 +61,6 @@ object Dependencies {
   lazy val dbLibs = List(
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
-    "org.tpolecat" %% "doobie-h2"       % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
     "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
     "org.flywaydb" % "flyway-core"      % FlywayVersion

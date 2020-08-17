@@ -1,5 +1,6 @@
 package etlflow.scheduler.api
 
+import java.util.TimeZone
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
@@ -30,10 +31,10 @@ trait EtlFlowService {
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
-      transactor: HikariTransactor[Task],
-      cache: Cache[String],
-      cronJobs: Ref[List[CronJob]]
-    ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
+                                                                                  transactor: HikariTransactor[Task],
+                                                                                  cache: Cache[String],
+                                                                                  cronJobs: Ref[List[CronJob]]
+                                                                                ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
     for {
       subscribers       <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs        <- Ref.make(0)
@@ -99,6 +100,13 @@ trait EtlFlowService {
         )
       }
 
+      override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = {
+        for {
+          x <- activeJobs.get
+        } yield CurrentTime(
+          current_time = UF.getCurrentTimestampAsString()
+        )
+      }
       override def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] = {
         Query.addCredentials(args,transactor)
       }
@@ -112,7 +120,7 @@ trait EtlFlowService {
       }
 
       override def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] = {
-       Query.updateCronJob(args,transactor)
+        Query.updateCronJob(args,transactor)
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {

@@ -1,9 +1,11 @@
 package etlflow.scheduler.api
 
+import java.util.Date
+
 import cron4s.CronExpr
 import etlflow.log.{JobRun, StepRun}
 import zio.stream.ZStream
-import zio.{Has, RIO, ZIO, ZEnv}
+import zio.{Has, RIO, ZEnv, ZIO}
 
 object EtlFlowHelper {
 
@@ -27,8 +29,8 @@ object EtlFlowHelper {
   case class DbJobRunArgs(
                            jobRunId: Option[String] = None,
                            jobName: Option[String] = None,
-                           startTime: Option[String] = None,
-                           endTime: Option[String] = None,
+                           startTime: Option[java.time.LocalDate] = None,
+                           endTime: Option[java.time.LocalDate] = None,
                            limit: Int, offset: Int
                          )
   case class DbStepRunArgs(job_run_id: String)
@@ -38,17 +40,18 @@ object EtlFlowHelper {
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
   case class EtlFlowMetrics(
-           active_jobs: Int,
-           active_subscribers: Int,
-           etl_jobs: Int,
-           cron_jobs: Int,
-           used_memory: String,
-           free_memory: String,
-           total_memory: String,
-           max_memory: String,
-           current_time: String,
-           build_time: String
-         )
+                             active_jobs: Int,
+                             active_subscribers: Int,
+                             etl_jobs: Int,
+                             cron_jobs: Int,
+                             used_memory: String,
+                             free_memory: String,
+                             total_memory: String,
+                             max_memory: String,
+                             current_time: String,
+                             build_time: String
+                           )
+  case class CurrentTime(current_time:String)
   case class UserAuth(message: String, token: String)
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
   case class Credentials(name: String, `type`: String, value: String)
@@ -64,6 +67,7 @@ object EtlFlowHelper {
       def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
       def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
       def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
+      def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime]
 
 
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
@@ -117,6 +121,9 @@ object EtlFlowHelper {
 
   def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] =
     ZIO.accessM[EtlFlowHas](_.get.updateCredentials(args))
+
+  def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] =
+    ZIO.accessM[EtlFlowHas](_.get.getCurrentTime)
 
   //
   // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {

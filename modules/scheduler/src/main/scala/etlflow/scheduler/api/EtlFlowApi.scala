@@ -1,5 +1,8 @@
 package etlflow.scheduler.api
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import caliban.CalibanError.ExecutionError
 import caliban.GraphQL.graphQL
 import caliban.Value.StringValue
@@ -23,11 +26,13 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
     case other => Left(ExecutionError(s"Can't build a Cron from input $other"))
   }
 
+
   case class Queries(
                       jobs: ZIO[EtlFlowHas, Throwable, List[Job]],
                       jobruns: DbJobRunArgs => ZIO[EtlFlowHas, Throwable, List[JobRun]],
                       stepruns: DbStepRunArgs => ZIO[EtlFlowHas, Throwable, List[StepRun]],
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
+                      currentime: ZIO[EtlFlowHas, Throwable, CurrentTime],
                     )
 
   case class Mutations(
@@ -44,6 +49,13 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                             getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
                           )
 
+  implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
+
+  implicit val localDateExprArgBuilder: ArgBuilder[java.time.LocalDate] = {
+    case StringValue(value) => Right(LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+    case other => Left(ExecutionError(s"Can't build a date from input $other"))
+  }
+
   val api: GraphQL[Console with Clock with Blocking with EtlFlowHas] =
     graphQL(
       RootResolver(
@@ -51,7 +63,8 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
           getJobs,
           args => getDbJobRuns(args),
           args => getDbStepRuns(args),
-          getInfo
+          getInfo,
+          getCurrentTime
         ),
         Mutations(
           args => runJob(args),

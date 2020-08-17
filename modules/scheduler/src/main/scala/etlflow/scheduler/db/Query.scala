@@ -1,6 +1,9 @@
 package etlflow.scheduler.db
 
+import java.text.SimpleDateFormat
+import java.time.{LocalDate, ZoneId}
 import java.util.UUID.randomUUID
+
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
@@ -9,7 +12,7 @@ import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper.Creds.{AWS, JDBC}
 import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.scheduler.util.{CacheHelper, DateHelper}
+import etlflow.scheduler.util.CacheHelper
 import etlflow.utils.JsonJackson
 import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
@@ -169,10 +172,16 @@ object Query {
         // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
       }
       else if (args.endTime.isDefined) {
-        val (startTime,endTime) = DateHelper.getValidDates(args.startTime,args.endTime)
+        val sdf = new SimpleDateFormat("yyyy-MM-dd")
+        val startTime = if(args.startTime.get == "")
+          sdf.parse(LocalDate.now().plusDays(1).toString).getTime
+        else
+          args.startTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        val endTime =  args.endTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         q = quote {
           query[JobRun]
-            .filter(p => p.inserted_at < lift(startTime) && p.inserted_at > lift(endTime))
+            .filter(p => p.inserted_at > lift(startTime) && p.inserted_at < lift(endTime))
             .sortBy(p => p.inserted_at)(Ord.desc)
             .drop(lift(args.offset))
             .take(lift(args.limit))

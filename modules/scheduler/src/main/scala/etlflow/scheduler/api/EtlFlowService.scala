@@ -1,8 +1,14 @@
 package etlflow.scheduler.api
 
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.TimeZone
+import java.time._
+
+import cron4s.lib.javatime._
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
+import cron4s.datetime.IsDateTime
 import doobie.hikari.HikariTransactor
 import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
@@ -139,17 +145,25 @@ trait EtlFlowService {
         } yield ZStream.fromQueue(queue).ensuring(queue.shutdown)
       }
 
-      override def getStream: ZStream[Any, Nothing, EtlFlowMetrics] = ZStream(EtlFlowMetrics(1,1,1,1,"","","","","",""))
-
       override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
         Query.getJobs(transactor)
-          .map(y => y.map{x =>
-            Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption, x.failed, x.success, x.is_active)
-          })
+          .map(y => y.map{x => {
+            if(Cron(x.schedule).toOption.getOrElse("") != "") {
+              val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
+              val endTime = sdf.parse(Cron(x.schedule).toOption.get.next(LocalDateTime.now()).getOrElse("").toString).getTime
+              val startTime = sdf.parse(LocalDateTime.now().toString).getTime
+              val nextScheduleTime = Cron(x.schedule).toOption.get.next(LocalDateTime.now()).getOrElse("").toString
+              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption,nextScheduleTime,UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active)
+            }else{
+              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption,"","", x.failed, x.success, x.is_active)
+            }
+          }})
       }.mapError{ e =>
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
+
+      override def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics] = ???
     }
   }
 }

@@ -20,6 +20,14 @@ package object utils {
     case object LOCAL extends Executor
     case class DATAPROC(project: String, region: String, endpoint: String, cluster_name: String) extends Executor
     case class LIVY(url: String) extends Executor
+    case class KUBERNETES(imageName:String,
+                          nameSpace:String,
+                          envVar: Map[String,Option[String]],
+                          containerName: Option[String] = Some("etljob"),
+                          entryPoint: Option[String] = Some("/opt/docker/bin/load-data"),
+                          restartPolicy: Option[String] = Some("Never")
+                         ) extends Executor
+
   }
 
   sealed trait Environment

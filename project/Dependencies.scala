@@ -58,6 +58,10 @@ object Dependencies {
 
   )
 
+  lazy val kubernates = List(
+    "com.goyeau" %% "kubernetes-client" % "35662a1"
+  )
+
   lazy val dbLibs = List(
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,

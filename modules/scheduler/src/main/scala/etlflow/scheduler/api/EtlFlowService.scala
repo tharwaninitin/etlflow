@@ -2,13 +2,10 @@ package etlflow.scheduler.api
 
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
-import java.util.TimeZone
-import java.time._
 
-import cron4s.lib.javatime._
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
-import cron4s.datetime.IsDateTime
+import cron4s.lib.javatime._
 import doobie.hikari.HikariTransactor
 import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
@@ -34,6 +31,7 @@ trait EtlFlowService {
   val mb: Int = 1024*1024
 
   def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
+  def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
@@ -75,6 +73,9 @@ trait EtlFlowService {
           case LIVY(_) =>
             logger.error("Deploy mode livy not yet supported")
             Task.fail(ExecutionError("Deploy mode livy not yet supported"))
+          case KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) =>
+            logger.info("KUBERNETES parameters are : " + imageName + "::" + envVar + "::" + nameSpace + "::" + containerName + "::" + entryPoint + "::" + restartPolicy)
+            runEtlJobKubernetes(args, transactor, KUBERNETES(imageName,nameSpace, envVar))
         }
       }
 
@@ -163,7 +164,7 @@ trait EtlFlowService {
         ExecutionError(e.getMessage)
       }
 
-      override def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics] = ???
+      override def getStream: ZStream[Any, Nothing, EtlFlowMetrics] = ZStream(EtlFlowMetrics(1,1,1,1,"","","","","",""))
     }
   }
 }

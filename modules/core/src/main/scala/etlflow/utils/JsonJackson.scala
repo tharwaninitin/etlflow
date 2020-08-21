@@ -47,6 +47,7 @@ object JsonJackson {
           case "dataproc" => Executor.DATAPROC("","","","")
           case "local" => Executor.LOCAL
           case "livy" => Executor.LIVY("")
+          case "kubernetes"   => Executor.KUBERNETES("","",Map.empty)
         }
       }, {
         case executor: Executor => executor match{
@@ -55,9 +56,16 @@ object JsonJackson {
             JString(dataprocList.toString())
           }
           case Executor.LOCAL => JString("local")
+          case Executor.KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy)=> {
+            val k8List = Map("imageName" -> imageName,"nameSpace" -> nameSpace,"envVar" -> envVar,"containerName" -> containerName,"entryPoint" -> entryPoint,"restartPolicy" -> restartPolicy)
+            JString(k8List.toString())
+          }
         }
       })
     )
+
+
+
 
     // https://stackoverflow.com/questions/22179915/json4s-support-for-case-class-with-trait-mixin
     val customSerializer2 = new FieldSerializer[EtlJobProps]
@@ -94,6 +102,7 @@ object JsonJackson {
           case "dataproc" => Executor.DATAPROC("","","","")
           case "local" => Executor.LOCAL
           case "livy" => Executor.LIVY("")
+          case "kubernetes"   => Executor.KUBERNETES("","",Map.empty)
         }
       }, {
         case executor: Executor => executor match{
@@ -102,6 +111,10 @@ object JsonJackson {
             JString(dataprocList.toString())
           }
           case Executor.LOCAL => JString("local")
+          case Executor.KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy)=> {
+            val k8List = Map("imageName" -> imageName,"nameSpace" -> nameSpace,"envVar" -> envVar,"containerName" -> containerName,"entryPoint" -> entryPoint,"restartPolicy" -> restartPolicy)
+            JString(k8List.toString())
+          }
         }
       })
     )

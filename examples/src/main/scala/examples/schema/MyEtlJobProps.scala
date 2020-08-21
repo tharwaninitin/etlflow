@@ -20,7 +20,7 @@ object MyEtlJobProps {
       "LOG_DB_DRIVER"-> Option("org.postgresql.Driver")
     )
   )
-  case class SampleProps(override val job_deploy_mode: Executor = kubernetes,
+  case class SampleProps(override val job_deploy_mode: Executor = dataproc,
                          override val job_schedule: String = "0 */1 * * * ?") extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
@@ -28,7 +28,6 @@ object MyEtlJobProps {
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),
-                            //                            override val job_schedule: String = "0 */1 * * * ?",
                             override val job_deploy_mode: Executor = kubernetes,
                             override val job_enable_db_logging: Boolean = false
                           ) extends MyEtlJobProps

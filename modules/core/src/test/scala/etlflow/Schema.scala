@@ -1,8 +1,21 @@
 package etlflow
 
+import etlflow.utils.Executor.KUBERNETES
 import etlflow.utils.{Executor, JDBC, LoggingLevel, SMTP}
 
 object Schema {
+  val kubernetes = KUBERNETES(
+    "etlflow:0.7.19",
+    "default",
+    Map(
+      "GOOGLE_APPLICATION_CREDENTIALS"-> Option("conf/gcsCred_m-b-r.json"),
+      "LOG_DB_URL"-> Option("jdbc:postgresql://host.docker.internal:5432/postgres"),
+      "LOG_DB_USER"-> Option("postgres"),
+      "LOG_DB_PWD"-> Option("swap123"),
+      "LOG_DB_DRIVER"-> Option("org.postgresql.Driver")
+    )
+  )
+
   case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long)
   case class RatingBQ(user_id: Long, movie_id: Long, rating: Double, timestamp: Long)
   case class RatingOutput(user_id: Int, movie_id: Int, rating: Double, timestamp: Long, date: java.sql.Date, date_int: Int)
@@ -44,6 +57,7 @@ object Schema {
                              ratings_output_table_name: String = "ratings",
                              override val job_send_slack_notification: Boolean = true,
                              override val job_notification_level: LoggingLevel = LoggingLevel.DEBUG,
+                             override val job_deploy_mode: Executor = kubernetes,
                            ) extends EtlJobProps
 
   case class EtlJob4Props(override val job_deploy_mode: Executor = Executor.LOCAL) extends EtlJobProps

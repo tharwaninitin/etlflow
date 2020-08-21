@@ -39,6 +39,8 @@ spec:
               value: etlflow
             - name: LOG_DB_DRIVER
               value: org.postgresql.Driver
+            - name: JAVA_TOOL_OPTIONS
+              value: -agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n
             - name: GOOGLE_APPLICATION_CREDENTIALS
               valueFrom:
                 secretKeyRef:
@@ -52,7 +54,10 @@ spec:
               cpu: "1"
               memory: "1Gi"
           ports:
-            - containerPort : 8080
+            - containerPort: 8080
+              name: http
+            - containerPort: 8000
+              name: debug
           volumeMounts:
             - name: etlflow-test
               mountPath: /opt/docker/conf/cred.json

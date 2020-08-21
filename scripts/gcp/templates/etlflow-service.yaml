@@ -11,4 +11,8 @@ spec:
       port: 80
       targetPort: 8080
       name: http
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: debug
   type: LoadBalancer

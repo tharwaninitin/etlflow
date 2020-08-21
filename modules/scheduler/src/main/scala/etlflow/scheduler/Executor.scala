@@ -13,7 +13,6 @@ import etlflow.{EtlJobName, EtlJobProps}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.k8s.api.batch.v1.{JobSpec,Job}
 import io.k8s.api.core.v1.{Container, EnvVar, PodSpec, PodTemplateSpec}
-import io.chrisdavenport.log4cats.Logger
 import io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta
 import org.http4s.Status
 import zio._
@@ -89,7 +88,7 @@ abstract class Executor[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : T
       ExecutionError(e.getMessage)
     }
 
-    implicit val logger: Logger[Task] = Slf4jLogger.getLogger[Task]
+    implicit val logger = Slf4jLogger.getLogger[Task]
 
     val kubernetesClient = KubernetesClient[Task](KubeConfig.fromFile[Task](
       new File(s"${System.getProperty("user.home")}/.kube/config"))

@@ -2,31 +2,26 @@ package etlflow.scheduler.api
 
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
-
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import cron4s.lib.javatime._
 import doobie.hikari.HikariTransactor
-import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
 import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.db.Query
 import etlflow.utils.Executor._
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
-import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.stream.ZStream
-
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowService {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  val dc = new DoobieContext.Postgres(Literal)
   val javaRuntime: java.lang.Runtime = java.lang.Runtime.getRuntime
   val mb: Int = 1024*1024
 
@@ -35,10 +30,10 @@ trait EtlFlowService {
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
-                                                                                  transactor: HikariTransactor[Task],
-                                                                                  cache: Cache[String],
-                                                                                  cronJobs: Ref[List[CronJob]]
-                                                                                ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
+      transactor: HikariTransactor[Task],
+      cache: Cache[String],
+      cronJobs: Ref[List[CronJob]]
+    ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
     for {
       subscribers       <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs        <- Ref.make(0)

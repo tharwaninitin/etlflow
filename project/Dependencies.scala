@@ -14,7 +14,7 @@ object Dependencies {
   val FlywayVersion = "6.4.1"
   val AwsS3Version = "2.13.23"
   val LogbackVersion = "1.2.3"
-
+  val CirceVersion = "0.13.0"
   val ScalaTestVersion = "3.0.5"
   val TestContainerVersion = "1.11.2"
   val SparkBQVersion = "0.16.1"
@@ -32,8 +32,22 @@ object Dependencies {
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion
   )
 
-  lazy val cloudLibs = List(
-    "com.github.fs2-blobstore" %% "gcs" % "0.7.3"
+  lazy val catsLibs = List(
+    "org.typelevel" %% "cats-core" % "2.1.1",
+    "org.typelevel" %% "cats-effect" % "2.1.3"
+  )
+
+  lazy val streamingLibs = List(
+    "co.fs2" %% "fs2-core" % "2.3.0",
+    "co.fs2" %% "fs2-io" % "2.3.0",
+    "com.github.fs2-blobstore" %% "gcs" % "0.7.3",
+    "com.github.fs2-blobstore" %% "s3" % "0.7.3",
+  )
+
+  lazy val circeLibs = List(
+    "io.circe" %% "circe-core" % CirceVersion,
+    "io.circe" %% "circe-generic" % CirceVersion,
+    "io.circe" %% "circe-parser" % CirceVersion,
   )
 
   lazy val awsLibs = List(
@@ -55,10 +69,9 @@ object Dependencies {
   lazy val mail = List(
     "javax.mail" % "javax.mail-api" % mailVersion,
     "com.sun.mail" % "javax.mail"   % mailVersion
-
   )
 
-  lazy val kubernates = List(
+  lazy val kubernetes = List(
     "com.goyeau" %% "kubernetes-client" % "35662a1"
   )
 
@@ -76,7 +89,9 @@ object Dependencies {
   )
 
   lazy val miscLibs = List(
-    "com.github.scopt" %% "scopt" % ScoptVersion
+    "com.github.scopt" %% "scopt" % ScoptVersion,
+    "org.slf4j" % "slf4j-api" % "1.7.30",
+    "com.github.pureconfig" %% "pureconfig" % "0.13.0"
   )
 
   lazy val caliban = List(
@@ -93,10 +108,6 @@ object Dependencies {
 
   lazy val jwt = List(
     "com.pauldijou" %% "jwt-core" % "4.2.0"
-  )
-
-  lazy val pureConfig = List(
-    "com.github.pureconfig" %% "pureconfig" % "0.13.0"
   )
 
   lazy val testLibs = List(

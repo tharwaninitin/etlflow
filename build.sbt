@@ -8,11 +8,15 @@ lazy val coreSettings = Seq(
   organization := "com.github.tharwaninitin",
   crossScalaVersions := supportedScalaVersions,
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
-  libraryDependencies ++= zioLibs ++ sparkLibs ++ cloudLibs ++ googleCloudLibs ++ dbLibs ++ miscLibs ++ awsLibs ++ testLibs ++ redis ++ scalajHttp ++ mail  ++ pureConfig ++ kubernates ,
+  libraryDependencies ++= zioLibs ++ sparkLibs ++ streamingLibs
+    ++ googleCloudLibs ++ dbLibs ++ catsLibs ++ circeLibs
+    ++ miscLibs ++ awsLibs
+    ++ redis ++ scalajHttp ++ mail ++ kubernetes ++ http4sclient
+    ++ testLibs,
   excludeDependencies ++= Seq(
     "org.slf4j" % "slf4j-log4j12",
-    //"log4j" % "log4j"
   ),
+  //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
   dependencyOverrides ++= {
     Seq(
       "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
@@ -23,7 +27,7 @@ lazy val coreSettings = Seq(
 
 lazy val schedulerSettings = Seq(
   name := "etlflow-scheduler"
-  , libraryDependencies ++= caliban ++ jwt ++ testLibs ++ http4sclient ++ pureConfig ++ kubernates
+  , libraryDependencies ++= caliban ++ jwt ++ testLibs
 )
 
 lazy val root = (project in file("."))

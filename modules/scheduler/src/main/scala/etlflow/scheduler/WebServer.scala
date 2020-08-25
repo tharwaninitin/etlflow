@@ -3,7 +3,6 @@ package etlflow.scheduler
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
-import doobie.hikari.HikariTransactor
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.api.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
 import etlflow.scheduler.api._
@@ -29,18 +28,15 @@ import scala.reflect.runtime.universe.TypeTag
 abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
   extends Scheduler[EJN,EJP] with CatsApp with DbManager with Http4sDsl[EtlFlowTask] with EtlFlowService {
 
-  val globalProperties:Config = ConfigSource.default.loadOrThrow[Config]
+  val app_config: Config = ConfigSource.default.loadOrThrow[Config]
 
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
-
-  lazy val global_properties: Config = globalProperties
-  val credentials: JDBC = global_properties.dbLog
 
   val otherRoutes:HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def etlFlowWebServer(blocker: Blocker, transactor: HikariTransactor[Task], cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
+  def etlFlowWebServer(blocker: Blocker, cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
     .flatMap{implicit runtime =>
       (for {
@@ -57,13 +53,12 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                    |  |________|   |_____|    |________| |_____|     |________|  `.___.'       \/  \/
                    |
                    |""".stripMargin.split("\n").toList ++ List(" "*75 + s"${BI.version}", "")
-        _                  <- BlazeServerBuilder[EtlFlowTask]
+        _                  <- BlazeServerBuilder[EtlFlowTask](runtime.platform.executor.asEC)
                               .bindHttp(8080, "0.0.0.0")
                               .withConnectorPoolSize(20)
                               .withBanner(banner)
                               .withResponseHeaderTimeout(110.seconds)
                               .withIdleTimeout(120.seconds)
-                              .withExecutionContext(platform.executor.asEC)
                               .withHttpApp(
                                 Router[EtlFlowTask](
                                   "/about" -> otherRoutes,
@@ -88,14 +83,14 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     }
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    val finalRunner = for {
-      _           <- runDbMigration(credentials)
+    val finalRunner: ZIO[ZEnv, Throwable, Unit] = for {
+      _           <- runDbMigration(app_config.dbLog)
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
-      transactor  <- createDbTransactorJDBC(credentials, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
+      transactor  <- createDbTransactorJDBC(app_config.dbLog, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
       cache       = CacheHelper.createCache[String](24 * 60)
       cronJobs    <- Ref.make(List.empty[CronJob])
       _           <- etlFlowScheduler(transactor,cronJobs).fork
-      _           <- etlFlowWebServer(blocker,transactor,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs))
+      _           <- etlFlowWebServer(blocker,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs))
     } yield ()
 
     finalRunner.catchAll{err =>

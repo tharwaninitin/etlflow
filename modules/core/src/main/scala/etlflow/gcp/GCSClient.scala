@@ -3,17 +3,16 @@ package etlflow.gcp
 import java.io.FileInputStream
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.{Storage, StorageOptions}
-import etlflow.utils.Environment.GCP
+import etlflow.utils.Location
 
 object GCSClient {
-
-  def apply(credentials: Option[GCP] = None): Storage = {
+  def apply(location: Location.GCS): Storage = {
     val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
     def getStorageClient(path: String) = {
       val credentials: GoogleCredentials = ServiceAccountCredentials.fromStream(new FileInputStream(path))
       StorageOptions.newBuilder().setCredentials(credentials).build().getService
     }
-    credentials match {
+    location.credentials match {
       case Some(creds) =>
         gcp_logger.info("Using GCP credentials from values passed in function")
         getStorageClient(creds.service_account_key_path)

@@ -1,15 +1,14 @@
 package etlflow.jobs
 
+import etlflow.EtlJobProps
 import etlflow.Schema.{EtlJob2Props, EtlJobRun, Rating}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.spark.{ReadApi, SparkManager, SparkUDF, WriteApi}
-import etlflow.utils.{Config, GlobalProperties, JDBC, PARQUET}
-import etlflow.{EtlJobProps, LoggerResource}
+import etlflow.utils.{Config, PARQUET}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import zio.ZIO
 
 case class EtlJob2Definition(job_properties: EtlJobProps,  globalProperties: Config)
   extends GenericEtlJob  with SparkUDF {

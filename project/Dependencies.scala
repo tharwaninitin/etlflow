@@ -5,10 +5,12 @@ object Dependencies {
   val GcpBqVersion = "1.80.0"
   val GcpDpVersion = "0.122.1"
   val GcpGcsVersion = "1.108.0"
+  val GcpPubSubVersion = "1.108.1"
   val ScoptVersion = "3.7.1"
   val ZioVersion = "1.0.0"
   val ZioCatsInteropVersion = "2.1.4.0"
   val DoobieVersion = "0.9.0"
+  val SkunkVersion = "0.0.18"
   val CalibanVersion = "0.9.1"
   val Http4sVersion = "0.21.3"
   val FlywayVersion = "6.4.1"
@@ -29,17 +31,19 @@ object Dependencies {
   lazy val googleCloudLibs = List(
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
-    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion
+    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
+    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
   )
 
   lazy val catsLibs = List(
     "org.typelevel" %% "cats-core" % "2.1.1",
-    "org.typelevel" %% "cats-effect" % "2.1.3"
+    "org.typelevel" %% "cats-effect" % "2.1.4",
   )
 
   lazy val streamingLibs = List(
-    "co.fs2" %% "fs2-core" % "2.3.0",
-    "co.fs2" %% "fs2-io" % "2.3.0",
+    "co.fs2" %% "fs2-core" % "2.4.4",
+    "co.fs2" %% "fs2-io" % "2.4.4",
+    "com.permutive" %% "fs2-google-pubsub-grpc" % "0.16.0",
     "com.github.fs2-blobstore" %% "gcs" % "0.7.3",
     "com.github.fs2-blobstore" %% "s3" % "0.7.3",
   )
@@ -48,6 +52,7 @@ object Dependencies {
     "io.circe" %% "circe-core" % CirceVersion,
     "io.circe" %% "circe-generic" % CirceVersion,
     "io.circe" %% "circe-parser" % CirceVersion,
+    "io.circe" %% "circe-optics" % CirceVersion
   )
 
   lazy val awsLibs = List(
@@ -76,6 +81,7 @@ object Dependencies {
   )
 
   lazy val dbLibs = List(
+    "org.tpolecat" %% "skunk-core"      % SkunkVersion,
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,

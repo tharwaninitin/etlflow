@@ -15,4 +15,8 @@ spec:
       port: 8000
       targetPort: 8000
       name: debug
-  type: LoadBalancer
+    - protocol: TCP
+      port: 9010
+      targetPort: 9010
+      name: monitor
+  type: NodePort

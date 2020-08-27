@@ -2,13 +2,12 @@ package etlflow
 
 import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
-import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
 import pureconfig.ConfigSource
 import zio.{Runtime, ZEnv}
-
-import scala.reflect.runtime.universe.TypeTag
 import pureconfig.generic.auto._
+import scala.reflect.runtime.universe.TypeTag
 
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]

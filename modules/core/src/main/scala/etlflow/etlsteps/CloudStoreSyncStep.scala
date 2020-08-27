@@ -1,16 +1,15 @@
 package etlflow.etlsteps
 
 import java.nio.file.Paths
-
 import blobstore.fs.FileStore
 import blobstore.gcs.GcsStore
 import blobstore.s3.S3Store
 import blobstore.{Path, Store}
 import cats.effect.Blocker
 import etlflow.aws.S3CustomClient
-import etlflow.gcp.GCSClient
+import etlflow.gcp.GCS
 import etlflow.utils.Location
-import fs2.{Pipe, Stream, text}
+import fs2.{Pipe, Stream}
 import zio.Runtime.default.unsafeRun
 import zio.Task
 import zio.interop.catz._
@@ -20,7 +19,9 @@ case class CloudStoreSyncStep (
        input_location: Location,
        output_location: Location,
        transformation: Option[Pipe[Task,Byte,Byte]] = None,
-       parallelism: Int = 1
+       output_overwrite: Boolean = false,
+       parallelism: Int = 1,
+       chunk_size: Int = 32 * 1024
      )
   extends EtlStep[Unit,Unit] {
 
@@ -33,25 +34,20 @@ case class CloudStoreSyncStep (
 
         val inputStore: Store[Task] = input_location match {
           case location: Location.GCS =>
-            val storage = GCSClient(location)
+            val storage = GCS.getClient(location)
             GcsStore[Task](storage, blocker, List.empty)
           case location: Location.S3 =>
             val storage = S3CustomClient(location)
             unsafeRun(S3Store[Task](storage))
           case _: Location.LOCAL =>
             FileStore[Task](Paths.get(""), blocker)
-          case _ => ???
         }
 
-        val inputStorePath: Path = input_location match {
-          case location: Location.LOCAL =>  Path(location.path)
-          case location: Location.GCS   =>  Path(location.path)
-          case location: Location.S3    =>  Path(location.path)
-        }
+        val inputStorePath: Path = Path(input_location.location)
 
         val outputStore: Store[Task] = output_location match {
           case location: Location.GCS =>
-            val storage = GCSClient(location)
+            val storage = GCS.getClient(location)
             GcsStore[Task](storage, blocker, List.empty)
           case location: Location.S3 =>
             val storage = S3CustomClient(location)
@@ -60,32 +56,27 @@ case class CloudStoreSyncStep (
             FileStore[Task](Paths.get(""), blocker)
         }
 
-        val outputStorePath: Path = output_location match {
-          case location: Location.LOCAL =>  Path(location.path)
-          case location: Location.GCS   =>  Path(location.path)
-          case location: Location.S3    =>  Path(location.path)
-          case _ => ???
-        }
+        val outputStorePath: Path = Path(output_location.location)
 
         inputStore.list(inputStorePath)
-          .map { path: Path =>
+          .map { input_path: Path =>
 
-            val startMarkerStream = Stream.eval(Task(println(s"Starting to load file from $path with size ${path.size.getOrElse(0L)/1024.0} KB " +
-              s"to ${outputStorePath + path.fileName.get}")))
-
-            val inputStream     = inputStore.get(path, chunkSize = 32 * 1024)
-            val transferStream  = transformation.map(trans => inputStream.through(trans)).getOrElse(inputStream)
-            val outputStream    = transferStream.through(outputStore.put(Path(outputStorePath + path.fileName.get)))
-
-            val doneMarkerStream = Stream.eval(Task(println(s"Done loading file $path")))
-
-            val finalStream = startMarkerStream ++ outputStream ++ doneMarkerStream
-
-            if (path.fileName.isDefined) {
-              if (path.fileName.get.endsWith("/")) {
+            if (input_path.fileName.isDefined) {
+              if (input_path.fileName.get.endsWith("/")) {
                 Stream.empty
               } else {
-                finalStream
+                val output_path       = Path(outputStorePath + input_path.fileName.get).withSize(input_path.size)
+                val startMarkerStream = Stream.eval(Task(println(s"Starting to load file from $input_path with size ${input_path.size.getOrElse(0L)/1024.0} KB to $output_path")))
+                val inputStream       = inputStore.get(input_path, chunk_size)
+                val transferStream    = transformation.map(trans => inputStream.through(trans)).getOrElse(inputStream)
+                val outputStream      = transferStream.through(outputStore.put(output_path,output_overwrite))
+                                          .handleErrorWith{ex =>
+                                            etl_logger.error(ex.getMessage)
+                                            etl_logger.error(ex.getStackTrace.mkString("\n"))
+                                            Stream.raiseError[Task](ex)
+                                          }
+                val doneMarkerStream  = Stream.eval(Task(println(s"Done loading file $input_path")))
+                startMarkerStream ++ outputStream ++ doneMarkerStream
               }
             } else {
               Stream.empty
@@ -93,7 +84,6 @@ case class CloudStoreSyncStep (
           }
           .parJoin(maxOpen = parallelism)
           .compile.drain
-
       }
     } *> Task(etl_logger.info("#"*50))
   }

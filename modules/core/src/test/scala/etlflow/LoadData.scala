@@ -3,7 +3,7 @@ package etlflow
 import etlflow.etljobs.EtlJob
 import etlflow.jobs._
 import etlflow.MyEtlJobName._
-import etlflow.utils.{Config, GlobalProperties}
+import etlflow.utils.Config
 
 object LoadData extends EtlJobApp[MyEtlJobName[EtlJobProps], EtlJobProps] with TestSuiteHelper {
 

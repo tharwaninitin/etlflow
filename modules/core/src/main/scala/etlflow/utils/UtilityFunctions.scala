@@ -97,25 +97,25 @@ object UtilityFunctions {
     constructor.newInstance().asInstanceOf[T]
   }
 
-  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
-    Try {
-      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
-    } match {
-      case Success(value) => Some(value)
-      case Failure(exception) =>
-        uf_logger.info(exception.getStackTrace.mkString("\n"))
-        None
-    }
-  }
-
-  def getGlobalProperties[T <: GlobalProperties](path: String = "loaddata.properties")(fct: String => T): Option[T] = {
-    Try {
-      fct(path)
-    } match {
-      case Success(value) => Some(value)
-      case Failure(exception) =>
-        uf_logger.info(exception.getMessage)
-        None
-    }
-  }
+//  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
+//    Try {
+//      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
+//    } match {
+//      case Success(value) => Some(value)
+//      case Failure(exception) =>
+//        uf_logger.info(exception.getStackTrace.mkString("\n"))
+//        None
+//    }
+//  }
+//
+//  def getGlobalProperties[T <: GlobalProperties](path: String = "loaddata.properties")(fct: String => T): Option[T] = {
+//    Try {
+//      fct(path)
+//    } match {
+//      case Success(value) => Some(value)
+//      case Failure(exception) =>
+//        uf_logger.info(exception.getMessage)
+//        None
+//    }
+//  }
 }

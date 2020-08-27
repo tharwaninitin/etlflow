@@ -3,7 +3,7 @@ package etlflow.jobs
 import etlflow.{EtlJobProps, EtlStepList}
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, GenericETLStep}
-import etlflow.utils.{Config, GlobalProperties}
+import etlflow.utils.Config
 
 case class HelloWorldJob(job_properties: EtlJobProps, globalProperties: Config) extends SequentialEtlJob {
 

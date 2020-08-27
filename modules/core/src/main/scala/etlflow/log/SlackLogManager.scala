@@ -2,15 +2,13 @@ package etlflow.log
 
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{Config, GlobalProperties, LoggingLevel, UtilityFunctions => UF}
+import etlflow.utils.{Config, LoggingLevel, UtilityFunctions => UF}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import zio.Task
-
-import scala.util.Try
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
-
+import scala.util.Try
 
 class SlackLogManager private[log] (
                                      val job_name: String,

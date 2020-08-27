@@ -5,7 +5,7 @@ import etlflow.Schema.{EtlJob1Props, Rating, RatingBQ, RatingOutput, RatingOutpu
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
-import etlflow.utils.{BQ, CSV, Config, GlobalProperties, JSON, PARQUET}
+import etlflow.utils.{BQ, CSV, Config, JSON, PARQUET}
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}

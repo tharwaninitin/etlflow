@@ -9,10 +9,10 @@ object LoadData extends EtlJobApp[MyEtlJobName[EtlJobProps], EtlJobProps] with T
 
   override def toEtlJob(job_name: MyEtlJobName[EtlJobProps]): (EtlJobProps, Config) => EtlJob = {
     job_name match {
-      case EtlJob1 => EtlJob1Definition
-      case EtlJob2 => EtlJob2Definition
-      case EtlJob3 => EtlJob3Definition
-      case EtlJob4 => EtlJob4Definition
+      case EtlJob1 => Job1SparkS3andGCSandBQSteps
+      case EtlJob2 => Job2SparkReadWriteApi
+      case EtlJob3 => Job3HttpSmtpSteps
+      case EtlJob4 => Job4DBSteps
     }
   }
 }

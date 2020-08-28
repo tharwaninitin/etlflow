@@ -4,8 +4,7 @@ import etlflow.{LoadData, TestSuiteHelper}
 import org.scalatest.{FlatSpec, Matchers}
 import org.testcontainers.containers.PostgreSQLContainer
 
-class EtlJob4TestSuite extends FlatSpec with Matchers  with TestSuiteHelper {
-
+class Job2SparkReadWriteApiTestSuite extends FlatSpec with Matchers  with TestSuiteHelper {
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()
 
@@ -13,13 +12,15 @@ class EtlJob4TestSuite extends FlatSpec with Matchers  with TestSuiteHelper {
     Array(
       "run_job",
       "--job_name",
-      "EtlJob4",
+      "EtlJob2",
       "--props",
       s"url=${container.getJdbcUrl},user=${container.getUsername},pass=${container.getPassword}"
     )
   )
 
-  "LoadData" should "EtlJob4 should run successfully" in {
+  "LoadData" should "EtlJob2 should run successfully" in {
     assert(true)
   }
 }
+
+

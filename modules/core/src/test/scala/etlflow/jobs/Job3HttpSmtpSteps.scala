@@ -9,7 +9,7 @@ import etlflow.etlsteps._
 import etlflow.spark.SparkUDF
 import etlflow.utils.{Config, SMTP}
 
-case class EtlJob3Definition(job_properties: EtlJobProps, globalProperties: Config)
+case class Job3HttpSmtpSteps(job_properties: EtlJobProps, globalProperties: Config)
   extends GenericEtlJob with SparkUDF {
 
   val step1 = HttpStep(

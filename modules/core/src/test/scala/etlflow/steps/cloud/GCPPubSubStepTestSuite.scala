@@ -1,9 +1,8 @@
-package etlflow.steps
+package etlflow.steps.cloud
 
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDateTime}
 import com.permutive.pubsub.consumer.decoder.MessageDecoder
-import etlflow.PGSkunkUtils
 import etlflow.etlsteps.GooglePubSubSourceStep
 import io.circe.Json
 import io.circe.optics.JsonPath.root
@@ -13,7 +12,7 @@ import zio.test._
 import zio.{Task, ZIO}
 import scala.util.Try
 
-object PubSubStepTestSuite extends DefaultRunnableSpec with PGSkunkUtils {
+object GCPPubSubStepTestSuite extends DefaultRunnableSpec with CloudTestHelper {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
@@ -65,17 +64,13 @@ object PubSubStepTestSuite extends DefaultRunnableSpec with PGSkunkUtils {
 
           val step = GooglePubSubSourceStep[QueryMetrics](
             name              = "BigQueryLogsPubSubConsumerStep"
-            ,subscription     = sys.env("PUBSUB_SUBSCRIPTION")
-            ,project_id       = sys.env("DP_PROJECT_ID")
+            ,subscription     = pubsub_subscription
+            ,project_id       = gcp_project_id
             ,success_handler  = message => insertDb(message.value) *> Task(println(message.value.toString)) *> message.ack
             ,limit            = Some(10)
           ).process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
 
-          assertM(step)(equalTo("ok"))
+          assertM(createTable *> step)(equalTo("ok"))
         }
     )
 }
-
-
-
-

@@ -1,23 +1,24 @@
 package etlflow.jobs
 
-import etlflow.{EtlJobProps, EtlStepList}
+import etlflow.{EtlJobProps, EtlStepList, TestSparkSession}
 import etlflow.Schema.{EtlJob1Props, Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
-import etlflow.spark.{SparkManager, SparkUDF}
+import etlflow.spark.SparkUDF
 import etlflow.utils.{BQ, CSV, Config, JSON, PARQUET}
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 
-case class EtlJob1Definition(job_properties: EtlJobProps, globalProperties: Config)
-  extends SequentialEtlJob  with SparkUDF {
+
+case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJobProps, globalProperties: Config)
+  extends SequentialEtlJob with SparkUDF with TestSparkSession {
 
   val job_props: EtlJob1Props = job_properties.asInstanceOf[EtlJob1Props]
   val partition_date_col  = "date_int"
-  private implicit val spark: SparkSession = SparkManager.createSparkSession()
+
   val step1 = SparkReadWriteStep[RatingBQ](
-    name                      = "LoadRatingsBQtoCSV",
+    name                      = "LoadRatings BQ to GCS CSV",
     input_location            = Seq(job_props.ratings_input_dataset + "." + job_props.ratings_input_table_name),
     input_type                = BQ,
     output_type               = CSV(),
@@ -41,7 +42,7 @@ case class EtlJob1Definition(job_properties: EtlJobProps, globalProperties: Conf
   }
 
   val step21 = SparkReadTransformWriteStep[Rating, RatingOutputCsv](
-    name                      = "LoadRatingsCsvToCsv",
+    name                      = "LoadRatings GCS Csv To GCS Csv",
     input_location            = Seq(job_props.ratings_intermediate_bucket),
     input_type                = CSV(),
     transform_function        = enrichRatingCsvData,
@@ -65,7 +66,7 @@ case class EtlJob1Definition(job_properties: EtlJobProps, globalProperties: Conf
   }
 
   val step22 = SparkReadTransformWriteStep[Rating, RatingOutput](
-    name                 = "LoadRatingsCsvToParquet",
+    name                 = "LoadRatings GCS Csv To S3 Parquet",
     input_location       = Seq(job_props.ratings_intermediate_bucket),
     input_type           = CSV(),
     transform_function   = enrichRatingData,
@@ -76,7 +77,7 @@ case class EtlJob1Definition(job_properties: EtlJobProps, globalProperties: Conf
   )
 
   val step3 = SparkReadTransformWriteStep[Rating, RatingOutput](
-    name                      = "LoadRatingsCsvToJson",
+    name                      = "LoadRatings GCS Csv To GCS Json",
     input_location            = Seq(job_props.ratings_intermediate_bucket),
     input_type                = CSV(),
     transform_function        = enrichRatingData,

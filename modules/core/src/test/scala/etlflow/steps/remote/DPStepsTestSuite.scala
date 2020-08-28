@@ -1,4 +1,4 @@
-package etlflow.steps
+package etlflow.steps.remote
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 import etlflow.utils.Executor.DATAPROC
@@ -10,7 +10,6 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Steps") (
-      suite("EtlFlow Steps") (
       testM("Execute DPHiveJob step") {
         val dpConfig = DATAPROC(
           sys.env("DP_PROJECT_ID"),
@@ -44,5 +43,4 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     )
-  )
 }

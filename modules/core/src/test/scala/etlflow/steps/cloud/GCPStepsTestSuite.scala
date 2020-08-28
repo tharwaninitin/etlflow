@@ -1,0 +1,72 @@
+package etlflow.steps.cloud
+
+import etlflow.etlsteps.{BQLoadStep, GCSPutStep, GCSSensorStep}
+import etlflow.utils.PARQUET
+import zio.test.DefaultRunnableSpec
+import zio.ZIO
+import zio.test._
+import zio.test.Assertion._
+import scala.concurrent.duration._
+
+object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
+
+  // STEP 1: Define step
+  val input_path = s"gs://$gcs_bucket/temp/ratings.parquet"
+  val output_table = "ratings"
+  val output_dataset = "test"
+
+  def spec: ZSpec[environment.TestEnvironment, Any] =
+    suite("GCP Steps")(
+      testM("Execute GCSPut step") {
+        val step = GCSPutStep(
+          name    = "S3PutStep",
+          bucket  = gcs_bucket,
+          key     = "temp/ratings.parquet",
+          file    = file
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute GCSSensor step") {
+        val step = GCSSensorStep(
+          name    = "GCSKeySensor",
+          bucket  = gcs_bucket,
+          prefix  = "temp",
+          key     = "ratings.parquet",
+          retry   = 10,
+          spaced  = 5.second
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute BQLoad step") {
+        val step = BQLoadStep(
+          name           = "LoadRatingBQ",
+          input_location = Left(input_path),
+          input_type     = PARQUET,
+          output_dataset = output_dataset,
+          output_table   = output_table
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      }
+    ) @@ TestAspect.sequential
+
+  // STEP 3: Verify Results
+  //  private implicit val spark: SparkSession = SparkManager.createSparkSession()
+  //
+  //  val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path), PARQUET)(spark)
+  //  val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
+  //  val query: String = s"SELECT count(*) as count_ratings ,sum(rating) sum_ratings FROM $output_dataset.$output_table"
+  //  val env = BQ.live()
+  //  val result: Iterable[FieldValueList] = runtime.unsafeRun(BQService.getDataFromBQ(query).provideLayer(env))
+  //  val count_records_bq: Long = result.head.get("count_ratings").getLongValue
+  //  val sum_ratings_bq: Double = result.head.get("sum_ratings").getDoubleValue
+  //
+  //  "Record counts" should "be matching between PARQUET and BQ table " in {
+  //    assert(count_ratings==count_records_bq)
+  //  }
+  //
+  //  "Sum of ratings" should "be matching between PARQUET and BQ table " in {
+  //    assert(sum_ratings==sum_ratings_bq)
+  //  }
+}
+
+

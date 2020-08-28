@@ -1,6 +1,5 @@
-package etlflow.steps
+package etlflow.steps.db
 
-import etlflow.TestSuiteHelper
 import etlflow.etlsteps.DBQueryStep
 import etlflow.utils.JDBC
 import org.testcontainers.containers.PostgreSQLContainer
@@ -8,7 +7,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
 
-object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object DBStepTestSuite extends DefaultRunnableSpec {
 
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()
@@ -29,12 +28,12 @@ object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
           val step1 = DBQueryStep(
             name  = "UpdatePG",
             query = create_table_script,
-            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.dbLog.driver)
+            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, "org.postgresql.Driver")
           )
           val step2 = DBQueryStep(
             name  = "UpdatePG",
             query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
-            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, global_properties.dbLog.driver)
+            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, "org.postgresql.Driver")
           )
           val job = for {
             _ <- step1.process()

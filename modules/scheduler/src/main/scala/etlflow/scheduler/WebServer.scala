@@ -63,6 +63,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                                 Router[EtlFlowTask](
                                   "/about" -> otherRoutes,
                                   "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
+                                  "/joblist"               -> Kleisli.liftF(StaticFile.fromResource("static/jobListPage.html", blocker, None)),
                                   "/etlflow"        -> metricsSvc.routes,
                                   "/assets/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/client.js", blocker, None)),
                                   "/assets/signin.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/signin.css", blocker, None)),

@@ -10,15 +10,19 @@ title: Scheduler Installation
 * You should have GCP service account access with appropriate permissions for GCS, BigQuery, Submitting jobs on Dataproc etc.
 
 ### STEP 1) Building docker image for examples project.
-* Update the file **examples/src/main/conf/loaddata.properties** with below content : 
+* Update the file **examples/src/main/resources/application.conf** with below content : 
         
-        gcp_project = <PROJECT-NAME>
-        running_environment = local
-        gcs_output_bucket = <BUCKET-NAME>
-        log_db_url=<log_db_url>
-        log_db_user=<log_db_user>
-        log_db_pwd=<log_db_pwd>
-        log_db_driver=org.postgresql.Driver
+        
+        db-log = {
+                  url = <log_db_url>,
+                  user = <log_db_user>,
+                  password = <log_db_pwd>,
+                  driver = "org.postgresql.Driver"
+                }
+        slack = {
+                  url = <slack-url>,
+                  env = <running-env>
+                }
 
 * Copy GCP service account json file at location **examples/src/main/conf** with name **cred.json**
 
@@ -60,7 +64,6 @@ Below Docker compose file file contains the two services :
           depends_on:
           - postgres
           environment:
-              PROPERTIES_FILE_PATH: /opt/docker/conf/loaddata.properties
               GOOGLE_APPLICATION_CREDENTIALS: /opt/docker/conf/cred.json
               LOG_DB_URL: 'jdbc:postgresql://postgres:5432/etlflow'
               LOG_DB_USER: etlflow

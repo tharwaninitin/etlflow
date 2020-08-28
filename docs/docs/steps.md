@@ -15,6 +15,11 @@ Following is the list of steps available in this library:
 - S3PutStep
 - GCSPutStep
 - DBQueryStep
+- DBReadStep
 - SendMailStep
 - RedisQueryStep
 - HttpStep
+- HttpResponseStep
+- DataprocHiveStep
+- DataprocJobStep
+

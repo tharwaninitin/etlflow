@@ -10,9 +10,9 @@ options:
     url: docs/usage.html
 
     nested_options:
-      - title: GCP Dataproc (core) 
+      - title: GCP Dataproc (core)
         url: docs/gcpdp.html
-      - title: Local Docker (scheduler) 
+      - title: Local Docker (scheduler)
         url: docs/localdocker.html
 
   - title: Steps
@@ -35,6 +35,10 @@ options:
         url: docs/redisquery.html
       - title: Send Mail
         url: docs/sendmail.html
+      - title: Dataproc
+        url: docs/dp.html
+      - title: Parallel Step Execution
+        url: docs/parallel.html
 
   - title: Job
     url: docs/job.html

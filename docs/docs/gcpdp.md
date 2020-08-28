@@ -63,19 +63,23 @@ For reference: [manage-spark-dependencies](https://cloud.google.com/dataproc/doc
 
 Replace x.x.x with the latest version [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
       
-### STEP 5) Provide below detials in file **examples/src/main/conf/loaddata.properties**:
+### STEP 5) Provide below detials in file **examples/src/main/resources/application.conf**:
 
 
-        running_environment = gcp
-        gcs_output_bucket = <BUCKET-NAME>
-        log_db_url=<log_db_url>
-        log_db_user=<log_db_user>
-        log_db_pwd=<log_db_pwd>
-        log_db_driver=org.postgresql.Driver
+        db-log = {
+          url = <log_db_url>,
+          user = <log_db_user>,
+          password = <log_db_pwd>,
+          driver = "org.postgresql.Driver"
+        }
+        slack =  {
+          url = <slack-url>,
+          env = <running-env>
+        }
   
-* Now Copy updated loaddata file at gcs bucket using below command:      
+* Now Copy updated application.conf file at gcs bucket using below command:      
         
-        gsutil cp examples/src/main/conf/loaddata.properties  gs://<BUCKET-NAME>/jars/examples
+        gsutil cp examples/src/main/resources/application.conf  gs://<BUCKET-NAME>/jars/examples
            
 * Copy the input file present at location examples/src/main/data/movies/ratings_parquet/ratings.parquet for running sample job using below command:
     
@@ -90,8 +94,7 @@ Replace x.x.x with the latest version [![Maven Central](https://maven-badges.her
          --region <region-name> \
          --cluster <cluster-name> \
          --class examples.LoadData \
-         --jars gs://<BUCKET-NAME>/jars/examples/etlflow-examples_2.12-0.7.16.jar,gs://<BUCKET-NAME>/jars/examples/etlflow-core-assembly-0.7.16.jar \
-         --files gs://<BUCKET-NAME>/jars/examples/loaddata.properties \
+         --jars gs://<BUCKET-NAME>/jars/examples/etlflow-examples_2.12-0.7.19.jar,gs://<BUCKET-NAME>/jars/examples/etlflow-core-assembly-0.7.19.jar \
          -- run_job --job_name EtlJob1PARQUETtoORCtoBQLocalWith2Steps  --props ratings_input_path=gs://<BUCKET-NAME>/examples/input,ratings_output_table_name=ratings,ratings_output_dataset=test,ratings_output_file_name=ratings.orc
         
   

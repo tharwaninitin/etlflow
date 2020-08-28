@@ -7,7 +7,7 @@ title: Job
 
 **Job is collection of steps.** Any case class can be converted to EtlJob just by extending **GenericEtlJob** trait. This traits requires to implement three objects as shown below.
 * override val job_properties: EtlJobProps = ???
-* override val global_properties: Option[GlobalProperties] = ???
+* override val globalProperties: Config = ???
 * override val job: Task[Unit] = ???
 
 Set these environment variables
@@ -51,7 +51,7 @@ Below is the example of GenericEtlJob which has two steps which can execute in a
     
     case class RatingOutput(user_id: Int, movie_id: Int, rating : Double, timestamp: Long, date: java.sql.Date)
     
-    case class EtlJob1(job_properties: EtlJob1Props, global_properties: Option[GlobalProperties] = None) extends GenericEtlJob {
+    case class EtlJob1(job_properties: EtlJob1Props, globalProperties: Config) extends GenericEtlJob {
       
       val step1 = GCSPutStep(
               name    = "LoadRatingGCS",
@@ -69,9 +69,9 @@ Below is the example of GenericEtlJob which has two steps which can execute in a
           output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
       )
     
-      val job: Task[Unit] = for {
-        _ <- step1.process()
-        _ <- step2.process()
+      val job = for {
+        _ <- step1.execute()
+        _ <- step2.execute()
       } yield ()
     }
     
@@ -89,7 +89,7 @@ Below is the example of SequentialEtlJob which is much simpler way to run jobs w
      import etlflow.EtlStepList
      import etlflow.etljobs.SequentialEtlJob
      
-     case class EtlJob1(job_properties: EtlJob1Props, global_properties: Option[GlobalProperties] = None) extends SequentialEtlJob {
+     case class EtlJob1(job_properties: EtlJob1Props, globalProperties: Config) extends SequentialEtlJob {
        
        val step1 = GCSPutStep(
                      name    = "LoadRatingGCS",

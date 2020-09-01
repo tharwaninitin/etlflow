@@ -9,6 +9,7 @@ import etlflow.scheduler.api._
 import etlflow.scheduler.util.CacheHelper
 import etlflow.utils.{Config, JDBC, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
+import io.circe.config.parser
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
@@ -16,19 +17,19 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.{HttpRoutes, StaticFile}
-import pureconfig.ConfigSource
-import pureconfig.generic.auto._
 import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.interop.catz._
+import io.circe.generic.auto._
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
   extends Scheduler[EJN,EJP] with CatsApp with DbManager with Http4sDsl[EtlFlowTask] with EtlFlowService {
 
-  val app_config: Config = ConfigSource.default.loadOrThrow[Config]
+  val app_config: Config = parser.decode[Config]().toOption.get
 
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
@@ -64,6 +65,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                                   "/about" -> otherRoutes,
                                   "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                                   "/joblist"               -> Kleisli.liftF(StaticFile.fromResource("static/jobListPage.html", blocker, None)),
+                                  "/joblisterror"               -> Kleisli.liftF(StaticFile.fromResource("static/jobListErrorPage.html", blocker, None)),
                                   "/etlflow"        -> metricsSvc.routes,
                                   "/assets/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/client.js", blocker, None)),
                                   "/assets/signin.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/signin.css", blocker, None)),

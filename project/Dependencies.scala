@@ -17,6 +17,7 @@ object Dependencies {
   val AwsS3Version = "2.13.23"
   val LogbackVersion = "1.2.3"
   val CirceVersion = "0.13.0"
+  val CirceConfigVersion = "0.8.0"
   val ScalaTestVersion = "3.0.5"
   val TestContainerVersion = "1.11.2"
   val SparkBQVersion = "0.16.1"
@@ -52,7 +53,8 @@ object Dependencies {
     "io.circe" %% "circe-core" % CirceVersion,
     "io.circe" %% "circe-generic" % CirceVersion,
     "io.circe" %% "circe-parser" % CirceVersion,
-    "io.circe" %% "circe-optics" % CirceVersion
+    "io.circe" %% "circe-optics" % CirceVersion,
+    "io.circe" %% "circe-config" % CirceConfigVersion
   )
 
   lazy val awsLibs = List(
@@ -97,7 +99,7 @@ object Dependencies {
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % "1.7.30",
-    "com.github.pureconfig" %% "pureconfig" % "0.13.0"
+//    "com.github.pureconfig" %% "pureconfig" % "0.13.0"
   )
 
   lazy val caliban = List(

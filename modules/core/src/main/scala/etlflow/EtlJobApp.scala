@@ -4,10 +4,9 @@ import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
-import pureconfig.ConfigSource
 import zio.{Runtime, ZEnv}
-import pureconfig.generic.auto._
 import scala.reflect.runtime.universe.TypeTag
+import io.circe.generic.auto._
 
 // Either use =>
 // 1) abstract class EtlJobApp[EJN: TypeTag]
@@ -16,7 +15,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
   lazy val ea_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
 //  def globalProperties: Option[EJGP]
-  val globalProperties:Config = ConfigSource.default.loadOrThrow[Config]
+  val globalProperties:Config = io.circe.config.parser.decode[Config]().toOption.get
 
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 

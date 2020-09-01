@@ -6,11 +6,10 @@ import doobie.hikari.HikariTransactor
 import etlflow.scheduler.util.CacheHelper
 import etlflow.utils.{Config, JDBC}
 import org.testcontainers.containers.PostgreSQLContainer
-import pureconfig.ConfigSource
 import zio.Task
 import zio.interop.catz._
-import pureconfig.generic.auto._
 import scala.concurrent.ExecutionContext
+import io.circe.generic.auto._
 
 trait TestSuiteHelper  {
 
@@ -19,7 +18,7 @@ trait TestSuiteHelper  {
 //  val global_properties: Option[GlobalProperties] =
 //    Try(new GlobalProperties(canonical_path + "/modules/scheduler/src/test/resources/loaddata.properties") {}).toOption
 
-  val global_properties: Config = ConfigSource.default.loadOrThrow[Config]
+  val global_properties: Config = io.circe.config.parser.decode[Config]().toOption.get
   //Creating postgres test container
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()

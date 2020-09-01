@@ -12,7 +12,6 @@ import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
 import io.getquill.Literal
 import zio.interop.catz._
 import zio.{Managed, Task, ZManaged}
-import pureconfig.generic.auto._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 

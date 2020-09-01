@@ -7,7 +7,6 @@ import etlflow.EtlJobProps
 import etlflow.jdbc.DbManager
 import etlflow.utils.{Config, JDBC, JsonJackson, LoggingLevel}
 import org.slf4j.{Logger, LoggerFactory}
-import pureconfig.ConfigSource
 import zio.interop.catz._
 import zio.{Managed, Task, _}
 

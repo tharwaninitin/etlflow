@@ -1,7 +1,5 @@
 package etlflow.steps.cloud
 
-import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDateTime}
 import com.permutive.pubsub.consumer.decoder.MessageDecoder
 import etlflow.etlsteps.GooglePubSubSourceStep
 import io.circe.Json
@@ -17,22 +15,6 @@ object GCPPubSubStepTestSuite extends DefaultRunnableSpec with CloudTestHelper {
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
         testM("Execute PubSub step") {
-
-          def getDateTime(value: String): LocalDateTime = {
-            val formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-            val formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.S'Z'")
-            val formatter3 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-
-            Try(LocalDateTime.parse(value, formatter1)).toOption match {
-              case Some(value) => value
-              case None => Try(LocalDateTime.parse(value, formatter2)).toOption match {
-                case Some(value) => value
-                case None => LocalDateTime.parse(value, formatter3)
-              }
-            }
-          }
-
-          def getDuration(ldt1: LocalDateTime, ldt2: LocalDateTime): Double = Duration.between(ldt1, ldt2).toMillis/1000.0
 
           def jsonParser(message: String): Either[Throwable,QueryMetrics] = {
             val json = parse(message).getOrElse(Json.Null)
@@ -63,7 +45,7 @@ object GCPPubSubStepTestSuite extends DefaultRunnableSpec with CloudTestHelper {
           implicit val decoder: MessageDecoder[QueryMetrics] = (bytes: Array[Byte]) => jsonParser(new String(bytes))
 
           val step = GooglePubSubSourceStep[QueryMetrics](
-            name              = "BigQueryLogsPubSubConsumerStep"
+            name              = "PubSubConsumerBigQueryLogsToPostgresStep"
             ,subscription     = pubsub_subscription
             ,project_id       = gcp_project_id
             ,success_handler  = message => insertDb(message.value) *> Task(println(message.value.toString)) *> message.ack

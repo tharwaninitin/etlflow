@@ -6,7 +6,7 @@ import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
 
-object CloudBucketSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHelper {
+object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHelper {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("CloudBucketSyncStep")(

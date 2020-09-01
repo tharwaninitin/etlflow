@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
     <link href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css" rel="stylesheet">
 </head>
-<body>
-
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
@@ -41,74 +39,12 @@
     </ul>
 </nav>
 
-<table id="table"
-       data-toolbar="#toolbar"
-       data-search="true"
-       data-show-toggle="true"
-       data-show-fullscreen="true"
-       data-show-columns="true"
-       data-show-columns-toggle-all="true"
-       data-minimum-count-columns="2"
-       data-show-pagination-switch="true"
-       data-pagination="true"
-       data-page-list="[5, 10, 20, 25, 50, 100, all]">
-    <thead class = "thead-dark">
-    <tr>
-        <th data-field="name">Name</th>
-        <th data-field="schedule">Schedule</th>
-        <th data-field="nextSchedule">NextSchedule</th>
-        <th data-field="schduleRemainingTime">SchduleRemainingTime</th>
-        <th data-field="failed">Failed</th>
-        <th data-field="success">Success</th>
-        <th data-field="is_active">is_active</th>
-    </tr>
-    </thead>
-
+<p> Forbidden Error. Please login again </p>
 <script>
-
 function removeToken() {
   localStorage.removeItem("Authorization");
-  location.replace("http://".concat(window.location.host))
+  location.replace(window.location.origin)
 }
-
-function getData(callback) {
-    const token = localStorage.getItem("Authorization")
-    if(token == null) {
-        location.replace("http://".concat(window.location.host))
-    }else{
-        const URL = "http://".concat(window.location.host).concat("/api/etlflow")
-        console.log(URL)
-        fetch(URL,{
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'Authorization': token},
-            body: JSON.stringify({query: "{jobs {name props{key value} schedule nextSchedule schduleRemainingTime failed success is_active}}"})
-        })
-        .then((response) => {
-              if(response.ok) {
-                   return response.json();
-              } else {
-                   location.replace((window.location.origin).concat("/joblisterror"))
-                   throw new Error('Server response wasn\'t OK');
-              }
-           }
-        )
-        .then((json) => {
-            callback(json.data.jobs);
-          }
-        )
-     }
-  };
-
-getData(function(data) {
-     //processing the data
-       $(function () {
-           $('#table').bootstrapTable({
-               data: data
-        });
-    });
-});
-
 </script>
-</table>
 </body>
 </html>

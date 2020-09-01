@@ -6,17 +6,16 @@ import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor.Aux
 import etlflow.utils.Config
 import org.slf4j.{Logger, LoggerFactory}
-import pureconfig.ConfigSource
 import zio.interop.catz._
 import zio.{Runtime, Task, ZEnv}
-import pureconfig.generic.auto._
+import io.circe.generic.auto._
 
 trait TestSuiteHelper {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   val canonical_path: String    = new java.io.File(".").getCanonicalPath
   val file                      = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
-  val global_properties: Config = ConfigSource.default.loadOrThrow[Config]
+  val global_properties: Config = io.circe.config.parser.decode[Config]().toOption.get
 
   val runtime: Runtime[ZEnv]          = Runtime.default
 }

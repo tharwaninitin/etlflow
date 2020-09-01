@@ -8,8 +8,6 @@ import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import etlflow.utils.Config
 import org.slf4j.{Logger, LoggerFactory}
 import natchez.Trace.Implicits.noop
-import pureconfig.ConfigSource
-import pureconfig.generic.auto._
 import skunk._
 import skunk.codec.all._
 import skunk.implicits._
@@ -17,6 +15,7 @@ import software.amazon.awssdk.regions.Region
 import zio.Task
 import zio.interop.catz._
 import scala.util.Try
+import io.circe.generic.auto._
 
 trait CloudTestHelper {
   lazy val logger: Logger               = LoggerFactory.getLogger(getClass.getName)
@@ -25,7 +24,7 @@ trait CloudTestHelper {
   spark_logger.setLevel(Level.WARN)
   spark_jetty_logger.setLevel(Level.WARN)
 
-  val config: Config              = ConfigSource.default.loadOrThrow[Config]
+  val config: Config              = io.circe.config.parser.decode[Config]().toOption.get
   val gcs_bucket: String          = sys.env("GCS_BUCKET")
   val s3_bucket: String           = sys.env("S3_BUCKET")
   val s3_input_location: String   = sys.env("S3_INPUT_LOCATION")

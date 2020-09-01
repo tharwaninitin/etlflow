@@ -68,15 +68,15 @@
 
 function removeToken() {
   localStorage.removeItem("Authorization");
-  location.replace("http://".concat(window.location.host))
+  location.replace(window.location.origin)
 }
 
 function getData(callback) {
     const token = localStorage.getItem("Authorization")
     if(token == null) {
-        location.replace("http://".concat(window.location.host))
+        location.replace(window.location.origin)
     }else{
-        const URL = "http://".concat(window.location.host).concat("/api/etlflow")
+        const URL = (window.location.origin).concat("/api/etlflow")
         console.log(URL)
         fetch(URL,{
             method: 'POST',

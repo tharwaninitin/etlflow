@@ -1,7 +1,6 @@
 package etlflow.utils
 
 import etlflow.{EtlJobName, EtlJobProps}
-import io.circe.literal._
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}

@@ -54,8 +54,7 @@ object Dependencies {
     "io.circe" %% "circe-generic" % CirceVersion,
     "io.circe" %% "circe-parser" % CirceVersion,
     "io.circe" %% "circe-optics" % CirceVersion,
-    "io.circe" %% "circe-config" % CirceConfigVersion,
-    "io.circe" %% "circe-literal" % CirceConfigVersion
+    "io.circe" %% "circe-config" % CirceConfigVersion
   )
 
   lazy val awsLibs = List(

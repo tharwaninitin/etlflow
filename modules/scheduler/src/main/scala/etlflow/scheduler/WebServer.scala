@@ -37,10 +37,12 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
+
   def etlFlowWebServer(blocker: Blocker, cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
     .flatMap{implicit runtime =>
       (for {
+
         metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
         metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
         etlFlowInterpreter <- EtlFlowApi.api.interpreter.toManaged_
@@ -65,7 +67,6 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                                   "/about" -> otherRoutes,
                                   "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                                   "/joblist"               -> Kleisli.liftF(StaticFile.fromResource("static/jobListPage.html", blocker, None)),
-                                  "/joblisterror"               -> Kleisli.liftF(StaticFile.fromResource("static/jobListErrorPage.html", blocker, None)),
                                   "/etlflow"        -> metricsSvc.routes,
                                   "/assets/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/client.js", blocker, None)),
                                   "/assets/signin.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/signin.css", blocker, None)),
@@ -78,7 +79,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                                     ))
                                   ),
                                   "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
-                                  "/ws/etlflow"     -> CORS(new EtlFlowStreams[EtlFlowTask].streamRoutes),
+                                  "/ws/etlflow"     -> CORS(new EtlFlowStreams[EtlFlowTask](cache).streamRoutes),
                                 ).orNotFound
                               ).resource
                               .toManagedZIO

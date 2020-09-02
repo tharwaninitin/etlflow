@@ -2,6 +2,7 @@ package etlflow
 
 import etlflow.utils.Executor.KUBERNETES
 import etlflow.utils.{Executor, JDBC, LoggingLevel, SMTP}
+import io.circe.generic.semiauto.deriveDecoder
 
 object Schema {
   val kubernetes = KUBERNETES(
@@ -28,7 +29,19 @@ object Schema {
       origin: String,
       url: String,
     )
+
+
   case class Student(id: String, name: String, `class`: Option[String])
+
+  // circe decoder for HttpBinResponse
+  object HttpBinResponse {
+    implicit val httpBinResponseDecoder = deriveDecoder[HttpBinResponse]
+  }
+
+  // circe decoder for Student
+  object Student {
+    implicit val studentDecoder = deriveDecoder[Student]
+  }
 
   private val canonical_path = new java.io.File(".").getCanonicalPath
 

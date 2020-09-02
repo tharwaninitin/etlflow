@@ -41,6 +41,8 @@
     </ul>
 </nav>
 
+<p id="error"></p>
+
 <table id="table"
        data-toolbar="#toolbar"
        data-search="true"
@@ -51,11 +53,14 @@
        data-minimum-count-columns="2"
        data-show-pagination-switch="true"
        data-pagination="true"
+       data-sort-class="table-active"
+       data-sortable="true"
+       data-show-export="true"
        data-page-list="[5, 10, 20, 25, 50, 100, all]">
     <thead class = "thead-dark">
     <tr>
-        <th data-field="name">Name</th>
-        <th data-field="schedule">Schedule</th>
+        <th data-field="name" data-sortable="true">Name</th>
+        <th data-field="schedule" data-sortable="true">Schedule</th>
         <th data-field="nextSchedule">NextSchedule</th>
         <th data-field="schduleRemainingTime">SchduleRemainingTime</th>
         <th data-field="failed">Failed</th>
@@ -87,7 +92,9 @@ function getData(callback) {
               if(response.ok) {
                    return response.json();
               } else {
-                   location.replace((window.location.origin).concat("/joblisterror"))
+                   document.getElementById("table").deleteTHead();
+                   var x = "Forbidden Error. Please login again";
+                   document.getElementById("error").innerHTML = x;
                    throw new Error('Server response wasn\'t OK');
               }
            }

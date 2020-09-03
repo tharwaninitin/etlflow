@@ -7,11 +7,11 @@ import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import zio.blocking.Blocking
 import zio.internal.Platform
-import zio.{Has, UIO, ZIO, ZLayer, ZManaged, ZEnv}
+import zio.{Has, Task, UIO, ZEnv, ZIO, ZLayer, ZManaged}
 
 trait GenericEtlJob extends EtlJob {
 
-  val job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
+  def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
 
@@ -28,6 +28,15 @@ trait GenericEtlJob extends EtlJob {
                             _  => job_status_ref.set("success") *> log.logSuccess(job_start_time)
                           ).toManaged_
     } yield ()).use_(ZIO.unit)
+  }
+
+  def getCredentials[T : Manifest](name: String): ZIO[Blocking, Throwable, T] = {
+    logger_resource.use{res =>
+      if (res.db.isDefined)
+        res.db.get.getCredentials[T](name)
+      else
+        Task.fail(new RuntimeException("db logging not enabled"))
+    }
   }
 
   private[etljobs] lazy val logger_resource: ZManaged[Blocking ,Throwable, LoggerResource] = for {

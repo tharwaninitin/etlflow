@@ -4,7 +4,7 @@ import cats.effect.Blocker
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
-import etlflow.utils.{Config, GlobalProperties, JDBC}
+import etlflow.utils.{Config, JDBC}
 import io.getquill.{LowerCase, PostgresJdbcContext}
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
@@ -64,16 +64,16 @@ trait DbManager {
     configuration.migrate()
   }
 
-  def createDbTransactor(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = "LoggerPool"): HikariTransactor[Task] = {
-    val dataSource = new HikariDataSource()
-    dataSource.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse("<use_global_properties_log_db_driver>"))
-    dataSource.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse("<use_global_properties_log_db_url>"))
-    dataSource.setUsername(global_properties.map(_.log_db_user).getOrElse("<use_global_properties_log_db_user>"))
-    dataSource.setPassword(global_properties.map(_.log_db_pwd).getOrElse("<use_global_properties_log_db_pwd>"))
-    dataSource.setMaximumPoolSize(2)
-    dataSource.setPoolName(pool_name)
-    HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
-  }
+//  def createDbTransactor(global_properties: Option[GlobalProperties], ec: ExecutionContext, pool_name: String = "LoggerPool"): HikariTransactor[Task] = {
+//    val dataSource = new HikariDataSource()
+//    dataSource.setDriverClassName(global_properties.map(_.log_db_driver).getOrElse("<use_global_properties_log_db_driver>"))
+//    dataSource.setJdbcUrl(global_properties.map(_.log_db_url).getOrElse("<use_global_properties_log_db_url>"))
+//    dataSource.setUsername(global_properties.map(_.log_db_user).getOrElse("<use_global_properties_log_db_user>"))
+//    dataSource.setPassword(global_properties.map(_.log_db_pwd).getOrElse("<use_global_properties_log_db_pwd>"))
+//    dataSource.setMaximumPoolSize(2)
+//    dataSource.setPoolName(pool_name)
+//    HikariTransactor[Task](dataSource, ec, Blocker.liftExecutionContext(ec))
+//  }
 
   def createDbTransactorJDBC(credentials: JDBC, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool", pool_size: Int = 2): Task[HikariTransactor[Task]] = Task {
     val dataSource = new HikariDataSource()

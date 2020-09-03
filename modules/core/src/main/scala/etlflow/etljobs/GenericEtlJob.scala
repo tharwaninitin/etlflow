@@ -7,26 +7,36 @@ import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import zio.blocking.Blocking
 import zio.internal.Platform
-import zio.{UIO, ZIO, ZManaged}
+import zio.{Has, Task, UIO, ZEnv, ZIO, ZLayer, ZManaged}
 
 trait GenericEtlJob extends EtlJob {
 
-  val job: ZIO[LoggerResource, Throwable, Unit]
+  def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
 
-  final def execute(): ZIO[Any, Throwable, Unit] = {
+  final def execute(): ZIO[ZEnv, Throwable, Unit] = {
     (for {
       job_status_ref  <- job_status.toManaged_
       resource        <- logger_resource
       log             = JobLogger.live(resource)
+      resourceLayer   = ZLayer.succeed(resource)
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
       _               <- (job_status_ref.set("started") *> log.logInit(job_start_time)).toManaged_
-      _               <- job.provide(resource).foldM(
+      _               <- job.provideCustomLayer(resourceLayer).foldM(
                             ex => job_status_ref.set("failed") *> log.logError(job_start_time,ex),
                             _  => job_status_ref.set("success") *> log.logSuccess(job_start_time)
                           ).toManaged_
-    } yield ()).use_(ZIO.unit).provideLayer(Blocking.live)
+    } yield ()).use_(ZIO.unit)
+  }
+
+  def getCredentials[T : Manifest](name: String): ZIO[Blocking, Throwable, T] = {
+    logger_resource.use{res =>
+      if (res.db.isDefined)
+        res.db.get.getCredentials[T](name)
+      else
+        Task.fail(new RuntimeException("db logging not enabled"))
+    }
   }
 
   private[etljobs] lazy val logger_resource: ZManaged[Blocking ,Throwable, LoggerResource] = for {

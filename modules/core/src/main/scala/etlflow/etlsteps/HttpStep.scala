@@ -1,6 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
+import etlflow.utils.{HttpClientApi, JsonCirce, JsonJackson, LoggingLevel}
+import io.circe.Decoder
 import scalaj.http._
 import zio.Task
 
@@ -77,7 +78,7 @@ case class HttpResponseStep(
     )
 }
 
-case class HttpParsedResponseStep[T: Manifest](
+case class HttpParsedResponseStep[T: Decoder](
                                                 name: String,
                                                 url: String,
                                                 http_method: HttpMethod,
@@ -94,11 +95,11 @@ case class HttpParsedResponseStep[T: Manifest](
 
     http_method match {
       case HttpMethod.POST =>
-        HttpClientApi.post(url, params, headers, log_response).map(x => JsonJackson.convertToObject[T](x.body))
+        HttpClientApi.post(url, params, headers, log_response).map(x => JsonCirce.convertToObject[T](x.body))
       case HttpMethod.GET =>
         params match {
-          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response).map(x => JsonJackson.convertToObject[T](x.body))
-          case Right(value) => HttpClientApi.get(url, value, headers, log_response).map(x => JsonJackson.convertToObject[T](x.body))
+          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response).map(x => JsonCirce.convertToObject[T](x.body))
+          case Right(value) => HttpClientApi.get(url, value, headers, log_response).map(x => JsonCirce.convertToObject[T](x.body))
         }
     }
   }

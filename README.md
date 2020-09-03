@@ -3,6 +3,7 @@ EtlFlow
 
 ![Tests](https://github.com/tharwaninitin/etlflow/workflows/Tests/badge.svg)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
+[![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
 **EtlFlow** is a Functional library in Scala for writing ETL jobs.
 
@@ -16,14 +17,31 @@ __Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovr
 All the tests are integration tests. That is, they make real API requests to S3, GCS, BigQuery. 
 As such, you'll need to make sure you have variables set to a bucket and object that you can access and manipulate.
 
-Here are all the things you will need to change to run the tests locally:
+Here are all the environment variables you will need to set to run the tests locally:
 
  ```shell
+ export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
+ export LOG_DB_USER=<...>
+ export LOG_DB_PWD=<..>
+ export LOG_DB_DRIVER=org.postgresql.Driver
+
  export GOOGLE_APPLICATION_CREDENTIALS=<...> # this should be full path to GCP Service Account Key Json which should have GCS and BigQuery Read/Write access
  export GCS_BUCKET=<...> 
+ export GCS_INPUT_LOCATION=<...>
+ export PUBSUB_SUBSCRIPTION=<...>
+
  export ACCESS_KEY=<...>
  export SECRET_KEY=<...>
  export S3_BUCKET=<...>
+ export S3_INPUT_LOCATION=<...>
+
+ export DP_PROJECT_ID=<...>
+ export DP_REGION=<...>
+ export DP_ENDPOINT=<...>
+ export DP_CLUSTER_NAME=<...>
+ export DP_JOB_NAME=SampleJob2LocalJob
+ export DP_MAIN_CLASS=examples.LoadData
+ export DP_LIBS=gs://<bucket_name>/core/etlflow-core-assembly-x.x.x.jar,gs://<bucket_name>/core/etlflow-examples_2.12-x.x.x.jar,gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar,gs://<bucket_name>/core/postgresql-42.2.8.jar
 ```
 Change the region in TestSuiteHelper.scala to your region in AWS for s3 bucket.
 You also would need docker installed as some of the tests start/stop database docker containers

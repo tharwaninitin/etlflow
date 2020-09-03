@@ -14,7 +14,8 @@ object SparkManager {
                             "spark.sql.sources.partitionOverwriteMode" -> "dynamic",
                             "spark.default.parallelism" -> "10",
                             "spark.sql.shuffle.partitions" -> "10"
-                          )
+                          ),
+                          hive_support: Boolean = true
                         ): SparkSession =  {
     if (SparkSession.getActiveSession.isDefined) {
       val spark = SparkSession.getActiveSession.get
@@ -38,18 +39,18 @@ object SparkManager {
             .config("fs.gs.auth.service.account.enable", "true")
             .config("google.cloud.auth.service.account.json.keyfile", service_account_key_path)
             .config("credentialsFile", service_account_key_path)
-            .enableHiveSupport()
         case AWS(access_key, secret_key) =>
           sparkBuilder = sparkBuilder
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
             .config("spark.hadoop.fs.s3a.access.key", access_key)
             .config("spark.hadoop.fs.s3a.secret.key", secret_key)
-            .enableHiveSupport()
         case LOCAL =>
           sparkBuilder = sparkBuilder
             .config("spark.ui.enabled", "false")
             .master("local[*]")
       }
+
+      if (hive_support) sparkBuilder = sparkBuilder.enableHiveSupport()
 
       val spark = sparkBuilder.getOrCreate()
       spark

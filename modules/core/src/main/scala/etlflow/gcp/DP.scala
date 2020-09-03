@@ -42,7 +42,7 @@ object DP {
       new DPService.Service {
         override def executeSparkJob(
              name: String, properties: Map[String, String],
-              main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit] = effectBlocking {
+              main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit] = Task {
           gcp_logger.info(s"""Trying to submit spark job $name on Dataproc with Configurations:
                              |dp_region => ${config.region}
                              |dp_project => ${config.project}
@@ -68,9 +68,9 @@ object DP {
             .build()
           val job: Job = Job.newBuilder().setPlacement(jobPlacement).setSparkJob(sparkJob).build()
           submitAndWaitForJobCompletion(name, jobControllerClient, config.project, config.region, job)
-        }.provideLayer(Blocking.live)
+        }
 
-        override def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = effectBlocking {
+        override def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = Task {
           gcp_logger.info(s"""Trying to submit hive job on Dataproc with Configurations:
                              |dp_region => ${config.region}
                              |dp_project => ${config.project}
@@ -86,7 +86,7 @@ object DP {
             .build()
           val job = Job.newBuilder().setPlacement(jobPlacement).setHiveJob(hiveJob).build()
           submitAndWaitForJobCompletion("",jobControllerClient, config.project, config.region, job)
-        }.provideLayer(Blocking.live)
+        }
       }
     }
   }

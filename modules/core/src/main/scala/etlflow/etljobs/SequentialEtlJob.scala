@@ -3,13 +3,13 @@ package etlflow.etljobs
 import etlflow.LoggerResource
 import etlflow.etlsteps._
 import etlflow.utils.LoggingLevel
-import zio.{Task, ZIO}
+import zio.{Has, Task, ZEnv, ZIO}
 
 trait SequentialEtlJob extends GenericEtlJob {
 
   def etlStepList: List[EtlStep[Unit,Unit]]
 
-  final override val job: ZIO[LoggerResource, Throwable, Unit] = for {
+  final override val job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit] = for {
     step_list <- Task.succeed(etlStepList.map(_.execute()))
     job       <- ZIO.collectAll(step_list) *> ZIO.unit
   } yield job

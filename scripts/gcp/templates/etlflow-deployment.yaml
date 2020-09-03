@@ -29,8 +29,6 @@ spec:
           image: etlflow-examples
           imagePullPolicy: Always
           env:
-            - name: PROPERTIES_FILE_PATH
-              value: /opt/docker/conf/loaddata.properties
             - name: LOG_DB_URL
               value: 'jdbc:postgresql://postgres:5432/etlflow'
             - name: LOG_DB_USER
@@ -39,6 +37,10 @@ spec:
               value: etlflow
             - name: LOG_DB_DRIVER
               value: org.postgresql.Driver
+            - name: JAVA_TOOL_OPTIONS
+              value: -agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n
+            - name: JAVA_OPTS
+              value: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.local.only=false -Datsso.log.level=SEVERE -Djava.awt.headless=true
             - name: GOOGLE_APPLICATION_CREDENTIALS
               valueFrom:
                 secretKeyRef:
@@ -52,7 +54,12 @@ spec:
               cpu: "1"
               memory: "1Gi"
           ports:
-            - containerPort : 8080
+            - containerPort: 8080
+              name: http
+            - containerPort: 8000
+              name: debug
+            - containerPort: 9010
+              name: monitor
           volumeMounts:
             - name: etlflow-test
               mountPath: /opt/docker/conf/cred.json

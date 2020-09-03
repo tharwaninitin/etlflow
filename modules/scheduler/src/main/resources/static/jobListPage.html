@@ -95,6 +95,7 @@ function getData(callback) {
                    document.getElementById("table").deleteTHead();
                    var x = "Forbidden Error. Please login again";
                    document.getElementById("error").innerHTML = x;
+                   location.replace(window.location.origin)
                    throw new Error('Server response wasn\'t OK');
               }
            }

@@ -2,15 +2,13 @@ package etlflow.log
 
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{Config, GlobalProperties, LoggingLevel, UtilityFunctions => UF}
+import etlflow.utils.{Config, LoggingLevel, UtilityFunctions => UF}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import zio.Task
-
-import scala.util.Try
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
-
+import scala.util.Try
 
 class SlackLogManager private[log] (
                                      val job_name: String,
@@ -113,16 +111,7 @@ object SlackLogManager {
 
   def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Config): Task[Option[SlackLogManager]] = Task {
     if (job_properties.job_send_slack_notification)
-      Some(new SlackLogManager(job_name, job_properties,
-        global_properties match {
-          case x => x.slack.url
-          case _ => "<use_global_properties_slack_webhook_url>"
-        },
-        global_properties match {
-          case x => x.slack.env
-          case _ => "<use_global_properties_slack_env>"
-        }
-      ))
+      Some(new SlackLogManager(job_name, job_properties, global_properties.slack.url, global_properties.slack.env))
     else
       None
   }

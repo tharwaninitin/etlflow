@@ -31,7 +31,12 @@ object UtilityFunctions {
 
   def getTimeDifferenceAsString(start_ts: Long, end_ts: Long): String = {
     Try((end_ts - start_ts) / 1000.0).map{value =>
-      if (value > 60) roundAt(2)(value/60.0) + " mins"
+      if (value > 86400) {
+        val diff = value % 86400
+        roundAt(2)(value/86400).toInt + " days " + roundAt(2)(diff/3600.0) + " hrs"
+      }
+      else if (value > 3600 && value < 86400) roundAt(2)(value/3600.0) + " hrs"
+      else if (value > 60 && value < 3600) roundAt(2)(value/60.0) + " mins"
       else roundAt(2)(value) + " secs"
     } match {
       case Success(value) => value
@@ -92,25 +97,25 @@ object UtilityFunctions {
     constructor.newInstance().asInstanceOf[T]
   }
 
-  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
-    Try {
-      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
-    } match {
-      case Success(value) => Some(value)
-      case Failure(exception) =>
-        uf_logger.info(exception.getStackTrace.mkString("\n"))
-        None
-    }
-  }
-
-  def getGlobalProperties[T <: GlobalProperties](path: String = "loaddata.properties")(fct: String => T): Option[T] = {
-    Try {
-      fct(path)
-    } match {
-      case Success(value) => Some(value)
-      case Failure(exception) =>
-        uf_logger.info(exception.getMessage)
-        None
-    }
-  }
+//  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
+//    Try {
+//      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
+//    } match {
+//      case Success(value) => Some(value)
+//      case Failure(exception) =>
+//        uf_logger.info(exception.getStackTrace.mkString("\n"))
+//        None
+//    }
+//  }
+//
+//  def getGlobalProperties[T <: GlobalProperties](path: String = "loaddata.properties")(fct: String => T): Option[T] = {
+//    Try {
+//      fct(path)
+//    } match {
+//      case Success(value) => Some(value)
+//      case Failure(exception) =>
+//        uf_logger.info(exception.getMessage)
+//        None
+//    }
+//  }
 }

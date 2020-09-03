@@ -11,4 +11,12 @@ spec:
       port: 80
       targetPort: 8080
       name: http
-  type: LoadBalancer
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: debug
+    - protocol: TCP
+      port: 9010
+      targetPort: 9010
+      name: monitor
+  type: NodePort

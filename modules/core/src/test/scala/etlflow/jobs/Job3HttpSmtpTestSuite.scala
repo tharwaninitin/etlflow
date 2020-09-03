@@ -3,7 +3,7 @@ package etlflow.jobs
 import etlflow.{LoadData, TestSuiteHelper}
 import org.scalatest.{FlatSpec, Matchers}
 
-class EtlJob3TestSuite extends FlatSpec with Matchers  with TestSuiteHelper {
+class Job3HttpSmtpTestSuite extends FlatSpec with Matchers  with TestSuiteHelper {
 
   LoadData.main(
     Array(

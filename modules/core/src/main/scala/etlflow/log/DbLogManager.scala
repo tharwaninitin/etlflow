@@ -5,21 +5,29 @@ import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
+import doobie.util.fragment.Fragment
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.DbManager
-import etlflow.utils.{Config, GlobalProperties, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
 import io.getquill.Literal
 import zio.interop.catz._
 import zio.{Managed, Task, ZManaged}
-
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-import pureconfig.generic.auto._
+
 class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
+
+  def getCredentials[T : Manifest](name: String): Task[T] = {
+    val query = s"SELECT value FROM credentials WHERE name='$name';"
+    for {
+      result <- Fragment.const(query).query[String].unique.transact(transactor)
+      op     <- Task(JsonJackson.convertToObject[T](result))
+    } yield op
+  }
 
   def updateStepLevelInformation(
                                   execution_start_time: Long,

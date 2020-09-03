@@ -2,9 +2,8 @@ package etlflow.etlsteps
 
 import etlflow.EtlJobProps
 import etlflow.etljobs.EtlJob
-import etlflow.utils.{Config, GlobalProperties, LoggingLevel}
-import zio.Task
-
+import etlflow.utils.{Config, LoggingLevel}
+import zio.{Task,ZEnv}
 import scala.reflect.runtime.universe.TypeTag
 
 case class EtlFlowJobStep[EJP <: EtlJobProps : TypeTag](
@@ -20,7 +19,7 @@ case class EtlFlowJobStep[EJP <: EtlJobProps : TypeTag](
     etl_logger.info(s"Starting EtlFlowJobStep for: $name")
     val etl_job = job(props,conf)
     etl_job.job_name = job.toString
-    etl_job.execute()
+    etl_job.execute().provideLayer(ZEnv.live)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("name" -> name)

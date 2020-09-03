@@ -48,6 +48,21 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
       )
     } yield ()
   }
+
+  final def runActiveEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES): Task[Unit] = {
+    for {
+      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
+      cj <- Query.getCronJobFromDB(args.name,transactor)
+      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobKubernetes(args,transactor,config)
+      else UIO(
+        scheduler_logger.info(
+          s"Skipping inactive cron job ${cj.job_name} with schedule " +
+            s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
+        )
+      )
+    } yield ()
+  }
+
   final def runActiveEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[Unit] = {
     for {
       _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
@@ -94,6 +109,12 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
             scheduler_logger.warn(s"Deploy mode livy not supported " +
               s"for job ${cj.job_name}, supported values are LOCAL, DATAPROC(..)")
             ZIO.unit
+          case KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) =>
+            scheduler_logger.info(
+              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
+                s"at ${UF.getCurrentTimestampAsString()} in KUBERNETES mode "
+            )
+            runActiveEtlJobKubernetes(EtlJobArgs(cj.job_name, List.empty), transactor,KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) )
         }
       })))
 
@@ -109,6 +130,7 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
 
   def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES): Task[EtlJob]
 
   def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]]): Task[Unit] = for {
     _          <- Update.deleteCronJobsDB(transactor,UF.getEtlJobs[EJN].map(x => x).toList)

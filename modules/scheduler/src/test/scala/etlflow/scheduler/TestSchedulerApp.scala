@@ -20,9 +20,6 @@ import zio.stream.ZStream
 trait TestSchedulerApp extends DbManager with TestSuiteHelper {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  val dc = new DoobieContext.Postgres(Literal)
-  import dc._
-
   case class UserInfo(user_name: String, password: String, user_active: String)
   case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
   case class CredentialDB(name: String, `type`: String, value: String)
@@ -54,12 +51,12 @@ trait TestSchedulerApp extends DbManager with TestSuiteHelper {
         override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
         Query.getJobs(transactor)
           .map(y => y.map{x =>
-            Job(x.job_name, Map.empty, Cron(x.schedule).toOption, x.failed, x.success, x.is_active)
+            Job(x.job_name, Map.empty, Cron(x.schedule).toOption,"","", x.failed, x.success, x.is_active)
           })
-      }.mapError{ e =>
-        logger.error(e.getMessage)
-        ExecutionError(e.getMessage)
-      }
+          }.mapError{ e =>
+            logger.error(e.getMessage)
+            ExecutionError(e.getMessage)
+          }
 
         override def getDbJobRuns(args: EtlFlowHelper.DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
           Query.getDbJobRuns(args,transactor)
@@ -80,6 +77,8 @@ trait TestSchedulerApp extends DbManager with TestSuiteHelper {
         override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {
           Query.getDbStepRuns(args,transactor)
         }
+
+        override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
       }
     }
 }

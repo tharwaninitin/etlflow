@@ -17,12 +17,17 @@ title: GCS Sensor
 ### Example 1
 Below example waits for a file **temp/ratings.parquet** to be present in a GCS bucket named **gcs_bucket**. 
 
-     val step = GCSSensorStep(
+```scala mdoc
+
+import etlflow.etlsteps.GCSSensorStep
+import scala.concurrent.duration._
+
+val step = GCSSensorStep(
          name    = "GCSKeySensor",
          bucket  = "gcs_bucket",
          prefix  = "temp",
          key     = "ratings.parquet",
          retry   = 10,
          spaced  = 5.second
-      )
-     
+)
+```     

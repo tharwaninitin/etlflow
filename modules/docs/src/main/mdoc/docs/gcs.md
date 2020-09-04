@@ -13,13 +13,16 @@ title: GCS Steps
 * **key** [String] - The key(folder) inside GCS bucket.
 * **file** [String] - This is the full local path of the file which needs to be uploaded.
 
----
-    val step = GCSPutStep(
+```scala mdoc
+
+import etlflow.etlsteps.GCSPutStep
+
+val step = GCSPutStep(
         name    = "LoadRatingGCS",
         bucket  = "gcs_bucket",
         key     = "temp/ratings.parquet",
         file    = "local_file_path"
-      )
-
+)
+```
 ## GCSDeleteStep
 [Documentation coming soon]

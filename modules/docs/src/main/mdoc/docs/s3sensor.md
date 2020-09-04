@@ -18,7 +18,13 @@ title: S3 Sensor
 ### Example 1
 Below example waits for a file **temp/ratings.parquet** to be present in a S3 bucket named **s3_bucket**. 
 
-     val step = S3SensorStep(
+```scala mdoc
+
+import etlflow.etlsteps._
+import software.amazon.awssdk.regions.Region
+import scala.concurrent.duration._
+
+val step = S3SensorStep(
          name    = "S3KeySensor",
          bucket  = "s3_bucket",
          prefix  = "temp",
@@ -26,4 +32,5 @@ Below example waits for a file **temp/ratings.parquet** to be present in a S3 bu
          retry   = 10,
          spaced  = 5.second,
          region  = Region.AP_SOUTH_1
-       )
+)
+```

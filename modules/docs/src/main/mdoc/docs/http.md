@@ -22,45 +22,58 @@ Below are the supported steps :
 ### Example 1
 Below is the sample Http Step GET example. 
 
-     val step = HttpStep(
+```scala mdoc
+import etlflow.etlsteps._
+
+val step1 = HttpStep(
          name         = "HttpGet",
          url          = "https://httpbin.org/get",
          http_method  = HttpMethod.GET,
          log_response = true,
-       )
-       
+)
+```       
 ### Example 2
 We can use below http GET step when we want return response from the step. 
 
-     val step = HttpResponseStep(
+```scala mdoc
+import etlflow.etlsteps._
+
+val step2 = HttpResponseStep(
         name         = "HttpGetParams",
         url          = "https://httpbin.org/get",
         http_method  = HttpMethod.GET,
         params       = Right(Seq(("param1","value1"))),
         log_response = true,
-      )
-       
+)
+```      
  
 ### Example 3
 Below is the simple Http POST json  example. 
 
-     val step = HttpStep(
+```scala mdoc
+import etlflow.etlsteps._
+
+val step3 = HttpStep(
         name         = "HttpPostJson",
         url          = "https://httpbin.org/post",
         http_method  = HttpMethod.POST,
         params       = Left("""{"key":"value"}"""),
         headers      = Map("content-type"->"application/json"),
         log_response = true,
-      )
-       
+)
+```
+      
 ### Example 4
 We can use below http POST step when we want return response from the step. 
 
-      val step = HttpResponseStep(
+```scala mdoc
+import etlflow.etlsteps._
+
+val step4 = HttpResponseStep(
          name         = "HttpPostParams",
          url          = "https://httpbin.org/post",
          http_method  = HttpMethod.POST,
          params       = Right(Seq(("param1","value1"))),
          log_response = true,
-       )
-              
+)
+```              

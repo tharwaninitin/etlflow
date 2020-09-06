@@ -149,9 +149,9 @@ trait EtlFlowService {
               val endTime = sdf.parse(Cron(x.schedule).toOption.get.next(LocalDateTime.now()).getOrElse("").toString).getTime
               val startTime = sdf.parse(LocalDateTime.now().toString).getTime
               val nextScheduleTime = Cron(x.schedule).toOption.get.next(LocalDateTime.now()).getOrElse("").toString
-              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption,nextScheduleTime,UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active)
+              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption.get.toString,nextScheduleTime,UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active)
             }else{
-              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption,"","", x.failed, x.success, x.is_active)
+              Job(x.job_name, getJobActualProps(x.job_name), "","","", x.failed, x.success, x.is_active)
             }
           }})
       }.mapError{ e =>

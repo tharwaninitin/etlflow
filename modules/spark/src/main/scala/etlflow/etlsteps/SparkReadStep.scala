@@ -1,22 +1,19 @@
 package etlflow.etlsteps
 
 import etlflow.spark._
-import etlflow.utils.IOType
+import etlflow.utils.{IOType, LoggingLevel}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 import zio.Task
-import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
-
-
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
-                                                                                      val name: String
-                                                                                      ,input_location: => Seq[String]
-                                                                                      ,input_type: IOType
-                                                                                      ,input_filter: String = "1 = 1"
-                                                                                      ,transform_function: Option[(SparkSession,Dataset[I]) => Dataset[O]]
-                                                                                    )(implicit spark: SparkSession)
+        val name: String
+        ,input_location: => Seq[String]
+        ,input_type: IOType
+        ,input_filter: String = "1 = 1"
+        ,transform_function: Option[(SparkSession,Dataset[I]) => Dataset[O]]
+      )(implicit spark: SparkSession)
   extends EtlStep[Unit,Dataset[O]] {
   private var recordsReadCount = 0L
 

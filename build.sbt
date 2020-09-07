@@ -8,16 +8,13 @@ lazy val coreSettings = Seq(
   organization := "com.github.tharwaninitin",
   crossScalaVersions := supportedScalaVersions,
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
-  libraryDependencies ++= zioLibs ++ sparkLibs ++ streamingLibs
-    ++ googleCloudLibs ++ dbLibs ++ catsLibs ++ circeLibs
-    ++ miscLibs ++ awsLibs
-    ++ redis ++ scalajHttp ++ mail ++ kubernetes ++ http4sclient
-    ++ testLibs,
+  libraryDependencies ++= zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs
+    ++ miscLibs ++ redis ++ scalajHttp ++ mail ++ coreTestLibs,
   excludeDependencies ++= Seq(
     "org.slf4j" % "slf4j-log4j12",
   ),
   //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
-  dependencyOverrides ++= {
+    dependencyOverrides ++= {
     Seq(
       "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
@@ -25,16 +22,38 @@ lazy val coreSettings = Seq(
   }
 )
 
+lazy val cloudSettings = Seq(
+  name := "etlflow-cloud",
+  organization := "com.github.tharwaninitin",
+  crossScalaVersions := supportedScalaVersions,
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+  libraryDependencies ++= streamingLibs ++ googleCloudLibs ++ awsLibs ++ cloudTestLibs,
+  excludeDependencies ++= Seq(
+    "org.slf4j" % "slf4j-log4j12",
+  ),
+)
+
+lazy val sparkSettings = Seq(
+  name := "etlflow-spark",
+  organization := "com.github.tharwaninitin",
+  crossScalaVersions := supportedScalaVersions,
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+  libraryDependencies ++= sparkLibs ++ cloudTestLibs,
+  excludeDependencies ++= Seq(
+    "org.slf4j" % "slf4j-log4j12",
+  ),
+)
+
 lazy val schedulerSettings = Seq(
   name := "etlflow-scheduler"
-  , libraryDependencies ++= caliban ++ jwt ++ testLibs
+  , libraryDependencies ++= caliban ++ jwt ++ kubernetes ++ http4sclient ++ coreTestLibs
 )
 
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true)
-  .aggregate(core, scheduler)
+  .aggregate(core,spark,cloud,scheduler)
 
 lazy val core = (project in file("modules/core"))
   .settings(coreSettings)
@@ -60,6 +79,24 @@ lazy val core = (project in file("modules/core"))
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
 
+lazy val spark = (project in file("modules/spark"))
+  .settings(sparkSettings)
+  .settings(
+    scalacOptions ++= Seq("-Ypartial-unification"),
+    Test / parallelExecution := false,
+    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
+  )
+  .dependsOn(core)
+
+lazy val cloud = (project in file("modules/cloud"))
+  .settings(cloudSettings)
+  .settings(
+    scalacOptions ++= Seq("-Ypartial-unification"),
+    Test / parallelExecution := false,
+    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
+  )
+  .dependsOn(core)
+
 lazy val scheduler = (project in file("modules/scheduler"))
   .settings(schedulerSettings)
   .settings(
@@ -67,7 +104,7 @@ lazy val scheduler = (project in file("modules/scheduler"))
     Test / parallelExecution := false,
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
-  .dependsOn(core)
+  .dependsOn(cloud)
 
 
 

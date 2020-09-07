@@ -6,7 +6,7 @@ import zio.ZIO
 import zio.test._
 import zio.test.Assertion._
 
-object DPStepsTestSuite extends DefaultRunnableSpec {
+object GCPDataprocStepsTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Steps") (

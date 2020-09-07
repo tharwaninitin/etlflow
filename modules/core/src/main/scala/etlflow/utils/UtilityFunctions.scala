@@ -97,6 +97,10 @@ object UtilityFunctions {
     constructor.newInstance().asInstanceOf[T]
   }
 
+  def getFields[T: TypeTag]: Seq[(String, String)] = typeOf[T].members.collect {
+     case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
+  }.toSeq
+
 //  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
 //    Try {
 //      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]

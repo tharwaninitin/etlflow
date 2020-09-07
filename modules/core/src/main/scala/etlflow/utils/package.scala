@@ -1,7 +1,5 @@
 package etlflow
 
-import software.amazon.awssdk.regions.Region
-
 package object utils {
 
   sealed trait FSType
@@ -39,15 +37,6 @@ package object utils {
       override def toString: String = "****access_key****secret_key****"
     }
     case object LOCAL extends Environment
-  }
-
-  sealed trait Location {
-    val location: String
-  }
-  object Location {
-    case class LOCAL(override val location: String) extends Location
-    case class GCS(override val location: String, credentials: Option[Environment.GCP] = None) extends Location
-    case class S3(override val location: String, region: Region, credentials: Option[Environment.AWS] = None) extends Location
   }
 
   final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") {

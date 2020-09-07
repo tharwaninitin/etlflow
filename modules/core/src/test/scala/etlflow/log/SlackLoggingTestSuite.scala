@@ -1,18 +1,14 @@
 package etlflow.log
 
-import ch.qos.logback.classic.{Level, Logger => LBLogger}
-import org.slf4j.{Logger, LoggerFactory}
-import etlflow.{EtlJobProps, TestSparkSession}
+import etlflow.EtlJobProps
 import etlflow.Schema.Rating
-import etlflow.etlsteps.{GenericETLStep, SparkReadStep}
-import etlflow.spark.SparkManager
+import etlflow.etlsteps.GenericETLStep
 import etlflow.utils.{LoggingLevel, PARQUET}
-import org.apache.spark.sql.SparkSession
 import org.slf4j.{Logger, LoggerFactory}
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
+object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
@@ -35,10 +31,9 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
     msg.replaceAll("[0-9]", "x").replaceAll("\\s+","").replaceAll("x","")
   }
 
-  val step2 = SparkReadStep[Rating](
-    name             = "GetRatingsParquet",
-    input_location   = Seq(s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"),
-    input_type       = PARQUET,
+  val step2 = GenericETLStep(
+    name               = "ProcessData",
+    transform_function = processData,
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =

@@ -44,17 +44,19 @@ object Dependencies {
   lazy val streamingLibs = List(
     "co.fs2" %% "fs2-core" % "2.4.4",
     "co.fs2" %% "fs2-io" % "2.4.4",
+    "org.tpolecat" %% "skunk-core" % SkunkVersion,
     "com.permutive" %% "fs2-google-pubsub-grpc" % "0.16.0",
     "com.github.fs2-blobstore" %% "gcs" % "0.7.3",
     "com.github.fs2-blobstore" %% "s3" % "0.7.3",
   )
 
-  lazy val circeLibs = List(
+  lazy val jsonLibs = List(
     "io.circe" %% "circe-core" % CirceVersion,
     "io.circe" %% "circe-generic" % CirceVersion,
     "io.circe" %% "circe-parser" % CirceVersion,
     "io.circe" %% "circe-optics" % CirceVersion,
-    "io.circe" %% "circe-config" % CirceConfigVersion
+    "io.circe" %% "circe-config" % CirceConfigVersion,
+    "org.json4s" %% "json4s-jackson" % "3.5.3",
   )
 
   lazy val awsLibs = List(
@@ -83,7 +85,6 @@ object Dependencies {
   )
 
   lazy val dbLibs = List(
-    "org.tpolecat" %% "skunk-core"      % SkunkVersion,
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
@@ -118,16 +119,25 @@ object Dependencies {
     "com.pauldijou" %% "jwt-core" % "4.2.0"
   )
 
-  lazy val testLibs = List(
+  lazy val coreTestLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "org.testcontainers" % "postgresql" % TestContainerVersion,
     "dev.zio" %% "zio-test"     % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
+    "ch.qos.logback" % "logback-classic" % LogbackVersion,
+    "org.postgresql" % "postgresql" % PgVersion
+  ).map(_ % Test)
+
+  lazy val cloudTestLibs = List(
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "org.testcontainers" % "postgresql" % TestContainerVersion,
+    "dev.zio" %% "zio-test"     % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion,
+    "ch.qos.logback" % "logback-classic" % LogbackVersion,
+    "org.postgresql" % "postgresql" % PgVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
     "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
     "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
-    "ch.qos.logback" % "logback-classic" % LogbackVersion,
-    "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
 }

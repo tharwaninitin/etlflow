@@ -1,28 +1,39 @@
 package etlflow.steps.cloud
 
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep, GCSSensorStep}
-import etlflow.utils.PARQUET
+import etlflow.utils.{CSV, PARQUET}
 import zio.test.DefaultRunnableSpec
 import zio.ZIO
 import zio.test._
 import zio.test.Assertion._
 import scala.concurrent.duration._
 
-object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
 
+object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
+  case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
   // STEP 1: Define step
   val input_path = s"gs://$gcs_bucket/temp/ratings.parquet"
+  val input_path_csv = s"gs://$gcs_bucket/temp/ratings.csv"
   val output_table = "ratings"
   val output_dataset = "test"
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("GCP Steps")(
-      testM("Execute GCSPut step") {
+      testM("Execute GCSPut PARQUET step") {
         val step = GCSPutStep(
           name    = "S3PutStep",
           bucket  = gcs_bucket,
           key     = "temp/ratings.parquet",
           file    = file
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute GCSPut CSV step") {
+        val step = GCSPutStep(
+          name    = "S3PutStep",
+          bucket  = gcs_bucket,
+          key     = "temp/ratings.csv",
+          file    = file_csv
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
@@ -37,11 +48,21 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute BQLoad step") {
+      testM("Execute BQLoad PARQUET step") {
         val step = BQLoadStep(
           name           = "LoadRatingBQ",
           input_location = Left(input_path),
           input_type     = PARQUET,
+          output_dataset = output_dataset,
+          output_table   = output_table
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute BQLoad CSV step") {
+        val step = BQLoadStep[RatingCSV](
+          name           = "LoadRatingCSV",
+          input_location = Left(input_path_csv),
+          input_type     = CSV(),
           output_dataset = output_dataset,
           output_table   = output_table
         )

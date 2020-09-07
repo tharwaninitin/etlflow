@@ -29,13 +29,14 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
     etl_logger.info(s"Starting BQ Data Load Step : $name")
 
     def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
-      case "String"   => LegacySQLTypeName.STRING
-      case "Int"      => LegacySQLTypeName.INTEGER
-      case "Long"     => LegacySQLTypeName.INTEGER
-      case "Double"   => LegacySQLTypeName.FLOAT
-      case "Date"     => LegacySQLTypeName.DATE
-      case "Boolean"  => LegacySQLTypeName.BOOLEAN
-      case _          => LegacySQLTypeName.STRING
+      case "String"         => LegacySQLTypeName.STRING
+      case "Int"            => LegacySQLTypeName.INTEGER
+      case "Long"           => LegacySQLTypeName.INTEGER
+      case "Double"         => LegacySQLTypeName.FLOAT
+      case "java.sql.Date"  => LegacySQLTypeName.DATE
+      case "java.util.Date" => LegacySQLTypeName.DATE
+      case "Boolean"        => LegacySQLTypeName.BOOLEAN
+      case _                => LegacySQLTypeName.STRING
     }
 
     val schema: Option[Schema] = Try{

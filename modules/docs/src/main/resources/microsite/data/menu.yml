@@ -51,5 +51,14 @@ options:
         url: docs/gcssensor.html
       - title: S3 Sensor
         url: docs/s3sensor.html
-      - title: JDBC Sensor
-        url: docs/jdbcsensor.html
+
+  - title: Executors
+    url: docs/executors.html
+
+    nested_options:
+      - title: Local Executor
+        url: docs/local.html
+      - title: Dataproc Executor
+        url: docs/dataproc.html
+      - title: Kubernates Executor
+        url: docs/kubernates.html

@@ -23,6 +23,8 @@ Clone this git repo and go inside repo root folder and enter below command (make
 Here we can have any kind of logic for creating static or dynamic input parameters for job.
 For e.g. intermediate path can be dynamically generated for every run based on current date.
       
+```scala mdoc      
+      
       import etlflow.EtlJobProps
       import java.text.SimpleDateFormat
       import java.time.LocalDate
@@ -38,16 +40,19 @@ For e.g. intermediate path can be dynamically generated for every run based on c
         ratings_output_dataset: String = "test",
         ratings_output_table_name: String = "ratings",
       ) extends EtlJobProps
-
+```
 ### GenericEtlJob
 Below is the example of GenericEtlJob which has two steps which can execute in any order defined by composing ZIO effects. 
 
+```scala mdoc      
+ 
     import com.google.cloud.bigquery.JobInfo
     import etlflow.etljobs.GenericEtlJob
     import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
     import etlflow.utils.PARQUET
-    import etlflow.utils.GlobalProperties
     import zio.Task
+    import etlflow.utils.Config
+
     
     case class RatingOutput(user_id: Int, movie_id: Int, rating : Double, timestamp: Long, date: java.sql.Date)
     
@@ -74,31 +79,30 @@ Below is the example of GenericEtlJob which has two steps which can execute in a
         _ <- step2.execute()
       } yield ()
     }
-    
-### Execute Job 
-    
-    val props = EtlJob1Props()
-    val job_task = EtlJob1(props).execute
-    
-    import zio.Runtime
-    Runtime.default.unsafeRun(job_task)
-    
+```    
+
 ### SequentialEtlJob
 Below is the example of SequentialEtlJob which is much simpler way to run jobs when all steps are needed to be run sequentially.
+
+```scala mdoc      
  
      import etlflow.EtlStepList
      import etlflow.etljobs.SequentialEtlJob
-     
-     case class EtlJob1(job_properties: EtlJob1Props, globalProperties: Config) extends SequentialEtlJob {
-       
-       val step1 = GCSPutStep(
+     import etlflow.etlsteps._
+     import etlflow.utils.Config
+     import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
+     import etlflow.utils.PARQUET
+
+     case class EtlJob2(job_properties: EtlJob1Props, globalProperties: Config) extends SequentialEtlJob {
+
+     val step3 = GCSPutStep(
                      name    = "LoadRatingGCS",
                      bucket  = job_properties.ratings_intermediate_bucket,
                      key     = job_properties.ratings_intermediate_file_key,
                      file    = job_properties.ratings_input_path
                    )
                  
-       val step2 = BQLoadStep(
+     val step4 = BQLoadStep(
                  name                      = "LoadRatingBQ",
                  input_location            = Left(s"gs://${job_properties.ratings_intermediate_bucket}/${job_properties.ratings_intermediate_file_key}"),
                  input_type                = PARQUET,
@@ -107,5 +111,6 @@ Below is the example of SequentialEtlJob which is much simpler way to run jobs w
                  output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
              )
      
-       val etlStepList = EtlStepList(step1,step2)
-     }
+       val etlStepList = EtlStepList(step3,step4)
+   }
+```

@@ -66,7 +66,7 @@ Replace x.x.x with the latest version [![Maven Central](https://maven-badges.her
 ### STEP 5) Provide below detials in file **examples/src/main/resources/application.conf**:
 
 
-        db-log = {
+        dbLog = {
           url = <log_db_url>,
           user = <log_db_user>,
           password = <log_db_pwd>,

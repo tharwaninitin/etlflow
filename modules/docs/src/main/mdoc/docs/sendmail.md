@@ -17,20 +17,26 @@ title: Send Mail
 ### Example 1
 Below is the sample example for send mail step 
 
-    case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true")
-    
-    val emailBody: String = {
+```scala mdoc
+
+import etlflow.etlsteps._
+import etlflow.utils.SMTP
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+val emailBody: String = {
          val exec_time = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm").format(LocalDateTime.now)
          s"""
             | SMTP Email Test
             | Time of Execution: $exec_time
             |""".stripMargin
-       }
+}
       
-    val step = SendMailStep(
+val step = SendMailStep(
         name           = "SendSMTPEmail",
         body           = emailBody,
         subject        = "EtlFlow Ran Successfully",
         recipient_list = List("abc@<domain>.com"),
-        credentials    = SMTP
-      )
+        credentials    = SMTP("PORT", "HOST", "USER", "PWD")
+)
+```

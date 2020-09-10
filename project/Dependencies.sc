@@ -3,7 +3,7 @@ import mill._
 import scalalib._
 import scalafmt._
 
-object Dependencies {
+object MillDependencies {
   val SparkVersion = "2.4.4"
   val GcpBqVersion = "1.80.0"
   val GcpDpVersion = "0.122.1"

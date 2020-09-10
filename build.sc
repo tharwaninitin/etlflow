@@ -61,11 +61,16 @@ object modules extends ScalaModule with ScalafmtModule  with CommonModule {
     override  def artifactName = "etlflow-scheduler"
     override def moduleDeps = Seq(cloud)
     override def buildInfoPackageName = Some("etlflow")
+    val now = java.time.Instant.now().toEpochMilli
+    // Output the build time with the local timezone suffix
+    val dtf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    val nowStr = dtf.format(now)
     override  def  buildInfoMembers: T[Map[String, String]] = T {
       Map(
         "name" -> "etlflow-scheduler",
         "version" -> publishVersion(),
-        "scalaVersion" -> scalaVersion()
+        "scalaVersion" -> scalaVersion(),
+        "builtAtString" -> nowStr
       )
     }
 

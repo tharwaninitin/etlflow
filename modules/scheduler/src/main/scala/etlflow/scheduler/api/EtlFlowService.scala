@@ -98,7 +98,7 @@ trait EtlFlowService {
           total_memory = (javaRuntime.totalMemory / mb).toString,
           max_memory = (javaRuntime.maxMemory / mb).toString,
           current_time = UF.getCurrentTimestampAsString(),
-          build_time = BI.builtAtString
+          build_time = ""
         )
       }
 

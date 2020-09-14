@@ -8,10 +8,10 @@ import mill.contrib.buildinfo.BuildInfo
 import contrib.docker.DockerModule
 import publish._
 import $file.project.Dependencies
-import Dependencies.Dependencies._
+import Dependencies.MillDependencies._
 
 
-trait CommonModule extends ScalaModule with PublishModule  {
+trait CommonModule extends ScalaModule  with PublishModule  {
   def scalaVersion = "2.12.10"
   def publishVersion = "0.7.19"
   def pomSettings = PomSettings(
@@ -26,9 +26,9 @@ trait CommonModule extends ScalaModule with PublishModule  {
   )
 }
 
-object modules extends ScalaModule with ScalafmtModule  with CommonModule {
+object modules extends ScalaModule  with SbtModule  with ScalafmtModule  with CommonModule {
 
-  object core extends ScalaModule with CommonModule with BuildInfo {
+  object core extends ScalaModule with SbtModule with CommonModule with BuildInfo  {
     def name = "etlflow-core"
     override  def artifactName = "etlflow-core"
     override def buildInfoPackageName = Some("etlflow")
@@ -40,24 +40,33 @@ object modules extends ScalaModule with ScalafmtModule  with CommonModule {
       )
     }
     override def ivyDeps = zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs++ miscLibs ++ redis ++ scalajHttp ++ mail ++ coreTestLibs
-    def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+
+    object test extends Tests {
+      override  def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+    }
   }
 
-  object spark extends ScalaModule with CommonModule {
+  object spark extends ScalaModule with SbtModule with CommonModule {
     override  def artifactName = "etlflow-spark"
     override def moduleDeps = Seq(core)
     override def ivyDeps = sparkLibs ++ cloudTestLibs
-    def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+
+    object test extends Tests {
+      override  def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+    }
   }
 
-  object cloud extends ScalaModule with CommonModule {
+  object cloud extends ScalaModule with SbtModule with CommonModule {
     override  def artifactName = "etlflow-cloud"
     override def moduleDeps = Seq(core)
     override def ivyDeps = streamingLibs ++ googleCloudLibs ++ awsLibs ++ cloudTestLibs
-    def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+
+    object test extends Tests {
+      override  def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+    }
   }
 
-  object scheduler extends ScalaModule with CommonModule with BuildInfo {
+  object scheduler extends ScalaModule with SbtModule with CommonModule with BuildInfo {
     override  def artifactName = "etlflow-scheduler"
     override def moduleDeps = Seq(cloud)
     override def buildInfoPackageName = Some("etlflow")
@@ -85,12 +94,16 @@ object modules extends ScalaModule with ScalafmtModule  with CommonModule {
       "-Ypartial-unification"      // Enable partial unification in type constructor inference
     )
     override  def scalacOptions = defaultScalaOpts
+
+    object test extends Tests {
+      override  def testFrameworks = Seq("zio.test.sbt.ZTestFramework")
+    }
   }
 }
 
 object examples extends SbtModule with ScalafmtModule with CommonModule with DockerModule {
 
-  override def moduleDeps = Seq(modules.core, modules.spark, modules.scheduler)
+//  override def moduleDeps = Seq(modules.core, modules.spark, modules.scheduler)
 
   override def ivyDeps = {
     val EtlFlowVersion = "0.7.19"
@@ -108,15 +121,12 @@ object examples extends SbtModule with ScalafmtModule with CommonModule with Doc
       ivy"com.google.cloud.spark::spark-bigquery-with-dependencies:$SparkBQVersion".exclude("org.slf4j" -> "slf4j-log4j12"),
       ivy"com.google.cloud.bigdataoss:gcs-connector:$HadoopGCSVersion".exclude("org.slf4j" -> "slf4j-log4j12"),
       ivy"org.apache.hadoop:hadoop-aws:$HadoopS3Version".exclude("org.slf4j" -> "slf4j-log4j12"),
-      ivy"org.apache.hadoop:hadoop-common:$HadoopS3Version".exclude("org.slf4j" -> "slf4j-log4j12"),
-      ivy"ch.qos.logback:logback-classic:$LogbackVersion",
+//      ivy"ch.qos.logback:logback-classic:$LogbackVersion",
       ivy"org.postgresql:postgresql:$PgVersion".exclude("org.slf4j" -> "slf4j-log4j12")
     )
   }
 
   object docker extends DockerConfig {
-    override def tags = List("")
-    override def baseImage = "openjdk:14.0.2"
     override def pullBaseImage = true
   }
 

@@ -4,10 +4,12 @@ import cats.effect.Blocker
 import com.zaxxer.hikari.HikariDataSource
 import doobie.hikari.HikariTransactor
 import etlflow.scheduler.util.CacheHelper
+import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{Config, JDBC}
 import org.testcontainers.containers.PostgreSQLContainer
 import zio.Task
 import zio.interop.catz._
+
 import scala.concurrent.ExecutionContext
 import io.circe.generic.auto._
 
@@ -15,10 +17,9 @@ trait TestSuiteHelper  {
 
   val cache = CacheHelper.createCache[String](60)
   val canonical_path: String               = new java.io.File(".").getCanonicalPath
-//  val global_properties: Option[GlobalProperties] =
-//    Try(new GlobalProperties(canonical_path + "/modules/scheduler/src/test/resources/loaddata.properties") {}).toOption
 
   val global_properties: Config = io.circe.config.parser.decode[Config]().toOption.get
+
   //Creating postgres test container
   val container = new PostgreSQLContainer("postgres:latest")
   container.start()
@@ -37,4 +38,15 @@ trait TestSuiteHelper  {
 
   val transactor = createTestDbTransactorJDBC(credentials,scala.concurrent.ExecutionContext.Implicits.global, "EtlFlowScheduler-testing-Pool")
 
+  val etlJob_name_package: String = "etlflow.scheduler.schema.MyEtlJobName" + "$"
+
+  val dep_libs = sys.env("DP_LIBS")
+  val main_class = sys.env("DP_MAIN_CLASS")
+  val dp_libs: List[String] = dep_libs.split(",").toList
+  val dataproc = DATAPROC(
+    sys.env("DP_PROJECT_ID"),
+    sys.env("DP_REGION"),
+    sys.env("DP_ENDPOINT"),
+    sys.env("DP_CLUSTER_NAME")
+  )
 }

@@ -4,6 +4,7 @@ import etlflow.{EtlJobName, EtlJobProps}
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}
+
 object JsonCirce  {
 
   implicit val customSerializer2: Encoder[EtlJobName[EtlJobProps]] = Encoder[String].contramap {
@@ -21,6 +22,7 @@ object JsonCirce  {
     case Executor.LOCAL            => "local"
     case Executor.LIVY(_) => "livy"
     case Executor.KUBERNETES(_, _, _, _, _, _)=> "kubernetes"
+    case Executor.LOCAL_SUBPROCESS(_,_,_)=> "local-subprocess"
   }
 
 
@@ -57,6 +59,7 @@ object JsonCirce  {
         case Executor.LOCAL            => "local"
         case Executor.LIVY(_) => "livy"
         case Executor.KUBERNETES(_, _, _, _, _, _)=> "kubernetes"
+        case Executor.LOCAL_SUBPROCESS(_,_,_)=> "local-subprocess"
       })
     )
     val combineJson = for {

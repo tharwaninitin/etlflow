@@ -14,6 +14,7 @@ import zio.clock.Clock
 import zio.duration._
 import zio.interop.catz._
 import zio.interop.catz.implicits._
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag] {
@@ -77,6 +78,20 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     } yield ()
   }
 
+  final def runActiveEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task],config: LOCAL_SUBPROCESS): Task[Unit] = {
+    for {
+      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
+      cj <- Query.getCronJobFromDB(args.name,transactor)
+      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobLocalSubProcess(args,transactor,config)
+      else UIO(
+        scheduler_logger.info(
+          s"Skipping inactive cron job ${cj.job_name} with schedule " +
+            s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
+        )
+      )
+    } yield ()
+  }
+
   final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task]): Task[Unit] = {
     val jobsToBeScheduled = dbCronJobs.flatMap{ cj =>
       if (cj.schedule.isDefined)
@@ -99,6 +114,12 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                 s"at ${UF.getCurrentTimestampAsString()} in DATAPROC mode "
             )
             runActiveEtlJobDataProc(EtlJobArgs(cj.job_name, List.empty), transactor, DATAPROC(project,region,endpoint,cluster_name))
+          case LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory) =>
+            scheduler_logger.info(
+              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
+                s"at ${UF.getCurrentTimestampAsString()} in LOCAL_SUBPROCESS mode "
+            )
+            runActiveEtlJobLocalSubProcess(EtlJobArgs(cj.job_name, List.empty), transactor, LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory))
           case LOCAL =>
             scheduler_logger.info(
               s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
@@ -130,6 +151,7 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
 
   def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task],config: LOCAL_SUBPROCESS): Task[EtlJob]
   def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES): Task[EtlJob]
 
   def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]]): Task[Unit] = for {

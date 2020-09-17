@@ -2,6 +2,7 @@ package etlflow.scheduler.api
 
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import cron4s.lib.javatime._
@@ -11,12 +12,13 @@ import etlflow.scheduler.api.EtlFlowHelper._
 import etlflow.scheduler.db.Query
 import etlflow.utils.Executor._
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
+import etlflow.{ EtlJobName, EtlJobProps, BuildInfo => BI}
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.stream.ZStream
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowService {
@@ -28,6 +30,7 @@ trait EtlFlowService {
   def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
   def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES): Task[EtlJob]
   def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def runEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task],config: LOCAL_SUBPROCESS): Task[EtlJob]
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
       transactor: HikariTransactor[Task],
@@ -59,8 +62,11 @@ trait EtlFlowService {
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
         val job_deploy_mode = UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
         job_deploy_mode match {
+          case LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory) =>
+            logger.info("Running job in local sub-process mode ")
+            runEtlJobLocalSubProcess(args, transactor,LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory))
           case LOCAL =>
-            logger.info("Running job in local mode ")
+            logger.info("Running job in local in-process mode ")
             runEtlJobLocal(args, transactor)
           case DATAPROC(project, region, endpoint, cluster_name) =>
             logger.info("Dataproc parameters are : " + project + "::" + region + "::"  + endpoint +"::" + cluster_name)

@@ -40,7 +40,7 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: -agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n
             - name: JAVA_OPTS
-              value: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.local.only=false -Datsso.log.level=SEVERE -Djava.awt.headless=true
+              value: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.rmi.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.local.only=false -Datsso.log.level=SEVERE -Djava.awt.headless=true -Xmx1g -Xms500m
             - name: GOOGLE_APPLICATION_CREDENTIALS
               valueFrom:
                 secretKeyRef:

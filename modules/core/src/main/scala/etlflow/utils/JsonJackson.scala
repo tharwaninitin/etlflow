@@ -1,10 +1,10 @@
 package etlflow.utils
 
 import etlflow.{EtlJobName, EtlJobProps}
-import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
 import org.json4s.JsonAST.{JNothing, JString}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.jackson.Serialization.writePretty
+import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
 import org.slf4j.{Logger, LoggerFactory}
 
 object JsonJackson {
@@ -46,6 +46,7 @@ object JsonJackson {
           case Executor.LOCAL => JString("local")
           case Executor.LIVY(_) => JString("livy")
           case Executor.KUBERNETES(_, _, _, _, _, _)=> JString("kubernetes")
+          case Executor.LOCAL_SUBPROCESS(_,_,_)=> JString("local-subprocess")
         }
       })
     )
@@ -86,6 +87,8 @@ object JsonJackson {
           case Executor.LOCAL => JString("local")
           case Executor.LIVY(_) => JString("livy")
           case Executor.KUBERNETES(_, _, _, _, _, _)=> JString("kubernetes")
+          case Executor.LOCAL_SUBPROCESS(_,_,_)=> JString("local-subprocess")
+
         }
       })
     )

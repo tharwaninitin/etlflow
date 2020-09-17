@@ -19,6 +19,7 @@ package object utils {
   object Executor {
     case object LOCAL extends Executor
     case class DATAPROC(project: String, region: String, endpoint: String, cluster_name: String) extends Executor
+    case class LOCAL_SUBPROCESS(script_path: String,heap_min_memory :String = "-Xms128m", heap_max_memory :String = "-Xmx256m") extends Executor
     case class LIVY(url: String) extends Executor
     case class KUBERNETES(
           imageName: String, nameSpace: String, envVar: Map[String,Option[String]],

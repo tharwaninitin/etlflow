@@ -13,7 +13,12 @@ object EtlJobArgsParser {
                            run_job: Boolean = false,
                            run_job_remote: Boolean = false,
                            job_name: String = "",
-                           job_properties: Map[String,String] = Map.empty
+                           job_properties: Map[String,String] = Map.empty,
+                           run_db_migration:Boolean = false,
+                           insert_userinfo:Boolean = false,
+                           user_name:String = "",
+                           password:String = "",
+                           user_active:String = ""
                          )
   val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etljobs-cli") {
     head(BI.name, BI.version, s"Build with scala version ${BI.scalaVersion}")
@@ -21,6 +26,9 @@ object EtlJobArgsParser {
     opt[Unit]('l', "list_jobs")
       .action((_, c) => c.copy(list_jobs = true))
       .text("List jobs in etljobs")
+    cmd("run_db_migration")
+      .action((_, c) => c.copy(run_db_migration = true))
+      .text("Run Postgres DB Migration")
     cmd("show_job_props")
       .action((_, c) => c.copy(show_job_props = true))
       .text("Show jobs props in etljobs")
@@ -74,6 +82,20 @@ object EtlJobArgsParser {
           .valueName("k1=v1,k2=v2...")
           .action((x, c) => c.copy(job_properties = x))
           .text("other arguments")
+      )
+    cmd("insert_userinfo")
+      .action((_, c) => c.copy(insert_userinfo = true))
+      .text("Insert user details into postgres userinfo table")
+      .children(
+        opt[String]("user_name")
+          .action((x, c) => c.copy(user_name = x))
+          .text("user_name"),
+        opt[String]("password")
+          .action((x, c) => c.copy(password = x))
+          .text("password"),
+        opt[String]("user_active")
+          .action((x, c) => c.copy(user_active = x))
+          .text("user_active"),
       )
   }
 }

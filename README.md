@@ -72,12 +72,26 @@ libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 ```
 
 ## QuickStart
-To start the database migration process trigger below commands from root folder :
+STEP 1) To be able to use this library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
+ ```shell
+ export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
+ export LOG_DB_USER=<...>
+ export LOG_DB_PWD=<..>
+ export LOG_DB_DRIVER=org.postgresql.Driver
+```
 
+STEP 2) Now to create database tables used in this library run below commands from repo root folder:
 ```shell
 sbt
 project examples
 runMain examples.LoadData run_db_migration
+```
+
+STEP 3) Now to run sample job use below command:
+```shell
+sbt
+project examples
+runMain examples.LoadData run_job --job_name EtlJob2DefinitionLocal
 ```
 
 #### Contributions

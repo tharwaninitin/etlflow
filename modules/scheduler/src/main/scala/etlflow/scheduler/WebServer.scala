@@ -90,7 +90,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     val finalRunner: ZIO[ZEnv, Throwable, Unit] = for {
       _           <- runDbMigration(app_config.dbLog)
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
-      transactor  <- createDbTransactorJDBC(app_config.dbLog, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
+      transactor  <- createDbTransactor(app_config.dbLog, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
       cache       = CacheHelper.createCache[String](24 * 60)
       cronJobs    <- Ref.make(List.empty[CronJob])
       _           <- etlFlowScheduler(transactor,cronJobs).fork

@@ -10,3 +10,5 @@ project/project
 project/target
 project/metals.sbt
 etljobs/src/test/resources/output
+out
+.idea_modules

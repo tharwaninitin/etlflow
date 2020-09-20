@@ -5,10 +5,10 @@ import doobie.Transactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor.Aux
 import etlflow.utils.Config
-import org.slf4j.{Logger, LoggerFactory}
-import zio.interop.catz._
-import zio.{Runtime, Task, ZEnv}
 import io.circe.generic.auto._
+import org.slf4j.{Logger, LoggerFactory}
+import zio.Task
+import zio.interop.catz._
 
 trait TestSuiteHelper {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -16,8 +16,6 @@ trait TestSuiteHelper {
   val canonical_path: String    = new java.io.File(".").getCanonicalPath
   val file                      = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
   val global_properties: Config = io.circe.config.parser.decode[Config]().toOption.get
-
-  val runtime: Runtime[ZEnv]          = Runtime.default
 }
 
 trait DoobieHelper {

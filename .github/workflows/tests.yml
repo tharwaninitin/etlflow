@@ -19,6 +19,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
     steps:
     - uses: actions/checkout@v1
     - name: Set up JDK 1.8
@@ -28,7 +31,7 @@ jobs:
     - name: Run tests
       run: sbt ";project root; publishLocal; project examples; runMain examples.LoadData run_db_migration; project core; test;"
       env:
-        LOG_DB_URL: jdbc:postgresql://postgres:5432/etlflow
+        LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
         LOG_DB_USER: etlflow
         LOG_DB_PWD: etlflow
         LOG_DB_DRIVER: org.postgresql.Driver

@@ -71,5 +71,14 @@ __SBT__
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 ```
 
+## QuickStart
+To start the database migration process trigger below commands from root folder :
+
+```shell
+sbt
+project examples
+runMain examples.LoadData run_db_migration
+```
+
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

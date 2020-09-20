@@ -47,5 +47,15 @@ lazy val examples = (project in file("examples"))
     // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
     // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json"),
     mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+    mainClass in assembly := Some("examples.LoadData"),
+    assemblyJarName in assembly := "etljobs-examples-assembly_2.12-0.7.19.jar",
+    assemblyMergeStrategy in assembly := {
+       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+       case x => MergeStrategy.first
+    },
+    assemblyShadeRules in assembly := Seq(
+      ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
+      ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll
+    )
   )

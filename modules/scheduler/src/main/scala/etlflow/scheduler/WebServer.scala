@@ -88,7 +88,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val finalRunner: ZIO[ZEnv, Throwable, Unit] = for {
-      _           <- runDbMigration(app_config.dbLog)
+      //_           <- runDbMigration(app_config.dbLog)
       blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
       transactor  <- createDbTransactor(app_config.dbLog, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
       cache       = CacheHelper.createCache[String](24 * 60)

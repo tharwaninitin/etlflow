@@ -1,5 +1,5 @@
-- To run the Test for EtlFlowServiceTestSuite. Perform below steps : 
-  1. Set the `credentials` variable with local postgres connection deatils.
+- To run the Test for ExecutorTestSuite. Perform below steps: 
+  1. Set the `credentials` variable with local postgres connection details.
      
      Example : 
      

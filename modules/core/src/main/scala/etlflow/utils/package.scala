@@ -23,7 +23,7 @@ package object utils {
     case class LIVY(url: String) extends Executor
     case class KUBERNETES(
           imageName: String, nameSpace: String, envVar: Map[String,Option[String]],
-          containerName: Option[String] = Some("etljob"),
+          containerName: String = "etljob",
           entryPoint: Option[String] = Some("/opt/docker/bin/load-data"),
           restartPolicy: Option[String] = Some("Never")
          ) extends Executor

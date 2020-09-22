@@ -3,8 +3,8 @@ package etlflow.executor
 import doobie.hikari.HikariTransactor
 import etlflow.gcp.{DP, DPService}
 import etlflow.local.{LOCAL, LocalService}
-import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.scheduler.db.Update
+import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.db.Update
 import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 import etlflow.utils.JDBC
 import zio._

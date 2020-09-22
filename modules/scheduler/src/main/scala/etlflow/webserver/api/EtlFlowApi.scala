@@ -1,8 +1,7 @@
-package etlflow.scheduler.api
+package etlflow.webserver.api
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import caliban.CalibanError.ExecutionError
 import caliban.GraphQL.graphQL
 import caliban.Value.StringValue
@@ -10,8 +9,8 @@ import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
 import etlflow.log.{JobRun, StepRun}
-import etlflow.scheduler.api.EtlFlowHelper._
-import zio.{URIO, ZIO}
+import etlflow.utils.EtlFlowHelper._
+import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
@@ -44,10 +43,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                         update_credentials: CredentialsArgs => ZIO[EtlFlowHas, Throwable, Credentials],
                       )
 
-  case class Subscriptions(
-                            notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus],
-                            getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
-                          )
+  case class Subscriptions(notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus])
 
   implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
 
@@ -75,8 +71,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
           args => updateCredentials(args)
         ),
         Subscriptions(
-          notifications,
-          getStream
+          notifications
         )
       )
     )

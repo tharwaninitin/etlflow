@@ -1,13 +1,13 @@
-package etlflow.scheduler
+package etlflow.webserver
 
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
 import etlflow.jdbc.DbManager
-import etlflow.scheduler.api.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
-import etlflow.scheduler.api._
-import etlflow.scheduler.util.CacheHelper
-import etlflow.utils.{Config, UtilityFunctions => UF}
+import etlflow.scheduler.Scheduler
+import etlflow.webserver.api._
+import etlflow.utils.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
+import etlflow.utils.{CacheHelper, Config, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import io.circe.config.parser
 import org.http4s.dsl.Http4sDsl
@@ -77,7 +77,7 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
                                     ))
                                   ),
                                   "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
-                                  "/ws/etlflow"     -> CORS(new EtlFlowStreams[EtlFlowTask](cache).streamRoutes),
+                                  "/ws/etlflow"     -> CORS(new StatsStreams[EtlFlowTask](cache).streamRoutes),
                                 ).orNotFound
                               ).resource
                               .toManagedZIO

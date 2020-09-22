@@ -1,10 +1,10 @@
-package etlflow.scheduler.db
+package etlflow.utils.db
 
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import doobie.quill.DoobieContext
-import etlflow.scheduler.api.EtlFlowHelper._
+import etlflow.utils.EtlFlowHelper._
 import io.getquill.Literal
 import zio.{IO, Task}
 import doobie.implicits._

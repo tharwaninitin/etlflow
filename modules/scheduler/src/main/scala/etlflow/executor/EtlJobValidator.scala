@@ -2,10 +2,9 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.{EtlJobName, EtlJobProps}
-import etlflow.scheduler.api.EtlFlowHelper.{EtlJob, EtlJobArgs}
-import etlflow.utils.JsonJackson
+import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
+import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
 import zio.Task
-import etlflow.utils.{UtilityFunctions => UF}
 
 trait EtlJobValidator {
 

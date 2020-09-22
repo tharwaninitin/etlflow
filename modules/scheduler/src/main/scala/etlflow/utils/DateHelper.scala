@@ -1,4 +1,4 @@
-package etlflow.scheduler.util
+package etlflow.utils
 
 import java.text.SimpleDateFormat
 import java.time._

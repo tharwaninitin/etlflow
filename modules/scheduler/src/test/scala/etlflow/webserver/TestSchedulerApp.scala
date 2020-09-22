@@ -1,20 +1,16 @@
-package etlflow.scheduler
+package etlflow.webserver
 
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
-import doobie.implicits._
-import doobie.quill.DoobieContext
 import etlflow.jdbc.DbManager
 import etlflow.log.{JobRun, StepRun}
-import etlflow.scheduler.api.EtlFlowHelper
-import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.scheduler.db.Query
-import io.getquill.Literal
+import etlflow.utils.EtlFlowHelper
+import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.db.Query
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
 import zio._
-import zio.interop.catz._
 import zio.stream.ZStream
 
 trait TestSchedulerApp extends DbManager with TestSuiteHelper {
@@ -26,9 +22,8 @@ trait TestSchedulerApp extends DbManager with TestSuiteHelper {
 
   def testHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]) : ZLayer[Any, Throwable, EtlFlowHas] = ZLayer.fromEffect {
     for {
-      _                 <- runDbMigration(credentials)
+      _  <- runDbMigration(credentials)
     } yield new EtlFlow.Service() {
-        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
 
         override def updateJobState(args: EtlFlowHelper.EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] = {
           Query.updateJobState(args,transactor)
@@ -46,13 +41,11 @@ trait TestSchedulerApp extends DbManager with TestSuiteHelper {
           Query.updateCronJob(args,transactor)
         }
 
-        override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
-
         override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
-        Query.getJobs(transactor)
-          .map(y => y.map{x =>
-            Job(x.job_name, Map.empty, Cron(x.schedule).toOption,"","", x.failed, x.success, x.is_active)
-          })
+          Query.getJobs(transactor)
+            .map(y => y.map{x =>
+              Job(x.job_name, Map.empty, Cron(x.schedule).toOption,"","", x.failed, x.success, x.is_active)
+            })
           }.mapError{ e =>
             logger.error(e.getMessage)
             ExecutionError(e.getMessage)
@@ -61,10 +54,6 @@ trait TestSchedulerApp extends DbManager with TestSuiteHelper {
         override def getDbJobRuns(args: EtlFlowHelper.DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
           Query.getDbJobRuns(args,transactor)
         }
-
-        override def notifications: ZStream[EtlFlowHas, Nothing, EtlFlowHelper.EtlJobStatus] = ???
-
-        override def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowHelper.EtlFlowMetrics] = ???
 
         override def addCredentials(args: EtlFlowHelper.CredentialsArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.Credentials] = {
           Query.addCredentials(args,transactor)
@@ -78,6 +67,9 @@ trait TestSchedulerApp extends DbManager with TestSuiteHelper {
           Query.getDbStepRuns(args,transactor)
         }
 
+        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
+        override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
+        override def notifications: ZStream[EtlFlowHas, Nothing, EtlFlowHelper.EtlJobStatus] = ???
         override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
       }
     }

@@ -22,7 +22,6 @@ services:
     depends_on:
      - postgres
     environment:
-        PROPERTIES_FILE_PATH: /opt/docker/conf/loaddata.properties
         GOOGLE_APPLICATION_CREDENTIALS: /opt/docker/conf/cred.json
         LOG_DB_URL: 'jdbc:postgresql://postgres:5432/etlflow'
         LOG_DB_USER: etlflow

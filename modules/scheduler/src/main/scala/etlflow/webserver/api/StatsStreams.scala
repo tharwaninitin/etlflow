@@ -1,8 +1,8 @@
-package etlflow.scheduler.api
+package etlflow.webserver.api
 
 import cats.effect.{ContextShift, Sync, Timer}
 import cats.{Applicative, Functor}
-import etlflow.scheduler.util.CacheHelper
+import etlflow.utils.CacheHelper
 import fs2.{Pipe, Stream}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
@@ -10,10 +10,9 @@ import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
-
 import scala.concurrent.duration._
 
-class EtlFlowStreams[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) extends Http4sDsl[F] {
+class StatsStreams[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) extends Http4sDsl[F] {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
   val mb: Int = 1024*1024
   val runtime: Runtime = Runtime.getRuntime
@@ -25,7 +24,6 @@ class EtlFlowStreams[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) exte
 
   def stream[F[_]: Sync: ContextShift: Timer]: Stream[F, String] =
     ticker(
-      //Stream.eval(Sync[F].delay(Random.shuffle(List(1,2,3,4,5,6,7,8,9)).head))
       Stream.eval(Sync[F].delay{
         s"""
            |Used Memory: ${(runtime.totalMemory - runtime.freeMemory) / mb} </br>
@@ -43,7 +41,7 @@ class EtlFlowStreams[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) exte
           if(CacheHelper.getKey(cache,token).getOrElse("NA") == token){
             stream.map(s => WebSocketFrame.Text(s.toString))
           } else {
-            Stream.empty
+            Stream.eval(Sync[F].delay(WebSocketFrame.Close()))
         }
         val fromClient: Pipe[F, WebSocketFrame, Unit] = _.as(())
         WebSocketBuilder[F].build(toClient, fromClient, onClose = Applicative[F].pure(logger.info("Closed Web socket")))

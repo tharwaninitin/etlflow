@@ -1,7 +1,8 @@
-package etlflow.scheduler.schema
+package etlflow.schema
 
 import etlflow.EtlJobName
-import etlflow.scheduler.schema.MyEtlJobProps.EtlJob4Props
+import etlflow.schema.MyEtlJobProps.EtlJob4Props
+
 
 sealed trait MyEtlJobName[+EJP] extends EtlJobName[EJP]
 

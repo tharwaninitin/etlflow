@@ -1,9 +1,9 @@
-package etlflow.scheduler.api
+package etlflow.webserver.api
 
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema
 import caliban.{GraphQL, RootResolver}
-import etlflow.scheduler.api.EtlFlowHelper._
+import etlflow.utils.EtlFlowHelper._
 import zio.{Task, UIO, ZIO}
 import zio.blocking.Blocking
 import zio.clock.Clock

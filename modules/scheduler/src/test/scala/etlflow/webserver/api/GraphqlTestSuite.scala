@@ -1,7 +1,7 @@
-package etlflow.scheduler.api
+package etlflow.webserver.api
 
 import caliban.Macros.gqldoc
-import etlflow.scheduler.{TestSchedulerApp, TestSuiteHelper}
+import etlflow.webserver.{TestSchedulerApp, TestSuiteHelper}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console

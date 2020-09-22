@@ -1,8 +1,8 @@
 package etlflow.scheduler
 
 import doobie.hikari.HikariTransactor
-import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.scheduler.db.{Query, Update}
+import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.db.{Query, Update}
 import etlflow.utils.Executor._
 import etlflow.utils.{UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}

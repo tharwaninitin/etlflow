@@ -1,4 +1,4 @@
-package etlflow.scheduler.util
+package etlflow.utils
 
 import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}

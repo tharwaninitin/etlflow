@@ -1,6 +1,4 @@
-package etlflow.scheduler.api
-
-import java.util.Date
+package etlflow.utils
 
 import cron4s.CronExpr
 import etlflow.log.{JobRun, StepRun}
@@ -69,15 +67,12 @@ object EtlFlowHelper {
       def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
       def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime]
 
-
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
       def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
       def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]]
 
       def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
-      def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics]
-      // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo]
     }
   }
 
@@ -110,9 +105,6 @@ object EtlFlowHelper {
   def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] =
     ZIO.accessM[EtlFlowHas](_.get.getDbStepRuns(args))
 
-  def getStream: ZStream[EtlFlowHas, Nothing, EtlFlowMetrics] =
-    ZStream.accessStream[EtlFlowHas](_.get.getStream)
-
   def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] =
     ZIO.accessM[EtlFlowHas](_.get.getJobs)
 
@@ -124,13 +116,5 @@ object EtlFlowHelper {
 
   def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] =
     ZIO.accessM[EtlFlowHas](_.get.getCurrentTime)
-
-  //
-  // def getLogs: ZIO[EtlFlowHas, Throwable, EtlFlowInfo] = {
-  //   val x = ZIO.accessM[Blocking](_.get.blocking{
-  //     ZIO.unit
-  //   })
-  //   ZIO.accessM[EtlFlowHas](_.get.getLogs)
-  // }
 
 }

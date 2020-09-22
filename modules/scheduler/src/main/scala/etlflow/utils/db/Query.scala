@@ -1,4 +1,4 @@
-package etlflow.scheduler.db
+package etlflow.utils.db
 
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
@@ -10,9 +10,9 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
-import etlflow.scheduler.api.EtlFlowHelper.Creds.{AWS, JDBC}
-import etlflow.scheduler.api.EtlFlowHelper._
-import etlflow.scheduler.util.CacheHelper
+import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
+import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.CacheHelper
 import etlflow.utils.JsonJackson
 import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}

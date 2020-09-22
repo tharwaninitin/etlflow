@@ -1,4 +1,4 @@
-package etlflow.scheduler.schema
+package etlflow.schema
 
 import etlflow.EtlJobProps
 import etlflow.utils.Executor

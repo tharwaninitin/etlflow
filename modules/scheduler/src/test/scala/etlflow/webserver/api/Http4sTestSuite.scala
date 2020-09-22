@@ -1,8 +1,8 @@
-package etlflow.scheduler.api
+package etlflow.webserver.api
 
 import caliban.{CalibanError, GraphQLInterpreter, Http4sAdapter}
-import etlflow.scheduler.api.EtlFlowHelper.EtlFlowHas
-import etlflow.scheduler.{TestSchedulerApp, TestSuiteHelper}
+import etlflow.utils.EtlFlowHelper.EtlFlowHas
+import etlflow.webserver.{TestSchedulerApp, TestSuiteHelper}
 import io.circe.Json
 import org.http4s.{HttpRoutes, _}
 import org.http4s.circe._
@@ -18,6 +18,7 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, Runtime, Task, ZEnv, ZLayer}
 import io.circe.parser._
+
 object Http4sTestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSchedulerApp {
 
   val env: ZLayer[Any, Throwable, Clock with Blocking with EtlFlowHas with Console] =

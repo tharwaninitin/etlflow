@@ -23,8 +23,14 @@ object MyEtlJobProps {
       "LOG_DB_DRIVER"-> Option("org.postgresql.Driver")
     )
   )
-  case class SampleProps(override val job_deploy_mode: Executor = dataproc,
-                         override val job_schedule: String = "0 */1 * * * ?") extends MyEtlJobProps
+  case class SampleProps(
+                          override val job_deploy_mode: Executor = dataproc,
+                          override val job_schedule: String = "0 */15 * * * ?"
+                        ) extends MyEtlJobProps
+  case class LocalSampleProps(
+                               override val job_schedule: String = "0 */15 * * * ?",
+                               override val job_max_active_runs: Int = 1
+                             ) extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
                             ratings_intermediate_path: String = "",

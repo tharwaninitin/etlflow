@@ -9,11 +9,12 @@ import zio.duration._
 
 case class EtlJob2DefinitionLocal(job_properties: MyEtlJobProps, globalProperties: Config) extends GenericEtlJob {
 
-  throw new RuntimeException("!! Error in job instance creation")
+  //throw new RuntimeException("!! Error in job instance creation")
 
   def processData(ip: Unit): Unit = {
     etl_job_logger.info("Hello World")
-    throw new RuntimeException("!! step failed")
+    Thread.sleep(10000)
+    //throw new RuntimeException("!! step failed")
   }
 
   val step1 = {

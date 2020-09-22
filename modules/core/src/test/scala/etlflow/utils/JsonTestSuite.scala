@@ -36,8 +36,8 @@ class JsonTestSuite extends FlatSpec with Matchers {
   val excludeKeys = List("job_run_id","job_description","job_properties","job_aggregate_error")
 
   //Input data for all logging level and deploy mode.
-  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG, job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,None,None,None))
-  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO,job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,None,None,None))
+  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG, job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
+  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO,job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
   val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.DATAPROC("","","",""))
   val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.LOCAL)
 
@@ -46,6 +46,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
   val outputDebugLevel = Map("job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "debug",
+    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
     "ratings_output_dataset" -> "test",
@@ -56,6 +57,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
     "job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "info",
+    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
     "ratings_output_dataset" -> "test",
@@ -65,6 +67,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
   val outputJobLevel = Map("job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "job",
+    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
     "ratings_output_dataset" -> "test",
@@ -74,6 +77,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
   val outputJobLevelNegative = Map("job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "info",
+    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
     "ratings_output_dataset" -> "test",
@@ -90,7 +94,8 @@ class JsonTestSuite extends FlatSpec with Matchers {
                                    |  "job_notification_level" : "debug",
                                    |  "job_deploy_mode" : "kubernetes",
                                    |  "job_enable_db_logging" : true,
-                                   |  "job_schedule" : ""
+                                   |  "job_schedule" : "",
+                                   |  "job_max_active_runs" : 10
                                    |}""".stripMargin
 
   val expectedserializerNegativeOutput = """{
@@ -101,7 +106,8 @@ class JsonTestSuite extends FlatSpec with Matchers {
                                            |  "job_notification_level" : "debug",
                                            |  "job_deploy_mode" : "local",
                                            |  "job_enable_db_logging" : true,
-                                           |  "job_schedule" : ""
+                                           |  "job_schedule" : "",
+                                           |  "job_max_active_runs" : 10
                                            |}""".stripMargin
 
 

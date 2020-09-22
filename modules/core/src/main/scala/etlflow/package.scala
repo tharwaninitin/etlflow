@@ -25,6 +25,7 @@ package object etlflow {
     val job_send_slack_notification: Boolean  = false
     val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
     val job_schedule: String                  = ""
+    val job_max_active_runs: Int              = 10
     val job_deploy_mode: Executor             = Executor.LOCAL
   }
 

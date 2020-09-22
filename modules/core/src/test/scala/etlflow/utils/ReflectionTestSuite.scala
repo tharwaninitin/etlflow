@@ -1,5 +1,6 @@
 package etlflow.utils
 
+import etlflow.Schema.RatingOutput
 import etlflow.utils.{UtilityFunctions => UF}
 import org.scalatest.{FlatSpec, Matchers}
 import scala.reflect.runtime.universe.TypeTag
@@ -39,4 +40,12 @@ class ReflectionTestSuite extends FlatSpec with Matchers {
   "getEtlJobs(EtlJob) should " should "retrieve Set successfully" in {
     assert(UF.getEtlJobs[EtlJob] == Set("Job3", "Job4"))
   }
+
+  "getFields[RatingOutput] should " should "run successfully" in {
+    assert(
+      UF.getFields[RatingOutput] == Seq(("date_int","Int"), ("date","java.sql.Date"),
+      ("timestamp","Long"), ("rating","Double"), ("movie_id","Int"), ("user_id","Int"))
+    )
+  }
+
 }

@@ -1,9 +1,8 @@
 package etlflow.etlsteps
 
-import doobie.hikari.HikariTransactor
 import etlflow.jdbc.{DbManager, QueryApi}
 import etlflow.utils.{JDBC, LoggingLevel}
-import zio.{Managed, Task}
+import zio.Task
 
 class DBQueryStep private[etlflow](
                                     val name: String,
@@ -13,14 +12,11 @@ class DBQueryStep private[etlflow](
   extends EtlStep[Unit,Unit]
     with DbManager{
 
-  lazy val db: Managed[Throwable, HikariTransactor[Task]] =
-    createDbTransactorManagedJDBC(credentials, scala.concurrent.ExecutionContext.Implicits.global,  name + "-Pool")
-
   final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting DB Query Step: $name")
     etl_logger.info(s"Query: $query")
-    QueryApi.executeQuery(db, query)
+    QueryApi.executeQuery(createDbTransactorManaged(credentials, scala.concurrent.ExecutionContext.Implicits.global,  name + "-Pool"), query)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)

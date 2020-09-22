@@ -1,22 +1,18 @@
 package etlflow.log
 
-import ch.qos.logback.classic.{Level, Logger => LBLogger}
-import org.slf4j.{Logger, LoggerFactory}
-import etlflow.{EtlJobProps, TestSparkSession}
-import etlflow.Schema.Rating
-import etlflow.etlsteps.{GenericETLStep, SparkReadStep}
-import etlflow.spark.SparkManager
-import etlflow.utils.{LoggingLevel, PARQUET}
-import org.apache.spark.sql.SparkSession
+import java.util.TimeZone
+import etlflow.EtlJobProps
+import etlflow.etlsteps.GenericETLStep
+import etlflow.utils.LoggingLevel
 import org.slf4j.{Logger, LoggerFactory}
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
+object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  private val canonical_path = new java.io.File(".").getCanonicalPath
+  private val tz = TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
   val slack_url = ""
   val slack_env = "dev-testing"
@@ -35,10 +31,9 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
     msg.replaceAll("[0-9]", "x").replaceAll("\\s+","").replaceAll("x","")
   }
 
-  val step2 = SparkReadStep[Rating](
-    name             = "GetRatingsParquet",
-    input_location   = Seq(s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"),
-    input_type       = PARQUET,
+  val step2 = GenericETLStep(
+    name               = "ProcessData",
+    transform_function = processData,
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
@@ -56,7 +51,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
 
       val message = cleanSlackMessage(f"""
               :large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
-                *Time of Execution*: xxxx-xx-xx xx:xx:xxIST
+                *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
                 *Steps (Task - Duration)*:
                   :small_blue_diamond:*ProcessData* - (x.xx secs)
               """.stripMargin)
@@ -81,7 +76,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
 
       val message = cleanSlackMessage(f"""
                     :red_circle: dev-testing - EtlSlackJob Process *Failed!*
-                    *Time of Execution*: xxxx-xx-xx xx:xx:xxIST
+                    *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
                     *Steps (Task - Duration)*:
                       :small_orange_diamond:*ProcessData* - (x.xx secs)
 			                  error -> Failed in processing data
@@ -110,12 +105,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
         } yield ()
 
       val debugMessage = cleanSlackMessage(s""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
-                           |          *Time of Execution*: xxxx-xx-xx xx:xx:xxIST
+                           |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
                            |          *Steps (Task - Duration)*:
                            | :small_blue_diamond:*ProcessData* - (x.xx secs)
                            |
-                           | :small_blue_diamond:*GetRatingsParquet* - (x.xx secs)
-                           |			 input_location -> $canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet, input_type -> PARQUET, input_class -> `user_id` INT,`movie_id` INT,`rating` DOUBLE,`timestamp` BIGINT
+                           | :small_blue_diamond:*ProcessData* - (x.xx secs)
                            |""".stripMargin)
 
       val slackMessageResult =
@@ -142,7 +136,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
 
 
       val debugFailureMessage = cleanSlackMessage(s""":red_circle: dev-testing - EtlSlackJob Process *Failed!*
-                                  |          *Time of Execution*: xxxx-xx-xx xx:xx:xxIST
+                                  |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
                                   |          *Steps (Task - Duration)*:
                                   | :small_orange_diamond:*ProcessData* - (x.xx secs)
                                   |			 , error -> Failed in processing data""".stripMargin)
@@ -165,8 +159,8 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
 
       val job = step1.execute()
 
-      val message = cleanSlackMessage(""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
-                      |          *Time of Execution*: xxxx-xx-xx xx:xx:xxIST""".stripMargin)
+      val message = cleanSlackMessage(s""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
+                      |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz""".stripMargin)
 
       val slackJobLevelExecutor =
         for {
@@ -186,8 +180,8 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSparkSession {
 
       val job = step1.execute()
 
-      val message = cleanSlackMessage(""":red_circle: dev-testing - EtlSlackJob Process *Failed!*
-                      |          *Time of Execution*: xxxx-xx-xx xx:xx:xxIST
+      val message = cleanSlackMessage(s""":red_circle: dev-testing - EtlSlackJob Process *Failed!*
+                      |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
                       |          *Steps (Task - Duration)*:
                       |                      :small_orange_diamond:*ProcessData* - (x.xx secs)
                       |			                  error -> Failed in processing data""".stripMargin)

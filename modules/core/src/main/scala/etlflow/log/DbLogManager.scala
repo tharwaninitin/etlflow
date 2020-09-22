@@ -126,7 +126,7 @@ object DbLogManager extends DbManager{
          job_properties: EtlJobProps
        ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
-      createDbTransactorManagedGP(global_properties,ec,blocker,pool_name)
+      createDbTransactorManaged(global_properties.dbLog,ec,pool_name)(blocker)
         .map { transactor =>
           Some(new DbLogManager(transactor, job_name, job_properties))
         }

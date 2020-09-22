@@ -22,8 +22,8 @@ object MyEtlJobName {
   case object Job1LocalJobDPSparkStep extends MyEtlJobName[SampleProps] {
     override def getActualProperties(job_properties: Map[String, String]): SampleProps = SampleProps()
   }
-  case object Job2LocalJobGenericStep extends MyEtlJobName[SampleProps] {
-    override def getActualProperties(job_properties: Map[String, String]): SampleProps = SampleProps()
+  case object Job2LocalJobGenericStep extends MyEtlJobName[LocalSampleProps] {
+    override def getActualProperties(job_properties: Map[String, String]): LocalSampleProps = LocalSampleProps()
   }
   case object EtlJob2CSVtoPARQUETtoBQLocalWith3Steps extends MyEtlJobName[EtlJob23Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob23Props = EtlJob23Props(
@@ -39,8 +39,8 @@ object MyEtlJobName {
       ratings_output_table_name = job_properties.getOrElse("ratings_output_table_name","ratings_par")
     )
   }
-  case object EtlJob4BQtoBQ extends MyEtlJobName[EtlJob4Props] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props()
+  case object EtlJob4BQtoBQ extends MyEtlJobName[EtlJob6Props] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob6Props = EtlJob6Props()
   }
   case object EtlJob5PARQUETtoJDBC extends MyEtlJobName[EtlJob5Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob5Props = EtlJob5Props(

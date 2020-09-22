@@ -37,8 +37,8 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
   val student2: Student = JsonCirce.convertToObject[Student](student2Json)
 
   //Input data for all logging level and deploy mode.
-  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG, job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,None,None,None))
-  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO,job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,None,None,None))
+  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG, job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
+  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO,job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
   val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.DATAPROC("","","",""))
   val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.LOCAL)
 

@@ -6,11 +6,10 @@ import etlflow.EtlJobProps
 import etlflow.Schema.HttpBinResponse
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.spark.SparkUDF
 import etlflow.utils.{Config, SMTP}
 
 case class Job3HttpSmtpSteps(job_properties: EtlJobProps, globalProperties: Config)
-  extends GenericEtlJob with SparkUDF {
+  extends GenericEtlJob {
 
   val step1 = HttpStep(
     name         = "HttpGetSimple",

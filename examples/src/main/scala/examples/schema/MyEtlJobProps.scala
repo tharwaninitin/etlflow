@@ -1,14 +1,17 @@
 package examples.schema
 
 import etlflow.EtlJobProps
-import etlflow.utils.Executor.{DATAPROC, KUBERNETES}
+import etlflow.utils.Executor.{DATAPROC, KUBERNETES,LOCAL_SUBPROCESS}
 import etlflow.utils.{Executor, LoggingLevel}
 
 sealed trait MyEtlJobProps extends EtlJobProps
 
 object MyEtlJobProps {
 
+  val local_subprocess = LOCAL_SUBPROCESS("target/universal/stage/bin/load-data",heap_min_memory = "-Xms100m",heap_max_memory = "-Xms100m")
+
   val dataproc   = DATAPROC("project-name","region","endpoint","cluster-name")
+
   val kubernetes = KUBERNETES(
     "etlflow:0.7.19",
     "default",
@@ -20,8 +23,14 @@ object MyEtlJobProps {
       "LOG_DB_DRIVER"-> Option("org.postgresql.Driver")
     )
   )
-  case class SampleProps(override val job_deploy_mode: Executor = dataproc,
-                         override val job_schedule: String = "0 */1 * * * ?") extends MyEtlJobProps
+  case class SampleProps(
+                          override val job_deploy_mode: Executor = dataproc,
+                          override val job_schedule: String = "0 */15 * * * ?"
+                        ) extends MyEtlJobProps
+  case class LocalSampleProps(
+                               override val job_schedule: String = "0 */15 * * * ?",
+                               override val job_max_active_runs: Int = 1
+                             ) extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
                             ratings_intermediate_path: String = "",
@@ -40,9 +49,13 @@ object MyEtlJobProps {
                              override val job_notification_level: LoggingLevel = LoggingLevel.INFO,
                            ) extends MyEtlJobProps
   case class EtlJob4Props() extends MyEtlJobProps
+
+
   case class EtlJob5Props (
                             ratings_input_path: List[String] = List(""),
                             override val job_schedule: String = "0 0 5,6 ? * *",
                             ratings_output_table: String = "",
                           ) extends MyEtlJobProps
+
+  case class EtlJob6Props(override val job_deploy_mode: Executor = local_subprocess) extends MyEtlJobProps
 }

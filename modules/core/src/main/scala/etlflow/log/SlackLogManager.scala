@@ -2,13 +2,10 @@ package etlflow.log
 
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{Config, LoggingLevel, UtilityFunctions => UF}
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.HttpClients
+import etlflow.utils.{Config, HttpClientApi, LoggingLevel, UtilityFunctions => UF}
 import zio.Task
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
-import scala.util.Try
+import zio.Runtime.global.unsafeRun
 
 class SlackLogManager private[log] (
                                      val job_name: String,
@@ -92,14 +89,15 @@ class SlackLogManager private[log] (
     if (job_properties.job_notification_level == LoggingLevel.DEBUG)
       println(data)
 
-    Try {
-      val client = HttpClients.createDefault
-      val slackApi = new HttpPost(web_hook_url)
-      val json_data = f""" { "text" : "$data" } """
-      val entity = new StringEntity(json_data)
-      slackApi.setEntity(entity);
-      client.execute(slackApi);
-    }
+    unsafeRun(HttpClientApi.post(
+      web_hook_url,
+      Left(f""" { "text" : "$data" } """),
+      Map("content-type"->"application/json"),
+      log_response = false
+    ).fold(
+      ex  => println("Error in sending slack notification: " + ex.getMessage),
+      _   => println("Sent slack notification")
+    ))
   }
 }
 

@@ -11,22 +11,22 @@ import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: TypeTag, OPSTATE] private[etlsteps] (
-                                                                                                                  val name : String
-                                                                                                                  ,input_location: Seq[String]
-                                                                                                                  ,input_type: IOType
-                                                                                                                  // ,input_columns: Seq[String] = Seq("*")
-                                                                                                                  ,input_filter: String = "1 = 1"
-                                                                                                                  ,output_location: String
-                                                                                                                  ,output_type: IOType
-                                                                                                                  ,output_filename: Option[String] = None
-                                                                                                                  ,output_partition_col: Seq[String] = Seq.empty[String]
-                                                                                                                  ,output_save_mode: SaveMode = SaveMode.Append
-                                                                                                                  ,output_repartitioning: Boolean = false
-                                                                                                                  ,transform_function: Either[
-  Option[(SparkSession,DatasetWithState[T, IPSTATE]) => DatasetWithState[O, OPSTATE]],
-  Option[(SparkSession,Dataset[T]) => Dataset[O]]
-]
-                                                                                                                )
+      val name : String
+      ,input_location: Seq[String]
+      ,input_type: IOType
+      // ,input_columns: Seq[String] = Seq("*")
+      ,input_filter: String = "1 = 1"
+      ,output_location: String
+      ,output_type: IOType
+      ,output_filename: Option[String] = None
+      ,output_partition_col: Seq[String] = Seq.empty[String]
+      ,output_save_mode: SaveMode = SaveMode.Append
+      ,output_repartitioning: Boolean = false
+      ,transform_function: Either[
+        Option[(SparkSession,DatasetWithState[T, IPSTATE]) => DatasetWithState[O, OPSTATE]],
+        Option[(SparkSession,Dataset[T]) => Dataset[O]]
+      ]
+  )
   extends EtlStep[IPSTATE,OPSTATE] {
   private var recordsWrittenCount = 0L
   var spark: Option[SparkSession] = None

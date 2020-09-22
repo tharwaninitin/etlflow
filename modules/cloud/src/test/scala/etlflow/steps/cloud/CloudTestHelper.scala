@@ -25,6 +25,7 @@ trait CloudTestHelper {
 
   val canonical_path: String    = new java.io.File(".").getCanonicalPath
   val file                      = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+  val file_csv                  = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings/ratings_1.csv"
 
   // val stream: Stream[Task, Unit] = for {
   //   s  <- Stream.resource(session)

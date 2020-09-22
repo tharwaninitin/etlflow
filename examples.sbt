@@ -14,6 +14,8 @@ lazy val examples = (project in file("examples"))
     scalaVersion := "2.12.10",
     libraryDependencies ++= List(
         "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
+        "com.github.tharwaninitin" %% "etlflow-cloud" % EtlFlowVersion,
+        "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
         "com.github.tharwaninitin" %% "etlflow-scheduler" % EtlFlowVersion,
         "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
         "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
@@ -42,8 +44,18 @@ lazy val examples = (project in file("examples"))
     dockerExposedPorts ++= Seq(8080),
     maintainer := "tharwaninitin182@gmail.com",
     // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
-    mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
-    //mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json"),
+    // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
+    // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json"),
     mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+    mainClass in assembly := Some("examples.LoadData"),
+    assemblyJarName in assembly := "etljobs-examples-assembly_2.12-0.7.19.jar",
+    assemblyMergeStrategy in assembly := {
+       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+       case x => MergeStrategy.first
+    },
+    assemblyShadeRules in assembly := Seq(
+      ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
+      ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll
+    )
   )

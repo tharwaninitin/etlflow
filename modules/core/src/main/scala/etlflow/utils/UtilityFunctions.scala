@@ -23,7 +23,7 @@ object UtilityFunctions {
   }
 
   def getCurrentTimestamp: Long = System.currentTimeMillis()
-
+  // https://stackoverflow.com/questions/24806183/get-date-in-current-timezone-in-java
   def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
     DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
@@ -96,6 +96,10 @@ object UtilityFunctions {
     val constructor = classVal.getConstructor()
     constructor.newInstance().asInstanceOf[T]
   }
+
+  def getFields[T: TypeTag]: Seq[(String, String)] = typeOf[T].members.collect {
+     case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
+  }.toSeq
 
 //  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
 //    Try {

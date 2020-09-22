@@ -10,19 +10,19 @@ import examples.schema.MyEtlJobProps
 case class EtlJob4Definition(job_properties: MyEtlJobProps, globalProperties: Config)
   extends SequentialEtlJob  {
   private val select_query: String = """
-      | SELECT movie_id, COUNT(1) cnt
-      | FROM test.ratings
-      | GROUP BY movie_id
-      | ORDER BY cnt DESC;
-      |""".stripMargin
+                                       | SELECT movieId, COUNT(1) cnt
+                                       | FROM test.ratings
+                                       | GROUP BY movieId
+                                       | ORDER BY cnt DESC;
+                                       |""".stripMargin
 
   private val getQuery: String => String = param => s"""
-     | SELECT date, movie_id, COUNT(1) cnt
-     | FROM test.ratings_par
-     | WHERE date = '$param'
-     | GROUP BY date, movie_id
-     | ORDER BY cnt DESC;
-     |""".stripMargin
+                                                       | SELECT date, movie_id, COUNT(1) cnt
+                                                       | FROM test.ratings_par
+                                                       | WHERE date = '$param'
+                                                       | GROUP BY date, movie_id
+                                                       | ORDER BY cnt DESC;
+                                                       |""".stripMargin
 
   private val input_query_partitions = Seq(
     (getQuery("2016-01-01"),"20160101"),

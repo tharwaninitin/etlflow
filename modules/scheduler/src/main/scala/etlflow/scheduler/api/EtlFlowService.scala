@@ -25,52 +25,64 @@ trait EtlFlowService {
   val javaRuntime: java.lang.Runtime = java.lang.Runtime.getRuntime
   val mb: Int = 1024*1024
 
-  def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC): Task[EtlJob]
-  def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES): Task[EtlJob]
-  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task]): Task[EtlJob]
+  def getEtlJobs[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
+    Task{
+      UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobActualProps[EJN,EJP](x,etl_job_name_package))).toList
+    }.mapError{ e =>
+      logger.error(e.getMessage)
+      ExecutionError(e.getMessage)
+    }
+  }
+  private def getJobActualProps[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = {
+    val name = UF.getEtlJobName[EJN](jobName, etl_job_name_package)
+    val exclude_keys = List("job_run_id","job_description","job_properties")
+    JsonJackson.convertToJsonByRemovingKeysAsMap(name.getActualProperties(Map.empty), exclude_keys).map(x => (x._1, x._2.toString))
+  }
+  def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
+    for {
+      rt          <- Task.runtime
+      semaphores  = jobs.map(job =>
+                    (job.name, rt.unsafeRun(Semaphore.make(permits = job.props("job_max_active_runs").toLong)))
+                  ).toMap
+    } yield semaphores
+  }
+
+  def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC, sem: Semaphore): Task[EtlJob]
+  def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES, sem: Semaphore): Task[EtlJob]
+  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore): Task[EtlJob]
+  def runEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task],config: LOCAL_SUBPROCESS, sem: Semaphore): Task[EtlJob]
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
       transactor: HikariTransactor[Task],
       cache: Cache[String],
-      cronJobs: Ref[List[CronJob]]
+      cronJobs: Ref[List[CronJob]],
+      jobSemaphores: Map[String, Semaphore],
+      jobs: List[EtlJob]
     ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
     for {
-      subscribers       <- Ref.make(List.empty[Queue[EtlJobStatus]])
-      activeJobs        <- Ref.make(0)
+      subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
+      activeJobs            <- Ref.make(0)
+      etl_job_name_package  = UF.getJobNamePackage[EJN] + "$"
     } yield new EtlFlow.Service {
-
-      val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
-
-      private def getEtlJobs: Task[List[EtlJob]] = {
-        Task{
-          UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobActualProps(x))).toList
-        }.mapError{ e =>
-          logger.error(e.getMessage)
-          ExecutionError(e.getMessage)
-        }
-      }
-
-      private def getJobActualProps(jobName: String): Map[String, String] = {
-        val name = UF.getEtlJobName[EJN](jobName, etl_job_name_package)
-        val exclude_keys = List("job_run_id","job_description","job_properties")
-        JsonJackson.convertToJsonByRemovingKeysAsMap(name.getActualProperties(Map.empty), exclude_keys).map(x => (x._1, x._2.toString))
-      }
 
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
         val job_deploy_mode = UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
         job_deploy_mode match {
+          case LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory) =>
+            logger.info("Running job in local sub-process mode ")
+            runEtlJobLocalSubProcess(args, transactor,LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory), jobSemaphores(args.name))
           case LOCAL =>
-            logger.info("Running job in local mode ")
-            runEtlJobLocal(args, transactor)
+            logger.info("Running job in local in-process mode ")
+            runEtlJobLocal(args, transactor, jobSemaphores(args.name))
           case DATAPROC(project, region, endpoint, cluster_name) =>
             logger.info("Dataproc parameters are : " + project + "::" + region + "::"  + endpoint +"::" + cluster_name)
-            runEtlJobDataProc(args, transactor, DATAPROC(project, region, endpoint, cluster_name))
+            runEtlJobDataProc(args, transactor, DATAPROC(project, region, endpoint, cluster_name), jobSemaphores(args.name))
           case LIVY(_) =>
             logger.error("Deploy mode livy not yet supported")
             Task.fail(ExecutionError("Deploy mode livy not yet supported"))
           case KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) =>
             logger.info("KUBERNETES parameters are : " + imageName + "::" + envVar + "::" + nameSpace + "::" + containerName + "::" + entryPoint + "::" + restartPolicy)
-            runEtlJobKubernetes(args, transactor, KUBERNETES(imageName,nameSpace, envVar))
+            runEtlJobKubernetes(args, transactor, KUBERNETES(imageName,nameSpace, envVar), jobSemaphores(args.name))
         }
       }
 
@@ -87,11 +99,10 @@ trait EtlFlowService {
           x <- activeJobs.get
           y <- subscribers.get
           z <- cronJobs.get
-          a <- getEtlJobs
         } yield EtlFlowMetrics(
           x,
           y.length,
-          a.length,
+          jobs.length,
           z.length,
           used_memory = ((javaRuntime.totalMemory - javaRuntime.freeMemory) / mb).toString,
           free_memory = (javaRuntime.freeMemory / mb).toString,
@@ -109,6 +120,7 @@ trait EtlFlowService {
           current_time = UF.getCurrentTimestampAsString()
         )
       }
+
       override def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] = {
         Query.addCredentials(args,transactor)
       }
@@ -142,18 +154,22 @@ trait EtlFlowService {
       }
 
       override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
-        Query.getJobs(transactor)
+        for {
+          rt    <- Task.runtime
+          jobs  <- Query.getJobs(transactor)
           .map(y => y.map{x => {
-            if(Cron(x.schedule).toOption.getOrElse("") != "") {
+            if(Cron(x.schedule).toOption.isDefined) {
               val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
-              val endTime = sdf.parse(Cron(x.schedule).toOption.get.next(LocalDateTime.now()).getOrElse("").toString).getTime
+              val cron = Cron(x.schedule).toOption
+              val endTime = sdf.parse(cron.get.next(LocalDateTime.now()).getOrElse("").toString).getTime
               val startTime = sdf.parse(LocalDateTime.now().toString).getTime
-              val nextScheduleTime = Cron(x.schedule).toOption.get.next(LocalDateTime.now()).getOrElse("").toString
-              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption,nextScheduleTime,UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active)
+              val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
+              Job(x.job_name, getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package), cron, nextScheduleTime, UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active)
             }else{
-              Job(x.job_name, getJobActualProps(x.job_name), Cron(x.schedule).toOption,"","", x.failed, x.success, x.is_active)
+              Job(x.job_name, getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package), None, "", "", x.failed, x.success, x.is_active)
             }
           }})
+        } yield jobs
       }.mapError{ e =>
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)

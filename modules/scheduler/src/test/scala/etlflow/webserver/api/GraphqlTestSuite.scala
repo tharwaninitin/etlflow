@@ -1,18 +1,18 @@
 package etlflow.webserver.api
 
 import caliban.Macros.gqldoc
-import etlflow.webserver.{TestSchedulerApp, TestSuiteHelper}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSchedulerApp {
+object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
   val env = Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
   val etlFlowInterpreter = EtlFlowApi.api.interpreter
   val loginInterpreter   = LoginApi.api.interpreter
+  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
   suite("Scheduler Execution Spec")(
@@ -151,8 +151,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestSuiteHelper with Te
                  name
                 }
                }""")
-
-      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.errors.toString))(equalTo("""List(Execution Error: Can't build a trait from input 123 )""".stripMargin)
+      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"swap123"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
       )
     },
     testM("Test update credentials end point") {

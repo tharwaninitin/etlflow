@@ -2,14 +2,14 @@ package etlflow.webserver.api
 
 import caliban.{CalibanError, GraphQLInterpreter, Http4sAdapter}
 import etlflow.utils.EtlFlowHelper.EtlFlowHas
-import etlflow.webserver.{TestSchedulerApp, TestSuiteHelper}
 import io.circe.Json
-import org.http4s.{HttpRoutes, _}
+import io.circe.parser._
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.Router
+import org.http4s.{HttpRoutes, _}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
@@ -17,9 +17,10 @@ import zio.interop.catz._
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, Runtime, Task, ZEnv, ZLayer}
-import io.circe.parser._
 
-object Http4sTestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSchedulerApp {
+object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
+
+  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   val env: ZLayer[Any, Throwable, Clock with Blocking with EtlFlowHas with Console] =
     Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live

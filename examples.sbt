@@ -1,7 +1,7 @@
 import NativePackagerHelper._
 import Dependencies._
 
-val EtlFlowVersion = "0.7.19"
+val EtlFlowVersion = "0.8.0"
 
 lazy val loggerTask = TaskKey[Unit]("loggerTask")
 

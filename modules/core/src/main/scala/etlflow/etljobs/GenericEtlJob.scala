@@ -1,7 +1,7 @@
 package etlflow.etljobs
 
 import cats.effect.Blocker
-import etlflow.LoggerResource
+import etlflow.{EtlJobProps, LoggerResource}
 import etlflow.log.EtlLogger.JobLogger
 import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
@@ -9,7 +9,7 @@ import zio.blocking.Blocking
 import zio.internal.Platform
 import zio.{Has, Task, UIO, ZEnv, ZIO, ZLayer, ZManaged}
 
-trait GenericEtlJob extends EtlJob {
+trait GenericEtlJob[+EJP <: EtlJobProps] extends EtlJob[EJP] {
 
   def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
@@ -41,7 +41,7 @@ trait GenericEtlJob extends EtlJob {
 
   private[etljobs] lazy val logger_resource: ZManaged[Blocking ,Throwable, LoggerResource] = for {
     blocker    <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
-    db         <- DbLogManager.createOptionDbTransactorManagedGP(globalProperties, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties)
-    slack      <- SlackLogManager.createSlackLogger(job_name, job_properties, globalProperties).toManaged_
+    db         <- DbLogManager.createOptionDbTransactorManagedGP(config, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties)
+    slack      <- SlackLogManager.createSlackLogger(job_name, job_properties, config).toManaged_
   } yield LoggerResource(db,slack)
 }

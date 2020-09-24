@@ -1,20 +1,19 @@
 package etlflow.jobs
 
-import etlflow.{EtlJobProps, EtlStepList, TestSparkSession}
-import etlflow.Schema.{EtlJob1Props, Rating, RatingBQ, RatingOutput, RatingOutputCsv}
+import etlflow.Schema._
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
 import etlflow.spark.SparkUDF
-import etlflow.utils.{BQ, CSV, Config, JSON, PARQUET}
-import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
+import etlflow.utils.{BQ, CSV, JSON, PARQUET}
+import etlflow.{EtlStepList, TestSparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
+import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 
+case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJob1Props)
+  extends SequentialEtlJob[EtlJob1Props] with SparkUDF with TestSparkSession {
 
-case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJobProps, globalProperties: Config)
-  extends SequentialEtlJob with SparkUDF with TestSparkSession {
-
-  val job_props: EtlJob1Props = job_properties.asInstanceOf[EtlJob1Props]
+  val job_props: EtlJob1Props = job_properties
   val partition_date_col  = "date_int"
 
   val step1 = SparkReadWriteStep[RatingBQ](

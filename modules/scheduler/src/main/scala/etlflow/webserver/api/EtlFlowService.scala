@@ -1,12 +1,11 @@
 package etlflow.webserver.api
 
-import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
+import etlflow.executor.Executor
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Query
-import etlflow.utils.Executor._
-import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.utils.{Config, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import scalacache.Cache
 import zio._
@@ -14,12 +13,9 @@ import zio.blocking.Blocking
 import zio.stream.ZStream
 import scala.reflect.runtime.universe.TypeTag
 
-trait EtlFlowService extends EtlFlowUtils {
+trait EtlFlowService extends EtlFlowUtils with Executor {
 
-  def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC, sem: Semaphore): Task[EtlJob]
-  def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES, sem: Semaphore): Task[EtlJob]
-  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore): Task[EtlJob]
-  def runEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task], config: LOCAL_SUBPROCESS, sem: Semaphore): Task[EtlJob]
+  val config: Config
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
       transactor: HikariTransactor[Task],
@@ -41,23 +37,7 @@ trait EtlFlowService extends EtlFlowUtils {
       }
 
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
-        UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode match {
-          case LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory) =>
-            logger.info("Running job in local sub-process mode ")
-            runEtlJobLocalSubProcess(args, transactor,LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory), jobSemaphores(args.name))
-          case LOCAL =>
-            logger.info("Running job in local in-process mode ")
-            runEtlJobLocal(args, transactor, jobSemaphores(args.name))
-          case DATAPROC(project, region, endpoint, cluster_name) =>
-            logger.info("Dataproc parameters are : " + project + "::" + region + "::"  + endpoint +"::" + cluster_name)
-            runEtlJobDataProc(args, transactor, DATAPROC(project, region, endpoint, cluster_name), jobSemaphores(args.name))
-          case LIVY(_) =>
-            logger.error("Deploy mode livy not yet supported")
-            Task.fail(ExecutionError("Deploy mode livy not yet supported"))
-          case KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) =>
-            logger.info("KUBERNETES parameters are : " + imageName + "::" + envVar + "::" + nameSpace + "::" + containerName + "::" + entryPoint + "::" + restartPolicy)
-            runEtlJobKubernetes(args, transactor, KUBERNETES(imageName,nameSpace, envVar), jobSemaphores(args.name))
-        }
+        runEtlJob[EJN,EJP](args,transactor,jobSemaphores(args.name),config,etl_job_name_package)
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {

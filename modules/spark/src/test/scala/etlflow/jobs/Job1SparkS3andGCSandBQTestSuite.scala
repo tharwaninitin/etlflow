@@ -11,7 +11,7 @@ object Job1SparkS3andGCSandBQTestSuite extends DefaultRunnableSpec with TestSuit
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
       testM("Execute Etl Job 1") {
-        val job = Job1SparkS3andGCSandBQSteps(EtlJob1Props(),global_properties)
+        val job = Job1SparkS3andGCSandBQSteps(EtlJob1Props())
         assertM(job.execute().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     )

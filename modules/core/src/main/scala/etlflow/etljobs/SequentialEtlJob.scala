@@ -1,11 +1,11 @@
 package etlflow.etljobs
 
-import etlflow.LoggerResource
+import etlflow.{EtlJobProps, LoggerResource}
 import etlflow.etlsteps._
 import etlflow.utils.LoggingLevel
 import zio.{Has, Task, ZEnv, ZIO}
 
-trait SequentialEtlJob extends GenericEtlJob {
+trait SequentialEtlJob[+EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
 
   def etlStepList: List[EtlStep[Unit,Unit]]
 

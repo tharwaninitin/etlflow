@@ -1,10 +1,10 @@
 package etlflow.scheduler
 
 import doobie.hikari.HikariTransactor
+import etlflow.executor.Executor
 import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.db.{Query, Update}
-import etlflow.utils.Executor._
-import etlflow.utils.{UtilityFunctions => UF}
+import etlflow.utils.db.Update
+import etlflow.utils.{Config, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
@@ -16,11 +16,12 @@ import zio.interop.catz._
 import zio.interop.catz.implicits._
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]  {
+abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag] extends Executor {
 
   lazy val scheduler_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  val etl_job_name_package: String
+  val config: Config
+  val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
   final def refreshCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]] = {
     val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
@@ -33,62 +34,6 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
       )
     }
     Update.updateCronJobsDB(transactor, cronJobsDb)
-  }
-
-  final def runActiveEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC, sem: Semaphore): Task[Unit] = {
-    for {
-      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      cj <- Query.getCronJobFromDB(args.name,transactor)
-      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobDataProc(args,transactor,config,sem)
-      else UIO(
-        scheduler_logger.info(
-          s"Skipping inactive cron job ${cj.job_name} with schedule " +
-            s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
-        )
-      )
-    } yield ()
-  }
-
-  final def runActiveEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES, sem: Semaphore): Task[Unit] = {
-    for {
-      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      cj <- Query.getCronJobFromDB(args.name,transactor)
-      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobKubernetes(args,transactor,config,sem)
-      else UIO(
-        scheduler_logger.info(
-          s"Skipping inactive cron job ${cj.job_name} with schedule " +
-            s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
-        )
-      )
-    } yield ()
-  }
-
-  final def runActiveEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore): Task[Unit] = {
-    for {
-      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      cj <- Query.getCronJobFromDB(args.name,transactor)
-      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobLocal(args,transactor,sem)
-      else UIO(
-        scheduler_logger.info(
-          s"Skipping inactive cron job ${cj.job_name} with schedule " +
-            s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
-        )
-      )
-    } yield ()
-  }
-
-  final def runActiveEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task],config: LOCAL_SUBPROCESS, sem: Semaphore): Task[Unit] = {
-    for {
-      _  <- UIO(scheduler_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      cj <- Query.getCronJobFromDB(args.name,transactor)
-      _  <- if (cj.is_active) UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJobLocalSubProcess(args,transactor,config,sem)
-      else UIO(
-        scheduler_logger.info(
-          s"Skipping inactive cron job ${cj.job_name} with schedule " +
-            s"${cj.schedule} at ${UF.getCurrentTimestampAsString()}"
-        )
-      )
-    } yield ()
   }
 
   final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore]): Task[Unit] = {
@@ -104,38 +49,8 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     }
     else {
       val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval {
-        val job_deploy_mode = UF.getEtlJobName[EJN](cj.job_name, etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode
-
-        job_deploy_mode match {
-          case DATAPROC(project, region, endpoint, cluster_name) =>
-            scheduler_logger.info(
-              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
-                s"at ${UF.getCurrentTimestampAsString()} in DATAPROC mode "
-            )
-            runActiveEtlJobDataProc(EtlJobArgs(cj.job_name, List.empty), transactor, DATAPROC(project,region,endpoint,cluster_name),jobSemaphores(cj.job_name))
-          case LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory) =>
-            scheduler_logger.info(
-              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
-                s"at ${UF.getCurrentTimestampAsString()} in LOCAL_SUBPROCESS mode "
-            )
-            runActiveEtlJobLocalSubProcess(EtlJobArgs(cj.job_name, List.empty), transactor, LOCAL_SUBPROCESS(script_path, heap_min_memory, heap_max_memory),jobSemaphores(cj.job_name))
-          case LOCAL =>
-            scheduler_logger.info(
-              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
-                s"at ${UF.getCurrentTimestampAsString()} in LOCAL mode "
-            )
-            runActiveEtlJobLocal(EtlJobArgs(cj.job_name, List.empty), transactor, jobSemaphores(cj.job_name))
-          case LIVY(_) =>
-            scheduler_logger.warn(s"Deploy mode livy not supported " +
-              s"for job ${cj.job_name}, supported values are LOCAL, DATAPROC(..)")
-            ZIO.unit
-          case KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) =>
-            scheduler_logger.info(
-              s"Scheduled cron job ${cj.job_name} with schedule ${cj.schedule.get.toString} " +
-                s"at ${UF.getCurrentTimestampAsString()} in KUBERNETES mode "
-            )
-            runActiveEtlJobKubernetes(EtlJobArgs(cj.job_name, List.empty), transactor, KUBERNETES(imageName, nameSpace, envVar, containerName, entryPoint, restartPolicy) ,jobSemaphores(cj.job_name))
-        }
+        scheduler_logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
+        runActiveEtlJob[EJN,EJP](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_name_package)
       })))
 
       UIO(scheduler_logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
@@ -147,11 +62,6 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         }
     }
   }
-
-  def runEtlJobDataProc(args: EtlJobArgs, transactor: HikariTransactor[Task], config: DATAPROC, sem: Semaphore): Task[EtlJob]
-  def runEtlJobLocal(args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore): Task[EtlJob]
-  def runEtlJobLocalSubProcess(args: EtlJobArgs, transactor: HikariTransactor[Task],config: LOCAL_SUBPROCESS, sem: Semaphore): Task[EtlJob]
-  def runEtlJobKubernetes(args: EtlJobArgs, transactor: HikariTransactor[Task], config: KUBERNETES, sem: Semaphore): Task[EtlJob]
 
   def etlFlowScheduler(
                         transactor: HikariTransactor[Task],

@@ -1,9 +1,9 @@
 package etlflow
 
-import etlflow.etljobs.{EtlJob, SequentialEtlJob}
+import etlflow.etljobs.SequentialEtlJob
 import etlflow.jdbc.{DbManager, QueryApi}
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
-import etlflow.utils.{Config, Configuration, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Configuration, JsonJackson, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Runtime, ZEnv}
 import scala.reflect.runtime.universe.TypeTag
@@ -15,8 +15,6 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
   final lazy val ea_logger: Logger = LoggerFactory.getLogger(getClass.getName)
   final lazy val runtime: Runtime[ZEnv] = Runtime.default
   val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
-
-  def toEtlJob(job_name: EJN): (EJP,Config) => EtlJob
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, EtlJobConfig()) match {
@@ -35,20 +33,20 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         case EtlJobConfig(false,default,actual,true,false,false,jobName,jobProps,false,false,"","") if jobName != "" =>
           ea_logger.info(s"""Executing show_job_props with params: job_name => $jobName""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          println(JsonJackson.convertToJson(job_name.default_properties_map))
           val exclude_keys = List("job_run_id","job_description","job_properties")
-          if (default && !actual) {
-            println(JsonJackson.convertToJsonByRemovingKeys(job_name.getActualProperties(Map.empty),exclude_keys))
-          }
-          else if (actual && !default) {
+          if (actual && !default) {
             val props = job_name.getActualProperties(jobProps)
+            println(JsonJackson.convertToJsonByRemovingKeys(props,exclude_keys))
+          }
+          else {
+            val props = job_name.getActualProperties(Map.empty)
             println(JsonJackson.convertToJsonByRemovingKeys(props,exclude_keys))
           }
         case EtlJobConfig(false,false,false,false,true,false,jobName,jobProps,false,false,"","") if jobName != "" =>
           ea_logger.info(s"""Executing show_step_props with params: job_name => $jobName job_properties => $jobProps""")
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),config)
-          if (etl_job.isInstanceOf[SequentialEtlJob]) {
+          val etl_job = job_name.etlJob(jobProps)
+          if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {
             etl_job.job_name = job_name.toString
             val json = JsonJackson.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
             println(json)
@@ -59,7 +57,7 @@ abstract class EtlJobApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
         case EtlJobConfig(false,false,false,false,false,true,jobName,jobProps,false,false,"","") if jobName != "" =>
           ea_logger.info(s"""Running job with params: job_name => $jobName job_properties => $jobProps""".stripMargin)
           val job_name = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
-          val etl_job = toEtlJob(job_name)(job_name.getActualProperties(jobProps),config)
+          val etl_job = job_name.etlJob(jobProps)
           etl_job.job_name = job_name.toString
           runtime.unsafeRun(etl_job.execute())
         case etlJobConfig if (etlJobConfig.show_job_props || etlJobConfig.show_step_props) && etlJobConfig.job_name == "" =>

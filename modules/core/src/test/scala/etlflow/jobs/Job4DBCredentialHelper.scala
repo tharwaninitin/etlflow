@@ -4,7 +4,8 @@ import etlflow.etlsteps.DBQueryStep
 import etlflow.utils.Config
 import zio.Runtime.default.unsafeRun
 
-abstract class Job4DBCredentialHelper(config: Config) {
+trait Job4DBCredentialHelper {
+  val config: Config
 
   val delete_credential_script = "DELETE FROM credentials WHERE name = 'etlflow'"
 

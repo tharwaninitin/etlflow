@@ -1,18 +1,18 @@
 package etlflow.executor
 
-import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs, Props}
-import etlflow.schema.MyEtlJobProps
 import etlflow.SchedulerSuiteHelper
+import etlflow.scheduler.MyEtlJobName
+import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
 import zio._
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object LocalExecutorTestSuite extends DefaultRunnableSpec with ExecutorHelper with SchedulerSuiteHelper {
+object LocalExecutorTestSuite extends DefaultRunnableSpec with Executor with SchedulerSuiteHelper {
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Executor Spec")(
-      testM("Test Local SubProcess Job") {
-        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob4BQtoBQ", List(Props("",""))),transactor,etlJob_name_package,MyEtlJobProps.local_subprocess,sem)
+    suite("Local Executor Spec")(
+      testM("Test Local Job with correct JobName") {
+        def job(sem: Semaphore): Task[EtlJob] = runLocalJob(EtlJobArgs("EtlJob4", List.empty),transactor,etlJob_name_package,sem)
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)
@@ -20,8 +20,8 @@ object LocalExecutorTestSuite extends DefaultRunnableSpec with ExecutorHelper wi
           } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
         )
       },
-      testM("Test Local SubProcess Job with Incorrect Job Details") {
-        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,MyEtlJobProps.local_subprocess,sem)
+      testM("Test Local Job with incorrect JobName") {
+        def job(sem: Semaphore): Task[EtlJob] = runLocalJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,sem)
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)
@@ -29,13 +29,33 @@ object LocalExecutorTestSuite extends DefaultRunnableSpec with ExecutorHelper wi
           } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("EtlJob not present")
         )
       },
-      testM("Test validateJob with Incorrect Job Details") {
+      testM("Test Local SubProcess Job with correct JobName") {
+        def job(sem: Semaphore): Task[EtlJob] =
+          runLocalSubProcessJob(EtlJobArgs("EtlJob4", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem, fork = false)
+        assertM(
+          (for {
+            sem     <- Semaphore.make(permits = 1)
+            status  <- job(sem)
+            _ = println(status)
+          } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
+        )
+      },
+      testM("Test Local SubProcess Job with incorrect JobName") {
+        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem)
+        assertM(
+          (for {
+            sem     <- Semaphore.make(permits = 1)
+            status  <- job(sem)
+          } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("EtlJob not present")
+        )
+      },
+      testM("Test validateJob with correct JobName") {
+        val status = validateJob(EtlJobArgs("EtlJob4", List.empty),etlJob_name_package)
+        assertM(status.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      },
+      testM("Test validateJob with incorrect JobName") {
         val status = validateJob(EtlJobArgs("EtlJob", List.empty),etlJob_name_package)
         assertM(status.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("EtlJob not present"))
       },
-      testM("Test validateJob with Correct Job Details") {
-        val status = validateJob(EtlJobArgs("EtlJob4BQtoBQ", List.empty),etlJob_name_package)
-        assertM(status.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
-      }
     ) @@ TestAspect.sequential
 }

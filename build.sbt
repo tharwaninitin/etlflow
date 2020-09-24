@@ -86,7 +86,7 @@ lazy val spark = (project in file("modules/spark"))
     Test / parallelExecution := false,
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(cloudSettings)
@@ -95,7 +95,7 @@ lazy val cloud = (project in file("modules/cloud"))
     Test / parallelExecution := false,
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
 
 lazy val scheduler = (project in file("modules/scheduler"))
   .settings(schedulerSettings)
@@ -104,7 +104,7 @@ lazy val scheduler = (project in file("modules/scheduler"))
     Test / parallelExecution := false,
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )
-  .dependsOn(cloud)
+  .dependsOn(core % "compile->compile;test->test", cloud)
 
 
 

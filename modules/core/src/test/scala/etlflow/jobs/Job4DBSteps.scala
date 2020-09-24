@@ -1,13 +1,11 @@
 package etlflow.jobs
 
-import etlflow.EtlJobProps
-import etlflow.Schema.EtlJobRun
+import etlflow.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.utils.{Config, JDBC}
 
-case class Job4DBSteps(job_properties: EtlJobProps, globalProperties: Config) extends Job4DBCredentialHelper(globalProperties)
-  with GenericEtlJob {
+case class Job4DBSteps(job_properties: EtlJob4Props) extends Job4DBCredentialHelper with GenericEtlJob[EtlJob4Props] {
 
   private def step1(cred: JDBC) = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",

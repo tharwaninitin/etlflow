@@ -59,7 +59,8 @@ package object utils {
     override def toString: String = s"Json with multiline  => $multi_line"
   }
 
-  case class Config(dbLog: JDBC, slack: Slack)
+  case class Config(dbLog: JDBC, slack: Slack, dataProc: Option[DataprocSpark])
+  case class DataprocSpark(mainClass: String, depLibs: List[String])
   case class Slack(url: String, env: String)
 
   case object BQ extends IOType

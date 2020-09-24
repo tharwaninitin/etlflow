@@ -1,26 +1,25 @@
 package etlflow.jobs
 
-import etlflow.{EtlJobProps, TestSparkSession}
 import etlflow.Schema.{EtlJob2Props, EtlJobRun, Rating}
+import etlflow.TestSparkSession
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.spark.{ReadApi, SparkManager, SparkUDF, WriteApi}
+import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
 import etlflow.utils.{Config, PARQUET}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
-case class Job2SparkReadWriteApi(job_properties: EtlJobProps,  globalProperties: Config)
-  extends GenericEtlJob with TestSparkSession with SparkUDF {
+case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
+  extends GenericEtlJob[EtlJob2Props] with TestSparkSession with SparkUDF {
 
-  private val global_props = globalProperties
-  val job_props: EtlJob2Props = job_properties.asInstanceOf[EtlJob2Props]
+  val job_props: EtlJob2Props = job_properties
 
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
     input_location   = job_props.ratings_input_path,
     input_type       = PARQUET,
-    output_type      = job_props.ratings_output_type,
+    output_type      = config.dbLog,
     output_location  = job_props.ratings_output_table_name,
     output_save_mode = SaveMode.Overwrite
   )
@@ -32,7 +31,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJobProps,  globalProperties:
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn("year_month", get_formatted_date("date","yyyy-MM-dd","yyyyMM").cast(IntegerType))
       .selectExpr("year_month").distinct().as[String].collect()
-    WriteApi.WriteDS[Rating](job_props.ratings_output_type,job_props.ratings_output_table_name)(ds,spark)
+    WriteApi.WriteDS[Rating](config.dbLog,job_props.ratings_output_table_name)(ds,spark)
     year_month
   }
 
@@ -54,7 +53,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJobProps,  globalProperties:
   val step4 = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
-    credentials = global_props.dbLog
+    credentials = config.dbLog
   )
 
   def processData2(ip: List[EtlJobRun]): Unit = {

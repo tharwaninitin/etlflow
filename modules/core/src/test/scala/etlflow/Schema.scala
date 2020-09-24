@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.utils.Executor.KUBERNETES
-import etlflow.utils.{Executor, JDBC, LoggingLevel, SMTP}
+import etlflow.utils.{Executor, LoggingLevel}
 import io.circe.generic.semiauto.deriveDecoder
 
 object Schema {
@@ -59,8 +59,6 @@ object Schema {
   case class EtlJob2Props (
     ratings_input_path: List[String] = List(input_file_path),
     ratings_output_table_name: String = "ratings",
-    ratings_output_type: JDBC,
-    smtp_creds: SMTP,
     override val job_enable_db_logging: Boolean = false
   ) extends EtlJobProps
 
@@ -73,8 +71,10 @@ object Schema {
                              override val job_deploy_mode: Executor = kubernetes,
                            ) extends EtlJobProps
 
-  case class EtlJob4Props(override val job_deploy_mode: Executor = Executor.LOCAL) extends EtlJobProps
-
-  case object EtlJob3Props extends EtlJobProps
+  case class EtlJob3Props() extends EtlJobProps
+  case class EtlJob4Props(
+                           override val job_enable_db_logging: Boolean = false,
+                           override val job_deploy_mode: Executor = Executor.LOCAL
+                         ) extends EtlJobProps
 }
 

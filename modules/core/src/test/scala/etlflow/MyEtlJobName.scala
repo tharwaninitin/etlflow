@@ -1,36 +1,19 @@
 package etlflow
 
 import Schema._
-import etlflow.utils.{JDBC, SMTP}
+import etlflow.etljobs.EtlJob
+import etlflow.jobs.{Job3HttpSmtpSteps, Job4DBSteps}
 
-sealed trait MyEtlJobName[+EJP] extends EtlJobName[EJP]
+sealed trait MyEtlJobName[+EJP <: EtlJobProps] extends EtlJobName[EJP]
 
 object MyEtlJobName {
-  case object EtlJob1 extends MyEtlJobName[EtlJob1Props] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+  case object EtlJob3 extends MyEtlJobName[EtlJob3Props] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
+    def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob3Props] = Job3HttpSmtpSteps(getActualProperties(job_properties))
   }
-  case object EtlJob2 extends MyEtlJobName[EtlJob2Props] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob2Props = EtlJob2Props(
-      ratings_output_type = JDBC(
-        job_properties("url"),
-        job_properties("user"),
-        job_properties("pass"),
-        "org.postgresql.Driver"
-      ),
-      smtp_creds = SMTP(
-        sys.env.getOrElse("SMTP_PORT","587"),
-        sys.env.getOrElse("SMTP_HOST","..."),
-        sys.env.getOrElse("SMTP_USER","..."),
-        sys.env.getOrElse("SMTP_PASS","..."),
-      )
-    )
-  }
-  case object EtlJob3 extends MyEtlJobName[EtlJob3Props.type] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props.type = EtlJob3Props
-  }
-
   case object EtlJob4 extends MyEtlJobName[EtlJob4Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props()
+    def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob4Props] = Job4DBSteps(getActualProperties(job_properties))
   }
 }
 

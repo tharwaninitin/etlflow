@@ -1,8 +1,7 @@
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbLogManager, SlackLogManager}
-import etlflow.utils.{Executor, LoggingLevel, UtilityFunctions => UF}
-
-import scala.reflect.runtime.universe.TypeTag
+import etlflow.utils.{Executor, LoggingLevel}
 
 package object etlflow {
 
@@ -11,9 +10,9 @@ package object etlflow {
 
   case class LoggerResource(db: Option[DbLogManager], slack: Option[SlackLogManager])
 
-  abstract class EtlJobName[+EJP : TypeTag] {
-    final val default_properties_map: Map[String,String] = UF.getEtlJobProps[EJP]()
+  abstract class EtlJobName[+EJP <: EtlJobProps] {
     def getActualProperties(job_properties: Map[String, String]): EJP
+    def etlJob(job_properties: Map[String, String]): EtlJob[EJP]
   }
 
   trait EtlJobSchema extends Product

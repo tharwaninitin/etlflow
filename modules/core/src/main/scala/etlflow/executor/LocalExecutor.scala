@@ -1,16 +1,16 @@
-package etlflow.local
+package etlflow.executor
 
 import java.io.{BufferedReader, InputStreamReader}
-
+import etlflow.utils.{UtilityFunctions => UF}
+import etlflow.{EtlJobName, EtlJobProps}
 import etlflow.utils.Executor.LOCAL_SUBPROCESS
-import zio.{Layer, Task, ZIO, ZLayer}
+import zio.{Layer, Task, ZIO, ZLayer, ZEnv}
 
-object LOCAL {
-
-  def live(config: LOCAL_SUBPROCESS) : Layer[Throwable, LocalService] = ZLayer.fromEffect {
+object LocalExecutor {
+  val live: Layer[Throwable, LocalExecutorService] = ZLayer.fromEffect {
     Task {
-      new LocalService.Service {
-        override def executeLocalJob(name: String, properties: Map[String, String]): ZIO[LocalService, Throwable, Unit] = Task {
+      new LocalExecutorService.Service {
+        override def executeLocalSubProcessJob(name: String, properties: Map[String, String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit] = Task {
           gcp_logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
                              |job_name => $name
                              |script_path => ${config.script_path}
@@ -28,14 +28,14 @@ object LOCAL {
           val env = processBuilder.environment()
           env.put("JAVA_OPTS",s"${config.heap_min_memory} ${config.heap_max_memory}")
 
-          val command = processBuilder.command().toString()
+          val command = processBuilder.command().toString
           gcp_logger.info("Command = " + command)
 
-          //Start the subprocess
+          //Start the SubProcess
           val process = processBuilder.start()
 
           //Read the input logs from submitted sub process and show it in current process.
-          val reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+          val reader = new BufferedReader(new InputStreamReader(process.getInputStream));
           var readLine=reader.readLine()
           while(readLine != null){
             println(readLine)
@@ -43,12 +43,16 @@ object LOCAL {
           }
           process.waitFor()
 
-          gcp_logger.info("Exit Code :" + process.exitValue())
+          gcp_logger.info("Exit Code: " + process.exitValue())
 
-          //Get the exit code. If 1 then throw the execption otherwise return success.
-          if( process.exitValue() == 1 ){
-            throw new RuntimeException(s"Job $name failed with error")
+          //Get the exit code. If not equal to 0 then throw the exception otherwise return success.
+          if(process.exitValue() != 0){
+            throw new RuntimeException(s"LOCAL SUB PROCESS JOB $name failed with error")
           }
+        }
+        override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
+          val job_name = UF.getEtlJobName[EtlJobName[EtlJobProps]](name, etl_job_name_package)
+          job_name.etlJob(properties).execute().provideLayer(ZEnv.live)
         }
       }
     }

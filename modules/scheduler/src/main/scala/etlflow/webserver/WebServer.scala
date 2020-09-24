@@ -5,11 +5,10 @@ import cats.data.Kleisli
 import cats.effect.Blocker
 import etlflow.jdbc.DbManager
 import etlflow.scheduler.Scheduler
-import etlflow.webserver.api._
 import etlflow.utils.EtlFlowHelper.{CronJob, EtlFlowHas, EtlFlowTask}
-import etlflow.utils.{CacheHelper, Config, UtilityFunctions => UF}
+import etlflow.utils.{CacheHelper, Configuration}
+import etlflow.webserver.api._
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
-import io.circe.config.parser
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
@@ -21,16 +20,16 @@ import scalacache.Cache
 import zio._
 import zio.blocking.Blocking
 import zio.interop.catz._
-import io.circe.generic.auto._
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
-  extends Scheduler[EJN,EJP] with CatsApp with DbManager with Http4sDsl[EtlFlowTask] with EtlFlowService {
-
-  val app_config: Config = parser.decode[Config]().toOption.get
-
-  val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
+  extends Scheduler[EJN,EJP]
+    with CatsApp
+    with DbManager
+    with Http4sDsl[EtlFlowTask]
+    with EtlFlowService
+    with Configuration {
 
   val otherRoutes:HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
@@ -86,9 +85,8 @@ abstract class WebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val finalRunner: ZIO[ZEnv, Throwable, Unit] = for {
-      //_             <- runDbMigration(app_config.dbLog)
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext)
-      transactor      <- createDbTransactor(app_config.dbLog, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
+      transactor      <- createDbTransactor(config.dbLog, platform.executor.asEC, blocker, "EtlFlowScheduler-Pool", 10)
       cache           = CacheHelper.createCache[String](24 * 60)
       cronJobs        <- Ref.make(List.empty[CronJob])
       jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package)

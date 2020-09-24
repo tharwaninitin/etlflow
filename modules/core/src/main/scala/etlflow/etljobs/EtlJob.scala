@@ -1,16 +1,15 @@
 package etlflow.etljobs
 
 import etlflow.EtlJobProps
-import etlflow.utils.{Config, LoggingLevel}
+import etlflow.utils.{Configuration, LoggingLevel}
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
 
-trait EtlJob {
+trait EtlJob[+EJP <: EtlJobProps] extends Configuration {
   final val etl_job_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   var job_name: String = getClass.getName
-  val job_properties: EtlJobProps
-  val globalProperties: Config
+  val job_properties: EJP
   val job_status: UIO[Ref[String]] = Ref.make("StatusNotSet")
 
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit

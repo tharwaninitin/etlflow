@@ -12,10 +12,8 @@ import zio.interop.catz._
 
 trait TestSuiteHelper {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-
   val canonical_path: String    = new java.io.File(".").getCanonicalPath
   val file                      = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
-  val global_properties: Config = io.circe.config.parser.decode[Config]().toOption.get
 }
 
 trait DoobieHelper {

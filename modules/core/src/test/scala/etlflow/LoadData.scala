@@ -1,3 +1,3 @@
 package etlflow
 
-object LoadData extends EtlJobApp[MyEtlJobName[EtlJobProps], EtlJobProps]
+object LoadData extends EtlFlowApp[MyEtlJobName[EtlJobProps], EtlJobProps]

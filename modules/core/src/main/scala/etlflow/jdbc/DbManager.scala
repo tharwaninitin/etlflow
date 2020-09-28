@@ -7,19 +7,13 @@ import etlflow.utils.JDBC
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
-import zio.{Task, ZManaged}
+import zio.{Task, Managed}
 import scala.concurrent.ExecutionContext
 
 trait DbManager {
 
-  def createDbTransactorManaged(
-        credentials: JDBC,
-        ec: ExecutionContext,
-        pool_name: String = "LoggerPool",
-        pool_size: Int = 2
-       )
-       (implicit blocker: Blocker = Blocker.liftExecutionContext(ec))
-  : ZManaged[Any, Throwable, HikariTransactor[Task]] = {
+  def createDbTransactorManaged(credentials: JDBC, ec: ExecutionContext, pool_name: String = "LoggerPool", pool_size: Int = 2)
+  (implicit blocker: Blocker = Blocker.liftExecutionContext(ec)): Managed[Throwable, HikariTransactor[Task]] = {
     val config = new HikariConfig()
     config.setDriverClassName(credentials.driver)
     config.setJdbcUrl(credentials.url)

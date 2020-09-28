@@ -5,7 +5,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, ZIO}
 
 package object executor {
-  val gcp_logger: Logger = LoggerFactory.getLogger(getClass.getName)
+  val executor_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   type LocalExecutorService = Has[LocalExecutorService.Service]
 

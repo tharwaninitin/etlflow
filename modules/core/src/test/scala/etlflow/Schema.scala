@@ -73,7 +73,7 @@ object Schema {
 
   case class EtlJob3Props() extends EtlJobProps
   case class EtlJob4Props(
-                           override val job_enable_db_logging: Boolean = false,
+                           override val job_schedule: String = "0 */2 * * * ?",
                            override val job_deploy_mode: Executor = Executor.LOCAL
                          ) extends EtlJobProps
 }

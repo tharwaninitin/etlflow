@@ -1,7 +1,7 @@
 package etlflow.executor
 
 import etlflow.SchedulerSuiteHelper
-import etlflow.scheduler.MyEtlJobName
+import etlflow.MyEtlJobName
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
 import zio._
 import zio.test.Assertion.equalTo
@@ -29,17 +29,17 @@ object LocalExecutorTestSuite extends DefaultRunnableSpec with Executor with Sch
           } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("EtlJob not present")
         )
       },
-      testM("Test Local SubProcess Job with correct JobName") {
-        def job(sem: Semaphore): Task[EtlJob] =
-          runLocalSubProcessJob(EtlJobArgs("EtlJob4", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem, fork = false)
-        assertM(
-          (for {
-            sem     <- Semaphore.make(permits = 1)
-            status  <- job(sem)
-            _ = println(status)
-          } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
-        )
-      },
+//      testM("Test Local SubProcess Job with correct JobName") {
+//        def job(sem: Semaphore): Task[EtlJob] =
+//          runLocalSubProcessJob(EtlJobArgs("EtlJob4LocalSubProcess", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem, fork = false)
+//        assertM(
+//          (for {
+//            sem     <- Semaphore.make(permits = 1)
+//            status  <- job(sem)
+//            _ = println(status)
+//          } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
+//        )
+//      },
       testM("Test Local SubProcess Job with incorrect JobName") {
         def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem)
         assertM(

@@ -1,27 +1,29 @@
 package etlflow.scheduler
 
+import cats.effect.Blocker
 import doobie.hikari.HikariTransactor
 import etlflow.executor.Executor
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Update
-import etlflow.utils.{Config, UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.{EtlFlowApp, EtlJobName, EtlJobProps}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
+import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.duration._
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag] extends Executor {
+abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
+  extends EtlFlowApp[EJN,EJP]
+    with Executor
+    with EtlFlowUtils {
 
   lazy val scheduler_logger: Logger = LoggerFactory.getLogger(getClass.getName)
-
-  val config: Config
-  val etl_job_name_package: String = UF.getJobNamePackage[EJN] + "$"
 
   final def refreshCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]] = {
     val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
@@ -63,11 +65,7 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     }
   }
 
-  def etlFlowScheduler(
-                        transactor: HikariTransactor[Task],
-                        cronJobs: Ref[List[CronJob]],
-                        jobSemaphores: Map[String, Semaphore]
-                      ): Task[Unit] = for {
+  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobSemaphores: Map[String, Semaphore]): Task[Unit] = for {
     _          <- Update.deleteCronJobsDB(transactor,UF.getEtlJobs[EJN].map(x => x).toList)
     dbCronJobs <- refreshCronJobsDB(transactor)
     _          <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
@@ -75,4 +73,24 @@ abstract class Scheduler[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     _          <- UIO(scheduler_logger.info("Starting scheduler"))
     _          <- scheduledTask(dbCronJobs,transactor,jobSemaphores)
   } yield ()
+
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+    val schedulerRunner: ZIO[ZEnv, Throwable, Unit] = (for {
+      blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
+      transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowScheduler-Pool", 10)(blocker)
+      cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
+      jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
+      jobSemaphores   <- createSemaphores(jobs).toManaged_
+      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores).toManaged_
+    } yield ()).use_(ZIO.unit)
+
+    val finalRunner = if (args.isEmpty) schedulerRunner else cliRunner(args)
+
+    finalRunner.catchAll{err =>
+      UIO {
+        ea_logger.error(err.getMessage)
+        err.getStackTrace.foreach(x => ea_logger.error(x.toString))
+      }
+    }.exitCode
+  }
 }

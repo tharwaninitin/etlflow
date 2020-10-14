@@ -28,9 +28,9 @@ trait EtlFlowUtils {
             val endTime = sdf.parse(cron.get.next(LocalDateTime.now()).getOrElse("").toString).getTime
             val startTime = sdf.parse(LocalDateTime.now().toString).getTime
             val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-            Job(x.job_name, getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package), cron, nextScheduleTime, UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active)
+            Job(x.job_name, getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package), cron, nextScheduleTime, UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active,UF.getEtlJobName[EJN](x.job_name,etl_job_name_package).getActualProperties(Map.empty).job_max_active_runs, UF.getEtlJobName[EJN](x.job_name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode.toString)
           }else{
-            Job(x.job_name, getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package), None, "", "", x.failed, x.success, x.is_active)
+            Job(x.job_name, getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package), None, "", "", x.failed, x.success, x.is_active,UF.getEtlJobName[EJN](x.job_name,etl_job_name_package).getActualProperties(Map.empty).job_max_active_runs, UF.getEtlJobName[EJN](x.job_name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode.toString)
           }
         }})
     } yield jobs

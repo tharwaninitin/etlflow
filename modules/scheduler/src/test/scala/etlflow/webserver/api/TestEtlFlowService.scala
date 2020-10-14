@@ -43,7 +43,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
           Query.getJobs(transactor)
             .map(y => y.map { x =>
-              Job(x.job_name, Map.empty, Cron(x.schedule).toOption, "", "", x.failed, x.success, x.is_active)
+              Job(x.job_name, Map.empty, Cron(x.schedule).toOption, "", "", x.failed, x.success, x.is_active,0,"")
             })
         }.mapError { e =>
           logger.error(e.getMessage)

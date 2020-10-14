@@ -54,7 +54,7 @@ object EtlFlowHelper {
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
   case class Credentials(name: String, `type`: String, value: String)
 
-  case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean)
+  case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean,max_active_runs: Int, job_deploy_mode: String)
 
   object EtlFlow {
     trait Service {

@@ -1,28 +1,33 @@
 steps:
-  - name: 'gcr.io/mint-bi-reporting/scala-mill'
-    id: Create assembly jar for core and package jar for examples
-    entrypoint: /bin/sh
+
+  - id: 'restore cache'
+    name: 'gcr.io/$PROJECT_ID/restore_cache'
     args:
-    - '-c'
-    - |
-      set -x && \
-      mill modules.core.assembly
-      mill modules.core.publishLocal
-      mill modules.cloud.publishLocal
-      mill modules.spark.publishLocal
-      mill modules.shceduler.publishLocal
-      mill examples.jar
+      - '--bucket=$_CACHE_PATH'
+      - '--key=build-cache-$( checksum build.sbt )'
+    waitFor: ['-']
 
+  - id: 'check cache'
+    name: 'ubuntu'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        ls -lah /workspace/.ivy2/cache | wc -l
+    waitFor: ['restore cache']
 
-  - name: 'gcr.io/mint-bi-reporting/scala-mill'
+  - name: 'asia.gcr.io/$PROJECT_ID/scala-sbt'
+    id: Create assembly jar for core and package jar for examples
+    args: ['-ivy', '/workspace/.ivy2', 'project core', 'clean', 'assembly', 'project root', 'publishLocal', 'project examples', 'package']
+
+  - name: 'asia.gcr.io/$PROJECT_ID/scala-sbt'
     id: Save version in temp file
     entrypoint: /bin/sh
     args:
       - '-c'
       - |
         set -x && \
-        mill show modules.publishVersion | sed -e 's/^"//' -e 's/"$//' > /workspace/version.txt
-
+        sbt 'inspect actual version' | grep "Setting: java.lang.String" | cut -d '=' -f2 | tr -d ' ' > /workspace/version.txt
 
   - name: 'gcr.io/cloud-builders/gsutil'
     id: Copy core jar to GCS
@@ -31,9 +36,8 @@ steps:
       - '-c'
       - |
         set -x && \
-        mv /workspace/out/modules/core/assembly/dest/out.jar /workspace/out/modules/core/assembly/dest/etlflow-core-assembly-$(cat /workspace/version.txt).jar
-        gsutil cp /workspace/out/modules/core/assembly/dest/etlflow-core-assembly-$(cat /workspace/version.txt).jar ${_GCS_BUCKET}
-
+        gsutil cp /workspace/modules/core/target/scala-2.12/etlflow-core-assembly-$(cat /workspace/version.txt).jar ${_GCS_BUCKET}
+    waitFor: ['-']
 
   - name: 'gcr.io/cloud-builders/gsutil'
     id: Copy examples jar to GCS
@@ -42,21 +46,22 @@ steps:
       - '-c'
       - |
         set -x && \
-        mv /workspace/out/examples/jar/dest/out.jar /workspace/out/examples/jar/dest/etlflow-examples_2.12-$(cat /workspace/version.txt).jar
-        gsutil cp /workspace/out/examples/jar/dest/etlflow-examples_2.12-$(cat /workspace/version.txt).jar ${_GCS_BUCKET}
+        gsutil cp /workspace/examples/target/scala-2.12/etlflow-examples_2.12-$(cat /workspace/version.txt).jar ${_GCS_BUCKET}
+    waitFor: ['-']
 
-  - name: 'gcr.io/mint-bi-reporting/scala-mill'
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: Copy loaddata.properties to GCS
+    args: ['cp','/workspace/examples/src/main/conf/loaddata.properties','${_GCS_BUCKET}']
+    waitFor: ['-']
+
+  - name: 'asia.gcr.io/$PROJECT_ID/scala-sbt'
     id: Build docker image and publish to container registry
     entrypoint: /bin/sh
     args:
       - '-c'
       - |
         set -x && \
-        mill modules.core.publishLocal
-        mill modules.cloud.publishLocal
-        mill modules.spark.publishLocal
-        mill modules.shceduler.publishLocal
-        mill examples.docker.push
+        sbt "project root" publishLocal "project examples" 'set dockerRepository := Some("$_REGISTRY")' 'set packageName in Docker := "$PROJECT_ID/${_IMAGE}"' docker:publish
 
   - id: Deploy to GKE
     name: 'gcr.io/cloud-builders/gcloud'
@@ -70,5 +75,14 @@ steps:
         kubectl apply -f ${_PATH}
         kubectl set image deployment/etlflow-test etlflow-test=${_REGISTRY}/$PROJECT_ID/${_IMAGE}:$(cat /workspace/version.txt) -n dev
         kubectl rollout status deployment etlflow-test -n dev
+
+  - id: 'save cache'
+    name: 'gcr.io/$PROJECT_ID/save_cache'
+    args:
+      - --bucket=$_CACHE_PATH
+      - --key=build-cache-$( checksum build.sbt )
+      - --path=/workspace/.ivy2/cache
+      - --no-clobber
+    waitFor: ['assembly']
 
 timeout: "3000s"

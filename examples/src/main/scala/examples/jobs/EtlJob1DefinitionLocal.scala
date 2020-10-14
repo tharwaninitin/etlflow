@@ -3,11 +3,12 @@ package examples.jobs
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{DPSparkJobStep, EtlStep}
-import etlflow.utils.Config
 import etlflow.utils.Executor.DATAPROC
-import examples.schema.MyEtlJobProps
+import examples.schema.MyEtlJobProps.SampleProps
 
-case class EtlJob1DefinitionLocal(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
+case class EtlJob1DefinitionLocal(job_properties: SampleProps) extends SequentialEtlJob[SampleProps] {
+
+  private val job_props = job_properties.asInstanceOf[SampleProps]
   val dpConfig = DATAPROC(
     sys.env("DP_PROJECT_ID"),
     sys.env("DP_REGION"),

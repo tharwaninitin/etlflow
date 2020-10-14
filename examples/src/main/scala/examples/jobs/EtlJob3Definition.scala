@@ -3,16 +3,15 @@ package examples.jobs
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
-import etlflow.utils.{CSV, Config}
-import examples.schema.MyEtlJobProps
+import etlflow.utils.CSV
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 
-case class EtlJob3Definition(job_properties: MyEtlJobProps, globalProperties: Config)
-  extends GenericEtlJob with SparkUDF {
+case class EtlJob3Definition(job_properties: EtlJob23Props)
+  extends GenericEtlJob[EtlJob23Props] with SparkUDF {
 //  private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private val gcs_output_path = f""
 

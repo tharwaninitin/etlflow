@@ -2,15 +2,15 @@ package examples.jobs
 
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.GenericETLStep
-import etlflow.utils.Config
-import examples.schema.MyEtlJobProps
+import examples.schema.MyEtlJobProps.LocalSampleProps
 import zio.Schedule
 import zio.duration._
 
-case class EtlJob2DefinitionLocal(job_properties: MyEtlJobProps, globalProperties: Config) extends GenericEtlJob {
+case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
 
   //throw new RuntimeException("!! Error in job instance creation")
 
+  private val job_props = job_properties.asInstanceOf[LocalSampleProps]
   def processData(ip: Unit): Unit = {
     etl_job_logger.info("Hello World")
     Thread.sleep(10000)

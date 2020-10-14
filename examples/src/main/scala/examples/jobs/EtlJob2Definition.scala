@@ -4,16 +4,15 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, SparkETLStep, SparkReadTransformWriteStep}
 import etlflow.spark.{ReadApi, SparkManager, SparkUDF}
-import etlflow.utils.{CSV, Config, PARQUET}
-import examples.schema.MyEtlJobProps
+import etlflow.utils.{CSV, PARQUET}
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 
-case class EtlJob2Definition(job_properties: MyEtlJobProps, globalProperties: Config)
-  extends SequentialEtlJob  with SparkUDF {
+case class EtlJob2Definition(job_properties: EtlJob23Props)
+  extends SequentialEtlJob[EtlJob23Props]  with SparkUDF {
 
   private val gcs_output_path = f"gs://${sys.env("GCS_BUCKET")}/output/ratings"
 

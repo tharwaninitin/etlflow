@@ -5,14 +5,12 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
 import etlflow.spark.SparkManager
-import etlflow.utils.{CSV, Config, ORC}
-import examples.schema.MyEtlJobProps
+import etlflow.utils.Environment.LOCAL
+import etlflow.utils.{CSV, ORC}
 import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import etlflow.spark.SparkManager._
-import etlflow.utils.Environment.LOCAL
-case class EtlJob0DefinitionDataproc(job_properties: MyEtlJobProps, globalProperties: Config) extends SequentialEtlJob {
+case class EtlJob0DefinitionDataproc(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
 
   private val job_props = job_properties.asInstanceOf[EtlJob1Props]
   private implicit val spark: SparkSession = SparkManager.createSparkSession(Set(LOCAL))

@@ -11,21 +11,25 @@ import doobie.implicits._
 import doobie.quill.DoobieContext
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
-import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.CacheHelper
-import etlflow.utils.JsonJackson
+import etlflow.utils.EtlFlowHelper.{CronJobDB, _}
+import etlflow.utils.{CacheHelper, JsonJackson}
 import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
 import pdi.jwt.{Jwt, JwtAlgorithm}
-import scalacache.Cache
-import zio.{IO, Task}
+import scalacache.{Cache, Mode}
+import scalacache.memoization.memoizeF
 import zio.interop.catz._
+import zio.{IO, Task}
 
+import scala.concurrent.duration._
 object Query {
 
   lazy val query_logger: Logger = LoggerFactory.getLogger(getClass.getName)
   val dc = new DoobieContext.Postgres(Literal)
   import dc._
+
+  implicit val cronJobDBCache = CacheHelper.createCache[List[CronJobDB]](24 * 60)
+  implicit val mode: Mode[Task] = scalacache.CatsEffect.modes.async
 
   def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String]): Task[UserAuth] =  {
     val q = quote {
@@ -209,12 +213,14 @@ object Query {
     }
   }
 
-  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = {
+  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = memoizeF[Task, List[CronJobDB]](Some(3600.second)){
     val selectQuery = quote {
       querySchema[CronJobDB]("cronjob")
     }
     dc.run(selectQuery).transact(transactor)
   }
+
+  def getCacheStats: Task[CacheInfo] = {
+     Task(CacheInfo(cronJobDBCache.underlying.stats.hitCount(),cronJobDBCache.underlying.stats.hitRate()))
+  }
 }
-
-

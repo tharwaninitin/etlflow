@@ -43,7 +43,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
           Query.getJobs(transactor)
             .map(y => y.map { x =>
-              Job(x.job_name, Map.empty, Cron(x.schedule).toOption, "", "", x.failed, x.success, x.is_active,0,"")
+              Job(x.job_name, Map.empty, Cron(x.schedule).toOption, "", "", x.failed, x.success, x.is_active,10,"LOCAL")
             })
         }.mapError { e =>
           logger.error(e.getMessage)
@@ -73,6 +73,8 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         override def notifications: ZStream[EtlFlowHas, Nothing, EtlFlowHelper.EtlJobStatus] = ???
 
         override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
+
+        override def getCacheStats: ZIO[EtlFlowHas, Throwable, CacheInfo] = ???
       }
     }
   }

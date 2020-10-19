@@ -36,6 +36,10 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
         getJobsFromDb[EJN,EJP](transactor,etl_job_name_package)
       }
 
+      override def getCacheStats: ZIO[EtlFlowHas, Throwable, CacheInfo] = {
+        Query.getCacheStats
+      }
+
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
         runEtlJob[EJN,EJP](args,transactor,jobSemaphores(args.name),config,etl_job_name_package)
       }

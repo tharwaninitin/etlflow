@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 object CacheHelper {
 
-  def createCache[T](expireAfterWriteInMinutes: Int): Cache[T] = {
+  def createCache[T](expireAfterWriteInMinutes: Int) = {
     val caffeineCache: CCache[String, Entry[T]] =
       Caffeine.newBuilder()
         .expireAfterAccess(expireAfterWriteInMinutes, TimeUnit.MINUTES)

@@ -3,12 +3,15 @@ package examples.jobs
 import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{BQLoadStep, EtlStep}
-import etlflow.utils.{BQ, Config}
-import examples.schema.MyEtlJobProps
+import etlflow.etlsteps.BQLoadStep
+import etlflow.utils.BQ
+import examples.schema.MyEtlJobProps.EtlJob6Props
 
-case class EtlJob4Definition(job_properties: MyEtlJobProps, globalProperties: Config)
-  extends SequentialEtlJob  {
+case class EtlJob4Definition(job_properties: EtlJob6Props)
+  extends SequentialEtlJob[EtlJob6Props]  {
+
+  private val job_props = job_properties.asInstanceOf[EtlJob6Props]
+
   private val select_query: String = """
                                        | SELECT movieId, COUNT(1) cnt
                                        | FROM test.ratings

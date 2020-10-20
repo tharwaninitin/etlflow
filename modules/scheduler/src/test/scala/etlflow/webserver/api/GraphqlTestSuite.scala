@@ -22,12 +22,12 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
            {
              jobs {
                name
-               failed
-               success
+               job_deploy_mode
+               max_active_runs
                is_active
              }
            }""")
-      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","failed":0,"success":0,"is_active":true}]}""")
+      assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
       )
     },
     testM("Test jobruns end point") {

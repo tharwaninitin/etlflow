@@ -18,9 +18,11 @@ object LocalExecutor {
                              |max_heap_memory => ${config.heap_max_memory}
                              |properties => $properties""".stripMargin)
 
-          val props = properties.map(x => s"${x._1}=${x._2}").mkString(",")
 
-          val processBuilder = if (props != "=")
+
+          val props = if(properties.isEmpty) "" else properties.map(x => s"${x._1}=${x._2}").mkString(",")
+
+          val processBuilder = if (props != "")
              new ProcessBuilder("sh",s"${config.script_path}","run_job","--job_name",name,"--props",props)
           else
              new ProcessBuilder("sh",s"${config.script_path}","run_job","--job_name",name)

@@ -1,6 +1,6 @@
 CREATE TABLE cronjob(job_name varchar(100) PRIMARY KEY, schedule varchar(100), failed bigint, success bigint, is_active boolean);
 CREATE TABLE jobrun(job_run_id varchar(100) PRIMARY KEY,
-    job_name varchar(100),
+    job_name text,
     description varchar(100),
     properties text,
     state text,

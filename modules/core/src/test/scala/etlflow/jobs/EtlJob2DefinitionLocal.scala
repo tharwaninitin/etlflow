@@ -1,10 +1,10 @@
-package examples.jobs
+package etlflow.jobs
 
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.GenericETLStep
-import examples.schema.MyEtlJobProps.LocalSampleProps
 import zio.Schedule
 import zio.duration._
+import etlflow.Schema.LocalSampleProps
 
 case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
 

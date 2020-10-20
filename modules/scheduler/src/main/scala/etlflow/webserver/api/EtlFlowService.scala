@@ -5,12 +5,16 @@ import etlflow.executor.Executor
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Query
-import etlflow.utils.{Config, EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.utils.db.Query.cronJobDBCache
+import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import scalacache.Cache
+import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
 import zio.stream.ZStream
+
+import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowService extends EtlFlowUtils with Executor {
@@ -19,7 +23,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
       transactor: HikariTransactor[Task],
-      cache: Cache[String],
+      cache: CaffeineCache[String],
       cronJobs: Ref[List[CronJob]],
       jobSemaphores: Map[String, Semaphore],
       jobs: List[EtlJob]
@@ -32,8 +36,25 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       javaRuntime           = java.lang.Runtime.getRuntime
     } yield new EtlFlow.Service {
 
+      def getLoginCacheStats:CacheInfo = {
+        val data:Map[String,String] = CacheHelper.toMap(cache)
+        CacheInfo("Login",
+          cache.underlying.stats.hitCount(),
+          cache.underlying.stats.hitRate(),
+          cache.underlying.asMap().size(),
+          cache.underlying.stats.missCount(),
+          cache.underlying.stats.missRate(),
+          cache.underlying.stats.requestCount(),
+          data
+        )
+      }
+
       override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
         getJobsFromDb[EJN,EJP](transactor,etl_job_name_package)
+      }
+
+      override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheInfo]] = {
+        Task(List(Query.getJobCacheStats,getPropsCacheStats,getLoginCacheStats))
       }
 
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {

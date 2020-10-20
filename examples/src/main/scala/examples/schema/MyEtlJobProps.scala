@@ -8,7 +8,7 @@ sealed trait MyEtlJobProps extends EtlJobProps
 
 object MyEtlJobProps {
 
-  val local_subprocess = LOCAL_SUBPROCESS("target/universal/stage/bin/load-data",heap_min_memory = "-Xms100m",heap_max_memory = "-Xms100m")
+  val local_subprocess = LOCAL_SUBPROCESS("examples/target/docker/stage/opt/docker/bin/load-data",heap_min_memory = "-Xms100m",heap_max_memory = "-Xms100m")
 
   val dataproc   = DATAPROC("project-name","region","endpoint","cluster-name")
 

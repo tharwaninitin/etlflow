@@ -74,7 +74,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
 
         override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
 
-        override def getCacheStats: ZIO[EtlFlowHas, Throwable, CacheInfo] = ???
+        override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheInfo]] = ???
       }
     }
   }

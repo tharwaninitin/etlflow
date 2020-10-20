@@ -20,6 +20,7 @@ import scalacache.{Cache, Mode}
 import scalacache.memoization.memoizeF
 import zio.interop.catz._
 import zio.{IO, Task}
+import scala.collection.JavaConverters._
 
 import scala.concurrent.duration._
 object Query {
@@ -220,7 +221,17 @@ object Query {
     dc.run(selectQuery).transact(transactor)
   }
 
-  def getCacheStats: Task[CacheInfo] = {
-     Task(CacheInfo(cronJobDBCache.underlying.stats.hitCount(),cronJobDBCache.underlying.stats.hitRate()))
+  def getJobCacheStats:CacheInfo = {
+     val data:Map[String,String] = CacheHelper.toMap(cronJobDBCache)
+     CacheInfo(
+       "CronJobs",
+       cronJobDBCache.underlying.stats.hitCount(),
+       cronJobDBCache.underlying.stats.hitRate(),
+       cronJobDBCache.underlying.asMap().size(),
+       cronJobDBCache.underlying.stats.missCount(),
+       cronJobDBCache.underlying.stats.missRate(),
+       cronJobDBCache.underlying.stats.requestCount(),
+       data
+     )
   }
 }

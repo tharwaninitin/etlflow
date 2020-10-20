@@ -2,7 +2,7 @@ package etlflow
 
 import Schema._
 import etlflow.etljobs.EtlJob
-import etlflow.jobs.{HelloWorldJob, Job3HttpSmtpSteps, Job4DBSteps}
+import etlflow.jobs.{EtlJob2DefinitionLocal, HelloWorldJob, Job3HttpSmtpSteps, Job4DBSteps}
 import etlflow.utils.Executor.LOCAL_SUBPROCESS
 
 sealed trait MyEtlJobName[+EJP <: EtlJobProps] extends EtlJobName[EJP]
@@ -16,10 +16,16 @@ object MyEtlJobName {
     def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props()
     def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob4Props] = Job4DBSteps(getActualProperties(job_properties))
   }
-  val local_subprocess = LOCAL_SUBPROCESS("target/universal/stage/bin/load-data")
+  val local_subprocess = LOCAL_SUBPROCESS("examples/target/docker/stage/opt/docker/bin/load-data")
   case object EtlJob4LocalSubProcess extends MyEtlJobName[EtlJob4Props] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props(job_deploy_mode = local_subprocess)
     def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob4Props] = HelloWorldJob(getActualProperties(job_properties))
+  }
+
+  case object Job2LocalJobGenericStep extends MyEtlJobName[LocalSampleProps] {
+    override def getActualProperties(job_properties: Map[String, String]): LocalSampleProps = LocalSampleProps(job_deploy_mode = local_subprocess)
+    def etlJob(job_properties: Map[String, String]): EtlJob[LocalSampleProps] = EtlJob2DefinitionLocal(getActualProperties(job_properties))
+
   }
 }
 

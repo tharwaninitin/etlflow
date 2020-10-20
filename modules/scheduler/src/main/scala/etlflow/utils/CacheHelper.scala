@@ -6,10 +6,11 @@ import scalacache.{Cache, Entry, Id}
 import scalacache.caffeine._
 import scalacache.modes.sync._
 import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 
 object CacheHelper {
 
-  def createCache[T](expireAfterWriteInMinutes: Int) = {
+  def createCache[T](expireAfterWriteInMinutes: Int):CaffeineCache[T] = {
     val caffeineCache: CCache[String, Entry[T]] =
       Caffeine.newBuilder()
         .expireAfterAccess(expireAfterWriteInMinutes, TimeUnit.MINUTES)
@@ -26,4 +27,7 @@ object CacheHelper {
   def putKey[T](cache: Cache[T], key: String, value: T, ttl: Option[Duration] = None): Unit =
     cache.put(key)(value, ttl)
 
+  def toMap[T](cache: CaffeineCache[T]) = {
+    cache.underlying.asMap().asScala.map(x => (x._1,x._2.toString)).toMap
+  }
 }

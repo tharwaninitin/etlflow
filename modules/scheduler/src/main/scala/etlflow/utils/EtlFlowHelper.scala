@@ -29,6 +29,7 @@ object EtlFlowHelper {
                            jobName: Option[String] = None,
                            startTime: Option[java.time.LocalDate] = None,
                            endTime: Option[java.time.LocalDate] = None,
+                           filter: Option[String] = None,
                            limit: Int, offset: Int
                          )
   case class DbStepRunArgs(job_run_id: String)

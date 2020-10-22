@@ -14,6 +14,7 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
     url          = "https://httpbin.org/get",
     http_method  = HttpMethod.GET,
     log_response = true,
+    connectionTimeOut = 1200000
   )
 
   val step2 = HttpResponseStep(
@@ -32,6 +33,7 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
     headers      = Map("content-type"->"application/json"),
     log_response = true,
   )
+
 
   val step4 = HttpResponseStep(
     name         = "HttpPostParams",
@@ -57,6 +59,7 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
     log_response = true,
   )
 
+
   def processData(ip: HttpBinResponse): Unit = {
     etl_job_logger.info("Processing Data")
     etl_job_logger.info(ip.toString)
@@ -79,6 +82,7 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
       sys.env.getOrElse("SMTP_PASS","..."),
     )
   )
+
 
   val job = for {
     _     <-  step1.execute()

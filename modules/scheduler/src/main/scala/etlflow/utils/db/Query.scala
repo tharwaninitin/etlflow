@@ -166,13 +166,28 @@ object Query {
         }
         // logger.info(s"Query Fragment Generated for arguments $args is ")
       }
-      else if (args.jobRunId.isEmpty && args.jobName.isDefined) {
-        q = quote {
-          query[JobRun]
-            .filter(_.job_name == lift(args.jobName.get))
-            .sortBy(p => p.inserted_at)(Ord.desc)
-            .drop(lift(args.offset))
-            .take(lift(args.limit))
+      else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
+        args.filter.get match {
+          case "IN" => {
+            query_logger.info("Inside IN clause")
+            q = quote {
+              query[JobRun]
+                .filter(p =>p.job_name == lift(args.jobName.get))
+                .sortBy(p => p.inserted_at)(Ord.desc)
+                .drop(lift(args.offset))
+                .take(lift(args.limit))
+            }
+          }
+          case "NOT IN" => {
+            query_logger.info("Inside NOT IN  clause")
+            q = quote {
+              query[JobRun]
+                .filter(p => p.job_name != lift(args.jobName.get))
+                .sortBy(p => p.inserted_at)(Ord.desc)
+                .drop(lift(args.offset))
+                .take(lift(args.limit))
+            }
+          }
         }
         // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
       }

@@ -18,7 +18,9 @@ case class HttpStep(
                      http_method: HttpMethod,
                      params: Either[String, Seq[(String,String)]] = Left(""),
                      headers: Map[String,String] = Map.empty,
-                     log_response: Boolean = false
+                     log_response: Boolean = false,
+                     connectionTimeOut : Int = 10000,
+                     readTimeOut : Int = 150000
                    )
   extends EtlStep[Unit, Unit] {
 
@@ -26,14 +28,16 @@ case class HttpStep(
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting HttpStep: $name")
     etl_logger.info(s"URL: $url")
+    etl_logger.info(s"ConnectionTimeOut: $connectionTimeOut")
+    etl_logger.info(s"ReadTimeOut: $readTimeOut")
 
     http_method match {
       case HttpMethod.POST =>
-        HttpClientApi.postUnit(url, params, headers, log_response)
+        HttpClientApi.postUnit(url, params, headers, log_response,connectionTimeOut,readTimeOut)
       case HttpMethod.GET =>
         params match {
-          case Left(_) => HttpClientApi.getUnit(url, Nil, headers, log_response)
-          case Right(value) => HttpClientApi.getUnit(url, value, headers, log_response)
+          case Left(_) => HttpClientApi.getUnit(url, Nil, headers, log_response,connectionTimeOut,readTimeOut)
+          case Right(value) => HttpClientApi.getUnit(url, value, headers, log_response,connectionTimeOut,readTimeOut)
         }
     }
   }
@@ -51,7 +55,9 @@ case class HttpResponseStep(
                              http_method: HttpMethod,
                              params: Either[String, Seq[(String,String)]] = Left(""),
                              headers: Map[String,String] = Map.empty,
-                             log_response: Boolean = false
+                             log_response: Boolean = false,
+                             connectionTimeOut : Int = 10000,
+                             readTimeOut : Int = 150000
                            )
   extends EtlStep[Unit, HttpResponse[String]] {
 
@@ -62,11 +68,11 @@ case class HttpResponseStep(
 
     http_method match {
       case HttpMethod.POST =>
-        HttpClientApi.post(url, params, headers, log_response)
+        HttpClientApi.post(url, params, headers, log_response,connectionTimeOut,readTimeOut)
       case HttpMethod.GET =>
         params match {
-          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response)
-          case Right(value) => HttpClientApi.get(url, value, headers, log_response)
+          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response,connectionTimeOut,readTimeOut)
+          case Right(value) => HttpClientApi.get(url, value, headers, log_response,connectionTimeOut,readTimeOut)
         }
     }
   }
@@ -84,7 +90,9 @@ case class HttpParsedResponseStep[T: Decoder](
                                                 http_method: HttpMethod,
                                                 params: Either[String, Seq[(String,String)]] = Left(""),
                                                 headers: Map[String,String] = Map.empty,
-                                                log_response: Boolean = false
+                                                log_response: Boolean = false,
+                                                connectionTimeOut : Int = 10000,
+                                                readTimeOut : Int = 150000
                                               )
   extends EtlStep[Unit, T] {
 
@@ -95,11 +103,11 @@ case class HttpParsedResponseStep[T: Decoder](
 
     http_method match {
       case HttpMethod.POST =>
-        HttpClientApi.post(url, params, headers, log_response).map(x => JsonCirce.convertToObject[T](x.body))
+        HttpClientApi.post(url, params, headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
       case HttpMethod.GET =>
         params match {
-          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response).map(x => JsonCirce.convertToObject[T](x.body))
-          case Right(value) => HttpClientApi.get(url, value, headers, log_response).map(x => JsonCirce.convertToObject[T](x.body))
+          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
+          case Right(value) => HttpClientApi.get(url, value, headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
         }
     }
   }

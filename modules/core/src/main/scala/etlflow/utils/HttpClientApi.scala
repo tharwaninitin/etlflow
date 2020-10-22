@@ -9,23 +9,27 @@ object HttpClientApi {
 
   def postUnit(url: String, params: Either[String,Seq[(String,String)]], 
           headers:Map[String,String], 
-          log_response: Boolean): Task[Unit] = 
-          post(url, params, headers, log_response) *> ZIO.unit
+          log_response: Boolean,
+          connectionTimeOut:Int,
+          readTimeOut:Int): Task[Unit] =
+          post(url, params, headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
 
   def post(url: String, params: Either[String,Seq[(String,String)]], 
           headers:Map[String,String], 
-          log_response: Boolean): Task[HttpResponse[String]] = Task {
+          log_response: Boolean,
+           connectionTimeOut:Int,
+           readTimeOut:Int): Task[HttpResponse[String]] = Task {
     val request: HttpRequest =
       params match {
         case Left(value) =>
           Http(url)
-            .timeout(connTimeoutMs = 10000, readTimeoutMs = 50000)
+            .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
             .postData(value)
             .headers(headers)
             .option(HttpOptions.allowUnsafeSSL)
         case Right(value) =>
           Http(url)
-            .timeout(connTimeoutMs = 10000, readTimeoutMs = 50000)
+            .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
             .postForm(value)
             .headers(headers)
             .option(HttpOptions.allowUnsafeSSL)
@@ -52,14 +56,18 @@ object HttpClientApi {
 
   def getUnit(url: String, params: Seq[(String,String)] = Nil, 
           headers:Map[String,String], 
-          log_response: Boolean): Task[Unit] = 
-          get(url, params, headers, log_response) *> ZIO.unit
+          log_response: Boolean,
+          connectionTimeOut:Int,
+          readTimeOut:Int): Task[Unit] =
+          get(url, params, headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
 
   def get(url: String, params: Seq[(String,String)] = Nil, 
           headers:Map[String,String], 
-          log_response: Boolean): Task[HttpResponse[String]] = Task {
+          log_response: Boolean,
+          connectionTimeOut:Int,
+          readTimeOut:Int): Task[HttpResponse[String]] = Task {
     val request = Http(url)
-      .timeout(connTimeoutMs = 10000, readTimeoutMs = 50000)
+      .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
       .headers(headers)
       .params(params)
       .option(HttpOptions.allowUnsafeSSL)

@@ -93,7 +93,9 @@ class SlackLogManager private[log] (
       web_hook_url,
       Left(f""" { "text" : "$data" } """),
       Map("content-type"->"application/json"),
-      log_response = false
+      log_response = false,
+      connectionTimeOut =  10000,
+      readTimeOut = 15000
     ).fold(
       ex  => println("Error in sending slack notification: " + ex.getMessage),
       _   => println("Sent slack notification")

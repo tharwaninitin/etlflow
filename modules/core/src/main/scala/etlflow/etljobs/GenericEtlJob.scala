@@ -14,12 +14,13 @@ trait GenericEtlJob[+EJP <: EtlJobProps] extends EtlJob[EJP] {
   def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
+  val job_type = "GenericEtlJob"
 
   final def execute(): ZIO[ZEnv, Throwable, Unit] = {
     (for {
       job_status_ref  <- job_status.toManaged_
       resource        <- logger_resource
-      log             = JobLogger.live(resource)
+      log             = JobLogger.live(resource,job_type)
       resourceLayer   = ZLayer.succeed(resource)
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
       _               <- (job_status_ref.set("started") *> log.logInit(job_start_time)).toManaged_

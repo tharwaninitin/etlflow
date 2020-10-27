@@ -9,5 +9,5 @@ case class JobRun(
                    start_time: String,
                    inserted_at: Long,
                    elapsed_time: String,
-
+                   job_type: String
                  )

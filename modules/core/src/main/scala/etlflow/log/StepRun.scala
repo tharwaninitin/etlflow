@@ -7,5 +7,6 @@ case class StepRun(
                     state: String,
                     start_time: String,
                     inserted_at: Long,
-                    elapsed_time:String
+                    elapsed_time:String,
+                    step_type:String
                   )

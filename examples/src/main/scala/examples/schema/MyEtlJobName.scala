@@ -67,4 +67,10 @@ object MyEtlJobName {
     def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob4Props] = EtlJob6Definition(getActualProperties(job_properties))
 
   }
+
+  case object EtlJob7ChildLocal extends MyEtlJobName[LocalSampleProps] {
+    def getActualProperties(job_properties: Map[String, String]): LocalSampleProps = LocalSampleProps()
+    def etlJob(job_properties: Map[String, String]): EtlJob[LocalSampleProps] = EtlJob7DefinitionLocal(getActualProperties(job_properties))
+
+  }
 }

@@ -10,6 +10,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   val etl_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   val name: String
+  val step_type = this.getClass.getSimpleName
 
   def process(input_state: =>IPSTATE): Task[OPSTATE]
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()

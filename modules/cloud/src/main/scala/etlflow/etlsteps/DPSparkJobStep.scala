@@ -22,7 +22,7 @@ case class DPSparkJobStep(
     DPService.executeSparkJob(job_name,props,main_class,libs).provideLayer(env)
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> job_name)
+  override def getStepProperties(level: LoggingLevel): Map[String, String] = props
 }
 
 

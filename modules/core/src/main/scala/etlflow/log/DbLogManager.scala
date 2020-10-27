@@ -43,7 +43,8 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
         JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
         state_status.toLowerCase(),
         UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
-        "..."
+        "...",
+        etl_step.step_type
       )
       lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
       val x: ConnectionIO[Long] = ctx.run(quote {
@@ -74,14 +75,18 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     }
   }
 
-  def updateJobInformation(execution_start_time: Long,status: String, mode: String = "update", error_message: Option[String] = None): Task[Long] = {
+  def updateJobInformation(execution_start_time: Long,status: String, mode: String = "update", job_type:String,error_message: Option[String] = None): Task[Long] = {
     import ctx._
     if (mode == "insert") {
       val job = JobRun(
         job_properties.job_run_id, job_name.toString,
         job_properties.job_description,
         JsonJackson.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
-        "started", UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp, "..."
+        "started",
+        UF.getCurrentTimestampAsString(),
+        UF.getCurrentTimestamp,
+        "...",
+        job_type
       )
       lm_logger.info(s"Inserting job info in db with status => $status")
       ctx.run(quote {
@@ -118,13 +123,13 @@ object DbLogManager extends DbManager{
     Try(new DbLogManager(transactor,job_name, job_properties)).toOption
 
   def createOptionDbTransactorManagedGP(
-         global_properties: Config,
-         ec: ExecutionContext,
-         blocker: Blocker,
-         pool_name: String = "LoggerPool",
-         job_name: String,
-         job_properties: EtlJobProps
-       ): Managed[Throwable, Option[DbLogManager]] =
+                                         global_properties: Config,
+                                         ec: ExecutionContext,
+                                         blocker: Blocker,
+                                         pool_name: String = "LoggerPool",
+                                         job_name: String,
+                                         job_properties: EtlJobProps
+                                       ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
       createDbTransactorManaged(global_properties.dbLog,ec,pool_name)(blocker)
         .map { transactor =>

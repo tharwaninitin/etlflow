@@ -109,9 +109,7 @@ object Dependencies {
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
     "eu.timepit" %% "fs2-cron-core" % "0.2.2",
     "com.github.cb372" %% "scalacache-caffeine" % "0.28.0",
-    "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0",
-    "com.github.cb372" %% "scalacache-redis" % "0.28.0"
-
+    "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
   )
 
   lazy val http4sclient = List(

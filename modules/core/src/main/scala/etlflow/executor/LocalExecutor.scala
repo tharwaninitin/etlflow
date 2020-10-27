@@ -55,7 +55,9 @@ object LocalExecutor {
         }
         override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobName[EtlJobProps]](name, etl_job_name_package)
-          job_name.etlJob(properties).execute().provideLayer(ZEnv.live)
+          val job = job_name.etlJob(properties)
+          job.job_name = job_name.toString
+          job.execute().provideLayer(ZEnv.live)
         }
       }
     }

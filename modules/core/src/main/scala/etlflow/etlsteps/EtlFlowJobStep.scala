@@ -10,16 +10,15 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(
                                                   job: => EtlJob[EJP],
                                                 )
   extends EtlStep[Unit,Unit] {
-
+  lazy val job_instance = job
   final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting EtlFlowJobStep for: $name")
-    job.execute().provideLayer(ZEnv.live)
+    job_instance.execute().provideLayer(ZEnv.live)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {
-    val excludeKeys = List("job_run_id","job_description","job_properties","job_aggregate_error")
-    JsonJackson.convertToJsonByRemovingKeysAsMap(job.job_properties,excludeKeys).mapValues( _.toString)
+    Map("step_run_id" -> job_instance.job_properties.job_run_id)
   }
 }
 

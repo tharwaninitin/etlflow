@@ -20,6 +20,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
+  val remoteStep = List("EtlFlowJobStep")
 
   def getCredentials[T : Manifest](name: String): Task[T] = {
     val query = s"SELECT value FROM credentials WHERE name='$name';"
@@ -44,7 +45,8 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
         state_status.toLowerCase(),
         UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
         "...",
-        etl_step.step_type
+        etl_step.step_type,
+        if(remoteStep.contains(etl_step.step_type)) etl_step.getStepProperties(job_properties.job_notification_level).get("step_run_id").get else ""
       )
       lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
       val x: ConnectionIO[Long] = ctx.run(quote {
@@ -128,7 +130,7 @@ object DbLogManager extends DbManager{
                                          blocker: Blocker,
                                          pool_name: String = "LoggerPool",
                                          job_name: String,
-                                         job_properties: EtlJobProps
+                                         job_properties: EtlJobProps,
                                        ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
       createDbTransactorManaged(global_properties.dbLog,ec,pool_name)(blocker)

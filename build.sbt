@@ -7,8 +7,10 @@ version in ThisBuild := "0.7.13"
 
 enablePlugins(MicrositesPlugin)
 
-lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#zio1"), "core")
-lazy val etlflowScheduler = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#zio1"), "scheduler")
+lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "core")
+lazy val etlflowScheduler = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "scheduler")
+lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "spark")
+lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "cloud")
 
 lazy val docsSettings = Seq(
   name := "etlflow-docs"
@@ -49,5 +51,7 @@ lazy val docs = (project in file("modules/docs"))
   )
   .dependsOn(
     etlflowCore,
-    etlflowScheduler
+    etlflowScheduler,
+    etlflowCloud,
+    etlflowSpark
   )

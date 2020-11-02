@@ -21,8 +21,8 @@ import etlflow.utils._
 
 ```scala mdoc
 
-val canonical_path: String = new java.io.File(".").getCanonicalPath
-val job_properties: Map[String,String] = Map(
+lazy val canonical_path: String = new java.io.File(".").getCanonicalPath
+lazy val job_properties: Map[String,String] = Map(
         "ratings_input_path" -> s"$canonical_path/examples/src/main/data/movies/ratings/*",
         "ratings_output_path" -> s"$canonical_path/examples/src/main/data/movies/output/ratings",
         "ratings_output_file_name" -> "ratings.orc"
@@ -128,7 +128,7 @@ as in this library upload from local file to BigQuery uses [bq command](https://
 import etlflow.utils.FSType
 
 // Adding two new properties for Bigquery table and Dataset
-       val job_properties1: Map[String,String] = Map(
+       lazy val job_properties1: Map[String,String] = Map(
         "ratings_input_path" -> s"$canonical_path/examples/src/main/data/movies/ratings/*",
         "ratings_output_path" -> s"$canonical_path/examples/src/main/data/movies/output/ratings",
         "ratings_output_file_name" -> "ratings.orc",

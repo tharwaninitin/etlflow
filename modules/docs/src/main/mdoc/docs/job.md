@@ -29,8 +29,8 @@ For e.g. intermediate path can be dynamically generated for every run based on c
       import java.text.SimpleDateFormat
       import java.time.LocalDate
       
-      val canonical_path = new java.io.File(".").getCanonicalPath
-      val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+      lazy val canonical_path = new java.io.File(".").getCanonicalPath
+      lazy val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
       val date_prefix = LocalDate.now.toString.replace("-","")
       
       case class EtlJob1Props (
@@ -56,7 +56,7 @@ Below is the example of GenericEtlJob which has two steps which can execute in a
     
     case class RatingOutput(user_id: Int, movie_id: Int, rating : Double, timestamp: Long, date: java.sql.Date)
     
-    case class EtlJob1(job_properties: EtlJob1Props, globalProperties: Config) extends GenericEtlJob {
+    case class EtlJob1(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
       
       val step1 = GCSPutStep(
               name    = "LoadRatingGCS",
@@ -93,7 +93,7 @@ Below is the example of SequentialEtlJob which is much simpler way to run jobs w
      import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
      import etlflow.utils.PARQUET
 
-     case class EtlJob2(job_properties: EtlJob1Props, globalProperties: Config) extends SequentialEtlJob {
+     case class EtlJob2(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
 
      val step3 = GCSPutStep(
                      name    = "LoadRatingGCS",

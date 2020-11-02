@@ -29,7 +29,7 @@ object Query {
   val dc = new DoobieContext.Postgres(Literal)
   import dc._
 
-  implicit val cronJobDBCache = CacheHelper.createCache[List[CronJobDB]](24 * 60)
+  implicit val cronJobDBCache = CacheHelper.createCache[List[CronJobDB]]
   implicit val mode: Mode[Task] = scalacache.CatsEffect.modes.async
 
   def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String]): Task[UserAuth] =  {
@@ -45,7 +45,7 @@ object Query {
           val number = randomUUID().toString.split("-")(0)
           val token = Jwt.encode(s"""${args.user_name}:$number""", "secretKey", JwtAlgorithm.HS256)
           query_logger.info("Token generated " + token)
-          CacheHelper.putKey(cache,token,token)
+          CacheHelper.putKey(cache,token,token,Some(CacheHelper.default_ttl))
           UserAuth("Valid User", token)
         }
       }

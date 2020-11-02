@@ -16,20 +16,23 @@ abstract class WebServerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     val webServerRunner: ZIO[ZEnv, Throwable, Unit] = (for {
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowWebServer-Pool", 10)(blocker)
-      cache           = CacheHelper.createCache[String](24 * 60)
+      cache           = CacheHelper.createCache[String]
+      queue           = Runtime.default.unsafeRun(Queue.unbounded[(String,String)])
+      _               = config.token.map( _.foreach( tkn => CacheHelper.putKey(cache,tkn,tkn)))
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
-      _               <- etlFlowWebServer(blocker,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs,jobSemaphores,jobs)).toManaged_
+      _               <- etlFlowWebServer[EJN,EJP](blocker,cache,jobSemaphores,transactor,etl_job_name_package,config,queue).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs,jobSemaphores,jobs,queue)).toManaged_
+
     } yield ()).use_(ZIO.unit)
 
     val finalRunner = if (args.isEmpty) webServerRunner else cliRunner(args)
 
     finalRunner.catchAll{err =>
-        UIO {
-          ea_logger.error(err.getMessage)
-          err.getStackTrace.foreach(x => ea_logger.error(x.toString))
-        }
-      }.exitCode
+      UIO {
+        ea_logger.error(err.getMessage)
+        err.getStackTrace.foreach(x => ea_logger.error(x.toString))
+      }
+    }.exitCode
   }
 }

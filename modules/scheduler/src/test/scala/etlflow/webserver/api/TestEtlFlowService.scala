@@ -8,6 +8,7 @@ import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Query
+import etlflow.utils.QueueHelper
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
 import zio._
@@ -66,7 +67,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
           Query.getDbStepRuns(args, transactor)
         }
 
-        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
+        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlFlowHelper.EtlJob]] = ???
 
         override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
 
@@ -75,6 +76,10 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
 
         override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheInfo]] = ???
+
+        override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueInfo]] = {
+          QueueHelper.takeAll(jobTestQueue)
+        }
       }
     }
   }

@@ -22,15 +22,19 @@ trait Executor extends K8SExecutor with EtlJobValidator {
                  sem: Semaphore,
                  config: Config,
                  etl_job_name_package: String,
-     ): Task[Unit] = {
+                 submittedFrom:String,
+                 jobQueue: Queue[(String,String)]
+         ): Task[Option[EtlJob]] = {
     for {
-      _  <- UIO(executor_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      cj <- Query.getCronJobFromDB(args.name,transactor)
-      _  <- if (cj.is_active)
-              UIO(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}") *> runEtlJob[EJN,EJP](args,transactor,sem,config,etl_job_name_package)
-            else
-              UIO(executor_logger.info(s"Skipping inactive cron job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}"))
-    } yield ()
+      _       <- UIO(executor_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
+      _       <- jobQueue.offer((args.name,submittedFrom))
+      etljob  <- Query.getCronJobFromDB(args.name,transactor).flatMap( cj =>
+        if (cj.is_active)
+          UIO(executor_logger.info(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN, EJP](args, transactor, sem, config, etl_job_name_package).map(Some(_))
+        else
+          UIO(executor_logger.info(s"Skipping inactive cron job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}")).as(None)
+      )
+    } yield etljob
   }
 
   final def runEtlJob[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](

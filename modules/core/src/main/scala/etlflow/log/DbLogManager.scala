@@ -15,6 +15,7 @@ import zio.interop.catz._
 import zio.{Managed, Task, ZManaged}
 import scala.concurrent.ExecutionContext
 import scala.util.Try
+import etlflow.utils.{UtilityFunctions => UF}
 
 class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
 
@@ -40,7 +41,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     if (mode == "insert") {
       val step = StepRun(
         job_properties.job_run_id,
-        etl_step.name,
+        UF.stringFormatter(etl_step.name),
         JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
         state_status.toLowerCase(),
         UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,

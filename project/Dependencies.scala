@@ -7,7 +7,7 @@ object Dependencies {
   val GcpGcsVersion = "1.108.0"
   val GcpPubSubVersion = "1.108.1"
   val ScoptVersion = "3.7.1"
-  val ZioVersion = "1.0.0"
+  val ZioVersion = "1.0.3"
   val ZioCatsInteropVersion = "2.1.4.0"
   val DoobieVersion = "0.9.0"
   val SkunkVersion = "0.0.18"

@@ -22,7 +22,7 @@ case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends Gene
 
   val step2 = {
     GenericETLStep(
-      name               = "Step_2",
+      name               = "Step    2",
       transform_function = processData,
     )
   }

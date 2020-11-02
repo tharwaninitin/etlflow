@@ -17,12 +17,14 @@ abstract class ServerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowSchedulerWebServer-Pool", 10)(blocker)
-      cache           = CacheHelper.createCache[String](24 * 60)
+      queue           =  Runtime.default.unsafeRun(Queue.unbounded[(String,String)])
+      cache           =  CacheHelper.createCache[String]
+      _               =  config.token.map( _.foreach( tkn => CacheHelper.putKey(cache,tkn,tkn)))
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
-      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores).fork.toManaged_
-      _               <- etlFlowWebServer(blocker,cache).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs,jobSemaphores,jobs)).toManaged_
+      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).fork.toManaged_
+      _               <- etlFlowWebServer[EJN,EJP](blocker,cache,jobSemaphores,transactor,etl_job_name_package,config,queue).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs,jobSemaphores,jobs,queue)).toManaged_
     } yield ()).use_(ZIO.unit)
 
     val finalRunner = if (args.isEmpty) serverRunner else cliRunner(args)

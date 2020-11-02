@@ -24,7 +24,7 @@ case class EtlJob1Props (
         ratings_output_table_name: String = "ratings",
 ) extends EtlJobProps
 
-case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJob1Props, globalProperties: Config) extends SequentialEtlJob {
+case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
       
 val step1 = HttpStep(
              name         = "HttpPostJson",

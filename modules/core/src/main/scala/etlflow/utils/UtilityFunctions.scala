@@ -3,9 +3,10 @@ package etlflow.utils
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
+
 import etlflow.EtlJobNotFoundException
 import org.slf4j.{Logger, LoggerFactory}
-import scala.reflect.ClassTag
+
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}
@@ -100,6 +101,8 @@ object UtilityFunctions {
   def getFields[T: TypeTag]: Seq[(String, String)] = typeOf[T].members.collect {
      case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
   }.toSeq
+
+  def stringFormatter(value: String):String = value.take(50).replaceAll("_"," ").replaceAll("\\s+", "_").toLowerCase
 
 //  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
 //    Try {

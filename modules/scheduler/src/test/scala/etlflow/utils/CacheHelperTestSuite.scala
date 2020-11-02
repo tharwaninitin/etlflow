@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 
 class CacheHelperTestSuite  extends FlatSpec with Matchers {
 
-  val cache = CacheHelper.createCache[String](24 * 60)
+  val cache = CacheHelper.createCache[String]
   CacheHelper.putKey(cache,"key1","123")
   CacheHelper.putKey(cache,"key3","123",ttl = Some(2.second))
 

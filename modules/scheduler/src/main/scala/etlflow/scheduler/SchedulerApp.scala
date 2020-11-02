@@ -38,7 +38,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     Update.updateCronJobsDB(transactor, cronJobsDb)
   }
 
-  final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore]): Task[Unit] = {
+  final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String)]): Task[Unit] = {
     val jobsToBeScheduled = dbCronJobs.flatMap{ cj =>
       if (cj.schedule.isDefined)
         List(cj)
@@ -52,7 +52,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     else {
       val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval {
         scheduler_logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        runActiveEtlJob[EJN,EJP](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_name_package)
+        runActiveEtlJob[EJN,EJP](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_name_package,"Scheduler",jobQueue)
       })))
 
       UIO(scheduler_logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
@@ -65,13 +65,13 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     }
   }
 
-  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobSemaphores: Map[String, Semaphore]): Task[Unit] = for {
+  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String)]): Task[Unit] = for {
     _          <- Update.deleteCronJobsDB(transactor,UF.getEtlJobs[EJN].map(x => x).toList)
     dbCronJobs <- refreshCronJobsDB(transactor)
     _          <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
     _          <- UIO(scheduler_logger.info(s"Refreshed jobs in database \n${dbCronJobs.mkString("\n")}"))
     _          <- UIO(scheduler_logger.info("Starting scheduler"))
-    _          <- scheduledTask(dbCronJobs,transactor,jobSemaphores)
+    _          <- scheduledTask(dbCronJobs,transactor,jobSemaphores,jobQueue)
   } yield ()
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
@@ -81,7 +81,8 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
-      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores).toManaged_
+      queue           =  Runtime.default.unsafeRun(Queue.unbounded[(String,String)])
+      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).toManaged_
     } yield ()).use_(ZIO.unit)
 
     val finalRunner = if (args.isEmpty) schedulerRunner else cliRunner(args)

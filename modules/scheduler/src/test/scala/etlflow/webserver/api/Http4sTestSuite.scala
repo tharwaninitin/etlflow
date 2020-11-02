@@ -67,7 +67,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         } yield apiRequest
 
         val apiResponse = client.expect[String](apiRequest).provideCustomLayer(env)
-        assertM(apiResponse)(equalTo("""{"data":{"jobs":[{"name":"EtlJobDownload"}]}}"""))
+        assertM(apiResponse)(equalTo("""{"data":{"jobs":[{"name":"EtlJobDownload"},{"name":"EtlJob4"}]}}"""))
       },
       testM("Test jobs end point without authorization header") {
         val apiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))

@@ -55,12 +55,13 @@ object EtlFlowHelper {
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
   case class Credentials(name: String, `type`: String, value: String)
   case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
+  case class QueueInfo(job_name:String,submitted_from:String)
 
   case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean,max_active_runs: Int, job_deploy_mode: String)
 
   object EtlFlow {
     trait Service {
-      def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
+      def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]]
       def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
       def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
@@ -68,6 +69,7 @@ object EtlFlowHelper {
       def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
       def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
       def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime]
+      def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueInfo]]
 
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
@@ -81,7 +83,7 @@ object EtlFlowHelper {
 
   type EtlFlowHas = Has[EtlFlow.Service]
 
-  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] =
+  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]] =
     ZIO.accessM[EtlFlowHas](_.get.runJob(args))
 
   def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] =
@@ -122,5 +124,8 @@ object EtlFlowHelper {
 
   def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] =
     ZIO.accessM[EtlFlowHas](_.get.getCurrentTime)
+
+  def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueInfo]] =
+    ZIO.accessM[EtlFlowHas](_.get.getQueueStats)
 
 }

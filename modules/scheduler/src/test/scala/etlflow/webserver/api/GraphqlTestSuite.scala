@@ -16,6 +16,18 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Scheduler Execution Spec")(
+//      testM("Test jobs end point") {
+//        val query = gqldoc(
+//          """
+//           {
+//             queueStats {
+//                job_name
+//                submitted_from
+//             }
+//           }""")
+//        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
+//        )
+//      },
       testM("Test jobs end point") {
         val query = gqldoc(
           """
@@ -27,7 +39,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
                is_active
              }
            }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true},{"name":"EtlJob4","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
         )
       },
       testM("Test jobruns end point") {

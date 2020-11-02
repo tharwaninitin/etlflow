@@ -3,9 +3,11 @@ package etlflow.webserver
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
+import doobie.hikari.HikariTransactor
+import etlflow.utils.Config
 import etlflow.utils.EtlFlowHelper._
 import etlflow.webserver.api._
-import etlflow.{BuildInfo => BI}
+import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
@@ -15,8 +17,10 @@ import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.{HttpRoutes, StaticFile}
 import scalacache.Cache
 import zio.interop.catz._
-import zio.{ZEnv, ZIO}
+import zio.{Queue, Semaphore, Task, ZEnv, ZIO}
+
 import scala.concurrent.duration._
+import scala.reflect.runtime.universe.TypeTag
 
 trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
 
@@ -24,7 +28,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def etlFlowWebServer(blocker: Blocker, cache: Cache[String]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
+  def etlFlowWebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](blocker: Blocker, cache: Cache[String],jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String)]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
       .flatMap{implicit runtime =>
         (for {
@@ -65,6 +69,10 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                 ),
                 "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                 "/ws/etlflow"     -> CORS(new StatsStreams[EtlFlowTask](cache).streamRoutes),
+                "/api/runjob"     -> AuthMiddleware(
+                  CORS(new TriggerJob[EtlFlowTask].triggerEtlJob[EJN,EJP](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
+                  authEnabled = true,
+                  cache),
               ).orNotFound
             ).resource
             .toManagedZIO

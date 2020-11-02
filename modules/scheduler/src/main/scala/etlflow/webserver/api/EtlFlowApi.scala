@@ -32,11 +32,12 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                       stepruns: DbStepRunArgs => ZIO[EtlFlowHas, Throwable, List[StepRun]],
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                       currentime: ZIO[EtlFlowHas, Throwable, CurrentTime],
-                      cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheInfo]]
+                      cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheInfo]],
+                      queueStats:ZIO[EtlFlowHas, Throwable, List[QueueInfo]]
                     )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
+                        run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, Option[EtlJob]],
                         update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
@@ -62,7 +63,8 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
           args => getDbStepRuns(args),
           getInfo,
           getCurrentTime,
-          getCacheStats
+          getCacheStats,
+          getQueueStats,
         ),
         Mutations(
           args => runJob(args),

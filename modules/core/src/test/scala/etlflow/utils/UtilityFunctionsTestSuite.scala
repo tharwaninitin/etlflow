@@ -26,6 +26,18 @@ class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
   val actualOutputHrs = UF.getTimeDifferenceAsString(startTimeHrs,endTimeHrs)
   val expectedOutputHrs  = "4.43 hrs"
 
+  val actualStepName1 = "DataTransfer For EtlJobPricing Raw Data"
+  val expectedStepName1 = "datatransfer_for_etljobpricing_raw_data"
+
+  val actualStepName2 = "DataTransfer       For EtlJobPricing Raw Data"
+  val expectedStepName2 = "datatransfer_for_etljobpricing_raw_data"
+
+  val actualStepName3 = "DataTransfer       For EtlJobPricing Raw Data_Week_Calculation"
+  val expectedStepName3 = "datatransfer_for_etljobpricing_raw_data_week"
+
+  val actualStepName4 = "DataTransfer______For EtlJobPricing Raw Data_Week_Calculation"
+  val expectedStepName4 = "datatransfer_for_etljobpricing_raw_data_week_"
+
   "GetTimeDifferenceAsString should  " should "run successfully for days" in {
     assert(actualDaysOutput == expectedDaysOutput)
   }
@@ -36,5 +48,21 @@ class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
 
   "GetTimeDifferenceAsString2 should " should "run successfully for hrs" in {
     assert(actualOutputHrs == expectedOutputHrs)
+  }
+
+  "StringFormatter should " should "return formatted string when given string with single space" in {
+    assert(UF.stringFormatter(actualStepName1) == expectedStepName1)
+  }
+
+  "StringFormatter should " should "return formatted string when given string with multiple consecutive spaces" in {
+    assert(UF.stringFormatter(actualStepName2) == expectedStepName2)
+  }
+
+  "StringFormatter should " should "return formatted string when given string with more than 50 characters" in {
+    assert(UF.stringFormatter(actualStepName3) == expectedStepName3)
+  }
+
+  "StringFormatter should " should "return formatted string when given string with multiple consecutive underscores " in {
+    assert(UF.stringFormatter(actualStepName4) == expectedStepName4)
   }
 }

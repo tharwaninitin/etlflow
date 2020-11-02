@@ -3,16 +3,20 @@ package etlflow.executor
 import etlflow.SchedulerSuiteHelper
 import etlflow.MyEtlJobName
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
+import etlflow.webserver.api.Http4sTestSuite.{credentials, runDbMigration}
 import zio._
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object LocalExecutorTestSuite extends DefaultRunnableSpec with Executor with SchedulerSuiteHelper {
 
+
+
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Local Executor Spec")(
       testM("Test Local Job with correct JobName") {
-        def job(sem: Semaphore): Task[EtlJob] = runLocalJob(EtlJobArgs("EtlJob4", List.empty),transactor,etlJob_name_package,sem)
+        zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+        def job(sem: Semaphore): Task[Option[EtlJob]] = runActiveEtlJob(EtlJobArgs("EtlJob4", List.empty),transactor,sem,global_properties,etlJob_name_package,"Test",jobTestQueue)
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)

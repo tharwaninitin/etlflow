@@ -7,24 +7,23 @@ import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import cron4s.lib.javatime._
 import doobie.hikari.HikariTransactor
-import etlflow.utils.EtlFlowHelper.{CacheInfo, CronJobDB, EtlJob, Job}
+import etlflow.utils.EtlFlowHelper.{CacheInfo, EtlJob, EtlJobArgs, Job}
 import etlflow.utils.db.Query
 import etlflow.utils.{UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Mode
 import scalacache.memoization.memoizeF
-import zio.{Semaphore, Task}
 import zio.interop.catz._
-import scala.collection.JavaConverters._
+import zio.{Queue, Semaphore, Task}
 
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-trait EtlFlowUtils {
+trait EtlFlowUtils  extends  etlflow.executor.Executor {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  implicit val jobPropsCache = CacheHelper.createCache[Map[String, String]](24 * 60)
+  implicit val jobPropsCache = CacheHelper.createCache[Map[String, String]]
   implicit val mode: Mode[Task] = scalacache.CatsEffect.modes.async
 
   def getPropsCacheStats = {
@@ -81,5 +80,9 @@ trait EtlFlowUtils {
       rt          <- Task.runtime
       semaphores  = jobs.map(job => (job.name, rt.unsafeRun(Semaphore.make(permits = job.props("job_max_active_runs").toLong)))).toMap
     } yield semaphores
+  }
+
+  def runEtlJobsFromApi[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](args: EtlJobArgs,transactor: HikariTransactor[Task],sem: Semaphore,config: Config, etl_job_name_package: String,jobQueue: Queue[(String,String)]): Task[Option[EtlJob]] ={
+    runActiveEtlJob[EJN,EJP](args,transactor,sem,config,etl_job_name_package,"Rest-Api",jobQueue)
   }
 }

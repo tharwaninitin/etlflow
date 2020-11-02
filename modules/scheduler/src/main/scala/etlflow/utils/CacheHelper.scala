@@ -10,10 +10,10 @@ import scala.collection.JavaConverters._
 
 object CacheHelper {
 
-  def createCache[T](expireAfterWriteInMinutes: Int):CaffeineCache[T] = {
+  var default_ttl = (24 * 60).minutes
+  def createCache[T]:CaffeineCache[T] = {
     val caffeineCache: CCache[String, Entry[T]] =
       Caffeine.newBuilder()
-        .expireAfterAccess(expireAfterWriteInMinutes, TimeUnit.MINUTES)
         .recordStats()
         .maximumSize(1000L)
         .build[String, Entry[T]]

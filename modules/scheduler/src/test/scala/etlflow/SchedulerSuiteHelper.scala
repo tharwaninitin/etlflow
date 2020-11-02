@@ -15,8 +15,7 @@ trait SchedulerSuiteHelper extends DbManager {
 
   val cache: Cache[String] = CacheHelper.createCache[String]
   val global_properties: Config = io.circe.config.parser.decode[Config]().toOption.get
-//  val credentials: JDBC = global_properties.dbLog
-  val credentials: JDBC = JDBC("jdbc:postgresql://localhost:5432/postgres","postgres","swap123","org.postgresql.Driver")
+  val credentials: JDBC = global_properties.dbLog
 
   val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val transactor: HikariTransactor[Task] = zio.Runtime.default.unsafeRun(createDbTransactor(credentials,ec,Blocker.liftExecutionContext(ec), "EtlFlow-Scheduler-Testing-Pool"))

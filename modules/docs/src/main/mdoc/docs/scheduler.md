@@ -27,6 +27,14 @@ Etlflow scheduler also provides the various operations to run the etl jobs on cl
      * [DataProc](dataproc.html)
      * [Kubernetes](kubernates.html)
     
+
+**Architecture Diagram :**
+
+![Architecture Diagram](executors.jpg)
+
+
+In above diagram we can see docker container is connected to database (postgres) which is getting used for storing all the etl jobs related information in database tables.
+
 Below is the sample job will define the both services while job creation : 
 
 To use etlflow Scheduler library in project add below setting in build.sbt file : 

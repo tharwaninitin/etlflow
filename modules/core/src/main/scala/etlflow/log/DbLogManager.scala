@@ -38,10 +38,12 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
                                   error_message: Option[String] = None,
                                   mode: String = "update"
                                 ): Task[Long] = {
+
+    val formatted_step_name = UF.stringFormatter(etl_step.name)
     if (mode == "insert") {
       val step = StepRun(
         job_properties.job_run_id,
-        UF.stringFormatter(etl_step.name),
+        formatted_step_name,
         JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
         state_status.toLowerCase(),
         UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
@@ -49,7 +51,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
         etl_step.step_type,
         if(remoteStep.contains(etl_step.step_type)) etl_step.getStepProperties(job_properties.job_notification_level).get("step_run_id").get else ""
       )
-      lm_logger.info(s"Inserting step info for ${etl_step.name} in db with status => ${state_status.toLowerCase()}")
+      lm_logger.info(s"Inserting step info for ${formatted_step_name} in db with status => ${state_status.toLowerCase()}")
       val x: ConnectionIO[Long] = ctx.run(quote {
         query[StepRun].insert(lift(step))
       })
@@ -62,10 +64,10 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     else {
       val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
       val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
-      lm_logger.info(s"Updating step info for ${etl_step.name} in db with status => $status")
+      lm_logger.info(s"Updating step info for ${formatted_step_name} in db with status => $status")
       ctx.run(quote {
         query[StepRun]
-          .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(etl_step.name))
+          .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(formatted_step_name))
           .update(
             _.state -> lift(status),
             _.properties -> lift(JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),

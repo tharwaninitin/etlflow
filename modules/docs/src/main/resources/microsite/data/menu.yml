@@ -30,6 +30,10 @@ options:
         url: docs/dp.html
       - title: Parallel Step Execution
         url: docs/parallel.html
+      - title: Cloud
+        url: docs/cloud_steps.html
+      - title: Remote
+        url: docs/remote.html
 
 
   - title: Sensors

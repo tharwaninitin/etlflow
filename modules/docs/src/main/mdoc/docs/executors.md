@@ -10,8 +10,3 @@ Following is the list of executors available in this library:
 - Kubernetes
 - Local
 - Local Sub-Process
-
-
-**Architecture Diagram :**
-
-![Architecture Diagram](executors.jpg)

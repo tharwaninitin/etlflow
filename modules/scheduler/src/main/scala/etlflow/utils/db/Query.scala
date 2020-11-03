@@ -229,7 +229,14 @@ object Query {
     }
   }
 
-  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = memoizeF[Task, List[CronJobDB]](Some(3600.second)){
+//  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = memoizeF[Task, List[CronJobDB]](Some(3600.second)){
+//    val selectQuery = quote {
+//      querySchema[CronJobDB]("cronjob")
+//    }
+//    dc.run(selectQuery).transact(transactor)
+//  }
+
+  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = {
     val selectQuery = quote {
       querySchema[CronJobDB]("cronjob")
     }

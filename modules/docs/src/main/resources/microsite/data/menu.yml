@@ -6,15 +6,6 @@ options:
   - title: Quick Start
     url: docs/quickstart.html
 
-  - title: Usage Guide
-    url: docs/usage.html
-
-    nested_options:
-      - title: GCP Dataproc (core)
-        url: docs/gcpdp.html
-      - title: Local Docker (scheduler)
-        url: docs/localdocker.html
-
   - title: Steps
     url: docs/steps.html
 
@@ -40,8 +31,6 @@ options:
       - title: Parallel Step Execution
         url: docs/parallel.html
 
-  - title: Job
-    url: docs/job.html
 
   - title: Sensors
     url: docs/sensors.html
@@ -52,13 +41,42 @@ options:
       - title: S3 Sensor
         url: docs/s3sensor.html
 
+  - title: Job
+    url: docs/job.html
+
+  - title: Components
+    url: docs/components.html
+
+    nested_options:
+      - title: Core
+        url: docs/core.html
+      - title: Cloud
+        url: docs/cloud.html
+      - title: Spark
+        url: docs/spark_components.html
+      - title: Scheduler
+        url: docs/scheduler.html
+
+  - title: Deployments
+    url: docs/usage.html
+
+    nested_options:
+      - title: Core (Dataproc)
+        url: docs/gcpdp.html
+      - title: Scheduler (Local Docker)
+        url: docs/localdocker.html
+      - title: Scheduler (Kubernetes)
+        url: docs/gke.html
+
   - title: Executors
     url: docs/executors.html
 
     nested_options:
       - title: Local Executor
         url: docs/local.html
+      - title: Local Sub-Process Executor
+        url: docs/local_subprocess.html
       - title: Dataproc Executor
         url: docs/dataproc.html
-      - title: Kubernates Executor
-        url: docs/kubernates.html
+      - title: Kubernetes Executor
+        url: docs/kubernetes.html

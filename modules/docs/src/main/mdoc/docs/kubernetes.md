@@ -3,7 +3,7 @@ layout: docs
 title: Kubernates Executor
 ---
 
-## Kubernates Executor
+## Kubernetes Executor
 
 **When we provides the job execution as Kubernates then job will get's submitted on the Kubernates cluster with provided configurations**
 

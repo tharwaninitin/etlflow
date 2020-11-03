@@ -92,4 +92,6 @@ Below Docker compose file file contains the two services :
       mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
       mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json")
       
-* Here you can see we are copying the loaddata.properties file and cred.json file inside docker image.    
+* Here you can see we are copying the loaddata.properties file and cred.json file inside docker image. 
+
+[Setting up a docker environment](https://github.com/tharwaninitin/etlflow/tree/minimal/deployment/docker)   

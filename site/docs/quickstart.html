@@ -1,46 +1,46 @@
-<!DOCTYPE html><html><head><title>EtlFlow: Quick Start</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="com.github.tharwaninitin" /><meta name="description" content="Functional library in Scala for writing ETL jobs" /><meta name="og:image" content="/etlflow/site/img/poster.png" /><meta name="image" property="og:image" content="/etlflow/site/img/poster.png" /><meta name="og:title" content="EtlFlow: Quick Start" /><meta name="title" property="og:title" content="EtlFlow: Quick Start" /><meta name="og:site_name" content="EtlFlow" /><meta name="og:url" content="" /><meta name="og:type" content="website" /><meta name="og:description" content="Functional library in Scala for writing ETL jobs" /><link rel="icon" type="image/png" href="/etlflow/site/img/favicon.png" /><meta name="twitter:title" content="EtlFlow: Quick Start" /><meta name="twitter:image" content="https://tharwaninitin.github.io/etlflow/site//etlflow/site/img/poster.png" /><meta name="twitter:description" content="Functional library in Scala for writing ETL jobs" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/etlflow/site/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/etlflow/site/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/etlflow/site/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/etlflow/site/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/etlflow/site/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/etlflow/site/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/etlflow/site/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/etlflow/site/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/etlflow/site/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/etlflow/site/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/etlflow/site/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/etlflow/site/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/etlflow/site/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/etlflow/site/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/etlflow/site/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/etlflow/site/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/etlflow/site/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/etlflow/site/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/etlflow/site/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/etlflow/site/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/etlflow/site/highlight/styles/vs.css" /><link rel="stylesheet" href="/etlflow/site/css/pattern-style.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/etlflow/site/" class="brand"><div class="brand-wrapper"><span>EtlFlow</span></div></a></li> <li><a href="/etlflow/site/docs/index.html" class="">Introduction</a></li> <li><a href="/etlflow/site/docs/quickstart.html" class=" active ">Quick Start</a></li> <li><a href="/etlflow/site/docs/usage.html" class="">Usage Guide</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/gcpdp.html" class="">GCP Dataproc (core)</a></li> <li><a href="/etlflow/site/docs/localdocker.html" class="">Local Docker (scheduler)</a></li></ul></li> <li><a href="/etlflow/site/docs/steps.html" class="">Steps</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/spark.html" class="">Spark</a></li> <li><a href="/etlflow/site/docs/bigquery.html" class="">BigQuery</a></li> <li><a href="/etlflow/site/docs/gcs.html" class="">GCS</a></li> <li><a href="/etlflow/site/docs/s3.html" class="">S3</a></li> <li><a href="/etlflow/site/docs/jdbc.html" class="">JDBC</a></li> <li><a href="/etlflow/site/docs/http.html" class="">HTTP</a></li> <li><a href="/etlflow/site/docs/redisquery.html" class="">Redis</a></li> <li><a href="/etlflow/site/docs/sendmail.html" class="">Send Mail</a></li> <li><a href="/etlflow/site/docs/dp.html" class="">Dataproc</a></li> <li><a href="/etlflow/site/docs/parallel.html" class="">Parallel Step Execution</a></li></ul></li> <li><a href="/etlflow/site/docs/job.html" class="">Job</a></li> <li><a href="/etlflow/site/docs/sensors.html" class="">Sensors</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/gcssensor.html" class="">GCS Sensor</a></li> <li><a href="/etlflow/site/docs/s3sensor.html" class="">S3 Sensor</a></li></ul></li> <li><a href="/etlflow/site/docs/executors.html" class="">Executors</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/local.html" class="">Local Executor</a></li> <li><a href="/etlflow/site/docs/dataproc.html" class="">Dataproc Executor</a></li> <li><a href="/etlflow/site/docs/kubernates.html" class="">Kubernates Executor</a></li></ul></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/tharwaninitin/etlflow" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/tharwaninitin/etlflow" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('EtlFlow Functional library in Scala for writing ETL jobs');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('EtlFlow Functional library in Scala for writing ETL jobs');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="tharwaninitin" data-github-repo="etlflow"><div class="content-wrapper"><section><h2 id="quick-start">Quick Start</h2>
+<!DOCTYPE html><html><head><title>EtlFlow: Quick Start</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="com.github.tharwaninitin" /><meta name="description" content="Functional library in Scala for writing ETL jobs" /><meta name="og:image" content="/etlflow/site/img/poster.png" /><meta name="image" property="og:image" content="/etlflow/site/img/poster.png" /><meta name="og:title" content="EtlFlow: Quick Start" /><meta name="title" property="og:title" content="EtlFlow: Quick Start" /><meta name="og:site_name" content="EtlFlow" /><meta name="og:url" content="" /><meta name="og:type" content="website" /><meta name="og:description" content="Functional library in Scala for writing ETL jobs" /><link rel="icon" type="image/png" href="/etlflow/site/img/favicon.png" /><meta name="twitter:title" content="EtlFlow: Quick Start" /><meta name="twitter:image" content="https://tharwaninitin.github.io/etlflow/site//etlflow/site/img/poster.png" /><meta name="twitter:description" content="Functional library in Scala for writing ETL jobs" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/etlflow/site/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/etlflow/site/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/etlflow/site/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/etlflow/site/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/etlflow/site/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/etlflow/site/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/etlflow/site/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/etlflow/site/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/etlflow/site/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/etlflow/site/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/etlflow/site/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/etlflow/site/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/etlflow/site/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/etlflow/site/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/etlflow/site/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/etlflow/site/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/etlflow/site/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/etlflow/site/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/etlflow/site/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/etlflow/site/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/etlflow/site/highlight/styles/vs.css" /><link rel="stylesheet" href="/etlflow/site/css/pattern-style.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/etlflow/site/" class="brand"><div class="brand-wrapper"><span>EtlFlow</span></div></a></li> <li><a href="/etlflow/site/docs/index.html" class="">Introduction</a></li> <li><a href="/etlflow/site/docs/quickstart.html" class=" active ">Quick Start</a></li> <li><a href="/etlflow/site/docs/steps.html" class="">Steps</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/spark.html" class="">Spark</a></li> <li><a href="/etlflow/site/docs/bigquery.html" class="">BigQuery</a></li> <li><a href="/etlflow/site/docs/gcs.html" class="">GCS</a></li> <li><a href="/etlflow/site/docs/s3.html" class="">S3</a></li> <li><a href="/etlflow/site/docs/jdbc.html" class="">JDBC</a></li> <li><a href="/etlflow/site/docs/http.html" class="">HTTP</a></li> <li><a href="/etlflow/site/docs/redisquery.html" class="">Redis</a></li> <li><a href="/etlflow/site/docs/sendmail.html" class="">Send Mail</a></li> <li><a href="/etlflow/site/docs/dp.html" class="">Dataproc</a></li> <li><a href="/etlflow/site/docs/parallel.html" class="">Parallel Step Execution</a></li></ul></li> <li><a href="/etlflow/site/docs/sensors.html" class="">Sensors</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/gcssensor.html" class="">GCS Sensor</a></li> <li><a href="/etlflow/site/docs/s3sensor.html" class="">S3 Sensor</a></li></ul></li> <li><a href="/etlflow/site/docs/job.html" class="">Job</a></li> <li><a href="/etlflow/site/docs/components.html" class="">Components</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/core.html" class="">Core</a></li> <li><a href="/etlflow/site/docs/cloud.html" class="">Cloud</a></li> <li><a href="/etlflow/site/docs/spark_components.html" class="">Spark</a></li> <li><a href="/etlflow/site/docs/scheduler.html" class="">Scheduler</a></li></ul></li> <li><a href="/etlflow/site/docs/usage.html" class="">Deployments</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/gcpdp.html" class="">Core (Dataproc)</a></li> <li><a href="/etlflow/site/docs/localdocker.html" class="">Scheduler (Local Docker)</a></li> <li><a href="/etlflow/site/docs/gke.html" class="">Scheduler (Kubernetes)</a></li></ul></li> <li><a href="/etlflow/site/docs/executors.html" class="">Executors</a> <ul class="sub-section"> <li><a href="/etlflow/site/docs/local.html" class="">Local Executor</a></li> <li><a href="/etlflow/site/docs/local_subprocess.html" class="">Local Sub-Process Executor</a></li> <li><a href="/etlflow/site/docs/dataproc.html" class="">Dataproc Executor</a></li> <li><a href="/etlflow/site/docs/kubernetes.html" class="">Kubernetes Executor</a></li></ul></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/tharwaninitin/etlflow" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/tharwaninitin/etlflow" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('EtlFlow Functional library in Scala for writing ETL jobs');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('EtlFlow Functional library in Scala for writing ETL jobs');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="tharwaninitin" data-github-repo="etlflow"><div class="content-wrapper"><section><h2 id="quick-start">Quick Start</h2>
 
-    <p>Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)</p>
+<p>Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project examples" console
+<div class="highlighter-rouge"><pre class="highlight"><code>SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project examples" console
 </code></pre>
-    </div>
+</div>
 
-    <p><strong>Import core packages</strong></p>
+<p><strong>Import core packages</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
 <span class="k">import</span> <span class="nn">etlflow.utils._</span>
 </code></pre>
-    </div>
+</div>
 
-    <p><strong>Define Job input and ouput locations</strong></p>
+<p><strong>Define Job input and ouput locations</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="n">canonical_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="nc">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="n">getCanonicalPath</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="n">canonical_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="nc">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="n">getCanonicalPath</span>
 <span class="k">lazy</span> <span class="k">val</span> <span class="n">job_properties</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
         <span class="s">"ratings_input_path"</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="s">"$canonical_path/examples/src/main/data/movies/ratings/*"</span><span class="o">,</span>
         <span class="s">"ratings_output_path"</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="s">"$canonical_path/examples/src/main/data/movies/output/ratings"</span><span class="o">,</span>
         <span class="s">"ratings_output_file_name"</span> <span class="o">-&gt;</span> <span class="s">"ratings.orc"</span>
 <span class="o">)</span>
 </code></pre>
-    </div>
+</div>
 
-    <p><strong>Create spark session</strong></p>
+<p><strong>Create spark session</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
 <span class="k">import</span> <span class="nn">org.slf4j.LoggerFactory</span>
 <span class="k">import</span> <span class="nn">ch.qos.logback.classic.</span><span class="o">{</span><span class="nc">Level</span><span class="o">,</span> <span class="nc">Logger</span><span class="o">}</span>
 <span class="nc">LoggerFactory</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="s">"org"</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="n">setLevel</span><span class="o">(</span><span class="nc">Level</span><span class="o">.</span><span class="nc">WARN</span><span class="o">)</span>
 <span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span>  <span class="o">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">().</span><span class="n">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="n">getOrCreate</span><span class="o">()</span>
 </code></pre>
-    </div>
+</div>
 
-    <p><strong>Define ETL Step which will load ratings data with below schema as specified from CSV to ORC</strong></p>
+<p><strong>Define ETL Step which will load ratings data with below schema as specified from CSV to ORC</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SaveMode</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SaveMode</span>
 <span class="k">import</span> <span class="nn">etlflow.etlsteps.SparkReadWriteStep</span>
-
+    
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Rating</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span> <span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span>
-
+        
 <span class="k">lazy</span> <span class="k">val</span> <span class="n">step1</span> <span class="k">=</span> <span class="nc">SparkReadWriteStep</span><span class="o">[</span><span class="kt">Rating</span><span class="o">](</span>
         <span class="n">name</span>                       <span class="k">=</span> <span class="s">"ConvertRatingsCSVtoORC"</span><span class="o">,</span>
         <span class="n">input_location</span>             <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_input_path"</span><span class="o">)),</span>
@@ -53,44 +53,44 @@
         <span class="n">output_filename</span>            <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">))</span>
 <span class="o">)</span>
 </code></pre>
-    </div>
+</div>
 
-    <p><strong>Since all these steps return Task from ZIO library, we need to import Zio Default Runtime to run these steps</strong></p>
+<p><strong>Since all these steps return Task from ZIO library, we need to import Zio Default Runtime to run these steps</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">zio.</span><span class="o">{</span><span class="nc">Runtime</span><span class="o">,</span><span class="nc">ZEnv</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">zio.</span><span class="o">{</span><span class="nc">Runtime</span><span class="o">,</span><span class="nc">ZEnv</span><span class="o">}</span>
 </code></pre>
-    </div>
+</div>
 
-    <p><strong>Run this step as below</strong></p>
+<p><strong>Run this step as below</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">task</span> <span class="k">=</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
-<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@4d162a1c
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">task</span> <span class="k">=</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
+<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@32e94e79
 </span></code></pre>
-    </div>
+</div>
 
-    <p><strong>Now executing above step has added data in ORC format in path defined in above properties upon completion.</strong></p>
+<p><strong>Now executing above step has added data in ORC format in path defined in above properties upon completion.</strong></p>
 
-    <p><strong>This is very basic example for flat load from CSV to ORC but lets say you need to transform csv data in some way for e.g. new column need to be added then we need to create function with below signature:</strong></p>
+<p><strong>This is very basic example for flat load from CSV to ORC but lets say you need to transform csv data in some way for e.g. new column need to be added then we need to create function with below signature:</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.</span><span class="o">{</span><span class="nc">Encoders</span><span class="o">,</span> <span class="nc">Dataset</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.</span><span class="o">{</span><span class="nc">Encoders</span><span class="o">,</span> <span class="nc">Dataset</span><span class="o">}</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.types.DateType</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.functions._</span>
-
+     
 <span class="k">case</span> <span class="k">class</span> <span class="nc">RatingOutput</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span><span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">date</span><span class="k">:</span> <span class="kt">java.sql.Date</span><span class="o">)</span>
-
+     
 <span class="k">def</span> <span class="n">enrichRatingData</span><span class="o">(</span><span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span><span class="o">,</span> <span class="n">in</span> <span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">Rating</span><span class="o">])</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
          <span class="k">val</span> <span class="n">mapping</span> <span class="k">=</span> <span class="nc">Encoders</span><span class="o">.</span><span class="n">product</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">]</span>
-
+     
          <span class="k">val</span> <span class="n">ratings_df</span> <span class="k">=</span> <span class="n">in</span>
              <span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span> <span class="n">from_unixtime</span><span class="o">(</span><span class="n">col</span><span class="o">(</span><span class="s">"timestamp"</span><span class="o">),</span> <span class="s">"yyyy-MM-dd"</span><span class="o">).</span><span class="n">cast</span><span class="o">(</span><span class="nc">DateType</span><span class="o">))</span>
-
+         
          <span class="n">ratings_df</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">](</span><span class="n">mapping</span><span class="o">)</span>
 <span class="o">}</span>
 </code></pre>
-    </div>
-    <p><strong>Now our step would change to something like this</strong></p>
+</div>
+<p><strong>Now our step would change to something like this</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="n">step2</span> <span class="k">=</span> <span class="nc">SparkReadTransformWriteStep</span><span class="o">[</span><span class="kt">Rating</span>, <span class="kt">RatingOutput</span><span class="o">](</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="n">step2</span> <span class="k">=</span> <span class="nc">SparkReadTransformWriteStep</span><span class="o">[</span><span class="kt">Rating</span>, <span class="kt">RatingOutput</span><span class="o">](</span>
          <span class="n">name</span>                       <span class="k">=</span> <span class="s">"ConvertRatingsCSVtoORC"</span><span class="o">,</span>
          <span class="n">input_location</span>             <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_input_path"</span><span class="o">)),</span>
          <span class="n">input_type</span>                 <span class="k">=</span> <span class="nc">CSV</span><span class="o">(),</span>
@@ -102,16 +102,16 @@
          <span class="n">output_repartitioning</span>      <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
          <span class="n">output_filename</span>            <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">))</span>
 <span class="o">)</span>
-
+     
 <span class="k">val</span> <span class="n">task1</span> <span class="k">=</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
-<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@3fa620f5
+<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@10c3a5f7
 </span></code></pre>
-    </div>
-    <p><strong>Lets add another step which will copy this transformed ORC data in BigQuery table.
-        For this step to work correctly <a href="https://cloud.google.com/sdk/install">Google Cloud SDK</a> needs to be installed and configured,
-        as in this library upload from local file to BigQuery uses <a href="https://cloud.google.com/bigquery/docs/bq-command-line-tool">bq command</a> which is only recommended to be used in testing environments as in production files should be present on Google Cloud Storage when uploading to BigQuery</strong></p>
+</div>
+<p><strong>Lets add another step which will copy this transformed ORC data in BigQuery table. 
+For this step to work correctly <a href="https://cloud.google.com/sdk/install">Google Cloud SDK</a> needs to be installed and configured, 
+as in this library upload from local file to BigQuery uses <a href="https://cloud.google.com/bigquery/docs/bq-command-line-tool">bq command</a> which is only recommended to be used in testing environments as in production files should be present on Google Cloud Storage when uploading to BigQuery</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.utils.FSType</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.utils.FSType</span>
 
 <span class="c1">// Adding two new properties for Bigquery table and Dataset
 </span>       <span class="k">lazy</span> <span class="k">val</span> <span class="n">job_properties1</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
@@ -121,7 +121,7 @@
         <span class="s">"ratings_output_dataset"</span> <span class="o">-&gt;</span> <span class="s">"test"</span><span class="o">,</span>
         <span class="s">"ratings_output_table_name"</span> <span class="o">-&gt;</span> <span class="s">"ratings"</span>
 <span class="o">)</span>
-
+    
 <span class="k">lazy</span>  <span class="k">val</span> <span class="n">step3</span> <span class="k">=</span> <span class="nc">BQLoadStep</span><span class="o">(</span>
         <span class="n">name</span>                <span class="k">=</span> <span class="s">"LoadRatingBQ"</span><span class="o">,</span>
         <span class="n">input_location</span>      <span class="k">=</span> <span class="nc">Left</span><span class="o">(</span><span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">)</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">+</span> <span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">)),</span>
@@ -130,20 +130,20 @@
         <span class="n">output_dataset</span>      <span class="k">=</span> <span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_dataset"</span><span class="o">),</span>
         <span class="n">output_table</span>        <span class="k">=</span> <span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_table_name"</span><span class="o">)</span>
 <span class="o">)</span>
-
+    
 <span class="k">val</span> <span class="n">task2</span> <span class="k">=</span> <span class="n">step2</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
-<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@2842a026
+<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@4bebb1a4
 </span></code></pre>
-    </div>
-    <p><strong>Now we can run also chain multiple steps together and run as single job as shown below.</strong></p>
+</div>
+<p><strong>Now we can run also chain multiple steps together and run as single job as shown below.</strong></p>
 
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
         <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
         <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">step2</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
 <span class="o">}</span> <span class="k">yield</span> <span class="o">()</span>
-<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@60d51c3
+<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@2e7cfab9
 </span></code></pre>
-    </div>
+</div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

@@ -25,60 +25,60 @@ For e.g. intermediate path can be dynamically generated for every run based on c
       
 ```scala mdoc      
       
-      import etlflow.EtlJobProps
-      import java.text.SimpleDateFormat
-      import java.time.LocalDate
+import etlflow.EtlJobProps
+import java.text.SimpleDateFormat
+import java.time.LocalDate
       
-      lazy val canonical_path = new java.io.File(".").getCanonicalPath
-      lazy val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
-      val date_prefix = LocalDate.now.toString.replace("-","")
+lazy val canonical_path = new java.io.File(".").getCanonicalPath
+lazy val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+val date_prefix = LocalDate.now.toString.replace("-","")
       
-      case class EtlJob1Props (
-        ratings_input_path: String = input_file_path,
-        ratings_intermediate_bucket: String = sys.env("GCS_BUCKET"),
-        ratings_intermediate_file_key: String = s"temp/$date_prefix/ratings.parquet",
-        ratings_output_dataset: String = "test",
-        ratings_output_table_name: String = "ratings",
-      ) extends EtlJobProps
+case class EtlJob1Props (
+  ratings_input_path: String = input_file_path,
+  ratings_intermediate_bucket: String = sys.env("GCS_BUCKET"),
+  ratings_intermediate_file_key: String = s"temp/$date_prefix/ratings.parquet",
+  ratings_output_dataset: String = "test",
+  ratings_output_table_name: String = "ratings",
+) extends EtlJobProps
 ```
 ### GenericEtlJob
 Below is the example of GenericEtlJob which has two steps which can execute in any order defined by composing ZIO effects. 
 
 ```scala mdoc      
  
-    import com.google.cloud.bigquery.JobInfo
-    import etlflow.etljobs.GenericEtlJob
-    import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
-    import etlflow.utils.PARQUET
-    import zio.Task
-    import etlflow.utils.Config
+import com.google.cloud.bigquery.JobInfo
+import etlflow.etljobs.GenericEtlJob
+import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
+import etlflow.utils.PARQUET
+import zio.Task
+import etlflow.utils.Config
 
     
-    case class RatingOutput(user_id: Int, movie_id: Int, rating : Double, timestamp: Long, date: java.sql.Date)
+case class RatingOutput(user_id: Int, movie_id: Int, rating : Double, timestamp: Long, date: java.sql.Date)
     
-    case class EtlJob1(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
+case class EtlJob1(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
       
-      val step1 = GCSPutStep(
-              name    = "LoadRatingGCS",
-              bucket  = job_properties.ratings_intermediate_bucket,
-              key     = job_properties.ratings_intermediate_file_key,
-              file    = job_properties.ratings_input_path
-            )
+  val step1 = GCSPutStep(
+          name    = "LoadRatingGCS",
+          bucket  = job_properties.ratings_intermediate_bucket,
+          key     = job_properties.ratings_intermediate_file_key,
+          file    = job_properties.ratings_input_path
+        )
           
-      val step2 = BQLoadStep(
-          name                      = "LoadRatingBQ",
-          input_location            = Left(s"gs://${job_properties.ratings_intermediate_bucket}/${job_properties.ratings_intermediate_file_key}"),
-          input_type                = PARQUET,
-          output_dataset            = job_properties.ratings_output_dataset,
-          output_table              = job_properties.ratings_output_table_name,
-          output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
-      )
+  val step2 = BQLoadStep(
+      name                      = "LoadRatingBQ",
+      input_location            = Left(s"gs://${job_properties.ratings_intermediate_bucket}/${job_properties.ratings_intermediate_file_key}"),
+      input_type                = PARQUET,
+      output_dataset            = job_properties.ratings_output_dataset,
+      output_table              = job_properties.ratings_output_table_name,
+      output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
+  )
     
-      val job = for {
-        _ <- step1.execute()
-        _ <- step2.execute()
-      } yield ()
-    }
+  val job = for {
+    _ <- step1.execute()
+    _ <- step2.execute()
+  } yield ()
+}
 ```    
 
 ### SequentialEtlJob
@@ -86,31 +86,33 @@ Below is the example of SequentialEtlJob which is much simpler way to run jobs w
 
 ```scala mdoc      
  
-     import etlflow.EtlStepList
-     import etlflow.etljobs.SequentialEtlJob
-     import etlflow.etlsteps._
-     import etlflow.utils.Config
-     import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
-     import etlflow.utils.PARQUET
+import etlflow.EtlStepList
+import etlflow.etljobs.SequentialEtlJob
+import etlflow.etlsteps._
+import etlflow.utils.Config
+import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
+import etlflow.utils.PARQUET
+import com.google.cloud.bigquery.JobInfo
 
-     case class EtlJob2(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
 
-     val step3 = GCSPutStep(
-                     name    = "LoadRatingGCS",
-                     bucket  = job_properties.ratings_intermediate_bucket,
-                     key     = job_properties.ratings_intermediate_file_key,
-                     file    = job_properties.ratings_input_path
-                   )
+ case class EtlJob2(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
+
+ val step3 = GCSPutStep(
+                 name    = "LoadRatingGCS",
+                 bucket  = job_properties.ratings_intermediate_bucket,
+                 key     = job_properties.ratings_intermediate_file_key,
+                 file    = job_properties.ratings_input_path
+               )
                  
-     val step4 = BQLoadStep(
-                 name                      = "LoadRatingBQ",
-                 input_location            = Left(s"gs://${job_properties.ratings_intermediate_bucket}/${job_properties.ratings_intermediate_file_key}"),
-                 input_type                = PARQUET,
-                 output_dataset            = job_properties.ratings_output_dataset,
-                 output_table              = job_properties.ratings_output_table_name,
-                 output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
-             )
+ val step4 = BQLoadStep(
+             name                      = "LoadRatingBQ",
+             input_location            = Left(s"gs://${job_properties.ratings_intermediate_bucket}/${job_properties.ratings_intermediate_file_key}"),
+             input_type                = PARQUET,
+             output_dataset            = job_properties.ratings_output_dataset,
+             output_table              = job_properties.ratings_output_table_name,
+             output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
+         )
      
-       val etlStepList = EtlStepList(step3,step4)
-   }
+ val etlStepList = EtlStepList(step3,step4)
+}
 ```

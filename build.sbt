@@ -45,7 +45,7 @@ lazy val sparkSettings = Seq(
 )
 
 lazy val schedulerSettings = Seq(
-  name := "etlflow-scheduler"
+  name := "etlflow-server"
   , libraryDependencies ++= caliban ++ jwt ++ kubernetes ++ http4sclient ++ coreTestLibs
 )
 
@@ -97,7 +97,7 @@ lazy val cloud = (project in file("modules/cloud"))
   )
   .dependsOn(core % "compile->compile;test->test")
 
-lazy val scheduler = (project in file("modules/scheduler"))
+lazy val scheduler = (project in file("modules/server"))
   .settings(schedulerSettings)
   .settings(
     scalacOptions ++= Seq("-Ypartial-unification"),

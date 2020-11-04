@@ -44,7 +44,7 @@ lazy val sparkSettings = Seq(
   ),
 )
 
-lazy val schedulerSettings = Seq(
+lazy val serverSettings = Seq(
   name := "etlflow-server"
   , libraryDependencies ++= caliban ++ jwt ++ kubernetes ++ http4sclient ++ coreTestLibs
 )
@@ -53,7 +53,7 @@ lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true)
-  .aggregate(core,spark,cloud,scheduler)
+  .aggregate(core,spark,cloud,server)
 
 lazy val core = (project in file("modules/core"))
   .settings(coreSettings)
@@ -97,8 +97,8 @@ lazy val cloud = (project in file("modules/cloud"))
   )
   .dependsOn(core % "compile->compile;test->test")
 
-lazy val scheduler = (project in file("modules/server"))
-  .settings(schedulerSettings)
+lazy val server = (project in file("modules/server"))
+  .settings(serverSettings)
   .settings(
     scalacOptions ++= Seq("-Ypartial-unification"),
     Test / parallelExecution := false,

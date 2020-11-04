@@ -2,26 +2,23 @@ package etlflow.utils
 
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
-
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import cron4s.lib.javatime._
 import doobie.hikari.HikariTransactor
+import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlFlowHelper.{CacheInfo, EtlJob, EtlJobArgs, Job}
 import etlflow.utils.db.Query
 import etlflow.utils.{UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps}
-import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Mode
 import scalacache.memoization.memoizeF
 import zio.interop.catz._
 import zio.{Queue, Semaphore, Task}
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-trait EtlFlowUtils  extends  etlflow.executor.Executor {
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+trait EtlFlowUtils  extends  etlflow.executor.Executor with ApplicationLogger {
 
   implicit val jobPropsCache = CacheHelper.createCache[Map[String, String]]
   implicit val mode: Mode[Task] = scalacache.CatsEffect.modes.async

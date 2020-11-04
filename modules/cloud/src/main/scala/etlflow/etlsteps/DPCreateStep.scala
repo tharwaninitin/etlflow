@@ -50,7 +50,7 @@ class DPCreateStep(
       val response = create_cluster_async_request.get
       etl_logger.info(s"Cluster created successfully: ${response.getClusterName}")
     } catch {
-      case e =>
+      case e: Throwable =>
         etl_logger.error(s"Error executing createCluster: ${e.getMessage} ")
         throw e
     } finally if (cluster_controller_client != null) cluster_controller_client.close()

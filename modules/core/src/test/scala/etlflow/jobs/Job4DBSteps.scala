@@ -3,9 +3,31 @@ package etlflow.jobs
 import etlflow.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.utils.{Config, JDBC}
+import etlflow.utils.JDBC
 
 case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
+
+  val delete_credential_script = "DELETE FROM credentials WHERE name = 'etlflow'"
+
+  val insert_credential_script = s"""
+      INSERT INTO credentials VALUES(
+      'etlflow',
+      'jdbc',
+      '{"url" : "${config.dbLog.url}", "user" : "${config.dbLog.user}", "password" : "${config.dbLog.password}", "driver" : "org.postgresql.Driver" }'
+      )
+      """
+
+  private val deleteCredStep = DBQueryStep(
+      name  = "DeleteCredential",
+      query = delete_credential_script,
+      credentials = config.dbLog
+    ).process()
+
+  private val addCredStep =  DBQueryStep(
+      name  = "AddCredential",
+      query = insert_credential_script,
+      credentials = config.dbLog
+    ).process()
 
   private def step1(cred: JDBC) = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
@@ -25,6 +47,8 @@ case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
 
   val job =
     for {
+      _     <- deleteCredStep
+      _     <- addCredStep
       cred  <- getCredentials[JDBC]("etlflow")
       op2   <- step1(cred).execute()
       _     <- step2.execute(op2)

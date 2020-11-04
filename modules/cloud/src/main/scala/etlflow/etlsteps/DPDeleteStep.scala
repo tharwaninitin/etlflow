@@ -28,7 +28,7 @@ class DPDeleteStep (
       val response = delete_cluster_async_request.get
       etl_logger.info(s"Cluster $cluster_name successfully deleted. API response is ${response.toString}")
     } catch {
-      case e =>
+      case e: Throwable =>
         etl_logger.error(s"Error executing deleteCluster: ${e.getMessage} ")
         throw e
     } finally if (cluster_controller_client != null) cluster_controller_client.close()

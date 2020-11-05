@@ -16,10 +16,12 @@ trait GenericEtlJob[+EJP <: EtlJobProps] extends EtlJob[EJP] {
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
   val job_type = "GenericEtlJob"
 
-  final def execute(): ZIO[ZEnv, Throwable, Unit] = {
+
+  final def execute(job_run_id:Option[String] = None): ZIO[ZEnv, Throwable, Unit] = {
     (for {
       job_status_ref  <- job_status.toManaged_
-      resource        <- logger_resource
+      jri             = job_run_id.getOrElse(java.util.UUID.randomUUID.toString)
+      resource        <- logger_resource(jri)
       log             = JobLogger.live(resource,job_type)
       resourceLayer   = ZLayer.succeed(resource)
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp).toManaged_
@@ -32,7 +34,7 @@ trait GenericEtlJob[+EJP <: EtlJobProps] extends EtlJob[EJP] {
   }
 
   def getCredentials[T : Manifest](name: String): ZIO[Blocking, Throwable, T] = {
-    logger_resource.use{res =>
+    logger_resource("NA").use{res =>
       if (res.db.isDefined)
         res.db.get.getCredentials[T](name)
       else
@@ -40,9 +42,9 @@ trait GenericEtlJob[+EJP <: EtlJobProps] extends EtlJob[EJP] {
     }
   }
 
-  private[etljobs] lazy val logger_resource: ZManaged[Blocking ,Throwable, LoggerResource] = for {
+  private[etljobs]  def logger_resource(job_run_id:String): ZManaged[Blocking ,Throwable, LoggerResource] = for {
     blocker    <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
-    db         <- DbLogManager.createOptionDbTransactorManagedGP(config, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties)
+    db         <- DbLogManager.createOptionDbTransactorManagedGP(config, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties,job_run_id)
     slack      <- SlackLogManager.createSlackLogger(job_name, job_properties, config).toManaged_
   } yield LoggerResource(db,slack)
 }

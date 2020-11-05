@@ -1,14 +1,14 @@
 ---
 layout: docs
-title: Etlflow Scheduler 
+title: Etlflow Server 
 ---
 
-## Etlflow Scheduler
+## Etlflow Server
 
-Etlflow scheduler is one of component of etlflow library which we can be use for scheduling the etl jobs, creating the rest apis to trigger the jobs. Using etlflow Scheduler component we can reduce the dependency of apache airflow as it itself provides the airlow like UI through its sub-component WEBSERVER.
-Etlflow scheduler also provides the various operations to run the etl jobs on clusters like Local (Inside same jvm), LocalSubProcess (Inside another jvm)), GCP DataProc, Kubernetes etc.
+Etlflow Server is one of component of etlflow library which we can be use for scheduling the etl jobs, creating the rest apis to trigger the jobs. Using etlflow Server component we can reduce the dependency of apache airflow as it itself provides the airlow like UI through its sub-component WEBSERVER.
+Etlflow Server also provides the various operations to run the etl jobs on clusters like Local (Inside same jvm), LocalSubProcess (Inside another jvm)), GCP DataProc, Kubernetes etc.
 
-### Etlflow Scheduler library contains sub-components like :
+### Etlflow Server library contains sub-components like :
 
 * Scheduler : 
    - Using etlflow scheduler we can define the scheduled jobs by specifying the schedules at the time of job creation.
@@ -37,13 +37,13 @@ In above diagram we can see docker container is connected to database (postgres)
 
 Below is the sample job will define the both services while job creation : 
 
-To use etlflow Scheduler library in project add below setting in build.sbt file : 
+To use etlflow Server library in project add below setting in build.sbt file : 
 
 ```
 
-lazy val etlflowScheduler = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "scheduler")
+lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "server")
 lazy val docs = (project in file("modules/examples"))
-  .dependsOn(etlflowScheduler)
+  .dependsOn(etlflowServer)
          
 ```
 

@@ -3,7 +3,7 @@ layout: docs
 title: Gke Scheduler Installation
 ---
 
-## Using Etlflow scheduler library on gke environment with deployment yaml files.
+## Using Etlflow Server library on gke environment with deployment yaml files.
 
 ### Prerequisite
 * Your system should have [Kubernetes Engine](https://cloud.google.com/kubernetes-engine) installed.

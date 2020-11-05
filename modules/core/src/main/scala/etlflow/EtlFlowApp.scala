@@ -69,7 +69,7 @@ abstract class EtlFlowApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps :
           ZIO(ExitCode.failure)
         case ec if ec.run_job && ec.job_name != "" =>
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
-          LocalExecutorService.executeLocalJob(ec.job_name, ec.job_properties ,etl_job_name_package).provideLayer(LocalExecutor.live)
+          LocalExecutorService.executeLocalJob(ec.job_name, ec.job_properties ,etl_job_name_package,Some(ec.job_properties("job_run_id"))).provideLayer(LocalExecutor.live)
 //        case ec if ec.run_server =>
 //          if (ec.migration) {
 //            logger.info("Running server with migration")

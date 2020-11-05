@@ -53,11 +53,11 @@ object LocalExecutor {
             throw new RuntimeException(s"LOCAL SUB PROCESS JOB $name failed with error")
           }
         }
-        override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
+        override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String,job_run_id:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobName[EtlJobProps]](name, etl_job_name_package)
           val job = job_name.etlJob(properties)
           job.job_name = job_name.toString
-          job.execute().provideLayer(ZEnv.live)
+          job.execute(job_run_id).provideLayer(ZEnv.live)
         }
       }
     }

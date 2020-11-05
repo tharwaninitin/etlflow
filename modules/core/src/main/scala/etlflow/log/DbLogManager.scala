@@ -17,11 +17,11 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 import etlflow.utils.{UtilityFunctions => UF}
 
-class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps) extends LogManager[Task[Long]] {
+class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps,job_run_id:String) extends LogManager[Task[Long]] {
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
-  val remoteStep = List("EtlFlowJobStep")
+  val remoteStep = List("EtlFlowJobStep","DPSparkJobStep")
 
   def getCredentials[T : Manifest](name: String): Task[T] = {
     val query = s"SELECT value FROM credentials WHERE name='$name';"
@@ -42,14 +42,14 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     val formatted_step_name = UF.stringFormatter(etl_step.name)
     if (mode == "insert") {
       val step = StepRun(
-        job_properties.job_run_id,
+        job_run_id,
         formatted_step_name,
         JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level)),
         state_status.toLowerCase(),
         UF.getCurrentTimestampAsString(), UF.getCurrentTimestamp,
         "...",
         etl_step.step_type,
-        if(remoteStep.contains(etl_step.step_type)) etl_step.getStepProperties(job_properties.job_notification_level).get("step_run_id").get else ""
+        if(remoteStep.contains(etl_step.step_type)) etl_step.getStepProperties(job_properties.job_notification_level)("step_run_id") else ""
       )
       lm_logger.info(s"Inserting step info for ${formatted_step_name} in db with status => ${state_status.toLowerCase()}")
       val x: ConnectionIO[Long] = ctx.run(quote {
@@ -67,7 +67,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
       lm_logger.info(s"Updating step info for ${formatted_step_name} in db with status => $status")
       ctx.run(quote {
         query[StepRun]
-          .filter(x => x.job_run_id == lift(job_properties.job_run_id) && x.step_name == lift(formatted_step_name))
+          .filter(x => x.job_run_id == lift(job_run_id) && x.step_name == lift(formatted_step_name))
           .update(
             _.state -> lift(status),
             _.properties -> lift(JsonJackson.convertToJson(etl_step.getStepProperties(job_properties.job_notification_level))),
@@ -84,7 +84,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     import ctx._
     if (mode == "insert") {
       val job = JobRun(
-        job_properties.job_run_id, job_name.toString,
+        job_run_id, job_name.toString,
         job_properties.job_description,
         JsonJackson.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
         "started",
@@ -106,7 +106,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
       val job_status = if (error_message.isDefined) status.toLowerCase() + " with error: " + error_message.get else status.toLowerCase()
       val elapsed_time = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
       ctx.run(quote {
-        query[JobRun].filter(_.job_run_id == lift(job_properties.job_run_id))
+        query[JobRun].filter(_.job_run_id == lift(job_run_id))
           .update(
             _.state -> lift(job_status),
             _.elapsed_time -> lift(elapsed_time)
@@ -122,10 +122,10 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
 object DbLogManager extends DbManager{
 
   def createDbLoggerManaged(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): ZManaged[Any, Nothing, DbLogManager] =
-    Task.succeed(new DbLogManager(transactor, job_name, job_properties)).toManaged_
+    Task.succeed(new DbLogManager(transactor, job_name, job_properties,"")).toManaged_
 
   def createDbLoggerOption(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): Option[DbLogManager] =
-    Try(new DbLogManager(transactor,job_name, job_properties)).toOption
+    Try(new DbLogManager(transactor,job_name, job_properties,"")).toOption
 
   def createOptionDbTransactorManagedGP(
                                          global_properties: Config,
@@ -134,11 +134,12 @@ object DbLogManager extends DbManager{
                                          pool_name: String = "LoggerPool",
                                          job_name: String,
                                          job_properties: EtlJobProps,
+                                         job_run_id:String
                                        ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
       createDbTransactorManaged(global_properties.dbLog,ec,pool_name)(blocker)
         .map { transactor =>
-          Some(new DbLogManager(transactor, job_name, job_properties))
+          Some(new DbLogManager(transactor, job_name, job_properties,job_run_id))
         }
     } else {
       Managed.unit.map(_ => None)

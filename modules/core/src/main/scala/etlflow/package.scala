@@ -18,7 +18,6 @@ package object etlflow {
   trait EtlJobSchema extends Product
 
   trait EtlJobProps {
-    val job_run_id: String                    = java.util.UUID.randomUUID.toString
     val job_description: String               = ""
     val job_enable_db_logging: Boolean        = true
     val job_send_slack_notification: Boolean  = false

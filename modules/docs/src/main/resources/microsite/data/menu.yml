@@ -58,8 +58,8 @@ options:
         url: docs/cloud.html
       - title: Spark
         url: docs/spark_components.html
-      - title: Scheduler
-        url: docs/scheduler.html
+      - title: Server
+        url: docs/server.html
 
   - title: Deployments
     url: docs/usage.html
@@ -67,9 +67,9 @@ options:
     nested_options:
       - title: Core (Dataproc)
         url: docs/gcpdp.html
-      - title: Scheduler (Local Docker)
+      - title: Server (Local Docker)
         url: docs/localdocker.html
-      - title: Scheduler (Kubernetes)
+      - title: Server (Kubernetes)
         url: docs/gke.html
 
   - title: Executors

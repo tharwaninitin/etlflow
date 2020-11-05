@@ -3,7 +3,7 @@ layout: docs
 title: Scheduler Installation
 ---
 
-## Using Etlflow scheduler library on local environment with Docker Compose
+## Using Etlflow Server library on local environment with Docker Compose
 
 ### Prerequisite
 * Your system should have [Docker](https://docs.docker.com/get-docker/) installed.

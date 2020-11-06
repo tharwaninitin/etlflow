@@ -32,7 +32,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                       stepruns: DbStepRunArgs => ZIO[EtlFlowHas, Throwable, List[StepRun]],
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                       currentime: ZIO[EtlFlowHas, Throwable, CurrentTime],
-                      cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheInfo]],
+                      cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheDetails]],
                       queueStats:ZIO[EtlFlowHas, Throwable, List[QueueInfo]]
                     )
 

@@ -55,6 +55,10 @@ object EtlFlowHelper {
   case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
   case class Credentials(name: String, `type`: String, value: String)
   case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
+
+  case class CacheDetails(name:String,details:Map[String,String])
+
+
   case class QueueInfo(job_name:String,submitted_from:String)
 
   case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean,max_active_runs: Int, job_deploy_mode: String)
@@ -73,7 +77,7 @@ object EtlFlowHelper {
 
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
-      def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheInfo]]
+      def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]]
       def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
       def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]]
 
@@ -113,7 +117,7 @@ object EtlFlowHelper {
   def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] =
     ZIO.accessM[EtlFlowHas](_.get.getJobs)
 
-  def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheInfo]] =
+  def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] =
     ZIO.accessM[EtlFlowHas](_.get.getCacheStats)
 
   def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] =

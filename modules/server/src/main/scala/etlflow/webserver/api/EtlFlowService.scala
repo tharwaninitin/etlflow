@@ -5,7 +5,7 @@ import etlflow.executor.Executor
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Query
-import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, QueueHelper, UtilityFunctions => UF}
+import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
@@ -19,13 +19,13 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
   val config: Config
 
   def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
-      transactor: HikariTransactor[Task],
-      cache: CaffeineCache[String],
-      cronJobs: Ref[List[CronJob]],
-      jobSemaphores: Map[String, Semaphore],
-      jobs: List[EtlJob],
-      jobQueue: Queue[(String,String)]
-    ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
+                                                                                  transactor: HikariTransactor[Task],
+                                                                                  cache: CaffeineCache[String],
+                                                                                  cronJobs: Ref[List[CronJob]],
+                                                                                  jobSemaphores: Map[String, Semaphore],
+                                                                                  jobs: List[EtlJob],
+                                                                                  jobQueue: Queue[(String,String)]
+                                                                                ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs            <- Ref.make(0)
@@ -34,9 +34,10 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       javaRuntime           = java.lang.Runtime.getRuntime
     } yield new EtlFlow.Service {
 
-      def getLoginCacheStats:CacheInfo = {
+
+      def getLoginCacheStats:CacheDetails = {
         val data:Map[String,String] = CacheHelper.toMap(cache)
-        CacheInfo("Login",
+        val cacheInfo = CacheInfo("Login",
           cache.underlying.stats.hitCount(),
           cache.underlying.stats.hitRate(),
           cache.underlying.asMap().size(),
@@ -45,14 +46,15 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
           cache.underlying.stats.requestCount(),
           data
         )
+        CacheDetails("Login",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
       }
 
       override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
         getJobsFromDb[EJN,EJP](transactor,etl_job_name_package)
       }
 
-      override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheInfo]] = {
-        Task(List(Query.getJobCacheStats,getPropsCacheStats,getLoginCacheStats))
+      override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] = {
+        Task(List(getPropsCacheStats,getLoginCacheStats))
       }
 
       override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueInfo]] = {

@@ -37,7 +37,7 @@ jobs:
         LOG_DB_PWD: etlflow
         LOG_DB_DRIVER: org.postgresql.Driver
     - name: Run Server Tests
-      run: sbt ";publishLocal; project examples; docker:stage;  project server; testOnly etlflow.webserver.*; testOnly etlflow.executor.LocalExecutorTestSuite; testOnly etlflow.executor.LocalSubProcessExecutorTestSuite;"
+      run: sbt ";project server; testOnly etlflow.webserver.*; testOnly etlflow.executor.LocalExecutorTestSuite;"
       env:
         LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
         LOG_DB_USER: etlflow

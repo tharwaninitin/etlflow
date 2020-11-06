@@ -243,17 +243,18 @@ object Query {
     dc.run(selectQuery).transact(transactor)
   }
 
-  def getJobCacheStats:CacheInfo = {
-     val data:Map[String,String] = CacheHelper.toMap(cronJobDBCache)
-     CacheInfo(
-       "CronJobs",
-       cronJobDBCache.underlying.stats.hitCount(),
-       cronJobDBCache.underlying.stats.hitRate(),
-       cronJobDBCache.underlying.asMap().size(),
-       cronJobDBCache.underlying.stats.missCount(),
-       cronJobDBCache.underlying.stats.missRate(),
-       cronJobDBCache.underlying.stats.requestCount(),
-       data
-     )
+  def getJobCacheStats:CacheDetails = {
+    val data:Map[String,String] = CacheHelper.toMap(cronJobDBCache)
+    val cacheInfo =  CacheInfo(
+      "CronJobs",
+      cronJobDBCache.underlying.stats.hitCount(),
+      cronJobDBCache.underlying.stats.hitRate(),
+      cronJobDBCache.underlying.asMap().size(),
+      cronJobDBCache.underlying.stats.missCount(),
+      cronJobDBCache.underlying.stats.missRate(),
+      cronJobDBCache.underlying.stats.requestCount(),
+      data
+    )
+    CacheDetails("CronJobs",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
   }
 }

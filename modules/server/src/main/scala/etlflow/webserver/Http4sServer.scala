@@ -28,7 +28,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def etlFlowWebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](blocker: Blocker, cache: Cache[String],jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String)]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
+  def etlFlowWebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](blocker: Blocker, cache: Cache[String],jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String,String,String)]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
       .flatMap{implicit runtime =>
         (for {

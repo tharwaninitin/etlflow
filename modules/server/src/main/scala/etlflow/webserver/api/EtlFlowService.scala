@@ -24,7 +24,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
                                                                                   cronJobs: Ref[List[CronJob]],
                                                                                   jobSemaphores: Map[String, Semaphore],
                                                                                   jobs: List[EtlJob],
-                                                                                  jobQueue: Queue[(String,String)]
+                                                                                  jobQueue: Queue[(String,String,String,String)]
                                                                                 ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
@@ -57,7 +57,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
         Task(List(getPropsCacheStats,getLoginCacheStats))
       }
 
-      override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueInfo]] = {
+      override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] = {
         QueueHelper.takeAll(jobQueue)
       }
 

@@ -3,7 +3,7 @@ package etlflow
 import cats.effect.Blocker
 import etlflow.scheduler.SchedulerApp
 import etlflow.utils.CacheHelper
-import etlflow.utils.EtlFlowHelper.CronJob
+import etlflow.utils.EtlFlowHelper.{CronJob, Props}
 import etlflow.webserver.Http4sServer
 import zio._
 import zio.blocking.Blocking
@@ -17,7 +17,7 @@ abstract class ServerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
     val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowSchedulerWebServer-Pool", 10)(blocker)
-      queue           <- Queue.sliding[(String,String)](10).toManaged_
+      queue           <- Queue.sliding[(String,String,String,String)](10).toManaged_
       cache           =  CacheHelper.createCache[String]
       _               =  config.token.map( _.foreach( tkn => CacheHelper.putKey(cache,tkn,tkn)))
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_

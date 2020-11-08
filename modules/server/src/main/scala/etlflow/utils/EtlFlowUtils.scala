@@ -17,7 +17,7 @@ import zio.{Queue, Semaphore, Task}
 
 import scala.reflect.runtime.universe.TypeTag
 
-trait EtlFlowUtils  extends  etlflow.executor.Executor with ApplicationLogger {
+trait EtlFlowUtils  extends  ApplicationLogger {
 
   implicit val jobPropsCache = CacheHelper.createCache[Map[String, String]]
 
@@ -79,9 +79,5 @@ trait EtlFlowUtils  extends  etlflow.executor.Executor with ApplicationLogger {
       rt          <- Task.runtime
       semaphores  = jobs.map(job => (job.name, rt.unsafeRun(Semaphore.make(permits = job.props("job_max_active_runs").toLong)))).toMap
     } yield semaphores
-  }
-
-  def runEtlJobsFromApi[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](args: EtlJobArgs,transactor: HikariTransactor[Task],sem: Semaphore,config: Config, etl_job_name_package: String,jobQueue: Queue[(String,String)]): Task[Option[EtlJob]] ={
-    runActiveEtlJob[EJN,EJP](args,transactor,sem,config,etl_job_name_package,"Rest-Api",jobQueue)
   }
 }

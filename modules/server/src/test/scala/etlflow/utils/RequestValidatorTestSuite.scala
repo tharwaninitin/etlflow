@@ -10,6 +10,8 @@ class RequestValidatorTestSuite  extends FlatSpec with Matchers {
   val data2 = """dag_id=Job2LocalJobGenericStep&props={"year":"2016","start_date":"2016-03-15"}""".stripMargin
   val data3 = """props={"year":"2016","start_date":"2016-03-15"}&job_name=Job2LocalJobGenericStep""".stripMargin
   val data4 = ""
+  val data5 = """job_name=Job2LocalJobGenericStep""".stripMargin
+
   val actualOutput1 = RequestValidator.validator(data1)
   val expectedOutput1 = EtlJobArgs("Job2LocalJobGenericStep",List(Props("start_date","2016-03-15"), Props("year","2016")))
 
@@ -21,6 +23,9 @@ class RequestValidatorTestSuite  extends FlatSpec with Matchers {
 
   val actualOutput4 = RequestValidator.validator(data4)
   val expectedOutput4 = "Invalid Request"
+
+  val actualOutput5 = RequestValidator.validator(data5)
+  val expectedOutput5 = EtlJobArgs("Job2LocalJobGenericStep",List.empty)
 
   "RequestValidator" should " return parsed EtlJobArgs when provided correct get url data" in {
     assert(actualOutput1.right.get == expectedOutput1)
@@ -36,6 +41,10 @@ class RequestValidatorTestSuite  extends FlatSpec with Matchers {
 
   "RequestValidator" should " return invalid request when provided empty get url data" in {
     assert(actualOutput4.left.get == expectedOutput4)
+  }
+
+  "RequestValidator" should " return parsed EtlJobArgs when provided props as empty" in {
+    assert(actualOutput5.right.get == expectedOutput5)
   }
 
 }

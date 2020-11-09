@@ -13,11 +13,10 @@ object RequestValidator {
     var props_list: List[Props] = List.empty
     var request_output = ""
     val split_data = data.split("&")
-
     if (data != "") {
       if (split_data(0).split("=")(0) == "job_name") {
         job_name = split_data(0).split("=")(1)
-        if(split_data.contains("props"))
+        if(1 < split_data.size)
           props = split_data(1).split("=")(1)
       } else if (split_data(0).split("=")(0) == "props") {
         props = split_data(0).split("=")(1)
@@ -33,7 +32,7 @@ object RequestValidator {
 
     if (request_output != "Invalid Request") {
       //convert recieved json into Map[String,String]
-      if(split_data.contains("props")) {
+      if(1 < split_data.size) {
         val expected_props = JsonCirce.convertToObject[Map[String, String]](props)
 
         expected_props foreach {

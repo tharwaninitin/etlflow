@@ -6,6 +6,33 @@ options:
   - title: Quick Start
     url: docs/quickstart.html
 
+  - title: Components
+    url: docs/components.html
+
+    nested_options:
+      - title: Core
+        url: docs/core.html
+      - title: Cloud
+        url: docs/cloud.html
+      - title: Spark
+        url: docs/spark_components.html
+      - title: Server
+        url: docs/server.html
+
+  - title: Deployments
+    url: docs/usage.html
+
+    nested_options:
+      - title: Core (Dataproc)
+        url: docs/gcpdp.html
+      - title: Core (Hdfs)
+        url: docs/hdfs.html
+      - title: Server (Local Docker)
+        url: docs/localdocker.html
+      - title: Server (Kubernetes)
+        url: docs/gke.html
+
+
   - title: Steps
     url: docs/steps.html
 
@@ -47,32 +74,6 @@ options:
 
   - title: Job
     url: docs/job.html
-
-  - title: Components
-    url: docs/components.html
-
-    nested_options:
-      - title: Core
-        url: docs/core.html
-      - title: Cloud
-        url: docs/cloud.html
-      - title: Spark
-        url: docs/spark_components.html
-      - title: Server
-        url: docs/server.html
-
-  - title: Deployments
-    url: docs/usage.html
-
-    nested_options:
-      - title: Core (Dataproc)
-        url: docs/gcpdp.html
-      - title: Core (Hdfs)
-        url: docs/hdfs.html
-      - title: Server (Local Docker)
-        url: docs/localdocker.html
-      - title: Server (Kubernetes)
-        url: docs/gke.html
 
   - title: Executors
     url: docs/executors.html

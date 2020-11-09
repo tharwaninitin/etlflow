@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Gke Scheduler Installation
+title: Gke Server Installation
 ---
 
 ## Using Etlflow Server library on gke environment with deployment yaml files.

@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Scheduler Installation
+title: Server Installation
 ---
 
 ## Using Etlflow Server library on local environment with Docker Compose

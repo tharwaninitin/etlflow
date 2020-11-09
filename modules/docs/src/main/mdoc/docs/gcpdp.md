@@ -10,7 +10,20 @@ title: Using with GCP Dataproc
 * You should have Dataproc cluster created.
 * You should appropriate permissions for GCS, BigQuery, Submitting jobs on Dataproc etc
 
-### STEP 1) Building an assembly jar for etlflow core
+### STEP 1) Building a jar for application, here we will take examples scala project in this library
+
+* To build jar for an application perform below commands from project root folder: 
+       
+         
+      > sbt
+      > project examples
+      > package
+      
+* From root folder run 'sbt' command
+* Inside sbt, Run 'project examples' to set the current project as examples.
+* Once project gets set then run 'package' to build an assembly jar.
+
+### STEP 2) Building an assembly jar for etlflow core
 To build an assembly jar for an etlflow core library we need to perform some steps. Clone this git repo and go inside repo root folder and perform below steps: 
        
          
@@ -22,7 +35,7 @@ To build an assembly jar for an etlflow core library we need to perform some ste
 * Inside sbt, Run 'project core' to set the current project as etlflow-core
 * Once project gets set then run 'assembly' to build an assembly jar.       
 
-### STEP 2) Copy the etlflow core assembly jar to gcs bucket using below command
+### STEP 3) Copy the etlflow core assembly jar to gcs bucket using below command
  
       gsutil cp modules/core/target/scala-2.12/etlflow-core-assembly-x.x.x.jar gs://<BUCKET-NAME>/jars/examples
       
@@ -43,19 +56,6 @@ One such library is Guava, which is the Google core library for Java that is use
       ),
 
 For reference: [manage-spark-dependencies](https://cloud.google.com/dataproc/docs/guides/manage-spark-dependencies)     
-
-### STEP 3) Building a jar for application, here we will take examples scala project in this library
-
-* To build jar for an application perform below commands from project root folder: 
-       
-         
-      > sbt
-      > project examples
-      > package
-      
-* From root folder run 'sbt' command
-* Inside sbt, Run 'project examples' to set the current project as examples.
-* Once project gets set then run 'package' to build an assembly jar.
        
 ### STEP 4) Copy the examples jar to gcs bucket using below command:
  

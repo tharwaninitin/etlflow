@@ -10,4 +10,4 @@ Etlflow library has four components :
 * Core  
 * Spark 
 * Cloud  
-* Scheduler    
+* Server    

@@ -67,6 +67,8 @@ options:
     nested_options:
       - title: Core (Dataproc)
         url: docs/gcpdp.html
+      - title: Core (Hdfs)
+        url: docs/hdfs.html
       - title: Server (Local Docker)
         url: docs/localdocker.html
       - title: Server (Kubernetes)

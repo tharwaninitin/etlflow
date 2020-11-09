@@ -33,7 +33,7 @@ object EtlFlowApi extends GenericSchema[EtlFlowHas] {
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                       currentime: ZIO[EtlFlowHas, Throwable, CurrentTime],
                       cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheDetails]],
-                      queueStats:ZIO[EtlFlowHas, Throwable, List[QueueInfo]]
+                      queueStats:ZIO[EtlFlowHas, Throwable, List[QueueDetails]]
                     )
 
   case class Mutations(

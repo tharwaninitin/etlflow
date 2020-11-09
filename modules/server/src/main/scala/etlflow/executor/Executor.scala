@@ -7,13 +7,14 @@ import etlflow.gcp.{DP, DPService}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.{Query, Update}
 import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LIVY, LOCAL, LOCAL_SUBPROCESS}
+import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{Config, JDBC, UtilityFunctions => UF}
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
 import zio.blocking.{Blocking, blocking}
 import scala.reflect.runtime.universe.TypeTag
 
-trait Executor extends K8SExecutor with EtlJobValidator {
+trait Executor extends K8SExecutor with EtlJobValidator  with etlflow.utils.EtlFlowUtils {
   lazy val executor_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   final def runActiveEtlJob[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
@@ -23,11 +24,14 @@ trait Executor extends K8SExecutor with EtlJobValidator {
                  config: Config,
                  etl_job_name_package: String,
                  submittedFrom:String,
-                 jobQueue: Queue[(String,String)]
+                 jobQueue: Queue[(String,String,String,String)]
          ): Task[Option[EtlJob]] = {
-    for {
+      for {
       _       <- UIO(executor_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      _       <- jobQueue.offer((args.name,submittedFrom))
+      actual_props  = getJobActualProps[EJN,EJP](args.name,etl_job_name_package)
+      derived_props = args.props.map(x => (x.key,x.value)).toMap
+      modified_map  =  actual_props ++ derived_props + ("Submitted At" -> UF.getCurrentTimestampAsString())
+      _       <- jobQueue.offer((args.name.take(25),submittedFrom,convertToJson(modified_map.filter(x => x._2 != null && x._2.trim != "")),UF.getCurrentTimestampAsString()))
       etljob  <- Query.getCronJobFromDB(args.name,transactor).flatMap( cj =>
         if (cj.is_active)
           UIO(executor_logger.info(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN, EJP](args, transactor, sem, config, etl_job_name_package).map(Some(_))
@@ -100,5 +104,9 @@ trait Executor extends K8SExecutor with EtlJobValidator {
                 )
       _        <- if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)
     } yield etlJob
+  }
+
+  def runEtlJobsFromApi[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](args: EtlJobArgs,transactor: HikariTransactor[Task],sem: Semaphore,config: Config, etl_job_name_package: String,jobQueue: Queue[(String,String,String,String)]): Task[Option[EtlJob]] ={
+    runActiveEtlJob[EJN,EJP](args,transactor,sem,config,etl_job_name_package,"Rest-Api",jobQueue)
   }
 }

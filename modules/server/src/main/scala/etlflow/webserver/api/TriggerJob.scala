@@ -10,10 +10,10 @@ import zio.{Semaphore, Task, _}
 
 import scala.reflect.runtime.universe.TypeTag
 
-class TriggerJob[F[_]: Sync: ContextShift: Timer] extends Http4sDsl[F] with EtlFlowUtils {
+class TriggerJob[F[_]: Sync: ContextShift: Timer] extends Http4sDsl[F] with etlflow.executor.Executor {
 
 
-  def triggerEtlJob[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String)]): HttpRoutes[F] = HttpRoutes.of[F] {
+  def triggerEtlJob[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String,String,String)]): HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / data =>
       val output = RequestValidator.validator(data)
       output match {

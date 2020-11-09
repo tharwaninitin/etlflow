@@ -35,7 +35,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     Update.updateCronJobsDB(transactor, cronJobsDb)
   }
 
-  final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String)]): Task[Unit] = {
+  final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[((String,String,String,String))]): Task[Unit] = {
     val jobsToBeScheduled = dbCronJobs.flatMap{ cj =>
       if (cj.schedule.isDefined)
         List(cj)
@@ -62,7 +62,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     }
   }
 
-  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String)]): Task[Unit] = for {
+  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String,String,String)]): Task[Unit] = for {
     _          <- Update.deleteCronJobsDB(transactor,UF.getEtlJobs[EJN].map(x => x).toList)
     dbCronJobs <- refreshCronJobsDB(transactor)
     _          <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
@@ -78,7 +78,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
-      queue           <- Queue.sliding[(String,String)](20).toManaged_
+      queue           <- Queue.sliding[(String,String,String,String)](20).toManaged_
       _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).toManaged_
     } yield ()).use_(ZIO.unit)
 

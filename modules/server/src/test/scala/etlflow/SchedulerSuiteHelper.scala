@@ -21,7 +21,7 @@ trait SchedulerSuiteHelper extends DbManager {
   val transactor: HikariTransactor[Task] = zio.Runtime.default.unsafeRun(createDbTransactor(credentials,ec,Blocker.liftExecutionContext(ec), "EtlFlow-Scheduler-Testing-Pool"))
   val etlJob_name_package: String = "etlflow.MyEtlJobName$"
 
-  val jobTestQueue = Runtime.default.unsafeRun(Queue.unbounded[(String,String)])
+  val jobTestQueue = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
   lazy val dp_dep_libs: String = sys.env("DP_LIBS")
   lazy val dp_main_class: String = sys.env("DP_MAIN_CLASS")
   lazy val dp_libs: List[String] = dp_dep_libs.split(",").toList

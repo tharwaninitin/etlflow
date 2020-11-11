@@ -29,7 +29,7 @@ abstract class EtlFlowApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps :
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")
-          val query = s"INSERT INTO userinfo (user_name,password,user_active) values (\'${ec.user}\',\'${ec.password}\',\'true\');"
+          val query = s"INSERT INTO userinfo (user_name,password,user_active,user_role) values (\'${ec.user}\',\'${ec.password}\',\'true\',\'${"admin"}\');"
           logger.info("Query: " + query)
           QueryApi.executeQuery(db, query)
         case ec if ec.add_user && ec.user == "" =>

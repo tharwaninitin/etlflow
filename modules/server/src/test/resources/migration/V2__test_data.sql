@@ -1,4 +1,4 @@
-insert into userinfo (user_name,password,user_active) values ('admin','admin','true');
+insert into userinfo (user_name,password,user_active,user_role) values ('admin','admin','true','admin');
 insert into cronjob (job_name,schedule,failed,success,is_active) values ('EtlJobDownload','',0,0,'t');
 insert into cronjob (job_name,schedule,failed,success,is_active) values ('EtlJob4','',0,0,'t');
 insert into jobrun (job_run_id,job_name,description,properties,state,start_time,job_type) values ('a27a7415-57b2-4b53-8f9b-5254e847a301','EtlJobDownload','sample_job','','pass','2020-08-10 10:35:01','GenericEtlJob');

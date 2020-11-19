@@ -42,8 +42,16 @@ object Query {
       }
       else {
         Task {
-          val number = randomUUID().toString.split("-")(0)
-          val token = Jwt.encode(s"""${args.user_name}:$number""", "secretKey", JwtAlgorithm.HS256)
+          var user_name = ""
+          var user_role = ""
+          z.map(data => {
+            user_name = data.user_name
+            user_role = data.user_role
+          })
+
+          val user_data = s"""{"user": "${user_name}","role":"${user_role}"}""".stripMargin
+          val token = Jwt.encode(user_data, "secretKey", JwtAlgorithm.HS256)
+          query_logger.info("token" + token)
           query_logger.info("Token generated " + token)
           CacheHelper.putKey(cache,token,token,Some(CacheHelper.default_ttl))
           UserAuth("Valid User", token)

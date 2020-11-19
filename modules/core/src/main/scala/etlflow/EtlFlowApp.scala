@@ -29,7 +29,7 @@ abstract class EtlFlowApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps :
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")
-          val query = s"INSERT INTO userinfo (user_name,password,user_active) values (\'${ec.user}\',\'${ec.password}\',\'true\');"
+          val query = s"INSERT INTO userinfo (user_name,password,user_active,user_role) values (\'${ec.user}\',\'${ec.password}\',\'true\',\'${"admin"}\');"
           logger.info("Query: " + query)
           QueryApi.executeQuery(db, query)
         case ec if ec.add_user && ec.user == "" =>
@@ -69,7 +69,7 @@ abstract class EtlFlowApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps :
           ZIO(ExitCode.failure)
         case ec if ec.run_job && ec.job_name != "" =>
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
-          LocalExecutorService.executeLocalJob(ec.job_name, ec.job_properties ,etl_job_name_package,if(ec.job_properties.keySet.exists(_ == "job_run_id")) Some(ec.job_properties("job_run_id")) else None).provideLayer(LocalExecutor.live)
+          LocalExecutorService.executeLocalJob(ec.job_name, ec.job_properties ,etl_job_name_package,if(ec.job_properties.keySet.exists(_ == "job_run_id")) Some(ec.job_properties("job_run_id")) else None,if(ec.job_properties.keySet.exists(_ == "is_master")) Some(ec.job_properties("is_master")) else None).provideLayer(LocalExecutor.live)
 //        case ec if ec.run_server =>
 //          if (ec.migration) {
 //            logger.info("Running server with migration")

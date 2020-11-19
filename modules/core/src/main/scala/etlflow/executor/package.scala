@@ -12,11 +12,11 @@ package object executor {
   object LocalExecutorService {
     trait Service {
       def executeLocalSubProcessJob(name: String, properties: Map[String,String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit]
-      def executeLocalJob(name: String, properties: Map[String,String], etl_job_name_package: String,job_run_id:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit]
+      def executeLocalJob(name: String, properties: Map[String,String], etl_job_name_package: String,job_run_id:Option[String] = None,is_master:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit]
     }
     def executeLocalSubProcessJob(name: String, properties: Map[String,String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit] =
       ZIO.accessM(_.get.executeLocalSubProcessJob(name, properties, config))
-    def executeLocalJob(name: String, properties: Map[String,String], etl_job_name_package: String,job_run_id:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit] =
-      ZIO.accessM(_.get.executeLocalJob(name, properties, etl_job_name_package,job_run_id))
+    def executeLocalJob(name: String, properties: Map[String,String], etl_job_name_package: String,job_run_id:Option[String] = None,is_master:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit] =
+      ZIO.accessM(_.get.executeLocalJob(name, properties, etl_job_name_package,job_run_id,is_master))
   }
 }

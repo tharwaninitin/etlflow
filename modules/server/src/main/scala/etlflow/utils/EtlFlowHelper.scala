@@ -10,7 +10,7 @@ object EtlFlowHelper {
   type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
 
   // DB Objects
-  case class UserInfo(user_name: String, password: String, user_active: String)
+  case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
   case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
   case class CredentialDB(name: String, `type`: String, value: String)
 

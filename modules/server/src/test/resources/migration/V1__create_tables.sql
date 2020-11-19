@@ -7,7 +7,8 @@ CREATE TABLE jobrun(job_run_id varchar(100) PRIMARY KEY,
     start_time varchar(100),
     inserted_at bigint,
     elapsed_time varchar(100),
-    job_type varchar(100)
+    job_type varchar(100),
+    is_master varchar(100)
     );
 CREATE TABLE steprun(job_run_id varchar(100),
     step_name varchar(100),

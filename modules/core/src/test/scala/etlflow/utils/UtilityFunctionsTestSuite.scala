@@ -38,6 +38,10 @@ class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
   val actualStepName4 = "DataTransfer______For EtlJobPricing Raw Data_Week_Calculation"
   val expectedStepName4 = "datatransfer_for_etljobpricing_raw_data_week_"
 
+  val actualStepName5 = "etljobspotratingsorctobq_year_2020_week_43#&* step"
+  val expectedStepName5 = "etljobspotratingsorctobq_year_2020_week_43_step"
+
+
   "GetTimeDifferenceAsString should  " should "run successfully for days" in {
     assert(actualDaysOutput == expectedDaysOutput)
   }
@@ -64,5 +68,9 @@ class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
 
   "StringFormatter should " should "return formatted string when given string with multiple consecutive underscores " in {
     assert(UF.stringFormatter(actualStepName4) == expectedStepName4)
+  }
+
+  "StringFormatter should " should "return formatted string when given string with special characters" in {
+    assert(UF.stringFormatter(actualStepName5) == expectedStepName5)
   }
 }

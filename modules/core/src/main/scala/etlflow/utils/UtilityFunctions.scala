@@ -102,7 +102,7 @@ object UtilityFunctions {
      case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
   }.toSeq
 
-  def stringFormatter(value: String):String = value.take(50).replaceAll("_"," ").replaceAll("\\s+", "_").toLowerCase
+  def stringFormatter(value: String):String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
 
 //  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
 //    Try {

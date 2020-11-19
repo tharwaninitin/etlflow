@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 import etlflow.utils.{UtilityFunctions => UF}
 
-class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps,job_run_id:String) extends LogManager[Task[Long]] {
+class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps,job_run_id:String,is_master:String) extends LogManager[Task[Long]] {
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
@@ -91,7 +91,8 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
         UF.getCurrentTimestampAsString(),
         UF.getCurrentTimestamp,
         "...",
-        job_type
+        job_type,
+        is_master
       )
       lm_logger.info(s"Inserting job info in db with status => $status")
       ctx.run(quote {
@@ -122,10 +123,10 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
 object DbLogManager extends DbManager{
 
   def createDbLoggerManaged(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): ZManaged[Any, Nothing, DbLogManager] =
-    Task.succeed(new DbLogManager(transactor, job_name, job_properties,"")).toManaged_
+    Task.succeed(new DbLogManager(transactor, job_name, job_properties,"","true")).toManaged_
 
   def createDbLoggerOption(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): Option[DbLogManager] =
-    Try(new DbLogManager(transactor,job_name, job_properties,"")).toOption
+    Try(new DbLogManager(transactor,job_name, job_properties,"","true")).toOption
 
   def createOptionDbTransactorManagedGP(
                                          global_properties: Config,
@@ -134,12 +135,14 @@ object DbLogManager extends DbManager{
                                          pool_name: String = "LoggerPool",
                                          job_name: String,
                                          job_properties: EtlJobProps,
-                                         job_run_id:String
+                                         job_run_id:String,
+                                         is_master:String
+
                                        ): Managed[Throwable, Option[DbLogManager]] =
     if (job_properties.job_enable_db_logging) {
       createDbTransactorManaged(global_properties.dbLog,ec,pool_name)(blocker)
         .map { transactor =>
-          Some(new DbLogManager(transactor, job_name, job_properties,job_run_id))
+          Some(new DbLogManager(transactor, job_name, job_properties,job_run_id,is_master))
         }
     } else {
       Managed.unit.map(_ => None)

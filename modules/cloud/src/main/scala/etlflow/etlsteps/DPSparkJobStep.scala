@@ -20,7 +20,7 @@ case class DPSparkJobStep(
     val env = DP.live(config)
     etl_logger.info("#" * 100)
     etl_logger.info(s"Starting Job Submission for: $job_name ")
-    DPService.executeSparkJob(job_name,props ++ Map("job_run_id" -> job_run_id),main_class,libs).provideLayer(env)
+    DPService.executeSparkJob(job_name,props ++ Map("job_run_id" -> job_run_id,"is_master" -> "false"),main_class,libs).provideLayer(env)
 
   }
   override def getStepProperties(level: LoggingLevel): Map[String, String] = {

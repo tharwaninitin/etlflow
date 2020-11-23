@@ -167,7 +167,7 @@ object Query {
       if (args.jobRunId.isDefined && args.jobName.isEmpty) {
         q = quote {
           query[JobRun]
-            .filter(_.job_run_id == lift(args.jobRunId.get))
+            .filter(p => p.job_run_id == lift(args.jobRunId.get) && p.is_master == lift("true"))
             .sortBy(p => p.inserted_at)(Ord.desc)
             .drop(lift(args.offset))
             .take(lift(args.limit))
@@ -180,17 +180,17 @@ object Query {
             query_logger.info("Inside IN clause")
             q = quote {
               query[JobRun]
-                .filter(p =>p.job_name == lift(args.jobName.get))
+                .filter(p =>p.job_name == lift(args.jobName.get) && p.is_master == lift("true"))
                 .sortBy(p => p.inserted_at)(Ord.desc)
                 .drop(lift(args.offset))
                 .take(lift(args.limit))
             }
           }
           case "NOT IN" => {
-            query_logger.info("Inside NOT IN  clause")
+            query_logger.info("Inside NOT IN  clause" )
             q = quote {
               query[JobRun]
-                .filter(p => p.job_name != lift(args.jobName.get))
+                .filter(p => p.job_name != lift(args.jobName.get) && p.is_master == lift("true"))
                 .sortBy(p => p.inserted_at)(Ord.desc)
                 .drop(lift(args.offset))
                 .take(lift(args.limit))
@@ -209,7 +209,7 @@ object Query {
         val endTime =  args.endTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         q = quote {
           query[JobRun]
-            .filter(p => p.inserted_at > lift(startTime) && p.inserted_at < lift(endTime))
+            .filter(p => p.inserted_at > lift(startTime) && p.inserted_at < lift(endTime) && p.is_master == lift("true"))
             .sortBy(p => p.inserted_at)(Ord.desc)
             .drop(lift(args.offset))
             .take(lift(args.limit))
@@ -219,6 +219,7 @@ object Query {
       else {
         q = quote {
           query[JobRun]
+            .filter(p =>  p.is_master == lift("true"))
             .sortBy(p => p.inserted_at)(Ord.desc)
             .drop(lift(args.offset))
             .take(lift(args.limit))
@@ -237,12 +238,13 @@ object Query {
     }
   }
 
-//  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = memoizeF[Task, List[CronJobDB]](Some(3600.second)){
-//    val selectQuery = quote {
-//      querySchema[CronJobDB]("cronjob")
-//    }
-//    dc.run(selectQuery).transact(transactor)
-//  }
+
+  //  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = memoizeF[Task, List[CronJobDB]](Some(3600.second)){
+  //    val selectQuery = quote {
+  //      querySchema[CronJobDB]("cronjob")
+  //    }
+  //    dc.run(selectQuery).transact(transactor)
+  //  }
 
   def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = {
     val selectQuery = quote {

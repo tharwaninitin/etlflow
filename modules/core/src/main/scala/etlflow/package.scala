@@ -26,8 +26,8 @@ package object etlflow {
     val job_schedule: String                  = ""
     val job_max_active_runs: Int              = 10
     val job_deploy_mode: Executor             = Executor.LOCAL
-    val retry_number  : Int                   = 0
-    val retry_duration_in_minutes  : Int      = 0
+    val job_retries  : Int                    = 0
+    val job_retry_delay_in_minutes  : Int     = 0
   }
 
   object EtlStepList {

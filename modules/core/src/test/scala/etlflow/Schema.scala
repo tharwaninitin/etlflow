@@ -77,6 +77,13 @@ object Schema {
                            override val job_deploy_mode: Executor = Executor.LOCAL
                          ) extends EtlJobProps
 
+  case class EtlJob5Props(
+                           override val job_schedule: String = "0 */2 * * * ?",
+                           override val job_deploy_mode: Executor = Executor.LOCAL,
+                           override val job_retries: Int = 3,
+                           override val job_retry_delay_in_minutes: Int = 1
+                         ) extends EtlJobProps
+
   case class LocalSampleProps(
                                override val job_schedule: String = "0 */15 * * * ?",
                                override val job_max_active_runs: Int = 1,

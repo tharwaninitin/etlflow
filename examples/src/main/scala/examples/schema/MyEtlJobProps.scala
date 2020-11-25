@@ -32,8 +32,8 @@ object MyEtlJobProps {
   case class LocalSampleProps(
                                override val job_schedule: String = "0 */15 * * * ?",
                                override val job_max_active_runs: Int = 1,
-                               override val retry_number: Int = 3,
-                               override val retry_duration_in_minutes: Int = 1
+                               override val job_retries: Int = 3,
+                               override val job_retry_delay_in_minutes: Int = 1
                              ) extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),

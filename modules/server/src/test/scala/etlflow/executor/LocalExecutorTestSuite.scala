@@ -24,6 +24,16 @@ object LocalExecutorTestSuite extends DefaultRunnableSpec with Executor with Sch
           } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
         )
       },
+      testM("Test Local Job with correct JobName and job retry") {
+        zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+        def job(sem: Semaphore): Task[EtlJob] = runLocalJob(EtlJobArgs("EtlJob5", List.empty),transactor,etlJob_name_package,sem,fork = false,1,1)
+        assertM(
+          (for {
+            sem     <- Semaphore.make(permits = 1)
+            status  <- job(sem)
+          } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Invalid")
+        )
+      },
       testM("Test Local Job with incorrect JobName") {
         def job(sem: Semaphore): Task[EtlJob] = runLocalJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,sem)
         assertM(

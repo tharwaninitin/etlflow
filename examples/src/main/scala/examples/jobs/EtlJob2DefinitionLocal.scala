@@ -10,6 +10,7 @@ case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends Gene
 
   def processData(ip: Unit): Unit = {
     etl_job_logger.info("Hello World")
+    throw  new RuntimeException("Error123")
     Thread.sleep(10000)
   }
 
@@ -35,9 +36,13 @@ case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends Gene
   }
 
   override val job = for {
-    -  <- step1.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
-    -  <- step2.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
-    -  <- step3.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
+//        -  <- step1.execute().retry(Schedule.spaced(10.second) && Schedule.recurs(2))
+//        -  <- step2.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
+//        -  <- step3.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
+
+    -  <- step1.execute()
+    -  <- step2.execute()
+    -  <- step3.execute()
 
   } yield ()
 }

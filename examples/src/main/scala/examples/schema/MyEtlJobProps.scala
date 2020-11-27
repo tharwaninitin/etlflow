@@ -1,9 +1,11 @@
 package examples.schema
 
 import etlflow.EtlJobProps
-import etlflow.utils.Executor.{DATAPROC, KUBERNETES,LOCAL_SUBPROCESS}
+import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 import etlflow.utils.{Executor, LoggingLevel}
 
+import scala.concurrent.duration.Duration
+import  scala.concurrent.duration._
 sealed trait MyEtlJobProps extends EtlJobProps
 
 object MyEtlJobProps {
@@ -29,7 +31,9 @@ object MyEtlJobProps {
                         ) extends MyEtlJobProps
   case class LocalSampleProps(
                                override val job_schedule: String = "0 */15 * * * ?",
-                               override val job_max_active_runs: Int = 1
+                               override val job_max_active_runs: Int = 1,
+                               override val job_retries: Int = 3,
+                               override val job_retry_delay_in_minutes: Int = 1
                              ) extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),

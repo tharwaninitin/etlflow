@@ -173,6 +173,38 @@ object Query {
             .take(lift(args.limit))
         }
         // logger.info(s"Query Fragment Generated for arguments $args is ")
+      } else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
+        val sdf = new SimpleDateFormat("yyyy-MM-dd")
+        val startTime = if(args.startTime.get == "")
+          sdf.parse(LocalDate.now().plusDays(1).toString).getTime
+        else
+          args.startTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        val endTime =  args.endTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        args.filter.get match {
+          case "IN" => {
+            query_logger.info("Inside IN clause")
+            q = quote {
+              query[JobRun]
+                .filter(p =>p.job_name == lift(args.jobName.get) && p.is_master == lift("true") && p.inserted_at > lift(startTime) && p.inserted_at < lift(endTime))
+                .sortBy(p => p.inserted_at)(Ord.desc)
+                .drop(lift(args.offset))
+                .take(lift(args.limit))
+            }
+          }
+          case "NOT IN" => {
+            query_logger.info("Inside NOT IN  clause" )
+            q = quote {
+              query[JobRun]
+                .filter(p => p.job_name != lift(args.jobName.get) && p.is_master == lift("true") && p.inserted_at > lift(startTime) && p.inserted_at < lift(endTime))
+                .sortBy(p => p.inserted_at)(Ord.desc)
+                .drop(lift(args.offset))
+                .take(lift(args.limit))
+            }
+          }
+        }
+        // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
       }
       else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
         args.filter.get match {

@@ -69,7 +69,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                 ),
                 "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                 "/ws/etlflow"     -> CORS(new StatsStreams[EtlFlowTask](cache).streamRoutes),
-                "/api/runjob"     -> AuthMiddleware(
+                "/api"     -> AuthMiddleware(
                   CORS(new TriggerJob[EtlFlowTask].triggerEtlJob[EJN,EJP](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
                   authEnabled = true,
                   cache),

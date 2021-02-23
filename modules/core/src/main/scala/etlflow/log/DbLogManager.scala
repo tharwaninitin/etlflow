@@ -5,16 +5,14 @@ import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.quill.DoobieContext
-import doobie.util.fragment.Fragment
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.DbManager
-import etlflow.utils.{Config, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{Config, JsonJackson}
 import io.getquill.Literal
 import zio.interop.catz._
-import zio.{Managed, Task, ZManaged}
+import zio.{Managed, Task}
 import scala.concurrent.ExecutionContext
-import scala.util.Try
 import etlflow.utils.{UtilityFunctions => UF}
 
 class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, val job_properties: EtlJobProps,job_run_id:String,is_master:String) extends LogManager[Task[Long]] {
@@ -22,14 +20,6 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
   val remoteStep = List("EtlFlowJobStep","DPSparkJobStep")
-
-  def getCredentials[T : Manifest](name: String): Task[T] = {
-    val query = s"SELECT value FROM credentials WHERE name='$name';"
-    for {
-      result <- Fragment.const(query).query[String].unique.transact(transactor)
-      op     <- Task(JsonJackson.convertToObject[T](result))
-    } yield op
-  }
 
   def updateStepLevelInformation(
                                   execution_start_time: Long,
@@ -121,12 +111,6 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
 }
 
 object DbLogManager extends DbManager{
-
-  def createDbLoggerManaged(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): ZManaged[Any, Nothing, DbLogManager] =
-    Task.succeed(new DbLogManager(transactor, job_name, job_properties,"","true")).toManaged_
-
-  def createDbLoggerOption(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps): Option[DbLogManager] =
-    Try(new DbLogManager(transactor,job_name, job_properties,"","true")).toOption
 
   def createOptionDbTransactorManagedGP(
                                          global_properties: Config,

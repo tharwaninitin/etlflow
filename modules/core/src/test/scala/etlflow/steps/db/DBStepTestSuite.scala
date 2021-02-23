@@ -1,16 +1,16 @@
 package etlflow.steps.db
 
 import etlflow.etlsteps.DBQueryStep
-import etlflow.utils.JDBC
-import org.testcontainers.containers.PostgreSQLContainer
+import etlflow.utils.{Configuration, JDBC}
+//import org.testcontainers.containers.PostgreSQLContainer
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
 
-object DBStepTestSuite extends DefaultRunnableSpec {
+object DBStepTestSuite extends DefaultRunnableSpec with Configuration {
 
-  val container = new PostgreSQLContainer("postgres:latest")
-  container.start()
+  //val container = new PostgreSQLContainer("postgres:latest")
+  //container.start()
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
@@ -28,12 +28,12 @@ object DBStepTestSuite extends DefaultRunnableSpec {
           val step1 = DBQueryStep(
             name  = "UpdatePG",
             query = create_table_script,
-            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, "org.postgresql.Driver")
+            credentials = JDBC(config.dbLog.url, config.dbLog.user, config.dbLog.password, "org.postgresql.Driver")
           )
           val step2 = DBQueryStep(
             name  = "UpdatePG",
             query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
-            credentials = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, "org.postgresql.Driver")
+            credentials = JDBC(config.dbLog.url, config.dbLog.user, config.dbLog.password, "org.postgresql.Driver")
           )
           val job = for {
             _ <- step1.process()

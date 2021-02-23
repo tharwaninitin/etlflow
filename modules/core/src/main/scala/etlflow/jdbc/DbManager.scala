@@ -3,12 +3,14 @@ package etlflow.jdbc
 import cats.effect.Blocker
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
-import etlflow.utils.JDBC
+import doobie.util.fragment.Fragment
+import etlflow.utils.{JDBC, JsonJackson}
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
-import zio.{Task, Managed}
+import zio.{Managed, Task}
 import scala.concurrent.ExecutionContext
+import doobie.implicits._
 
 trait DbManager {
 
@@ -23,6 +25,16 @@ trait DbManager {
     config.setPoolName(pool_name)
     HikariTransactor.fromHikariConfig[Task](config, ec, blocker)
   }.toManagedZIO
+
+  def getDbCredentials[T : Manifest](name: String, credentials: JDBC, ec: ExecutionContext): Task[T] = {
+    val query = s"SELECT value FROM credentials WHERE name='$name';"
+    createDbTransactorManaged(credentials,ec,"credential-pool",1).use { transactor =>
+      for {
+        result <- Fragment.const(query).query[String].unique.transact(transactor)
+        op     <- Task(JsonJackson.convertToObject[T](result))
+      } yield op
+    }
+  }
 
   def runDbMigration(credentials: JDBC, clean: Boolean = false): Task[Int] = Task {
     val logger: Logger = LoggerFactory.getLogger(getClass.getName)

@@ -14,17 +14,33 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/
 __Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/
 
 ## Running Tests
-All the tests are integration tests. That is, they make real API requests to S3, GCS, BigQuery. 
-As such, you'll need to make sure you have variables set to a bucket and object that you can access and manipulate.
-
-Here are all the environment variables you will need to set to run the tests locally:
-
+There are multiple modules and all contains tests. To be able to use this library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
  ```shell
  export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
  export LOG_DB_USER=<...>
  export LOG_DB_PWD=<..>
  export LOG_DB_DRIVER=org.postgresql.Driver
+```
+Now to create database tables used in this library run below commands from repo root folder:
+```shell
+sbt
+project core
+test:runMain etlflow.LoadData run_db_migration
+```
+### Core Module
+To test core module run below command:
+```shell
+sbt
+project core
+test
+```
+### Cloud Module
+All the tests in this module are integration tests. That is, they make real API requests to S3, GCS, BigQuery. 
+As such, you'll need to make sure you have variables set to a bucket and object that you can access and manipulate.
 
+Here are all the environment variables you will need to set to run the tests locally:
+
+ ```shell
  export GOOGLE_APPLICATION_CREDENTIALS=<...> # this should be full path to GCP Service Account Key Json which should have GCS and BigQuery Read/Write access
  export GCS_BUCKET=<...> 
  export GCS_INPUT_LOCATION=<...>
@@ -48,7 +64,7 @@ You also would need docker installed as some of the tests start/stop database do
 
 Now run tests using below sbt command
  ```shell
- sbt "project core" test
+ sbt "project cloud" test
  ```
 
 ## Requirements and Installation

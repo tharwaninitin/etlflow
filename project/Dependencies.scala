@@ -2,32 +2,39 @@ import sbt._
 
 object Dependencies {
   val SparkVersion = "2.4.4"
+  val SparkBQVersion = "0.19.0"
   val GcpBqVersion = "1.80.0"
   val GcpDpVersion = "1.1.2"
   val GcpGcsVersion = "1.108.0"
   val GcpPubSubVersion = "1.108.1"
-  val ScoptVersion = "3.7.1"
-  val ZioVersion = "1.0.3"
-  val ZioCatsInteropVersion = "2.1.4.0"
-  val DoobieVersion = "0.9.0"
-  val SkunkVersion = "0.0.18"
-  val CalibanVersion = "0.9.1"
-  val Http4sVersion = "0.21.3"
-  val FlywayVersion = "6.4.1"
-  val AwsS3Version = "2.13.23"
-  val LogbackVersion = "1.2.3"
-  val CirceVersion = "0.13.0"
-  val CirceConfigVersion = "0.8.0"
-  val ScalaTestVersion = "3.0.5"
-  val TestContainerVersion = "1.11.2"
-  val SparkBQVersion = "0.16.1"
   val HadoopGCSVersion = "1.6.1-hadoop2"
   val HadoopS3Version = "2.10.0"
-  val PgVersion = "42.2.8"
+  val AwsS3Version = "2.13.23"
 
-  val redisVesrion = "3.30"
-  val scalajHttpVesrion = "2.4.2"
+  val ZioVersion = "1.0.4"
+  val ZioCatsInteropVersion = "2.1.4.0"
+  val CalibanVersion = "0.9.5"
+
+  val K8sClientVersion = "0.5.0"
+  val CatsCoreVersion = "2.1.1"
+  val CatsEffectVersion = "2.1.4"
+  val Fs2Version = "2.4.4"
+  val CirceVersion = "0.13.0"
+  val CirceConfigVersion = "0.8.0"
+  val DoobieVersion = "0.9.0"
+  val SkunkVersion = "0.0.18"
+  val Http4sVersion = "0.21.19"
+
+  val FlywayVersion = "6.4.1"
+  val ScoptVersion = "4.0.0"
+  val LogbackVersion = "1.2.3"
+  val PgVersion = "42.2.19"
+  val RedisVersion = "3.30"
+  val ScalajHttpVersion = "2.4.2"
   val mailVersion = "1.6.2"
+
+  val ScalaTestVersion = "3.0.5"
+  val TestContainerVersion = "1.11.2"
 
   lazy val googleCloudLibs = List(
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
@@ -37,13 +44,13 @@ object Dependencies {
   )
 
   lazy val catsLibs = List(
-    "org.typelevel" %% "cats-core" % "2.1.1",
-    "org.typelevel" %% "cats-effect" % "2.1.4",
+    "org.typelevel" %% "cats-core" % CatsCoreVersion,
+    "org.typelevel" %% "cats-effect" % CatsEffectVersion,
   )
 
   lazy val streamingLibs = List(
-    "co.fs2" %% "fs2-core" % "2.4.4",
-    "co.fs2" %% "fs2-io" % "2.4.4",
+    "co.fs2" %% "fs2-core" % Fs2Version,
+    "co.fs2" %% "fs2-io" % Fs2Version,
     "org.tpolecat" %% "skunk-core" % SkunkVersion,
     "com.permutive" %% "fs2-google-pubsub-grpc" % "0.16.0",
     "com.github.fs2-blobstore" %% "gcs" % "0.7.3",
@@ -68,11 +75,11 @@ object Dependencies {
   )
 
   lazy val redis = List(
-    "net.debasishg" %% "redisclient" % redisVesrion
+    "net.debasishg" %% "redisclient" % RedisVersion
   )
 
   lazy val scalajHttp = List(
-    "org.scalaj" %% "scalaj-http" % scalajHttpVesrion
+    "org.scalaj" %% "scalaj-http" % ScalajHttpVersion
   )
 
   lazy val mail = List(
@@ -81,7 +88,7 @@ object Dependencies {
   )
 
   lazy val kubernetes = List(
-    "com.goyeau" %% "kubernetes-client" % "35662a1"
+    "com.goyeau" %% "kubernetes-client" % K8sClientVersion
   )
 
   lazy val dbLibs = List(
@@ -100,7 +107,6 @@ object Dependencies {
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % "1.7.30",
-//    "com.github.pureconfig" %% "pureconfig" % "0.13.0"
   )
 
   lazy val caliban = List(
@@ -130,15 +136,12 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val cloudTestLibs = List(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion,
-    "org.testcontainers" % "postgresql" % TestContainerVersion,
-    "dev.zio" %% "zio-test"     % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion,
-    "ch.qos.logback" % "logback-classic" % LogbackVersion,
-    "org.postgresql" % "postgresql" % PgVersion,
-    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
     "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
     "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
+  ).map(_ % Test)
+
+  lazy val sparkTestLibs = List(
+    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
   ).map(_ % Test)
 }

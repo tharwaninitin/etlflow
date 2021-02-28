@@ -1,5 +1,5 @@
 steps:
-  - name: 'gcr.io/mint-bi-reporting/scala-mill'
+  - name: 'gcr.io/$PROJECT_ID/scala-mill'
     id: Create assembly jar for core and package jar for examples
     entrypoint: /bin/sh
     args:
@@ -14,7 +14,7 @@ steps:
       mill examples.jar
 
 
-  - name: 'gcr.io/mint-bi-reporting/scala-mill'
+  - name: 'gcr.io/$PROJECT_ID/scala-mill'
     id: Save version in temp file
     entrypoint: /bin/sh
     args:
@@ -45,7 +45,7 @@ steps:
         mv /workspace/out/examples/jar/dest/out.jar /workspace/out/examples/jar/dest/etlflow-examples_2.12-$(cat /workspace/version.txt).jar
         gsutil cp /workspace/out/examples/jar/dest/etlflow-examples_2.12-$(cat /workspace/version.txt).jar ${_GCS_BUCKET}
 
-  - name: 'gcr.io/mint-bi-reporting/scala-mill'
+  - name: 'gcr.io/$PROJECT_ID/scala-mill'
     id: Build docker image and publish to container registry
     entrypoint: /bin/sh
     args:

@@ -1,15 +1,14 @@
 import NativePackagerHelper._
 import Dependencies._
 
-val EtlFlowVersion = "0.8.0"
+val EtlFlowVersion = "0.9.0"
 
 lazy val loggerTask = TaskKey[Unit]("loggerTask")
 
-
-lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "core")
-lazy val etlflowScheduler = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "server")
-lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "spark")
-lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "cloud")
+//lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "core")
+//lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "server")
+//lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "spark")
+//lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "cloud")
 
 lazy val examples = (project in file("examples"))
   .enablePlugins(JavaAppPackaging)
@@ -19,6 +18,10 @@ lazy val examples = (project in file("examples"))
     organization := "com.github.tharwaninitin",
     scalaVersion := "2.12.10",
     libraryDependencies ++= List(
+        "com.github.tharwaninitin" %% "etlflow-core" % "0.9.0",
+        "com.github.tharwaninitin" %% "etlflow-server" % "0.9.0",
+        "com.github.tharwaninitin" %% "etlflow-spark" % "0.9.0",
+        "com.github.tharwaninitin" %% "etlflow-cloud" % "0.9.0",
         "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
         "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
         "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
@@ -61,4 +64,4 @@ lazy val examples = (project in file("examples"))
       ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll
     )
   )
-  .dependsOn(etlflowCore,etlflowScheduler, etlflowSpark, etlflowCloud)
+  //.dependsOn(etlflowCore, etlflowServer, etlflowSpark, etlflowCloud)

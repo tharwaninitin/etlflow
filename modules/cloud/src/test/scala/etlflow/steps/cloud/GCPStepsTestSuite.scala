@@ -52,6 +52,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
         val step = BQLoadStep(
           name           = "LoadRatingBQ",
           input_location = Left(input_path),
+          output_project = Some(sys.env("GCP_PROJECT_ID")),
           input_type     = PARQUET,
           output_dataset = output_dataset,
           output_table   = output_table

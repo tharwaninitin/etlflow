@@ -41,9 +41,10 @@ object MyEtlJobProps {
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),
-                            override val job_deploy_mode: Executor = kubernetes,
+                            override val job_deploy_mode: Executor = Executor.LOCAL,
                             override val job_enable_db_logging: Boolean = false
                           ) extends MyEtlJobProps
+
   case class EtlJob23Props (
                              ratings_input_path: String = "",
                              ratings_output_dataset: String = "",
@@ -51,6 +52,7 @@ object MyEtlJobProps {
                              override val job_send_slack_notification: Boolean = true,
                              override val job_schedule: String = "0 0 10 ? * 4",
                              override val job_notification_level: LoggingLevel = LoggingLevel.INFO,
+                             override val job_deploy_mode: Executor = Executor.LOCAL
                            ) extends MyEtlJobProps
   case class EtlJob4Props() extends MyEtlJobProps
 

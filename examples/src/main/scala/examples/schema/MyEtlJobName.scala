@@ -73,4 +73,13 @@ object MyEtlJobName {
     def etlJob(job_properties: Map[String, String]): EtlJob[LocalSampleProps] = EtlJob7DefinitionLocal(getActualProperties(job_properties))
 
   }
+
+  case object Job8LocalBqtoJdbc extends MyEtlJobName[EtlJob23Props] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob23Props = EtlJob23Props(
+      ratings_input_path = job_properties.getOrElse("ratings_input_path",default_ratings_input_path),
+      ratings_output_dataset = job_properties.getOrElse("ratings_output_dataset",default_output_dataset),
+      ratings_output_table_name = job_properties.getOrElse("ratings_output_table_name","ratings")
+    )
+    def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob23Props] = EtlJob8DefinitionLocal(getActualProperties(job_properties))
+  }
 }

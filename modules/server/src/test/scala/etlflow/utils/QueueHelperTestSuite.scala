@@ -1,9 +1,10 @@
 package etlflow.utils
 
 import etlflow.webserver.api.TestEtlFlowService
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 import zio._
-class QueueHelperTestSuite extends FlatSpec with Matchers with TestEtlFlowService {
+class QueueHelperTestSuite extends AnyFlatSpec with Matchers with TestEtlFlowService {
 
   val jobTestQueue1 = Runtime.default.unsafeRun(Queue.unbounded[(String,String)])
 

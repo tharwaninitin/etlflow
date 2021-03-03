@@ -92,9 +92,9 @@ object BQ {
         }
 
         def loadIntoBQFromLocalFile(
-             source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
-             destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
-           ): Task[Unit] = Task {
+                                     source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
+                                     destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
+                                   ): Task[Unit] = Task {
           if (source_locations.isRight) {
             gcp_logger.info(s"No of BQ partitions: ${source_locations.right.get.length}")
             source_locations.right.get.foreach { case (src_path, partition) =>
@@ -123,24 +123,31 @@ object BQ {
         }
 
         override def loadIntoPartitionedBQTable(source_paths_partitions: Seq[(String, String)],
-            source_format: utils.IOType, destination_dataset: String, destination_table: String,
-            write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
-            schema: Option[Schema], parallelism: Int): Task[Map[String, Long]] = {
+                                                source_format: utils.IOType, destination_project: Option[String] , destination_dataset: String, destination_table: String,
+                                                write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
+                                                schema: Option[Schema], parallelism: Int): Task[Map[String, Long]] = {
           gcp_logger.info(s"No of BQ partitions: ${source_paths_partitions.length}")
           ZIO.foreachParN(parallelism)(source_paths_partitions){ case (src_path, partition) =>
-              val table_partition = destination_table + "$" + partition
-              loadIntoBQTable(src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition)
+            val table_partition = destination_table + "$" + partition
+            loadIntoBQTable(src_path, source_format, destination_project, destination_dataset, table_partition, write_disposition, create_disposition)
           }.map(x => x.flatten.toMap)
         }
 
-        override def loadIntoBQTable(source_path: String, source_format: utils.IOType, destination_dataset: String,
-             destination_table: String, write_disposition: JobInfo.WriteDisposition,
-             create_disposition: JobInfo.CreateDisposition, schema: Option[Schema]): Task[Map[String, Long]] = Task {
+        override def loadIntoBQTable(source_path: String, source_format: utils.IOType, destination_project:Option[String],
+                                     destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
+                                     create_disposition: JobInfo.CreateDisposition, schema: Option[Schema]): Task[Map[String, Long]] = Task {
           // Create Output BQ table instance
-          val tableId = TableId.of(destination_dataset, destination_table)
+          val tableId = destination_project match {
+            case Some(project) => TableId.of(project, destination_dataset, destination_table)
+            case None          => TableId.of(destination_dataset, destination_table)
+          }
+
+          gcp_logger.info("Project Is: " +tableId.getProject)
+          gcp_logger.info("Dataset Is: " +tableId.getDataset)
+          gcp_logger.info("Table Is: " +tableId.getTable)
 
           val jobConfiguration: JobConfiguration = source_format match {
-            case utils.BQ => QueryJobConfiguration.newBuilder(source_path)
+            case utils.BQ(_,_) => QueryJobConfiguration.newBuilder(source_path)
               .setUseLegacySql(false)
               .setDestinationTable(tableId)
               .setWriteDisposition(write_disposition)

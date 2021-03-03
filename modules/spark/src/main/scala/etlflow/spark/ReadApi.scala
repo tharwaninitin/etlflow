@@ -54,7 +54,7 @@ object ReadApi {
     }
   }
 
-  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(spark: SparkSession) : Dataset[T] = {
+  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1",operation_type:String="table")(spark: SparkSession) : Dataset[T] = {
     val mapping = Encoders.product[T]
 
     val df_reader = spark.read
@@ -70,12 +70,21 @@ object ReadApi {
       case ORC => df_reader.format("orc")
       case JDBC(url, user, password, driver) => df_reader.format("jdbc")
         .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password).option("driver", driver)
-      case BQ => df_reader.format("bigquery").option("table", location.mkString)
+      case BQ(temp_dataset,operation_type) => {
+        operation_type match {
+          case "table" => df_reader.format("bigquery").option("table", location.mkString)
+          case "query" =>  {
+            spark.conf.set("viewsEnabled","true")
+            spark.conf.set("materializationDataset",temp_dataset)
+            df_reader.format("bigquery").option("query", location.mkString)
+          }
+        }
+      }
       case _ => df_reader.format("text")
     }
 
     val df = input_type match {
-      case JDBC(_,_,_,_) | BQ => df_reader_options.load().where(where_clause)
+      case JDBC(_,_,_,_) | BQ(_,_) => df_reader_options.load().where(where_clause)
       case _ => df_reader_options.load(location: _*).where(where_clause)
     }
 

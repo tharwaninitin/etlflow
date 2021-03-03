@@ -54,7 +54,7 @@ object ReadApi {
     }
   }
 
-  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1",operation_type:String="table")(spark: SparkSession) : Dataset[T] = {
+  def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(spark: SparkSession) : Dataset[T] = {
     val mapping = Encoders.product[T]
 
     val df_reader = spark.read

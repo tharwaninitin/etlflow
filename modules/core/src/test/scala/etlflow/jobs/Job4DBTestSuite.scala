@@ -1,9 +1,9 @@
 package etlflow.jobs
 
 import etlflow.{LoadData, TestSuiteHelper}
-import org.scalatest.{FlatSpec, Matchers}
-
-class Job4DBTestSuite extends FlatSpec with Matchers with TestSuiteHelper {
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
+class Job4DBTestSuite extends AnyFlatSpec with Matchers with TestSuiteHelper {
 
   LoadData.main(
     Array(

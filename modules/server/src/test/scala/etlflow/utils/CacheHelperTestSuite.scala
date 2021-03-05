@@ -1,10 +1,10 @@
 package etlflow.utils
 
-import org.scalatest.{FlatSpec, Matchers}
-
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 import scala.concurrent.duration._
 
-class CacheHelperTestSuite  extends FlatSpec with Matchers {
+class CacheHelperTestSuite  extends AnyFlatSpec with Matchers {
 
   val cache = CacheHelper.createCache[String]
   CacheHelper.putKey(cache,"key1","123")

@@ -1,9 +1,9 @@
 package etlflow.utils
 
 import etlflow.utils.EtlFlowHelper.{EtlJobArgs, Props}
-import org.scalatest.{FlatSpec, Matchers}
-
-class RequestValidatorTestSuite  extends FlatSpec with Matchers {
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
+class RequestValidatorTestSuite  extends AnyFlatSpec with Matchers {
 
   val actualOutput1 = RequestValidator.validator("Job2LocalJobGenericStep",Some("""("year":"2016","start_date":"2016-03-15")"""))
   val expectedOutput1 = EtlJobArgs("Job2LocalJobGenericStep",List(Props("start_date","2016-03-15"), Props("year","2016")))

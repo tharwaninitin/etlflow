@@ -25,7 +25,7 @@ case class EtlJob5Definition(job_properties: EtlJob5Props)
   private val step2 = SparkReadWriteStep[RatingBQ](
     name             = "LoadRatingsBqToJdbc",
     input_location   = Seq("test.ratings"),
-    input_type       = BQ,
+    input_type       = BQ(),
     output_type      = config.dbLog,
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite

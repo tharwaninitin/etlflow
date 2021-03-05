@@ -52,18 +52,21 @@ package object utils {
   final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
     override def toString: String = s"JDBC with url => $url"
   }
-  final case class REDIS(url: String, user: String, password: String, port: Int) extends IOType {
-    override def toString: String = s"REDIS with url $url and port $port"
+  final case class REDIS(host_name: String, password: Option[String] = None, port: Int = 6379) extends IOType {
+    override def toString: String = s"REDIS with url $host_name and port $port"
   }
   final case class JSON(multi_line: Boolean = false) extends IOType {
     override def toString: String = s"Json with multiline  => $multi_line"
   }
 
+  case class BQ(temp_dataset: String = "temp",operation_type:String="table") extends IOType
+
+
   case class Config(dbLog: JDBC, slack: Slack, dataProc: Option[DataprocSpark],token: Option[List[String]])
   case class DataprocSpark(mainClass: String, depLibs: List[String])
   case class Slack(url: String, env: String)
 
-  case object BQ extends IOType
+//  case object BQ extends IOType
   case object PARQUET extends IOType
   case object ORC extends IOType
   case object TEXT extends IOType

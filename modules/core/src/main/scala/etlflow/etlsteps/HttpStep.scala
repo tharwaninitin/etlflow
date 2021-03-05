@@ -10,6 +10,8 @@ sealed trait HttpMethod
 object HttpMethod {
   case object GET extends HttpMethod
   case object POST extends HttpMethod
+  case object PUT extends HttpMethod
+
 }
 
 case class HttpStep(
@@ -74,6 +76,11 @@ case class HttpResponseStep(
           case Left(_) => HttpClientApi.get(url, Nil, headers, log_response,connectionTimeOut,readTimeOut)
           case Right(value) => HttpClientApi.get(url, value, headers, log_response,connectionTimeOut,readTimeOut)
         }
+      case HttpMethod.PUT =>
+        params match {
+          case Left(value) => HttpClientApi.put(url, value, headers, log_response,connectionTimeOut,readTimeOut)
+          case Right(_)    => HttpClientApi.put(url, "", headers, log_response,connectionTimeOut,readTimeOut)
+        }
     }
   }
 
@@ -85,15 +92,15 @@ case class HttpResponseStep(
 }
 
 case class HttpParsedResponseStep[T: Decoder](
-                                                name: String,
-                                                url: String,
-                                                http_method: HttpMethod,
-                                                params: Either[String, Seq[(String,String)]] = Left(""),
-                                                headers: Map[String,String] = Map.empty,
-                                                log_response: Boolean = false,
-                                                connectionTimeOut : Int = 10000,
-                                                readTimeOut : Int = 150000
-                                              )
+                                               name: String,
+                                               url: String,
+                                               http_method: HttpMethod,
+                                               params: Either[String, Seq[(String,String)]] = Left(""),
+                                               headers: Map[String,String] = Map.empty,
+                                               log_response: Boolean = false,
+                                               connectionTimeOut : Int = 10000,
+                                               readTimeOut : Int = 150000
+                                             )
   extends EtlStep[Unit, T] {
 
   final def process(in: =>Unit): Task[T] = {

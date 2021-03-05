@@ -3,23 +3,24 @@ package etlflow.etlsteps
 import java.util.concurrent.ExecutionException
 
 import com.google.cloud.dataproc.v1._
+import etlflow.etlsteps.DPDeleteStep.DPDeleteConfig
 import etlflow.utils.LoggingLevel
 import zio.Task
 
 class DPDeleteStep (
                        val name: String,
                        val cluster_name: String,
-                       val props: Map[String,String],
+                       val props: DPDeleteConfig,
                      ) extends EtlStep[Unit,Unit] {
 
   final def process(in: =>Unit): Task[Unit] = Task{
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting Delete Cluster Step: $name")
-    etl_logger.info(s"Cluster Name: $cluster_name and Region:" + props("region"))
+    etl_logger.info(s"Cluster Name: $cluster_name and Region:" + props.region)
 
-    val project_id = props("project_id")
-    val endpoint = props("endpoint")
-    val region = props("region")
+    val project_id = props.project_id
+    val endpoint = props.endpoint
+    val region = props.region
 
     val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(endpoint).build
     val cluster_controller_client = ClusterControllerClient.create(cluster_controller_settings)
@@ -38,15 +39,23 @@ class DPDeleteStep (
   override def getStepProperties(level: LoggingLevel): Map[String, String] =
     Map(
       "name" -> name,
-      "cluster_name" -> cluster_name
-    ) ++ props
+      "cluster_name" -> cluster_name,
+      "configuration" -> props.toString
+    )
 }
 
 object DPDeleteStep {
+  case class DPDeleteConfig
+  (
+    project_id: String,
+    region:String,
+    endpoint:String
+  )
+
   def apply(
              name: String,
              cluster_name: String,
-             props: Map[String,String]
+             props: DPDeleteConfig
            ) : DPDeleteStep = new DPDeleteStep(name, cluster_name, props)
 }
 

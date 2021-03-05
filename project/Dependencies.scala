@@ -2,28 +2,31 @@ import sbt._
 
 object Dependencies {
   val SparkVersion = "2.4.4"
-  val SparkBQVersion = "0.19.0"
-  val GcpBqVersion = "1.80.0"
-  val GcpDpVersion = "1.1.2"
-  val GcpGcsVersion = "1.108.0"
-  val GcpPubSubVersion = "1.108.1"
+  val SparkBQVersion = "0.19.1"
+  val GcpBqVersion = "1.127.5"
+  val GcpDpVersion = "1.2.1"
+  val GcpGcsVersion = "1.113.11"
+  val GcpPubSubVersion = "1.111.4"
   val HadoopGCSVersion = "1.6.1-hadoop2"
   val HadoopS3Version = "2.10.0"
-  val AwsS3Version = "2.13.23"
+  val AwsS3Version = "2.16.9"
 
   val ZioVersion = "1.0.4"
-  val ZioCatsInteropVersion = "2.1.4.0"
+  val ZioCatsInteropVersion = "2.3.1.0"
   val CalibanVersion = "0.9.5"
 
+  val CatsCoreVersion = "2.4.2"
+  val CatsEffectVersion = "2.3.3"
   val K8sClientVersion = "0.5.0"
-  val CatsCoreVersion = "2.1.1"
-  val CatsEffectVersion = "2.1.4"
-  val Fs2Version = "2.4.4"
+  val Fs2Version = "2.5.3"
+  val Fs2PubSubVersion = "0.17.0"
+  val Fs2BlobStoreVersion = "0.7.3"
   val CirceVersion = "0.13.0"
   val CirceConfigVersion = "0.8.0"
   val DoobieVersion = "0.9.0"
-  val SkunkVersion = "0.0.18"
+  val SkunkVersion = "0.0.24"
   val Http4sVersion = "0.21.19"
+  val ScalaCacheVersion = "0.28.0"
 
   val FlywayVersion = "6.4.1"
   val ScoptVersion = "4.0.0"
@@ -32,9 +35,11 @@ object Dependencies {
   val RedisVersion = "3.30"
   val ScalajHttpVersion = "2.4.2"
   val mailVersion = "1.6.2"
+  val JwtCoreVersion = "5.0.0"
+  val Sl4jVersion = "1.7.30"
 
-  val ScalaTestVersion = "3.0.5"
-  val TestContainerVersion = "1.11.2"
+  val ScalaTestVersion = "3.2.5"
+  val TestContainerVersion = "1.15.2"
 
   lazy val googleCloudLibs = List(
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
@@ -52,9 +57,9 @@ object Dependencies {
     "co.fs2" %% "fs2-core" % Fs2Version,
     "co.fs2" %% "fs2-io" % Fs2Version,
     "org.tpolecat" %% "skunk-core" % SkunkVersion,
-    "com.permutive" %% "fs2-google-pubsub-grpc" % "0.16.0",
-    "com.github.fs2-blobstore" %% "gcs" % "0.7.3",
-    "com.github.fs2-blobstore" %% "s3" % "0.7.3",
+    "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
+    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
+    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion,
   )
 
   lazy val jsonLibs = List(
@@ -106,7 +111,7 @@ object Dependencies {
 
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion,
-    "org.slf4j" % "slf4j-api" % "1.7.30",
+    "org.slf4j" % "slf4j-api" % Sl4jVersion,
   )
 
   lazy val caliban = List(
@@ -114,8 +119,8 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
     "eu.timepit" %% "fs2-cron-core" % "0.2.2",
-    "com.github.cb372" %% "scalacache-caffeine" % "0.28.0",
-    "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
+    "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
+    "com.github.cb372" %% "scalacache-cats-effect" % ScalaCacheVersion
   )
 
   lazy val http4sclient = List(
@@ -123,7 +128,7 @@ object Dependencies {
   )
 
   lazy val jwt = List(
-    "com.pauldijou" %% "jwt-core" % "4.2.0"
+    "com.pauldijou" %% "jwt-core" % JwtCoreVersion
   )
 
   lazy val coreTestLibs = List(

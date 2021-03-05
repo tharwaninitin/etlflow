@@ -19,7 +19,7 @@ case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJob1Props)
   val step1 = SparkReadWriteStep[RatingBQ](
     name                      = "LoadRatings BQ to GCS CSV",
     input_location            = Seq(job_props.ratings_input_dataset + "." + job_props.ratings_input_table_name),
-    input_type                = BQ,
+    input_type                = BQ(),
     output_type               = CSV(),
     output_location           = job_props.ratings_intermediate_bucket,
     output_save_mode          = SaveMode.Overwrite,

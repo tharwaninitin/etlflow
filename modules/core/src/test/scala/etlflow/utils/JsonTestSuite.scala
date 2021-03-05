@@ -1,9 +1,9 @@
 package etlflow.utils
 
 import etlflow.Schema._
-import org.scalatest.{FlatSpec, Matchers}
-
-class JsonTestSuite extends FlatSpec with Matchers {
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
+class JsonTestSuite extends AnyFlatSpec with Matchers {
 
   val httpBinJson = """{
     "args": {

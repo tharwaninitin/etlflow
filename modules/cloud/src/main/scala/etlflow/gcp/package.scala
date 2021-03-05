@@ -33,43 +33,43 @@ package object gcp {
       def executeQuery(query: String): ZIO[BQService, Throwable, Unit]
       def getDataFromBQ(query: String): ZIO[BQService, Throwable, Iterable[FieldValueList]]
       def loadIntoBQFromLocalFile(
-         source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
-         destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
-         ): ZIO[BQService, Throwable, Unit]
+                                   source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
+                                   destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
+                                 ): ZIO[BQService, Throwable, Unit]
       def loadIntoBQTable(
-          source_path: String, source_format: IOType, destination_dataset: String, destination_table: String,
-          write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
-          schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]]
+                           source_path: String, source_format: IOType,destination_project: Option[String], destination_dataset: String, destination_table: String,
+                           write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
+                           schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]]
       def loadIntoPartitionedBQTable(
-          source_paths_partitions: Seq[(String, String)], source_format: IOType,
-          destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
-          create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
-        ): ZIO[BQService, Throwable, Map[String, Long]]
+                                      source_paths_partitions: Seq[(String, String)], source_format: IOType,destination_project: Option[String],
+                                      destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
+                                      create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
+                                    ): ZIO[BQService, Throwable, Map[String, Long]]
     }
     def getDataFromBQ(query: String): ZIO[BQService, Throwable, Iterable[FieldValueList]] =
       ZIO.accessM(_.get.getDataFromBQ(query))
     def executeQuery(query: String): ZIO[BQService, Throwable, Unit] =
       ZIO.accessM(_.get.executeQuery(query))
     def loadIntoBQFromLocalFile(
-       source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
-       destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
-     ): ZIO[BQService, Throwable, Unit] =
+                                 source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
+                                 destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
+                               ): ZIO[BQService, Throwable, Unit] =
       ZIO.accessM(_.get.loadIntoBQFromLocalFile(source_locations,source_format,destination_dataset,
         destination_table, write_disposition, create_disposition)
       )
     def loadIntoBQTable(
-       source_path: String, source_format: IOType, destination_dataset: String, destination_table: String,
-       write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
-       schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]] =
-      ZIO.accessM(_.get.loadIntoBQTable(source_path,source_format,destination_dataset,
+                         source_path: String, source_format: IOType,destination_project: Option[String], destination_dataset: String, destination_table: String,
+                         write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
+                         schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]] =
+      ZIO.accessM(_.get.loadIntoBQTable(source_path,source_format,destination_project,destination_dataset,
         destination_table,write_disposition,create_disposition,schema)
       )
     def loadIntoPartitionedBQTable(
-        source_paths_partitions: Seq[(String, String)], source_format: IOType,
-        destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
-        create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
-      ): ZIO[BQService, Throwable, Map[String, Long]] =
-      ZIO.accessM(_.get.loadIntoPartitionedBQTable(source_paths_partitions,source_format,destination_dataset,
+                                    source_paths_partitions: Seq[(String, String)], source_format: IOType,destination_project: Option[String],
+                                    destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
+                                    create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
+                                  ): ZIO[BQService, Throwable, Map[String, Long]] =
+      ZIO.accessM(_.get.loadIntoPartitionedBQTable(source_paths_partitions,source_format,destination_project,destination_dataset,
         destination_table,write_disposition,create_disposition,schema,parallelism)
       )
   }

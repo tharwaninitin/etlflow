@@ -1,6 +1,6 @@
-package etlflow.utils
+package etlflow.coretests.utils
 
-import etlflow.Schema.RatingOutput
+import etlflow.coretests.Schema.RatingOutput
 import etlflow.utils.{UtilityFunctions => UF}
 import org.scalatest.{FlatSpec, Matchers}
 import scala.reflect.runtime.universe.TypeTag

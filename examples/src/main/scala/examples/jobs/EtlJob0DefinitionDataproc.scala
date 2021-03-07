@@ -5,8 +5,6 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
 import etlflow.spark.SparkManager
-import etlflow.utils.Environment.LOCAL
-import etlflow.utils.{CSV, ORC}
 import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}

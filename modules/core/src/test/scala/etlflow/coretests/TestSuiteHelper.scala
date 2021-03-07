@@ -1,11 +1,9 @@
-package etlflow
+package etlflow.coretests
 
 import cats.effect.Blocker
 import doobie.Transactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor.Aux
-import etlflow.utils.Config
-import io.circe.generic.auto._
 import org.slf4j.{Logger, LoggerFactory}
 import zio.Task
 import zio.interop.catz._

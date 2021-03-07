@@ -1,11 +1,11 @@
 package etlflow.jobs
 
-import etlflow.Schema.{EtlJob2Props, EtlJobRun, Rating}
 import etlflow.TestSparkSession
+import etlflow.coretests.Schema.{EtlJob2Props, EtlJobRun, Rating}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
-import etlflow.utils.{Config, PARQUET}
+import etlflow.utils.PARQUET
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}

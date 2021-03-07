@@ -1,8 +1,6 @@
 package examples.schema
 
 import etlflow.EtlJobProps
-import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
-import etlflow.utils.{Executor, LoggingLevel}
 
 import scala.concurrent.duration.Duration
 import  scala.concurrent.duration._

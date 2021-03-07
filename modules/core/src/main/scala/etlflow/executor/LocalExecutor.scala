@@ -1,10 +1,11 @@
 package etlflow.executor
 
 import java.io.{BufferedReader, InputStreamReader}
-import etlflow.utils.{UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.etljobs.{EtlJob, SequentialEtlJob}
+import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
+import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import etlflow.utils.Executor.LOCAL_SUBPROCESS
-import zio.{Layer, Task, ZIO, ZLayer, ZEnv}
+import zio.{Layer, Task, UIO, ZEnv, ZIO, ZLayer}
 
 object LocalExecutor {
   val live: Layer[Throwable, LocalExecutorService] = ZLayer.fromEffect {
@@ -54,10 +55,28 @@ object LocalExecutor {
           }
         }
         override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String,job_run_id:Option[String] = None,is_master:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit] = {
-          val job_name = UF.getEtlJobName[EtlJobName[EtlJobProps]](name, etl_job_name_package)
+          val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name, etl_job_name_package)
           val job = job_name.etlJob(properties)
           job.job_name = job_name.toString
           job.execute(job_run_id,is_master).provideLayer(ZEnv.live)
+        }
+        override def showLocalJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
+          val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name,etl_job_name_package)
+          val exclude_keys = List("job_run_id","job_description","job_properties")
+          val props = job_name.getActualProperties(properties)
+          UIO(println(JsonJackson.convertToJsonByRemovingKeys(props,exclude_keys)))
+        }
+        override def showLocalJobStepProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
+          val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name,etl_job_name_package)
+          val etl_job = job_name.etlJob(properties)
+          if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {
+            etl_job.job_name = job_name.toString
+            val json = JsonJackson.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+            UIO(println(json))
+          }
+          else {
+            UIO(println("Step Props info not available for generic jobs"))
+          }
         }
       }
     }

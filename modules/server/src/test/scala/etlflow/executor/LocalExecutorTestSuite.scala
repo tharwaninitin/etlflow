@@ -1,16 +1,13 @@
 package etlflow.executor
 
 import etlflow.SchedulerSuiteHelper
-import etlflow.MyEtlJobName
+import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
-import etlflow.webserver.api.Http4sTestSuite.{credentials, runDbMigration}
 import zio._
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object LocalExecutorTestSuite extends DefaultRunnableSpec with Executor with SchedulerSuiteHelper {
-
-
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Local Executor Spec")(
@@ -55,7 +52,7 @@ object LocalExecutorTestSuite extends DefaultRunnableSpec with Executor with Sch
 //        )
 //      },
       testM("Test Local SubProcess Job with incorrect JobName") {
-        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem)
+        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob", List.empty),transactor,etlJob_name_package,MyEtlJobPropsMapping.local_subprocess,sem)
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)

@@ -6,8 +6,6 @@ import etlflow.{BuildInfo => BI}
 object EtlJobArgsParser {
   case class EtlJobConfig(
        list_jobs: Boolean = false,
-       default_values: Boolean = false,
-       actual_values: Boolean = false,
        show_job_props: Boolean = false,
        show_step_props: Boolean = false,
        run_job: Boolean = false,
@@ -34,12 +32,6 @@ object EtlJobArgsParser {
         opt[String]("job_name")
           .action((x, c) => c.copy(job_name = x))
           .text("job_name is a EtlJobName"),
-        opt[Unit]('d',"default_values")
-          .action((_, c) => c.copy(default_values = true))
-          .text("Default Properties"),
-        opt[Unit]('a',"actual_values")
-          .action((_, c) => c.copy(actual_values = true))
-          .text("Actual Properties"),
         opt[Map[String, String]]("props")
           .valueName("k1=v1,k2=v2...")
           .action((x, c) => c.copy(job_properties = x))

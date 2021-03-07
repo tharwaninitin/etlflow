@@ -7,10 +7,11 @@ import cron4s.Cron
 import cron4s.lib.javatime._
 import doobie.hikari.HikariTransactor
 import etlflow.log.ApplicationLogger
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.EtlFlowHelper.{CacheDetails, CacheInfo, EtlJob, EtlJobArgs, Job}
 import etlflow.utils.db.Query
 import etlflow.utils.{UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.{EtlJobPropsMapping, EtlJobProps}
 import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
 import zio.{Queue, Semaphore, Task}
@@ -37,12 +38,12 @@ trait EtlFlowUtils  extends  ApplicationLogger {
 
   }
 
-  def getJobsFromDb[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](transactor: HikariTransactor[Task], etl_job_name_package: String): Task[List[Job]] = {
+  def getJobsFromDb[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](transactor: HikariTransactor[Task], etl_job_name_package: String): Task[List[Job]] = {
     for {
       rt    <- Task.runtime
       jobs  <- Query.getJobs(transactor)
         .map(y => y.map{x => {
-          val props = getJobActualProps[EJN,EJP](x.job_name,etl_job_name_package)
+          val props = getJobActualProps[EJN](x.job_name,etl_job_name_package)
           if(Cron(x.schedule).toOption.isDefined) {
             val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
             val cron = Cron(x.schedule).toOption
@@ -59,16 +60,16 @@ trait EtlFlowUtils  extends  ApplicationLogger {
     logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
-  def getEtlJobs[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
+  def getEtlJobs[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
     Task{
-      UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobActualProps[EJN,EJP](x,etl_job_name_package))).toList
+      UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobActualProps[EJN](x,etl_job_name_package))).toList
     }.mapError{ e =>
       logger.error(e.getMessage)
       ExecutionError(e.getMessage)
     }
   }
 
-  def getJobActualProps[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
+  def getJobActualProps[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
     val name = UF.getEtlJobName[EJN](jobName, etl_job_name_package)
     val exclude_keys = List("job_run_id","job_description","job_properties")
     JsonJackson.convertToJsonByRemovingKeysAsMap(name.getActualProperties(Map.empty), exclude_keys).map(x => (x._1, x._2.toString))

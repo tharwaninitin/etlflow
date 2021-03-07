@@ -1,7 +1,8 @@
 package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.{EtlJobPropsMapping, EtlJobProps}
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
 import zio.Task
@@ -9,8 +10,8 @@ import zio.Task
 trait EtlJobValidator {
 
   final def validateJob(args: EtlJobArgs, etl_job_name_package: String): Task[EtlJob] = {
-    val etlJobDetails: Task[(EtlJobName[EtlJobProps], Map[String, String])] = Task {
-      val job_name = UF.getEtlJobName[EtlJobName[EtlJobProps]](args.name, etl_job_name_package)
+    val etlJobDetails: Task[(EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]], Map[String, String])] = Task {
+      val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]](args.name, etl_job_name_package)
       val props_map = args.props.map(x => (x.key, x.value)).toMap
       (job_name, props_map)
     }.mapError { e =>

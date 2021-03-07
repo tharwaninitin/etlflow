@@ -1,7 +1,6 @@
-package etlflow.utils
+package etlflow.coretests.utils
 
 import java.text.SimpleDateFormat
-
 import etlflow.utils.{UtilityFunctions => UF}
 import org.scalatest.{FlatSpec, Matchers}
 

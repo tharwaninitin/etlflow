@@ -1,4 +1,4 @@
-package etlflow.log
+package etlflow.coretests.log
 
 import java.util.TimeZone
 import etlflow.EtlJobProps

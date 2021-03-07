@@ -6,7 +6,8 @@ import etlflow.executor.Executor
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Update
 import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
-import etlflow.{EtlFlowApp, EtlJobName, EtlJobProps}
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.{EtlFlowApp, EtlJobProps, EtlJobPropsMapping}
 import eu.timepit.fs2cron.schedule
 import fs2.Stream
 import zio._
@@ -17,8 +18,8 @@ import zio.interop.catz._
 import zio.interop.catz.implicits._
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
-  extends EtlFlowApp[EJN,EJP]
+abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
+  extends EtlFlowApp[EJN]
     with Executor
     with EtlFlowUtils {
 
@@ -26,7 +27,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
       CronJobDB(
         x,
-        UF.getEtlJobName[EJN](x,etl_job_name_package).getActualProperties(Map.empty).job_schedule,
+        UF.getEtlJobName[EJN](x,etl_job_props_mapping_package).getActualProperties(Map.empty).job_schedule,
         0,
         0,
         true
@@ -49,7 +50,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
     else {
       val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        runActiveEtlJob[EJN,EJP](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_name_package,"Scheduler",jobQueue)
+        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler",jobQueue)
       })))
 
       UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
@@ -76,7 +77,7 @@ abstract class SchedulerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowScheduler-Pool", 10)(blocker)
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
-      jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
+      jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
       queue           <- Queue.sliding[(String,String,String,String)](20).toManaged_
       _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).toManaged_

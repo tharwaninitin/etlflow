@@ -1,8 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.utils.{MailClientApi, SMTP}
+import etlflow.utils.{LoggingLevel, MailClientApi, SMTP}
 import zio.Task
-import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
 
 case class SendMailStep(
                          name: String,

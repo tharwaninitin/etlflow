@@ -1,8 +1,9 @@
-package etlflow.log
+package etlflow.coretests.log
 
 import etlflow.{EtlJobProps, LoggerResource}
 import etlflow.log.EtlLogger.JobLogger
-import zio.{Has, Task, UIO, ZIO, ZLayer, ZEnv}
+import etlflow.log.SlackLogManager
+import zio.{Has, Task, UIO, ZEnv, ZIO, ZLayer}
 import etlflow.utils.{UtilityFunctions => UF}
 
 object JobExecutor {

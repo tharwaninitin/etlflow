@@ -1,18 +1,18 @@
-package etlflow
+package etlflow.coretests
 
-import etlflow.utils.Executor.KUBERNETES
+import etlflow.EtlJobProps
 import etlflow.utils.{Executor, LoggingLevel}
+import etlflow.utils.Executor.KUBERNETES
 import io.circe.generic.semiauto.deriveDecoder
 
 object Schema {
   val kubernetes = KUBERNETES(
-    "etlflow:0.7.19",
+    "etlflow:0.9.0",
     "default",
     Map(
-      "GOOGLE_APPLICATION_CREDENTIALS"-> Option("conf/gcsCred_m-b-r.json"),
       "LOG_DB_URL"-> Option("jdbc:postgresql://host.docker.internal:5432/postgres"),
       "LOG_DB_USER"-> Option("postgres"),
-      "LOG_DB_PWD"-> Option("swap123"),
+      "LOG_DB_PWD"-> Option("password"),
       "LOG_DB_DRIVER"-> Option("org.postgresql.Driver")
     )
   )
@@ -45,21 +45,15 @@ object Schema {
 
   private val canonical_path = new java.io.File(".").getCanonicalPath
 
-  case class EtlJob1Props (
-    ratings_input_dataset: String = "test",
-    ratings_input_table_name: String = "ratings",
-    ratings_intermediate_bucket: String = s"gs://${sys.env("GCS_BUCKET")}/intermediate/ratings",
-    ratings_output_bucket_1: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/csv",
-    ratings_output_bucket_2: String = s"s3a://${sys.env("S3_BUCKET")}/temp/output/ratings/parquet",
-    ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
-    ratings_output_file_name: Option[String] = Some("ratings.csv"),
-  ) extends EtlJobProps
+  case class EtlJob1Props() extends EtlJobProps
 
   private val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
   case class EtlJob2Props (
     ratings_input_path: List[String] = List(input_file_path),
     ratings_output_table_name: String = "ratings",
-    override val job_enable_db_logging: Boolean = false
+    override val job_enable_db_logging: Boolean = false,
+    override val job_schedule: String = "0 */15 * * * ?",
+    override val job_max_active_runs: Int = 1,
   ) extends EtlJobProps
 
   case class EtlJob23Props (
@@ -84,10 +78,13 @@ object Schema {
                            override val job_retry_delay_in_minutes: Int = 1
                          ) extends EtlJobProps
 
-  case class LocalSampleProps(
-                               override val job_schedule: String = "0 */15 * * * ?",
-                               override val job_max_active_runs: Int = 1,
-                               override val job_deploy_mode: Executor = Executor.LOCAL
-                             ) extends EtlJobProps
+  case class EtlJob6Props (
+                            ratings_input_dataset: String = "test",
+                            ratings_input_table_name: String = "ratings",
+                            ratings_intermediate_bucket: String = s"gs://${sys.env("GCS_BUCKET")}/intermediate/ratings",
+                            ratings_output_bucket_1: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/csv",
+                            ratings_output_bucket_2: String = s"s3a://${sys.env("S3_BUCKET")}/temp/output/ratings/parquet",
+                            ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
+                            ratings_output_file_name: Option[String] = Some("ratings.csv"),
+                          ) extends EtlJobProps
 }
-

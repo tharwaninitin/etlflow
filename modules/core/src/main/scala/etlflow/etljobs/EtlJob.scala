@@ -5,7 +5,7 @@ import etlflow.utils.{Configuration, LoggingLevel}
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
 
-trait EtlJob[+EJP <: EtlJobProps] extends Configuration {
+trait EtlJob[EJP <: EtlJobProps] extends Configuration {
   final val etl_job_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   var job_name: String = getClass.getName

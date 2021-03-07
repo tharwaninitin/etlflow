@@ -10,7 +10,7 @@ import zio.blocking.Blocking
 import zio.internal.Platform
 import zio.{Has, UIO, ZEnv, ZIO, ZLayer, ZManaged}
 
-trait GenericEtlJob[+EJP <: EtlJobProps] extends EtlJob[EJP] with DbManager {
+trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] with DbManager {
 
   def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}

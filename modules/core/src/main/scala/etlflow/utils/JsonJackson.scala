@@ -1,6 +1,7 @@
 package etlflow.utils
 
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.etljobs.EtlJob
+import etlflow.{EtlJobPropsMapping, EtlJobProps}
 import org.json4s.JsonAST.{JNothing, JString}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.jackson.Serialization.writePretty
@@ -19,8 +20,8 @@ object JsonJackson {
   def convertToJsonByRemovingKeys(entity: AnyRef, keys: List[String]): String = {
 
     // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
-    val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
-      (PartialFunction.empty, { case _: EtlJobName[_] => JNothing })
+    val customSerializer1 = new CustomSerializer[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](_ =>
+      (PartialFunction.empty, { case _: EtlJobPropsMapping[_,_] => JNothing })
     )
 
     val customSerializer3 = new CustomSerializer[LoggingLevel](formats =>
@@ -60,8 +61,8 @@ object JsonJackson {
   def convertToJsonByRemovingKeysAsMap(entity: AnyRef, keys: List[String]): Map[String,Any] = {
 
     // https://stackoverflow.com/questions/36333316/json4s-ignore-field-of-particular-type-during-serialization
-    val customSerializer1 = new CustomSerializer[EtlJobName[EtlJobProps]](_ =>
-      (PartialFunction.empty, { case _: EtlJobName[_] => JNothing })
+    val customSerializer1 = new CustomSerializer[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](_ =>
+      (PartialFunction.empty, { case _: EtlJobPropsMapping[_,_] => JNothing })
     )
 
     val customSerializer3 = new CustomSerializer[LoggingLevel](formats =>

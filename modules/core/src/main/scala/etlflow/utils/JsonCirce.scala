@@ -1,14 +1,15 @@
 package etlflow.utils
 
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.etljobs.EtlJob
+import etlflow.{EtlJobPropsMapping, EtlJobProps}
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}
 
 object JsonCirce  {
 
-  implicit val customSerializer2: Encoder[EtlJobName[EtlJobProps]] = Encoder[String].contramap {
-    case _: EtlJobName[_] => ""
+  implicit val customSerializer2: Encoder[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] = Encoder[String].contramap {
+    case _: EtlJobPropsMapping[_,_] => ""
   }
 
   implicit val customSerializer3: Encoder[LoggingLevel] = Encoder[String].contramap {

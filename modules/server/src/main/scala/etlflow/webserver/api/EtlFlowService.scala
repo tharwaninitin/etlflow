@@ -6,7 +6,8 @@ import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.db.Query
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.{EtlJobPropsMapping, EtlJobProps, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
@@ -18,7 +19,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
 
   val config: Config
 
-  def liveHttp4s[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
+  def liveHttp4s[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
                                                                                   transactor: HikariTransactor[Task],
                                                                                   cache: CaffeineCache[String],
                                                                                   cronJobs: Ref[List[CronJob]],
@@ -50,7 +51,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       }
 
       override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
-        getJobsFromDb[EJN,EJP](transactor,etl_job_name_package)
+        getJobsFromDb[EJN](transactor,etl_job_name_package)
       }
 
       override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] = {
@@ -62,7 +63,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       }
 
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]] = {
-        runActiveEtlJob[EJN,EJP](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"Api",jobQueue)
+        runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"Api",jobQueue)
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {

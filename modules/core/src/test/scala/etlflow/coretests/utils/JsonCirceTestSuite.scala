@@ -1,6 +1,7 @@
-package etlflow.utils
+package etlflow.coretests.utils
 
-import etlflow.Schema._
+import etlflow.coretests.Schema._
+import etlflow.utils.{Executor, JsonCirce, LoggingLevel}
 import io.circe.generic.auto._
 import org.scalatest.{FlatSpec, Matchers}
 

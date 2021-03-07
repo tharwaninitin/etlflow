@@ -1,8 +1,8 @@
-package etlflow.jobs
+package etlflow.coretests.jobs
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import etlflow.Schema.{EtlJob3Props, HttpBinResponse}
+import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.utils.SMTP

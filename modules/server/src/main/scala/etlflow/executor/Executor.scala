@@ -2,26 +2,26 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.db.{Query, Update}
 import etlflow.utils.{Config, JDBC, UtilityFunctions => UF}
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.{EtlJobPropsMapping, EtlJobProps}
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
 import zio.blocking.{Blocking, blocking}
 import zio.clock.Clock
 import zio.duration.{Duration => ZDuration}
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 trait Executor extends K8SExecutor with EtlJobValidator  with etlflow.utils.EtlFlowUtils {
   lazy val executor_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  final def runActiveEtlJob[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
+  final def runActiveEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
                                                                                              args: EtlJobArgs,
                                                                                              transactor: HikariTransactor[Task],
                                                                                              sem: Semaphore,
@@ -32,7 +32,7 @@ trait Executor extends K8SExecutor with EtlJobValidator  with etlflow.utils.EtlF
                                                                                            ): Task[Option[EtlJob]] = {
     for {
       _       <- UIO(executor_logger.info(s"Checking if job  ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      defualt_props  = getJobActualProps[EJN,EJP](args.name,etl_job_name_package)
+      defualt_props  = getJobActualProps[EJN](args.name,etl_job_name_package)
       actual_props   = args.props.map(x => (x.key,x.value)).toMap
       final_props    =  defualt_props ++ actual_props + ("submitted_at" -> UF.getCurrentTimestampAsString())
       _       <- UIO(executor_logger.info("job_retry_delay_in_minutes" + defualt_props("job_retry_delay_in_minutes")))
@@ -41,14 +41,14 @@ trait Executor extends K8SExecutor with EtlJobValidator  with etlflow.utils.EtlF
       _       <- jobQueue.offer((args.name.take(25),submittedFrom,convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")),UF.getCurrentTimestampAsString()))
       etljob  <- Query.getCronJobFromDB(args.name,transactor).flatMap( cj =>
         if (cj.is_active) {
-          UIO(executor_logger.info(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN, EJP](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
+          UIO(executor_logger.info(s"Running job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
         } else
           UIO(executor_logger.info(s"Skipping inactive cron job ${cj.job_name} with schedule ${cj.schedule} at ${UF.getCurrentTimestampAsString()}")).as(None)
       )
     } yield etljob
   }
 
-  final def runEtlJob[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](
+  final def runEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
                                                                                        args: EtlJobArgs,
                                                                                        transactor: HikariTransactor[Task],
                                                                                        sem: Semaphore,
@@ -116,7 +116,7 @@ trait Executor extends K8SExecutor with EtlJobValidator  with etlflow.utils.EtlF
     } yield etlJob
   }
 
-  def runEtlJobsFromApi[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](args: EtlJobArgs,transactor: HikariTransactor[Task],sem: Semaphore,config: Config, etl_job_name_package: String,jobQueue: Queue[(String,String,String,String)]): Task[Option[EtlJob]] ={
-    runActiveEtlJob[EJN,EJP](args,transactor,sem,config,etl_job_name_package,"Rest-Api",jobQueue)
+  def runEtlJobsFromApi[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](args: EtlJobArgs,transactor: HikariTransactor[Task],sem: Semaphore,config: Config, etl_job_name_package: String,jobQueue: Queue[(String,String,String,String)]): Task[Option[EtlJob]] ={
+    runActiveEtlJob[EJN](args,transactor,sem,config,etl_job_name_package,"Rest-Api",jobQueue)
   }
 }

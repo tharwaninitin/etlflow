@@ -3,7 +3,6 @@ package examples.jobs
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{DPSparkJobStep, EtlStep}
-import etlflow.utils.Executor.DATAPROC
 import examples.schema.MyEtlJobProps.SampleProps
 
 case class EtlJob1DefinitionLocal(job_properties: SampleProps) extends SequentialEtlJob[SampleProps] {

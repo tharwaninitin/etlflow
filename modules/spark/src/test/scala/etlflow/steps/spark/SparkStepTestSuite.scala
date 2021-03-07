@@ -2,17 +2,18 @@ package etlflow.steps.spark
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import etlflow.Schema._
-import etlflow.{DoobieHelper, TestSparkSession}
+import etlflow.TestSparkSession
+import etlflow.coretests.DoobieHelper
+import etlflow.coretests.Schema._
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
-import etlflow.spark.{ReadApi, SparkManager, SparkUDF}
+import etlflow.spark.{ReadApi, SparkUDF}
 import etlflow.utils.{JDBC, PARQUET}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.{FlatSpec, Matchers}
 import org.testcontainers.containers.PostgreSQLContainer
+import zio.Runtime.default.unsafeRun
 import zio.Task
 import zio.interop.catz._
-import zio.Runtime.default.unsafeRun
 
 class SparkStepTestSuite extends FlatSpec with Matchers with DoobieHelper with TestSparkSession with SparkUDF {
 

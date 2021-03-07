@@ -47,7 +47,7 @@ object UtilityFunctions {
     }
   }
 
-  def printEtlJobs[T: TypeTag]: Unit = {
+  def printEtlJobs[T: TypeTag](): Unit = {
     val tpe = ru.typeOf[T]
     val clazz = tpe.typeSymbol.asClass
     val allJobNames = clazz.knownDirectSubclasses
@@ -72,7 +72,7 @@ object UtilityFunctions {
       case m: MethodSymbol if (m.isVar || m.isVal) && m.isGetter => (m.name.toString, m.returnType.toString)
     }.toList.filterNot(x => excludeColumnList.contains(x._1)).toMap
 
-  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package: String = "etlflow.schema.EtlJobList$"): T = {
+  def getEtlJobName[T: TypeTag](job_name: String, etl_job_list_package: String): T = {
     val fullClassName = etl_job_list_package + job_name + "$"
     try {
       val classVal = Class.forName(fullClassName)
@@ -103,26 +103,4 @@ object UtilityFunctions {
   }.toSeq
 
   def stringFormatter(value: String):String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
-
-//  def getGlobalPropertiesUsingReflection[T <: GlobalProperties](path: String = "loaddata.properties")(implicit tag: ClassTag[T]): Option[T] = {
-//    Try {
-//      tag.runtimeClass.getConstructor(classOf[String]).newInstance(path).asInstanceOf[T]
-//    } match {
-//      case Success(value) => Some(value)
-//      case Failure(exception) =>
-//        uf_logger.info(exception.getStackTrace.mkString("\n"))
-//        None
-//    }
-//  }
-//
-//  def getGlobalProperties[T <: GlobalProperties](path: String = "loaddata.properties")(fct: String => T): Option[T] = {
-//    Try {
-//      fct(path)
-//    } match {
-//      case Success(value) => Some(value)
-//      case Failure(exception) =>
-//        uf_logger.info(exception.getMessage)
-//        None
-//    }
-//  }
 }

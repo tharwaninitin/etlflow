@@ -2,18 +2,24 @@ import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{Executor, LoggingLevel}
+import scala.reflect.ClassTag
 
-import scala.concurrent.duration._
 package object etlflow {
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
   case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
-
   case class LoggerResource(db: Option[DbLogManager], slack: Option[SlackLogManager])
 
-  abstract class EtlJobName[+EJP <: EtlJobProps] {
+  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {
     def getActualProperties(job_properties: Map[String, String]): EJP
-    def etlJob(job_properties: Map[String, String]): EtlJob[EJP]
+    final def etlJob(job_properties: Map[String, String]): EJ = {
+      // https://stackoverflow.com/questions/46798242/scala-create-instance-by-type-parameter
+      //println("$"*50)
+      //println(s"Runtime class EtlJob for ${this} => $tag_EJ")
+      //println(s"Runtime class EtlJobProps for ${this} => $tag_EJP")
+      val props = getActualProperties(job_properties)
+      tag_EJ.runtimeClass.getConstructor(tag_EJP.runtimeClass).newInstance(props).asInstanceOf[EJ]
+    }
   }
 
   trait EtlJobSchema extends Product

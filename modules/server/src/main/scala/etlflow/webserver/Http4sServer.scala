@@ -7,7 +7,8 @@ import doobie.hikari.HikariTransactor
 import etlflow.utils.Config
 import etlflow.utils.EtlFlowHelper._
 import etlflow.webserver.api._
-import etlflow.{EtlJobName, EtlJobProps, BuildInfo => BI}
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.{EtlJobPropsMapping, EtlJobProps, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
@@ -28,7 +29,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def etlFlowWebServer[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag](blocker: Blocker, cache: Cache[String],jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String,String,String)]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
+  def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](blocker: Blocker, cache: Cache[String],jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String,String,String)]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
     ZIO.runtime[ZEnv with EtlFlowHas]
       .flatMap{implicit runtime =>
         (for {
@@ -70,7 +71,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                 "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                 "/ws/etlflow"     -> CORS(new StatsStreams[EtlFlowTask](cache).streamRoutes),
                 "/api"     -> AuthMiddleware(
-                  CORS(new TriggerJob[EtlFlowTask].triggerEtlJob[EJN,EJP](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
+                  CORS(new TriggerJob[EtlFlowTask].triggerEtlJob[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
                   authEnabled = true,
                   cache),
               ).orNotFound

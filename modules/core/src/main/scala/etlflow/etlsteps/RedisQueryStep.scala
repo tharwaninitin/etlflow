@@ -1,10 +1,8 @@
 package etlflow.etlsteps
 
 import com.redis._
-import etlflow.utils.REDIS
+import etlflow.utils.{LoggingLevel, REDIS}
 import zio.Task
-import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
-
 
 class RedisQueryStep (
                        val name: String,

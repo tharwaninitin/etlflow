@@ -4,7 +4,6 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, SparkETLStep, SparkReadTransformWriteStep}
 import etlflow.spark.{ReadApi, SparkManager, SparkUDF}
-import etlflow.utils.{CSV, PARQUET}
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name}

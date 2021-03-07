@@ -1,6 +1,6 @@
-package etlflow.jobs
+package etlflow.coretests.jobs
 
-import etlflow.Schema.{EtlJob4Props, EtlJobRun}
+import etlflow.coretests.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.utils.JDBC

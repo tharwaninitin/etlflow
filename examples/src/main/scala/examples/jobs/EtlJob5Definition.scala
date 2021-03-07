@@ -4,7 +4,6 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.SparkManager
-import etlflow.utils.{BQ, PARQUET}
 import examples.schema.MyEtlJobProps.EtlJob5Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingBQ}
 import org.apache.spark.sql.{SaveMode, SparkSession}

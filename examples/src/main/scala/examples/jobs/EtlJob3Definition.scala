@@ -3,7 +3,6 @@ package examples.jobs
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, SparkReadTransformWriteStep}
 import etlflow.spark.{SparkManager, SparkUDF}
-import etlflow.utils.CSV
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime}

@@ -4,7 +4,6 @@ import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.BQLoadStep
-import etlflow.utils.BQ
 import examples.schema.MyEtlJobProps.EtlJob6Props
 
 case class EtlJob4Definition(job_properties: EtlJob6Props)

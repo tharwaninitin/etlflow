@@ -1,4 +1,4 @@
-package etlflow.steps.db
+package etlflow.coretests.steps.db
 
 import etlflow.etlsteps.DBQueryStep
 import etlflow.utils.{Configuration, JDBC}
@@ -17,7 +17,7 @@ object DBStepTestSuite extends DefaultRunnableSpec with Configuration {
       suite("DB Steps")(
         testM("Execute DB step") {
           val create_table_script = """
-              CREATE TABLE ratings_par (
+              CREATE TABLE IF NOT EXISTS ratings_par (
                 user_id int
               , movie_id int
               , rating int

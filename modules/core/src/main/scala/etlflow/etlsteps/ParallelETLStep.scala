@@ -1,9 +1,7 @@
 package etlflow.etlsteps
 
+import etlflow.utils.LoggingLevel
 import zio.{Task, ZIO}
-
-import etlflow.utils.{HttpClientApi, JsonJackson, LoggingLevel}
-
 
 case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] {
   final def process(in: =>Unit): Task[Unit] = {

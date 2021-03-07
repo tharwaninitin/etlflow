@@ -1,6 +1,7 @@
 package etlflow.executor
 
-import etlflow.{MyEtlJobName, SchedulerSuiteHelper}
+import etlflow.SchedulerSuiteHelper
+import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
 import zio._
 import zio.test.Assertion.equalTo
@@ -11,7 +12,7 @@ object LocalSubProcessExecutorTestSuite extends DefaultRunnableSpec with Executo
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Local Sub-Process Executor Spec")(
       testM("Test Local Sub-Process Job with correct JobName") {
-        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("Job2LocalJobGenericStep", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem,fork = false)
+        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("Job2LocalJobGenericStep", List.empty),transactor,etlJob_name_package,MyEtlJobPropsMapping.local_subprocess,sem,fork = false)
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)
@@ -20,7 +21,7 @@ object LocalSubProcessExecutorTestSuite extends DefaultRunnableSpec with Executo
         )
       },
       testM("Test Local Sub-Process with incorrect JobName") {
-        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob10", List.empty),transactor,etlJob_name_package,MyEtlJobName.local_subprocess,sem)
+        def job(sem: Semaphore): Task[EtlJob] = runLocalSubProcessJob(EtlJobArgs("EtlJob10", List.empty),transactor,etlJob_name_package,MyEtlJobPropsMapping.local_subprocess,sem)
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)

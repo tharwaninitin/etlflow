@@ -1,7 +1,7 @@
 package etlflow.jobs
 
-import etlflow.Schema.EtlJob2Props
-import etlflow.TestSuiteHelper
+import etlflow.coretests.Schema.EtlJob2Props
+import etlflow.coretests.TestSuiteHelper
 import org.testcontainers.containers.PostgreSQLContainer
 import zio.ZIO
 import zio.test.Assertion.equalTo

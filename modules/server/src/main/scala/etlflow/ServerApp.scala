@@ -8,9 +8,10 @@ import etlflow.webserver.Http4sServer
 import zio._
 import zio.blocking.Blocking
 import scala.reflect.runtime.universe.TypeTag
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
 
-abstract class ServerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : TypeTag]
-  extends SchedulerApp[EJN,EJP]
+abstract class ServerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
+  extends SchedulerApp[EJN]
     with Http4sServer {
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
@@ -21,10 +22,10 @@ abstract class ServerApp[EJN <: EtlJobName[EJP] : TypeTag, EJP <: EtlJobProps : 
       cache           =  CacheHelper.createCache[String]
       _               =  config.token.map( _.foreach( tkn => CacheHelper.putKey(cache,tkn,tkn)))
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
-      jobs            <- getEtlJobs[EJN,EJP](etl_job_name_package).toManaged_
+      jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
       _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).fork.toManaged_
-      _               <- etlFlowWebServer[EJN,EJP](blocker,cache,jobSemaphores,transactor,etl_job_name_package,config,queue).provideCustomLayer(liveHttp4s[EJN,EJP](transactor,cache,cronJobs,jobSemaphores,jobs,queue)).toManaged_
+      _               <- etlFlowWebServer[EJN](blocker,cache,jobSemaphores,transactor,etl_job_props_mapping_package,config,queue).provideCustomLayer(liveHttp4s[EJN](transactor,cache,cronJobs,jobSemaphores,jobs,queue)).toManaged_
     } yield ()).use_(ZIO.unit)
 
     val finalRunner = if (args.isEmpty) serverRunner else cliRunner(args)

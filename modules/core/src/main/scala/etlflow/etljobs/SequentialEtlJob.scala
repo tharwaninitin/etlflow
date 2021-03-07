@@ -5,7 +5,7 @@ import etlflow.etlsteps._
 import etlflow.utils.LoggingLevel
 import zio.{Has, Task, ZEnv, ZIO}
 
-trait SequentialEtlJob[+EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
+trait SequentialEtlJob[EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
 
   def etlStepList: List[EtlStep[Unit,Unit]]
   override val job_type: String =  "SequentialEtlJob"

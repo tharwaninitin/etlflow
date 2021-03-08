@@ -30,5 +30,9 @@ object MyEtlJobPropsMapping {
   case object Job5 extends MyEtlJobPropsMapping[EtlJob5Props,Job5GenericSteps] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob5Props = EtlJob5Props()
   }
+
+  case object Job6 extends MyEtlJobPropsMapping[EtlJob3Props,Job6RedisSteps] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
+  }
 }
 

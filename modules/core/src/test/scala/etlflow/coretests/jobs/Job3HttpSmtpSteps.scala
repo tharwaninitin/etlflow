@@ -59,7 +59,6 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
     log_response = true,
   )
 
-
   def processData(ip: HttpBinResponse): Unit = {
     etl_job_logger.info("Processing Data")
     etl_job_logger.info(ip.toString)
@@ -70,7 +69,17 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
     transform_function = processData,
   )
 
-  val step7 = SendMailStep(
+  val step7 = HttpResponseStep(
+    name         = "HttpPutJson",
+    url          = "https://httpbin.org/put",
+    http_method  = HttpMethod.PUT,
+    params       = Left("""{"key":"value"}"""),
+    headers      = Map("content-type"->"application/json"),
+    log_response = true,
+  )
+
+
+  val step8 = SendMailStep(
     name           = "SendSMTPEmail",
     body           = emailBody,
     subject        = "EtlFlow Test Ran Successfully",
@@ -83,13 +92,13 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
     )
   )
 
-
   val job = for {
     _     <-  step1.execute()
     op1   <-  step2.execute()
     _     <-  step3.execute()
     op3   <-  step4.execute()
-    op4   <-  step5.execute()
-    _     <-  step6.execute(op4)
+    op5   <-  step5.execute()
+    _     <-  step6.execute(op5)
+    _     <- step7.execute()
   } yield ()
 }

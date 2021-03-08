@@ -3,13 +3,14 @@ package etlflow.etlsteps
 import etlflow.utils.{HttpClientApi, JsonCirce, JsonJackson, LoggingLevel}
 import io.circe.Decoder
 import scalaj.http._
-import zio.Task
+import zio.{Task, ZIO}
 
 sealed trait HttpMethod
 
 object HttpMethod {
   case object GET extends HttpMethod
   case object POST extends HttpMethod
+  case object PUT extends HttpMethod
 }
 
 case class HttpStep(
@@ -33,11 +34,16 @@ case class HttpStep(
 
     http_method match {
       case HttpMethod.POST =>
-        HttpClientApi.postUnit(url, params, headers, log_response,connectionTimeOut,readTimeOut)
+        HttpClientApi.post(url, params, headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
       case HttpMethod.GET =>
         params match {
-          case Left(_) => HttpClientApi.getUnit(url, Nil, headers, log_response,connectionTimeOut,readTimeOut)
-          case Right(value) => HttpClientApi.getUnit(url, value, headers, log_response,connectionTimeOut,readTimeOut)
+          case Left(_) => HttpClientApi.get(url, Nil, headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
+          case Right(value) => HttpClientApi.get(url, value, headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
+        }
+      case HttpMethod.PUT =>
+        params match {
+          case Left(value) => HttpClientApi.put(url, value, headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
+          case Right(_)    => HttpClientApi.put(url, "", headers, log_response,connectionTimeOut,readTimeOut) *> ZIO.unit
         }
     }
   }
@@ -74,6 +80,11 @@ case class HttpResponseStep(
           case Left(_) => HttpClientApi.get(url, Nil, headers, log_response,connectionTimeOut,readTimeOut)
           case Right(value) => HttpClientApi.get(url, value, headers, log_response,connectionTimeOut,readTimeOut)
         }
+      case HttpMethod.PUT =>
+        params match {
+          case Left(value) => HttpClientApi.put(url, value, headers, log_response,connectionTimeOut,readTimeOut)
+          case Right(_)    => HttpClientApi.put(url, "", headers, log_response,connectionTimeOut,readTimeOut)
+        }
     }
   }
 
@@ -108,6 +119,11 @@ case class HttpParsedResponseStep[T: Decoder](
         params match {
           case Left(_) => HttpClientApi.get(url, Nil, headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
           case Right(value) => HttpClientApi.get(url, value, headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
+        }
+      case HttpMethod.PUT =>
+        params match {
+          case Left(value) => HttpClientApi.put(url, value, headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
+          case Right(_)    => HttpClientApi.put(url, "", headers, log_response,connectionTimeOut,readTimeOut).map(x => JsonCirce.convertToObject[T](x.body))
         }
     }
   }

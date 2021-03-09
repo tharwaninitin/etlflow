@@ -15,11 +15,12 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
        , input_location: => Either[String, Seq[(String, String)]]
        , input_type: IOType
        , input_file_system: FSType = FSType.GCS
+       , output_project: Option[String] = None
        , output_dataset: String
        , output_table: String
        , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
        , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-       , val credentials: Option[Environment.GCP] = None
+       , credentials: Option[Environment.GCP] = None
      )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
@@ -64,7 +65,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
           case Left(value) =>
             etl_logger.info(s"FileSystem: $input_file_system")
             BQService.loadIntoBQTable(
-              value, input_type, output_dataset, output_table, output_write_disposition,
+              value, input_type, output_project, output_dataset, output_table, output_write_disposition,
               output_create_disposition, schema
             ).provideLayer(env).map{x =>
               row_count = x
@@ -72,7 +73,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
           case Right(value) =>
             etl_logger.info(s"FileSystem: $input_file_system")
             BQService.loadIntoPartitionedBQTable(
-              value, input_type, output_dataset, output_table, output_write_disposition,
+              value, input_type, output_project, output_dataset, output_table, output_write_disposition,
               output_create_disposition, schema, 10).provideLayer(env).map{x =>
               row_count = x
             }
@@ -130,13 +131,14 @@ object BQLoadStep {
    , input_location: => Either[String, Seq[(String, String)]]
    , input_type: IOType
    , input_file_system: FSType = FSType.GCS
+   , output_project: Option[String] = None
    , output_dataset: String
    , output_table: String
    , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
    , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
    , credentials: Option[Environment.GCP] = None
   ): BQLoadStep[T] = {
-    new BQLoadStep[T](name, input_location, input_type, input_file_system
+    new BQLoadStep[T](name, input_location, input_type, input_file_system, output_project
       , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials)
   }
 }

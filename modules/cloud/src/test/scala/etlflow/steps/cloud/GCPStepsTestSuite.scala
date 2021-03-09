@@ -8,7 +8,6 @@ import zio.test._
 import zio.test.Assertion._
 import scala.concurrent.duration._
 
-
 object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
   case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
   // STEP 1: Define step
@@ -53,6 +52,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
           name           = "LoadRatingBQ",
           input_location = Left(input_path),
           input_type     = PARQUET,
+          output_project = sys.env.get("GCP_PROJECT_ID"),
           output_dataset = output_dataset,
           output_table   = output_table
         )
@@ -63,6 +63,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
           name           = "LoadRatingCSV",
           input_location = Left(input_path_csv),
           input_type     = CSV(),
+          output_project = sys.env.get("GCP_PROJECT_ID"),
           output_dataset = output_dataset,
           output_table   = output_table
         )

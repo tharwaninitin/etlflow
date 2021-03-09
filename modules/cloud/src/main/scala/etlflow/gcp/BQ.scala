@@ -122,22 +122,28 @@ object BQ {
           }
         }
 
-        override def loadIntoPartitionedBQTable(source_paths_partitions: Seq[(String, String)],
-            source_format: utils.IOType, destination_dataset: String, destination_table: String,
+        override def loadIntoPartitionedBQTable(source_paths_partitions: Seq[(String, String)], source_format: utils.IOType,
+            destination_project: Option[String], destination_dataset: String, destination_table: String,
             write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
             schema: Option[Schema], parallelism: Int): Task[Map[String, Long]] = {
           gcp_logger.info(s"No of BQ partitions: ${source_paths_partitions.length}")
           ZIO.foreachParN(parallelism)(source_paths_partitions){ case (src_path, partition) =>
               val table_partition = destination_table + "$" + partition
-              loadIntoBQTable(src_path, source_format, destination_dataset, table_partition, write_disposition, create_disposition)
+              loadIntoBQTable(
+                src_path, source_format, destination_project, destination_dataset,
+                table_partition, write_disposition, create_disposition
+              )
           }.map(x => x.flatten.toMap)
         }
 
-        override def loadIntoBQTable(source_path: String, source_format: utils.IOType, destination_dataset: String,
-             destination_table: String, write_disposition: JobInfo.WriteDisposition,
+        override def loadIntoBQTable(source_path: String, source_format: utils.IOType, destination_project: Option[String],
+             destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
              create_disposition: JobInfo.CreateDisposition, schema: Option[Schema]): Task[Map[String, Long]] = Task {
           // Create Output BQ table instance
-          val tableId = TableId.of(destination_dataset, destination_table)
+          val tableId = destination_project match {
+            case Some(project) => TableId.of(project, destination_dataset, destination_table)
+            case None          => TableId.of(destination_dataset, destination_table)
+          }
 
           val jobConfiguration: JobConfiguration = source_format match {
             case utils.BQ => QueryJobConfiguration.newBuilder(source_path)

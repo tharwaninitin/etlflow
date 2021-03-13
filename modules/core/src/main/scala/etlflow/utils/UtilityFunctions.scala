@@ -3,10 +3,8 @@ package etlflow.utils
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
-
 import etlflow.EtlJobNotFoundException
 import org.slf4j.{Logger, LoggerFactory}
-
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}

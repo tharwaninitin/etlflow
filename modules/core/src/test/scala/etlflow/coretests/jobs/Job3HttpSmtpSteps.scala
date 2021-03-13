@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.utils.SMTP
+import etlflow.Credential.SMTP
 
 case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 

@@ -1,8 +1,7 @@
 package etlflow
 
 import java.net.URI
-
-import etlflow.utils.Environment
+import etlflow.Credential.AWS
 import org.slf4j.{Logger, LoggerFactory}
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
@@ -24,7 +23,7 @@ package object aws {
   }
   object S3Api {
     lazy val env = S3Impl.live
-    def createClient(region: Region, endpointOverride: Option[String] = None, credentials: Option[Environment.AWS] = None): Task[S3AsyncClient] = {
+    def createClient(region: Region, endpointOverride: Option[String] = None, credentials: Option[AWS] = None): Task[S3AsyncClient] = {
       val ACCESS_KEY = sys.env.getOrElse("ACCESS_KEY", "NOT_SET_IN_ENV")
       val SECRET_KEY = sys.env.getOrElse("SECRET_KEY", "NOT_SET_IN_ENV")
 

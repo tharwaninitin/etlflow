@@ -2,14 +2,11 @@ package etlflow.jobs
 
 import etlflow.coretests.Schema.EtlJob2Props
 import etlflow.coretests.TestSuiteHelper
-import org.testcontainers.containers.PostgreSQLContainer
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
 
 object Job2SparkReadWriteApiTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
-  val container = new PostgreSQLContainer("postgres:latest")
-  container.start()
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(

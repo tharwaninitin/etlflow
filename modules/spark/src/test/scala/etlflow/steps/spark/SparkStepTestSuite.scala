@@ -7,7 +7,7 @@ import etlflow.coretests.DoobieHelper
 import etlflow.coretests.Schema._
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
 import etlflow.spark.{ReadApi, SparkUDF}
-import etlflow.utils.{JDBC, PARQUET}
+import etlflow.spark.IOType.{JDBC, PARQUET}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.{FlatSpec, Matchers}
 import org.testcontainers.containers.PostgreSQLContainer

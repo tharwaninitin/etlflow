@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.EtlJobException
 import etlflow.gcp._
-import etlflow.utils.Environment.GCP
+import etlflow.Credential.GCP
 import zio.Task
 import zio.clock.Clock
 import scala.concurrent.duration.Duration

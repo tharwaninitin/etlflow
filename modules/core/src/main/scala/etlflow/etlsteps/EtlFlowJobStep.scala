@@ -4,6 +4,7 @@ import etlflow.EtlJobProps
 import etlflow.etljobs.EtlJob
 import etlflow.utils.LoggingLevel
 import zio.{Task, ZEnv}
+
 class EtlFlowJobStep[EJP <: EtlJobProps] private(
                                                   val name: String,
                                                   job: => EtlJob[EJP],

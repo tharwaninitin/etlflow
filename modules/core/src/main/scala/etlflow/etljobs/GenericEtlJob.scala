@@ -1,7 +1,6 @@
 package etlflow.etljobs
 
 import cats.effect.Blocker
-import etlflow.jdbc.DbManager
 import etlflow.{EtlJobProps, LoggerResource}
 import etlflow.log.EtlLogger.JobLogger
 import etlflow.log.{DbLogManager, SlackLogManager}
@@ -10,7 +9,7 @@ import zio.blocking.Blocking
 import zio.internal.Platform
 import zio.{Has, UIO, ZEnv, ZIO, ZLayer, ZManaged}
 
-trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] with DbManager {
+trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
 
   def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
@@ -32,10 +31,6 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] with DbManager {
                             _  => job_status_ref.set("success") *> log.logSuccess(job_start_time)
                           ).toManaged_
     } yield ()).use_(ZIO.unit)
-  }
-
-  final def getCredentials[T : Manifest](name: String): ZIO[Blocking, Throwable, T] = {
-    getDbCredentials[T](name,config.dbLog,scala.concurrent.ExecutionContext.Implicits.global)
   }
 
   private[etljobs] final def logger_resource(job_run_id:String,is_master:String): ZManaged[Blocking ,Throwable, LoggerResource] = for {

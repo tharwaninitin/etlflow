@@ -2,9 +2,10 @@ package etlflow.etlsteps
 
 import java.util
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
+import etlflow.Credential
 import etlflow.gcp._
-import etlflow.utils.{Environment, FSType, IOType, LoggingLevel}
-import zio.{Task,UIO}
+import etlflow.utils.LoggingLevel
+import zio.{Task, UIO}
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
@@ -13,14 +14,14 @@ import etlflow.utils.{UtilityFunctions => UF}
 class BQLoadStep[T <: Product : TypeTag] private[etlflow](
        val name: String
        , input_location: => Either[String, Seq[(String, String)]]
-       , input_type: IOType
+       , input_type: BQInputType
        , input_file_system: FSType = FSType.GCS
        , output_project: Option[String] = None
        , output_dataset: String
        , output_table: String
        , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
        , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-       , credentials: Option[Environment.GCP] = None
+       , credentials: Option[Credential.GCP] = None
      )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
@@ -129,14 +130,14 @@ object BQLoadStep {
   def apply[T <: Product : TypeTag]
   (name: String
    , input_location: => Either[String, Seq[(String, String)]]
-   , input_type: IOType
+   , input_type: BQInputType
    , input_file_system: FSType = FSType.GCS
    , output_project: Option[String] = None
    , output_dataset: String
    , output_table: String
    , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
    , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-   , credentials: Option[Environment.GCP] = None
+   , credentials: Option[Credential.GCP] = None
   ): BQLoadStep[T] = {
     new BQLoadStep[T](name, input_location, input_type, input_file_system, output_project
       , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials)

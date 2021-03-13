@@ -2,13 +2,13 @@ package etlflow
 
 import cats.effect.Blocker
 import doobie.hikari.HikariTransactor
+import etlflow.Credential.JDBC
 import etlflow.jdbc.DbManager
 import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.{CacheHelper, Config, JDBC}
+import etlflow.utils.{CacheHelper, Config}
 import io.circe.generic.auto._
 import scalacache.Cache
 import zio.{Queue, Runtime, Task}
-
 import scala.concurrent.ExecutionContext
 
 trait SchedulerSuiteHelper extends DbManager {

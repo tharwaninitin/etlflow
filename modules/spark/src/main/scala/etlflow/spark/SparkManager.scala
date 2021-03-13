@@ -1,9 +1,8 @@
 package etlflow.spark
 
-import etlflow.utils.Environment
-import etlflow.utils.Environment.{AWS, GCP, LOCAL}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
+import Environment._
 
 object SparkManager {
   private val spark_logger = LoggerFactory.getLogger(getClass.getName)

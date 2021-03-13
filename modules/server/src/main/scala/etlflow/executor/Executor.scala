@@ -2,14 +2,15 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import doobie.hikari.HikariTransactor
+import etlflow.Credential.JDBC
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.db.{Query, Update}
-import etlflow.utils.{Config, JDBC, UtilityFunctions => UF}
-import etlflow.{EtlJobPropsMapping, EtlJobProps}
+import etlflow.utils.{Config, UtilityFunctions => UF}
+import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
 import zio.blocking.{Blocking, blocking}

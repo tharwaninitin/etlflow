@@ -3,7 +3,7 @@ package etlflow.coretests.jobs
 import etlflow.coretests.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.utils.JDBC
+import etlflow.Credential.JDBC
 
 case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
 
@@ -29,6 +29,11 @@ case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
       credentials = config.dbLog
     ).process()
 
+  private val creds =  GetCredentialStep[JDBC](
+    name  = "GetCredential",
+    credential_name = "etlflow",
+  ).process()
+
   private def step1(cred: JDBC) = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10",
@@ -49,7 +54,7 @@ case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
     for {
       _     <- deleteCredStep
       _     <- addCredStep
-      cred  <- getCredentials[JDBC]("etlflow")
+      cred  <- creds
       op2   <- step1(cred).execute()
       _     <- step2.execute(op2)
     } yield ()

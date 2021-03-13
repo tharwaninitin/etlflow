@@ -2,12 +2,6 @@ package etlflow
 
 package object utils {
 
-  sealed trait FSType
-  object FSType {
-    case object LOCAL extends FSType
-    case object GCS extends FSType
-  }
-
   sealed trait LoggingLevel
   object LoggingLevel {
     case object JOB extends LoggingLevel
@@ -29,43 +23,7 @@ package object utils {
          ) extends Executor
   }
 
-  sealed trait Environment
-  object Environment {
-    final case class GCP(service_account_key_path: String, project_id: String = "") extends Environment {
-      override def toString: String = "****service_account_key_path****"
-    }
-    final case class AWS(access_key: String, secret_key: String) extends Environment {
-      override def toString: String = "****access_key****secret_key****"
-    }
-    case object LOCAL extends Environment
-  }
-
-  final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") {
-    override def toString: String = s"SMTP with host  => $host and user => $user"
-  }
-
-  sealed trait IOType extends Serializable
-  final case class CSV(delimiter: String = ",", header_present: Boolean = true, parse_mode: String = "FAILFAST", quotechar: String = "\"") extends IOType {
-    override def toString: String = s"CSV with delimiter => $delimiter header_present => $header_present parse_mode => $parse_mode"
-  }
-  final case class MCSV(delimiter: String, no_of_columns: Int) extends IOType
-  final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
-    override def toString: String = s"JDBC with url => $url"
-  }
-  final case class REDIS(host_name: String, password: Option[String] = None, port: Int = 6379) extends IOType {
-    override def toString: String = s"REDIS with url $host_name and port $port"
-  }
-  final case class JSON(multi_line: Boolean = false) extends IOType {
-    override def toString: String = s"Json with multiline  => $multi_line"
-  }
-
-  case class Config(dbLog: JDBC, slack: Slack, dataProc: Option[DataprocSpark],token: Option[List[String]])
+  case class Config(dbLog: Credential.JDBC, slack: Slack, dataProc: Option[DataprocSpark], token: Option[List[String]])
   case class DataprocSpark(mainClass: String, depLibs: List[String])
   case class Slack(url: String, env: String)
-
-  case object BQ extends IOType
-  case object PARQUET extends IOType
-  case object ORC extends IOType
-  case object TEXT extends IOType
-  case object EXCEL extends IOType
 }

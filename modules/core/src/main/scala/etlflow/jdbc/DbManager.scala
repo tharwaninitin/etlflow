@@ -4,13 +4,14 @@ import cats.effect.Blocker
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.HikariTransactor
 import doobie.util.fragment.Fragment
-import etlflow.utils.{JDBC, JsonJackson}
+import etlflow.utils.JsonJackson
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{Managed, Task}
 import scala.concurrent.ExecutionContext
 import doobie.implicits._
+import etlflow.Credential.JDBC
 
 trait DbManager {
 

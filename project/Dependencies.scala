@@ -1,16 +1,6 @@
 import sbt._
 
 object Dependencies {
-  val SparkVersion = "2.4.4"
-  val SparkBQVersion = "0.19.1"
-  val GcpBqVersion = "1.127.6"
-  val GcpDpVersion = "1.2.1"
-  val GcpGcsVersion = "1.113.13"
-  val GcpPubSubVersion = "1.111.4"
-  val HadoopGCSVersion = "1.6.1-hadoop2"
-  val HadoopS3Version = "2.10.1"
-  val AwsS3Version = "2.16.14"
-
   val ZioVersion = "1.0.5"
   val ZioCatsInteropVersion = "2.3.1.0"
   val CalibanVersion = "0.9.5"
@@ -18,6 +8,7 @@ object Dependencies {
   val CatsCoreVersion = "2.4.2"
   val CatsEffectVersion = "2.3.3"
   val K8sClientVersion = "0.5.0"
+  val Cron4sVersion = "0.6.1"
   val Fs2Version = "2.5.3"
   val Fs2PubSubVersion = "0.17.0"
   val Fs2BlobStoreVersion = "0.7.3"
@@ -27,6 +18,16 @@ object Dependencies {
   val SkunkVersion = "0.0.24"
   val Http4sVersion = "0.21.20"
   val ScalaCacheVersion = "0.28.0"
+
+  val SparkVersion = "2.4.4"
+  val SparkBQVersion = "0.19.1"
+  val GcpBqVersion = "1.127.6"
+  val GcpDpVersion = "1.2.1"
+  val GcpGcsVersion = "1.113.13"
+  val GcpPubSubVersion = "1.111.4"
+  val HadoopGCSVersion = "1.6.1-hadoop2"
+  val HadoopS3Version = "2.10.1"
+  val AwsS3Version = "2.16.14"
 
   val FlywayVersion = "6.4.1"
   val ScoptVersion = "4.0.1"
@@ -41,11 +42,9 @@ object Dependencies {
   val ScalaTestVersion = "3.0.5"
   val TestContainerVersion = "1.15.2"
 
-  lazy val googleCloudLibs = List(
-    "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
-    "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
-    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
-    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
+  lazy val zioLibs = List(
+    "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion
   )
 
   lazy val catsLibs = List(
@@ -53,10 +52,18 @@ object Dependencies {
     "org.typelevel" %% "cats-effect" % CatsEffectVersion,
   )
 
+  lazy val dbLibs = List(
+    "org.tpolecat" %% "doobie-core"     % DoobieVersion,
+    "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
+    "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
+    "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
+    "org.tpolecat" %% "skunk-core"      % SkunkVersion,
+    "org.flywaydb" % "flyway-core"      % FlywayVersion
+  )
+
   lazy val streamingLibs = List(
     "co.fs2" %% "fs2-core" % Fs2Version,
     "co.fs2" %% "fs2-io" % Fs2Version,
-    "org.tpolecat" %% "skunk-core" % SkunkVersion,
     "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
     "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
     "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion,
@@ -69,6 +76,13 @@ object Dependencies {
     "io.circe" %% "circe-optics" % CirceVersion,
     "io.circe" %% "circe-config" % CirceConfigVersion,
     "org.json4s" %% "json4s-jackson" % "3.5.3",
+  )
+
+  lazy val googleCloudLibs = List(
+    "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
+    "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
+    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
+    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
   )
 
   lazy val awsLibs = List(
@@ -96,39 +110,20 @@ object Dependencies {
     "com.goyeau" %% "kubernetes-client" % K8sClientVersion
   )
 
-  lazy val dbLibs = List(
-    "org.tpolecat" %% "doobie-core"     % DoobieVersion,
-    "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
-    "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
-    "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
-    "org.flywaydb" % "flyway-core"      % FlywayVersion
-  )
-
-  lazy val zioLibs = List(
-    "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion
-  )
-
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % Sl4jVersion,
   )
 
-  lazy val caliban = List(
+  lazy val serverLibs = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
+    "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
-    "eu.timepit" %% "fs2-cron-core" % "0.2.2",
+    "com.pauldijou" %% "jwt-core" % JwtCoreVersion,
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
     "com.github.cb372" %% "scalacache-cats-effect" % ScalaCacheVersion
-  )
-
-  lazy val http4sclient = List(
-    "org.http4s" %% "http4s-blaze-client" % Http4sVersion
-  )
-
-  lazy val jwt = List(
-    "com.pauldijou" %% "jwt-core" % JwtCoreVersion
   )
 
   lazy val coreTestLibs = List(

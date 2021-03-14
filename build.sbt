@@ -36,7 +36,7 @@ lazy val sparkSettings = Seq(
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  libraryDependencies ++= caliban ++ jwt ++ kubernetes ++ http4sclient ++ coreTestLibs,
+  libraryDependencies ++= serverLibs ++ kubernetes ++ coreTestLibs,
   excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12")
 )
 

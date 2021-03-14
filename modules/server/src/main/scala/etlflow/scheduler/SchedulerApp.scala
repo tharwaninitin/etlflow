@@ -8,14 +8,10 @@ import etlflow.utils.db.Update
 import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.{EtlFlowApp, EtlJobProps, EtlJobPropsMapping}
-import eu.timepit.fs2cron.schedule
-import fs2.Stream
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.duration._
-import zio.interop.catz._
-import zio.interop.catz.implicits._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
@@ -48,18 +44,20 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
       ZIO.unit
     }
     else {
-      val cronSchedule = schedule(jobsToBeScheduled.map(cj => (cj.schedule.get,Stream.eval {
+      val listOfCron = jobsToBeScheduled.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
         runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler",jobQueue)
-      })))
+      }))
 
-      UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
-        .repeat(Schedule.forever && Schedule.spaced(60.minute))
-        .provideLayer(Clock.live).fork *> cronSchedule.compile.drain
-        .mapError{e =>
-          logger.error("*"*30 + s" Scheduler crashed due to error ${e.getMessage} stacktrace ${e.printStackTrace()}" + "*"*30)
-          e
-        }
+      val scheduledJobs = repeatEffectsForCron(listOfCron)
+
+      val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
+        .repeat(Schedule.forever && Schedule.spaced(1.minute))
+
+      scheduledJobs.zipPar(scheduledLogger).as(())
+        .tapError{e =>
+          UIO(logger.error("*"*30 + s" Scheduler crashed due to error ${e.getMessage} stacktrace ${e.printStackTrace()}" + "*"*30))
+        }.provideLayer(Clock.live)
     }
   }
 

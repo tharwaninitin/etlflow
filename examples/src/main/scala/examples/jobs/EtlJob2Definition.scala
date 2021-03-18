@@ -9,6 +9,8 @@ import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 
 case class EtlJob2Definition(job_properties: EtlJob23Props)
   extends SequentialEtlJob[EtlJob23Props]  with SparkUDF {
@@ -35,7 +37,7 @@ case class EtlJob2Definition(job_properties: EtlJob23Props)
   def addFilePaths(job_properties: EtlJob23Props)(spark: SparkSession, ip: Unit): Unit = {
     import spark.implicits._
 
-    output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(gcs_output_path),PARQUET)(spark)
+    output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(gcs_output_path),IOType.PARQUET)(spark)
       .select(f"$temp_date_col")
       .withColumn("filename", input_file_name)
       .distinct()
@@ -50,9 +52,9 @@ case class EtlJob2Definition(job_properties: EtlJob23Props)
   private val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                  = "LoadRatingsParquet",
     input_location        = Seq(job_props.ratings_input_path),
-    input_type            = CSV(",", true, "FAILFAST"),
+    input_type            = IOType.CSV(",", true, "FAILFAST"),
     transform_function    = enrichRatingData,
-    output_type           = PARQUET,
+    output_type           = IOType.PARQUET,
     output_location       = gcs_output_path,
     output_save_mode      = SaveMode.Overwrite,
     output_partition_col  = Seq(f"$temp_date_col"),
@@ -70,7 +72,7 @@ case class EtlJob2Definition(job_properties: EtlJob23Props)
   private val step3 = BQLoadStep(
     name              = "LoadRatingBQ",
     input_location    = Right(output_date_paths),
-    input_type        = PARQUET,
+    input_type        = BQInputType.PARQUET,
     output_dataset    = job_props.ratings_output_dataset,
     output_table      = job_props.ratings_output_table_name
   )

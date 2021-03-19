@@ -4,6 +4,9 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{DPSparkJobStep, EtlStep}
 import examples.schema.MyEtlJobProps.SampleProps
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
+import etlflow.utils.Executor.DATAPROC
 
 case class EtlJob1DefinitionLocal(job_properties: SampleProps) extends SequentialEtlJob[SampleProps] {
 

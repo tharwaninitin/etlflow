@@ -23,7 +23,12 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
     val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
       CronJobDB(
         x,
-        UF.getEtlJobName[EJN](x,etl_job_props_mapping_package).getActualProperties(Map.empty).job_schedule,
+        try {
+          UF.getEtlJobName[EJN](x, etl_job_props_mapping_package).getActualProperties(Map.empty).job_schedule
+        } catch{
+          case ex: Exception => logger.error(ex.toString)
+            ex.toString
+        },
         0,
         0,
         true

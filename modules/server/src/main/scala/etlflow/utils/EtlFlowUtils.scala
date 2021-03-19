@@ -11,11 +11,12 @@ import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.EtlFlowHelper.{CacheDetails, CacheInfo, EtlJob, EtlJobArgs, Job}
 import etlflow.utils.db.Query
 import etlflow.utils.{UtilityFunctions => UF}
-import etlflow.{EtlJobPropsMapping, EtlJobProps}
+import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
 import zio.{Queue, Semaphore, Task}
 
+import java.io.{PrintWriter, StringWriter}
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowUtils  extends  ApplicationLogger {
@@ -61,18 +62,28 @@ trait EtlFlowUtils  extends  ApplicationLogger {
     ExecutionError(e.getMessage)
   }
   def getEtlJobs[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
-    Task{
-      UF.getEtlJobs[EJN].map(x => EtlJob(x,getJobActualProps[EJN](x,etl_job_name_package))).toList
-    }.mapError{ e =>
-      logger.error(e.getMessage)
-      ExecutionError(e.getMessage)
-    }
+      Task {
+        UF.getEtlJobs[EJN].map(x => EtlJob(x, getJobActualProps[EJN](x, etl_job_name_package))).toList
+        }.mapError{ e =>
+        logger.error(e.getMessage)
+        ExecutionError(e.getMessage)
+      }
   }
 
   def getJobActualProps[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
     val name = UF.getEtlJobName[EJN](jobName, etl_job_name_package)
     val exclude_keys = List("job_run_id","job_description","job_properties")
-    JsonJackson.convertToJsonByRemovingKeysAsMap(name.getActualProperties(Map.empty), exclude_keys).map(x => (x._1, x._2.toString))
+    JsonJackson.convertToJsonByRemovingKeysAsMap(
+        try {
+          name.getActualProperties(Map.empty)
+        }
+        catch{
+            case ex: Exception => logger.info(ex.toString)
+              val errors = new StringWriter();
+              ex.printStackTrace(new PrintWriter(errors))
+              Map("job_max_active_runs" -> 10,"job_deploy_mode" -> "NA", "Error" -> errors.toString())
+          }, exclude_keys)
+      .map(x => (x._1, x._2.toString))
   }
 
   def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {

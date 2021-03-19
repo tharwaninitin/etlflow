@@ -20,7 +20,7 @@ Below is the sample example for send mail step
 ```scala mdoc
 
 import etlflow.etlsteps._
-import etlflow.utils.SMTP
+import etlflow.Credential.SMTP
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

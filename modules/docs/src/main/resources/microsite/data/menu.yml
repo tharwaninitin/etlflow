@@ -3,15 +3,13 @@ options:
   - title: Introduction
     url: docs/index.html
 
-  - title: Quick Start
-    url: docs/quickstart.html
+  - title: Core
+    url: docs/core.html
 
   - title: Components
     url: docs/components.html
 
     nested_options:
-      - title: Core
-        url: docs/core.html
       - title: Cloud
         url: docs/cloud.html
       - title: Spark
@@ -87,3 +85,6 @@ options:
         url: docs/dataproc.html
       - title: Kubernetes Executor
         url: docs/kubernetes.html
+
+  - title: Example Project
+    url: docs/example.html

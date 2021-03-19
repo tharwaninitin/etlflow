@@ -14,7 +14,7 @@ We can use below step when we want to trigger query on Hive Dataproc. Query shou
 import etlflow.utils.Executor.DATAPROC
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 
-val dpConfig = DATAPROC(
+val dpConfig1 = DATAPROC(
               "@DP_PROJECT_ID@",
               "@DP_REGION@",
               "@DP_ENDPOINT@",
@@ -24,7 +24,7 @@ val dpConfig = DATAPROC(
 val step1 = DPHiveJobStep(
               name = "DPHiveJobStepExample",
               query = "SELECT 1 AS ONE",
-              config = dpConfig,
+              config = dpConfig1,
 )
 ```
 
@@ -41,7 +41,7 @@ val step2 = DPSparkJobStep(
         name        = "DPSparkJobStepExample",
         job_name    = "@DP_JOB_NAME@",
         props       = Map.empty,
-        config      = dpConfig,
+        config      = dpConfig1,
         main_class  = "@DP_MAIN_CLASS@",
         libs        = libs
 ) 
@@ -51,33 +51,31 @@ val step2 = DPSparkJobStep(
 We can use below step when we want to create new dataproc cluster.
 
 ```scala mdoc
+import etlflow.etlsteps.DPCreateStep
+import etlflow.gcp.DataprocProperties
 import etlflow.utils.Executor.DATAPROC
-import etlflow.etlsteps.{DPCreateStep}
 
-val create_cluster_spd_props: Map[String, String] =
-          Map(
-            "project_id" -> "DP_PROJECT_ID",
-            "region" -> "DP_REGION",
-            "endpoint" -> "DP_ENDPOINT",
-            "bucket_name" -> "BUCKET_NAME",
-            "image_version" -> "IMAGE_VERSION",
-            "boot_disk_type" -> "BOOT_DISK_TYPE",
-            "master_boot_disk_size" -> "MASTER_BOOT_DISK_SIZE",
-            "worker_boot_disk_size" -> "WORKER_BOOT_DISK_SIZE",
-            "subnet_work_uri" -> "SUBNET_WORK_URI",
-            "all_tags" -> "ALL_TAGS",
-            "master_machine_type_uri" -> "MASTER_MACHINE_TYPE_URI",
-            "worker_machine_type_uri" -> "WORKER_MACHINE_TYPE_URI",
-            "master_num_instance" -> "MASTER_NUM_INSTANCE",
-            "worker_num_instance" -> "WORKER_NUM_INSTANCE"
-          )
+
+   val dpConfig2 = DATAPROC(
+          sys.env("DP_PROJECT_ID"),
+          sys.env("DP_REGION"),
+          sys.env("DP_ENDPOINT"),
+          sys.env("DP_CLUSTER_NAME")
+   )
+
+   val dpProps =  DataprocProperties(
+          bucket_name     = sys.env("DP_BUCKET_NAME"),
+          subnet_uri      = sys.env.get("DP_SUBNET_WORK_URI"),
+          network_tags    = sys.env("DP_NETWORK_TAGS").split(",").toList,
+          service_account = sys.env.get("DP_SERVICE_ACCOUNT")
+   )
+
 
 val step3 = DPCreateStep(
-          name                    = "DPCreateStepExample",
-          cluster_name            = "test",
-          props                   = create_cluster_spd_props
+          name     = "DPCreateStepExample",
+          config   = dpConfig2,
+          props    = dpProps
         )
-
 ```
 
 ### DPDeleteStep
@@ -86,20 +84,18 @@ We can use below step when we want to delete dataproc cluster.
 
 ```scala mdoc
 import etlflow.utils.Executor.DATAPROC
-import etlflow.etlsteps.{DPDeleteStep}
+import etlflow.etlsteps.DPDeleteStep
 
+ val dpConfig3 = DATAPROC(
+      sys.env("DP_PROJECT_ID"),
+      sys.env("DP_REGION"),
+      sys.env("DP_ENDPOINT"),
+      sys.env("DP_CLUSTER_NAME")
+ )
 
-val delete_cluster_spd_props: Map[String, String] =
-          Map(
-            "project_id" -> "DP_PROJECT_ID",
-            "region" -> "DP_REGION",
-            "endpoint"-> "DP_ENDPOINT",
-          )
-
-val step4 = DPDeleteStep(
-          name                    = "DPDeleteStepExample",
-          cluster_name            = "test",
-          props                   = delete_cluster_spd_props
-        )
+ val step = DPDeleteStep(
+          name     = "DPDeleteStepExample",
+          config   = dpConfig3,
+ )
 
 ```

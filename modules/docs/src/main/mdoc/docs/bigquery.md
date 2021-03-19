@@ -17,7 +17,8 @@ Here input is CSV file on GCS location with schema specified by case class Ratin
 
 ```scala mdoc
 import etlflow.etlsteps.BQLoadStep
-import etlflow.utils.CSV
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
  
 sealed trait MyEtlJobSchema
 case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long) extends MyEtlJobSchema
@@ -25,7 +26,7 @@ case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long) 
 val step1 = BQLoadStep[Rating](
 name           = "LoadRatingBQ",
 input_location = Left("gs://path/to/input/*"),
-input_type     = CSV(),
+input_type     = BQInputType.CSV(),
 output_dataset = "test", 
 output_table   = "ratings"
 )
@@ -36,8 +37,9 @@ Here input is BigQuery SQL and output is BigQuery table.
 
 ```scala mdoc
 import etlflow.etlsteps.BQLoadStep
-import etlflow.utils.BQ
 import com.google.cloud.bigquery.{FormatOptions, JobInfo}
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 
 val select_query: String = """
           | SELECT movie_id, COUNT(1) cnt
@@ -49,7 +51,7 @@ val select_query: String = """
 val step2 = BQLoadStep(
          name            = "LoadQueryDataBQ",
          input_location  = Left(select_query),
-         input_type      = BQ,
+         input_type      = BQInputType.BQ,
          output_dataset  = "test",
          output_table    = "ratings_grouped",
          output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
@@ -62,8 +64,9 @@ Using this step we can load multiple different partitions in parallel in BigQuer
      
 ```scala mdoc
 import etlflow.etlsteps.BQLoadStep
-import etlflow.utils.CSV
 import com.google.cloud.bigquery.{FormatOptions, JobInfo}
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
      
 val getQuery: String => String = param => s"""
           | SELECT date, movie_id, COUNT(1) cnt
@@ -81,7 +84,7 @@ val input_query_partitions = Seq(
 val step3 = BQLoadStep(
          name           = "LoadQueryDataBQPar",
          input_location = Right(input_query_partitions),
-         input_type     = BQ,
+         input_type     = BQInputType.BQ,
          output_dataset = "test",
          output_table   = "ratings_grouped_par"
 ) 
@@ -92,8 +95,9 @@ We can use below step when we want to just run some query/stored-procedure on Bi
 
 ```scala mdoc
 import etlflow.etlsteps.BQQueryStep
-import etlflow.utils.CSV
 import com.google.cloud.bigquery.{FormatOptions, JobInfo}
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 
 val step4 = BQQueryStep(
         name  = "CreateTableBQ",

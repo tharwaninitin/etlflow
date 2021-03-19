@@ -7,14 +7,14 @@ version in ThisBuild := "0.7.13"
 
 enablePlugins(MicrositesPlugin)
 
-lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "core")
-lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "server")
-lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "spark")
-lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "cloud")
+lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#refactored"), "core")
+lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#refactored"), "server")
+lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#refactored"), "spark")
+lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#refactored"), "cloud")
 
 lazy val docsSettings = Seq(
   name := "etlflow-docs"
-  , libraryDependencies ++= miscLibs
+    , libraryDependencies ++= miscLibs
 )
 
 lazy val docs = (project in file("modules/docs"))

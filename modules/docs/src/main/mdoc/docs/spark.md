@@ -36,14 +36,16 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.{Encoders, Dataset}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 
 case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long)
 
 lazy val step1 = SparkReadWriteStep[Rating](
         name             = "LoadRatingsParquetToJdbc",
         input_location   = Seq("gs://path/to/input/*"),
-        input_type       = PARQUET,
-        output_type      = JDBC("jdbc_url", "jdbc_user", "jdbc_pwd", "jdbc_driver"),
+        input_type       = IOType.PARQUET,
+        output_type      = IOType.JDBC("jdbc_url", "jdbc_user", "jdbc_pwd", "jdbc_driver"),
         output_location  = "ratings",
         output_save_mode = SaveMode.Overwrite
 )
@@ -75,9 +77,9 @@ def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[Ratin
 lazy val step3 = SparkReadTransformWriteStep[Rating, RatingOutputCsv](
           name                  = "LoadRatingsCsvToCsv",
           input_location        = Seq("gs://path/to/input/"),
-          input_type            = CSV(),
+          input_type            = IOType.CSV(),
           transform_function    = enrichRatingCsvData,
-          output_type           = CSV(),
+          output_type           = IOType.CSV(),
           output_location       = "gs://path/to/output/",
           output_save_mode      = SaveMode.Overwrite,
           output_filename       = Some("ratings.csv")

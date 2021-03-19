@@ -78,10 +78,10 @@ Below is the example of GenericEtlJob which has two steps which can execute in a
 import com.google.cloud.bigquery.JobInfo
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
-import etlflow.utils.PARQUET
 import zio.Task
 import etlflow.utils.Config
-
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
     
 case class RatingOutput(user_id: Int, movie_id: Int, rating : Double, timestamp: Long, date: java.sql.Date)
     
@@ -97,7 +97,7 @@ val step1 = GCSPutStep(
 val step2 = BQLoadStep(
     name                      = "LoadRatingBQ",
     input_location            = Left(s"gs://${job_properties.ratings_intermediate_bucket}/${job_properties.ratings_intermediate_file_key}"),
-    input_type                = PARQUET,
+    input_type                = BQInputType.PARQUET,
     output_dataset            = job_properties.ratings_output_dataset,
     output_table              = job_properties.ratings_output_table_name,
     output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED

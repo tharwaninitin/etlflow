@@ -9,20 +9,35 @@ title: Redis Query
 
 ## Parameters
 * **name** [String] - Description of the Step.
-* **query** [String] - Action to perform(flushall/set/delete). 
-* **prefix** [String] - Provide prefix in case of deleting any key(Optional).
+* **command** [String] - Action to perform(RedisCmd.SET/RedisCmd.DELETE/RedisCmd.FLUSHALL). 
 * **credentials** [REDIS] - Redis credentials
 
 ### Example 1
-Below example waits for a file **temp/ratings.parquet** to be present in a S3 bucket named **s3_bucket**. 
 
 ```scala mdoc
-import etlflow.etlsteps._
-import etlflow.utils.REDIS
+import etlflow.EtlStepList
+import etlflow.etlsteps.{EtlStep, RedisStep}
+import etlflow.Credential.REDIS
+import etlflow.etlsteps.RedisStep.RedisCmd
+
       
-val step = RedisQueryStep(
-         name           = "redis query step",
-         query          = "flushall",
-         credentials    = REDIS("","","",8080)
-)
+val redis_config: REDIS = REDIS("localhost")
+      
+val step1 = RedisStep(
+    name         = "Set redis key and value",
+    command      = RedisCmd.SET(Map("key1" -> "value1","key2" -> "value3","key3" -> "value3")),
+    credentials  = redis_config
+  )
+
+  val step2 = RedisStep(
+    name        = "delete the keys from redis",
+    command     = RedisCmd.DELETE(List("*key1*")),
+    credentials = redis_config
+  )
+
+  val step3 = RedisStep(
+    name        = "flushall the keys from redis",
+    command     = RedisCmd.FLUSHALL,
+    credentials = redis_config
+  )
 ```

@@ -1,9 +1,9 @@
 ---
 layout: docs
-title: Quick Start
+title: How to use Etlflow library
 ---
 
-## Quick Start
+## How to use Etlflow library
 
 Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)
 
@@ -15,6 +15,8 @@ Clone this git repo and go inside repo root folder and enter below command (make
 
 import etlflow.etlsteps._
 import etlflow.utils._
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 ```
     
 **Define Job input and ouput locations**
@@ -46,15 +48,17 @@ implicit lazy val spark: SparkSession  = SparkSession.builder().master("local[*]
           
 import org.apache.spark.sql.SaveMode
 import etlflow.etlsteps.SparkReadWriteStep
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
     
 case class Rating(user_id:Int, movie_id: Int, rating : Double, timestamp: Long)
         
 lazy val step1 = SparkReadWriteStep[Rating](
         name                       = "ConvertRatingsCSVtoORC",
         input_location             = Seq(job_properties("ratings_input_path")),
-        input_type                 = CSV(),
+        input_type                 = IOType.CSV(),
         output_location            = job_properties("ratings_output_path"),
-        output_type                = ORC,
+        output_type                = IOType.ORC,
         output_save_mode           = SaveMode.Overwrite,
         output_repartitioning_num  = 1,
         output_repartitioning      = true,
@@ -87,6 +91,8 @@ val task = step1.process()
 import org.apache.spark.sql.{Encoders, Dataset}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
      
 case class RatingOutput(user_id:Int, movie_id: Int, rating: Double, timestamp: Long, date: java.sql.Date)
      
@@ -106,9 +112,9 @@ def enrichRatingData(spark: SparkSession, in : Dataset[Rating]): Dataset[RatingO
 lazy val step2 = SparkReadTransformWriteStep[Rating, RatingOutput](
          name                       = "ConvertRatingsCSVtoORC",
          input_location             = Seq(job_properties("ratings_input_path")),
-         input_type                 = CSV(),
+         input_type                 = IOType.CSV(),
          transform_function         = enrichRatingData,
-         output_type                = ORC,
+         output_type                = IOType.ORC,
          output_save_mode           = SaveMode.Overwrite,
          output_location            = job_properties("ratings_output_path"),
          output_repartitioning_num  = 1,
@@ -125,8 +131,8 @@ as in this library upload from local file to BigQuery uses [bq command](https://
 
 ```scala mdoc
     
-import etlflow.utils.FSType
-
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 // Adding two new properties for Bigquery table and Dataset
        lazy val job_properties1: Map[String,String] = Map(
         "ratings_input_path" -> s"$canonical_path/examples/src/main/data/movies/ratings/*",
@@ -139,8 +145,7 @@ import etlflow.utils.FSType
 lazy  val step3 = BQLoadStep(
         name                = "LoadRatingBQ",
         input_location      = Left(job_properties1("ratings_output_path") + "/" + job_properties1("ratings_output_file_name")),
-        input_type          = ORC,
-        input_file_system   = FSType.LOCAL,
+        input_type          = BQInputType.ORC,
         output_dataset      = job_properties1("ratings_output_dataset"),
         output_table        = job_properties1("ratings_output_table_name")
 )

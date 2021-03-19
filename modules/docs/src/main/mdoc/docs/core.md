@@ -72,12 +72,11 @@ import etlflow.{EtlJobName, EtlJobProps}
 import etlflow.etljobs.EtlJob
 import examples.jobs._
 import examples.schema.MyEtlJobProps._
-sealed trait MyEtlJobName[+EJP <: EtlJobProps] extends EtlJobName[EJP]
+sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
 
-object MyEtlJobName {
-   case object Job1LocalJobDPSparkStep extends MyEtlJobName[EtlJob1Props] {
+object MyEtlJobPropsMapping {
+   case object Job1LocalJobDPSparkStep extends MyEtlJobPropsMapping[EtlJob1Props,EtlJob1] {
      override def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
-     def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob1Props] = EtlJob1(getActualProperties(job_properties))
    }
 }
 
@@ -91,10 +90,11 @@ object MyEtlJobName {
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 import etlflow.utils.Executor.DATAPROC
-import etlflow.etljobs.GenericEtlJob
 import etlflow.EtlJobProps
+import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.DBQueryStep
 import etlflow.utils._
+import etlflow.Credential.JDBC
 
 case class EtlJob1(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
 
@@ -118,9 +118,9 @@ Below is the 2 way we can execute the the etljobs by defining :
 ```
 
 import etlflow.{EtlFlowApp, EtlJobProps}
-import examples.schema.MyEtlJobName
+import examples.schema.MyEtlJobPropsMapping
    
-object LoadData extends EtlFlowApp[MyEtlJobName[EtlJobProps], EtlJobProps]
+object LoadData extends EtlFlowApp[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]
 ```
 
 
@@ -148,6 +148,6 @@ Now to run sample job use below command:
 ```
 sbt
 project examples
-runMain examples.LoadData run_job --job_name Job2LocalJobGenericStep
+runMain examples.LoadData run_job --job_name Job1LocalJobDPSparkStep
 
 ```

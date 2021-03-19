@@ -45,7 +45,7 @@ object Schema {
 
   private val canonical_path = new java.io.File(".").getCanonicalPath
 
-  case class EtlJob1Props() extends EtlJobProps
+  case class EtlJob1Props(input_path:String = "") extends EtlJobProps
 
   private val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
   case class EtlJob2Props (

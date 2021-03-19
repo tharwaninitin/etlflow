@@ -10,9 +10,12 @@ sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends
 
 object MyEtlJobPropsMapping {
   val local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS("examples/target/docker/stage/opt/docker/bin/load-data")
+  val map1 = Map("table_name" -> "ratings_par")
 
   case object Job1 extends MyEtlJobPropsMapping[EtlJob1Props,Job1HelloWorld] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props(
+      input_path = map1.get("table").get
+    )
   }
 
   case object Job2 extends MyEtlJobPropsMapping[EtlJob2Props,Job2Retry] {

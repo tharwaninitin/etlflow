@@ -57,17 +57,17 @@ import etlflow.utils.Executor.DATAPROC
 
 
    val dpConfig2 = DATAPROC(
-          sys.env("DP_PROJECT_ID"),
-          sys.env("DP_REGION"),
-          sys.env("DP_ENDPOINT"),
-          sys.env("DP_CLUSTER_NAME")
-   )
+              "@DP_PROJECT_ID@",
+              "@DP_REGION@",
+              "@DP_ENDPOINT@",
+              "@DP_CLUSTER_NAME@"
+            )
 
    val dpProps =  DataprocProperties(
-          bucket_name     = sys.env("DP_BUCKET_NAME"),
-          subnet_uri      = sys.env.get("DP_SUBNET_WORK_URI"),
-          network_tags    = sys.env("DP_NETWORK_TAGS").split(",").toList,
-          service_account = sys.env.get("DP_SERVICE_ACCOUNT")
+          bucket_name     = "DP_BUCKET_NAME",
+          subnet_uri      = Some("DP_SUBNET_WORK_URI"),
+          network_tags    = "DP_NETWORK_TAG1,DP_NETWORK_TAG2".split(",").toList,
+          service_account = Some("DP_SERVICE_ACCOUNT")
    )
 
 
@@ -86,12 +86,12 @@ We can use below step when we want to delete dataproc cluster.
 import etlflow.utils.Executor.DATAPROC
 import etlflow.etlsteps.DPDeleteStep
 
- val dpConfig3 = DATAPROC(
-      sys.env("DP_PROJECT_ID"),
-      sys.env("DP_REGION"),
-      sys.env("DP_ENDPOINT"),
-      sys.env("DP_CLUSTER_NAME")
- )
+  val dpConfig3 = DATAPROC(
+              "@DP_PROJECT_ID@",
+              "@DP_REGION@",
+              "@DP_ENDPOINT@",
+              "@DP_CLUSTER_NAME@"
+            )
 
  val step = DPDeleteStep(
           name     = "DPDeleteStepExample",

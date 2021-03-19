@@ -1,5 +1,4 @@
 import microsites.MicrositesPlugin.autoImport.micrositeName
-import Dependencies._
 
 scalaVersion := "2.12.10"
 
@@ -14,7 +13,7 @@ lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.g
 
 lazy val docsSettings = Seq(
   name := "etlflow-docs"
-    , libraryDependencies ++= miscLibs
+    , libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % "1.2.3")
 )
 
 lazy val docs = (project in file("modules/docs"))

@@ -110,33 +110,30 @@ val job = for {
 }
 ```    
 
-### Define the EtlJobName : 
+### Define the EtlJobPropsMapping : 
 
-Below is the example of etljobname where we can define the job name and its properties.
+Below is the example of defining EtlJobPropsMapping where we can define the job name and its properties.
 
-```
+```scala mdoc
 
-import etlflow.{EtlJobName, EtlJobProps}
+import etlflow.{EtlJobPropsMapping, EtlJobProps}
 import etlflow.etljobs.EtlJob
-import examples.jobs._
-import examples.schema.MyEtlJobProps._
-sealed trait MyEtlJobName[+EJP <: EtlJobProps] extends EtlJobName[EJP]
 
-object MyEtlJobName {
-   case object Job1LocalJobDPSparkStep extends MyEtlJobName[EtlJob1Props] {
-       override def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
-       def etlJob(job_properties: Map[String, String]): EtlJob[EtlJob1Props] = EtlJob1(getActualProperties(job_properties))
-     }
+sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
+
+object MyEtlJobPropsMapping {
+   case object Job1 extends MyEtlJobPropsMapping[EtlJob1Props,EtlJob1] {
+     override def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+   }
 }
-
 ```
 
 * RunServer
 
-````
-import etlflow.{EtlJobProps, ServerApp}
-import examples.schema.MyEtlJobName
+```scala mdoc
       
-object RunServer extends ServerApp[MyEtlJobName[EtlJobProps], EtlJobProps]
-```  
+import etlflow.{ServerApp, EtlJobProps}
+   
+object LoadData extends ServerApp[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]
+```
 

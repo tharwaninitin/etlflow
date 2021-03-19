@@ -38,7 +38,8 @@ import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, Logger}
 LoggerFactory.getLogger("org").asInstanceOf[Logger].setLevel(Level.WARN)
-implicit lazy val spark: SparkSession  = SparkSession.builder().master("local[*]").getOrCreate()       
+LoggerFactory.getLogger("io").asInstanceOf[Logger].setLevel(Level.INFO)
+implicit lazy val spark: SparkSession = SparkSession.builder().master("local[*]").getOrCreate()       
        
 ```
 

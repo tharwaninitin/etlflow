@@ -1,9 +1,15 @@
-sbt -v makeMicrosite
+# Updating and testing docs
 
-cp -R site target
+sbt -v "project docs" makeMicrosite
 
-cp -R modules/docs/target/site/docs target/site/
-
-cd target/site
+cd modules/docs/target/site
 
 jekyll serve -b /etlflow/site
+
+# Deploying 
+
+rm -r modules/docs/target/site/_site modules/docs/target/site/.jekyll-cache
+
+rm -r site
+
+cp -R modules/docs/target/site site/

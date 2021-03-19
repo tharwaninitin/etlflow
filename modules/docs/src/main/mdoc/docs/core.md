@@ -3,7 +3,7 @@ layout: docs
 title: Etlflow Core
 ---
 
-## Quickstart
+## Quickstart (Etlflow Core)
 
 ### STEP 1) Define build.sbt: 
 To use etlflow core library in project add below setting in build.sbt file
@@ -15,7 +15,7 @@ lazy val root = (project in file(".")).dependsOn(etlflowCore)
          
 ```
 
-### STEP 2) Define EtlJobProps.scala:
+### STEP 2) Define job properties EtlJobProps.scala:
 Here we can have any kind of logic for creating static or dynamic input parameters for job.
 For e.g. intermediate path can be dynamically generated for every run based on current date.
 
@@ -38,7 +38,7 @@ case class EtlJob1Props (
 ) extends EtlJobProps
 ```
 
-### STEP 3) Define EtlJob1.scala: 
+### STEP 3) Define job EtlJob1.scala: 
 
 ```scala mdoc
 
@@ -64,9 +64,9 @@ case class EtlJob1(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Pr
 }
 ```
 
-### STEP 4) Define MyEtlJobPropsMapping.scala: 
+### STEP 4) Define job and properties mapping using EtlJobPropsMapping MyEtlJobPropsMapping.scala: 
 
-Below is the example of defining EtlJobPropsMapping where we can define the job name and its properties.
+Below is the example of defining EtlJobPropsMapping where we can define the mapping between job and its properties.
 
 ```scala mdoc
 

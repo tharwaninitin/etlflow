@@ -3,8 +3,11 @@ options:
   - title: Introduction
     url: docs/index.html
 
-  - title: Quickstart
-    url: docs/quickstart.html  
+  - title: Quickstart (Core)
+    url: docs/core.html  
+
+  - title: Quickstart (Server)
+    url: docs/server.html  
 
   # - title: Components
   #   url: docs/components.html
@@ -55,7 +58,7 @@ options:
         url: docs/sendmail.html
       - title: Dataproc
         url: docs/dp.html
-      - title: Parallel Step Execution
+      - title: Parallel Step
         url: docs/parallel.html
       - title: Cloud
         url: docs/cloud_steps.html

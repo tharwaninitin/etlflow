@@ -3,25 +3,25 @@ layout: docs
 title: Etlflow Server 
 ---
 
-## Etlflow Server
+## Quickstart (Etlflow Server)
 
-Etlflow Server is one of component of etlflow library which we can be use for scheduling the etl jobs, creating the rest apis to trigger the jobs. Using etlflow Server component we can reduce the dependency of apache airflow as it itself provides the airlow like UI through its sub-component WEBSERVER.
-Etlflow Server also provides the various operations to run the etl jobs on clusters like Local (Inside same jvm), LocalSubProcess (Inside another jvm)), GCP DataProc, Kubernetes etc.
+Etlflow Server is one of the module of etlflow library which can be used for scheduling, triggering, monitoring the jobs.
+Unique feature of this is that we can run the same etl job in different modes like Local (Inside same jvm), LocalSubProcess (In another jvm), GCP DataProc, Kubernetes etc. Job mode can be set using job properties.
 
-### Etlflow Server library contains sub-components like :
+### Etlflow Server contains sub-components like:
 
-* Scheduler : 
-   - Using etlflow scheduler we can define the scheduled jobs by specifying the schedules at the time of job creation.
-   - Once we define the schedules for etl jobs then jobs will run at the mentioned time.
-   - Jobs can get submitted on dataproc, local, kubernetes based on the job props configuration.
+* Scheduler: 
+   - Webserver is the component which provides funnctionality to run jobs based on some cron schedule, this internally uses **Cron4s**.
+   - Cron expression can be specified in job properties, see below example EtlJob1Props for more details.
+   - All the scheduled jobs will run **Asynchronously in non blocking way** which allows us to schedule 1000's of job without any issues.
    
-* Webserver :
-   - Webserver is the components where we can define the application end points using http4s and hence we can access the application through web browser.
-   - By exposing the etlflow application through rest api, we can do job submission, check the job and step status etc.
+* Webserver:
+   - Webserver is the component which provides us with UI, GraphQL API and Rest API. It uses **Http4s** as backend.
+   - We can do job submission, check the job and step execution, monitor server health etc through the UI.
 
-* Executor :
-   - Executor is the components where we can specify using which executor we can run etl job.
-   - It contains executors such as : 
+* Executor:
+   - Executor is responsible for actually running the job.
+   - It contains various different executors such as: 
      * [Local](local.html)
      * [Local-Sub-Process](local_subprocess.html)
      * [DataProc](dataproc.html)
@@ -35,19 +35,17 @@ Etlflow Server also provides the various operations to run the etl jobs on clust
 
 In above diagram we can see docker container is connected to database (postgres) which is getting used for storing all the etl jobs related information in database tables.
 
-Below is the sample job will define the both services while job creation : 
+### STEP 1) Define build.sbt: 
+To use etlflow server library in project add below setting in build.sbt file
 
-To use etlflow Server library in project add below setting in build.sbt file : 
-
-```
+```scala 
 
 lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "server")
-lazy val docs = (project in file("modules/examples"))
-  .dependsOn(etlflowServer)
+lazy val root = (project in file(".")).dependsOn(etlflowServer)
          
 ```
 
-### Define EtlJobProps
+### STEP 2) Define job properties EtlJobProps.scala:
 Here we can have any kind of logic for creating static or dynamic input parameters for job.
 For e.g. intermediate path can be dynamically generated for every run based on current date.
 
@@ -70,7 +68,7 @@ case class EtlJob1Props (
 ) extends EtlJobProps
 ```
 
-### Define the EtlJob
+### STEP 3) Define job EtlJob1.scala: 
 Below is the example of GenericEtlJob which has two steps which can execute in any order defined by composing ZIO effects. 
 
 ```scala mdoc      
@@ -110,9 +108,9 @@ val job = for {
 }
 ```    
 
-### Define the EtlJobPropsMapping : 
+### STEP 4) Define job and properties mapping using EtlJobPropsMapping MyEtlJobPropsMapping.scala: 
 
-Below is the example of defining EtlJobPropsMapping where we can define the job name and its properties.
+Below is the example of defining EtlJobPropsMapping where we can define the mapping between job and its properties.
 
 ```scala mdoc
 
@@ -128,12 +126,38 @@ object MyEtlJobPropsMapping {
 }
 ```
 
-* RunServer
+### STEP 5) Define Main Runnable Server App RunServer.scala: 
 
 ```scala mdoc
       
 import etlflow.{ServerApp, EtlJobProps}
    
-object LoadData extends ServerApp[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]
+object RunServer extends ServerApp[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]
 ```
 
+### STEP 6) Running Server: 
+To be able to use this server library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
+
+```
+export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
+export LOG_DB_USER=<...>
+export LOG_DB_PWD=<..>
+export LOG_DB_DRIVER=org.postgresql.Driver
+
+``` 
+
+Now to create database tables used in this library run below commands from repo root folder:
+
+```
+sbt
+runMain RunServer run_db_migration
+
+```
+
+Now to run sample job use below command:
+
+```
+sbt
+runMain RunServer
+
+```

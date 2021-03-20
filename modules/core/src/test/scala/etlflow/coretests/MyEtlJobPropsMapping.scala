@@ -16,7 +16,7 @@ object MyEtlJobPropsMapping {
   }
 
   case object Job2 extends MyEtlJobPropsMapping[EtlJob2Props,Job2Retry] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob2Props = EtlJob2Props()
+    def getActualProperties(job_properties: Map[String, String]): EtlJob2Props = EtlJob2Props(ratings_output_table_name = job_properties("ratings_output_table_name"))
   }
 
   case object Job3 extends MyEtlJobPropsMapping[EtlJob3Props,Job3HttpSmtpSteps] {

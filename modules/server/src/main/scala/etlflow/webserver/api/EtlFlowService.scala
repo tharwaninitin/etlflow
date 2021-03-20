@@ -63,7 +63,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       }
 
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]] = {
-        runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"Api",jobQueue)
+        runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"GraphQL-API",jobQueue)
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {

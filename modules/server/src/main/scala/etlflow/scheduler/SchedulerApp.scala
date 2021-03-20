@@ -19,34 +19,15 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
     with Executor
     with EtlFlowUtils {
 
-  final def refreshCronJobsDB(transactor: HikariTransactor[Task]): Task[List[CronJob]] = {
-    val cronJobsDb = UF.getEtlJobs[EJN].map{x =>
-      CronJobDB(
-        x,
-        UF.getEtlJobName[EJN](x,etl_job_props_mapping_package).getActualProperties(Map.empty).job_schedule,
-        0,
-        0,
-        true
-      )
-    }
-    Update.updateCronJobsDB(transactor, cronJobsDb)
-  }
-
-  final def scheduledTask(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[((String,String,String,String))]): Task[Unit] = {
-    val jobsToBeScheduled = dbCronJobs.flatMap{ cj =>
-      if (cj.schedule.isDefined)
-        List(cj)
-      else
-        List.empty
-    }
-    if (jobsToBeScheduled.isEmpty) {
+  final def scheduleJobs(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[((String,String,String,String))]): Task[Unit] = {
+    if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
       ZIO.unit
     }
     else {
-      val listOfCron = jobsToBeScheduled.map(cj => (cj.schedule.get, {
+      val listOfCron = dbCronJobs.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler",jobQueue)
+        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler-API",jobQueue)
       }))
 
       val scheduledJobs = repeatEffectsForCron(listOfCron)
@@ -61,24 +42,25 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
     }
   }
 
-  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String,String,String)]): Task[Unit] = for {
-    _          <- Update.deleteCronJobsDB(transactor,UF.getEtlJobs[EJN].map(x => x).toList)
-    dbCronJobs <- refreshCronJobsDB(transactor)
-    _          <- cronJobs.update{_ => dbCronJobs.filter(_.schedule.isDefined)}
-    _          <- UIO(logger.info(s"Refreshed jobs in database \n${dbCronJobs.mkString("\n")}"))
+  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobs: List[EtlJob], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String,String,String)]): Task[Unit] = for {
+    _          <- Update.deleteJobs(transactor,jobs.map(x => x.name))
+    dbJobs     <- refreshJobsDB(transactor,jobs,etl_job_props_mapping_package)
+    _          <- cronJobs.update{_ => dbJobs.filter(_.schedule.isDefined)}
+    cronJobs   <- cronJobs.get
+    _          <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))
     _          <- UIO(logger.info("Starting scheduler"))
-    _          <- scheduledTask(dbCronJobs,transactor,jobSemaphores,jobQueue)
+    _          <- scheduleJobs(cronJobs,transactor,jobSemaphores,jobQueue)
   } yield ()
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val schedulerRunner: ZIO[ZEnv, Throwable, Unit] = (for {
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowScheduler-Pool", 10)(blocker)
-      cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
+      cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
       queue           <- Queue.sliding[(String,String,String,String)](20).toManaged_
-      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).toManaged_
+      _               <- etlFlowScheduler(transactor,cronJobs,jobs,jobSemaphores,queue).toManaged_
     } yield ()).use_(ZIO.unit)
 
     val finalRunner = if (args.isEmpty) schedulerRunner else cliRunner(args)

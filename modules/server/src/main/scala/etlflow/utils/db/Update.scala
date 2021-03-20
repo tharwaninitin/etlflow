@@ -46,12 +46,12 @@ object Update {
     ExecutionError(e.getMessage)
   }
 
-  def deleteCronJobsDB(transactor: HikariTransactor[Task], jobList: List[String]): Task[Int] = {
+  def deleteJobs(transactor: HikariTransactor[Task], jobList: List[String]): Task[Int] = {
     val query = "DELETE FROM cronjob WHERE job_name NOT IN " +  "('" + jobList.mkString("','") +  "')"
     Fragment.const(query).update.run.transact(transactor)
   }
 
-  def updateCronJobsDB(transactor: HikariTransactor[Task], cronJobsDb: Set[CronJobDB]): Task[List[CronJob]] = {
+  def updateJobs(transactor: HikariTransactor[Task], cronJobsDb: List[CronJobDB]): Task[List[CronJob]] = {
     val insertQuery = quote {
       liftQuery(cronJobsDb).foreach{e =>
         querySchema[CronJobDB]("cronjob")

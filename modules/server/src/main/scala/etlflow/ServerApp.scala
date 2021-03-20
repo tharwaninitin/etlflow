@@ -24,7 +24,7 @@ abstract class ServerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJob
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
-      _               <- etlFlowScheduler(transactor,cronJobs,jobSemaphores,queue).fork.toManaged_
+      _               <- etlFlowScheduler(transactor,cronJobs,jobs,jobSemaphores,queue).fork.toManaged_
       _               <- etlFlowWebServer[EJN](blocker,cache,jobSemaphores,transactor,etl_job_props_mapping_package,config,queue).provideCustomLayer(liveHttp4s[EJN](transactor,cache,cronJobs,jobSemaphores,jobs,queue)).toManaged_
     } yield ()).use_(ZIO.unit)
 

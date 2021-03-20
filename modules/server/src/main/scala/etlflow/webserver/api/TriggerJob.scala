@@ -16,12 +16,11 @@ class TriggerJob[F[_]: Sync: ContextShift: Timer] extends Http4sDsl[F] with etlf
   object props   extends OptionalQueryParamDecoderMatcher[String]("props")
 
   def triggerEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobSemaphores: Map[String, Semaphore],transactor: HikariTransactor[Task],etl_job_name_package:String,config:Config,jobQueue: Queue[(String,String,String,String)]): HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root / "runjob" :? jobName(name) +& props(props)  => {
+    case GET -> Root / "runjob" :? jobName(name) +& props(props)  =>
       val output = RequestValidator.validator(name,props)
       output match {
-        case Right(output) => Runtime.default.unsafeRun(runEtlJobsFromApi[EJN](output, transactor, jobSemaphores(output.name), config, etl_job_name_package,jobQueue).map(x => Ok("Job Name: " + x.get.name + " ---> " + " Properties :" + x.get.props.map(x => x))))
+        case Right(output) => Runtime.default.unsafeRun(runActiveEtlJob[EJN](output, transactor, jobSemaphores(output.name), config, etl_job_name_package,"Rest-API",jobQueue).map(x => Ok("Job Name: " + x.get.name + " ---> " + " Properties :" + x.get.props.map(x => x))))
         case Left(error)   => Ok(error)
       }
-    }
   }
 }

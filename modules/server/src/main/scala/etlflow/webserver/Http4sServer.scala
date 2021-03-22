@@ -57,10 +57,10 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                 "/about" -> otherRoutes,
                 "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                 "/etlflow"        -> metricsSvc.routes,
-                "/assets/jwt-decode.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/jwt-decode.js", blocker, None)),
-                "/assets/client.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/client.js", blocker, None)),
-                "/assets/signin.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/signin.css", blocker, None)),
-                "/assets/icons8-refresh.svg"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/icons8-refresh.svg", blocker, None)),
+                "/assets/js/2.d9676b57.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.d9676b57.chunk.js", blocker, None)),
+                "/assets/js/main.5385fa96.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.5385fa96.chunk.js", blocker, None)),
+                "/assets/css/2.abbbff63.chunk.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.abbbff63.chunk.css", blocker, None)),
+                "/assets/css/main.758b9f1f.chunk.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.758b9f1f.chunk.css", blocker, None)),
                 "/api/etlflow"    -> CORS(Metrics[EtlFlowTask](metrics)(
                   AuthMiddleware(
                     Http4sAdapter.makeHttpService(etlFlowInterpreter),

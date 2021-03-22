@@ -8,7 +8,8 @@ import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
-
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 case class EtlJob3Definition(job_properties: EtlJob23Props)
   extends GenericEtlJob[EtlJob23Props] with SparkUDF {
 //  private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
@@ -44,9 +45,9 @@ case class EtlJob3Definition(job_properties: EtlJob23Props)
   private val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
     name                  = "LoadRatingsParquet",
     input_location        = Seq(job_props.ratings_input_path),
-    input_type            = CSV(),
+    input_type            = IOType.CSV(),
     transform_function    = enrichRatingData(job_props),
-    output_type           = CSV(),
+    output_type           = IOType.CSV(),
     output_location       = gcs_output_path,
     output_partition_col  = Seq(f"$temp_date_col"),
     output_save_mode      = SaveMode.Overwrite
@@ -55,7 +56,7 @@ case class EtlJob3Definition(job_properties: EtlJob23Props)
   private val step2 = BQLoadStep[RatingOutput](
     name           = "LoadRatingBQ",
     input_location = Right(output_date_paths),
-    input_type     = CSV(),
+    input_type     = BQInputType.CSV(),
     output_dataset = job_props.ratings_output_dataset,
     output_table   = job_props.ratings_output_table_name
   )

@@ -5,7 +5,8 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.BQLoadStep
 import examples.schema.MyEtlJobProps.EtlJob6Props
-
+import etlflow.spark.IOType
+import etlflow.gcp.BQInputType
 case class EtlJob4Definition(job_properties: EtlJob6Props)
   extends SequentialEtlJob[EtlJob6Props]  {
 
@@ -34,7 +35,7 @@ case class EtlJob4Definition(job_properties: EtlJob6Props)
   private val step1 = BQLoadStep(
     name            = "LoadQueryDataBQ",
     input_location  = Left(select_query),
-    input_type      = BQ,
+    input_type      = BQInputType.BQ,
     output_dataset  = "test",
     output_table    = "ratings_grouped",
     output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
@@ -43,7 +44,7 @@ case class EtlJob4Definition(job_properties: EtlJob6Props)
   private val step2 = BQLoadStep(
     name           = "LoadQueryDataBQPar",
     input_location = Right(input_query_partitions),
-    input_type     = BQ,
+    input_type     = BQInputType.BQ,
     output_dataset = "test",
     output_table   = "ratings_grouped_par"
   )

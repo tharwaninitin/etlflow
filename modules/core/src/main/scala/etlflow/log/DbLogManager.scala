@@ -75,8 +75,8 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
     if (mode == "insert") {
       val job = JobRun(
         job_run_id, job_name.toString,
-        job_properties.job_description,
-        JsonJackson.convertToJsonByRemovingKeys(job_properties, List("job_run_id","job_description","job_properties","job_aggregate_error")),
+        "",
+        JsonJackson.convertToJsonByRemovingKeys(job_properties, List.empty),
         "started",
         UF.getCurrentTimestampAsString(),
         UF.getCurrentTimestamp,

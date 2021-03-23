@@ -26,7 +26,7 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
   (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)]): Task[Option[EtlJob]] = {
     for {
       _              <- UIO(executor_logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      default_props  =  getJobActualPropsAsMap[EJN](args.name,etl_job_name_package)
+      default_props  =  getJobPropsMapping[EJN](args.name,etl_job_name_package)
       actual_props   =  args.props.map(x => (x.key,x.value)).toMap
       final_props    =  default_props ++ actual_props + ("submitted_at" -> UF.getCurrentTimestampAsString())
        _             <- job_queue.offer((args.name,submitted_from,convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")),UF.getCurrentTimestampAsString()))
@@ -41,7 +41,7 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
 
   final def runEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
   (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, spaced:Int, retry:Int): Task[EtlJob] = {
-    UF.getEtlJobName[EJN](args.name,etl_job_name_package).getActualProperties(Map.empty).job_deploy_mode match {
+    UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         runLocalSubProcessJob(args, transactor, etl_job_name_package, lsp, sem,true,spaced,retry)
       case LOCAL =>

@@ -1,8 +1,12 @@
 package etlflow.coretests.utils
 
+import etlflow.EtlJobProps
+import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.coretests.Schema._
-import etlflow.utils.{Executor, JsonJackson, LoggingLevel}
+import etlflow.etljobs.EtlJob
+import etlflow.utils.{JsonJackson, LoggingLevel}
 import org.scalatest.{FlatSpec, Matchers}
+import etlflow.utils.{UtilityFunctions => UF}
 
 class JsonTestSuite extends FlatSpec with Matchers {
 
@@ -37,53 +41,53 @@ class JsonTestSuite extends FlatSpec with Matchers {
   val excludeKeys = List("job_run_id","job_description","job_properties","job_aggregate_error")
 
   //Input data for all logging level and deploy mode.
-  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG, job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
-  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO,job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
-  val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.DATAPROC("","","",""))
-  val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.LOCAL)
+  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG)
+  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO)
+  val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
+  val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
 
+  val etl_job_props_mapping_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] + "$"
+  val props_mapping_job1 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job1",etl_job_props_mapping_package)
+  val props_mapping_job2 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job2",etl_job_props_mapping_package)
+  val props_mapping_job3 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job3",etl_job_props_mapping_package)
+
+  val props_map_job1: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job1.getProps,List.empty).map(x => (x._1, x._2.toString))
+  val props_map_job2: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job2.getProps,List.empty).map(x => (x._1, x._2.toString))
+  val props_map_job3: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job3.getProps,List.empty).map(x => (x._1, x._2.toString))
+
+  val expected_props_map_job1 = Map("job_max_active_runs" -> "10", "job_deploy_mode" -> "local", "job_retry_delay_in_minutes" -> "0", "job_schedule" -> "", "job_retries" -> "0")
+  val expected_props_map_job2 = Map("job_max_active_runs" -> "1",  "job_schedule" -> "0 */15 * * * ?", "job_deploy_mode" -> "kubernetes", "job_retry_delay_in_minutes" -> "0", "job_retries" -> "0")
+  val expected_props_map_job3 = Map("job_max_active_runs" -> "10", "job_deploy_mode" -> "dataproc", "job_retry_delay_in_minutes" -> "0", "job_schedule" -> "", "job_retries" -> "0")
 
   //Output data for all logging level and deploy mode.
   val outputDebugLevel = Map("job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "debug",
-    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "kubernetes",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
   val outputInfoLevel = Map(
     "job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "info",
-    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "kubernetes",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
   val outputJobLevel = Map("job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "job",
-    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "dataproc",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
   val outputJobLevelNegative = Map("job_send_slack_notification" -> true,
     "job_enable_db_logging" -> true,
     "job_notification_level" -> "info",
-    "job_max_active_runs" -> 10,
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "local",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
 
 
@@ -93,10 +97,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
                                    |  "ratings_output_table_name" : "ratings_par",
                                    |  "job_send_slack_notification" : true,
                                    |  "job_notification_level" : "debug",
-                                   |  "job_deploy_mode" : "kubernetes",
-                                   |  "job_enable_db_logging" : true,
-                                   |  "job_schedule" : "",
-                                   |  "job_max_active_runs" : 10
+                                   |  "job_enable_db_logging" : true
                                    |}""".stripMargin
 
   val expectedserializerNegativeOutput = """{
@@ -105,10 +106,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
                                            |  "ratings_output_table_name" : "ratings_par",
                                            |  "job_send_slack_notification" : true,
                                            |  "job_notification_level" : "debug",
-                                           |  "job_deploy_mode" : "local",
                                            |  "job_enable_db_logging" : true,
-                                           |  "job_schedule" : "",
-                                           |  "job_max_active_runs" : 10
                                            |}""".stripMargin
 
 
@@ -151,6 +149,18 @@ class JsonTestSuite extends FlatSpec with Matchers {
   //Input has job_notification_level=info and output has "job" notification level. Test case pass on not matching input and output.
   "Json Serializer: ConvertToJsonByRemovingKeys debug,kubenetes negative scenario" should "run successfully" in {
     assert(actualSerializerInput != expectedserializerNegativeOutput)
+  }
+
+  "Json Serializer: convertToJsonByRemovingKeysAsMap using EtlJobPropsMapping case with local mode" should "run successfully" in {
+    assert(props_map_job1 == expected_props_map_job1)
+  }
+
+  "Json Serializer: convertToJsonByRemovingKeysAsMap using EtlJobPropsMapping case with kubernetes mode" should "run successfully" in {
+    assert(props_map_job2 == expected_props_map_job2)
+  }
+
+  "Json Serializer: convertToJsonByRemovingKeysAsMap using EtlJobPropsMapping case with dataproc mode" should "run successfully" in {
+    assert(props_map_job3 == expected_props_map_job3)
   }
 
 }

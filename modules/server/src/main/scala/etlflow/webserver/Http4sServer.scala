@@ -57,8 +57,8 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                 "/about" -> otherRoutes,
                 "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                 "/etlflow"        -> metricsSvc.routes,
-                "/assets/js/2.d9676b57.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.d9676b57.chunk.js", blocker, None)),
-                "/assets/js/main.5385fa96.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.5385fa96.chunk.js", blocker, None)),
+                "/assets/js/2.ed8b06e6.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.ed8b06e6.chunk.js", blocker, None)),
+                "/assets/js/main.84423f9d.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.84423f9d.chunk.js", blocker, None)),
                 "/assets/css/2.abbbff63.chunk.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.abbbff63.chunk.css", blocker, None)),
                 "/assets/css/main.758b9f1f.chunk.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.758b9f1f.chunk.css", blocker, None)),
                 "/api/etlflow"    -> CORS(Metrics[EtlFlowTask](metrics)(

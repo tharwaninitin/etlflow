@@ -38,10 +38,10 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
   val student2: Student = JsonCirce.convertToObject[Student](student2Json)
 
   //Input data for all logging level and deploy mode.
-  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG, job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
-  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO,job_deploy_mode = Executor.KUBERNETES("etlflow","default",Map.empty,"etljobs",None,None))
-  val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.DATAPROC("","","",""))
-  val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB,job_deploy_mode = Executor.LOCAL)
+  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG)
+  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO)
+  val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
+  val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
 
   //Output data for all logging level and deploy mode.
   val outputDebugLevel = Map(
@@ -50,9 +50,8 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
     "job_notification_level" -> "debug",
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "kubernetes",
-    "job_schedule" -> "")
+    "ratings_output_dataset" -> "test"
+  )
 
   val outputInfoLevel = Map(
     "job_send_slack_notification" -> true,
@@ -60,9 +59,7 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
     "job_notification_level" -> "info",
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "kubernetes",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
 
   val outputJobLevel = Map("job_send_slack_notification" -> true,
@@ -70,9 +67,7 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
     "job_notification_level" -> "job",
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "dataproc",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
 
   val outputJobLevelNegative = Map("job_send_slack_notification" -> true,
@@ -80,18 +75,14 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
     "job_notification_level" -> "info",
     "ratings_output_table_name" -> "ratings_par",
     "ratings_input_path" -> "data/movies/ratings/*",
-    "ratings_output_dataset" -> "test",
-    "job_deploy_mode" -> "local",
-    "job_schedule" -> ""
+    "ratings_output_dataset" -> "test"
   )
 
 
   val expectedserializerNegativeOutput = """{
                                            | "job_enable_db_logging" : true,
-                                           |  "job_schedule" : "",
                                            |  "job_send_slack_notification" : true,
                                            |  "job_notification_level" : "info",
-                                           |  "job_deploy_mode" : "kubernetes",
                                            |  "ratings_input_path" : "data/movies/ratings/*",
                                            |  "ratings_output_dataset" : "test",
                                            |  "ratings_output_table_name" : "ratings_par"
@@ -100,10 +91,8 @@ class JsonCirceTestSuite extends FlatSpec with Matchers {
 
   val expectedserializerOutput = """{
                                    |  "job_enable_db_logging" : true,
-                                   |  "job_schedule" : "",
                                    |  "job_send_slack_notification" : true,
                                    |  "job_notification_level" : "debug",
-                                   |  "job_deploy_mode" : "kubernetes",
                                    |  "ratings_input_path" : "data/movies/ratings/*",
                                    |  "ratings_output_dataset" : "test",
                                    |  "ratings_output_table_name" : "ratings_par"

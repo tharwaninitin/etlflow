@@ -16,10 +16,12 @@ import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
 import zio.{Semaphore, Task}
 import scala.reflect.runtime.universe.TypeTag
+import etlflow.utils.JsonJackson._
 
 trait EtlFlowUtils extends ApplicationLogger {
 
   implicit val jobPropsCache = CacheHelper.createCache[Map[String, String]]
+
 
   final def refreshJobsDB(transactor: HikariTransactor[Task], jobs: List[EtlJob], etl_job_props_mapping_package: String): Task[List[CronJob]] = {
     val cronJobsDb = jobs.map{x =>
@@ -53,7 +55,7 @@ trait EtlFlowUtils extends ApplicationLogger {
       rt    <- Task.runtime
       jobs  <- Query.getJobs(transactor)
         .map(y => y.map{x => {
-          val props = getJobActualPropsAsMap[EJN](x.job_name,etl_job_name_package)
+          val props = getJobPropsMapping[EJN](x.job_name,etl_job_name_package)
           if(Cron(x.schedule).toOption.isDefined) {
             val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
             val cron = Cron(x.schedule).toOption
@@ -73,33 +75,16 @@ trait EtlFlowUtils extends ApplicationLogger {
 
   final def getEtlJobs[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
     Task {
-      UF.getEtlJobs[EJN].map(x => EtlJob(x, getJobActualPropsAsMap[EJN](x, etl_job_name_package))).toList
+      UF.getEtlJobs[EJN].map(x => EtlJob(x, getJobPropsMapping[EJN](x,etl_job_name_package))).toList
     }.mapError{ e =>
       logger.error(e.getMessage)
       ExecutionError(e.getMessage)
     }
   }
 
-  final def getJobActualProps[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobName: String, etl_job_name_package: String): EtlJobProps = {
-    try {
-      UF.getEtlJobName[EJN](jobName, etl_job_name_package).getActualProperties(Map.empty)
-    }
-    catch {
-      case ex: Throwable =>
-        logger.error(s"Error executing getActualProperties for job $jobName ${ex.toString}")
-        throw ex
-    }
-  }
-
-  final def getJobActualPropsAsMap[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
-    try {
-      val props = getJobActualProps[EJN](jobName, etl_job_name_package)
-      JsonJackson.convertToJsonByRemovingKeysAsMap(props, List.empty).map(x => (x._1, x._2.toString))
-    }
-    catch {
-      case ex: Throwable =>
-        Map("job_max_active_runs" -> "10", "job_deploy_mode" -> "NA", "error" -> s"Error executing getActualProperties for job $jobName ${ex.toString}")
-    }
+  final def getJobPropsMapping[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
+    val props_mapping = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
+    convertToJsonByRemovingKeysAsMap(props_mapping.getProps,List.empty).map(x => (x._1, x._2.toString))
   }
 
   final def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {

@@ -39,6 +39,19 @@ package object etlflow {
       val props = getActualProperties(job_properties)
       tag_EJ.runtimeClass.getConstructor(tag_EJP.runtimeClass).newInstance(props).asInstanceOf[EJ]
     }
+    final def getProps: Map[String,Any] = Map(
+        "job_schedule" -> job_schedule,
+        "job_deploy_mode" -> job_deploy_mode,
+        "job_max_active_runs" -> job_max_active_runs,
+        "job_retries" -> job_retries,
+        "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes
+      )
+
+    val job_schedule: String                  = ""
+    val job_max_active_runs: Int              = 10
+    val job_deploy_mode: Executor             = Executor.LOCAL
+    val job_retries  : Int                    = 0
+    val job_retry_delay_in_minutes  : Int     = 0
   }
 
   trait EtlJobSchema extends Product
@@ -48,11 +61,6 @@ package object etlflow {
     val job_enable_db_logging: Boolean        = true
     val job_send_slack_notification: Boolean  = false
     val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
-    val job_schedule: String                  = ""
-    val job_max_active_runs: Int              = 10
-    val job_deploy_mode: Executor             = Executor.LOCAL
-    val job_retries  : Int                    = 0
-    val job_retry_delay_in_minutes  : Int     = 0
   }
 
   object EtlStepList {

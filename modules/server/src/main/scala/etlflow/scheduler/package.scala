@@ -6,7 +6,7 @@ import cron4s.expr.CronExpr
 import cron4s.lib.javatime._
 import zio.clock.{Clock, sleep}
 import zio.duration.Duration
-import zio.{Task, Schedule, ZIO, RIO}
+import zio.{RIO, Schedule, Task, UIO, ZIO}
 
 package object scheduler {
 
@@ -24,13 +24,13 @@ package object scheduler {
     } yield duration
   }
 
-  def repeatEffectForCron[A](effect: Task[A], cronExpr: CronExpr, maxRecurs: Int = 0): RIO[Clock, Long] =
+  def repeatEffectForCron[A](effect: UIO[A], cronExpr: CronExpr, maxRecurs: Int = 0): RIO[Clock, Long] =
     if (maxRecurs != 0)
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.recurs(maxRecurs))
     else
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.forever)
 
-  def repeatEffectsForCron[A](tasks: List[(CronExpr,Task[A])]): RIO[Clock, Unit] = {
+  def repeatEffectsForCron[A](tasks: List[(CronExpr,UIO[A])]): RIO[Clock, Unit] = {
     val scheduled = tasks.map { case (cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever) }
     ZIO.collectAllPar(scheduled).as(())
   }

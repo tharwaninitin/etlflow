@@ -1,6 +1,7 @@
 package etlflow.scheduler
 
 import cats.effect.Blocker
+import cron4s.CronExpr
 import doobie.hikari.HikariTransactor
 import etlflow.executor.Executor
 import etlflow.utils.EtlFlowHelper._
@@ -12,6 +13,7 @@ import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.duration._
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
@@ -19,21 +21,22 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
     with Executor
     with EtlFlowUtils {
 
-  final def scheduleJobs(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[((String,String,String,String))]): Task[Unit] = {
+  final def scheduleJobs(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore], jobQueue:Queue[(String,String,String,String)]): Task[Unit] = {
     if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
       ZIO.unit
     }
     else {
-      val listOfCron = dbCronJobs.map(cj => (cj.schedule.get, {
+      val listOfCron: List[(CronExpr, UIO[Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler-API",jobQueue)
+        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler-API",jobQueue).
+          catchAll(_ => UIO.succeed(None))
       }))
 
       val scheduledJobs = repeatEffectsForCron(listOfCron)
 
       val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
-        .repeat(Schedule.forever && Schedule.spaced(1.minute))
+        .repeat(Schedule.forever && Schedule.spaced(60.minute))
 
       scheduledJobs.zipPar(scheduledLogger).as(())
         .tapError{e =>

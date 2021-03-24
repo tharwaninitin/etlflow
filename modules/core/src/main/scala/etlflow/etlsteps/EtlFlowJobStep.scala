@@ -5,13 +5,11 @@ import etlflow.etljobs.EtlJob
 import etlflow.utils.LoggingLevel
 import zio.{Task, ZEnv}
 
-class EtlFlowJobStep[EJP <: EtlJobProps] private(
-                                                  val name: String,
-                                                  job: => EtlJob[EJP],
-                                                )
-  extends EtlStep[Unit,Unit] {
+class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJob[EJP]) extends EtlStep[Unit,Unit] {
+
   lazy val job_instance = job
   val job_run_id = java.util.UUID.randomUUID.toString
+
   final def process(in: =>Unit): Task[Unit] = {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting EtlFlowJobStep for: $name")

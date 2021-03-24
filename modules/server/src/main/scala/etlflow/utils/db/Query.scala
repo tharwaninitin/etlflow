@@ -2,8 +2,6 @@ package etlflow.utils.db
 
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
-import java.util.UUID.randomUUID
-
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
@@ -16,21 +14,15 @@ import etlflow.utils.{CacheHelper, JsonJackson}
 import io.getquill.Literal
 import org.slf4j.{Logger, LoggerFactory}
 import pdi.jwt.{Jwt, JwtAlgorithm}
-import scalacache.{Cache, Mode}
-import scalacache.memoization.memoizeF
+import scalacache.Cache
 import zio.interop.catz._
 import zio.{IO, Task}
-import scala.collection.JavaConverters._
 
-import scala.concurrent.duration._
 object Query {
 
   lazy val query_logger: Logger = LoggerFactory.getLogger(getClass.getName)
   val dc = new DoobieContext.Postgres(Literal)
   import dc._
-
-  implicit val cronJobDBCache = CacheHelper.createCache[List[CronJobDB]]
-  implicit val mode: Mode[Task] = scalacache.CatsEffect.modes.async
 
   def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String]): Task[UserAuth] =  {
     val q = quote {
@@ -48,11 +40,9 @@ object Query {
             user_name = data.user_name
             user_role = data.user_role
           })
-
-          val user_data = s"""{"user": "${user_name}","role":"${user_role}"}""".stripMargin
+          val user_data = s"""{"user":"$user_name", "role":"$user_role"}""".stripMargin
           val token = Jwt.encode(user_data, "secretKey", JwtAlgorithm.HS256)
-          query_logger.info("token" + token)
-          query_logger.info("Token generated " + token)
+          query_logger.info(s"New token generated for user $user_name")
           CacheHelper.putKey(cache,token,token,Some(CacheHelper.default_ttl))
           UserAuth("Valid User", token)
         }
@@ -270,33 +260,10 @@ object Query {
     }
   }
 
-
-  //  def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = memoizeF[Task, List[CronJobDB]](Some(3600.second)){
-  //    val selectQuery = quote {
-  //      querySchema[CronJobDB]("cronjob")
-  //    }
-  //    dc.run(selectQuery).transact(transactor)
-  //  }
-
   def getJobs(transactor: HikariTransactor[Task]): Task[List[CronJobDB]] = {
     val selectQuery = quote {
       querySchema[CronJobDB]("cronjob")
     }
     dc.run(selectQuery).transact(transactor)
-  }
-
-  def getJobCacheStats:CacheDetails = {
-    val data:Map[String,String] = CacheHelper.toMap(cronJobDBCache)
-    val cacheInfo =  CacheInfo(
-      "CronJobs",
-      cronJobDBCache.underlying.stats.hitCount(),
-      cronJobDBCache.underlying.stats.hitRate(),
-      cronJobDBCache.underlying.asMap().size(),
-      cronJobDBCache.underlying.stats.missCount(),
-      cronJobDBCache.underlying.stats.missRate(),
-      cronJobDBCache.underlying.stats.requestCount(),
-      data
-    )
-    CacheDetails("CronJobs",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
   }
 }

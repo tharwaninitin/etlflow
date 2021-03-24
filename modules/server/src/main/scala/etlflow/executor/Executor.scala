@@ -32,7 +32,7 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
        _             <- job_queue.offer((args.name,submitted_from,convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")),UF.getCurrentTimestampAsString()))
       etljob         <- Query.getCronJobFromDB(args.name,transactor).flatMap( cj =>
         if (cj.is_active) {
-           UIO(executor_logger.info(s"Running job ${cj.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
+           UIO(executor_logger.info(s"Submitting job ${cj.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
         } else
           UIO(executor_logger.info(s"Skipping inactive job ${cj.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")).as(None)
       )

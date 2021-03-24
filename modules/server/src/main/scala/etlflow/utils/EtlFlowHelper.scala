@@ -57,10 +57,7 @@ object EtlFlowHelper {
   case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
 
   case class CacheDetails(name:String,details:Map[String,String])
-  case class QueueInfo(job_name:String,submitted_from:String,props:String,execution_time:String)
-  case class QueueDetails(name:String,details:String,submitted_from:String)
-
-
+  case class QueueDetails(name:String,details:String,submitted_from:String,execution_time:String)
   case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean,max_active_runs: Int, job_deploy_mode: String)
 
   object EtlFlow {

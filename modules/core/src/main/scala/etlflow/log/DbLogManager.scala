@@ -19,7 +19,7 @@ class DbLogManager(val transactor: HikariTransactor[Task],val job_name: String, 
 
   private val ctx = new DoobieContext.Postgres(Literal) // Literal naming scheme
   import ctx._
-  val remoteStep = List("EtlFlowJobStep","DPSparkJobStep")
+  val remoteStep = List("EtlFlowJobStep","DPSparkJobStep","ParallelETLStep")
 
   def updateStepLevelInformation(
                                   execution_start_time: Long,

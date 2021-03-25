@@ -56,7 +56,6 @@ object Dependencies {
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
-    "org.tpolecat" %% "doobie-quill"    % DoobieVersion,
     "org.tpolecat" %% "skunk-core"      % SkunkVersion,
     "org.flywaydb" % "flyway-core"      % FlywayVersion
   )

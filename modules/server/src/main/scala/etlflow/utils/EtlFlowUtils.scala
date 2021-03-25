@@ -25,8 +25,9 @@ trait EtlFlowUtils extends ApplicationLogger {
 
   final def refreshJobsDB(transactor: HikariTransactor[Task], jobs: List[EtlJob], etl_job_props_mapping_package: String): Task[List[CronJob]] = {
     val cronJobsDb = jobs.map{x =>
-      CronJobDB(
+      JobDB(
         x.name,
+        job_description =  "",
         x.props.getOrElse("job_schedule",""),
         0,
         0,

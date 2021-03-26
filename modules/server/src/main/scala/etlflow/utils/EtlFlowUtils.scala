@@ -22,9 +22,8 @@ trait EtlFlowUtils extends ApplicationLogger {
 
   implicit val jobPropsCache = CacheHelper.createCache[Map[String, String]]
 
-
-  final def refreshJobsDB(transactor: HikariTransactor[Task], jobs: List[EtlJob], etl_job_props_mapping_package: String): Task[List[CronJob]] = {
-    val cronJobsDb = jobs.map{x =>
+  final def refreshJobsDB(transactor: HikariTransactor[Task], jobs: List[EtlJob]): Task[List[CronJob]] = {
+    val jobsDB = jobs.map{x =>
       JobDB(
         x.name,
         job_description =  "",
@@ -34,7 +33,7 @@ trait EtlFlowUtils extends ApplicationLogger {
         is_active = true
       )
     }
-    Update.updateJobs(transactor, cronJobsDb)
+    Update.refreshJobs(transactor, jobsDB)
   }
 
   final def getPropsCacheStats: CacheDetails = {

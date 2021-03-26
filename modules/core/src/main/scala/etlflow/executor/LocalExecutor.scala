@@ -12,7 +12,7 @@ object LocalExecutor {
     Task {
       new LocalExecutorService.Service {
         override def executeLocalSubProcessJob(name: String, properties: Map[String, String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit] = Task {
-          executor_logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
+          logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
                                   |job_name => $name
                                   |script_path => ${config.script_path}
                                   |min_heap_memory => ${config.heap_min_memory}
@@ -32,7 +32,7 @@ object LocalExecutor {
           env.put("JAVA_OPTS",s"${config.heap_min_memory} ${config.heap_max_memory}")
 
           val command = processBuilder.command().toString
-          executor_logger.info("Command = " + command)
+          logger.info("Command = " + command)
 
           //Start the SubProcess
           val process = processBuilder.start()
@@ -46,11 +46,11 @@ object LocalExecutor {
           }
           process.waitFor()
 
-          executor_logger.info("Exit Code: " + process.exitValue())
+          logger.info("Exit Code: " + process.exitValue())
 
           //Get the exit code. If not equal to 0 then throw the exception otherwise return success.
           if(process.exitValue() != 0){
-            executor_logger.error(s"LOCAL SUB PROCESS JOB $name failed with error")
+            logger.error(s"LOCAL SUB PROCESS JOB $name failed with error")
             throw new RuntimeException(s"LOCAL SUB PROCESS JOB $name failed with error")
           }
         }

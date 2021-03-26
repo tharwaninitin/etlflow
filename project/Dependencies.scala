@@ -14,7 +14,7 @@ object Dependencies {
   val Fs2BlobStoreVersion = "0.7.3"
   val CirceVersion = "0.13.0"
   val CirceConfigVersion = "0.8.0"
-  val DoobieVersion = "0.9.0"
+  val DoobieVersion = "0.12.1"
   val SkunkVersion = "0.0.24"
   val Http4sVersion = "0.21.20"
   val ScalaCacheVersion = "0.28.0"

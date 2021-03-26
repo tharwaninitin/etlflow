@@ -46,8 +46,7 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
   }
 
   final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobs: List[EtlJob], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String,String,String)]): Task[Unit] = for {
-    _          <- Update.deleteJobs(transactor,jobs.map(x => x.name))
-    dbJobs     <- refreshJobsDB(transactor,jobs,etl_job_props_mapping_package)
+    dbJobs     <- refreshJobsDB(transactor,jobs)
     _          <- cronJobs.update{_ => dbJobs.filter(_.schedule.isDefined)}
     cronJobs   <- cronJobs.get
     _          <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))

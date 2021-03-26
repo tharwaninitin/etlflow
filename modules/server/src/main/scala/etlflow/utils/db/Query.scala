@@ -1,28 +1,26 @@
 package etlflow.utils.db
 
 import java.text.SimpleDateFormat
-import java.time.{LocalDate, ZoneId}
+import java.time.LocalDate
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
-import etlflow.log.{JobRun, StepRun}
+import etlflow.log.{ApplicationLogger, JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.{CacheHelper, JsonJackson}
-import org.slf4j.{Logger, LoggerFactory}
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import scalacache.Cache
 import zio.interop.catz._
 import zio.{IO, Task}
 
-object Query {
-
-  lazy val query_logger: Logger = LoggerFactory.getLogger(getClass.getName)
+object Query extends ApplicationLogger {
 
   def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String]): Task[UserAuth] =  {
-    sql"""SELECT
+    val getUser =
+      sql"""SELECT
               user_name,
               password,
               user_active,
@@ -31,7 +29,13 @@ object Query {
           WHERE user_name = ${args.user_name} AND password = ${args.password}"""
       .query[UserInfo] // Query0[String]
       .to[List]        // Stream[ConnectionIO, String]
-      .transact(transactor).flatMap(z => {
+      .transact(transactor)
+      .mapError { e =>
+        logger.error(e.getMessage)
+        ExecutionError(e.getMessage)
+      }
+
+    getUser.flatMap(z => {
       if (z.isEmpty) {
         Task(UserAuth("Invalid User", ""))
       }
@@ -45,7 +49,7 @@ object Query {
           })
           val user_data = s"""{"user":"$user_name", "role":"$user_role"}""".stripMargin
           val token = Jwt.encode(user_data, "secretKey", JwtAlgorithm.HS256)
-          query_logger.info(s"New token generated for user $user_name")
+          logger.info(s"New token generated for user $user_name")
           CacheHelper.putKey(cache,token,token,Some(CacheHelper.default_ttl))
           UserAuth("Valid User", token)
         }
@@ -59,18 +63,17 @@ object Query {
       .run
       .transact(transactor).map(_ => args.state)
   }.mapError { e =>
-    query_logger.error(e.getMessage)
+    logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
-
-  def getCronJobFromDB(name: String, transactor: HikariTransactor[Task]): IO[ExecutionError, JobDB] = {
-    sql"SELECT job_name, job_description, schedule, failed, success, is_active FROM job WHERE job_name = ${name}"
-      .query[JobDB] // Query0[String]
-      .to[List]        // Stream[ConnectionIO, String]
-      .transact(transactor).map(x => x.head)
+  def getJobFromDB(name: String, transactor: HikariTransactor[Task]): IO[ExecutionError, JobDB] = {
+    sql"SELECT job_name, job_description, schedule, failed, success, is_active FROM job WHERE job_name = $name"
+      .query[JobDB]
+      .unique
+      .transact(transactor)
   }.mapError { e =>
-    query_logger.error(e.getMessage)
+    logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
@@ -90,7 +93,7 @@ object Query {
       .transact(transactor)
       .map(_ => Credentials(credentialsDB.name,credentialsDB.`type`,credentialsDB.value))
   }.mapError { e =>
-    query_logger.error(e.getMessage)
+    logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
@@ -101,7 +104,7 @@ object Query {
       .update.run.transact(transactor).map(_ => Credentials(args.name,"",value))
 
   }.mapError { e =>
-    query_logger.error(e.getMessage)
+    logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
@@ -113,7 +116,7 @@ object Query {
       .run
       .transact(transactor).map(_ => CronJob(cronJobDB.job_name,"",Cron(cronJobDB.schedule).toOption,0,0))
   }.mapError { e =>
-    query_logger.error(e.getMessage)
+    logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
@@ -121,7 +124,7 @@ object Query {
     sql"UPDATE job SET schedule = ${args.schedule.toString} WHERE job_name = ${args.job_name}"
       .update.run.transact(transactor).map(_ => CronJob(args.job_name,"",Some(args.schedule),0,0))
   }.mapError { e =>
-    query_logger.error(e.getMessage)
+    logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
@@ -143,8 +146,8 @@ object Query {
     }
     catch {
       case x: Throwable =>
-        query_logger.error(s"Exception occurred for arguments $args")
-        x.getStackTrace.foreach(msg => query_logger.error("=> " + msg.toString))
+        logger.error(s"Exception occurred for arguments $args")
+        x.getStackTrace.foreach(msg => logger.error("=> " + msg.toString))
         throw x
     }
   }
@@ -183,7 +186,7 @@ object Query {
 
         args.filter.get match {
           case "IN" => {
-            query_logger.info("Inside IN clause")
+            logger.info("Inside IN clause")
             q = sql"""
                    SELECT
                        job_run_id,
@@ -205,7 +208,7 @@ object Query {
               .to[List]
           }
           case "NOT IN" => {
-            query_logger.info("Inside NOT IN  clause" )
+            logger.info("Inside NOT IN  clause" )
             q = sql"""
                    SELECT
                        job_run_id,
@@ -232,7 +235,7 @@ object Query {
       else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
         args.filter.get match {
           case "IN" => {
-            query_logger.info("Inside IN clause")
+            logger.info("Inside IN clause")
             q = sql"""
                    SELECT
                        job_run_id,
@@ -252,7 +255,7 @@ object Query {
               .to[List]
           }
           case "NOT IN" => {
-            query_logger.info("Inside NOT IN  clause" )
+            logger.info("Inside NOT IN  clause" )
             q = sql"""
                    SELECT
                        job_run_id,
@@ -324,8 +327,8 @@ object Query {
     catch {
       case x: Throwable =>
         // This below code should be error free always
-        query_logger.error(s"Exception occurred for arguments $args")
-        x.getStackTrace.foreach(msg => query_logger.error("=> " + msg.toString))
+        logger.error(s"Exception occurred for arguments $args")
+        x.getStackTrace.foreach(msg => logger.error("=> " + msg.toString))
         // Throw error here or DummyResults
         throw x
     }

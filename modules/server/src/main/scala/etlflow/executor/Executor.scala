@@ -11,7 +11,6 @@ import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.db.{Query, Update}
 import etlflow.utils.{Config, UtilityFunctions => UF}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
-import org.slf4j.{Logger, LoggerFactory}
 import zio._
 import zio.blocking.{Blocking, blocking}
 import zio.clock.Clock
@@ -20,21 +19,20 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFlowUtils {
-  lazy val executor_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   final def runActiveEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
   (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)]): Task[Option[EtlJob]] = {
     for {
-      _              <- UIO(executor_logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
+      _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
       default_props  =  getJobPropsMapping[EJN](args.name,etl_job_name_package)
       actual_props   =  args.props.map(x => (x.key,x.value)).toMap
       final_props    =  default_props ++ actual_props + ("submitted_at" -> UF.getCurrentTimestampAsString())
        _             <- job_queue.offer((args.name,submitted_from,convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")),UF.getCurrentTimestampAsString()))
-      etljob         <- Query.getCronJobFromDB(args.name,transactor).flatMap( cj =>
+      etljob         <- Query.getJobFromDB(args.name,transactor).flatMap( cj =>
         if (cj.is_active) {
-           UIO(executor_logger.info(s"Submitting job ${cj.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
+           UIO(logger.info(s"Submitting job ${cj.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
         } else
-          UIO(executor_logger.info(s"Skipping inactive job ${cj.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")).as(None)
+          UIO(logger.info(s"Skipping inactive job ${cj.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${cj.job_name} is disabled")).as(None)
       )
     } yield etljob
   }
@@ -60,11 +58,10 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
     for {
       etlJob     <- validateJob(args, etl_job_name_package)
       props_map  = args.props.map(x => (x.key,x.value)).toMap
-      jobRun     = blocking(LocalExecutorService.executeLocalJob(args.name, props_map,etl_job_name_package).provideLayer(LocalExecutor.live)).provideLayer(Blocking.live).map(x => (retry_number += 1))
+      jobRun     = blocking(LocalExecutorService.executeLocalJob(args.name, props_map,etl_job_name_package).provideLayer(LocalExecutor.live)).provideLayer(Blocking.live).map(_ => retry_number += 1)
         .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry)).provideLayer(Clock.live).tapError( ex => UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
       ) *> Update.updateSuccessJob(args.name, transactor)
       _          <- if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)
-      _       <- UIO(executor_logger.info("inc" + retry_number))
     } yield etlJob
   }
   final def runDataProcJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, config: DATAPROC, main_class: String, dp_libs: List[String], sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): Task[EtlJob] = {

@@ -3,71 +3,67 @@ package etlflow.utils.db
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
-import doobie.quill.DoobieContext
 import etlflow.utils.EtlFlowHelper._
-import io.getquill.Literal
 import zio.{IO, Task}
 import doobie.implicits._
-import doobie.util.fragment.Fragment
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
-
-object Update {
+import doobie.ConnectionIO
+object Update extends doobie.Aliases {
 
   lazy val update_logger: Logger = LoggerFactory.getLogger(getClass.getName)
-  val dc = new DoobieContext.Postgres(Literal)
-  import dc._
+
 
   def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
-    val cronJobStringUpdate = quote {
-      querySchema[CronJobDB]("cronjob")
-        .filter(x => x.job_name == lift(job))
-        .update{cj =>
-          cj.success -> (cj.success + 1L)
-        }
-    }
-    dc.run(cronJobStringUpdate).transact(transactor)
+
+    sql"UPDATE job SET success = (success + 1) WHERE job_name = ${job}"
+      .update
+      .run
+      .transact(transactor)
+      .map(_ => 1L)
   }.mapError { e =>
     update_logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
   def updateFailedJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
-    val cronJobStringUpdate = quote {
-      querySchema[CronJobDB]("cronjob")
-        .filter(x => x.job_name == lift(job))
-        .update{cj =>
-          cj.failed -> (cj.failed + 1L)
-        }
-    }
-    dc.run(cronJobStringUpdate).transact(transactor)
+
+    sql"UPDATE job SET failed = (failed + 1) WHERE job_name = ${job}"
+      .update
+      .run
+      .transact(transactor)
+      .map(_ => 1L)
+
   }.mapError { e =>
     update_logger.error(e.getMessage)
     ExecutionError(e.getMessage)
   }
 
   def deleteJobs(transactor: HikariTransactor[Task], jobList: List[String]): Task[Int] = {
-    val query = "DELETE FROM cronjob WHERE job_name NOT IN " +  "('" + jobList.mkString("','") +  "')"
+    val query = "DELETE FROM job WHERE job_name NOT IN " + "('" + jobList.mkString("','") + "')"
     Fragment.const(query).update.run.transact(transactor)
   }
 
-  def updateJobs(transactor: HikariTransactor[Task], cronJobsDb: List[CronJobDB]): Task[List[CronJob]] = {
-    val insertQuery = quote {
-      liftQuery(cronJobsDb).foreach{e =>
-        querySchema[CronJobDB]("cronjob")
-          .insert(e)
-          .onConflictUpdate(_.job_name)(
-            _.schedule -> _.schedule
-          )
-      }
-    }
-    dc.run(insertQuery).transact(transactor)
+  def insertJobDb(cronJobsDb: List[JobDB]): ConnectionIO[Int] = {
+    val sql =
+      """
+       INSERT INTO job AS t (job_name,job_description,schedule,failed,success,is_active)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT (job_name)
+       DO UPDATE SET schedule = EXCLUDED.schedule
+    """
+    Update[JobDB](sql).updateMany(cronJobsDb)
+  }
 
-    val selectQuery = quote {
-      querySchema[CronJobDB]("cronjob")
-    }
+  def updateJobs(transactor: HikariTransactor[Task], cronJobsDb: List[JobDB]): Task[List[CronJob]] = {
 
-    dc.run(insertQuery).transact(transactor) *> dc.run(selectQuery).transact(transactor)
-      .map(y => y.map(x => CronJob(x.job_name, Cron(x.schedule).toOption, x.failed, x.success)))
+    insertJobDb(cronJobsDb).transact(transactor)
+
+    val selectQuery = sql"""SELECT job_name, job_description, schedule, failed, success, is_active FROM job"""
+      .query[JobDB]
+      .to[List]
+
+    insertJobDb(cronJobsDb).transact(transactor) *> selectQuery.transact(transactor)
+          .map(y => y.map(x => CronJob(x.job_name,x.job_description, Cron(x.schedule).toOption, x.failed, x.success)))
   }
 }

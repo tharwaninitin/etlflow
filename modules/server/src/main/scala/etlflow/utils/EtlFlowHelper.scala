@@ -11,7 +11,8 @@ object EtlFlowHelper {
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
-  case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
+  case class JobDB(job_name: String, job_description: String ,schedule: String, failed: Long, success: Long, is_active: Boolean)
+
   case class CredentialDB(name: String, `type`: String, value: String)
 
   // GraphQL ARGS and Results
@@ -52,7 +53,7 @@ object EtlFlowHelper {
                            )
   case class CurrentTime(current_time:String)
   case class UserAuth(message: String, token: String)
-  case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
+  case class CronJob(job_name: String, job_description: String ,schedule: Option[CronExpr], failed: Long, success: Long)
   case class Credentials(name: String, `type`: String, value: String)
   case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
 

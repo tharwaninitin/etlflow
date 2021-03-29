@@ -2,9 +2,8 @@ package etlflow.log
 
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{Config, HttpClientApi, LoggingLevel, UtilityFunctions => UF}
-import zio.Task
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
+import etlflow.utils.{HttpClientApi, LoggingLevel, UtilityFunctions => UF}
 import zio.Runtime.global.unsafeRun
 
 class SlackLogManager private[log] (
@@ -104,14 +103,9 @@ class SlackLogManager private[log] (
 }
 
 object SlackLogManager {
-
-  def createSlackLogger(job_name: String, job_properties: EtlJobProps,env:String,slack_url:String):SlackLogManager = {
-    new SlackLogManager(job_name, job_properties,slack_url, env)
-  }
-
-  def createSlackLogger(job_name: String, job_properties: EtlJobProps, global_properties: Config): Task[Option[SlackLogManager]] = Task {
+  def createSlackLogger(job_name: String, job_properties: EtlJobProps, env: String, slack_url: String): Option[SlackLogManager] = {
     if (job_properties.job_send_slack_notification)
-      Some(new SlackLogManager(job_name, job_properties, global_properties.slack.url, global_properties.slack.env))
+      Some(new SlackLogManager(job_name, job_properties,slack_url, env))
     else
       None
   }

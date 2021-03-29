@@ -2,25 +2,10 @@ package etlflow.log
 
 import etlflow.LoggerResource
 import etlflow.etlsteps.EtlStep
-import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, Task, UIO, ZIO, ZLayer}
 import etlflow.utils.{UtilityFunctions => UF}
 
-object EtlLogger {
-  val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-
-  type LoggerResourceClient = Has[LoggerResourceClient.Service]
-  object LoggerResourceClient {
-    trait Service {
-      val loggerResource: LoggerResource
-    }
-    val live: ZLayer[LoggerResource, Nothing, LoggerResourceClient] =
-      ZLayer.fromFunction((curr: LoggerResource) => new LoggerResourceClient.Service { val loggerResource: LoggerResource = curr })
-
-    val newLive: ZLayer[Has[LoggerResource], Nothing, LoggerResourceClient] = ZLayer.fromService { deps =>
-      new LoggerResourceClient.Service { val loggerResource: LoggerResource = deps }
-    }
-  }
+object EtlLogger extends ApplicationLogger {
 
   type LoggingSupport = Has[LoggerService]
   trait LoggerService {
@@ -32,56 +17,58 @@ object EtlLogger {
   def logSuccess(start_time: Long): ZIO[LoggingSupport, Throwable, Unit] = ZIO.accessM(_.get.logSuccess(start_time))
   def logError(start_time: Long, ex: Throwable): ZIO[LoggingSupport, Throwable, Unit] = ZIO.accessM(_.get.logError(start_time,ex))
 
+  type StepLoggerResourceClient = Has[StepLoggerResourceClient.Service]
+  object StepLoggerResourceClient {
+    trait Service {
+      val res: LoggerResource
+    }
+    val live: ZLayer[Has[LoggerResource], Nothing, StepLoggerResourceClient] = ZLayer.fromService { deps =>
+      new StepLoggerResourceClient.Service { val res: LoggerResource = deps }
+    }
+  }
+
   object StepLogger {
-    def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[LoggerResourceClient, Throwable, LoggingSupport] = ZLayer.fromService { deps: LoggerResourceClient.Service =>
+    def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[StepLoggerResourceClient, Throwable, LoggingSupport] = ZLayer.fromService { deps: StepLoggerResourceClient.Service =>
       new LoggerService {
         def logInit(step_start_time: Long): Task[Unit] = {
-          if (deps.loggerResource.db.isDefined)
-            deps.loggerResource.db.get.updateStepLevelInformation(step_start_time, etlStep, "started", mode = "insert").as(())
-          else ZIO.unit
+          if(deps.res.db.isDefined)
+            deps.res.db.get.updateStepLevelInformation(step_start_time, etlStep, "started", mode = "insert").as(())
+          else
+            ZIO.unit
         }
         def logSuccess(step_start_time: Long): Task[Unit] = {
-          deps.loggerResource.slack.foreach(_.updateStepLevelInformation(step_start_time, etlStep, "pass"))
-          if (deps.loggerResource.db.isDefined)
-            deps.loggerResource.db.get.updateStepLevelInformation(step_start_time, etlStep, "pass").as(())
+          deps.res.slack.foreach(_.updateStepLevelInformation(step_start_time, etlStep, "pass"))
+          if(deps.res.db.isDefined)
+            deps.res.db.get.updateStepLevelInformation(step_start_time, etlStep, "pass").as(())
           else
             ZIO.unit
         }
         def logError(step_start_time: Long, ex: Throwable): Task[Unit] = {
-          deps.loggerResource.slack.foreach(_.updateStepLevelInformation(step_start_time, etlStep, "failed", Some(ex.getMessage)))
-          if (deps.loggerResource.db.isDefined) {
-            logger.error("Step Error StackTrace:"+"\n"+ex.getStackTrace.mkString("\n"))
-            deps.loggerResource.db.get.updateStepLevelInformation(step_start_time, etlStep, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
-          }
+          logger.error("Step Error StackTrace:"+"\n"+ex.getStackTrace.mkString("\n"))
+          deps.res.slack.foreach(_.updateStepLevelInformation(step_start_time, etlStep, "failed", Some(ex.getMessage)))
+          if(deps.res.db.isDefined)
+            deps.res.db.get.updateStepLevelInformation(step_start_time, etlStep, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
           else
-            Task.fail(ex)
+            ZIO.unit
         }
       }
     }
   }
 
   object JobLogger {
-    def live(res: LoggerResource,job_type:String): LoggerService = new LoggerService {
+    def live(db: Option[DbJobLogger], job_type: String, slack: Option[SlackLogManager]): LoggerService = new LoggerService {
       override def logInit(start_time: Long): Task[Unit] = {
-        if (res.db.isDefined) res.db.get.updateJobInformation(start_time,"started","insert",job_type).as(())
-        else
-          ZIO.unit
+        if (db.isDefined) db.get.logStart(start_time,job_type) else ZIO.unit
       }
       override def logSuccess(start_time: Long): Task[Unit] = {
-        for {
-          _  <- UIO.succeed(if (res.slack.isDefined) res.slack.get.updateJobInformation(start_time,"pass",job_type = job_type))
-          _  <- if (res.db.isDefined) res.db.get.updateJobInformation(start_time,"pass",job_type = job_type) else ZIO.unit
-          _  <- UIO.succeed(logger.info(s"Job completed successfully in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}"))
-        } yield ()
+        logger.info(s"Job completed successfully in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
+        slack.foreach(_.updateJobInformation(start_time,"pass",job_type = job_type))
+        if (db.isDefined) db.get.logEnd(start_time) else ZIO.unit
       }
       override def logError(start_time: Long, ex: Throwable): Task[Unit] = {
-        if (res.slack.isDefined)
-          res.slack.get.updateJobInformation(start_time,"failed",job_type = job_type)
         logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
-        if (res.db.isDefined)
-          res.db.get.updateJobInformation(start_time,"failed",job_type = job_type,error_message = Some(ex.getMessage)).as(()) *> Task.fail(ex)
-        else
-          Task.fail(ex)
+        slack.foreach(_.updateJobInformation(start_time,"failed",job_type = job_type))
+        if (db.isDefined) db.get.logEnd(start_time, Some(ex.getMessage)).as(()) *> Task.fail(ex) else Task.fail(ex)
       }
     }
   }

@@ -18,7 +18,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
   val slack_env = "dev-testing"
   val job_name = "EtlSlackJob"
 
-  case class EtlJobSlackProps(override val job_notification_level: LoggingLevel) extends EtlJobProps
+  case class EtlJobSlackProps(override val job_notification_level: LoggingLevel, override val job_send_slack_notification: Boolean = true) extends EtlJobProps
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")

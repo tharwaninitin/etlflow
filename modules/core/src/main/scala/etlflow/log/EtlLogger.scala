@@ -1,9 +1,9 @@
 package etlflow.log
 
-import etlflow.{JobLogger, LoggerResource}
 import etlflow.etlsteps.EtlStep
-import zio.{Has, Task, UIO, ZIO, ZLayer}
 import etlflow.utils.{UtilityFunctions => UF}
+import etlflow.{JobLogger, StepLogger}
+import zio.{Has, Task, ZIO, ZLayer}
 
 object EtlLogger extends ApplicationLogger {
 
@@ -20,10 +20,10 @@ object EtlLogger extends ApplicationLogger {
   type StepLoggerResourceEnv = Has[StepLoggerResourceEnv.Service]
   object StepLoggerResourceEnv {
     trait Service {
-      val res: LoggerResource
+      val res: StepLogger
     }
-    val live: ZLayer[Has[LoggerResource], Nothing, StepLoggerResourceEnv] = ZLayer.fromService { deps =>
-      new StepLoggerResourceEnv.Service { val res: LoggerResource = deps }
+    val live: ZLayer[Has[StepLogger], Nothing, StepLoggerResourceEnv] = ZLayer.fromService { deps =>
+      new StepLoggerResourceEnv.Service { val res: StepLogger = deps }
     }
   }
 

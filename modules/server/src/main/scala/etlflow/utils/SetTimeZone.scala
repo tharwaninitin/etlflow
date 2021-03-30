@@ -11,7 +11,6 @@ object SetTimeZone extends ApplicationLogger {
       TimeZone.setDefault(TimeZone.getTimeZone(tz))
       logger.info(s"TimeZone provided in application.conf $tz")
     }
-    val calendar = Calendar.getInstance
-    logger.info(s"TimeZone set to ${calendar.getTimeZone}")
+    logger.info(s"TimeZone set to ${Calendar.getInstance.getTimeZone.getID}")
   }
 }

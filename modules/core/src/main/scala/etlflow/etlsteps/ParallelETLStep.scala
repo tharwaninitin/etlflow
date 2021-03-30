@@ -3,7 +3,7 @@ package etlflow.etlsteps
 import cats.effect.Blocker
 import etlflow.log.DbStepLogger
 import etlflow.utils.{Configuration, LoggingLevel}
-import etlflow.{EtlJobProps, LoggerResource}
+import etlflow.{EtlJobProps, StepLogger}
 import zio.blocking.Blocking
 import zio.internal.Platform
 import zio.{Task, ZEnv, ZIO, ZLayer}
@@ -18,7 +18,7 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
     (for {
       blocker <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       db      <- DbStepLogger(config, Platform.default.executor.asEC, blocker, "Parallel-Step-Pool", "Parallel-Step", new EtlJobProps{}, job_run_id, "false")
-      layer   = ZLayer.succeed(LoggerResource(db,None))
+      layer   = ZLayer.succeed(StepLogger(db,None))
       _       <- ZIO.collectAllPar(steps.map(x => x.execute())).provideCustomLayer(layer).toManaged_
     } yield ()).use_(ZIO.unit).provideLayer(ZEnv.live)
   }

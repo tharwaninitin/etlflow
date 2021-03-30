@@ -2,6 +2,7 @@ import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogManager}
 import etlflow.utils.{Executor, LoggingLevel}
+import zio.{Has,ZEnv}
 import scala.reflect.ClassTag
 
 package object etlflow {
@@ -27,9 +28,10 @@ package object etlflow {
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
   case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
-  case class LoggerResource(db: Option[DbStepLogger], slack: Option[SlackLogManager])
+  case class StepLogger(db: Option[DbStepLogger], slack: Option[SlackLogManager])
   case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogManager])
   case class DbJobStepLogger(job: Option[DbJobLogger], step: Option[DbStepLogger])
+  type StepEnv = Has[StepLogger] with ZEnv
 
   abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {
     val job_description: String         = ""

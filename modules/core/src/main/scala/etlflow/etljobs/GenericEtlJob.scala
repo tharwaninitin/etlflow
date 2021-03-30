@@ -4,14 +4,14 @@ import cats.effect.Blocker
 import etlflow.log.EtlLogger.JobLoggerEnv
 import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
-import etlflow.{EtlJobProps, JobLogger, LoggerResource}
+import etlflow.{StepEnv, EtlJobProps, JobLogger, StepLogger}
 import zio.blocking.Blocking
 import zio.internal.Platform
-import zio.{Has, ZEnv, ZIO, ZLayer}
+import zio.{ZEnv, ZIO, ZLayer}
 
 trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
 
-  def job: ZIO[Has[LoggerResource] with ZEnv, Throwable, Unit]
+  def job: ZIO[StepEnv, Throwable, Unit]
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
   val job_type = "GenericEtlJob"
@@ -25,7 +25,7 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       slack           = SlackLogManager.createSlackLogger(job_name, job_properties, config.slack.map(_.env).getOrElse(""),config.slack.map(_.url).getOrElse(""))
       db              <- DbLogManager.create(config, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties, jri, master_job)
       job_log         = JobLoggerEnv.live(JobLogger(db.job,slack),job_type)
-      step_layer      = ZLayer.succeed(LoggerResource(db.step,slack))
+      step_layer      = ZLayer.succeed(StepLogger(db.step,slack))
       _               <- job_log.logInit(job_start_time).toManaged_
       _               <- job.provideCustomLayer(step_layer).foldM(
                             ex => job_log.logError(job_start_time,ex),

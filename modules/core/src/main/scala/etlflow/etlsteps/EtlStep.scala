@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.LoggerResource
-import etlflow.log.EtlLogger.{StepLoggerResourceClient, StepLogger, logError, logInit, logSuccess}
+import etlflow.log.EtlLogger.{StepLoggerResourceEnv, StepLoggerEnv, logError, logInit, logSuccess}
 import etlflow.utils.LoggingLevel
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, Task, ZIO, ZEnv}
@@ -17,7 +17,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   def getStepProperties(level:LoggingLevel  = LoggingLevel.INFO): Map[String,String] = Map()
 
   final def execute(input_state: =>IPSTATE): ZIO[Has[LoggerResource] with ZEnv, Throwable, OPSTATE] = {
-    val env = StepLoggerResourceClient.live >>> StepLogger.live(self)
+    val env = StepLoggerResourceEnv.live >>> StepLoggerEnv.live(self)
     val step = for {
       step_start_time <- Task.succeed(System.currentTimeMillis())
       _   <- logInit(step_start_time)

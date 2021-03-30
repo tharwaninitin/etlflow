@@ -1,6 +1,6 @@
 package etlflow.log
 
-import etlflow.LoggerResource
+import etlflow.{JobLogger, LoggerResource}
 import etlflow.etlsteps.EtlStep
 import zio.{Has, Task, UIO, ZIO, ZLayer}
 import etlflow.utils.{UtilityFunctions => UF}
@@ -17,18 +17,18 @@ object EtlLogger extends ApplicationLogger {
   def logSuccess(start_time: Long): ZIO[LoggingSupport, Throwable, Unit] = ZIO.accessM(_.get.logSuccess(start_time))
   def logError(start_time: Long, ex: Throwable): ZIO[LoggingSupport, Throwable, Unit] = ZIO.accessM(_.get.logError(start_time,ex))
 
-  type StepLoggerResourceClient = Has[StepLoggerResourceClient.Service]
-  object StepLoggerResourceClient {
+  type StepLoggerResourceEnv = Has[StepLoggerResourceEnv.Service]
+  object StepLoggerResourceEnv {
     trait Service {
       val res: LoggerResource
     }
-    val live: ZLayer[Has[LoggerResource], Nothing, StepLoggerResourceClient] = ZLayer.fromService { deps =>
-      new StepLoggerResourceClient.Service { val res: LoggerResource = deps }
+    val live: ZLayer[Has[LoggerResource], Nothing, StepLoggerResourceEnv] = ZLayer.fromService { deps =>
+      new StepLoggerResourceEnv.Service { val res: LoggerResource = deps }
     }
   }
 
-  object StepLogger {
-    def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[StepLoggerResourceClient, Throwable, LoggingSupport] = ZLayer.fromService { deps: StepLoggerResourceClient.Service =>
+  object StepLoggerEnv {
+    def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[StepLoggerResourceEnv, Throwable, LoggingSupport] = ZLayer.fromService { deps: StepLoggerResourceEnv.Service =>
       new LoggerService {
         def logInit(step_start_time: Long): Task[Unit] = {
           if(deps.res.db.isDefined)
@@ -55,20 +55,20 @@ object EtlLogger extends ApplicationLogger {
     }
   }
 
-  object JobLogger {
-    def live(db: Option[DbJobLogger], job_type: String, slack: Option[SlackLogManager]): LoggerService = new LoggerService {
+  object JobLoggerEnv {
+    def live(res: JobLogger, job_type: String): LoggerService = new LoggerService {
       override def logInit(start_time: Long): Task[Unit] = {
-        if (db.isDefined) db.get.logStart(start_time,job_type) else ZIO.unit
+        if (res.db.isDefined) res.db.get.logStart(start_time,job_type) else ZIO.unit
       }
       override def logSuccess(start_time: Long): Task[Unit] = {
         logger.info(s"Job completed successfully in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
-        slack.foreach(_.updateJobInformation(start_time,"pass",job_type = job_type))
-        if (db.isDefined) db.get.logEnd(start_time) else ZIO.unit
+        res.slack.foreach(_.updateJobInformation(start_time,"pass",job_type = job_type))
+        if (res.db.isDefined) res.db.get.logEnd(start_time) else ZIO.unit
       }
       override def logError(start_time: Long, ex: Throwable): Task[Unit] = {
         logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
-        slack.foreach(_.updateJobInformation(start_time,"failed",job_type = job_type))
-        if (db.isDefined) db.get.logEnd(start_time, Some(ex.getMessage)).as(()) *> Task.fail(ex) else Task.fail(ex)
+        res.slack.foreach(_.updateJobInformation(start_time,"failed",job_type = job_type))
+        if (res.db.isDefined) res.db.get.logEnd(start_time, Some(ex.getMessage)).as(()) *> Task.fail(ex) else Task.fail(ex)
       }
     }
   }

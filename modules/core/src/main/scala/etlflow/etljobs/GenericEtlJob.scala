@@ -1,10 +1,10 @@
 package etlflow.etljobs
 
 import cats.effect.Blocker
-import etlflow.log.EtlLogger.JobLogger
+import etlflow.log.EtlLogger.JobLoggerEnv
 import etlflow.log.{DbLogManager, SlackLogManager}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
-import etlflow.{EtlJobProps, LoggerResource}
+import etlflow.{EtlJobProps, JobLogger, LoggerResource}
 import zio.blocking.Blocking
 import zio.internal.Platform
 import zio.{Has, ZEnv, ZIO, ZLayer}
@@ -24,7 +24,7 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       master_job      = is_master.getOrElse("true")
       slack           = SlackLogManager.createSlackLogger(job_name, job_properties, config.slack.map(_.env).getOrElse(""),config.slack.map(_.url).getOrElse(""))
       db              <- DbLogManager.create(config, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties, jri, master_job)
-      job_log         = JobLogger.live(db.job,job_type,slack)
+      job_log         = JobLoggerEnv.live(JobLogger(db.job,slack),job_type)
       step_layer      = ZLayer.succeed(LoggerResource(db.step,slack))
       _               <- job_log.logInit(job_start_time).toManaged_
       _               <- job.provideCustomLayer(step_layer).foldM(

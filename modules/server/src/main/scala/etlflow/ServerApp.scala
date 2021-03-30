@@ -2,7 +2,7 @@ package etlflow
 
 import cats.effect.Blocker
 import etlflow.scheduler.SchedulerApp
-import etlflow.utils.CacheHelper
+import etlflow.utils.{CacheHelper, SetTimeZone}
 import etlflow.utils.EtlFlowHelper.{CronJob, Props}
 import etlflow.webserver.Http4sServer
 import zio._
@@ -16,6 +16,7 @@ abstract class ServerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJob
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
+      _               <- SetTimeZone(config).toManaged_
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowSchedulerWebServer-Pool", 10)(blocker)
       queue           <- Queue.sliding[(String,String,String,String)](10).toManaged_

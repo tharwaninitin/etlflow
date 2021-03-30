@@ -28,6 +28,7 @@ package object etlflow {
   case class EtlJobException(msg : String) extends RuntimeException(msg)
   case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
   case class LoggerResource(db: Option[DbStepLogger], slack: Option[SlackLogManager])
+  case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogManager])
   case class DbJobStepLogger(job: Option[DbJobLogger], step: Option[DbStepLogger])
 
   abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {

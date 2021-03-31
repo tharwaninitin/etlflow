@@ -3,33 +3,27 @@ package etlflow.log
 import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
-import etlflow.utils.{HttpClientApi, LoggingLevel, UtilityFunctions => UF}
+import etlflow.utils.{HttpClientApi, UtilityFunctions => UF}
 import zio.Runtime.global.unsafeRun
 
-class SlackLogManager private[log] (
-                                     val job_name: String,
-                                     val job_properties: EtlJobProps,
-                                     val web_hook_url: String = "",
-                                     val env: String = "",
-                                   ) extends LogManager[Unit] {
+class SlackLogManager private[log] (job_name: String, job_properties: EtlJobProps, web_hook_url: String = "", env: String = "") extends ApplicationLogger {
   /** Slack message templates */
   var final_step_message: String = ""
   var final_message: String = ""
 
-  def finalMessageTemplate(run_env: String, exec_date: String, message: String, status: String): String = {
-    if (status == "pass") {
+  private def finalMessageTemplate(exec_date: String, message: String, error_message: Option[String]): String = {
+    if (error_message.isEmpty) {
       /** Template for slack success message */
       job_properties.job_notification_level match {
-        case JOB => {
+        case JOB =>
           final_message = final_message.concat(f"""
-          :large_blue_circle: $run_env - ${job_name} Process *Success!*
+          :large_blue_circle: $env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
           """)
           final_message
-        }
         case INFO | DEBUG =>
           final_message = final_message.concat( f"""
-          :large_blue_circle: $run_env - ${job_name} Process *Success!*
+          :large_blue_circle: $env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
           *Steps (Task - Duration)*: $message
           """)
@@ -39,7 +33,7 @@ class SlackLogManager private[log] (
     else {
       /** Template for slack failure message **/
       final_message = final_message.concat(f"""
-          :red_circle: $run_env - ${job_name} Process *Failed!*
+          :red_circle: $env - $job_name Process *Failed!*
           *Time of Execution*: $exec_date
           *Steps (Task - Duration)*: $message
           """)
@@ -47,13 +41,10 @@ class SlackLogManager private[log] (
     }
   }
 
-  def updateStepLevelInformation(
-                                  execution_start_time: Long, etlstep: EtlStep[_,_], state_status: String
-                                  , error_message: Option[String] = None, mode: String = "update"
-                                ): Unit = {
+  def logStepEnd(start_time: Long, etlstep: EtlStep[_,_], error_message: Option[String] = None): Unit = {
     var slackMessageForSteps = ""
-    val elapsedTime = UF.getTimeDifferenceAsString(execution_start_time, UF.getCurrentTimestamp)
-    val step_icon = if (state_status.toLowerCase() == "pass") "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
+    val elapsedTime = UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)
+    val step_icon = if (error_message.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
 
     // Update the slackMessageForSteps variable and get the information of step name and its execution time
     slackMessageForSteps = step_icon + "*" + etlstep.name + "*" + " - (" + elapsedTime + ")"
@@ -62,31 +53,26 @@ class SlackLogManager private[log] (
     val error = error_message.map(msg => f"error -> $msg").getOrElse("")
     job_properties.job_notification_level match {
       case DEBUG => slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties(job_properties.job_notification_level).mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
-      case INFO | JOB=> {
+      case INFO | JOB =>
         if (error.isEmpty && job_properties.job_notification_level == INFO)
           slackMessageForSteps = slackMessageForSteps
         else if(error.isEmpty && job_properties.job_notification_level == JOB)
           slackMessageForSteps = ""
         else
           slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + error)
-      }
     }
     // Concatenate all the messages with finalSlackMessage
     final_step_message = final_step_message.concat(slackMessageForSteps)
   }
-
-  def updateJobInformation(execution_start_time: Long,status: String, mode: String = "update",job_type:String, error_message: Option[String] = None): Unit = {
-    val execution_date_time = UF.getCurrentTimestampAsString("yyyy-MM-dd HH:mm:ss")
+  def logJobEnd(start_time: Long, error_message: Option[String] = None): Unit = {
+    val execution_date_time = UF.getTimestampAsString(start_time)
+    // Add time difference in above expression
 
     val data = finalMessageTemplate(
-      env,
       execution_date_time,
       final_step_message,
-      status
+      error_message
     )
-
-    if (job_properties.job_notification_level == LoggingLevel.DEBUG)
-      println(data)
 
     unsafeRun(HttpClientApi.post(
       web_hook_url,
@@ -96,14 +82,14 @@ class SlackLogManager private[log] (
       connectionTimeOut =  10000,
       readTimeOut = 15000
     ).fold(
-      ex  => println("Error in sending slack notification: " + ex.getMessage),
-      _   => println("Sent slack notification")
+      ex  => logger.error("Error in sending slack notification: " + ex.getMessage),
+      _   => logger.info("Sent slack notification")
     ))
   }
 }
 
 object SlackLogManager {
-  def createSlackLogger(job_name: String, job_properties: EtlJobProps, env: String, slack_url: String): Option[SlackLogManager] = {
+  def create(job_name: String, job_properties: EtlJobProps, env: String, slack_url: String): Option[SlackLogManager] = {
     if (job_properties.job_send_slack_notification)
       Some(new SlackLogManager(job_name, job_properties,slack_url, env))
     else

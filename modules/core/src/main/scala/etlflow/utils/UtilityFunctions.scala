@@ -1,10 +1,12 @@
 package etlflow.utils
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
+
 import etlflow.EtlJobNotFoundException
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}
@@ -25,6 +27,9 @@ object UtilityFunctions {
   // https://stackoverflow.com/questions/24806183/get-date-in-current-timezone-in-java
   def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
     DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
+  // https://stackoverflow.com/questions/4142313/convert-timestamp-in-milliseconds-to-string-formatted-time-in-java
+  def getTimestampAsString(timestamp: Long, pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
+    DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp),ZoneId.systemDefault())) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
   def roundAt(p: Int)(n: Double): Double = { val s = math pow (10, p); (math round n * s) / s }
 

@@ -22,8 +22,8 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       job_start_time  = UF.getCurrentTimestamp
       jri             = job_run_id.getOrElse(java.util.UUID.randomUUID.toString)
       master_job      = is_master.getOrElse("true")
-      slack           = SlackLogManager.createSlackLogger(job_name, job_properties, config.slack.map(_.env).getOrElse(""),config.slack.map(_.url).getOrElse(""))
-      db              <- DbLogManager.create(config, Platform.default.executor.asEC, blocker, job_name + "-Pool", job_name, job_properties, jri, master_job)
+      slack           = SlackLogManager.create(job_name, job_properties, config.slack.map(_.env).getOrElse(""), config.slack.map(_.url).getOrElse(""))
+      db              <- DbLogManager.create(job_name, job_properties, config, Platform.default.executor.asEC, blocker, job_name + "-Pool", jri, master_job)
       job_log         = JobLoggerEnv.live(JobLogger(db.job,slack),job_type)
       step_layer      = ZLayer.succeed(StepLogger(db.step,slack))
       _               <- job_log.logInit(job_start_time).toManaged_

@@ -30,24 +30,24 @@ object EtlLogger extends ApplicationLogger {
   object StepLoggerEnv {
     def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[StepLoggerResourceEnv, Throwable, LoggingSupport] = ZLayer.fromService { deps: StepLoggerResourceEnv.Service =>
       new LoggerService {
-        def logInit(step_start_time: Long): Task[Unit] = {
+        def logInit(start_time: Long): Task[Unit] = {
           if(deps.res.db.isDefined)
-            deps.res.db.get.updateStepLevelInformation(step_start_time, etlStep, "started", mode = "insert").as(())
+            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "started", mode = "insert").as(())
           else
             ZIO.unit
         }
-        def logSuccess(step_start_time: Long): Task[Unit] = {
-          deps.res.slack.foreach(_.updateStepLevelInformation(step_start_time, etlStep, "pass"))
+        def logSuccess(start_time: Long): Task[Unit] = {
+          deps.res.slack.foreach(_.logStepEnd(start_time, etlStep))
           if(deps.res.db.isDefined)
-            deps.res.db.get.updateStepLevelInformation(step_start_time, etlStep, "pass").as(())
+            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "pass").as(())
           else
             ZIO.unit
         }
-        def logError(step_start_time: Long, ex: Throwable): Task[Unit] = {
+        def logError(start_time: Long, ex: Throwable): Task[Unit] = {
           logger.error("Step Error StackTrace:"+"\n"+ex.getStackTrace.mkString("\n"))
-          deps.res.slack.foreach(_.updateStepLevelInformation(step_start_time, etlStep, "failed", Some(ex.getMessage)))
+          deps.res.slack.foreach(_.logStepEnd(start_time, etlStep, Some(ex.getMessage)))
           if(deps.res.db.isDefined)
-            deps.res.db.get.updateStepLevelInformation(step_start_time, etlStep, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
+            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
           else
             ZIO.unit
         }
@@ -62,12 +62,12 @@ object EtlLogger extends ApplicationLogger {
       }
       override def logSuccess(start_time: Long): Task[Unit] = {
         logger.info(s"Job completed successfully in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
-        res.slack.foreach(_.updateJobInformation(start_time,"pass",job_type = job_type))
+        res.slack.foreach(_.logJobEnd(start_time))
         if (res.db.isDefined) res.db.get.logEnd(start_time) else ZIO.unit
       }
       override def logError(start_time: Long, ex: Throwable): Task[Unit] = {
         logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
-        res.slack.foreach(_.updateJobInformation(start_time,"failed",job_type = job_type))
+        res.slack.foreach(_.logJobEnd(start_time, Some(ex.getMessage)))
         if (res.db.isDefined) res.db.get.logEnd(start_time, Some(ex.getMessage)).as(()) *> Task.fail(ex) else Task.fail(ex)
       }
     }

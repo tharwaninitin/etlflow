@@ -10,7 +10,7 @@ object JobExecutor {
   def slack(job_name: String, slack_env: String, slack_url: String, job_props: EtlJobProps, job: ZIO[Has[StepLogger] with ZEnv, Throwable, Unit]): ZIO[ZEnv, Throwable, SlackLogManager] =
     for {
       job_start_time  <- UIO.succeed(UF.getCurrentTimestamp)
-      slack           = SlackLogManager.createSlackLogger(job_name, job_props , slack_env , slack_url)
+      slack           = SlackLogManager.create(job_name, job_props , slack_env , slack_url)
       job_layer       = ZLayer.succeed(JobLoggerEnv.live(JobLogger(None,slack),""))
       step_layer      = ZLayer.succeed(StepLogger(None,slack))
       _               <- job.provideCustomLayer(step_layer).foldM(

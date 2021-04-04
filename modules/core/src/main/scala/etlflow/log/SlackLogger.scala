@@ -6,7 +6,7 @@ import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
 import etlflow.utils.{HttpClientApi, UtilityFunctions => UF}
 import zio.Runtime.global.unsafeRun
 
-class SlackLogManager private[log] (job_name: String, job_properties: EtlJobProps, web_hook_url: String = "", env: String = "") extends ApplicationLogger {
+class SlackLogger private[log] (job_name: String, job_properties: EtlJobProps, web_hook_url: String = "", env: String = "") extends ApplicationLogger {
   /** Slack message templates */
   var final_step_message: String = ""
   var final_message: String = ""
@@ -88,10 +88,10 @@ class SlackLogManager private[log] (job_name: String, job_properties: EtlJobProp
   }
 }
 
-object SlackLogManager {
-  def create(job_name: String, job_properties: EtlJobProps, env: String, slack_url: String): Option[SlackLogManager] = {
+object SlackLogger {
+  def apply(job_name: String, job_properties: EtlJobProps, env: String, slack_url: String): Option[SlackLogger] = {
     if (job_properties.job_send_slack_notification)
-      Some(new SlackLogManager(job_name, job_properties,slack_url, env))
+      Some(new SlackLogger(job_name, job_properties,slack_url, env))
     else
       None
   }

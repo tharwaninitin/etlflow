@@ -47,17 +47,6 @@ class JsonTestSuite extends FlatSpec with Matchers {
   val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
 
   val etl_job_props_mapping_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] + "$"
-  val props_mapping_job1 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job1",etl_job_props_mapping_package)
-  val props_mapping_job2 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job2",etl_job_props_mapping_package)
-  val props_mapping_job3 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job3",etl_job_props_mapping_package)
-
-  val props_map_job1: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job1.getProps,List.empty).map(x => (x._1, x._2.toString))
-  val props_map_job2: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job2.getProps,List.empty).map(x => (x._1, x._2.toString))
-  val props_map_job3: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job3.getProps,List.empty).map(x => (x._1, x._2.toString))
-
-  val expected_props_map_job1 = Map("job_max_active_runs" -> "10", "job_deploy_mode" -> "local", "job_retry_delay_in_minutes" -> "0", "job_schedule" -> "", "job_retries" -> "0")
-  val expected_props_map_job2 = Map("job_max_active_runs" -> "1",  "job_schedule" -> "0 */15 * * * ?", "job_deploy_mode" -> "kubernetes", "job_retry_delay_in_minutes" -> "0", "job_retries" -> "0")
-  val expected_props_map_job3 = Map("job_max_active_runs" -> "10", "job_deploy_mode" -> "dataproc", "job_retry_delay_in_minutes" -> "0", "job_schedule" -> "", "job_retries" -> "0")
 
   //Output data for all logging level and deploy mode.
   val outputDebugLevel = Map("job_send_slack_notification" -> true,
@@ -152,14 +141,50 @@ class JsonTestSuite extends FlatSpec with Matchers {
   }
 
   "Json Serializer: convertToJsonByRemovingKeysAsMap using EtlJobPropsMapping case with local mode" should "run successfully" in {
+    val props_mapping_job1 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job1",etl_job_props_mapping_package)
+    val props_map_job1: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job1.getProps,List.empty).map(x => (x._1, x._2.toString))
+    val expected_props_map_job1 = Map(
+      "job_max_active_runs" -> "10",
+      "job_name" -> "etlflow.coretests.jobs.Job1HelloWorld",
+      "job_description" -> "",
+      "job_props_name" -> "etlflow.coretests.Schema$EtlJob1Props",
+      "job_deploy_mode" -> "local",
+      "job_retry_delay_in_minutes" -> "0",
+      "job_schedule" -> "",
+      "job_retries" -> "0"
+    )
     assert(props_map_job1 == expected_props_map_job1)
   }
 
   "Json Serializer: convertToJsonByRemovingKeysAsMap using EtlJobPropsMapping case with kubernetes mode" should "run successfully" in {
+    val props_mapping_job2 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job2",etl_job_props_mapping_package)
+    val props_map_job2: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job2.getProps,List.empty).map(x => (x._1, x._2.toString))
+    val expected_props_map_job2 = Map(
+      "job_max_active_runs" -> "1",
+      "job_name" -> "etlflow.coretests.jobs.Job2Retry",
+      "job_description" -> "",
+      "job_props_name" -> "etlflow.coretests.Schema$EtlJob2Props",
+      "job_schedule" -> "0 */15 * * * ?",
+      "job_deploy_mode" -> "kubernetes",
+      "job_retry_delay_in_minutes" -> "0",
+      "job_retries" -> "0"
+    )
     assert(props_map_job2 == expected_props_map_job2)
   }
 
   "Json Serializer: convertToJsonByRemovingKeysAsMap using EtlJobPropsMapping case with dataproc mode" should "run successfully" in {
+    val props_mapping_job3 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job3",etl_job_props_mapping_package)
+    val props_map_job3: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job3.getProps,List.empty).map(x => (x._1, x._2.toString))
+    val expected_props_map_job3 = Map(
+      "job_max_active_runs" -> "10",
+      "job_name" -> "etlflow.coretests.jobs.Job3HttpSmtpSteps",
+      "job_description" -> "",
+      "job_props_name" -> "etlflow.coretests.Schema$EtlJob3Props",
+      "job_deploy_mode" -> "dataproc",
+      "job_retry_delay_in_minutes" -> "0",
+      "job_schedule" -> "",
+      "job_retries" -> "0"
+    )
     assert(props_map_job3 == expected_props_map_job3)
   }
 

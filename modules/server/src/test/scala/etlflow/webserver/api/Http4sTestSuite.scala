@@ -46,7 +46,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
   val client: Client[EtlFlowTask] = Client.fromHttpApp[EtlFlowTask](routes.orNotFound)
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("Scheduler Http4s Spec")(
+    suite("Http4s Test Suite")(
       testM("Test jobs end point with authorization header") {
         val loginBody = Json.obj("query" -> Json.fromString("""
                 mutation

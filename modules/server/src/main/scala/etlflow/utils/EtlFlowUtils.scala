@@ -33,7 +33,10 @@ trait EtlFlowUtils extends ApplicationLogger {
         is_active = true
       )
     }
-    Update.refreshJobs(transactor, jobsDB)
+    if (jobsDB.isEmpty)
+      Task{List.empty}
+    else
+      Update.refreshJobs(transactor, jobsDB)
   }
 
   final def getPropsCacheStats: CacheDetails = {

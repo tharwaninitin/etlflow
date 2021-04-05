@@ -15,7 +15,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Scheduler Execution Spec")(
+    suite("GraphQL Test Suite")(
 //      testM("Test jobs end point") {
 //        val query = gqldoc(
 //          """
@@ -62,7 +62,11 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
                 job_name
                }
              }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobruns":[{"job_name":"EtlJobDownload"}]}""")
+        val result = for {
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env)
+          _           = logger.info(gqlResponse.toString)
+        } yield gqlResponse.data.toString
+        assertM(result)(equalTo("""{"jobruns":[{"job_name":"EtlJobDownload"}]}""")
         )
       },
       testM("Test jobruns end point with filter condition NOT IN") {
@@ -73,7 +77,11 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
                 job_name
                }
              }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobruns":[{"job_name":"EtlJobSpr"}]}""")
+        val result = for {
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env)
+          _           = logger.info(gqlResponse.toString)
+        } yield gqlResponse.data.toString
+        assertM(result)(equalTo("""{"jobruns":[{"job_name":"EtlJobSpr"}]}""")
         )
       },
       testM("Test stepruns end point") {

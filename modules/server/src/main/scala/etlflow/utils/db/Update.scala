@@ -2,6 +2,7 @@ package etlflow.utils.db
 
 import caliban.CalibanError.ExecutionError
 import cats.data.NonEmptyList
+import cats.effect.Async
 import cron4s.Cron
 import doobie.hikari.HikariTransactor
 import etlflow.utils.EtlFlowHelper._
@@ -37,7 +38,7 @@ object Update extends ApplicationLogger {
 
   private def deleteJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
     val list = NonEmptyList(jobs.head,jobs.tail).map(x => x.job_name)
-    val query = fr"DELETE FROM job WHERE " ++ doobie.util.fragments.in(fr"job_name", list)
+    val query = fr"DELETE FROM job WHERE " ++ doobie.util.fragments.notIn(fr"job_name", list)
     query.update.run
   }
 
@@ -60,12 +61,19 @@ object Update extends ApplicationLogger {
       .to[List]
   }
 
+  private def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
+
+  private def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
+
   def refreshJobs(transactor: HikariTransactor[Task], jobs: List[JobDB]): IO[ExecutionError, List[CronJob]] = {
     val singleTran = for {
-      _       <- deleteJobs(jobs)
-      _       <- insertJobs(jobs)
-      db_jobs <- selectJobs
-      jobs    = db_jobs.map(x => CronJob(x.job_name,x.job_description, Cron(x.schedule).toOption, x.failed, x.success))
+      _        <- logCIO(s"Refreshing jobs in database")
+      deleted  <- deleteJobs(jobs)
+      _        <- logCIO(s"Deleted jobs => $deleted")
+      inserted <- insertJobs(jobs)
+      _        <- logCIO(s"Inserted/Updated jobs => $inserted")
+      db_jobs  <- selectJobs
+      jobs     = db_jobs.map(x => CronJob(x.job_name,x.job_description, Cron(x.schedule).toOption, x.failed, x.success))
     } yield jobs
 
     singleTran

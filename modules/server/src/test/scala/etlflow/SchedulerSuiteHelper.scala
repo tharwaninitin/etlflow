@@ -3,6 +3,9 @@ package etlflow
 import cats.effect.Blocker
 import doobie.hikari.HikariTransactor
 import etlflow.Credential.JDBC
+import etlflow.utils.{UtilityFunctions => UF}
+import etlflow.coretests.MyEtlJobPropsMapping
+import etlflow.etljobs.EtlJob
 import etlflow.jdbc.DbManager
 import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{CacheHelper, Config}
@@ -19,7 +22,7 @@ trait SchedulerSuiteHelper extends DbManager {
 
   val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val transactor: HikariTransactor[Task] = zio.Runtime.default.unsafeRun(createDbTransactor(credentials,ec,Blocker.liftExecutionContext(ec), "EtlFlow-Scheduler-Testing-Pool"))
-  val etlJob_name_package: String = "etlflow.MyEtlJobName$"
+  val etlJob_name_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] + "$"
 
   val jobTestQueue = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
   lazy val dp_dep_libs: String = sys.env("DP_LIBS")

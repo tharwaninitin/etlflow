@@ -39,7 +39,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
                is_active
              }
            }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true},{"name":"EtlJob4","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true},{"name":"Job1","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
         )
       },
       testM("Test jobruns end point") {
@@ -123,32 +123,32 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_job_state":true}""")
         )
       },
-      testM("Test add cron job end point") {
-        val query = gqldoc(
-          """
-            mutation
-                {
-                  add_cron_job(job_name: "EtlJobDownload123", schedule: "0 15 * * * ?"){
-                   job_name
-                  }
-                }""")
-
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_cron_job":{"job_name":"EtlJobDownload123"}}""")
-        )
-      },
-      testM("Test update cron job end point") {
-        val query = gqldoc(
-          """
-            mutation
-                {
-                  update_cron_job(job_name: "EtlJobDownload123", schedule: "0 15 * * * ?"){
-                   job_name
-                  }
-                }""")
-
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_cron_job":{"job_name":"EtlJobDownload123"}}""")
-        )
-      },
+//      testM("Test add cron job end point") {
+//        val query = gqldoc(
+//          """
+//            mutation
+//                {
+//                  add_cron_job(job_name: "EtlJobDownload123", schedule: "0 15 * * * ?"){
+//                   job_name
+//                  }
+//                }""")
+//
+//        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_cron_job":{"job_name":"EtlJobDownload123"}}""")
+//        )
+//      },
+//      testM("Test update cron job end point") {
+//        val query = gqldoc(
+//          """
+//            mutation
+//                {
+//                  update_cron_job(job_name: "EtlJobDownload123", schedule: "0 15 * * * ?"){
+//                   job_name
+//                  }
+//                }""")
+//
+//        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_cron_job":{"job_name":"EtlJobDownload123"}}""")
+//        )
+//      },
       testM("Test add credentials end point") {
         val query = gqldoc(
           """

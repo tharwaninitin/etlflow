@@ -1,24 +1,20 @@
 package etlflow.utils
 
 import etlflow.utils.EtlFlowHelper.{EtlJobArgs, Props}
-import org.slf4j.{Logger, LoggerFactory}
 
 object RequestValidator {
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-
-  def validator(job_name:String,props:Option[String]) : Either[String,EtlJobArgs] = {
-
-    var props_list: List[Props] = List.empty
+  def apply(job_name: String, props: Option[String]): Either[String, EtlJobArgs] = {
     if(props.isDefined) {
-      val expected_props = JsonCirce.convertToObject[Map[String, String]](props.get.replaceAll("\\(","\\{").replaceAll("\\)","\\}"))
-      expected_props foreach {
-        case (k, v) => {
-          props_list = Props(k, v) :: props_list
-        }
+      val expected_props = JsonCirce.convertToObjectEither[Map[String, String]](props.get.replaceAll("\\(","\\{").replaceAll("\\)","\\}"))
+      expected_props match {
+        case Left(e) => Left(e.getMessage)
+        case Right(props) =>
+          val output = EtlJobArgs(job_name, props.map{ case (k, v) => Props(k, v) }.toList)
+          Right(output)
       }
-      Right(EtlJobArgs(job_name, props_list))
-    }else{
-      Right(EtlJobArgs(job_name, List.empty))
+    } else {
+      val output = EtlJobArgs(job_name, List.empty)
+      Right(output)
     }
   }
 }

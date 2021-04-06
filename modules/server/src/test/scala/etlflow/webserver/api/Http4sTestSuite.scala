@@ -26,10 +26,10 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
     Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
 
   val etlFlowInterpreter: Task[GraphQLInterpreter[Console with Clock with Blocking with EtlFlowHas, CalibanError]] =
-    EtlFlowApi.api.interpreter
+    GqlAPI.api.interpreter
 
   val loginInterpreter1: Task[GraphQLInterpreter[Console with Clock with Blocking with EtlFlowHas, CalibanError]] =
-    LoginApi.api.interpreter
+    GqlLoginAPI.api.interpreter
 
   type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
 

@@ -35,8 +35,8 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
         (for {
           metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
           metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
-          etlFlowInterpreter <- EtlFlowApi.api.interpreter.toManaged_
-          loginInterpreter   <- LoginApi.api.interpreter.toManaged_
+          etlFlowInterpreter <- GqlAPI.api.interpreter.toManaged_
+          loginInterpreter   <- GqlLoginAPI.api.interpreter.toManaged_
           banner = """
                      |   ________   _________    _____      ________    _____        ___     ____      ____
                      |  |_   __  | |  _   _  |  |_   _|    |_   __  |  |_   _|     .'   `.  |_  _|    |_  _|
@@ -52,6 +52,9 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
             .withBanner(banner)
             .withResponseHeaderTimeout(110.seconds)
             .withIdleTimeout(120.seconds)
+            .withServiceErrorHandler(_ => {
+              case ex: Throwable => InternalServerError(ex.getMessage)
+            })
             .withHttpApp(
               Router[EtlFlowTask](
                 "/about" -> otherRoutes,
@@ -71,7 +74,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                 "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                 "/ws/etlflow"     -> CORS(new StatsStreams[EtlFlowTask](cache).streamRoutes),
                 "/api"     -> AuthMiddleware(
-                  CORS(new TriggerJob[EtlFlowTask].triggerEtlJob[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
+                  CORS(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
                   authEnabled = true,
                   cache),
               ).orNotFound

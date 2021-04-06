@@ -1,7 +1,8 @@
 package etlflow.utils
 
 import etlflow.etljobs.EtlJob
-import etlflow.{EtlJobPropsMapping, EtlJobProps}
+import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import io.circe
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}
@@ -78,5 +79,9 @@ object JsonCirce  {
   def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): T = {
     val decodeResult1 = parser.decode[T](str)
     decodeResult1.toOption.get
+  }
+
+  def convertToObjectEither[T](str: String)(implicit Decoder: Decoder[T]): Either[circe.Error, T] = {
+    parser.decode[T](str)
   }
 }

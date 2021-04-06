@@ -1,7 +1,6 @@
 package etlflow.utils
 
 import org.scalatest.{FlatSpec, Matchers}
-
 import scala.concurrent.duration._
 
 class CacheHelperTestSuite  extends FlatSpec with Matchers {
@@ -9,7 +8,6 @@ class CacheHelperTestSuite  extends FlatSpec with Matchers {
   val cache = CacheHelper.createCache[String]
   CacheHelper.putKey(cache,"key1","123")
   CacheHelper.putKey(cache,"key3","123",ttl = Some(2.second))
-
 
   "The value stored in the underlying cache" should "run successfully" in {
     assert(CacheHelper.getKey(cache,"key1").getOrElse("NA") == "123")

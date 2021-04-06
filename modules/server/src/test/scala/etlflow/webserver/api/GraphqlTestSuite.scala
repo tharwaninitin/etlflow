@@ -10,8 +10,8 @@ import zio.test._
 object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
   val env = Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
-  val etlFlowInterpreter = EtlFlowApi.api.interpreter
-  val loginInterpreter   = LoginApi.api.interpreter
+  val etlFlowInterpreter = GqlAPI.api.interpreter
+  val loginInterpreter   = GqlLoginAPI.api.interpreter
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

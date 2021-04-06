@@ -9,7 +9,7 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
 
-object LoginApi extends GenericSchema[EtlFlowHas] {
+object GqlLoginAPI extends GenericSchema[EtlFlowHas] {
 
   case class Mutations(login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth])
   case class Queries(dummy: Task[String])

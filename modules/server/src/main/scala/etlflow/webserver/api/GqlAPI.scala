@@ -16,7 +16,7 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.stream.ZStream
 
-object EtlFlowApi extends GenericSchema[EtlFlowHas] {
+object GqlAPI extends GenericSchema[EtlFlowHas] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
   implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {

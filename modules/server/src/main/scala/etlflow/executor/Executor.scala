@@ -26,7 +26,7 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
       default_props  <- Task(getJobPropsMapping[EJN](args.name,etl_job_name_package)).mapError(e => ExecutionError(e.getMessage))
       actual_props   =  args.props.map(x => (x.key,x.value)).toMap
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      db_job         <- Query.getJobFromDB(args.name,transactor)
+      db_job         <- Query.getJob(args.name,transactor)
       final_props    =  default_props ++ actual_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
       props_json     = convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
       _              <- job_queue.offer((args.name,submitted_from,props_json,UF.getCurrentTimestampAsString()))

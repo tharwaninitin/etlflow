@@ -7,7 +7,7 @@ import etlflow.SchedulerSuiteHelper
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper
 import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.db.Query
+import etlflow.utils.db.{Query, Update}
 import etlflow.utils.QueueHelper
 import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
@@ -21,12 +21,11 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
   case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
   case class CredentialDB(name: String, `type`: String, value: String)
 
-  def testHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]) : ZLayer[Any, Throwable, EtlFlowHas] = ZLayer.fromEffect {
-    Task {
+  def testHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]): ULayer[EtlFlowHas] = ZLayer.succeed {
       new EtlFlow.Service() {
 
         override def updateJobState(args: EtlFlowHelper.EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] = {
-          Query.updateJobState(args, transactor)
+          Update.updateJobState(args, transactor)
         }
 
         override def login(args: EtlFlowHelper.UserArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.UserAuth] = {
@@ -34,11 +33,11 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         }
 
         override def addCronJob(args: EtlFlowHelper.CronJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.CronJob] = {
-          Query.addCronJob(args, transactor)
+          Update.addCronJob(args, transactor)
         }
 
         override def updateCronJob(args: EtlFlowHelper.CronJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.CronJob] = {
-          Query.updateCronJob(args, transactor)
+          Update.updateCronJob(args, transactor)
         }
 
         override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
@@ -52,38 +51,29 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         }
 
         override def getDbJobRuns(args: EtlFlowHelper.DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
-          Query.getDbJobRuns(args, transactor)
+          Query.getJobRuns(args, transactor)
         }
 
         override def addCredentials(args: EtlFlowHelper.CredentialsArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.Credentials] = {
-          Query.addCredentials(args, transactor)
+          Update.addCredentials(args, transactor)
         }
 
         override def updateCredentials(args: EtlFlowHelper.CredentialsArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.Credentials] = {
-          Query.updateCredentials(args, transactor)
+          Update.updateCredentials(args, transactor)
         }
 
         override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {
-          Query.getDbStepRuns(args, transactor)
+          Query.getStepRuns(args, transactor)
         }
+
+        override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] = QueueHelper.takeAll(jobTestQueue)
 
         override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
-
         override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
-
         override def notifications: ZStream[EtlFlowHas, Nothing, EtlFlowHelper.EtlJobStatus] = ???
-
         override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
-
         override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] = ???
-
-        override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] = {
-          QueueHelper.takeAll(jobTestQueue)
-        }
-
         override def getJobLogs(args: EtlFlowHelper.JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] = ???
-
       }
-    }
   }
 }

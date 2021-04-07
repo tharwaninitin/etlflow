@@ -4,15 +4,14 @@ import doobie.hikari.HikariTransactor
 import etlflow.executor.Executor
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.db.Query
+import etlflow.utils.db.{Query, Update}
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
-import etlflow.{EtlJobPropsMapping, EtlJobProps, BuildInfo => BI}
+import etlflow.{EtlJobProps, EtlJobPropsMapping, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
 import zio.stream.ZStream
-
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowService extends EtlFlowUtils with Executor {
@@ -71,15 +70,15 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {
-        Query.getDbStepRuns(args,transactor)
+        Query.getStepRuns(args,transactor)
       }
 
       override def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
-        Query.getDbJobRuns(args,transactor)
+        Query.getJobRuns(args,transactor)
       }
 
       override def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] = {
-        Query.updateJobState(args,transactor)
+        Update.updateJobState(args,transactor)
       }
 
       override def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =  {
@@ -110,19 +109,19 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       }
 
       override def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] = {
-        Query.addCredentials(args,transactor)
+        Update.addCredentials(args,transactor)
       }
 
       override def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] = {
-        Query.updateCredentials(args,transactor)
+        Update.updateCredentials(args,transactor)
       }
 
       override def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] = {
-        Query.addCronJob(args,transactor)
+        Update.addCronJob(args,transactor)
       }
 
       override def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] = {
-        Query.updateCronJob(args,transactor)
+        Update.updateCronJob(args,transactor)
       }
 
       override def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus] = ZStream.unwrap {

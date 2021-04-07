@@ -11,6 +11,8 @@ import doobie.implicits._
 import zio.interop.catz._
 import doobie.ConnectionIO
 import etlflow.log.ApplicationLogger
+import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
+import etlflow.utils.JsonJackson
 
 object Update extends ApplicationLogger {
 
@@ -35,6 +37,67 @@ object Update extends ApplicationLogger {
       logger.error(e.getMessage)
       ExecutionError(e.getMessage)
     }
+
+  def updateJobState(args: EtlJobStateArgs,transactor: HikariTransactor[Task]): Task[Boolean] = {
+    sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
+      .update
+      .run
+      .transact(transactor).map(_ => args.state)
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+
+  def addCredentials(args: CredentialsArgs, transactor: HikariTransactor[Task]): Task[Credentials] = {
+    val credentialsDB = CredentialDB(
+      args.name,
+      args.`type`.get match {
+        case JDBC => "jdbc"
+        case AWS => "aws"
+      },
+      JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+    )
+
+    sql"INSERT INTO credentials (name,type,value) VALUES (${credentialsDB.name}, ${credentialsDB.`type`}, ${credentialsDB.value})"
+      .update
+      .run
+      .transact(transactor)
+      .map(_ => Credentials(credentialsDB.name,credentialsDB.`type`,credentialsDB.value))
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+
+  def updateCredentials(args: CredentialsArgs,transactor: HikariTransactor[Task]): Task[Credentials] = {
+
+    val value = JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+    sql"UPDATE credentials SET value = ${value} WHERE name = ${args.name}"
+      .update.run.transact(transactor).map(_ => Credentials(args.name,"",value))
+
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+
+  def addCronJob(args: CronJobArgs,transactor: HikariTransactor[Task]): Task[CronJob] = {
+    val cronJobDB = JobDB(args.job_name,"", args.schedule.toString,0,0,is_active = true)
+    sql"""INSERT INTO job (job_name,schedule,failed,success,is_active)
+         VALUES (${cronJobDB.job_name}, ${cronJobDB.schedule}, ${cronJobDB.failed}, ${cronJobDB.success}, ${cronJobDB.is_active})"""
+      .update
+      .run
+      .transact(transactor).map(_ => CronJob(cronJobDB.job_name,"",Cron(cronJobDB.schedule).toOption,0,0))
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+
+  def updateCronJob(args: CronJobArgs,transactor: HikariTransactor[Task]): Task[CronJob] = {
+    sql"UPDATE job SET schedule = ${args.schedule.toString} WHERE job_name = ${args.job_name}"
+      .update.run.transact(transactor).map(_ => CronJob(args.job_name,"",Some(args.schedule),0,0))
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
 
   private def deleteJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
     val list = NonEmptyList(jobs.head,jobs.tail).map(x => x.job_name)

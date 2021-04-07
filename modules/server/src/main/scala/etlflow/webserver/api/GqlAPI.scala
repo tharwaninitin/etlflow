@@ -9,7 +9,7 @@ import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.EtlFlowHelper.{JobLogsArgs, getJobLogs, _}
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -33,8 +33,10 @@ object GqlAPI extends GenericSchema[EtlFlowHas] {
                       metrics: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics],
                       currentime: ZIO[EtlFlowHas, Throwable, CurrentTime],
                       cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheDetails]],
-                      queueStats:ZIO[EtlFlowHas, Throwable, List[QueueDetails]]
-                    )
+                      queueStats:ZIO[EtlFlowHas, Throwable, List[QueueDetails]],
+                      jobLogs: JobLogsArgs => ZIO[EtlFlowHas, Throwable, List[JobLogs]]
+
+  )
 
   case class Mutations(
                         run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
@@ -65,6 +67,7 @@ object GqlAPI extends GenericSchema[EtlFlowHas] {
           getCurrentTime,
           getCacheStats,
           getQueueStats,
+          args => getJobLogs(args)
         ),
         Mutations(
           args => runJob(args),

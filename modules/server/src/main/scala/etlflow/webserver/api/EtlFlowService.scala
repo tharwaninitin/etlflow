@@ -62,6 +62,10 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
         QueueHelper.takeAll(jobQueue)
       }
 
+      override def getJobLogs(args: JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] = {
+        Query.getJobLogs(args,transactor)
+      }
+
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
         runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"GraphQL-API",jobQueue)
       }

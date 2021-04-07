@@ -8,6 +8,7 @@ import zio.{Task, UIO, ZIO}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
+import GqlService._
 
 object GqlLoginAPI extends GenericSchema[EtlFlowHas] {
 

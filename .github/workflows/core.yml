@@ -1,4 +1,4 @@
-name: Core Tests
+name: Core Workflow
 on: [push]
 jobs:
   test:

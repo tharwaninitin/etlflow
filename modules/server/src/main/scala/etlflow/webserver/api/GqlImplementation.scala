@@ -14,7 +14,7 @@ import zio.blocking.Blocking
 import zio.stream.ZStream
 import scala.reflect.runtime.universe.TypeTag
 
-trait EtlFlowService extends EtlFlowUtils with Executor {
+trait GqlImplementation extends EtlFlowUtils with Executor {
 
   val config: Config
 
@@ -32,8 +32,7 @@ trait EtlFlowService extends EtlFlowUtils with Executor {
       etl_job_name_package  = UF.getJobNamePackage[EJN] + "$"
       mb                    = 1024*1024
       javaRuntime           = java.lang.Runtime.getRuntime
-    } yield new EtlFlow.Service {
-
+    } yield new GqlService {
 
       def getLoginCacheStats:CacheDetails = {
         val data:Map[String,String] = CacheHelper.toMap(cache)

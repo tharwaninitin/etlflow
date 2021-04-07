@@ -1,4 +1,4 @@
-name: Server Tests
+name: Server Workflow
 on: [push]
 jobs:
   test:

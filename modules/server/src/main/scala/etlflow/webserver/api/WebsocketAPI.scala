@@ -2,27 +2,26 @@ package etlflow.webserver.api
 
 import cats.effect.{ContextShift, Sync, Timer}
 import cats.{Applicative, Functor}
+import etlflow.log.ApplicationLogger
 import etlflow.utils.CacheHelper
 import fs2.{Pipe, Stream}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
-import org.slf4j.{Logger, LoggerFactory}
 import scalacache.Cache
 import scala.concurrent.duration._
 
-class StatsStreams[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) extends Http4sDsl[F] {
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-  val mb: Int = 1024*1024
-  val runtime: Runtime = Runtime.getRuntime
+class WebsocketAPI[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) extends Http4sDsl[F] with ApplicationLogger {
+  private val mb: Int = 1024*1024
+  private val runtime: Runtime = Runtime.getRuntime
 
   private def ticker[F[_]: Functor: Timer, A](stream: Stream[F, A]): Stream[F, A] =
     (Stream.emit(Duration.Zero) ++ Stream.awakeEvery[F](5.seconds))
       .as(stream)
       .flatten
 
-  def stream[F[_]: Sync: ContextShift: Timer]: Stream[F, String] =
+  private def stream[F[_]: Sync: ContextShift: Timer]: Stream[F, String] =
     ticker(
       Stream.eval(Sync[F].delay{
         s"""

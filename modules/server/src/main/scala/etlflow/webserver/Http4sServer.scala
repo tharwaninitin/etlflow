@@ -23,7 +23,7 @@ import zio.{Queue, Semaphore, Task, ZEnv, ZIO}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
+trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
 
   val otherRoutes:HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
@@ -72,7 +72,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with EtlFlowService {
                   ))
                 ),
                 "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
-                "/ws/etlflow"     -> CORS(new StatsStreams[EtlFlowTask](cache).streamRoutes),
+                "/ws/etlflow"     -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
                 "/api"     -> AuthMiddleware(
                   CORS(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
                   authEnabled = true,

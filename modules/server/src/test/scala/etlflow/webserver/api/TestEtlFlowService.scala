@@ -22,7 +22,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
   case class CredentialDB(name: String, `type`: String, value: String)
 
   def testHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]): ULayer[EtlFlowHas] = ZLayer.succeed {
-      new EtlFlow.Service() {
+      new GqlService {
 
         override def updateJobState(args: EtlFlowHelper.EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] = {
           Update.updateJobState(args, transactor)

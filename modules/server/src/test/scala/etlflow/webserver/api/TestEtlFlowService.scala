@@ -80,6 +80,9 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] = {
           QueueHelper.takeAll(jobTestQueue)
         }
+
+        override def getJobLogs(args: EtlFlowHelper.JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] = ???
+
       }
     }
   }

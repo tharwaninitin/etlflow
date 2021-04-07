@@ -9,7 +9,7 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import etlflow.log.{ApplicationLogger, JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.EtlFlowHelper.{JobLogs, JobLogsArgs, _}
 import etlflow.utils.{CacheHelper, JsonJackson}
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import scalacache.Cache
@@ -339,5 +339,101 @@ object Query extends ApplicationLogger {
       .query[JobDB] // Query0[String]
       .to[List]
       .transact(transactor)
+  }
+
+  def getJobLogs(args: JobLogsArgs, transactor: HikariTransactor[Task]): Task[List[JobLogs]] = {
+
+    var q: ConnectionIO[List[JobLogs]] = null
+
+    try {
+      if(args.filter.isDefined && args.limit.isDefined) {
+        val filter = args.filter.get
+        logger.info("filter :" + filter)
+        q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+                  SELECT job_name,
+                        CASE
+                            WHEN state = 'pass'
+                                  THEN sum(count) ELSE 0
+                        END success,
+                        CASE
+                            WHEN state != 'pass'
+                                  THEN sum(count) ELSE 0
+                        END failed
+                  FROM (select job_name, state,count(*) as count from jobrun
+                 	  WHERE start_time::timestamp::date BETWEEN now()::timestamp::date - interval ${filter} AND now()::timestamp::date
+                 	  GROUP by job_name,state limit ${args.limit}) t
+                 	  GROUP by job_name,state
+                  ) t1 GROUP by job_name;""".stripMargin
+          .query[JobLogs] // Query0[String]
+          .to[List]
+      } else if (args.filter.isDefined) {
+        logger.info("inside is defines")
+        q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+                  SELECT job_name,
+                         CASE
+                            WHEN state = 'pass'
+                            THEN sum(count)
+                            ELSE 0
+                        END success,
+                        CASE
+                            WHEN state != 'pass'
+                            THEN sum(count)
+                            ELSE 0
+                        END failed
+                 FROM (select job_name, state,count(*) as count from jobrun
+                 	  WHERE start_time::timestamp::date BETWEEN now()::timestamp::date - interval ${args.filter.get.toString} AND now()::timestamp::date
+                 	  GROUP by job_name,state limit 50) t
+                 	  GROUP by job_name,state
+                 ) t1 GROUP by job_name;""".stripMargin
+          .query[JobLogs] // Query0[String]
+          .to[List]
+      } else if(args.limit.isDefined) {
+        q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+                 SELECT job_name,
+                        CASE
+                            WHEN state = 'pass'
+                            THEN sum(count)
+                            ELSE 0
+                        END success,
+                        CASE
+                            WHEN state != 'pass'
+                            THEN sum(count)
+                            ELSE 0
+                        END failed
+                 FROM (select job_name, state,count(*) as count from jobrun
+                 	  GROUP by job_name,state limit ${args.limit}) t
+                 	  GROUP by job_name,state
+                 ) t1 GROUP by job_name;""".stripMargin
+          .query[JobLogs] // Query0[String]
+          .to[List]
+      } else {
+        q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+                   SELECT job_name,
+                          CASE
+                              WHEN state = 'pass'
+                              THEN sum(count)
+                              ELSE 0
+                          END success,
+                          CASE
+                              WHEN state != 'pass'
+                              THEN sum(count)
+                              ELSE 0
+                          END failed
+                   FROM (select job_name, state,count(*) as count from jobrun
+                   	  GROUP by job_name,state limit 100) t
+                   	  GROUP by job_name,state
+                   ) t1 GROUP by job_name;""".stripMargin
+          .query[JobLogs] // Query0[String]
+          .to[List]
+      }
+      q.transact(transactor)
+    } catch {
+      case x: Throwable =>
+        // This below code should be error free always
+        logger.error(s"Exception occurred for arguments $args")
+        x.getStackTrace.foreach(msg => logger.error("=> " + msg.toString))
+        // Throw error here or DummyResults
+        throw x
+    }
   }
 }

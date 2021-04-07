@@ -12,6 +12,7 @@ object EtlFlowHelper {
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
   case class JobDB(job_name: String, job_description: String ,schedule: String, failed: Long, success: Long, is_active: Boolean)
+  case class JobLogs(job_name: String,  success: Long, failed: Long)
 
   case class CredentialDB(name: String, `type`: String, value: String)
 
@@ -36,6 +37,7 @@ object EtlFlowHelper {
   case class DbStepRunArgs(job_run_id: String)
   case class CronJobArgs(job_name: String, schedule: CronExpr)
   case class CredentialsArgs(name: String, `type`: Option[Creds], value: List[Props])
+  case class JobLogsArgs(filter: Option[String] = None, limit:Option[Int] = None)
 
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
@@ -72,6 +74,7 @@ object EtlFlowHelper {
       def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
       def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime]
       def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]]
+      def getJobLogs(args: JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]]
 
       def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
       def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
@@ -129,5 +132,8 @@ object EtlFlowHelper {
 
   def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] =
     ZIO.accessM[EtlFlowHas](_.get.getQueueStats)
+
+  def getJobLogs(args: JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] =
+    ZIO.accessM[EtlFlowHas](_.get.getJobLogs(args))
 
 }

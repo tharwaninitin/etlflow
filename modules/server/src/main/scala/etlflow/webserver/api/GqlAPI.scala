@@ -37,7 +37,7 @@ object GqlAPI extends GenericSchema[EtlFlowHas] {
                     )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, Option[EtlJob]],
+                        run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
                         update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],

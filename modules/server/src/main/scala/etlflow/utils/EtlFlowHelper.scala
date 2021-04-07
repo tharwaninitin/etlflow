@@ -63,7 +63,7 @@ object EtlFlowHelper {
 
   object EtlFlow {
     trait Service {
-      def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]]
+      def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
       def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean]
       def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
       def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
@@ -85,7 +85,7 @@ object EtlFlowHelper {
 
   type EtlFlowHas = Has[EtlFlow.Service]
 
-  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]] =
+  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] =
     ZIO.accessM[EtlFlowHas](_.get.runJob(args))
 
   def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] =

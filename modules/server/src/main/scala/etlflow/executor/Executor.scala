@@ -21,24 +21,22 @@ import scala.reflect.runtime.universe.TypeTag
 trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFlowUtils {
 
   final def runActiveEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)]): Task[Option[EtlJob]] = {
-    for {
-      _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
-      default_props  =  getJobPropsMapping[EJN](args.name,etl_job_name_package)
+  (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)]): Task[EtlJob] = {
+    (for {
+      default_props  <- Task(getJobPropsMapping[EJN](args.name,etl_job_name_package)).mapError(e => ExecutionError(e.getMessage))
       actual_props   =  args.props.map(x => (x.key,x.value)).toMap
-      final_props    =  default_props ++ actual_props + ("submitted_at" -> UF.getCurrentTimestampAsString())
-       _             <- job_queue.offer((args.name,submitted_from,convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")),UF.getCurrentTimestampAsString()))
-      etljob         <- Query.getJobFromDB(args.name,transactor).flatMap( cj =>
-        if (cj.is_active) {
-           UIO(logger.info(s"Submitting job ${cj.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package,final_props("job_retry_delay_in_minutes").toInt,final_props("job_retries").toInt).map(Some(_))
-        } else
-          UIO(logger.info(s"Skipping inactive job ${cj.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${cj.job_name} is disabled")).as(None)
-      )
-    } yield etljob
+      _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
+      db_job         <- Query.getJobFromDB(args.name,transactor)
+      final_props    =  default_props ++ actual_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
+      props_json     = convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
+      _              <- job_queue.offer((args.name,submitted_from,props_json,UF.getCurrentTimestampAsString()))
+      _              <- if (db_job.is_active) UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package, default_props("job_retry_delay_in_minutes").toInt, default_props("job_retries").toInt)
+                        else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
+    } yield EtlJob(args.name,final_props)).provideLayer(Clock.live ++ Blocking.live)
   }
 
   final def runEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, spaced:Int, retry:Int): Task[EtlJob] = {
+  (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, spaced:Int, retry:Int): RIO[Blocking with Clock, Unit] = {
     UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         runLocalSubProcessJob(args, transactor, etl_job_name_package, lsp, sem,true,spaced,retry)
@@ -53,45 +51,36 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
     }
   }
 
-  final def runLocalJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): Task[EtlJob] = {
-    var retry_number = 0
-    for {
-      etlJob     <- validateJob(args, etl_job_name_package)
-      props_map  = args.props.map(x => (x.key,x.value)).toMap
-      jobRun     = blocking(LocalExecutorService.executeLocalJob(args.name, props_map,etl_job_name_package).provideLayer(LocalExecutor.live)).provideLayer(Blocking.live).map(_ => retry_number += 1)
-        .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry)).provideLayer(Clock.live).tapError( ex => UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
-      ) *> Update.updateSuccessJob(args.name, transactor)
-      _          <- if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)
-    } yield etlJob
-  }
-  final def runDataProcJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, config: DATAPROC, main_class: String, dp_libs: List[String], sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): Task[EtlJob] = {
-    for {
-      etlJob    <- validateJob(args, etl_job_name_package)
-      props_map = args.props.map(x => (x.key, x.value)).toMap
-      jobRun    = blocking(DPService.executeSparkJob(args.name, props_map, main_class, dp_libs).provideLayer(DP.live(config))).provideLayer(Blocking.live)
-        .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry)).provideLayer(Clock.live).tapError( ex => UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
-      ) *> Update.updateSuccessJob(args.name, transactor)
-      _          <- if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)
-    } yield etlJob
-  }
-  final def runLocalSubProcessJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, config: LOCAL_SUBPROCESS, sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): Task[EtlJob] = {
-    for {
-      etlJob    <- validateJob(args, etl_job_name_package)
-      props_map = args.props.map(x => (x.key, x.value)).toMap
-      jobRun    = blocking(LocalExecutorService.executeLocalSubProcessJob(args.name, props_map, config).provideLayer(LocalExecutor.live)).provideLayer(Blocking.live)
-        .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry)).provideLayer(Clock.live).tapError( ex =>
+  final def runLocalJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): RIO[Blocking with Clock,Unit] = {
+    val jobRun = blocking(LocalExecutorService.executeLocalJob(args.name, args.props.map(x => (x.key, x.value)).toMap,etl_job_name_package).provideLayer(LocalExecutor.live))
+      .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
+      .tapError( ex =>
         UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
       ) *> Update.updateSuccessJob(args.name, transactor)
-      _          <- if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)
-    } yield etlJob
+    (if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)).as(())
   }
-  final def runKubernetesJob(args: EtlJobArgs, db: JDBC, transactor: HikariTransactor[Task], etl_job_name_package: String, config: KUBERNETES, sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): Task[EtlJob] = {
-    for {
-      etlJob  <- validateJob(args, etl_job_name_package)
-      jobRun  = blocking(runK8sJob(args,db,config)).provideLayer(Blocking.live).retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry)).provideLayer(Clock.live).tapError( ex =>
+  final def runDataProcJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, config: DATAPROC, main_class: String, dp_libs: List[String], sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): RIO[Blocking with Clock, Unit] = {
+    val jobRun = blocking(DPService.executeSparkJob(args.name, args.props.map(x => (x.key, x.value)).toMap, main_class, dp_libs).provideLayer(DP.live(config)))
+      .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
+      .tapError( ex =>
         UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
       ) *> Update.updateSuccessJob(args.name, transactor)
-      _        <- if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)
-    } yield etlJob
+    (if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)).as(())
+  }
+  final def runLocalSubProcessJob(args: EtlJobArgs, transactor: HikariTransactor[Task], etl_job_name_package: String, config: LOCAL_SUBPROCESS, sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): RIO[Blocking with Clock, Unit] = {
+    val jobRun = blocking(LocalExecutorService.executeLocalSubProcessJob(args.name, args.props.map(x => (x.key, x.value)).toMap, config).provideLayer(LocalExecutor.live))
+      .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
+      .tapError( ex =>
+        UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
+      ) *> Update.updateSuccessJob(args.name, transactor)
+    (if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)).as(())
+  }
+  final def runKubernetesJob(args: EtlJobArgs, db: JDBC, transactor: HikariTransactor[Task], etl_job_name_package: String, config: KUBERNETES, sem: Semaphore, fork: Boolean = true,spaced:Int=0, retry:Int=0): RIO[Blocking with Clock, Unit] = {
+    val jobRun  = blocking(runK8sJob(args,db,config))
+      .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
+      .tapError( ex =>
+        UIO(println(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
+      ) *> Update.updateSuccessJob(args.name, transactor)
+    (if(fork) sem.withPermit(jobRun).forkDaemon else sem.withPermit(jobRun)).as(())
   }
 }

@@ -67,7 +67,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
           Query.getDbStepRuns(args, transactor)
         }
 
-        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlFlowHelper.EtlJob]] = ???
+        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
 
         override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
 

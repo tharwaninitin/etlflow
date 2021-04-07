@@ -18,7 +18,7 @@ abstract class WebServerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
       blocker         <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       transactor      <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "EtlFlowWebServer-Pool", 10)(blocker)
       cache           = CacheHelper.createCache[String]
-      queue           <- Queue.sliding[(String,String,String,String)](20).toManaged_
+      queue           <- Queue.sliding[(String,String,String,String)](50).toManaged_
       _               = config.token.map( _.foreach( tkn => CacheHelper.putKey(cache,tkn,tkn)))
       cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
       jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_

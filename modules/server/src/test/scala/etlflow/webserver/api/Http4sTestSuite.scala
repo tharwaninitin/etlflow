@@ -16,7 +16,7 @@ import zio.console.Console
 import zio.interop.catz._
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, Runtime, Task, ZEnv, ZLayer}
+import zio.{RIO, Runtime, Task, ZEnv, ZIO, ZLayer}
 
 object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
@@ -43,11 +43,17 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
      "/api/login" -> Http4sAdapter.makeHttpService(loginInterpreter)
   )
 
-  val client: Client[EtlFlowTask] = Client.fromHttpApp[EtlFlowTask](routes.orNotFound)
+  private val client: Client[EtlFlowTask] = Client.fromHttpApp[EtlFlowTask](routes.orNotFound)
+  private val apiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))
+  private def apiResponse(apiRequest: Request[EtlFlowTask]): ZIO[ZEnv, Throwable, Either[String, String]] =
+    client.fetch(apiRequest) {
+      case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
+      case r => r.as[String].map(b => Left(s"${r.status.code}"))
+    }.provideCustomLayer(env)
 
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
+  override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Http4s Test Suite")(
-      testM("Test jobs end point with authorization header") {
+      testM("Test jobs end point with correct authorization header") {
         val loginBody = Json.obj("query" -> Json.fromString("""
                 mutation
                 {
@@ -58,7 +64,6 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
         val loginRequest = Request[EtlFlowTask](method = POST, uri = uri"/api/login").withEntity(loginBody)
         val loginResponse = client.expect[String](loginRequest).provideCustomLayer(env)
-        val apiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))
 
         val apiRequest = for {
           jsonOutput <- loginResponse
@@ -69,15 +74,17 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         val apiResponse = client.expect[String](apiRequest).provideCustomLayer(env)
         assertM(apiResponse)(equalTo("""{"data":{"jobs":[{"name":"EtlJobDownload"},{"name":"Job1"}]}}"""))
       },
-      testM("Test jobs end point without authorization header") {
-        val apiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))
+      testM("Test jobs end point with blank authorization header") {
         val apiRequest = Request[EtlFlowTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization",""))).withEntity(apiBody)
-        val apiResponse =client.fetch(apiRequest) {
-          case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
-          case r => r.as[String]
-            .map(b => Left(s"${r.status.code}"))
-        }.provideCustomLayer(env)
-        assertM(apiResponse)(equalTo(Left("403")))
+        assertM(apiResponse(apiRequest))(equalTo(Left("403")))
+      },
+      testM("Test jobs end point with incorrect authorization header") {
+        val apiRequest = Request[EtlFlowTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization","abcd"))).withEntity(apiBody)
+        assertM(apiResponse(apiRequest))(equalTo(Left("403")))
+      },
+      testM("Test jobs end point without authorization header") {
+        val apiRequest = Request[EtlFlowTask](method = POST, uri = uri"/api/etlflow").withEntity(apiBody)
+        assertM(apiResponse(apiRequest))(equalTo(Left("403")))
       }
-    )
+    ) @@ TestAspect.sequential
 }

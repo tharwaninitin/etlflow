@@ -1,7 +1,7 @@
 package etlflow.jdbc
 
 import cats.effect.Blocker
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import com.zaxxer.hikari.HikariConfig
 import doobie.hikari.HikariTransactor
 import doobie.util.fragment.Fragment
 import etlflow.utils.JsonJackson
@@ -49,17 +49,6 @@ trait DbManager {
     logger.info(configuration.info().all().toList.map(x => x.getPhysicalLocation).mkString("\n","\n",""))
     if (clean) configuration.clean()
     configuration.migrate()
-  }
-
-  def createDbTransactor(credentials: JDBC, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool", pool_size: Int = 2): Task[HikariTransactor[Task]] = Task {
-    val dataSource = new HikariDataSource()
-    dataSource.setDriverClassName(credentials.driver)
-    dataSource.setJdbcUrl(credentials.url)
-    dataSource.setUsername(credentials.user)
-    dataSource.setPassword(credentials.password)
-    dataSource.setMaximumPoolSize(pool_size)
-    dataSource.setPoolName(pool_name)
-    HikariTransactor[Task](dataSource, ec, blocker)
   }
 
 }

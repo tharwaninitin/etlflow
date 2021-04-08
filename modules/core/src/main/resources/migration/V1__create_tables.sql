@@ -39,9 +39,12 @@ CREATE TABLE "userinfo" (
 );
 
 CREATE TABLE "credentials" (
-    "name" varchar(100) PRIMARY KEY,
+    "name" varchar(100),
     "type" varchar(100) NOT NULL,
-    "value" text NOT NULL
+    "value" text NOT NULL,
+    "valid_from" TIMESTAMP(0) NOT NULL DEFAULT NOW(),
+    "valid_to" TIMESTAMP(0),
+    "credential_key" SERIAL PRIMARY KEY
 );
 
 CREATE INDEX "steprun_job_run_id" ON "steprun" ("job_run_id");

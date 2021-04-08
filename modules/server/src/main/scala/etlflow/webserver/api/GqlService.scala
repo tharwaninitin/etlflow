@@ -16,6 +16,7 @@ trait GqlService {
   def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime]
   def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]]
   def getJobLogs(args: JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]]
+  def getCredentials: ZIO[EtlFlowHas, Throwable, List[UpdateCredentialDB]]
 
   def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
   def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
@@ -75,5 +76,8 @@ object GqlService {
 
   def getJobLogs(args: JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] =
     ZIO.accessM[EtlFlowHas](_.get.getJobLogs(args))
+
+  def getCredentials: ZIO[EtlFlowHas, Throwable, List[UpdateCredentialDB]] =
+    ZIO.accessM[EtlFlowHas](_.get.getCredentials)
 
 }

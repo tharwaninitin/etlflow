@@ -15,7 +15,7 @@ object EtlFlowHelper {
   case class JobLogs(job_name: String,  success: Long, failed: Long)
 
   case class CredentialDB(name: String, `type`: String, value: String)
-
+  case class UpdateCredentialDB(name: String, `type`: String,valid_from:String)
   // GraphQL ARGS and Results
   sealed trait Creds
   object Creds {

@@ -64,6 +64,10 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
         Query.getJobLogs(args,transactor)
       }
 
+      override def getCredentials: ZIO[EtlFlowHas, Throwable, List[UpdateCredentialDB]] = {
+        Query.getCredentials(transactor)
+      }
+
       override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
         runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"GraphQL-API",jobQueue)
       }

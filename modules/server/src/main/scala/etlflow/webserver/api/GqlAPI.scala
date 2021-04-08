@@ -35,7 +35,8 @@ object GqlAPI extends GenericSchema[EtlFlowHas] {
                       currentime: ZIO[EtlFlowHas, Throwable, CurrentTime],
                       cacheStats:ZIO[EtlFlowHas, Throwable, List[CacheDetails]],
                       queueStats:ZIO[EtlFlowHas, Throwable, List[QueueDetails]],
-                      jobLogs: JobLogsArgs => ZIO[EtlFlowHas, Throwable, List[JobLogs]]
+                      jobLogs: JobLogsArgs => ZIO[EtlFlowHas, Throwable, List[JobLogs]] ,
+                      credential: ZIO[EtlFlowHas, Throwable, List[UpdateCredentialDB]]
 
   )
 
@@ -68,7 +69,8 @@ object GqlAPI extends GenericSchema[EtlFlowHas] {
           getCurrentTime,
           getCacheStats,
           getQueueStats,
-          args => getJobLogs(args)
+          args => getJobLogs(args),
+          getCredentials
         ),
         Mutations(
           args => runJob(args),

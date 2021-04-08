@@ -67,6 +67,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         }
 
         override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] = QueueHelper.takeAll(jobTestQueue)
+        override def getCredentials: ZIO[EtlFlowHas, Throwable, List[EtlFlowHelper.UpdateCredentialDB]] = Query.getCredentials(transactor)
 
         override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
         override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
@@ -74,8 +75,6 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
         override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] = ???
         override def getJobLogs(args: EtlFlowHelper.JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] = ???
-        override def getCredentials: ZIO[EtlFlowHas, Throwable, List[EtlFlowHelper.UpdateCredentialDB]] = ???
-
       }
   }
 }

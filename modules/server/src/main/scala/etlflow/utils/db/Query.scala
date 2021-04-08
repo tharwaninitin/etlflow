@@ -363,7 +363,7 @@ object Query extends ApplicationLogger {
   }
 
   def getCredentials(transactor: HikariTransactor[Task]): IO[ExecutionError, List[UpdateCredentialDB]] = {
-    sql"SELECT name, type ,valid_from FROM credentials WHERE valid_to is  null;"
+    sql"SELECT name, type::TEXT ,valid_from FROM credentials WHERE valid_to is null;"
       .query[UpdateCredentialDB]
       .to[List]
       .transact(transactor)

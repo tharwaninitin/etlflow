@@ -10,11 +10,24 @@ import zio.{IO, Task}
 import doobie.implicits._
 import zio.interop.catz._
 import doobie.ConnectionIO
+import doobie.util.meta.Meta
 import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
 import etlflow.utils.JsonJackson
+import org.postgresql.util.PGobject
 
 object Update extends ApplicationLogger {
+
+  // Uncomment this to see generated SQL queries in logs
+  // implicit val dbLogger = CustomLogHandler()
+
+  case class JsonString(str: String) extends AnyVal
+  implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
+    val o = new PGobject
+    o.setType("jsonb")
+    o.setValue(a.str)
+    o
+  })
 
   def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
     sql"UPDATE job SET success = (success + 1) WHERE job_name = ${job}"
@@ -51,14 +64,14 @@ object Update extends ApplicationLogger {
   def addCredentials(args: CredentialsArgs, transactor: HikariTransactor[Task]): Task[Credentials] = {
     val credentialsDB = CredentialDB(
       args.name,
-      args.`type`.get match {
+      args.`type` match {
         case JDBC => "jdbc"
         case AWS => "aws"
       },
       JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
     )
 
-    sql"INSERT INTO credentials (name,type,value) VALUES (${credentialsDB.name}, ${credentialsDB.`type`}, ${credentialsDB.value})"
+    sql"INSERT INTO credentials (name,type,value) VALUES (${credentialsDB.name}, ${credentialsDB.`type`}, ${JsonString(credentialsDB.value)})"
       .update
       .run
       .transact(transactor)
@@ -70,36 +83,35 @@ object Update extends ApplicationLogger {
 
   def updateCredentials(args: CredentialsArgs,transactor: HikariTransactor[Task]): Task[Credentials] = {
 
+    val value = JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+
     val credentialsDB = CredentialDB(
       args.name,
-      args.`type`.get match {
+      args.`type` match {
         case JDBC => "jdbc"
         case AWS => "aws"
       },
-      JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+      value
     )
-    val q = sql"""WITH
-                      -- Contains the data to be inserted
-                      inserts (name,type,value, valid_from) AS (
-                          SELECT *, NOW() FROM (VALUES
-                          ( ${credentialsDB.name},${credentialsDB.`type`},${credentialsDB.value})
-                          ) t
-                      ),
-                      -- Updates the old rows and returns a list of the updated surrogate IDs
-                      updates (credential_key) AS (
-                          UPDATE credentials
-                          SET valid_to = NOW() - INTERVAL '00:00:01'
-                          FROM inserts
-                          WHERE credentials.name = inserts.name
-                             AND credentials.valid_to IS NULL
-                          RETURNING credentials.credential_key
-                      )
-                      -- Insert the new data
-                      INSERT INTO credentials
-                      SELECT * FROM inserts;""".stripMargin
 
-    val value = JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
-    q.update.run.transact(transactor).map(_ => Credentials(args.name,"",value))
+    val updateQuery = sql"""
+    UPDATE credentials
+    SET valid_to = NOW() - INTERVAL '00:00:01'
+    WHERE credentials.name = ${credentialsDB.name}
+       AND credentials.valid_to IS NULL
+    """.stripMargin.update.run
+
+    val insertQuery = sql"""
+    INSERT INTO credentials (name,type,value)
+    VALUES (${credentialsDB.name},${credentialsDB.`type`},${JsonString(credentialsDB.value)});
+    """.stripMargin.update.run
+
+    val singleTran = for {
+      _ <- updateQuery
+      _ <- insertQuery
+    } yield ()
+
+    singleTran.transact(transactor).map(_ => Credentials(credentialsDB.name,credentialsDB.`type`,credentialsDB.value))
 
   }.mapError { e =>
     logger.error(e.getMessage)

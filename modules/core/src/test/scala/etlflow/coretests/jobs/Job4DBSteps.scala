@@ -10,7 +10,7 @@ case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
   val delete_credential_script = "DELETE FROM credentials WHERE name = 'etlflow'"
 
   val insert_credential_script = s"""
-      INSERT INTO credentials VALUES(
+      INSERT INTO credentials (name,type,value) VALUES(
       'etlflow',
       'jdbc',
       '{"url" : "${config.dbLog.url}", "user" : "${config.dbLog.user}", "password" : "${config.dbLog.password}", "driver" : "org.postgresql.Driver" }'
@@ -32,7 +32,7 @@ case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
   private val creds =  GetCredentialStep[JDBC](
     name  = "GetCredential",
     credential_name = "etlflow",
-  ).process()
+  )
 
   private def step1(cred: JDBC) = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
@@ -54,7 +54,7 @@ case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
     for {
       _     <- deleteCredStep
       _     <- addCredStep
-      cred  <- creds
+      cred  <- creds.execute()
       op2   <- step1(cred).execute()
       _     <- step2.execute(op2)
     } yield ()

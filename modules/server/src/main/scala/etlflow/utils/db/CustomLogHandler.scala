@@ -7,7 +7,7 @@ object CustomLogHandler extends ApplicationLogger {
   def apply(): LogHandler = {
     LogHandler {
       case Success(s, a, e1, e2) =>
-        logger.info(s"${s.linesIterator.dropWhile(_.trim.isEmpty).mkString(" ")}")
+        logger.info(s"${s.linesIterator.dropWhile(_.trim.isEmpty).mkString("\n")}")
         logger.info(s"arguments = [${a.mkString(", ")}]")
         logger.info(s"elapsed = ${e1.toMillis.toString} ms exec + ${e2.toMillis.toString} ms processing (${(e1 + e2).toMillis.toString} ms total)")
       case ProcessingFailure(s, a, e1, e2, t) =>

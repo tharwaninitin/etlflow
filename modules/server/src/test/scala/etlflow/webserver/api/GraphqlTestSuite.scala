@@ -16,19 +16,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("GraphQL Test Suite")(
-//      testM("Test jobs end point") {
-//        val query = gqldoc(
-//          """
-//           {
-//             queueStats {
-//                job_name
-//                submitted_from
-//             }
-//           }""")
-//        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
-//        )
-//      },
-      testM("Test jobs end point") {
+      testM("Test query jobs end point") {
         val query = gqldoc(
           """
            {
@@ -42,7 +30,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true},{"name":"Job1","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
         )
       },
-      testM("Test jobruns end point") {
+      testM("Test query jobruns end point") {
         val query = gqldoc(
           """
              {
@@ -54,7 +42,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobruns":[{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a301","job_name":"EtlJobDownload"},{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a302","job_name":"EtlJobSpr"}]}""")
         )
       },
-      testM("Test jobruns end point with filter condition IN") {
+      testM("Test query jobruns end point with filter condition IN") {
         val query = gqldoc(
           """
              {
@@ -69,7 +57,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(result)(equalTo("""{"jobruns":[{"job_name":"EtlJobDownload"}]}""")
         )
       },
-      testM("Test jobruns end point with filter condition NOT IN") {
+      testM("Test query jobruns end point with filter condition NOT IN") {
         val query = gqldoc(
           """
              {
@@ -84,7 +72,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(result)(equalTo("""{"jobruns":[{"job_name":"EtlJobSpr"}]}""")
         )
       },
-      testM("Test stepruns end point") {
+      testM("Test query stepruns end point") {
         val query = gqldoc(
           """
                  {
@@ -96,7 +84,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"stepruns":[{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a301","step_name":"download_spr"}]}""")
         )
       },
-      testM("Test Login end point with postive case") {
+      testM("Test mutation login end point with correct credentials") {
         val query = gqldoc(
           """
                 mutation
@@ -108,7 +96,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(loginInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Valid User"}}""")
         )
       },
-      testM("Test Login end point with negative case") {
+      testM("Test mutation login end point with incorrect credentials") {
         val query = gqldoc(
           """
                 mutation
@@ -120,7 +108,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(loginInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Invalid User"}}""")
         )
       },
-      testM("Test update job state end point") {
+      testM("Test mutation update job state end point") {
         val query = gqldoc(
           """
             mutation
@@ -131,33 +119,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_job_state":true}""")
         )
       },
-//      testM("Test add cron job end point") {
-//        val query = gqldoc(
-//          """
-//            mutation
-//                {
-//                  add_cron_job(job_name: "EtlJobDownload123", schedule: "0 15 * * * ?"){
-//                   job_name
-//                  }
-//                }""")
-//
-//        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_cron_job":{"job_name":"EtlJobDownload123"}}""")
-//        )
-//      },
-//      testM("Test update cron job end point") {
-//        val query = gqldoc(
-//          """
-//            mutation
-//                {
-//                  update_cron_job(job_name: "EtlJobDownload123", schedule: "0 15 * * * ?"){
-//                   job_name
-//                  }
-//                }""")
-//
-//        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_cron_job":{"job_name":"EtlJobDownload123"}}""")
-//        )
-//      },
-      testM("Test add credentials end point") {
+      testM("Test mutation add credentials end point") {
         val query = gqldoc(
           """
             mutation
@@ -177,7 +139,27 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_credentials":{"name":"flyway_testing"}}""".stripMargin)
         )
       },
-      testM("Test add credentials end point negative scenario") {
+      testM("Test mutation add credentials end point duplicate") {
+        val query = gqldoc(
+          """
+            mutation
+              {
+                add_credentials(name: "flyway_testing",
+                type: JDBC,
+                value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
+      		               { key: "user", value: "postgres"},
+       		               { key: "password", value: "swap123"},
+                         { key: "driver", value: "org.postgresql.Driver"},
+                       ]
+                  ){
+                 name
+                }
+               }""")
+        val error = """ERROR: duplicate key value violates unique constraint "credentials_name_type"  Detail: Key (name, type)=(flyway_testing, jdbc) already exists."""
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.errors.map(_.getMessage.filter(_ >= ' '))))(equalTo(List(error))
+        )
+      },
+      testM("Test mutation add credentials end point with incorrect input") {
         val query = gqldoc(
           """
             mutation
@@ -196,7 +178,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"swap123"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
         )
       },
-      testM("Test update credentials end point") {
+      testM("Test mutation update credentials end point") {
         val query = gqldoc(
           """
             mutation
@@ -215,6 +197,18 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
 
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"flyway_testing"}}""".stripMargin)
         )
+      },
+      testM("Test query get credentials end point") {
+        val query = gqldoc(
+          """
+              query{
+                credential{
+                  name
+                  type
+                }
+              }""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"credential":[{"name":"flyway_testing","type":"jdbc"}]}""".stripMargin)
+        )
       }
-    )
+    ) @@ TestAspect.sequential
 }

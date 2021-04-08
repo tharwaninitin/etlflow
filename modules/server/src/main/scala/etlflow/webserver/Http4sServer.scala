@@ -19,7 +19,6 @@ import org.http4s.{HttpRoutes, StaticFile}
 import scalacache.Cache
 import zio.interop.catz._
 import zio.{Queue, Semaphore, Task, ZEnv, ZIO}
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
@@ -57,26 +56,17 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
             })
             .withHttpApp(
               Router[EtlFlowTask](
-                "/about" -> otherRoutes,
                 "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
-                "/etlflow"        -> metricsSvc.routes,
                 "/assets/js/2.4e93fae9.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.4e93fae9.chunk.js", blocker, None)),
-                "/assets/js/main.a227e67a.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.a227e67a.chunk.js", blocker, None)),
-                "/assets/css/2.83b1b994.chunk.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.83b1b994.chunk.css", blocker, None)),
-                "/assets/css/main.025b9fa1.chunk.css"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
-                "/api/etlflow"    -> CORS(Metrics[EtlFlowTask](metrics)(
-                  AuthMiddleware(
-                    Http4sAdapter.makeHttpService(etlFlowInterpreter),
-                    authEnabled = true,
-                    cache
-                  ))
-                ),
-                "/api/login"      -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
-                "/ws/etlflow"     -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
-                "/api"     -> AuthMiddleware(
-                  CORS(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue)),
-                  authEnabled = true,
-                  cache),
+                "/assets/js/main.a227e67a.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.a227e67a.chunk.js", blocker, None)),
+                "/assets/css/2.83b1b994.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.83b1b994.chunk.css", blocker, None)),
+                "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
+                "/about"       -> otherRoutes,
+                "/etlflow"     -> metricsSvc.routes,
+                "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(AuthMiddleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache))),
+                "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
+                "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
+                "/api"         -> CORS(AuthMiddleware(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue), authEnabled = true, cache)),
               ).orNotFound
             ).resource
             .toManagedZIO

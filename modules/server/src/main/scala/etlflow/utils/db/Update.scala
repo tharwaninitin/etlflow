@@ -22,10 +22,10 @@ object Update extends ApplicationLogger {
       .run
       .transact(transactor)
       .map(_ => 1L)
-    }.mapError { e =>
-      logger.error(e.getMessage)
-      ExecutionError(e.getMessage)
-    }
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
 
   def updateFailedJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
     sql"UPDATE job SET failed = (failed + 1) WHERE job_name = $job"
@@ -33,10 +33,10 @@ object Update extends ApplicationLogger {
       .run
       .transact(transactor)
       .map(_ => 1L)
-    }.mapError { e =>
-      logger.error(e.getMessage)
-      ExecutionError(e.getMessage)
-    }
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
 
   def updateJobState(args: EtlJobStateArgs,transactor: HikariTransactor[Task]): Task[Boolean] = {
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
@@ -70,9 +70,36 @@ object Update extends ApplicationLogger {
 
   def updateCredentials(args: CredentialsArgs,transactor: HikariTransactor[Task]): Task[Credentials] = {
 
+    val credentialsDB = CredentialDB(
+      args.name,
+      args.`type`.get match {
+        case JDBC => "jdbc"
+        case AWS => "aws"
+      },
+      JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
+    )
+    val q = sql"""WITH
+                      -- Contains the data to be inserted
+                      inserts (name,type,value, valid_from) AS (
+                          SELECT *, NOW() FROM (VALUES
+                          ( ${credentialsDB.name},${credentialsDB.`type`},${credentialsDB.value})
+                          ) t
+                      ),
+                      -- Updates the old rows and returns a list of the updated surrogate IDs
+                      updates (credential_key) AS (
+                          UPDATE credentials
+                          SET valid_to = NOW() - INTERVAL '00:00:01'
+                          FROM inserts
+                          WHERE credentials.name = inserts.name
+                             AND credentials.valid_to IS NULL
+                          RETURNING credentials.credential_key
+                      )
+                      -- Insert the new data
+                      INSERT INTO credentials
+                      SELECT * FROM inserts;""".stripMargin
+
     val value = JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
-    sql"UPDATE credentials SET value = ${value} WHERE name = ${args.name}"
-      .update.run.transact(transactor).map(_ => Credentials(args.name,"",value))
+    q.update.run.transact(transactor).map(_ => Credentials(args.name,"",value))
 
   }.mapError { e =>
     logger.error(e.getMessage)

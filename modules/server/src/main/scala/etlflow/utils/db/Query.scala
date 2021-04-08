@@ -3,14 +3,12 @@ package etlflow.utils.db
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import caliban.CalibanError.ExecutionError
-import cron4s.Cron
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import etlflow.log.{ApplicationLogger, JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
 import etlflow.utils.EtlFlowHelper.{JobLogs, JobLogsArgs, _}
-import etlflow.utils.{CacheHelper, JsonJackson}
+import etlflow.utils.{CacheHelper}
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import scalacache.Cache
 import zio.interop.catz._
@@ -27,13 +25,13 @@ object Query extends ApplicationLogger {
               user_role
           FROM userinfo
           WHERE user_name = ${args.user_name} AND password = ${args.password}"""
-      .query[UserInfo] // Query0[String]
-      .to[List]        // Stream[ConnectionIO, String]
-      .transact(transactor)
-      .mapError { e =>
-        logger.error(e.getMessage)
-        ExecutionError(e.getMessage)
-      }
+        .query[UserInfo] // Query0[String]
+        .to[List]        // Stream[ConnectionIO, String]
+        .transact(transactor)
+        .mapError { e =>
+          logger.error(e.getMessage)
+          ExecutionError(e.getMessage)
+        }
 
     getUser.flatMap(z => {
       if (z.isEmpty) {
@@ -362,5 +360,15 @@ object Query extends ApplicationLogger {
       logger.error(s"Exception ${e.getMessage} occurred for arguments $args")
       ExecutionError(e.getMessage)
     }
+  }
+
+  def getCredentials(transactor: HikariTransactor[Task]): IO[ExecutionError, List[UpdateCredentialDB]] = {
+    sql"SELECT name, type ,valid_from FROM credentials WHERE valid_to is  null;"
+      .query[UpdateCredentialDB]
+      .to[List]
+      .transact(transactor)
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
   }
 }

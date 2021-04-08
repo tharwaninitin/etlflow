@@ -28,7 +28,7 @@ trait DbManager {
   }.toManagedZIO
 
   def getDbCredentials[T : Manifest](name: String, credentials: JDBC, ec: ExecutionContext): Task[T] = {
-    val query = s"SELECT value FROM credentials WHERE name='$name';"
+    val query = s"SELECT value FROM credentials WHERE name='$name' and valid_to is null;"
     createDbTransactorManaged(credentials,ec,"credential-pool",1).use { transactor =>
       for {
         result <- Fragment.const(query).query[String].unique.transact(transactor)

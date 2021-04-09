@@ -4,15 +4,17 @@ import etlflow.{EtlJobProps, SchedulerSuiteHelper}
 import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
+import zio.blocking.Blocking
+import zio.clock.Clock
 import zio.test.Assertion.equalTo
-import zio.{Semaphore, Task, ZIO}
+import zio.{RIO, Semaphore, ZIO}
 import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment, suite, testM}
 
 object ExecutorTestSuite extends DefaultRunnableSpec with Executor with SchedulerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
-  def job(args: EtlJobArgs,sem: Semaphore): Task[EtlJob] =
+  def job(args: EtlJobArgs,sem: Semaphore): RIO[Blocking with Clock, EtlJob] =
     managedTransactor.use(transactor => runActiveEtlJob[MEJP](args,transactor,sem,global_properties,etlJob_name_package,"Test",jobTestQueue))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

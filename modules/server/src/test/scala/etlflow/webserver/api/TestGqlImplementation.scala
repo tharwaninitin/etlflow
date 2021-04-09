@@ -14,7 +14,7 @@ import scalacache.Cache
 import zio._
 import zio.stream.ZStream
 
-trait TestEtlFlowService extends SchedulerSuiteHelper {
+trait TestGqlImplementation extends SchedulerSuiteHelper {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   case class UserInfo(user_name: String, password: String, user_active: String)
@@ -29,7 +29,7 @@ trait TestEtlFlowService extends SchedulerSuiteHelper {
         }
 
         override def login(args: EtlFlowHelper.UserArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.UserAuth] = {
-          Query.login(args, transactor, cache)
+          Authentication.login(args, transactor, cache)
         }
 
         override def addCronJob(args: EtlFlowHelper.CronJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.CronJob] = {

@@ -6,11 +6,11 @@ import cron4s.expr.CronExpr
 import cron4s.lib.javatime._
 import zio.clock.{Clock, sleep}
 import zio.duration.Duration
-import zio.{RIO, Schedule, Task, UIO, ZIO}
+import zio.{RIO, Schedule, Task, UIO, URIO, ZIO}
 
 package object scheduler {
 
-  def sleepForCron(cronExpr: CronExpr): ZIO[Clock, Throwable, Unit] =
+  def sleepForCron(cronExpr: CronExpr): RIO[Clock, Unit] =
     getNextDuration(cronExpr).flatMap(duration => {
       sleep(duration)
     })
@@ -30,7 +30,7 @@ package object scheduler {
     else
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.forever)
 
-  def repeatEffectsForCron[A](tasks: List[(CronExpr,UIO[A])]): RIO[Clock, Unit] = {
+  def repeatEffectsForCron[R,A](tasks: List[(CronExpr,URIO[R,A])]): RIO[R with Clock, Unit] = {
     val scheduled = tasks.map { case (cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever) }
     ZIO.collectAllPar(scheduled).as(())
   }

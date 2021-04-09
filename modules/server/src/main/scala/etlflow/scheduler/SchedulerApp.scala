@@ -21,13 +21,13 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
     with Executor
     with EtlFlowUtils {
 
-  final def scheduleJobs(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore], jobQueue:Queue[(String,String,String,String)]): Task[Unit] = {
+  final def scheduleJobs(dbCronJobs: List[CronJob], transactor: HikariTransactor[Task], jobSemaphores: Map[String, Semaphore], jobQueue:Queue[(String,String,String,String)]): RIO[Blocking with Clock,Unit] = {
     if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
       ZIO.unit
     }
     else {
-      val listOfCron: List[(CronExpr, UIO[Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
+      val listOfCron: List[(CronExpr, URIO[Blocking with Clock, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
         runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler-API",jobQueue).map(Some(_)).
           catchAll(_ => UIO.succeed(None))
@@ -41,11 +41,11 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
       scheduledJobs.zipPar(scheduledLogger).as(())
         .tapError{e =>
           UIO(logger.error("*"*30 + s" Scheduler crashed due to error ${e.getMessage} stacktrace ${e.printStackTrace()}" + "*"*30))
-        }.provideLayer(Clock.live)
+        }
     }
   }
 
-  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobs: List[EtlJob], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String,String,String)]): Task[Unit] = for {
+  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobs: List[EtlJob], jobSemaphores: Map[String, Semaphore],jobQueue:Queue[(String,String,String,String)]): RIO[Blocking with Clock, Unit] = for {
     dbJobs     <- refreshJobsDB(transactor,jobs)
     _          <- cronJobs.update{_ => dbJobs.filter(_.schedule.isDefined)}
     cronJobs   <- cronJobs.get

@@ -1,5 +1,5 @@
 INSERT INTO userinfo (user_name,password,user_active,user_role)
-VALUES ('admin','admin','true','admin');
+VALUES ('admin','$2a$10$gABYeKWB2W0nI.zGCoovD.7emHUlHq1flgxWjqAIowdLMWkzYlIOy','true','admin');
 
 INSERT INTO job(job_name,job_description,schedule,failed,success,is_active)
 VALUES ('EtlJobDownload','','',0,0,'t');

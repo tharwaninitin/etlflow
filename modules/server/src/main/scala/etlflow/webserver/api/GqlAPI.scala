@@ -17,7 +17,7 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.stream.ZStream
 
-object GqlAPI extends GenericSchema[EtlFlowHas] {
+object GqlAPI extends GenericSchema[EtlFlowHas with Blocking with Clock] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
   implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
@@ -41,7 +41,7 @@ object GqlAPI extends GenericSchema[EtlFlowHas] {
   )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[EtlFlowHas, Throwable, EtlJob],
+                        run_job: EtlJobArgs => ZIO[EtlFlowHas with Blocking with Clock, Throwable, EtlJob],
                         update_job_state: EtlJobStateArgs => ZIO[EtlFlowHas, Throwable, Boolean],
                         add_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],
                         update_cron_job: CronJobArgs => ZIO[EtlFlowHas, Throwable, CronJob],

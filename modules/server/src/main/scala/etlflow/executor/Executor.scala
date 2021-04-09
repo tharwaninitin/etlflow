@@ -21,8 +21,8 @@ import scala.reflect.runtime.universe.TypeTag
 trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFlowUtils {
 
   final def runActiveEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)]): Task[EtlJob] = {
-    (for {
+  (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)]): RIO[Blocking with Clock, EtlJob] = {
+    for {
       default_props  <- Task(getJobPropsMapping[EJN](args.name,etl_job_name_package)).mapError(e => ExecutionError(e.getMessage))
       actual_props   =  args.props.map(x => (x.key,x.value)).toMap
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
@@ -32,7 +32,7 @@ trait Executor extends K8SExecutor with EtlJobValidator with etlflow.utils.EtlFl
       _              <- job_queue.offer((args.name,submitted_from,props_json,UF.getCurrentTimestampAsString()))
       _              <- if (db_job.is_active) UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob[EJN](args, transactor, sem, config, etl_job_name_package, default_props("job_retry_delay_in_minutes").toInt, default_props("job_retries").toInt)
                         else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
-    } yield EtlJob(args.name,final_props)).provideLayer(Clock.live ++ Blocking.live)
+    } yield EtlJob(args.name,final_props)
   }
 
   final def runEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]

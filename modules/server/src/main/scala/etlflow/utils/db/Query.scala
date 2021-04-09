@@ -8,60 +8,26 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import etlflow.log.{ApplicationLogger, JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.{JobLogs, JobLogsArgs, _}
-import etlflow.utils.CacheHelper
-import pdi.jwt.{Jwt, JwtAlgorithm}
-import scalacache.Cache
 import zio.interop.catz._
 import zio.{IO, Task}
-import com.github.t3hnar.bcrypt._
 
 object Query extends ApplicationLogger {
 
-  def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String]): Task[UserAuth] =  {
-
-    val getUser =
-      sql"""SELECT
+  def getUser(user_name: String, transactor: HikariTransactor[Task]): IO[ExecutionError, UserInfo] = {
+    sql"""SELECT
               user_name,
               password,
               user_active,
               user_role
           FROM userinfo
-          WHERE user_name = ${args.user_name}"""
-        .query[UserInfo] // Query0[String]
-        .to[List]        // Stream[ConnectionIO, String]
-        .transact(transactor)
-        .mapError { e =>
-          logger.error(e.getMessage)
-          ExecutionError(e.getMessage)
-        }
-
-    getUser.flatMap(z => {
-      if (z.isEmpty) {
-        Task(UserAuth("Invalid User", ""))
+          WHERE user_name = $user_name"""
+      .query[UserInfo]
+      .unique
+      .transact(transactor)
+      .mapError { e =>
+        logger.error(e.getMessage)
+        ExecutionError(e.getMessage)
       }
-      else {
-        Task {
-          var user_name = ""
-          var user_role = ""
-          var user_password = ""
-          z.map(data => {
-            user_name = data.user_name
-            user_role = data.user_role
-            user_password = data.password
-          })
-
-          if (args.password.isBcryptedBounded(user_password)) {
-            val user_data = s"""{"user":"$user_name", "role":"$user_role"}""".stripMargin
-            val token = Jwt.encode(user_data, "secretKey", JwtAlgorithm.HS256)
-            logger.info(s"New token generated for user $user_name")
-            CacheHelper.putKey(cache, token, token, Some(CacheHelper.default_ttl))
-            UserAuth("Valid User", token)
-          } else {
-            UserAuth("Invalid User/Password", "")
-          }
-        }
-      }
-    })
   }
 
   def getJob(name: String, transactor: HikariTransactor[Task]): IO[ExecutionError, JobDB] = {

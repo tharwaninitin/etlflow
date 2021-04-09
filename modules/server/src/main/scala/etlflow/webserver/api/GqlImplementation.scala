@@ -11,7 +11,9 @@ import etlflow.{EtlJobProps, EtlJobPropsMapping, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
+import zio.clock.Clock
 import zio.stream.ZStream
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait GqlImplementation extends EtlFlowUtils with Executor {
@@ -68,7 +70,7 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
         Query.getCredentials(transactor)
       }
 
-      override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] = {
+      override def runJob(args: EtlJobArgs): ZIO[EtlFlowHas with Blocking with Clock, Throwable, EtlJob] = {
         runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"GraphQL-API",jobQueue)
       }
 
@@ -85,7 +87,7 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
       }
 
       override def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =  {
-        Query.login(args,transactor,cache)
+        Authentication.login(args,transactor,cache)
       }
 
       override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] = {

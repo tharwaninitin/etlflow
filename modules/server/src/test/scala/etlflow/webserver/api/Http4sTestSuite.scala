@@ -18,7 +18,7 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, Runtime, Task, ZEnv, ZIO, ZLayer}
 
-object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
+object Http4sTestSuite extends DefaultRunnableSpec with TestGqlImplementation {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
@@ -39,7 +39,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
   val loginInterpreter = runtime.unsafeRun(loginInterpreter1)
 
   val routes: HttpRoutes[EtlFlowTask] = Router[EtlFlowTask](
-    "/api/etlflow" -> AuthMiddleware(Http4sAdapter.makeHttpService(interpreter),authEnabled = true, cache),
+    "/api/etlflow" -> Authentication.middleware(Http4sAdapter.makeHttpService(interpreter),authEnabled = true, cache),
      "/api/login" -> Http4sAdapter.makeHttpService(loginInterpreter)
   )
 

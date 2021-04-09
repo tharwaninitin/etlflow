@@ -7,7 +7,7 @@ import zio.console.Console
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
+object GraphqlTestSuite extends DefaultRunnableSpec with TestGqlImplementation {
 
   val env = Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
   val etlFlowInterpreter = GqlAPI.api.interpreter
@@ -105,7 +105,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestEtlFlowService {
                    message
                   }
                 }""")
-        assertM(loginInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Invalid User"}}""")
+        assertM(loginInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Invalid User/Password"}}""")
         )
       },
       testM("Test mutation update job state end point") {

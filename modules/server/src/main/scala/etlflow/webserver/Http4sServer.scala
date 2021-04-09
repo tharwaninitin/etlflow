@@ -63,10 +63,10 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
                 "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
                 "/about"       -> otherRoutes,
                 "/etlflow"     -> metricsSvc.routes,
-                "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(AuthMiddleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache))),
+                "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache))),
                 "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                 "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
-                "/api"         -> CORS(AuthMiddleware(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue), authEnabled = true, cache)),
+                "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue), authEnabled = true, cache)),
               ).orNotFound
             ).resource
             .toManagedZIO

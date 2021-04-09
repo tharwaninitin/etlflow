@@ -3,10 +3,12 @@ package etlflow.webserver.api
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
 import zio.ZIO
+import zio.blocking.Blocking
+import zio.clock.Clock
 import zio.stream.ZStream
 
 trait GqlService {
-  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob]
+  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas with Blocking with Clock, Throwable, EtlJob]
   def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean]
   def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
   def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
@@ -29,8 +31,8 @@ trait GqlService {
 
 object GqlService {
 
-  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlJob] =
-    ZIO.accessM[EtlFlowHas](_.get.runJob(args))
+  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas with Blocking with Clock, Throwable, EtlJob] =
+    ZIO.accessM[EtlFlowHas with Blocking with Clock](_.get.runJob(args))
 
   def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] =
     ZIO.accessM[EtlFlowHas](_.get.updateJobState(args))

@@ -38,6 +38,7 @@ object Dependencies {
   val mailVersion = "1.6.2"
   val JwtCoreVersion = "5.0.0"
   val Sl4jVersion = "1.7.30"
+  val bcryptVersion = "4.3.0"
 
   val ScalaTestVersion = "3.0.5"
   val TestContainerVersion = "1.15.2"
@@ -112,6 +113,7 @@ object Dependencies {
   lazy val miscLibs = List(
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % Sl4jVersion,
+    "com.github.t3hnar" %% "scala-bcrypt" % bcryptVersion
   )
 
   lazy val serverLibs = List(

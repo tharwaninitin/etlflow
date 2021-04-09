@@ -57,8 +57,8 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
             .withHttpApp(
               Router[EtlFlowTask](
                 "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
-                "/assets/js/2.4e93fae9.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.4e93fae9.chunk.js", blocker, None)),
-                "/assets/js/main.a227e67a.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.a227e67a.chunk.js", blocker, None)),
+                "/assets/js/2.1bd5ebae.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.1bd5ebae.chunk.js", blocker, None)),
+                "/assets/js/main.9f2e8c7a.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.9f2e8c7a.chunk.js", blocker, None)),
                 "/assets/css/2.83b1b994.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.83b1b994.chunk.css", blocker, None)),
                 "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
                 "/about"       -> otherRoutes,

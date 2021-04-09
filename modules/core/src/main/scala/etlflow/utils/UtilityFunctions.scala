@@ -10,10 +10,13 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}
+import com.github.t3hnar.bcrypt._
 
-object UtilityFunctions {
+object UtilityFunctions extends  App{
   lazy val uf_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
+
+  println("has is :" + encryptKey("$tar@Mint2o2o"))
   def parser(args: Array[String]): Map[String, String] = {
     args.map {
       case arg => {
@@ -106,4 +109,9 @@ object UtilityFunctions {
   }.toSeq
 
   def stringFormatter(value: String):String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
+
+  def encryptKey(key:String) =  {
+    val salt = BCrypt.gensalt()
+    key.bcryptBounded(salt)
+  }
 }

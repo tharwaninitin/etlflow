@@ -3,6 +3,7 @@ package etlflow.coretests.utils
 import java.text.SimpleDateFormat
 import etlflow.utils.{UtilityFunctions => UF}
 import org.scalatest.{FlatSpec, Matchers}
+import com.github.t3hnar.bcrypt._
 
 class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
 
@@ -40,6 +41,7 @@ class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
   val actualStepName5 = "etljobspotratingsorctobq_year_2020_week_43#&* step"
   val expectedStepName5 = "etljobspotratingsorctobq_year_2020_week_43_step"
 
+  val actualPassword = UF.encryptKey("password")
 
   "GetTimeDifferenceAsString should  " should "run successfully for days" in {
     assert(actualDaysOutput == expectedDaysOutput)
@@ -72,4 +74,13 @@ class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
   "StringFormatter should " should "return formatted string when given string with special characters" in {
     assert(UF.stringFormatter(actualStepName5) == expectedStepName5)
   }
+
+  "EncryptKey" should "run successfully for same password" in {
+    assert("password".isBcryptedBounded(actualPassword) == true)
+  }
+
+  "EncryptKey " should " return false if wrong password provided" in {
+    assert("password123".isBcryptedBounded(actualPassword) == false)
+  }
+
 }

@@ -12,11 +12,9 @@ import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}
 import com.github.t3hnar.bcrypt._
 
-object UtilityFunctions extends  App{
+object UtilityFunctions{
   lazy val uf_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-
-  println("has is :" + encryptKey("$tar@Mint2o2o"))
   def parser(args: Array[String]): Map[String, String] = {
     args.map {
       case arg => {

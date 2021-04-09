@@ -1,80 +1,14 @@
 package etlflow.webserver.api
 
-import caliban.CalibanError.ExecutionError
-import cron4s.Cron
 import doobie.hikari.HikariTransactor
-import etlflow.SchedulerSuiteHelper
-import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper
+import etlflow.ServerSuiteHelper
 import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.db.{Query, Update}
-import etlflow.utils.QueueHelper
-import org.slf4j.{Logger, LoggerFactory}
-import scalacache.Cache
+import scalacache.caffeine.CaffeineCache
 import zio._
-import zio.stream.ZStream
+import zio.blocking.Blocking
 
-trait TestGqlImplementation extends SchedulerSuiteHelper {
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+trait TestGqlImplementation extends ServerSuiteHelper with GqlImplementation {
 
-  case class UserInfo(user_name: String, password: String, user_active: String)
-  case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
-  case class CredentialDB(name: String, `type`: String, value: String)
-
-  def testHttp4s(transactor: HikariTransactor[Task], cache: Cache[String]): ULayer[EtlFlowHas] = ZLayer.succeed {
-      new GqlService {
-
-        override def updateJobState(args: EtlFlowHelper.EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] = {
-          Update.updateJobState(args, transactor)
-        }
-
-        override def login(args: EtlFlowHelper.UserArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.UserAuth] = {
-          Authentication.login(args, transactor, cache)
-        }
-
-        override def addCronJob(args: EtlFlowHelper.CronJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.CronJob] = {
-          Update.addCronJob(args, transactor)
-        }
-
-        override def updateCronJob(args: EtlFlowHelper.CronJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.CronJob] = {
-          Update.updateCronJob(args, transactor)
-        }
-
-        override def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] = {
-          Query.getJobs(transactor)
-            .map(y => y.map { x =>
-              Job(x.job_name, Map.empty, Cron(x.schedule).toOption, "", "", x.failed, x.success, x.is_active,10,"LOCAL")
-            })
-        }.mapError { e =>
-          logger.error(e.getMessage)
-          ExecutionError(e.getMessage)
-        }
-
-        override def getDbJobRuns(args: EtlFlowHelper.DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] = {
-          Query.getJobRuns(args, transactor)
-        }
-
-        override def addCredentials(args: EtlFlowHelper.CredentialsArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.Credentials] = {
-          Update.addCredentials(args, transactor)
-        }
-
-        override def updateCredentials(args: EtlFlowHelper.CredentialsArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.Credentials] = {
-          Update.updateCredentials(args, transactor)
-        }
-
-        override def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] = {
-          Query.getStepRuns(args, transactor)
-        }
-
-        override def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] = QueueHelper.takeAll(jobTestQueue)
-        override def getCredentials: ZIO[EtlFlowHas, Throwable, List[EtlFlowHelper.UpdateCredentialDB]] = Query.getCredentials(transactor)
-
-        override def runJob(args: EtlFlowHelper.EtlJobArgs): ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlJob] = ???
-        override def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowHelper.EtlFlowMetrics] = ???
-        override def notifications: ZStream[EtlFlowHas, Nothing, EtlFlowHelper.EtlJobStatus] = ???
-        override def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] = ???
-        override def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] = ???
-        override def getJobLogs(args: EtlFlowHelper.JobLogsArgs): ZIO[EtlFlowHas, Throwable, List[JobLogs]] = ???
-      }
-  }
+  def testHttp4s(transactor: HikariTransactor[Task], cache: CaffeineCache[String]): ZLayer[Blocking, Throwable, EtlFlowHas] =
+    liveHttp4s[MEJP](transactor,cache,testCronJobs,Map.empty,List.empty,testJobsQueue)
 }

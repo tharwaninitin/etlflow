@@ -1,21 +1,19 @@
 package etlflow.executor
 
-import etlflow.{EtlJobProps, SchedulerSuiteHelper}
-import etlflow.coretests.MyEtlJobPropsMapping
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.ServerSuiteHelper
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.test.Assertion.equalTo
+import zio.test._
 import zio.{RIO, Semaphore, ZIO}
-import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment, suite, testM}
 
-object ExecutorTestSuite extends DefaultRunnableSpec with Executor with SchedulerSuiteHelper {
+object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
-  type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
+
   def job(args: EtlJobArgs,sem: Semaphore): RIO[Blocking with Clock, EtlJob] =
-    managedTransactor.use(transactor => runActiveEtlJob[MEJP](args,transactor,sem,global_properties,etlJob_name_package,"Test",jobTestQueue))
+    managedTransactor.use(transactor => runActiveEtlJob[MEJP](args,transactor,sem,config,etlJob_name_package,"Test",testJobsQueue,false))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Executor Spec")(
@@ -37,14 +35,6 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with Schedule
           } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
         )
       },
-//      testM("Test validateJob with correct JobName") {
-//        val status = validateJob(EtlJobArgs("Job4", List.empty),etlJob_name_package)
-//        assertM(status.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
-//      },
-//      testM("Test validateJob with incorrect JobName") {
-//        val status = validateJob(EtlJobArgs("InvalidEtlJob", List.empty),etlJob_name_package)
-//        assertM(status.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Job validation failed with InvalidEtlJob not present"))
-//      },
     ) @@ TestAspect.sequential
 
 }

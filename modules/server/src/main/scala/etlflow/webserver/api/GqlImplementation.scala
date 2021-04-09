@@ -21,13 +21,13 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
   val config: Config
 
   def liveHttp4s[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
-                                                                                  transactor: HikariTransactor[Task],
-                                                                                  cache: CaffeineCache[String],
-                                                                                  cronJobs: Ref[List[CronJob]],
-                                                                                  jobSemaphores: Map[String, Semaphore],
-                                                                                  jobs: List[EtlJob],
-                                                                                  jobQueue: Queue[(String,String,String,String)]
-                                                                                ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
+    transactor: HikariTransactor[Task],
+    cache: CaffeineCache[String],
+    cronJobs: Ref[List[CronJob]],
+    jobSemaphores: Map[String, Semaphore],
+    jobs: List[EtlJob],
+    jobQueue: Queue[(String,String,String,String)]
+  ): ZLayer[Blocking, Throwable, EtlFlowHas] = ZLayer.fromEffect{
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs            <- Ref.make(0)

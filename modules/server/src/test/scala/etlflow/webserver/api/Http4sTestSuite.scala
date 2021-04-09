@@ -22,7 +22,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestGqlImplementation {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
-  val env: ZLayer[Any, Throwable, Clock with Blocking with EtlFlowHas with Console] =
+  val env: ZLayer[Blocking, Throwable, Clock with Blocking with EtlFlowHas with Console] =
     Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
 
   val etlFlowInterpreter: Task[GraphQLInterpreter[Console with Clock with Blocking with EtlFlowHas, CalibanError]] =
@@ -72,7 +72,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestGqlImplementation {
         } yield apiRequest
 
         val apiResponse = client.expect[String](apiRequest).provideCustomLayer(env)
-        assertM(apiResponse)(equalTo("""{"data":{"jobs":[{"name":"EtlJobDownload"},{"name":"Job1"}]}}"""))
+        assertM(apiResponse)(equalTo("""{"data":{"jobs":[{"name":"Job1"},{"name":"Job2"}]}}"""))
       },
       testM("Test jobs end point with blank authorization header") {
         val apiRequest = Request[EtlFlowTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization",""))).withEntity(apiBody)

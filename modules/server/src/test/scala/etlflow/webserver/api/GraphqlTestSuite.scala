@@ -27,7 +27,11 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestGqlImplementation {
                is_active
              }
            }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobs":[{"name":"EtlJobDownload","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true},{"name":"Job1","job_deploy_mode":"LOCAL","max_active_runs":10,"is_active":true}]}""")
+        val result = for {
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env)
+          _           = logger.info(gqlResponse.toString)
+        } yield gqlResponse.data.toString
+        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","job_deploy_mode":"local","max_active_runs":10,"is_active":true},{"name":"Job2","job_deploy_mode":"kubernetes","max_active_runs":1,"is_active":true}]}""")
         )
       },
       testM("Test query jobruns end point") {

@@ -10,6 +10,8 @@ import org.http4s.dsl.Http4sDsl
 import zio.{Semaphore, Task, _}
 import scala.reflect.runtime.universe.TypeTag
 import zio.interop.catz._
+import io.circe._
+import org.http4s.circe._
 
 object RestAPI extends Http4sDsl[EtlFlowTask] with etlflow.executor.Executor  {
 
@@ -21,8 +23,8 @@ object RestAPI extends Http4sDsl[EtlFlowTask] with etlflow.executor.Executor  {
       RequestValidator(name,props) match {
 
         case Right(output) => runActiveEtlJob[EJN](output, transactor, jobSemaphores(output.name), config, etl_job_name_package,"Rest-API",jobQueue)
-                              .flatMap(x => Ok("Job Name: " + x.name + " ---> " + " Properties :" + x.props.map(x => x)))
-                              .absorb // This will help propagating error further(if error occurs inside effect => runActiveEtlJob)
+                              .flatMap(x => Ok(Json.obj("message" -> Json.fromString(s"Job ${x.name} submitted successfully"))))
+                              .absorb // This will help propagating defects further(if defects occurs inside effect => runActiveEtlJob)
                                       // https://github.com/zio/zio/issues/1082
         case Left(error)   => BadRequest(error)
       }

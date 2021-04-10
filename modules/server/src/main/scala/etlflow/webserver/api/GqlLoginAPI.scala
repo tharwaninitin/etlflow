@@ -16,7 +16,7 @@ object GqlLoginAPI extends GenericSchema[EtlFlowHas] {
   case class Queries(dummy: Task[String])
   def dummyFunction: UIO[String] = Task.succeed("dummy")
 
-  val api: GraphQL[Console with Clock with Blocking with EtlFlowHas] =
+  val api: GraphQL[Clock with Blocking with EtlFlowHas] =
     graphQL(
       RootResolver(
         Queries(dummyFunction),

@@ -6,9 +6,8 @@ import doobie.hikari.HikariTransactor
 import etlflow.Credential.JDBC
 import etlflow.utils.{UtilityFunctions => UF}
 import etlflow.coretests.MyEtlJobPropsMapping
-import etlflow.etljobs.EtlJob
 import etlflow.jdbc.DbManager
-import etlflow.utils.EtlFlowHelper.CronJob
+import etlflow.utils.EtlFlowHelper.{CronJob, EtlJob}
 import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{CacheHelper, Config}
 import io.circe.generic.auto._
@@ -17,8 +16,9 @@ import zio.{Queue, Ref, Runtime, Task}
 import zio.interop.catz._
 import scala.concurrent.ExecutionContext
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.utils.EtlFlowUtils
 
-trait ServerSuiteHelper extends DbManager {
+trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
 
   val cache: CaffeineCache[String] = CacheHelper.createCache[String]
   val config: Config = io.circe.config.parser.decode[Config]().toOption.get
@@ -39,10 +39,11 @@ trait ServerSuiteHelper extends DbManager {
   val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val transactor: HikariTransactor[Task] = createDbTransactor(credentials,ec,Blocker.liftExecutionContext(ec), "EtlFlow-Scheduler-Testing-Pool")
   val managedTransactor = createDbTransactorManaged(credentials,ec, "EtlFlow-Managed-Scheduler-Testing-Pool")
-  val etlJob_name_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] + "$"
+  val etlJob_name_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]] + "$"
 
   val testJobsQueue = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
   val testCronJobs = Runtime.default.unsafeRun(Ref.make(List.empty[CronJob]))
+  val testJobsSemaphore = Runtime.default.unsafeRun(createSemaphores(List(EtlJob("Job1",Map("job_max_active_runs" -> "1")))))
 
   lazy val dp_dep_libs: String = sys.env("DP_LIBS")
   lazy val dp_main_class: String = sys.env("DP_MAIN_CLASS")

@@ -14,7 +14,6 @@ import GqlService._
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
-import zio.console.Console
 import zio.stream.ZStream
 
 object GqlAPI extends GenericSchema[EtlFlowHas with Blocking with Clock] {
@@ -58,7 +57,7 @@ object GqlAPI extends GenericSchema[EtlFlowHas with Blocking with Clock] {
     case other => Left(ExecutionError(s"Can't build a date from input $other"))
   }
 
-  val api: GraphQL[Console with Clock with Blocking with EtlFlowHas] =
+  val api: GraphQL[Clock with Blocking with EtlFlowHas] =
     graphQL(
       RootResolver(
         Queries(

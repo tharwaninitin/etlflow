@@ -10,13 +10,13 @@ import zio.clock.Clock
 import zio.console.Console
 import GqlService._
 
-object GqlLoginAPI extends GenericSchema[EtlFlowHas] {
+object GqlLoginAPI extends GenericSchema[GQLEnv] {
 
-  case class Mutations(login: UserArgs => ZIO[EtlFlowHas, Throwable, UserAuth])
+  case class Mutations(login: UserArgs => ZIO[GQLEnv, Throwable, UserAuth])
   case class Queries(dummy: Task[String])
   def dummyFunction: UIO[String] = Task.succeed("dummy")
 
-  val api: GraphQL[Clock with Blocking with EtlFlowHas] =
+  val api: GraphQL[Clock with Blocking with GQLEnv] =
     graphQL(
       RootResolver(
         Queries(dummyFunction),

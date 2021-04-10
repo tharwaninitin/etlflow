@@ -30,7 +30,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
 
   def allRoutes[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
   (blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)])
-  : ZManaged[ZEnv with EtlFlowHas, Throwable, HttpRoutes[EtlFlowTask]] = {
+  : ZManaged[ZEnv with GQLEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
     for {
       metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
       metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
@@ -52,8 +52,8 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
     } yield routes
   }
 
-  def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, config:Config, jobQueue: Queue[(String,String,String,String)]): ZIO[ZEnv with EtlFlowHas, Throwable, Nothing] =
-    ZIO.runtime[ZEnv with EtlFlowHas]
+  def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, config:Config, jobQueue: Queue[(String,String,String,String)]): ZIO[ZEnv with GQLEnv, Throwable, Nothing] =
+    ZIO.runtime[ZEnv with GQLEnv]
       .flatMap{implicit runtime =>
         (for {
           routes <- allRoutes[EJN](blocker,cache,jobSemaphores,transactor,etl_job_name_package,jobQueue)

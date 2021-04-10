@@ -6,8 +6,8 @@ import zio.{Has, RIO, ZEnv}
 
 object EtlFlowHelper {
 
-  type EtlFlowHas = Has[GqlService]
-  type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
+  type GQLEnv = Has[GqlService]
+  type EtlFlowTask[A] = RIO[ZEnv with GQLEnv, A]
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)

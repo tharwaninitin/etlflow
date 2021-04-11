@@ -72,7 +72,7 @@ object GqlAPI extends GenericSchema[GQLEnv with Blocking with Clock] {
           getCredentials
         ),
         Mutations(
-          args => runJob(args),
+          args => runJob(args).mapError(ex => ExecutionError(ex.getMessage)),
           args => updateJobState(args),
           args => addCronJob(args),
           args => updateCronJob(args),

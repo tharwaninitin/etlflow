@@ -32,7 +32,7 @@ trait GqlService {
 object GqlService {
 
   def runJob(args: EtlJobArgs): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob] =
-    ZIO.accessM[GQLEnv with Blocking with Clock](_.get.runJob(args))
+    ZIO.accessM[GQLEnv with Blocking with Clock](_.get.runJob(args)).absorb
 
   def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv, Throwable, Boolean] =
     ZIO.accessM[GQLEnv](_.get.updateJobState(args))

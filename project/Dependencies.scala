@@ -18,6 +18,8 @@ object Dependencies {
   val SkunkVersion = "0.0.24"
   val Http4sVersion = "0.21.20"
   val ScalaCacheVersion = "0.28.0"
+  val SttpVersion = "3.2.3"
+  val TapirVersion = "0.17.19"
 
   val SparkVersion = "2.4.4"
   val SparkBQVersion = "0.19.1"
@@ -120,17 +122,25 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
     "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
+    "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
     "com.pauldijou" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
-    "com.github.cb372" %% "scalacache-cats-effect" % ScalaCacheVersion
+    "com.github.cb372" %% "scalacache-cats-effect" % ScalaCacheVersion,
+    "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % TapirVersion,
+    "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % TapirVersion,
+    "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % TapirVersion,
+    "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % TapirVersion,
+    "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % TapirVersion,
+    //"com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
+    //"com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % TapirVersion,
   )
 
   lazy val coreTestLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "org.testcontainers" % "postgresql" % TestContainerVersion,
-    "dev.zio" %% "zio-test"     % ZioVersion,
+    "dev.zio" %% "zio-test" % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "org.postgresql" % "postgresql" % PgVersion

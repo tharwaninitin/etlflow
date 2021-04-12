@@ -24,7 +24,12 @@ object UtilityFunctions{
     }.toMap
   }
 
+  // ALL BELOW FUNCTIONS EXPECT TS in MILLISECONDS
   def getCurrentTimestamp: Long = System.currentTimeMillis()
+  def getCurrentTimestampUsingLocalDateTime: Long = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+  // https://stackoverflow.com/questions/23944370/how-to-get-milliseconds-from-localdatetime-in-java-8
+  def getTimestampFromLocalDateTime(dt: LocalDateTime): Long = dt.atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+  def getLocalDateTimeFromTimestamp(ts: Long): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(ts),ZoneId.systemDefault())
   // https://stackoverflow.com/questions/24806183/get-date-in-current-timezone-in-java
   def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
     DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)

@@ -1,6 +1,5 @@
 package etlflow.utils
 
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
@@ -9,14 +8,15 @@ import doobie.hikari.HikariTransactor
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlFlowHelper._
+import etlflow.utils.JsonJackson._
 import etlflow.utils.db.{Query, Update}
 import etlflow.utils.{UtilityFunctions => UF}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import org.ocpsoft.prettytime.PrettyTime
 import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
 import zio.{Semaphore, Task}
 import scala.reflect.runtime.universe.TypeTag
-import etlflow.utils.JsonJackson._
 
 trait EtlFlowUtils extends ApplicationLogger {
 
@@ -60,12 +60,14 @@ trait EtlFlowUtils extends ApplicationLogger {
         .map(y => y.map{x => {
           val props = getJobPropsMapping[EJN](x.job_name,etl_job_name_package)
           if(Cron(x.schedule).toOption.isDefined) {
-            val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
             val cron = Cron(x.schedule).toOption
-            val endTime = sdf.parse(cron.get.next(LocalDateTime.now()).getOrElse("").toString).getTime
-            val startTime = sdf.parse(LocalDateTime.now().toString).getTime
+            val p = new PrettyTime()
+            val startTimeMillis: Long =  UF.getCurrentTimestampUsingLocalDateTime
+            val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
+            val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis,ts)).getOrElse("")
+            val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
             val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-            Job(x.job_name, props, cron, nextScheduleTime, UF.getTimeDifferenceAsString(startTime,endTime), x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"))
+            Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"))
           }else{
             Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"))
           }

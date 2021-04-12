@@ -150,7 +150,7 @@ class JsonTestSuite extends FlatSpec with Matchers {
       "job_props_name" -> "etlflow.coretests.Schema$EtlJob1Props",
       "job_deploy_mode" -> "local",
       "job_retry_delay_in_minutes" -> "0",
-      "job_schedule" -> "",
+      "job_schedule" -> "0 */2 * * * ?",
       "job_retries" -> "0"
     )
     assert(props_map_job1 == expected_props_map_job1)

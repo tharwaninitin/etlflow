@@ -20,6 +20,7 @@ object Dependencies {
   val ScalaCacheVersion = "0.28.0"
   val SttpVersion = "3.2.3"
   val TapirVersion = "0.17.19"
+  val PrettyTimeVersion = "5.0.0.Final"
 
   val SparkVersion = "2.4.4"
   val SparkBQVersion = "0.19.1"
@@ -133,6 +134,7 @@ object Dependencies {
     "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % TapirVersion,
+    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
     //"com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
     //"com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % TapirVersion,
   )

@@ -40,6 +40,17 @@ object Update extends ApplicationLogger {
     ExecutionError(e.getMessage)
   }
 
+  def updateJobRunTime(job: String,currentTime: Long, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
+    sql"UPDATE job SET last_run_time =  $currentTime WHERE job_name = $job"
+      .update
+      .run
+      .transact(transactor)
+      .map(_ => 1L)
+  }.mapError { e =>
+    logger.error(e.getMessage)
+    ExecutionError(e.getMessage)
+  }
+
   def updateFailedJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
     sql"UPDATE job SET failed = (failed + 1) WHERE job_name = $job"
       .update
@@ -120,8 +131,8 @@ object Update extends ApplicationLogger {
 
   def addCronJob(args: CronJobArgs,transactor: HikariTransactor[Task]): Task[CronJob] = {
     val cronJobDB = JobDB(args.job_name,"", args.schedule.toString,0,0,is_active = true)
-    sql"""INSERT INTO job (job_name,schedule,failed,success,is_active)
-         VALUES (${cronJobDB.job_name}, ${cronJobDB.schedule}, ${cronJobDB.failed}, ${cronJobDB.success}, ${cronJobDB.is_active})"""
+    sql"""INSERT INTO job (job_name,job_description,schedule,failed,success,is_active)
+         VALUES (${cronJobDB.job_name},${cronJobDB.job_description}, ${cronJobDB.schedule}, ${cronJobDB.failed}, ${cronJobDB.success}, ${cronJobDB.is_active})"""
       .update
       .run
       .transact(transactor).map(_ => CronJob(cronJobDB.job_name,"",Cron(cronJobDB.schedule).toOption,0,0))
@@ -130,7 +141,7 @@ object Update extends ApplicationLogger {
     ExecutionError(e.getMessage)
   }
 
-  def updateCronJob(args: CronJobArgs,transactor: HikariTransactor[Task]): Task[CronJob] = {
+    def updateCronJob(args: CronJobArgs,transactor: HikariTransactor[Task]): Task[CronJob] = {
     sql"UPDATE job SET schedule = ${args.schedule.toString} WHERE job_name = ${args.job_name}"
       .update.run.transact(transactor).map(_ => CronJob(args.job_name,"",Some(args.schedule),0,0))
   }.mapError { e =>

@@ -4,7 +4,9 @@ CREATE TABLE "job" (
     "schedule" varchar(100) NOT NULL,
     "failed" bigint NOT NULL,
     "success" bigint NOT NULL,
-    "is_active" boolean NOT NULL
+    "is_active" boolean NOT NULL,
+    "last_run_time" bigint,
+    "last_run_description" varchar(100)
 );
 
 CREATE TABLE "jobrun" (

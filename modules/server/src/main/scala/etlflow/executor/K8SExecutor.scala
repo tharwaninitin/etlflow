@@ -23,7 +23,7 @@ trait K8SExecutor {
       new File(s"${System.getProperty("user.home")}/.kube/config"))
     ).toManagedZIO
 
-    val props = args.props.map(x => s"${x.key}=${x.value}").mkString(",")
+    val props = args.props.getOrElse(List.empty).map(x => s"${x.key}=${x.value}").mkString(",")
 
     val jobParams = Seq("run_job", "--job_name", args.name, "--props", props)
     logger.info("jobParams :" + jobParams)

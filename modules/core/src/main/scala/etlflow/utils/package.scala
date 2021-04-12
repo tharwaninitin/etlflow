@@ -23,7 +23,9 @@ package object utils {
          ) extends Executor
   }
 
-  case class Config(dbLog: Credential.JDBC, timezone: Option[String], slack: Option[Slack], dataProc: Option[DataprocSpark], token: Option[List[String]])
+  case class Config(dbLog: Credential.JDBC, timezone: Option[String], slack: Option[Slack], dataProc: Option[DataprocSpark], token: Option[List[String]],webserver: Option[WebServer])
   case class DataprocSpark(mainClass: String, depLibs: List[String])
   case class Slack(url: String, env: String)
+  case class WebServer(ip_address:Option[String],port:Option[Int],secretKey:Option[String])
+
 }

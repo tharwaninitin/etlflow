@@ -21,7 +21,7 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)
-            args    = EtlJobArgs("Job1", List.empty)
+            args    = EtlJobArgs("Job1",Some(List.empty))
             status  <- job(args,sem)
           } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
         )
@@ -30,7 +30,7 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)
-            args    = EtlJobArgs("InvalidEtlJob", List.empty)
+            args    = EtlJobArgs("InvalidEtlJob",Some(List.empty))
             status  <- job(args,sem)
           } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
         )

@@ -9,11 +9,11 @@ object RequestValidator {
       expected_props match {
         case Left(e) => Left(e.getMessage)
         case Right(props) =>
-          val output = EtlJobArgs(job_name, props.map{ case (k, v) => Props(k, v) }.toList)
+          val output = EtlJobArgs(job_name, Some(props.map{ case (k, v) => Props(k, v) }.toList))
           Right(output)
       }
     } else {
-      val output = EtlJobArgs(job_name, List.empty)
+      val output = EtlJobArgs(job_name)
       Right(output)
     }
   }

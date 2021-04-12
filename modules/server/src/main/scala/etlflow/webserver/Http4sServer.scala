@@ -38,16 +38,16 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
       loginInterpreter   <- GqlLoginAPI.api.interpreter.toManaged_
       routes = Router[EtlFlowTask](
                  "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
-                  "/assets/js/2.1bd5ebae.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.1bd5ebae.chunk.js", blocker, None)),
-                  "/assets/js/main.9f2e8c7a.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.9f2e8c7a.chunk.js", blocker, None)),
+                  "/assets/js/2.800a40b8.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.800a40b8.chunk.js", blocker, None)),
+                  "/assets/js/main.05f635c1.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.05f635c1.chunk.js", blocker, None)),
                   "/assets/css/2.83b1b994.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.83b1b994.chunk.css", blocker, None)),
                   "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
                   "/about"      -> otherRoutes,
                   "/etlflow"     -> metricsSvc.routes,
-                  "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache))),
+                  "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache, config))),
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                   "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
-                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue), authEnabled = true, cache)),
+                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue), authEnabled = true, cache, config)),
                 )
     } yield routes
   }
@@ -67,7 +67,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
                      |
                      |""".stripMargin.split("\n").toList ++ List(" "*75 + s"${BI.version}", "")
           _                  <- BlazeServerBuilder[EtlFlowTask](runtime.platform.executor.asEC)
-            .bindHttp(8080, "0.0.0.0")
+            .bindHttp(config.webserver.map(_.port.getOrElse(8080)).getOrElse(8080), config.webserver.map(_.ip_address.getOrElse("0.0.0.0")).getOrElse("0.0.0.0"))
             .withConnectorPoolSize(20)
             .withBanner(banner)
             .withResponseHeaderTimeout(110.seconds)

@@ -40,9 +40,9 @@ object Query extends ApplicationLogger {
     ExecutionError(e.getMessage)
   }
 
-  def getJobs(transactor: HikariTransactor[Task]): IO[ExecutionError, List[JobDB]] = {
-    sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active FROM job x"
-      .query[JobDB] // Query0[String]
+  def getJobs(transactor: HikariTransactor[Task]): IO[ExecutionError, List[JobDB1]] = {
+    sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time, x.last_run_description FROM job x"
+      .query[JobDB1] // Query0[String]
       .to[List]
       .transact(transactor)
       .mapError { e =>
@@ -105,7 +105,6 @@ object Query extends ApplicationLogger {
 
       args.filter.get match {
         case "IN" => {
-          logger.info("Inside IN clause")
           q = sql"""
                  SELECT
                      job_run_id,
@@ -127,7 +126,6 @@ object Query extends ApplicationLogger {
             .to[List]
         }
         case "NOT IN" => {
-          logger.info("Inside NOT IN  clause" )
           q = sql"""
                  SELECT
                      job_run_id,
@@ -154,7 +152,6 @@ object Query extends ApplicationLogger {
     else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
       args.filter.get match {
         case "IN" => {
-          logger.info("Inside IN clause")
           q = sql"""
                  SELECT
                      job_run_id,
@@ -174,7 +171,6 @@ object Query extends ApplicationLogger {
             .to[List]
         }
         case "NOT IN" => {
-          logger.info("Inside NOT IN  clause" )
           q = sql"""
                  SELECT
                      job_run_id,

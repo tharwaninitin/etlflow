@@ -29,7 +29,7 @@ abstract class SchedulerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[Etl
     else {
       val listOfCron: List[(CronExpr, URIO[Blocking with Clock, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name,List.empty),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler-API",jobQueue).map(Some(_)).
+        runActiveEtlJob[EJN](EtlJobArgs(cj.job_name),transactor,jobSemaphores(cj.job_name),config,etl_job_props_mapping_package,"Scheduler-API",jobQueue).map(Some(_)).
           catchAll(_ => UIO.succeed(None))
       }))
 

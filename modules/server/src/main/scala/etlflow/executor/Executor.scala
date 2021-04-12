@@ -24,7 +24,7 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
   (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)], fork: Boolean = true): RIO[Blocking with Clock, EtlJob] = {
     for {
       mapping_props  <- Task(getJobPropsMapping[EJN](args.name,etl_job_name_package)).mapError(e => ExecutionError(e.getMessage))
-      job_props      =  args.props.map(x => (x.key,x.value)).toMap
+      job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
       db_job         <- Query.getJob(args.name,transactor)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
@@ -39,7 +39,7 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
 
   final def runEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
   (args: EtlJobArgs, transactor: HikariTransactor[Task], sem: Semaphore, config: Config, etl_job_name_package: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[Blocking with Clock, Unit] = {
-    val actual_props = args.props.map(x => (x.key,x.value)).toMap
+    val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
     val jobRun: Task[Unit] = UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
@@ -59,8 +59,8 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
     val loggedJobRun: RIO[Blocking with Clock, Long] = blocking(jobRun)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
-        UIO(logger.error(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor)
-      ) *> Update.updateSuccessJob(args.name, transactor)
+        UIO(logger.error(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor) *> Update.updateJobRunTime(args.name,UF.getCurrentTimestamp, transactor)
+      ) *> Update.updateSuccessJob(args.name, transactor) *> Update.updateJobRunTime(args.name,UF.getCurrentTimestamp, transactor)
 
     (if(fork) sem.withPermit(loggedJobRun).forkDaemon else sem.withPermit(loggedJobRun)).as(())
   }

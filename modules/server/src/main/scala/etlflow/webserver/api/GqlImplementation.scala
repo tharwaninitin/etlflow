@@ -87,7 +87,7 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
       }
 
       override def login(args: UserArgs): ZIO[GQLEnv, Throwable, UserAuth] =  {
-        Authentication.login(args,transactor,cache)
+        Authentication.login(args,transactor,cache,config)
       }
 
       override def getInfo: ZIO[GQLEnv, Throwable, EtlFlowMetrics] = {

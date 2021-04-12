@@ -26,7 +26,7 @@ object RestAPINew {
       .out(jsonBody[EtlJob])
 
   private def runJob(args: RestEtlJobArgs): EtlFlowTask[Either[String,EtlJob]] = {
-    val params = EtlJobArgs(args.name,args.props.getOrElse(Map.empty).map(kv => Props(kv._1,kv._2)).toList)
+    val params = EtlJobArgs(args.name,Some(args.props.getOrElse(Map.empty).map(kv => Props(kv._1,kv._2)).toList))
     GqlService.runJob(params).mapError(e => e.getMessage).either
   }
 

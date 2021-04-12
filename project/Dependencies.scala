@@ -39,7 +39,7 @@ object Dependencies {
   val RedisVersion = "3.30"
   val ScalajHttpVersion = "2.4.2"
   val mailVersion = "1.6.2"
-  val JwtCoreVersion = "5.0.0"
+  val JwtCoreVersion = "7.1.3"
   val Sl4jVersion = "1.7.30"
   val bcryptVersion = "4.3.0"
 
@@ -125,7 +125,8 @@ object Dependencies {
     "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
     "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
-    "com.pauldijou" %% "jwt-core" % JwtCoreVersion,
+//    "com.pauldijou" %% "jwt-core" % JwtCoreVersion,
+    "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
     "com.github.cb372" %% "scalacache-cats-effect" % ScalaCacheVersion,

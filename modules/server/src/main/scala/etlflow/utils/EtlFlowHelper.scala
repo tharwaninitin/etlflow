@@ -11,7 +11,22 @@ object EtlFlowHelper {
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
-  case class JobDB(job_name: String, job_description: String ,schedule: String, failed: Long, success: Long, is_active: Boolean)
+  case class JobDB(job_name: String,
+                   job_description: String ,
+                   schedule: String,
+                   failed: Long,
+                   success: Long,
+                   is_active: Boolean)
+
+  case class JobDB1(job_name: String,
+                   job_description: String ,
+                   schedule: String,
+                   failed: Long,
+                   success: Long,
+                   is_active: Boolean,
+                   last_run_time: Option[Long] = None,
+                   last_run_description: Option[String] = None)
+
   case class JobLogs(job_name: String,  success: Long, failed: Long)
 
   case class CredentialDB(name: String, `type`: String, value: String)
@@ -24,7 +39,7 @@ object EtlFlowHelper {
   }
   case class Props(key: String, value: String)
   case class EtlJobStateArgs(name: String, state: Boolean)
-  case class EtlJobArgs(name: String, props: List[Props])
+  case class EtlJobArgs(name: String, props: Option[List[Props]] = None)
   case class UserArgs(user_name: String, password: String)
   case class DbJobRunArgs(
                            jobRunId: Option[String] = None,
@@ -61,6 +76,17 @@ object EtlFlowHelper {
 
   case class CacheDetails(name:String,details:Map[String,String])
   case class QueueDetails(name:String,details:String,submitted_from:String,execution_time:String)
-  case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean,max_active_runs: Int, job_deploy_mode: String)
+  case class Job(name: String,
+                 props: Map[String,String],
+                 schedule: Option[CronExpr],
+                 nextSchedule: String,
+                 schduleRemainingTime: String ,
+                 failed: Long,
+                 success: Long,
+                 is_active:Boolean,
+                 max_active_runs: Int,
+                 job_deploy_mode: String,
+                 last_run_time: Long,
+                 last_run_description: String)
 
 }

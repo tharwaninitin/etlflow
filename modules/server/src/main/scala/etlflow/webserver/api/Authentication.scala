@@ -14,19 +14,27 @@ import pdi.jwt.{Jwt, JwtAlgorithm}
 import com.github.t3hnar.bcrypt._
 import zio.Task
 import zio.interop.catz._
+import etlflow.utils.Config
+
 
 object Authentication extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
-  def middleware(service: HttpRoutes[EtlFlowTask], authEnabled: Boolean, cache: Cache[String]): HttpRoutes[EtlFlowTask] = Kleisli {
+  def middleware(service: HttpRoutes[EtlFlowTask], authEnabled: Boolean, cache: Cache[String],config : Config): HttpRoutes[EtlFlowTask] = Kleisli {
     req: Request[EtlFlowTask] =>
       if(authEnabled) {
         req.headers.get(CaseInsensitiveString("Authorization")) match {
           case Some(value) =>
             val token = value.value
-            CacheHelper.getKey(cache,token) match {
-              case Some(_) => service(req)
-              case None =>
-                logger.warn(s"Invalid/Expired token $token")
-                OptionT.liftF(Forbidden())
+              if(Jwt.isValid(token, config.webserver.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey"), Seq(JwtAlgorithm.HS256))) {
+              CacheHelper.getKey(cache, token) match {
+                case Some(_) => service(req)
+                case None =>
+                  logger.warn(s"Expired token $token")
+                  OptionT.liftF(Forbidden())
+              }
+            }
+            else {
+              logger.warn(s"Invalid token $token")
+              OptionT.liftF(Forbidden())
             }
           case None =>
             logger.warn("Header not present. Invalid Request !!")
@@ -38,14 +46,14 @@ object Authentication extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
       }
   }
 
-  def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String]): Task[UserAuth] =  {
+  def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String],config: Config): Task[UserAuth] =  {
     getUser(args.user_name,transactor).fold(ex => {
       logger.error("Error in fetching user from db => " + ex.getMessage)
       UserAuth("Invalid User/Password", "")
     }, user => {
       if (args.password.isBcryptedBounded(user.password)) {
         val user_data = s"""{"user":"${user.user_name}", "role":"${user.user_role}"}""".stripMargin
-        val token = Jwt.encode(user_data, "secretKey", JwtAlgorithm.HS256)
+        val token = Jwt.encode(user_data, config.webserver.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey"), JwtAlgorithm.HS256)
         logger.info(s"New token generated for user ${user.user_name}")
         CacheHelper.putKey(cache, token, token, Some(CacheHelper.default_ttl))
         UserAuth("Valid User", token)

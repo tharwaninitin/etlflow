@@ -1,6 +1,5 @@
 package etlflow.webserver.api
 
-import cats.effect.Blocker
 import etlflow.{ServerSuiteHelper, TestApiImplementation}
 import etlflow.utils.EtlFlowHelper.EtlFlowTask
 import etlflow.webserver.Http4sServer
@@ -10,7 +9,6 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.implicits._
-import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -20,22 +18,18 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestApiImplementation wi
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
-  private val routesManaged = for {
-    blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
-    transactor  <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "Test-Pool")(blocker)
-    routes      <- allRoutes[MEJP](blocker, cache, testJobsSemaphore, transactor, etlJob_name_package, testJobsQueue, config)
-  } yield routes
-
-  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv, Throwable, Either[String, String]] = routesManaged.use {routes =>
-    for {
-      client <- Task(Client.fromHttpApp[EtlFlowTask](routes.orNotFound))
-      output <- client.run(apiRequest).use {
-                  case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
-                  case r => r.as[String].map(b => Left(s"${r.status.code}"))
-                }
-    } yield output
-  }.provideCustomLayer(testHttp4s(transactor,cache))
-    .fold(ex => Left(s"Status Code 500 with error ${ex.getMessage}"), op => op)
+  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv, Throwable, Either[String, String]] =
+    managedTransactorBlocker.use{case(trans, blocker) =>
+      allRoutes[MEJP](blocker, cache, testJobsSemaphore, trans, etlJob_name_package, testJobsQueue, config).use{ routes =>
+        for {
+          client <- Task(Client.fromHttpApp[EtlFlowTask](routes.orNotFound))
+          output <- client.run(apiRequest).use {
+            case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
+            case r => r.as[String].map(b => Left(s"${r.status.code}"))
+          }
+        } yield output
+      }.provideCustomLayer(testHttp4s(trans))
+    }.fold(ex => Left(s"Status Code 500 with error ${ex.getMessage}"), op => op)
 
   private val gqlApiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))
   private val gqlLoginBody = Json.obj("query" -> Json.fromString("""

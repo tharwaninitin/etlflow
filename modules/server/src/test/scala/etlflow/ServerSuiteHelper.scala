@@ -12,11 +12,13 @@ import etlflow.utils.Executor.DATAPROC
 import etlflow.utils.{CacheHelper, Config}
 import io.circe.generic.auto._
 import scalacache.caffeine.CaffeineCache
-import zio.{Queue, Ref, Runtime, Task}
+import zio.{Queue, Ref, Runtime, Task, ZIO, ZManaged}
 import zio.interop.catz._
+
 import scala.concurrent.ExecutionContext
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.EtlFlowUtils
+import zio.blocking.Blocking
 
 trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
 
@@ -37,8 +39,13 @@ trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
   }
 
   val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  val transactor: HikariTransactor[Task] = createDbTransactor(credentials,ec,Blocker.liftExecutionContext(ec), "EtlFlow-Scheduler-Testing-Pool")
-  val managedTransactor = createDbTransactorManaged(credentials,ec, "EtlFlow-Managed-Scheduler-Testing-Pool")
+  val transactor: HikariTransactor[Task] = createDbTransactor(credentials,ec,Blocker.liftExecutionContext(ec), "UnManaged-Test-Pool")
+  val managedTransactorBlocker: ZManaged[Blocking, Throwable, (HikariTransactor[Task], Blocker)] =
+                                for {
+                                  blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
+                                  rt          <- Task.runtime.toManaged_
+                                  transactor  <- createDbTransactorManaged(config.dbLog, rt.platform.executor.asEC, "Test-Pool")(blocker)
+                                } yield (transactor,blocker)
   val etlJob_name_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]] + "$"
 
   val testJobsQueue = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])

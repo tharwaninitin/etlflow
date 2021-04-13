@@ -13,7 +13,9 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   def job(args: EtlJobArgs,sem: Semaphore): RIO[Blocking with Clock, EtlJob] =
-    managedTransactor.use(transactor => runActiveEtlJob[MEJP](args,transactor,sem,config,etlJob_name_package,"Test",testJobsQueue,false))
+    managedTransactorBlocker.use{ case(transactor,_) =>
+      runActiveEtlJob[MEJP](args,transactor,sem,config,etlJob_name_package,"Test",testJobsQueue,false)
+    }
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Executor Spec")(

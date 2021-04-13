@@ -17,7 +17,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 object ApiImplementation extends EtlFlowUtils with Executor {
 
-  def liveHttp4s[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
+  def live[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
     transactor: HikariTransactor[Task]
     ,cache: CaffeineCache[String]
     ,cronJobs: Ref[List[CronJob]]

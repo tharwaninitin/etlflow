@@ -2,15 +2,12 @@ package etlflow.webserver.api
 
 import caliban.Macros.gqldoc
 import etlflow.TestApiImplementation
-import zio.blocking.Blocking
-import zio.clock.Clock
-import zio.console.Console
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
 
-  val env = Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
+  val env = testHttp4s(transactor)
   val etlFlowInterpreter = GqlAPI.api.interpreter
   val loginInterpreter   = GqlLoginAPI.api.interpreter
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
@@ -29,7 +26,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
              }
            }""")
         val result = for {
-          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env)
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env)
           _           = logger.info(gqlResponse.toString)
         } yield gqlResponse.data.toString
         assertM(result)(equalTo("""{"jobs":[{"name":"Job1","job_deploy_mode":"local","max_active_runs":10,"is_active":true},{"name":"Job2","job_deploy_mode":"kubernetes","max_active_runs":1,"is_active":true}]}""")
@@ -44,7 +41,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                 job_name
                }
              }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"jobruns":[{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a301","job_name":"EtlJobDownload"},{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a302","job_name":"EtlJobSpr"}]}""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"jobruns":[{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a301","job_name":"EtlJobDownload"},{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a302","job_name":"EtlJobSpr"}]}""")
         )
       },
       testM("Test query jobruns end point with filter condition IN") {
@@ -56,7 +53,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                }
              }""")
         val result = for {
-          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env)
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env)
           _           = logger.info(gqlResponse.toString)
         } yield gqlResponse.data.toString
         assertM(result)(equalTo("""{"jobruns":[{"job_name":"EtlJobDownload"}]}""")
@@ -71,7 +68,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                }
              }""")
         val result = for {
-          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env)
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env)
           _           = logger.info(gqlResponse.toString)
         } yield gqlResponse.data.toString
         assertM(result)(equalTo("""{"jobruns":[{"job_name":"EtlJobSpr"}]}""")
@@ -86,7 +83,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                     step_name
                    }
                  }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"stepruns":[{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a301","step_name":"download_spr"}]}""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"stepruns":[{"job_run_id":"a27a7415-57b2-4b53-8f9b-5254e847a301","step_name":"download_spr"}]}""")
         )
       },
       testM("Test mutation login end point with correct credentials") {
@@ -98,7 +95,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                    message
                   }
                 }""")
-        assertM(loginInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Valid User"}}""")
+        assertM(loginInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Valid User"}}""")
         )
       },
       testM("Test mutation login end point with incorrect credentials") {
@@ -110,7 +107,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                    message
                   }
                 }""")
-        assertM(loginInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Invalid User/Password"}}""")
+        assertM(loginInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"login":{"message":"Invalid User/Password"}}""")
         )
       },
       testM("Test mutation update job state end point") {
@@ -121,7 +118,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                   update_job_state(name: "EtlJobDownload", state: true)
                 }""")
 
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_job_state":true}""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"update_job_state":true}""")
         )
       },
       testM("Test mutation add credentials end point") {
@@ -141,7 +138,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                 }
                }""")
 
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"add_credentials":{"name":"flyway_testing"}}""".stripMargin)
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"add_credentials":{"name":"flyway_testing"}}""".stripMargin)
         )
       },
       testM("Test mutation add credentials end point duplicate") {
@@ -161,7 +158,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                 }
                }""")
         val error = """ERROR: duplicate key value violates unique constraint "credentials_name_type"  Detail: Key (name, type)=(flyway_testing, jdbc) already exists."""
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.errors.map(_.getMessage.filter(_ >= ' '))))(equalTo(List(error))
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.errors.map(_.getMessage.filter(_ >= ' '))))(equalTo(List(error))
         )
       },
       testM("Test mutation add credentials end point with incorrect input") {
@@ -180,7 +177,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                  name
                 }
                }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"swap123"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"swap123"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
         )
       },
       testM("Test mutation update credentials end point") {
@@ -200,7 +197,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                 }
                }""")
 
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"flyway_testing"}}""".stripMargin)
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"flyway_testing"}}""".stripMargin)
         )
       },
       testM("Test query get credentials end point") {
@@ -212,7 +209,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                   type
                 }
               }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideLayer(env).map(_.data.toString))(equalTo("""{"credential":[{"name":"flyway_testing","type":"jdbc"}]}""".stripMargin)
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"credential":[{"name":"flyway_testing","type":"jdbc"}]}""".stripMargin)
         )
       }
     ) @@ TestAspect.sequential

@@ -54,31 +54,25 @@ trait EtlFlowUtils extends ApplicationLogger {
   }
 
   final def getJobsFromDb[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](transactor: HikariTransactor[Task], etl_job_name_package: String): Task[List[Job]] = {
-    for {
-      rt    <- Task.runtime
-      jobs  <- Query.getJobs(transactor)
-        .map(y => y.map{x => {
-          val props = getJobPropsMapping[EJN](x.job_name,etl_job_name_package)
-          val p = new PrettyTime()
-          val startTimeMillis1: Long = UF.getCurrentTimestamp
-          val endTimeMillis1: Option[Long] = Some(x.last_run_time.getOrElse(0))
-//          val remTime3 = endTimeMillis1.map(ts => UF.getTimeDifferenceAsString(startTimeMillis1,ts)).getOrElse("")
-          val remTime4 = endTimeMillis1.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+    Query.getJobs(transactor)
+      .map(y => y.map{x => {
+        val props = getJobPropsMapping[EJN](x.job_name,etl_job_name_package)
+        val p = new PrettyTime()
+        val lastRunTime = x.last_run_time.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
 
-          if(Cron(x.schedule).toOption.isDefined) {
-            val cron = Cron(x.schedule).toOption
-            val startTimeMillis: Long =  UF.getCurrentTimestampUsingLocalDateTime
-            val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
-            val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis,ts)).getOrElse("")
-            val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+        if(Cron(x.schedule).toOption.isDefined) {
+          val cron = Cron(x.schedule).toOption
+          val startTimeMillis: Long =  UF.getCurrentTimestampUsingLocalDateTime
+          val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
+          val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis,ts)).getOrElse("")
+          val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
 
-            val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-            Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"),x.last_run_time.getOrElse(0),s"$remTime4")
-          }else{
-            Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"),x.last_run_time.getOrElse(0),s"$remTime4")
-          }
-        }})
-    } yield jobs
+          val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
+          Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"),x.last_run_time.getOrElse(0),s"$lastRunTime")
+        }else{
+          Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"),x.last_run_time.getOrElse(0),s"$lastRunTime")
+        }
+      }})
   }.mapError{ e =>
     logger.error(e.getMessage)
     ExecutionError(e.getMessage)

@@ -41,7 +41,7 @@ object Query extends ApplicationLogger {
   }
 
   def getJobs(transactor: HikariTransactor[Task]): IO[ExecutionError, List[JobDB1]] = {
-    sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time, x.last_run_description FROM job x"
+    sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
       .query[JobDB1] // Query0[String]
       .to[List]
       .transact(transactor)

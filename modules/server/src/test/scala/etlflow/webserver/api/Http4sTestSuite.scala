@@ -1,7 +1,7 @@
 package etlflow.webserver.api
 
 import cats.effect.Blocker
-import etlflow.ServerSuiteHelper
+import etlflow.{ServerSuiteHelper, TestApiImplementation}
 import etlflow.utils.EtlFlowHelper.EtlFlowTask
 import etlflow.webserver.Http4sServer
 import io.circe.Json
@@ -16,14 +16,14 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{Task, ZEnv, ZIO}
 
-object Http4sTestSuite extends DefaultRunnableSpec with TestGqlImplementation with Http4sServer with ServerSuiteHelper {
+object Http4sTestSuite extends DefaultRunnableSpec with TestApiImplementation with Http4sServer with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   private val routesManaged = for {
     blocker     <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
     transactor  <- createDbTransactorManaged(config.dbLog, platform.executor.asEC, "Test-Pool")(blocker)
-    routes      <- allRoutes[MEJP](blocker, cache, testJobsSemaphore, transactor, etlJob_name_package, testJobsQueue)
+    routes      <- allRoutes[MEJP](blocker, cache, testJobsSemaphore, transactor, etlJob_name_package, testJobsQueue, config)
   } yield routes
 
   private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv, Throwable, Either[String, String]] = routesManaged.use {routes =>

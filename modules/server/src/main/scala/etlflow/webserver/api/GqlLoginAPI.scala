@@ -7,8 +7,7 @@ import etlflow.utils.EtlFlowHelper._
 import zio.{Task, UIO, ZIO}
 import zio.blocking.Blocking
 import zio.clock.Clock
-import zio.console.Console
-import GqlService._
+import ApiService.login
 
 object GqlLoginAPI extends GenericSchema[GQLEnv] {
 

@@ -5,8 +5,7 @@ CREATE TABLE "job" (
     "failed" bigint NOT NULL,
     "success" bigint NOT NULL,
     "is_active" boolean NOT NULL,
-    "last_run_time" bigint,
-    "last_run_description" varchar(100)
+    "last_run_time" bigint
 );
 
 CREATE TABLE "jobrun" (

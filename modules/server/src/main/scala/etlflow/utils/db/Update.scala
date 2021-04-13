@@ -29,8 +29,8 @@ object Update extends ApplicationLogger {
     o
   })
 
-  def updateSuccessJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
-    sql"UPDATE job SET success = (success + 1) WHERE job_name = ${job}"
+  def updateSuccessJob(job: String, ts: Long, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
+    sql"UPDATE job SET success = (success + 1), last_run_time = $ts WHERE job_name = $job"
       .update
       .run
       .transact(transactor)
@@ -40,19 +40,8 @@ object Update extends ApplicationLogger {
     ExecutionError(e.getMessage)
   }
 
-  def updateJobRunTime(job: String,currentTime: Long, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
-    sql"UPDATE job SET last_run_time =  $currentTime WHERE job_name = $job"
-      .update
-      .run
-      .transact(transactor)
-      .map(_ => 1L)
-  }.mapError { e =>
-    logger.error(e.getMessage)
-    ExecutionError(e.getMessage)
-  }
-
-  def updateFailedJob(job: String, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
-    sql"UPDATE job SET failed = (failed + 1) WHERE job_name = $job"
+  def updateFailedJob(job: String, ts: Long, transactor: HikariTransactor[Task]): IO[ExecutionError, Long] = {
+    sql"UPDATE job SET failed = (failed + 1), last_run_time = $ts WHERE job_name = $job"
       .update
       .run
       .transact(transactor)

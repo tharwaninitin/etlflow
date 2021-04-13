@@ -63,7 +63,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
           ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
       }
-      case None => ZIO.fail(new RuntimeException("Config was not parsed successfully"))
+      case None => ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
     }
   }
 

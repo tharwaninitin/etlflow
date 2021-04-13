@@ -13,20 +13,18 @@ import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
-
 import scala.reflect.runtime.universe.TypeTag
 
-trait GqlImplementation extends EtlFlowUtils with Executor {
-
-  val config: Config
+object ApiImplementation extends EtlFlowUtils with Executor {
 
   def liveHttp4s[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
-    transactor: HikariTransactor[Task],
-    cache: CaffeineCache[String],
-    cronJobs: Ref[List[CronJob]],
-    jobSemaphores: Map[String, Semaphore],
-    jobs: List[EtlJob],
-    jobQueue: Queue[(String,String,String,String)]
+    transactor: HikariTransactor[Task]
+    ,cache: CaffeineCache[String]
+    ,cronJobs: Ref[List[CronJob]]
+    ,jobSemaphores: Map[String, Semaphore]
+    ,jobs: List[EtlJob]
+    ,jobQueue: Queue[(String,String,String,String)]
+    ,config: Config
   ): ZLayer[Blocking, Throwable, GQLEnv] = ZLayer.fromEffect{
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
@@ -34,7 +32,7 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
       etl_job_name_package  = UF.getJobNamePackage[EJN] + "$"
       mb                    = 1024*1024
       javaRuntime           = java.lang.Runtime.getRuntime
-    } yield new GqlService {
+    } yield new ApiService {
 
       def getLoginCacheStats:CacheDetails = {
         val data:Map[String,String] = CacheHelper.toMap(cache)
@@ -70,8 +68,8 @@ trait GqlImplementation extends EtlFlowUtils with Executor {
         Query.getCredentials(transactor)
       }
 
-      override def runJob(args: EtlJobArgs): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob] = {
-        runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,"GraphQL-API",jobQueue)
+      override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob] = {
+        runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,submitter,jobQueue)
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[GQLEnv, Throwable, List[StepRun]] = {

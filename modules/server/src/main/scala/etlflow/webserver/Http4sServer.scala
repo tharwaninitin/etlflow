@@ -22,14 +22,14 @@ import zio.{Queue, Semaphore, Task, ZEnv, ZIO, ZManaged}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
+trait Http4sServer extends Http4sDsl[EtlFlowTask] {
 
   val otherRoutes: HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
   def allRoutes[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)])
+  (blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
   : ZManaged[ZEnv with GQLEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
     for {
       metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
@@ -42,7 +42,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
                   "/assets/js/main.05f635c1.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.05f635c1.chunk.js", blocker, None)),
                   "/assets/css/2.83b1b994.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.83b1b994.chunk.css", blocker, None)),
                   "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
-                  "/about"      -> otherRoutes,
+                  "/about"       -> otherRoutes,
                   "/etlflow"     -> metricsSvc.routes,
                   "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache, config))),
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
@@ -52,11 +52,15 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
     } yield routes
   }
 
-  def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, config:Config, jobQueue: Queue[(String,String,String,String)]): ZIO[ZEnv with GQLEnv, Throwable, Nothing] =
+  def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
+  (blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
+  : ZIO[ZEnv with GQLEnv, Throwable, Nothing] =
     ZIO.runtime[ZEnv with GQLEnv]
       .flatMap{implicit runtime =>
         (for {
-          routes <- allRoutes[EJN](blocker,cache,jobSemaphores,transactor,etl_job_name_package,jobQueue)
+          routes <- allRoutes[EJN](blocker,cache,jobSemaphores,transactor,etl_job_name_package,jobQueue,config)
+          address = config.webserver.map(_.ip_address.getOrElse("0.0.0.0")).getOrElse("0.0.0.0")
+          port    = config.webserver.map(_.port.getOrElse(8080)).getOrElse(8080)
           banner = """
                      |   ________   _________    _____      ________    _____        ___     ____      ____
                      |  |_   __  | |  _   _  |  |_   _|    |_   __  |  |_   _|     .'   `.  |_  _|    |_  _|
@@ -67,7 +71,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] with GqlImplementation {
                      |
                      |""".stripMargin.split("\n").toList ++ List(" "*75 + s"${BI.version}", "")
           _                  <- BlazeServerBuilder[EtlFlowTask](runtime.platform.executor.asEC)
-            .bindHttp(config.webserver.map(_.port.getOrElse(8080)).getOrElse(8080), config.webserver.map(_.ip_address.getOrElse("0.0.0.0")).getOrElse("0.0.0.0"))
+            .bindHttp(port, address)
             .withConnectorPoolSize(20)
             .withBanner(banner)
             .withResponseHeaderTimeout(110.seconds)

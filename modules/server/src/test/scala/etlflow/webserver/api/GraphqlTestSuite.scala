@@ -1,13 +1,14 @@
 package etlflow.webserver.api
 
 import caliban.Macros.gqldoc
+import etlflow.TestApiImplementation
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object GraphqlTestSuite extends DefaultRunnableSpec with TestGqlImplementation {
+object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
 
   val env = Clock.live ++ Blocking.live ++ testHttp4s(transactor,cache) ++ Console.live
   val etlFlowInterpreter = GqlAPI.api.interpreter

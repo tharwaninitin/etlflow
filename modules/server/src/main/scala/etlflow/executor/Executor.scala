@@ -59,8 +59,8 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
     val loggedJobRun: RIO[Blocking with Clock, Long] = blocking(jobRun)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
-        UIO(logger.error(ex.getMessage)) *> Update.updateFailedJob(args.name, transactor) *> Update.updateJobRunTime(args.name,UF.getCurrentTimestamp, transactor)
-      ) *> Update.updateSuccessJob(args.name, transactor) *> Update.updateJobRunTime(args.name,UF.getCurrentTimestamp, transactor)
+        UIO(logger.error(ex.getMessage)) *> Update.updateFailedJob(args.name, UF.getCurrentTimestamp, transactor)
+      ) *> Update.updateSuccessJob(args.name, UF.getCurrentTimestamp, transactor)
 
     (if(fork) sem.withPermit(loggedJobRun).forkDaemon else sem.withPermit(loggedJobRun)).as(())
   }

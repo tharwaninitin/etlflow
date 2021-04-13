@@ -10,7 +10,7 @@ import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.{JobLogsArgs, _}
-import GqlService._
+import ApiService._
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -72,7 +72,7 @@ object GqlAPI extends GenericSchema[GQLEnv with Blocking with Clock] {
           getCredentials
         ),
         Mutations(
-          args => runJob(args).mapError(ex => ExecutionError(ex.getMessage)),
+          args => runJob(args,"GraphQL API").mapError(ex => ExecutionError(ex.getMessage)),
           args => updateJobState(args),
           args => addCronJob(args),
           args => updateCronJob(args),

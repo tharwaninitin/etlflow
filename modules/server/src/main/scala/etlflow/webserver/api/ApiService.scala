@@ -7,8 +7,8 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
 
-trait GqlService {
-  def runJob(args: EtlJobArgs): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob]
+trait ApiService {
+  def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob]
   def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv, Throwable, Boolean]
   def login(args: UserArgs): ZIO[GQLEnv, Throwable, UserAuth]
   def addCronJob(args: CronJobArgs): ZIO[GQLEnv, Throwable, CronJob]
@@ -19,20 +19,18 @@ trait GqlService {
   def getQueueStats: ZIO[GQLEnv, Throwable, List[QueueDetails]]
   def getJobLogs(args: JobLogsArgs): ZIO[GQLEnv, Throwable, List[JobLogs]]
   def getCredentials: ZIO[GQLEnv, Throwable, List[UpdateCredentialDB]]
-
   def getInfo: ZIO[GQLEnv, Throwable, EtlFlowMetrics]
   def getJobs: ZIO[GQLEnv, Throwable, List[Job]]
   def getCacheStats: ZIO[GQLEnv, Throwable, List[CacheDetails]]
   def getDbJobRuns(args: DbJobRunArgs): ZIO[GQLEnv, Throwable, List[JobRun]]
   def getDbStepRuns(args: DbStepRunArgs): ZIO[GQLEnv, Throwable, List[StepRun]]
-
   def notifications: ZStream[GQLEnv, Nothing, EtlJobStatus]
 }
 
-object GqlService {
+object ApiService {
 
-  def runJob(args: EtlJobArgs): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob] =
-    ZIO.accessM[GQLEnv with Blocking with Clock](_.get.runJob(args)).absorb
+  def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob] =
+    ZIO.accessM[GQLEnv with Blocking with Clock](_.get.runJob(args,submitter)).absorb
 
   def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv, Throwable, Boolean] =
     ZIO.accessM[GQLEnv](_.get.updateJobState(args))

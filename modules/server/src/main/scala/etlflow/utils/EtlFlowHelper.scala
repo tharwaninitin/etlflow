@@ -1,12 +1,12 @@
 package etlflow.utils
 
 import cron4s.CronExpr
-import etlflow.webserver.api.GqlService
+import etlflow.webserver.api.ApiService
 import zio.{Has, RIO, ZEnv}
 
 object EtlFlowHelper {
 
-  type GQLEnv = Has[GqlService]
+  type GQLEnv = Has[ApiService]
   type EtlFlowTask[A] = RIO[ZEnv with GQLEnv, A]
 
   // DB Objects
@@ -24,8 +24,7 @@ object EtlFlowHelper {
                    failed: Long,
                    success: Long,
                    is_active: Boolean,
-                   last_run_time: Option[Long] = None,
-                   last_run_description: Option[String] = None)
+                   last_run_time: Option[Long] = None)
 
   case class JobLogs(job_name: String,  success: Long, failed: Long)
 

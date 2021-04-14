@@ -38,7 +38,7 @@ object MyEtlJobPropsMapping {
     override val job_schedule: String = "0 */15 * * * ?"
     override val job_max_active_runs: Int = 1
     override val job_deploy_mode: Executor = kubernetes
-
+    override val job_enable_db_logging: Boolean = false
   }
 
   case object Job3 extends MyEtlJobPropsMapping[EtlJob3Props,Job3HttpSmtpSteps] {

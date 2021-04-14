@@ -58,6 +58,9 @@ object LocalExecutor {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name, etl_job_name_package)
           val job = job_name.etlJob(properties)
           job.job_name = job_name.toString
+          job.job_enable_db_logging = job_name.job_enable_db_logging
+          job.job_send_slack_notification = job_name.job_send_slack_notification
+          job.job_notification_level = job_name.job_notification_level
           job.execute(job_run_id,is_master).provideLayer(ZEnv.live)
         }
         override def showLocalJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
@@ -71,7 +74,7 @@ object LocalExecutor {
           val etl_job = job_name.etlJob(properties)
           if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {
             etl_job.job_name = job_name.toString
-            val json = JsonJackson.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+            val json = JsonJackson.convertToJson(etl_job.getJobInfo(job_name.job_notification_level))
             UIO(println(json))
           }
           else {

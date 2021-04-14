@@ -7,10 +7,10 @@ import etlflow.Credential.JDBC
 
 case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
 
-  val delete_credential_script = "DELETE FROM credentials WHERE name = 'etlflow'"
+  val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 
   val insert_credential_script = s"""
-      INSERT INTO credentials (name,type,value) VALUES(
+      INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
       '{"url" : "${config.dbLog.url}", "user" : "${config.dbLog.user}", "password" : "${config.dbLog.password}", "driver" : "org.postgresql.Driver" }'

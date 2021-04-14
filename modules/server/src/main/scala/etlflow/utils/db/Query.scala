@@ -54,7 +54,7 @@ object Query extends ApplicationLogger {
   def getStepRuns(args: DbStepRunArgs,transactor: HikariTransactor[Task]): IO[ExecutionError, List[StepRun]] = {
     sql"""SELECT job_run_id,
             step_name,
-            properties,
+            properties::TEXT,
             state,
             start_time,
             elapsed_time,
@@ -80,7 +80,7 @@ object Query extends ApplicationLogger {
       q =
         sql"""SELECT job_run_id,
                 job_name,
-                properties,
+                properties::TEXT,
                 state,
                 start_time,
                 elapsed_time,
@@ -109,7 +109,7 @@ object Query extends ApplicationLogger {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -130,7 +130,7 @@ object Query extends ApplicationLogger {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -156,7 +156,7 @@ object Query extends ApplicationLogger {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -175,7 +175,7 @@ object Query extends ApplicationLogger {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -203,7 +203,7 @@ object Query extends ApplicationLogger {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -224,7 +224,7 @@ object Query extends ApplicationLogger {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -331,7 +331,7 @@ object Query extends ApplicationLogger {
   }
 
   def getCredentials(transactor: HikariTransactor[Task]): IO[ExecutionError, List[UpdateCredentialDB]] = {
-    sql"SELECT name, type::TEXT ,valid_from FROM credentials WHERE valid_to is null;"
+    sql"SELECT name, type::TEXT ,valid_from FROM credential WHERE valid_to is null;"
       .query[UpdateCredentialDB]
       .to[List]
       .transact(transactor)

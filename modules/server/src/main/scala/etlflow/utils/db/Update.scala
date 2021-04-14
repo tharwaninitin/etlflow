@@ -71,7 +71,7 @@ object Update extends ApplicationLogger {
       JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty)
     )
 
-    sql"INSERT INTO credentials (name,type,value) VALUES (${credentialsDB.name}, ${credentialsDB.`type`}, ${JsonString(credentialsDB.value)})"
+    sql"INSERT INTO credential (name,type,value) VALUES (${credentialsDB.name}, ${credentialsDB.`type`}, ${JsonString(credentialsDB.value)})"
       .update
       .run
       .transact(transactor)
@@ -95,14 +95,14 @@ object Update extends ApplicationLogger {
     )
 
     val updateQuery = sql"""
-    UPDATE credentials
+    UPDATE credential
     SET valid_to = NOW() - INTERVAL '00:00:01'
-    WHERE credentials.name = ${credentialsDB.name}
-       AND credentials.valid_to IS NULL
+    WHERE credential.name = ${credentialsDB.name}
+       AND credential.valid_to IS NULL
     """.stripMargin.update.run
 
     val insertQuery = sql"""
-    INSERT INTO credentials (name,type,value)
+    INSERT INTO credential (name,type,value)
     VALUES (${credentialsDB.name},${credentialsDB.`type`},${JsonString(credentialsDB.value)});
     """.stripMargin.update.run
 

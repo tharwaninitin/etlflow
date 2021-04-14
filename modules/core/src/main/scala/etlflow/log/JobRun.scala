@@ -1,6 +1,6 @@
 package etlflow.log
 
-import java.sql.Timestamp
+case class JsonString(str: String) extends AnyVal
 
 case class JobRun(
                    job_run_id: String,

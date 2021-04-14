@@ -40,11 +40,21 @@ class JsonTestSuite extends FlatSpec with Matchers {
 
   val excludeKeys = List("job_run_id","job_description","job_properties","job_aggregate_error")
 
+  case class EtlJob23Props (
+                             ratings_input_path: String = "",
+                             ratings_output_dataset: String = "test",
+                             ratings_output_table_name: String = "ratings",
+                             job_send_slack_notification:Boolean = true,
+                             job_enable_db_logging:Boolean = false,
+                             job_notification_level:LoggingLevel = LoggingLevel.INFO
+                           )
+
+
   //Input data for all logging level and deploy mode.
-  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.DEBUG)
-  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.INFO)
-  val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
-  val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,LoggingLevel.JOB)
+  val inputDebugLevel       = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,true,LoggingLevel.DEBUG)
+  val inputInfoLevel        = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,true,LoggingLevel.INFO)
+  val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,true,LoggingLevel.JOB)
+  val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,true,LoggingLevel.JOB)
 
   val etl_job_props_mapping_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] + "$"
 
@@ -85,8 +95,8 @@ class JsonTestSuite extends FlatSpec with Matchers {
                                    |  "ratings_output_dataset" : "test",
                                    |  "ratings_output_table_name" : "ratings_par",
                                    |  "job_send_slack_notification" : true,
-                                   |  "job_notification_level" : "debug",
-                                   |  "job_enable_db_logging" : true
+                                   |  "job_enable_db_logging" : true,
+                                   |  "job_notification_level" : "debug"
                                    |}""".stripMargin
 
   val expectedserializerNegativeOutput = """{
@@ -144,6 +154,9 @@ class JsonTestSuite extends FlatSpec with Matchers {
     val props_mapping_job1 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job1",etl_job_props_mapping_package)
     val props_map_job1: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job1.getProps,List.empty).map(x => (x._1, x._2.toString))
     val expected_props_map_job1 = Map(
+      "job_send_slack_notification" -> "false",
+      "job_enable_db_logging" -> "true",
+      "job_notification_level" -> "info",
       "job_max_active_runs" -> "10",
       "job_name" -> "etlflow.coretests.jobs.Job1HelloWorld",
       "job_description" -> "",
@@ -160,6 +173,9 @@ class JsonTestSuite extends FlatSpec with Matchers {
     val props_mapping_job2 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job2",etl_job_props_mapping_package)
     val props_map_job2: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job2.getProps,List.empty).map(x => (x._1, x._2.toString))
     val expected_props_map_job2 = Map(
+      "job_send_slack_notification" -> "false",
+      "job_enable_db_logging" -> "false",
+      "job_notification_level" -> "info",
       "job_max_active_runs" -> "1",
       "job_name" -> "etlflow.coretests.jobs.Job2Retry",
       "job_description" -> "",
@@ -176,6 +192,9 @@ class JsonTestSuite extends FlatSpec with Matchers {
     val props_mapping_job3 = UF.getEtlJobName[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]]("Job3",etl_job_props_mapping_package)
     val props_map_job3: Map[String, String] = JsonJackson.convertToJsonByRemovingKeysAsMap(props_mapping_job3.getProps,List.empty).map(x => (x._1, x._2.toString))
     val expected_props_map_job3 = Map(
+      "job_send_slack_notification" -> "false",
+      "job_enable_db_logging" -> "true",
+      "job_notification_level" -> "info",
       "job_max_active_runs" -> "10",
       "job_name" -> "etlflow.coretests.jobs.Job3HttpSmtpSteps",
       "job_description" -> "",

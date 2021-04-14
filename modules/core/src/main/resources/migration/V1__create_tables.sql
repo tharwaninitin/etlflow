@@ -11,7 +11,7 @@ CREATE TABLE "job" (
 CREATE TABLE "jobrun" (
     "job_run_id" varchar(100) PRIMARY KEY,
     "job_name" text NOT NULL,
-    "properties" text NOT NULL,
+    "properties" jsonb NOT NULL,
     "state" text NOT NULL,
     "start_time" varchar(100) NOT NULL,
     "elapsed_time" varchar(100) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE "jobrun" (
 CREATE TABLE "steprun" (
     "job_run_id" varchar(100) NOT NULL,
     "step_name" varchar(100) NOT NULL,
-    "properties" text NOT NULL,
+    "properties" jsonb NOT NULL,
     "state" text NOT NULL,
     "start_time" varchar(100) NOT NULL,
     "elapsed_time" varchar(100) NOT NULL,
@@ -32,15 +32,15 @@ CREATE TABLE "steprun" (
     "inserted_at" timestamp NOT NULL DEFAULT (current_timestamp)
 );
 
-CREATE TABLE "userinfo" (
+CREATE TABLE "user" (
     "user_name" varchar(100) PRIMARY KEY,
     "password" varchar(100) NOT NULL,
     "user_active" varchar(100) NOT NULL,
     "user_role" varchar(100) NOT NULL
 );
 
-CREATE TABLE "credentials" (
-   "credential_key" SERIAL PRIMARY KEY,
+CREATE TABLE "credential" (
+   "id" SERIAL PRIMARY KEY,
    "name" varchar(100) NOT NULL,
    "type" varchar(100) NOT NULL,
    "value" jsonb NOT NULL,
@@ -48,5 +48,5 @@ CREATE TABLE "credentials" (
    "valid_to" timestamp
 );
 
-CREATE UNIQUE INDEX "credentials_name_type" ON "credentials" ("name","type") WHERE ("valid_to" is null);
+CREATE UNIQUE INDEX "credential_name_type" ON "credential" ("name","type") WHERE ("valid_to" is null);
 CREATE INDEX "steprun_job_run_id" ON "steprun" ("job_run_id");

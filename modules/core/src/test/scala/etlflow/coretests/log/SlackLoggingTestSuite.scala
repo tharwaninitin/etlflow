@@ -1,7 +1,7 @@
 package etlflow.coretests.log
 
 import java.util.TimeZone
-import etlflow.EtlJobProps
+import etlflow.utils.LoggingLevel
 import etlflow.etlsteps.GenericETLStep
 import etlflow.utils.LoggingLevel
 import org.slf4j.{Logger, LoggerFactory}
@@ -17,8 +17,6 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
   val slack_url = ""
   val slack_env = "dev-testing"
   val job_name = "EtlSlackJob"
-
-  case class EtlJobSlackProps(override val job_notification_level: LoggingLevel, override val job_send_slack_notification: Boolean = true) extends EtlJobProps
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")
@@ -40,8 +38,6 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
   suite("EtlFlow Steps") (
     testM("Execute job with log level INFO - Success Case") {
 
-      val slackProps = EtlJobSlackProps(LoggingLevel.INFO)
-
       val step1 = GenericETLStep(
         name               = "ProcessData",
         transform_function = processData,
@@ -58,14 +54,12 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackInfoLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,slackProps,job)
+          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackInfoLevelExecutor)(equalTo(message))
     },
     testM("Execute job with log level INFO - Failure Case") {
-
-      val slackProps = EtlJobSlackProps(LoggingLevel.INFO)
 
       val step1 = GenericETLStep(
         name               = "ProcessData",
@@ -84,14 +78,12 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackInfoLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,slackProps,job)
+          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackInfoLevelExecutor)(equalTo(message))
     },
     testM("Execute job with log level DEBUG - Success case") {
-
-      val slackProps = EtlJobSlackProps(LoggingLevel.DEBUG)
 
       val step1 = GenericETLStep(
         name               = "ProcessData",
@@ -114,14 +106,12 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackMessageResult =
         for {
-          slack <- JobExecutor.slack(job_name,slack_env,slack_url,slackProps,job)
+          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackMessageResult)(equalTo(debugMessage))
     },
     testM("Execute job with log level DEBUG - Failure case") {
-
-      val slackProps = EtlJobSlackProps(LoggingLevel.DEBUG)
 
       val step1 = GenericETLStep(
         name               = "ProcessData",
@@ -143,14 +133,12 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackDebugLevelExecutor =
         for {
-          slack <- JobExecutor.slack(job_name,slack_env,slack_url,slackProps,job)
+          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackDebugLevelExecutor)(equalTo(debugFailureMessage))
     },
     testM("Execute job with log level JOB - Success Case") {
-
-      val slackProps = EtlJobSlackProps(LoggingLevel.JOB)
 
       val step1 = GenericETLStep(
         name               = "ProcessData",
@@ -164,14 +152,13 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackJobLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,slackProps,job)
+          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackJobLevelExecutor)(equalTo(message))
     },
     testM("Execute job with log level JOB - Failure Case") {
 
-      val slackProps = EtlJobSlackProps(LoggingLevel.JOB)
 
       val step1 = GenericETLStep(
         name               = "ProcessData",
@@ -188,7 +175,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackJobLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,slackProps,job)
+          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackJobLevelExecutor)(equalTo(message))

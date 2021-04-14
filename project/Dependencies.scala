@@ -48,6 +48,7 @@ object Dependencies {
 
   lazy val zioLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-macros" % ZioVersion,
     "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion
   )
 

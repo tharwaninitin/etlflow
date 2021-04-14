@@ -27,7 +27,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.info("Inserting user into database")
           val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")
           val encryptedPassword = UF.encryptKey(ec.password)
-          val query = s"INSERT INTO userinfo (user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
+          val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
           logger.info("Query: " + query)
           QueryApi.executeQuery(db, query)
         case ec if ec.add_user && ec.user == "" =>

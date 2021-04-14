@@ -41,15 +41,12 @@ object Schema {
   case class EtlJob2Props (
     ratings_input_path: List[String] = List(input_file_path),
     ratings_output_table_name: String = "ratings",
-    override val job_enable_db_logging: Boolean = false,
   ) extends EtlJobProps
 
   case class EtlJob23Props (
                              ratings_input_path: String = input_file_path,
                              ratings_output_dataset: String = "test",
-                             ratings_output_table_name: String = "ratings",
-                             override val job_send_slack_notification: Boolean = true,
-                             override val job_notification_level: LoggingLevel = LoggingLevel.DEBUG,
+                             ratings_output_table_name: String = "ratings"
                            ) extends EtlJobProps
 
   case class EtlJob3Props() extends EtlJobProps

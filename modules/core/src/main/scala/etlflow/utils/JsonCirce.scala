@@ -48,14 +48,14 @@ object JsonCirce  {
 
     val caseClassJson  = parse(convertToJson(entity)).toOption.get
     val etlPropsJson = Json.obj(
-      "job_enable_db_logging"   -> Json.fromBoolean(entity.job_enable_db_logging),
-//      "job_schedule" -> Json.fromString(entity.job_schedule),
-      "job_send_slack_notification" -> Json.fromBoolean(entity.job_send_slack_notification),
-      "job_notification_level" -> Json.fromString(entity.job_notification_level match {
-        case LoggingLevel.INFO => "info"
-        case LoggingLevel.DEBUG => "debug"
-        case LoggingLevel.JOB => "job"
-      }),
+//      "job_enable_db_logging"   -> Json.fromBoolean(entity.job_enable_db_logging),
+////      "job_schedule" -> Json.fromString(entity.job_schedule),
+//      "job_send_slack_notification" -> Json.fromBoolean(entity.job_send_slack_notification),
+//      "job_notification_level" -> Json.fromString(entity.job_notification_level match {
+//        case LoggingLevel.INFO => "info"
+//        case LoggingLevel.DEBUG => "debug"
+//        case LoggingLevel.JOB => "job"
+//      }),
 //      "job_deploy_mode" -> Json.fromString(entity.job_deploy_mode match {
 //        case Executor.DATAPROC(_, _, _, _) => "dataproc"
 //        case Executor.LOCAL            => "local"

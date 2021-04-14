@@ -5,8 +5,8 @@ import etlflow.etlsteps.EtlStep
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
 import etlflow.utils.{HttpClientApi, UtilityFunctions => UF}
 import zio.Runtime.global.unsafeRun
-
-class SlackLogger private[log] (job_name: String, job_properties: EtlJobProps, web_hook_url: String = "", env: String = "") extends ApplicationLogger {
+import etlflow.utils.LoggingLevel
+class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel) extends ApplicationLogger {
   /** Slack message templates */
   var final_step_message: String = ""
   var final_message: String = ""
@@ -14,7 +14,7 @@ class SlackLogger private[log] (job_name: String, job_properties: EtlJobProps, w
   private def finalMessageTemplate(exec_date: String, message: String, error_message: Option[String]): String = {
     if (error_message.isEmpty) {
       /** Template for slack success message */
-      job_properties.job_notification_level match {
+      job_notification_level match {
         case JOB =>
           final_message = final_message.concat(f"""
           :large_blue_circle: $env - $job_name Process *Success!*
@@ -51,12 +51,12 @@ class SlackLogger private[log] (job_name: String, job_properties: EtlJobProps, w
 
     // Update the slackMessageForSteps variable and get the information of etl steps properties
     val error = error_message.map(msg => f"error -> $msg").getOrElse("")
-    job_properties.job_notification_level match {
-      case DEBUG => slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties(job_properties.job_notification_level).mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
+    job_notification_level match {
+      case DEBUG => slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + etlstep.getStepProperties(job_notification_level).mkString(", ") + error_message.map(msg => f", error -> $msg").getOrElse(""))
       case INFO | JOB =>
-        if (error.isEmpty && job_properties.job_notification_level == INFO)
+        if (error.isEmpty && job_notification_level == INFO)
           slackMessageForSteps = slackMessageForSteps
-        else if(error.isEmpty && job_properties.job_notification_level == JOB)
+        else if(error.isEmpty && job_notification_level == JOB)
           slackMessageForSteps = ""
         else
           slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + error)
@@ -89,9 +89,9 @@ class SlackLogger private[log] (job_name: String, job_properties: EtlJobProps, w
 }
 
 object SlackLogger {
-  def apply(job_name: String, job_properties: EtlJobProps, env: String, slack_url: String): Option[SlackLogger] = {
-    if (job_properties.job_send_slack_notification)
-      Some(new SlackLogger(job_name, job_properties,slack_url, env))
+  def apply(job_name: String, env: String, slack_url: String,job_notification_level:LoggingLevel,job_send_slack_notification:Boolean): Option[SlackLogger] = {
+    if (job_send_slack_notification)
+      Some(new SlackLogger(job_name,slack_url, env,job_notification_level))
     else
       None
   }

@@ -39,6 +39,10 @@ package object etlflow {
     val job_deploy_mode: Executor       = Executor.LOCAL
     val job_retries: Int                = 0
     val job_retry_delay_in_minutes: Int = 0
+    val job_enable_db_logging: Boolean        = true
+    val job_send_slack_notification: Boolean  = false
+    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
+
     final val job_name: String          = tag_EJ.toString
     final val job_props_name: String    = tag_EJP.toString
 
@@ -56,16 +60,19 @@ package object etlflow {
         "job_deploy_mode" -> job_deploy_mode,
         "job_max_active_runs" -> job_max_active_runs,
         "job_retries" -> job_retries,
-        "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes
+        "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes,
+        "job_enable_db_logging" -> job_enable_db_logging,
+        "job_send_slack_notification" -> job_send_slack_notification,
+        "job_notification_level" -> job_notification_level
       )
   }
 
   trait EtlJobSchema extends Product
 
   trait EtlJobProps {
-    val job_enable_db_logging: Boolean        = true
-    val job_send_slack_notification: Boolean  = false
-    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
+//    val job_enable_db_logging: Boolean        = true
+//    val job_send_slack_notification: Boolean  = false
+//    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
   }
 
   object EtlStepList {

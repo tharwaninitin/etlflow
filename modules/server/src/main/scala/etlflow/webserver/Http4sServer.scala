@@ -3,11 +3,11 @@ package etlflow.webserver
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
-import doobie.hikari.HikariTransactor
 import etlflow.utils.Config
 import etlflow.utils.EtlFlowHelper._
 import etlflow.webserver.api._
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.jdbc.DBEnv
 import etlflow.{EtlJobProps, EtlJobPropsMapping, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
@@ -17,8 +17,9 @@ import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.{HttpRoutes, StaticFile}
 import scalacache.Cache
+import zio.blocking.Blocking
 import zio.interop.catz._
-import zio.{Queue, Semaphore, Task, ZEnv, ZIO, ZManaged}
+import zio.{Queue, Semaphore, ZEnv, ZIO, ZManaged}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
@@ -29,9 +30,10 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
   }
 
   def allRoutes[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
-  : ZManaged[ZEnv with GQLEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
+  (cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
+  : ZManaged[ZEnv with GQLEnv with DBEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
     for {
+      blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
       metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
       etlFlowInterpreter <- GqlAPI.api.interpreter.toManaged_
@@ -47,18 +49,18 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
                   "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache, config))),
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                   "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
-                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,transactor,etl_job_name_package,config,jobQueue), authEnabled = true, cache, config)),
+                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,etl_job_name_package,config,jobQueue), authEnabled = true, cache, config)),
                 )
     } yield routes
   }
 
   def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (blocker: Blocker, cache: Cache[String], jobSemaphores: Map[String, Semaphore], transactor: HikariTransactor[Task], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
-  : ZIO[ZEnv with GQLEnv, Throwable, Nothing] =
-    ZIO.runtime[ZEnv with GQLEnv]
+  (cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
+  : ZIO[ZEnv with GQLEnv with DBEnv, Throwable, Nothing] =
+    ZIO.runtime[ZEnv with GQLEnv with DBEnv]
       .flatMap{implicit runtime =>
         (for {
-          routes <- allRoutes[EJN](blocker,cache,jobSemaphores,transactor,etl_job_name_package,jobQueue,config)
+          routes <- allRoutes[EJN](cache,jobSemaphores,etl_job_name_package,jobQueue,config)
           address = config.webserver.map(_.ip_address.getOrElse("0.0.0.0")).getOrElse("0.0.0.0")
           port    = config.webserver.map(_.port.getOrElse(8080)).getOrElse(8080)
           banner = """

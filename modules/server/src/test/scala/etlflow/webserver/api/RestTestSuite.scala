@@ -1,6 +1,6 @@
 package etlflow.webserver.api
 
-import etlflow.{ServerSuiteHelper, TestApiImplementation}
+import etlflow.ServerSuiteHelper
 import etlflow.utils.EtlFlowHelper.EtlFlowTask
 import org.http4s._
 import org.http4s.client.Client
@@ -11,23 +11,25 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{Task, ZEnv, ZIO}
 
-object RestTestSuite extends DefaultRunnableSpec with TestApiImplementation with ServerSuiteHelper with Http4sDsl[EtlFlowTask] {
+object RestTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Http4sDsl[EtlFlowTask] {
 
-  private def apiResponse(apiRequest: Request[EtlFlowTask]): ZIO[ZEnv, Throwable, Either[String, String]] = managedTransactorBlocker.use { case (trans,_) =>
+  val env = testAPILayer ++ testDBLayer
+
+  private def apiResponse(apiRequest: Request[EtlFlowTask]): ZIO[ZEnv, Throwable, Either[String, String]] =
     (for {
       client <- Task(Client.fromHttpApp[EtlFlowTask](RestAPINew.routes.orNotFound))
       output <- client.run(apiRequest).use{
         case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
         case r => r.as[String].map(output => Left(s"${r.status.code}, $output"))
       }
-    } yield output).provideCustomLayer(testHttp4s(trans))
-  }.fold(ex => Left(s"500, ${ex.getMessage}"), op => op)
+    } yield output).provideCustomLayer(env).fold(ex => Left(s"500, ${ex.getMessage}"), op => op)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Rest Test Suite")(
       testM("Test REST runjob end point with correct job name") {
         val apiRequest: Request[EtlFlowTask] = Request[EtlFlowTask](method = POST, uri = uri"/restapi/runjob/Job1")
-        assertM(apiResponse(apiRequest))(equalTo(Right("""{"name":"Job1","props":{"job_max_active_runs":"10","job_name":"etlflow.coretests.jobs.Job1HelloWorld","job_description":"","job_props_name":"etlflow.coretests.Schema$EtlJob1Props","job_deploy_mode":"local","job_retry_delay_in_minutes":"0","job_status":"ACTIVE","job_schedule":"0 */2 * * * ?","job_retries":"0"}}""")))
+        val output = """{"name":"Job1","props":{"job_send_slack_notification":"false","job_enable_db_logging":"true","job_notification_level":"info","job_max_active_runs":"10","job_name":"etlflow.coretests.jobs.Job1HelloWorld","job_description":"","job_props_name":"etlflow.coretests.Schema$EtlJob1Props","job_deploy_mode":"local","job_retry_delay_in_minutes":"0","job_status":"ACTIVE","job_schedule":"0 */2 * * * ?","job_retries":"0"}}"""
+        assertM(apiResponse(apiRequest))(equalTo(Right(output)))
       },
       testM("Test REST runjob end point with incorrect job name") {
         val apiRequest: Request[EtlFlowTask] = Request[EtlFlowTask](method = POST, uri = uri"/restapi/runjob/InvalidJob")

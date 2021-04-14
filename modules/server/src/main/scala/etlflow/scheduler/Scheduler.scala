@@ -1,7 +1,7 @@
 package etlflow.scheduler
 
 import cron4s.CronExpr
-import doobie.hikari.HikariTransactor
+import etlflow.jdbc.{DB, DBEnv}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.webserver.api.ApiService
@@ -11,13 +11,13 @@ import zio.clock.Clock
 import zio.duration._
 
 trait Scheduler extends EtlFlowUtils {
-  final def scheduleJobs(dbCronJobs: List[CronJob]): RIO[GQLEnv with Blocking with Clock,Unit] = {
+  final def scheduleJobs(dbCronJobs: List[CronJob]): RIO[GQLEnv with DBEnv with Blocking with Clock,Unit] = {
     if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
       ZIO.unit
     }
     else {
-      val listOfCron: List[(CronExpr, URIO[GQLEnv with Blocking with Clock, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
+      val listOfCron: List[(CronExpr, URIO[GQLEnv with DBEnv with Blocking with Clock, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
         ApiService
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
@@ -36,8 +36,8 @@ trait Scheduler extends EtlFlowUtils {
         }
     }
   }
-  final def etlFlowScheduler(transactor: HikariTransactor[Task], cronJobs: Ref[List[CronJob]], jobs: List[EtlJob]): RIO[GQLEnv with Blocking with Clock, Unit] = for {
-    dbJobs     <- refreshJobsDB(transactor,jobs)
+  final def etlFlowScheduler(cronJobs: Ref[List[CronJob]], jobs: List[EtlJob]): RIO[GQLEnv with DBEnv with Blocking with Clock, Unit] = for {
+    dbJobs     <- DB.refreshJobs(jobs)
     _          <- cronJobs.update{_ => dbJobs.filter(_.schedule.isDefined)}
     cronJobs   <- cronJobs.get
     _          <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))

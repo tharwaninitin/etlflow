@@ -1,13 +1,14 @@
 package etlflow.utils
 
 import cron4s.CronExpr
+import etlflow.jdbc.DBEnv
 import etlflow.webserver.api.ApiService
 import zio.{Has, RIO, ZEnv}
 
 object EtlFlowHelper {
 
   type GQLEnv = Has[ApiService]
-  type EtlFlowTask[A] = RIO[ZEnv with GQLEnv, A]
+  type EtlFlowTask[A] = RIO[ZEnv with GQLEnv with DBEnv, A]
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
@@ -27,8 +28,8 @@ object EtlFlowHelper {
                    last_run_time: Option[Long] = None)
 
   case class JobLogs(job_name: String,  success: Long, failed: Long)
-
-  case class CredentialDB(name: String, `type`: String, value: String)
+  case class JsonString(str: String) extends AnyVal
+  case class CredentialDB(name: String, `type`: String, value: JsonString)
   case class UpdateCredentialDB(name: String, `type`: String,valid_from:String)
   // GraphQL ARGS and Results
   sealed trait Creds

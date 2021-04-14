@@ -11,12 +11,13 @@ import cron4s.{Cron, CronExpr}
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.{JobLogsArgs, _}
 import ApiService._
+import etlflow.jdbc.DBEnv
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
 
-object GqlAPI extends GenericSchema[GQLEnv with Blocking with Clock] {
+object GqlAPI extends GenericSchema[GQLEnv with DBEnv with Blocking with Clock] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
   implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
@@ -27,25 +28,23 @@ object GqlAPI extends GenericSchema[GQLEnv with Blocking with Clock] {
 
 
   case class Queries(
-                      jobs: ZIO[GQLEnv, Throwable, List[Job]],
-                      jobruns: DbJobRunArgs => ZIO[GQLEnv, Throwable, List[JobRun]],
-                      stepruns: DbStepRunArgs => ZIO[GQLEnv, Throwable, List[StepRun]],
+                      jobs: ZIO[GQLEnv with DBEnv, Throwable, List[Job]],
+                      jobruns: DbJobRunArgs => ZIO[GQLEnv with DBEnv, Throwable, List[JobRun]],
+                      stepruns: DbStepRunArgs => ZIO[GQLEnv with DBEnv, Throwable, List[StepRun]],
                       metrics: ZIO[GQLEnv, Throwable, EtlFlowMetrics],
                       currentime: ZIO[GQLEnv, Throwable, CurrentTime],
                       cacheStats:ZIO[GQLEnv, Throwable, List[CacheDetails]],
                       queueStats:ZIO[GQLEnv, Throwable, List[QueueDetails]],
-                      jobLogs: JobLogsArgs => ZIO[GQLEnv, Throwable, List[JobLogs]],
-                      credential: ZIO[GQLEnv, Throwable, List[UpdateCredentialDB]]
+                      jobLogs: JobLogsArgs => ZIO[GQLEnv with DBEnv, Throwable, List[JobLogs]],
+                      credential: ZIO[GQLEnv with DBEnv, Throwable, List[UpdateCredentialDB]]
 
   )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob],
-                        update_job_state: EtlJobStateArgs => ZIO[GQLEnv, Throwable, Boolean],
-                        add_cron_job: CronJobArgs => ZIO[GQLEnv, Throwable, CronJob],
-                        update_cron_job: CronJobArgs => ZIO[GQLEnv, Throwable, CronJob],
-                        add_credentials: CredentialsArgs => ZIO[GQLEnv, Throwable, Credentials],
-                        update_credentials: CredentialsArgs => ZIO[GQLEnv, Throwable, Credentials],
+                        run_job: EtlJobArgs => ZIO[GQLEnv with DBEnv with Blocking with Clock, Throwable, EtlJob],
+                        update_job_state: EtlJobStateArgs => ZIO[GQLEnv with DBEnv, Throwable, Boolean],
+                        add_credentials: CredentialsArgs => ZIO[GQLEnv with DBEnv, Throwable, Credentials],
+                        update_credentials: CredentialsArgs => ZIO[GQLEnv with DBEnv, Throwable, Credentials],
                       )
 
   case class Subscriptions(notifications: ZStream[GQLEnv, Nothing, EtlJobStatus])
@@ -57,7 +56,7 @@ object GqlAPI extends GenericSchema[GQLEnv with Blocking with Clock] {
     case other => Left(ExecutionError(s"Can't build a date from input $other"))
   }
 
-  val api: GraphQL[Clock with Blocking with GQLEnv] =
+  val api: GraphQL[GQLEnv with DBEnv with Clock with Blocking] =
     graphQL(
       RootResolver(
         Queries(
@@ -74,8 +73,6 @@ object GqlAPI extends GenericSchema[GQLEnv with Blocking with Clock] {
         Mutations(
           args => runJob(args,"GraphQL API").mapError(ex => ExecutionError(ex.getMessage)),
           args => updateJobState(args),
-          args => addCronJob(args),
-          args => updateCronJob(args),
           args => addCredentials(args),
           args => updateCredentials(args)
         ),

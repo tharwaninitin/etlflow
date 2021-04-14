@@ -1,21 +1,19 @@
 package etlflow.webserver.api
 
 import cats.data.{Kleisli, OptionT}
-import doobie.hikari.HikariTransactor
 import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlFlowHelper.{EtlFlowTask, UserArgs, UserAuth}
 import etlflow.utils.CacheHelper
-import etlflow.utils.db.Query.{getUser, logger}
+import etlflow.jdbc.{DB, DBEnv}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{HttpRoutes, Request}
 import org.http4s.util.CaseInsensitiveString
 import scalacache.Cache
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import com.github.t3hnar.bcrypt._
-import zio.Task
+import zio.{RIO, Task}
 import zio.interop.catz._
 import etlflow.utils.Config
-
 
 object Authentication extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
   def middleware(service: HttpRoutes[EtlFlowTask], authEnabled: Boolean, cache: Cache[String],config : Config): HttpRoutes[EtlFlowTask] = Kleisli {
@@ -45,9 +43,8 @@ object Authentication extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
         service(req)
       }
   }
-
-  def login(args: UserArgs,transactor: HikariTransactor[Task],cache: Cache[String],config: Config): Task[UserAuth] =  {
-    getUser(args.user_name,transactor).fold(ex => {
+  def login(args: UserArgs, cache: Cache[String],config: Config): RIO[DBEnv, UserAuth] =  {
+    DB.getUser(args.user_name).fold(ex => {
       logger.error("Error in fetching user from db => " + ex.getMessage)
       UserAuth("Invalid User/Password", "")
     }, user => {

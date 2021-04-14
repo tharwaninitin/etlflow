@@ -1,10 +1,9 @@
 package etlflow.webserver.api
 
-import doobie.hikari.HikariTransactor
 import etlflow.executor.Executor
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.db.{Query, Update}
+import etlflow.jdbc.{DB, DBEnv}
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.{EtlJobProps, EtlJobPropsMapping, BuildInfo => BI}
@@ -18,8 +17,7 @@ import scala.reflect.runtime.universe.TypeTag
 object ApiImplementation extends EtlFlowUtils with Executor {
 
   def live[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](
-    transactor: HikariTransactor[Task]
-    ,cache: CaffeineCache[String]
+    cache: CaffeineCache[String]
     ,cronJobs: Ref[List[CronJob]]
     ,jobSemaphores: Map[String, Semaphore]
     ,jobs: List[EtlJob]
@@ -48,8 +46,8 @@ object ApiImplementation extends EtlFlowUtils with Executor {
         CacheDetails("Login",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
       }
 
-      override def getJobs: ZIO[GQLEnv, Throwable, List[Job]] = {
-        getJobsFromDb[EJN](transactor,etl_job_name_package)
+      override def getJobs: ZIO[GQLEnv with DBEnv, Throwable, List[Job]] = {
+        DB.getJobsFromDb[EJN](etl_job_name_package)
       }
 
       override def getCacheStats: ZIO[GQLEnv, Throwable, List[CacheDetails]] = {
@@ -60,32 +58,32 @@ object ApiImplementation extends EtlFlowUtils with Executor {
         QueueHelper.takeAll(jobQueue)
       }
 
-      override def getJobLogs(args: JobLogsArgs): ZIO[GQLEnv, Throwable, List[JobLogs]] = {
-        Query.getJobLogs(args,transactor)
+      override def getJobLogs(args: JobLogsArgs): ZIO[GQLEnv with DBEnv, Throwable, List[JobLogs]] = {
+        DB.getJobLogs(args)
       }
 
-      override def getCredentials: ZIO[GQLEnv, Throwable, List[UpdateCredentialDB]] = {
-        Query.getCredentials(transactor)
+      override def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[UpdateCredentialDB]] = {
+        DB.getCredentials
       }
 
-      override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock, Throwable, EtlJob] = {
-        runActiveEtlJob[EJN](args,transactor,jobSemaphores(args.name),config,etl_job_name_package,submitter,jobQueue)
+      override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock with DBEnv, Throwable, EtlJob] = {
+        runActiveEtlJob[EJN](args,jobSemaphores(args.name),config,etl_job_name_package,submitter,jobQueue)
       }
 
-      override def getDbStepRuns(args: DbStepRunArgs): ZIO[GQLEnv, Throwable, List[StepRun]] = {
-        Query.getStepRuns(args,transactor)
+      override def getDbStepRuns(args: DbStepRunArgs): ZIO[GQLEnv with DBEnv, Throwable, List[StepRun]] = {
+        DB.getStepRuns(args)
       }
 
-      override def getDbJobRuns(args: DbJobRunArgs): ZIO[GQLEnv, Throwable, List[JobRun]] = {
-        Query.getJobRuns(args,transactor)
+      override def getDbJobRuns(args: DbJobRunArgs): ZIO[GQLEnv with DBEnv, Throwable, List[JobRun]] = {
+        DB.getJobRuns(args)
       }
 
-      override def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv, Throwable, Boolean] = {
-        Update.updateJobState(args,transactor)
+      override def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv with DBEnv, Throwable, Boolean] = {
+        DB.updateJobState(args)
       }
 
-      override def login(args: UserArgs): ZIO[GQLEnv, Throwable, UserAuth] =  {
-        Authentication.login(args,transactor,cache,config)
+      override def login(args: UserArgs): ZIO[GQLEnv with DBEnv, Throwable, UserAuth] =  {
+        Authentication.login(args,cache,config)
       }
 
       override def getInfo: ZIO[GQLEnv, Throwable, EtlFlowMetrics] = {
@@ -111,20 +109,12 @@ object ApiImplementation extends EtlFlowUtils with Executor {
         UIO(CurrentTime(current_time = UF.getCurrentTimestampAsString()))
       }
 
-      override def addCredentials(args: CredentialsArgs): ZIO[GQLEnv, Throwable, Credentials] = {
-        Update.addCredentials(args,transactor)
+      override def addCredentials(args: CredentialsArgs): ZIO[GQLEnv with DBEnv, Throwable, Credentials] = {
+        DB.addCredentials(args)
       }
 
-      override def updateCredentials(args: CredentialsArgs): ZIO[GQLEnv, Throwable, Credentials] = {
-        Update.updateCredentials(args,transactor)
-      }
-
-      override def addCronJob(args: CronJobArgs): ZIO[GQLEnv, Throwable, CronJob] = {
-        Update.addCronJob(args,transactor)
-      }
-
-      override def updateCronJob(args: CronJobArgs): ZIO[GQLEnv, Throwable, CronJob] = {
-        Update.updateCronJob(args,transactor)
+      override def updateCredentials(args: CredentialsArgs): ZIO[GQLEnv with DBEnv, Throwable, Credentials] = {
+        DB.updateCredentials(args)
       }
 
       override def notifications: ZStream[GQLEnv, Nothing, EtlJobStatus] = ZStream.unwrap {

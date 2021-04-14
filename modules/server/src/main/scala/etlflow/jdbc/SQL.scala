@@ -2,12 +2,24 @@ package etlflow.jdbc
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+
+import cats.data.NonEmptyList
+import cats.effect.Async
 import doobie.free.connection.ConnectionIO
 import etlflow.utils.EtlFlowHelper._
 import doobie.implicits._
+import doobie.util.meta.Meta
 import etlflow.log.{JobRun, StepRun}
+import org.postgresql.util.PGobject
 
 object SQL {
+
+  implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
+    val o = new PGobject
+    o.setType("jsonb")
+    o.setValue(a.str)
+    o
+  })
 
   def getUser(name: String): ConnectionIO[UserInfo] =
     sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
@@ -27,7 +39,7 @@ object SQL {
   def getStepRuns(args: DbStepRunArgs): ConnectionIO[List[StepRun]] =
     sql"""SELECT job_run_id,
             step_name,
-            properties,
+            properties::TEXT,
             state,
             start_time,
             elapsed_time,
@@ -47,7 +59,7 @@ object SQL {
       q =
         sql"""SELECT job_run_id,
                 job_name,
-                properties,
+                properties::TEXT,
                 state,
                 start_time,
                 elapsed_time,
@@ -76,7 +88,7 @@ object SQL {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -97,7 +109,7 @@ object SQL {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -123,7 +135,7 @@ object SQL {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -142,7 +154,7 @@ object SQL {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -170,7 +182,7 @@ object SQL {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -191,7 +203,7 @@ object SQL {
                  SELECT
                      job_run_id,
                      job_name,
-                     properties,
+                     properties::TEXT,
                      state,
                      start_time,
                      elapsed_time,
@@ -293,7 +305,76 @@ object SQL {
   }
 
   def getCredentials: ConnectionIO[List[UpdateCredentialDB]] =
-    sql"SELECT name, type::TEXT ,valid_from FROM credentials WHERE valid_to is null;"
+    sql"SELECT name, type::TEXT ,valid_from FROM credential WHERE valid_to is null;"
       .query[UpdateCredentialDB]
       .to[List]
+
+  def updateSuccessJob(job: String, ts: Long): ConnectionIO[Int] =
+    sql"UPDATE job SET success = (success + 1), last_run_time = $ts WHERE job_name = $job"
+      .update
+      .run
+
+  def updateFailedJob(job: String, ts: Long): ConnectionIO[Int] =
+    sql"UPDATE job SET failed = (failed + 1), last_run_time = $ts WHERE job_name = $job"
+      .update
+      .run
+
+  def updateJobState(args: EtlJobStateArgs): ConnectionIO[Int] =
+    sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
+      .update
+      .run
+
+  def addCredentials(args: CredentialDB): doobie.Update0 =
+    sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${args.value})".update
+
+  def updateCredentials(args: CredentialDB): ConnectionIO[Unit] = {
+    val updateQuery = sql"""
+    UPDATE credential
+    SET valid_to = NOW() - INTERVAL '00:00:01'
+    WHERE credential.name = ${args.name}
+       AND credential.valid_to IS NULL
+    """.stripMargin.update.run
+
+    val insertQuery = sql"""
+    INSERT INTO credential (name,type,value)
+    VALUES (${args.name},${args.`type`},${args.value});
+    """.stripMargin.update.run
+
+    val singleTran = for {
+      _ <- updateQuery
+      _ <- insertQuery
+    } yield ()
+
+    singleTran
+  }
+
+  def deleteJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
+    val list = NonEmptyList(jobs.head,jobs.tail).map(x => x.job_name)
+    val query = fr"DELETE FROM job WHERE " ++ doobie.util.fragments.notIn(fr"job_name", list)
+    query.update.run
+  }
+
+  def insertJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
+    val sql = """
+       INSERT INTO job AS t (job_name,job_description,schedule,failed,success,is_active)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT (job_name)
+       DO UPDATE SET schedule = EXCLUDED.schedule
+    """
+    doobie.util.update.Update[JobDB](sql).updateMany(jobs)
+  }
+
+  val selectJobs: ConnectionIO[List[JobDB]] = {
+    sql"""
+       SELECT job_name, job_description, schedule, failed, success, is_active
+       FROM job
+       """
+      .query[JobDB]
+      .to[List]
+  }
+
+  def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
+
+  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
+
 }

@@ -1,6 +1,7 @@
 package etlflow.executor
 
 import etlflow.ServerSuiteHelper
+import etlflow.jdbc.DBEnv
 import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -12,20 +13,18 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
-  def job(args: EtlJobArgs,sem: Semaphore): RIO[Blocking with Clock, EtlJob] =
-    managedTransactorBlocker.use{ case(transactor,_) =>
-      runActiveEtlJob[MEJP](args,transactor,sem,config,etlJob_name_package,"Test",testJobsQueue,false)
-    }
+  def job(args: EtlJobArgs,sem: Semaphore): RIO[DBEnv with Blocking with Clock, EtlJob] =
+    runActiveEtlJob[MEJP](args,sem,config,etlJob_name_package,"Test",testJobsQueue,false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Executor Spec")(
+    (suite("Executor Spec")(
       testM("Test runActiveEtlJob with correct JobName") {
         assertM(
           (for {
             sem     <- Semaphore.make(permits = 1)
             args    = EtlJobArgs("Job1")
             status  <- job(args,sem)
-          } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
+          } yield status).provideCustomLayer(testDBLayer).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
         )
       },
       testM("Test runActiveEtlJob with incorrect JobName") {
@@ -34,9 +33,9 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
             sem     <- Semaphore.make(permits = 1)
             args    = EtlJobArgs("InvalidEtlJob")
             status  <- job(args,sem)
-          } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
+          } yield status).provideCustomLayer(testDBLayer).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
         )
       },
-    ) @@ TestAspect.sequential
+    ) @@ TestAspect.sequential)
 
 }

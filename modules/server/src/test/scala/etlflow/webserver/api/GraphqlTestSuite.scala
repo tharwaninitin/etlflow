@@ -1,13 +1,13 @@
 package etlflow.webserver.api
 
 import caliban.Macros.gqldoc
-import etlflow.TestApiImplementation
+import etlflow.ServerSuiteHelper
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
+object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
-  val env = testHttp4s(transactor)
+  val env = testAPILayer ++ testDBLayer
   val etlFlowInterpreter = GqlAPI.api.interpreter
   val loginInterpreter   = GqlLoginAPI.api.interpreter
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
@@ -126,19 +126,22 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
           """
             mutation
               {
-                add_credentials(name: "flyway_testing",
+                add_credentials(name: "testing",
                 type: JDBC,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres"},
-       		               { key: "password", value: "swap123"},
+       		               { key: "password", value: "testing"},
                          { key: "driver", value: "org.postgresql.Driver"},
                        ]
                   ){
                  name
                 }
                }""")
-
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"add_credentials":{"name":"flyway_testing"}}""".stripMargin)
+        val result = for {
+          gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env)
+          _           = logger.info(gqlResponse.toString)
+        } yield gqlResponse.data.toString
+        assertM(result)(equalTo("""{"add_credentials":{"name":"testing"}}""".stripMargin)
         )
       },
       testM("Test mutation add credentials end point duplicate") {
@@ -146,18 +149,18 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
           """
             mutation
               {
-                add_credentials(name: "flyway_testing",
+                add_credentials(name: "testing",
                 type: JDBC,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres"},
-       		               { key: "password", value: "swap123"},
+       		               { key: "password", value: "testing"},
                          { key: "driver", value: "org.postgresql.Driver"},
                        ]
                   ){
                  name
                 }
                }""")
-        val error = """ERROR: duplicate key value violates unique constraint "credentials_name_type"  Detail: Key (name, type)=(flyway_testing, jdbc) already exists."""
+        val error = """ERROR: duplicate key value violates unique constraint "credential_name_type"  Detail: Key (name, type)=(testing, jdbc) already exists."""
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.errors.map(_.getMessage.filter(_ >= ' '))))(equalTo(List(error))
         )
       },
@@ -166,18 +169,18 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
           """
             mutation
               {
-                add_credentials(name: "flyway_testing",
-                type: 123,
+                add_credentials(name: "testing",
+                type: testing,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres"},
-       		               { key: "password", value: "swap123"},
+       		               { key: "password", value: "testing"},
                          { key: "driver", value: "org.postgresql.Driver"},
                        ]
                   ){
                  name
                 }
                }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"swap123"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"testing"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
         )
       },
       testM("Test mutation update credentials end point") {
@@ -185,11 +188,11 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
           """
             mutation
               {
-                update_credentials(name: "flyway_testing",
+                update_credentials(name: "testing",
                 type: JDBC,
                 value: [ { key: "url", value: "jdbc:postgresql://localhost:5432/postgres"},
       		               { key: "user", value: "postgres123"},
-       		               { key: "password", value: "swap123"},
+       		               { key: "password", value: "testing"},
                          { key: "driver", value: "org.postgresql.Driver"},
                        ]
                   ){
@@ -197,7 +200,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                 }
                }""")
 
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"flyway_testing"}}""".stripMargin)
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"update_credentials":{"name":"testing"}}""".stripMargin)
         )
       },
       testM("Test query get credentials end point") {
@@ -209,7 +212,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with TestApiImplementation {
                   type
                 }
               }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"credential":[{"name":"flyway_testing","type":"jdbc"}]}""".stripMargin)
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).provideCustomLayer(env).map(_.data.toString))(equalTo("""{"credential":[{"name":"testing","type":"jdbc"}]}""".stripMargin)
         )
       }
     ) @@ TestAspect.sequential

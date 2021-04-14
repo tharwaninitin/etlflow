@@ -1,6 +1,7 @@
 package etlflow.webserver.api
 
-import etlflow.{ServerSuiteHelper, TestApiImplementation}
+import cats.effect.Blocker
+import etlflow.ServerSuiteHelper
 import etlflow.utils.EtlFlowHelper.EtlFlowTask
 import etlflow.webserver.Http4sServer
 import io.circe.Json
@@ -14,13 +15,13 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{Task, ZEnv, ZIO}
 
-object Http4sTestSuite extends DefaultRunnableSpec with TestApiImplementation with Http4sServer with ServerSuiteHelper {
+object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+  val env = testAPILayer ++ testDBLayer
 
   private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv, Throwable, Either[String, String]] =
-    managedTransactorBlocker.use{case(trans, blocker) =>
-      allRoutes[MEJP](blocker, cache, testJobsSemaphore, trans, etlJob_name_package, testJobsQueue, config).use{ routes =>
+      allRoutes[MEJP](cache, testJobsSemaphore, etlJob_name_package, testJobsQueue, config).use{ routes =>
         for {
           client <- Task(Client.fromHttpApp[EtlFlowTask](routes.orNotFound))
           output <- client.run(apiRequest).use {
@@ -28,8 +29,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with TestApiImplementation wi
             case r => r.as[String].map(b => Left(s"${r.status.code}"))
           }
         } yield output
-      }.provideCustomLayer(testHttp4s(trans))
-    }.fold(ex => Left(s"Status Code 500 with error ${ex.getMessage}"), op => op)
+      }.provideCustomLayer(env).fold(ex => Left(s"Status Code 500 with error ${ex.getMessage}"), op => op)
 
   private val gqlApiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))
   private val gqlLoginBody = Json.obj("query" -> Json.fromString("""

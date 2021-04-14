@@ -32,7 +32,7 @@ CREATE TABLE "steprun" (
     "inserted_at" timestamp NOT NULL DEFAULT (current_timestamp)
 );
 
-CREATE TABLE "user" (
+CREATE TABLE "userinfo" (
     "user_name" varchar(100) PRIMARY KEY,
     "password" varchar(100) NOT NULL,
     "user_active" varchar(100) NOT NULL,

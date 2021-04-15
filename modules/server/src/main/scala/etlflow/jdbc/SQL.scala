@@ -2,16 +2,15 @@ package etlflow.jdbc
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-
 import cats.data.NonEmptyList
 import cats.effect.Async
 import doobie.free.connection.ConnectionIO
-import etlflow.utils.EtlFlowHelper._
-import doobie.implicits._
 import doobie.util.meta.Meta
-import etlflow.log.{JobRun, StepRun}
 import org.postgresql.util.PGobject
-
+import cron4s.Cron
+import doobie.implicits._
+import etlflow.log.{JobRun, StepRun}
+import etlflow.utils.EtlFlowHelper._
 object SQL {
 
   implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
@@ -21,22 +20,19 @@ object SQL {
     o
   })
 
-  def getUser(name: String): ConnectionIO[UserInfo] =
+  def getUser(name: String): doobie.Query0[UserInfo] =
     sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
       .query[UserInfo]
-      .unique
 
-  def getJob(name: String): ConnectionIO[JobDB] =
+  def getJob(name: String): doobie.Query0[JobDB] =
     sql"SELECT job_name, job_description, schedule, failed, success, is_active FROM job WHERE job_name = $name"
       .query[JobDB]
-      .unique
 
-  def getJobs: ConnectionIO[List[JobDB1]] =
+  def getJobs: doobie.Query0[JobDB1] =
     sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
       .query[JobDB1]
-      .to[List]
 
-  def getStepRuns(args: DbStepRunArgs): ConnectionIO[List[StepRun]] =
+  def getStepRuns(args: DbStepRunArgs): doobie.Query0[StepRun] =
     sql"""SELECT job_run_id,
             step_name,
             properties::TEXT,
@@ -49,11 +45,10 @@ object SQL {
           WHERE job_run_id = ${args.job_run_id}
           ORDER BY inserted_at DESC"""
       .query[StepRun]
-      .to[List]
 
-  def getJobRuns(args: DbJobRunArgs): ConnectionIO[List[JobRun]] = {
+  def getJobRuns(args: DbJobRunArgs): doobie.Query0[JobRun] = {
 
-    var q: ConnectionIO[List[JobRun]] = null
+    var q: doobie.Query0[JobRun] = null
 
     if (args.jobRunId.isDefined && args.jobName.isEmpty) {
       q =
@@ -71,16 +66,16 @@ object SQL {
               ORDER BY inserted_at DESC
               offset ${args.offset} limit ${args.limit}"""
         .query[JobRun] // Query0[String]
-        .to[List]
       // logger.info(s"Query Fragment Generated for arguments $args is ")
-    } else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
+    }
+    else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val startTime = if (args.startTime.get == "")
-        sdf.parse(LocalDate.now().plusDays(1).toString)
+      val startTime = if (args.startTime.isDefined)
+        sdf.parse(args.startTime.get.toString)
       else
-        args.startTime.get
+        sdf.parse(LocalDate.now().plusDays(1).toString)
 
-      val endTime = args.endTime.get.plusDays(1)
+      val endTime =  sdf.parse(args.endTime.get.plusDays(1).toString)
 
       args.filter.get match {
         case "IN" => {
@@ -97,12 +92,11 @@ object SQL {
                  FROM jobRun
                  WHERE job_name = ${args.jobName.get}
                  AND is_master = 'true'
-                 AND inserted_at::date >= ${startTime.toString}::date
-                 AND inserted_at::date < ${endTime.toString}::date
+                 AND inserted_at::date >= ${startTime}
+                 AND inserted_at::date < ${endTime}
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
             .query[JobRun]
-            .to[List]
         }
         case "NOT IN" => {
           q = sql"""
@@ -118,12 +112,11 @@ object SQL {
                  FROM jobRun
                  WHERE job_name != ${args.jobName.get}
                  AND is_master = 'true'
-                 AND inserted_at::date >= ${startTime.toString}::date
-                 AND inserted_at::date < ${endTime.toString}::date
+                 AND inserted_at::date >= ${startTime}
+                 AND inserted_at::date < ${endTime}
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
             .query[JobRun]
-            .to[List]
         }
       }
       // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
@@ -147,7 +140,6 @@ object SQL {
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
             .query[JobRun]
-            .to[List]
         }
         case "NOT IN" => {
           q = sql"""
@@ -166,18 +158,17 @@ object SQL {
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
             .query[JobRun]
-            .to[List]
         }
       }
     }
     else if (args.endTime.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val startTime = if (args.startTime.get == "")
-        sdf.parse(LocalDate.now().plusDays(1).toString)
+      val startTime = if (args.startTime.isDefined)
+        sdf.parse(args.startTime.get.toString)
       else
-        args.startTime.get
+        sdf.parse(LocalDate.now().plusDays(1).toString)
 
-      val endTime = args.endTime.get.plusDays(1)
+      val endTime = sdf.parse(args.endTime.get.plusDays(1).toString)
       q = sql"""
                  SELECT
                      job_run_id,
@@ -189,13 +180,12 @@ object SQL {
                      job_type,
                      is_master
                  FROM jobRun
-                 WHERE inserted_at::date >= ${startTime.toString}::date
-                 AND inserted_at::date < ${endTime.toString}::date
+                 WHERE inserted_at::date >= ${startTime}
+                 AND inserted_at::date < ${endTime}
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
         .query[JobRun]
-        .to[List]
       // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
     }
     else {
@@ -214,36 +204,34 @@ object SQL {
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
         .query[JobRun]
-        .to[List]
     }
-
     q
   }
 
-  def getJobLogs(args: JobLogsArgs): ConnectionIO[List[JobLogs]] = {
+  def getJobLogs(args: JobLogsArgs):  doobie.Query0[JobLogs]  = {
 
-    var q: ConnectionIO[List[JobLogs]] = null
+    var q: doobie.Query0[JobLogs] = null
 
     if (args.filter.isDefined && args.limit.isDefined) {
-      q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
                             WHEN state = 'pass'
-                                  THEN sum(count) ELSE 0
+                            THEN sum(count) ELSE 0
                         END success,
                         CASE
                             WHEN state != 'pass'
-                                  THEN sum(count) ELSE 0
+                            THEN sum(count) ELSE 0
                         END failed
                   FROM (select job_name, state,count(*) as count from jobrun
-                    WHERE start_time::timestamp::date BETWEEN current_date - ${args.filter} AND current_date
+                  WHERE start_time::timestamp::date BETWEEN (current_date - INTERVAL '1 Day' * ${args.filter.get})::date AND current_date
                     GROUP by job_name,state limit ${args.limit}) t
                     GROUP by job_name,state
                   ) t1 GROUP by job_name;""".stripMargin
         .query[JobLogs] // Query0[String]
-        .to[List]
-    } else if (args.filter.isDefined) {
-      q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+    }
+    else if (args.filter.isDefined) {
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
                           WHEN state = 'pass'
@@ -256,14 +244,14 @@ object SQL {
                           ELSE 0
                       END failed
                FROM (select job_name, state,count(*) as count from jobrun
-                  WHERE start_time::timestamp::date BETWEEN current_date - ${args.filter} AND current_date
+                  WHERE start_time::timestamp::date BETWEEN (current_date - INTERVAL '1 Day' * ${args.filter.get})::date AND current_date
                   GROUP by job_name,state limit 50) t
                   GROUP by job_name,state
                ) t1 GROUP by job_name;""".stripMargin
         .query[JobLogs] // Query0[String]
-        .to[List]
-    } else if (args.limit.isDefined) {
-      q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+    }
+    else if (args.limit.isDefined) {
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                SELECT job_name,
                       CASE
                           WHEN state = 'pass'
@@ -280,9 +268,9 @@ object SQL {
                   GROUP by job_name,state
                ) t1 GROUP by job_name;""".stripMargin
         .query[JobLogs] // Query0[String]
-        .to[List]
-    } else {
-      q = sql"""SELECT job_name,sum(success) as success, sum(failed) as failed from (
+    }
+    else {
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                  SELECT job_name,
                         CASE
                             WHEN state = 'pass'
@@ -299,59 +287,52 @@ object SQL {
                     GROUP by job_name,state
                  ) t1 GROUP by job_name;""".stripMargin
         .query[JobLogs] // Query0[String]
-        .to[List]
     }
     q
   }
 
-  def getCredentials: ConnectionIO[List[UpdateCredentialDB]] =
-    sql"SELECT name, type::TEXT ,valid_from FROM credential WHERE valid_to is null;"
+  def getCredentials: doobie.Query0[UpdateCredentialDB] =
+    sql"SELECT name, type::TEXT ,valid_from::TEXT FROM credential WHERE valid_to is null;"
       .query[UpdateCredentialDB]
-      .to[List]
 
-  def updateSuccessJob(job: String, ts: Long): ConnectionIO[Int] =
+  def updateSuccessJob(job: String, ts: Long): doobie.Update0 =
     sql"UPDATE job SET success = (success + 1), last_run_time = $ts WHERE job_name = $job"
       .update
-      .run
 
-  def updateFailedJob(job: String, ts: Long): ConnectionIO[Int] =
+  def updateFailedJob(job: String, ts: Long): doobie.Update0 =
     sql"UPDATE job SET failed = (failed + 1), last_run_time = $ts WHERE job_name = $job"
       .update
-      .run
 
-  def updateJobState(args: EtlJobStateArgs): ConnectionIO[Int] =
+  def updateJobState(args: EtlJobStateArgs): doobie.Update0 =
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
       .update
-      .run
 
   def addCredentials(args: CredentialDB): doobie.Update0 =
     sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${args.value})".update
 
-  def updateCredentials(args: CredentialDB): ConnectionIO[Unit] = {
-    val updateQuery = sql"""
+  def updateCredentials(args: CredentialDB): doobie.Update0 = {
+    sql"""
     UPDATE credential
     SET valid_to = NOW() - INTERVAL '00:00:01'
     WHERE credential.name = ${args.name}
        AND credential.valid_to IS NULL
-    """.stripMargin.update.run
+    """.stripMargin.update
+  }
 
-    val insertQuery = sql"""
-    INSERT INTO credential (name,type,value)
-    VALUES (${args.name},${args.`type`},${args.value});
-    """.stripMargin.update.run
+  def updateCredentialSingleTran(args: CredentialDB): ConnectionIO[Unit]  = {
 
     val singleTran = for {
-      _ <- updateQuery
-      _ <- insertQuery
+      _ <- updateCredentials(args).run
+      _ <- addCredentials(args).run
     } yield ()
 
     singleTran
   }
 
-  def deleteJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
+  def deleteJobs(jobs: List[JobDB]): doobie.Update0 = {
     val list = NonEmptyList(jobs.head,jobs.tail).map(x => x.job_name)
     val query = fr"DELETE FROM job WHERE " ++ doobie.util.fragments.notIn(fr"job_name", list)
-    query.update.run
+    query.update
   }
 
   def insertJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
@@ -364,13 +345,26 @@ object SQL {
     doobie.util.update.Update[JobDB](sql).updateMany(jobs)
   }
 
-  val selectJobs: ConnectionIO[List[JobDB]] = {
+  val selectJobs: doobie.Query0[JobDB] = {
     sql"""
        SELECT job_name, job_description, schedule, failed, success, is_active
        FROM job
        """
       .query[JobDB]
-      .to[List]
+  }
+
+  def refreshJobsSingleTran(args: List[JobDB]): ConnectionIO[List[CronJob]] = {
+    val singleTran = for {
+      _        <- logCIO(s"Refreshing jobs in database")
+      deleted  <- deleteJobs(args).run
+      _        <- logCIO(s"Deleted jobs => $deleted")
+      inserted <- insertJobs(args)
+      _        <- logCIO(s"Inserted/Updated jobs => $inserted")
+      db_jobs  <- selectJobs.to[List]
+      jobs     = db_jobs.map(x => CronJob(x.job_name,x.job_description, Cron(x.schedule).toOption, x.failed, x.success))
+    } yield jobs
+
+    singleTran
   }
 
   def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))

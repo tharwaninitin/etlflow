@@ -27,7 +27,7 @@ object EtlFlowHelper {
                    is_active: Boolean,
                    last_run_time: Option[Long] = None)
 
-  case class JobLogs(job_name: String,  success: Long, failed: Long)
+  case class JobLogs(job_name: String,  success: String, failed: String)
   case class JsonString(str: String) extends AnyVal
   case class CredentialDB(name: String, `type`: String, value: JsonString)
   case class UpdateCredentialDB(name: String, `type`: String,valid_from:String)
@@ -47,12 +47,12 @@ object EtlFlowHelper {
                            startTime: Option[java.time.LocalDate] = None,
                            endTime: Option[java.time.LocalDate] = None,
                            filter: Option[String] = None,
-                           limit: Int, offset: Int
+                           limit: Long, offset: Long
                          )
   case class DbStepRunArgs(job_run_id: String)
   case class CronJobArgs(job_name: String, schedule: CronExpr)
   case class CredentialsArgs(name: String, `type`: Creds, value: List[Props])
-  case class JobLogsArgs(filter: Option[Int] = None, limit:Option[Int] = None)
+  case class JobLogsArgs(filter: Option[Double] = None, limit:Option[Long] = None)
 
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])

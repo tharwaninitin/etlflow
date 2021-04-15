@@ -58,6 +58,7 @@ object DB extends EtlFlowUtils {
     new Service {
       def getUser(name: String): IO[ExecutionError, UserInfo] = {
         SQL.getUser(name)
+          .unique
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -66,6 +67,7 @@ object DB extends EtlFlowUtils {
       }
       def getJob(name: String): IO[ExecutionError, JobDB] = {
         SQL.getJob(name)
+          .unique
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -74,6 +76,7 @@ object DB extends EtlFlowUtils {
       }
       def getJobs: IO[ExecutionError, List[JobDB1]] = {
         SQL.getJobs
+          .to[List]
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -82,6 +85,7 @@ object DB extends EtlFlowUtils {
       }
       def getStepRuns(args: DbStepRunArgs): IO[ExecutionError, List[StepRun]] = {
         SQL.getStepRuns(args)
+          .to[List]
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -90,6 +94,7 @@ object DB extends EtlFlowUtils {
       }
       def getJobRuns(args: DbJobRunArgs): IO[ExecutionError, List[JobRun]] = {
         SQL.getJobRuns(args)
+          .to[List]
           .transact(transactor)
           .mapError { e =>
             logger.error(s"Exception ${e.getMessage} occurred for arguments $args")
@@ -98,6 +103,7 @@ object DB extends EtlFlowUtils {
       }
       def getJobLogs(args: JobLogsArgs): IO[ExecutionError, List[JobLogs]] = {
         SQL.getJobLogs(args)
+          .to[List]
           .transact(transactor)
           .mapError { e =>
             logger.error(s"Exception ${e.getMessage} occurred for arguments $args")
@@ -106,6 +112,7 @@ object DB extends EtlFlowUtils {
       }
       def getCredentials: IO[ExecutionError, List[UpdateCredentialDB]] = {
         SQL.getCredentials
+          .to[List]
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -114,6 +121,7 @@ object DB extends EtlFlowUtils {
       }
       def updateSuccessJob(job: String, ts: Long): IO[ExecutionError, Long] = {
         SQL.updateSuccessJob(job, ts)
+          .run
           .transact(transactor)
           .map(_ => 1L)
           .mapError { e =>
@@ -123,6 +131,7 @@ object DB extends EtlFlowUtils {
       }
       def updateFailedJob(job: String, ts: Long): IO[ExecutionError, Long] = {
         SQL.updateFailedJob(job, ts)
+          .run
           .transact(transactor)
           .map(_ => 1L)
           .mapError { e =>
@@ -132,6 +141,7 @@ object DB extends EtlFlowUtils {
       }
       def updateJobState(args: EtlJobStateArgs): IO[ExecutionError, Boolean] = {
         SQL.updateJobState(args)
+          .run
           .transact(transactor)
           .map(_ => args.state)
           .mapError { e =>
@@ -168,7 +178,7 @@ object DB extends EtlFlowUtils {
           },
           value
         )
-        SQL.updateCredentials(credentialsDB)
+        SQL.updateCredentialSingleTran(credentialsDB)
           .transact(transactor)
           .map(_ => Credentials(credentialsDB.name,credentialsDB.`type`,credentialsDB.value.str))
       }.mapError { e =>
@@ -186,19 +196,11 @@ object DB extends EtlFlowUtils {
             is_active = true
           )
         }
-        val singleTran = for {
-          _        <- SQL.logCIO(s"Refreshing jobs in database")
-          deleted  <- SQL.deleteJobs(jobsDB)
-          _        <- SQL.logCIO(s"Deleted jobs => $deleted")
-          inserted <- SQL.insertJobs(jobsDB)
-          _        <- SQL.logCIO(s"Inserted/Updated jobs => $inserted")
-          db_jobs  <- SQL.selectJobs
-          jobs     = db_jobs.map(x => CronJob(x.job_name,x.job_description, Cron(x.schedule).toOption, x.failed, x.success))
-        } yield jobs
+
         if (jobsDB.isEmpty)
           UIO{List.empty}
         else
-          singleTran
+          SQL.refreshJobsSingleTran(jobsDB)
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)

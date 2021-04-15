@@ -24,7 +24,7 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
             sem     <- Semaphore.make(permits = 1)
             args    = EtlJobArgs("Job1")
             status  <- job(args,sem)
-          } yield status).provideCustomLayer(testDBLayer).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
+          } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
         )
       },
       testM("Test runActiveEtlJob with incorrect JobName") {
@@ -33,9 +33,9 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
             sem     <- Semaphore.make(permits = 1)
             args    = EtlJobArgs("InvalidEtlJob")
             status  <- job(args,sem)
-          } yield status).provideCustomLayer(testDBLayer).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
+          } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
         )
       },
-    ) @@ TestAspect.sequential)
+    ) @@ TestAspect.sequential).provideCustomLayerShared(testDBLayer.orDie)
 
 }

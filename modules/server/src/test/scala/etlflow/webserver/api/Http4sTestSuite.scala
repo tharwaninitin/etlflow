@@ -2,7 +2,8 @@ package etlflow.webserver.api
 
 import cats.effect.Blocker
 import etlflow.ServerSuiteHelper
-import etlflow.utils.EtlFlowHelper.EtlFlowTask
+import etlflow.jdbc.DBEnv
+import etlflow.utils.EtlFlowHelper.{EtlFlowTask, GQLEnv}
 import etlflow.webserver.Http4sServer
 import io.circe.Json
 import io.circe.parser._
@@ -18,9 +19,9 @@ import zio.{Task, ZEnv, ZIO}
 object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
-  val env = testAPILayer ++ testDBLayer
+  val env = (testAPILayer ++ testDBLayer).orDie
 
-  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv, Throwable, Either[String, String]] =
+  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv, Throwable, Either[String, String]] =
       allRoutes[MEJP](cache, testJobsSemaphore, etlJob_name_package, testJobsQueue, config).use{ routes =>
         for {
           client <- Task(Client.fromHttpApp[EtlFlowTask](routes.orNotFound))
@@ -29,7 +30,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
             case r => r.as[String].map(b => Left(s"${r.status.code}"))
           }
         } yield output
-      }.provideCustomLayer(env).fold(ex => Left(s"Status Code 500 with error ${ex.getMessage}"), op => op)
+      }.fold(ex => Left(s"Status Code 500 with error ${ex.getMessage}"), op => op)
 
   private val gqlApiBody = Json.obj("query" -> Json.fromString("{jobs {name}}"))
   private val gqlLoginBody = Json.obj("query" -> Json.fromString("""
@@ -40,7 +41,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
                   }
                 }"""))
 
-  private def apiResponseWithLogin(apiRequest: String => Request[EtlFlowTask]):ZIO[ZEnv, Throwable, Either[String, String]] = {
+  private def apiResponseWithLogin(apiRequest: String => Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv, Throwable, Either[String, String]] = {
     for {
       jsonOutput  <- apiResponse(Request[EtlFlowTask](method = POST, uri = uri"/api/login").withEntity(gqlLoginBody))
       authToken   = parse(jsonOutput.getOrElse("")).getOrElse(Json.Null).hcursor.downField("data").downField("login").downField("token").as[String].getOrElse("")
@@ -49,7 +50,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
   }
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Http4s Test Suite")(
+    (suite("Http4s Test Suite")(
       testM("Test GRAPHQL jobs end point with correct authorization header") {
         def apiRequest(authToken: String): Request[EtlFlowTask] = Request[EtlFlowTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization",authToken))).withEntity(gqlApiBody)
         assertM(apiResponseWithLogin(apiRequest))(equalTo(Right("""{"data":{"jobs":[{"name":"Job1"},{"name":"Job2"}]}}""")))
@@ -74,5 +75,5 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
         def apiRequest(authToken: String): Request[EtlFlowTask] = Request[EtlFlowTask](method = GET, uri = uri"/api/runjob?job_name=InvalidJob", headers = Headers.of(Header("Authorization",authToken)))
         assertM(apiResponseWithLogin(apiRequest))(equalTo(Left("Status Code 500 with error key not found: InvalidJob")))
       }
-    ) @@ TestAspect.sequential
+    ) @@ TestAspect.sequential).provideCustomLayerShared(env)
 }

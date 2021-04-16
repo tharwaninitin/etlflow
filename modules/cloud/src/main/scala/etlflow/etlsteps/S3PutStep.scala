@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.aws._
-import etlflow.utils.Environment.AWS
+import etlflow.Credential.AWS
 import software.amazon.awssdk.regions.Region
 import zio.Task
 

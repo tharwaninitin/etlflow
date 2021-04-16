@@ -1,16 +1,17 @@
 package etlflow.jdbc
 
 import cats.effect.Blocker
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import com.zaxxer.hikari.HikariConfig
 import doobie.hikari.HikariTransactor
 import doobie.util.fragment.Fragment
-import etlflow.utils.{JDBC, JsonJackson}
+import etlflow.utils.JsonJackson
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{Managed, Task}
 import scala.concurrent.ExecutionContext
 import doobie.implicits._
+import etlflow.Credential.JDBC
 
 trait DbManager {
 
@@ -27,7 +28,7 @@ trait DbManager {
   }.toManagedZIO
 
   def getDbCredentials[T : Manifest](name: String, credentials: JDBC, ec: ExecutionContext): Task[T] = {
-    val query = s"SELECT value FROM credentials WHERE name='$name';"
+    val query = s"SELECT value FROM credential WHERE name='$name' and valid_to is null;"
     createDbTransactorManaged(credentials,ec,"credential-pool",1).use { transactor =>
       for {
         result <- Fragment.const(query).query[String].unique.transact(transactor)
@@ -48,17 +49,6 @@ trait DbManager {
     logger.info(configuration.info().all().toList.map(x => x.getPhysicalLocation).mkString("\n","\n",""))
     if (clean) configuration.clean()
     configuration.migrate()
-  }
-
-  def createDbTransactor(credentials: JDBC, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool", pool_size: Int = 2): Task[HikariTransactor[Task]] = Task {
-    val dataSource = new HikariDataSource()
-    dataSource.setDriverClassName(credentials.driver)
-    dataSource.setJdbcUrl(credentials.url)
-    dataSource.setUsername(credentials.user)
-    dataSource.setPassword(credentials.password)
-    dataSource.setMaximumPoolSize(pool_size)
-    dataSource.setPoolName(pool_name)
-    HikariTransactor[Task](dataSource, ec, blocker)
   }
 
 }

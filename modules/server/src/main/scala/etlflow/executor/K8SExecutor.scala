@@ -4,7 +4,7 @@ import java.io.File
 import com.goyeau.kubernetes.client.{KubeConfig, KubernetesClient}
 import etlflow.utils.EtlFlowHelper.EtlJobArgs
 import etlflow.utils.Executor.KUBERNETES
-import etlflow.utils.JDBC
+import etlflow.Credential.JDBC
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.k8s.api.batch.v1.{Job, JobSpec}
 import io.k8s.api.core.v1.{Container, EnvVar, PodSpec, PodTemplateSpec}
@@ -23,7 +23,7 @@ trait K8SExecutor {
       new File(s"${System.getProperty("user.home")}/.kube/config"))
     ).toManagedZIO
 
-    val props = args.props.map(x => s"${x.key}=${x.value}").mkString(",")
+    val props = args.props.getOrElse(List.empty).map(x => s"${x.key}=${x.value}").mkString(",")
 
     val jobParams = Seq("run_job", "--job_name", args.name, "--props", props)
     logger.info("jobParams :" + jobParams)

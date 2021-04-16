@@ -1,12 +1,24 @@
 package etlflow.spark
 
-import etlflow.utils.Environment
-import etlflow.utils.Environment.{AWS, GCP, LOCAL}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
+import Environment._
 
 object SparkManager {
   private val spark_logger = LoggerFactory.getLogger(getClass.getName)
+  private def showSparkProperties(spark: SparkSession): Unit = {
+    spark_logger.info("spark.scheduler.mode = " + spark.sparkContext.getSchedulingMode)
+    spark_logger.info("spark.default.parallelism = " + spark.conf.getOption("spark.default.parallelism"))
+    spark_logger.info("spark.sql.shuffle.partitions = " + spark.conf.getOption("spark.sql.shuffle.partitions"))
+    spark_logger.info("spark.sql.sources.partitionOverwriteMode = " + spark.conf.getOption("spark.sql.sources.partitionOverwriteMode"))
+    spark_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
+    spark_logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
+    spark_logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)
+    spark_logger.info("spark.eventLog.dir = " + spark.conf.getOption("spark.eventLog.dir"))
+    spark_logger.info("spark.eventLog.enabled = " + spark.conf.getOption("spark.eventLog.enabled"))
+    spark.conf.getAll.filter(m1 => m1._1.contains("yarn")).foreach(kv => spark_logger.info(kv._1 + " = " + kv._2))
+  }
+
   def createSparkSession(
                           env: Set[Environment] = Set(LOCAL),
                           props: Map[String, String] = Map(
@@ -53,6 +65,7 @@ object SparkManager {
       if (hive_support) sparkBuilder = sparkBuilder.enableHiveSupport()
 
       val spark = sparkBuilder.getOrCreate()
+      showSparkProperties(spark)
       spark
     }
   }

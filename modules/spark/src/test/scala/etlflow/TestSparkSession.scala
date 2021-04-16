@@ -2,7 +2,7 @@ package etlflow
 
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
 import etlflow.spark.SparkManager
-import etlflow.utils.Environment.{AWS, GCP, LOCAL}
+import etlflow.spark.Environment.{AWS, GCP, LOCAL}
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 

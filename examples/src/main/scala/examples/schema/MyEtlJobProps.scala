@@ -1,9 +1,11 @@
 package examples.schema
 
 import etlflow.EtlJobProps
+import etlflow.utils.{Executor, LoggingLevel}
+import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 
 import scala.concurrent.duration.Duration
-import  scala.concurrent.duration._
+import scala.concurrent.duration._
 sealed trait MyEtlJobProps extends EtlJobProps
 
 object MyEtlJobProps {
@@ -23,41 +25,32 @@ object MyEtlJobProps {
       "LOG_DB_DRIVER"-> Option("org.postgresql.Driver")
     )
   )
-  case class SampleProps(
-                          override val job_deploy_mode: Executor = dataproc,
-                          override val job_schedule: String = "0 */15 * * * ?"
-                        ) extends MyEtlJobProps
-  case class LocalSampleProps(
-                               override val job_schedule: String = "0 */15 * * * ?",
-                               override val job_max_active_runs: Int = 1,
-                               override val job_retries: Int = 3,
-                               override val job_retry_delay_in_minutes: Int = 1
-                             ) extends MyEtlJobProps
+
+  case class SampleProps() extends MyEtlJobProps
+  case class LocalSampleProps() extends MyEtlJobProps
   case class EtlJob1Props (
                             ratings_input_path: List[String] = List(""),
                             ratings_intermediate_path: String = "",
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),
-                            override val job_deploy_mode: Executor = kubernetes,
                             override val job_enable_db_logging: Boolean = false
-                          ) extends MyEtlJobProps
+                           ) extends MyEtlJobProps
   case class EtlJob23Props (
                              ratings_input_path: String = "",
                              ratings_output_dataset: String = "",
                              ratings_output_table_name: String = "",
                              override val job_send_slack_notification: Boolean = true,
-                             override val job_schedule: String = "0 0 10 ? * 4",
                              override val job_notification_level: LoggingLevel = LoggingLevel.INFO,
                            ) extends MyEtlJobProps
+
   case class EtlJob4Props() extends MyEtlJobProps
 
 
-  case class EtlJob5Props (
+  case class EtlJob5Props(
                             ratings_input_path: List[String] = List(""),
-                            override val job_schedule: String = "0 0 5,6 ? * *",
                             ratings_output_table: String = "",
-                          ) extends MyEtlJobProps
+                         ) extends MyEtlJobProps
 
-  case class EtlJob6Props(override val job_deploy_mode: Executor = local_subprocess) extends MyEtlJobProps
+  case class EtlJob6Props() extends MyEtlJobProps
 }

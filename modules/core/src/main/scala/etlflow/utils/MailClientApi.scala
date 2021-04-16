@@ -1,6 +1,7 @@
 package etlflow.utils
 
 import java.util.Properties
+import etlflow.Credential.SMTP
 import javax.mail.internet.{InternetAddress, MimeMessage}
 import javax.mail.{Address, Message, Session}
 import org.slf4j.{Logger, LoggerFactory}

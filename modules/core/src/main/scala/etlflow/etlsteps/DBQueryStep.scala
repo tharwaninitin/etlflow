@@ -1,7 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.jdbc.{DbManager, QueryApi}
-import etlflow.utils.{JDBC, LoggingLevel}
+import etlflow.Credential.JDBC
+import etlflow.utils.LoggingLevel
 import zio.Task
 
 class DBQueryStep private[etlflow](

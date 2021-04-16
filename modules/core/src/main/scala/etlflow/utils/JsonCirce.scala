@@ -1,7 +1,8 @@
 package etlflow.utils
 
 import etlflow.etljobs.EtlJob
-import etlflow.{EtlJobPropsMapping, EtlJobProps}
+import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import io.circe
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}
@@ -47,21 +48,21 @@ object JsonCirce  {
 
     val caseClassJson  = parse(convertToJson(entity)).toOption.get
     val etlPropsJson = Json.obj(
-      "job_enable_db_logging"   -> Json.fromBoolean(entity.job_enable_db_logging),
-      "job_schedule" -> Json.fromString(entity.job_schedule),
-      "job_send_slack_notification" -> Json.fromBoolean(entity.job_send_slack_notification),
-      "job_notification_level" -> Json.fromString(entity.job_notification_level match {
-        case LoggingLevel.INFO => "info"
-        case LoggingLevel.DEBUG => "debug"
-        case LoggingLevel.JOB => "job"
-      }),
-      "job_deploy_mode" -> Json.fromString(entity.job_deploy_mode match {
-        case Executor.DATAPROC(_, _, _, _) => "dataproc"
-        case Executor.LOCAL            => "local"
-        case Executor.LIVY(_) => "livy"
-        case Executor.KUBERNETES(_, _, _, _, _, _)=> "kubernetes"
-        case Executor.LOCAL_SUBPROCESS(_,_,_)=> "local-subprocess"
-      })
+//      "job_enable_db_logging"   -> Json.fromBoolean(entity.job_enable_db_logging),
+////      "job_schedule" -> Json.fromString(entity.job_schedule),
+//      "job_send_slack_notification" -> Json.fromBoolean(entity.job_send_slack_notification),
+//      "job_notification_level" -> Json.fromString(entity.job_notification_level match {
+//        case LoggingLevel.INFO => "info"
+//        case LoggingLevel.DEBUG => "debug"
+//        case LoggingLevel.JOB => "job"
+//      }),
+//      "job_deploy_mode" -> Json.fromString(entity.job_deploy_mode match {
+//        case Executor.DATAPROC(_, _, _, _) => "dataproc"
+//        case Executor.LOCAL            => "local"
+//        case Executor.LIVY(_) => "livy"
+//        case Executor.KUBERNETES(_, _, _, _, _, _)=> "kubernetes"
+//        case Executor.LOCAL_SUBPROCESS(_,_,_)=> "local-subprocess"
+//      })
     )
     val combineJson = for {
       parsedJsonString <- parse(convertToJson(caseClassJson.deepMerge(etlPropsJson)))
@@ -78,5 +79,9 @@ object JsonCirce  {
   def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): T = {
     val decodeResult1 = parser.decode[T](str)
     decodeResult1.toOption.get
+  }
+
+  def convertToObjectEither[T](str: String)(implicit Decoder: Decoder[T]): Either[circe.Error, T] = {
+    parser.decode[T](str)
   }
 }

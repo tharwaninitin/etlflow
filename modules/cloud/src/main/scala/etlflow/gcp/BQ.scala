@@ -4,8 +4,8 @@ import java.io.FileInputStream
 import java.util.UUID
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
-import etlflow.utils
-import etlflow.utils.{CSV, Environment, IOType, ORC, PARQUET}
+import etlflow.Credential
+import etlflow.gcp.BQInputType.{CSV, ORC, PARQUET}
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
 import scala.sys.process._
 
@@ -16,7 +16,7 @@ object BQ {
     val credentials: GoogleCredentials = ServiceAccountCredentials.fromStream(new FileInputStream(path))
     BigQueryOptions.newBuilder().setCredentials(credentials).build().getService
   }
-  private def getFormatOptions(input_type: IOType): FormatOptions = input_type match {
+  private def getFormatOptions(input_type: BQInputType): FormatOptions = input_type match {
     case PARQUET => FormatOptions.parquet
     case ORC => FormatOptions.orc
     case CSV(field_delimiter, header_present, _, _) => CsvOptions.newBuilder()
@@ -26,7 +26,7 @@ object BQ {
     case _ => FormatOptions.parquet
   }
 
-  def live(credentials: Option[Environment.GCP] = None): Layer[Throwable, BQService] = ZLayer.fromManaged {
+  def live(credentials: Option[Credential.GCP] = None): Layer[Throwable, BQService] = ZLayer.fromManaged {
     val acquire = IO.effect{
       val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
       credentials match {
@@ -92,7 +92,7 @@ object BQ {
         }
 
         def loadIntoBQFromLocalFile(
-             source_locations: Either[String, Seq[(String, String)]], source_format: IOType, destination_dataset: String,
+             source_locations: Either[String, Seq[(String, String)]], source_format: BQInputType, destination_dataset: String,
              destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
            ): Task[Unit] = Task {
           if (source_locations.isRight) {
@@ -122,7 +122,7 @@ object BQ {
           }
         }
 
-        override def loadIntoPartitionedBQTable(source_paths_partitions: Seq[(String, String)], source_format: utils.IOType,
+        override def loadIntoPartitionedBQTable(source_paths_partitions: Seq[(String, String)], source_format: BQInputType,
             destination_project: Option[String], destination_dataset: String, destination_table: String,
             write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
             schema: Option[Schema], parallelism: Int): Task[Map[String, Long]] = {
@@ -136,7 +136,7 @@ object BQ {
           }.map(x => x.flatten.toMap)
         }
 
-        override def loadIntoBQTable(source_path: String, source_format: utils.IOType, destination_project: Option[String],
+        override def loadIntoBQTable(source_path: String, source_format: BQInputType, destination_project: Option[String],
              destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
              create_disposition: JobInfo.CreateDisposition, schema: Option[Schema]): Task[Map[String, Long]] = Task {
           // Create Output BQ table instance
@@ -146,7 +146,7 @@ object BQ {
           }
 
           val jobConfiguration: JobConfiguration = source_format match {
-            case utils.BQ => QueryJobConfiguration.newBuilder(source_path)
+            case BQInputType.BQ => QueryJobConfiguration.newBuilder(source_path)
               .setUseLegacySql(false)
               .setDestinationTable(tableId)
               .setWriteDisposition(write_disposition)

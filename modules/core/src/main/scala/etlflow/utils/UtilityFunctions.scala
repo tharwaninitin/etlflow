@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 
@@ -10,8 +10,9 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.{Failure, Success, Try}
+import com.github.t3hnar.bcrypt._
 
-object UtilityFunctions {
+object UtilityFunctions{
   lazy val uf_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def parser(args: Array[String]): Map[String, String] = {
@@ -23,10 +24,18 @@ object UtilityFunctions {
     }.toMap
   }
 
+  // ALL BELOW FUNCTIONS EXPECT TS in MILLISECONDS
   def getCurrentTimestamp: Long = System.currentTimeMillis()
+  def getCurrentTimestampUsingLocalDateTime: Long = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+  // https://stackoverflow.com/questions/23944370/how-to-get-milliseconds-from-localdatetime-in-java-8
+  def getTimestampFromLocalDateTime(dt: LocalDateTime): Long = dt.atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+  def getLocalDateTimeFromTimestamp(ts: Long): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(ts),ZoneId.systemDefault())
   // https://stackoverflow.com/questions/24806183/get-date-in-current-timezone-in-java
   def getCurrentTimestampAsString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
     DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.now) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
+  // https://stackoverflow.com/questions/4142313/convert-timestamp-in-milliseconds-to-string-formatted-time-in-java
+  def getTimestampAsString(timestamp: Long, pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
+    DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp),ZoneId.systemDefault())) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
   def roundAt(p: Int)(n: Double): Double = { val s = math pow (10, p); (math round n * s) / s }
 
@@ -103,4 +112,9 @@ object UtilityFunctions {
   }.toSeq
 
   def stringFormatter(value: String):String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
+
+  def encryptKey(key:String) =  {
+    val salt = BCrypt.gensalt()
+    key.bcryptBounded(salt)
+  }
 }

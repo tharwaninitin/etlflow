@@ -1,7 +1,7 @@
 package etlflow.steps.cloud
 
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep, GCSSensorStep}
-import etlflow.utils.{CSV, PARQUET}
+import etlflow.gcp.BQInputType.{CSV, PARQUET}
 import zio.test.DefaultRunnableSpec
 import zio.ZIO
 import zio.test._

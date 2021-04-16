@@ -6,7 +6,7 @@ import com.google.api.gax.paging.Page
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.Storage.BlobListOption
 import com.google.cloud.storage.{Blob, BlobId, BlobInfo, Storage, StorageOptions}
-import etlflow.utils.Environment.GCP
+import etlflow.Credential.GCP
 import etlflow.utils.Location
 import zio.{IO, Layer, Managed, Task, ZLayer}
 import scala.collection.JavaConverters._

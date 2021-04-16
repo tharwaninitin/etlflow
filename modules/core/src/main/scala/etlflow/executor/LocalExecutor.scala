@@ -12,7 +12,7 @@ object LocalExecutor {
     Task {
       new LocalExecutorService.Service {
         override def executeLocalSubProcessJob(name: String, properties: Map[String, String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit] = Task {
-          executor_logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
+          logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
                                   |job_name => $name
                                   |script_path => ${config.script_path}
                                   |min_heap_memory => ${config.heap_min_memory}
@@ -32,7 +32,7 @@ object LocalExecutor {
           env.put("JAVA_OPTS",s"${config.heap_min_memory} ${config.heap_max_memory}")
 
           val command = processBuilder.command().toString
-          executor_logger.info("Command = " + command)
+          logger.info("Command = " + command)
 
           //Start the SubProcess
           val process = processBuilder.start()
@@ -46,11 +46,11 @@ object LocalExecutor {
           }
           process.waitFor()
 
-          executor_logger.info("Exit Code: " + process.exitValue())
+          logger.info("Exit Code: " + process.exitValue())
 
           //Get the exit code. If not equal to 0 then throw the exception otherwise return success.
           if(process.exitValue() != 0){
-            executor_logger.error(s"LOCAL SUB PROCESS JOB $name failed with error")
+            logger.error(s"LOCAL SUB PROCESS JOB $name failed with error")
             throw new RuntimeException(s"LOCAL SUB PROCESS JOB $name failed with error")
           }
         }
@@ -58,6 +58,9 @@ object LocalExecutor {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name, etl_job_name_package)
           val job = job_name.etlJob(properties)
           job.job_name = job_name.toString
+          job.job_enable_db_logging = job_name.job_enable_db_logging
+          job.job_send_slack_notification = job_name.job_send_slack_notification
+          job.job_notification_level = job_name.job_notification_level
           job.execute(job_run_id,is_master).provideLayer(ZEnv.live)
         }
         override def showLocalJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
@@ -71,7 +74,7 @@ object LocalExecutor {
           val etl_job = job_name.etlJob(properties)
           if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {
             etl_job.job_name = job_name.toString
-            val json = JsonJackson.convertToJson(etl_job.getJobInfo(etl_job.job_properties.job_notification_level))
+            val json = JsonJackson.convertToJson(etl_job.getJobInfo(job_name.job_notification_level))
             UIO(println(json))
           }
           else {

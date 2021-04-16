@@ -1,11 +1,10 @@
 package etlflow
 
+import etlflow.log.ApplicationLogger
 import etlflow.utils.Executor.LOCAL_SUBPROCESS
-import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, ZIO}
 
-package object executor {
-  val executor_logger: Logger = LoggerFactory.getLogger(getClass.getName)
+package object executor extends ApplicationLogger {
 
   type LocalExecutorService = Has[LocalExecutorService.Service]
 

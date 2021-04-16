@@ -10,7 +10,9 @@ trait EtlJob[EJP <: EtlJobProps] extends Configuration {
 
   var job_name: String = getClass.getName
   val job_properties: EJP
-  val job_status: UIO[Ref[String]] = Ref.make("StatusNotSet")
+  var job_enable_db_logging: Boolean        = true
+  var job_send_slack_notification: Boolean  = false
+  var job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
 
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])]

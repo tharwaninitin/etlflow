@@ -26,7 +26,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")
-          val query = s"INSERT INTO userinfo (user_name,password,user_active,user_role) values (\'${ec.user}\',\'${ec.password}\',\'true\',\'${"admin"}\');"
+          val encryptedPassword = UF.encryptKey(ec.password)
+          val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
           logger.info("Query: " + query)
           QueryApi.executeQuery(db, query)
         case ec if ec.add_user && ec.user == "" =>
@@ -62,7 +63,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
           ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
       }
-      case None => ZIO.fail(new RuntimeException("Config was not parsed successfully"))
+      case None => ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
     }
   }
 

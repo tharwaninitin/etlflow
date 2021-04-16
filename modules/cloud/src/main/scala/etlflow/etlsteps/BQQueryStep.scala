@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.utils.Environment.GCP
+import etlflow.Credential.GCP
 import etlflow.utils.LoggingLevel
 import zio.Task
 

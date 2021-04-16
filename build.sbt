@@ -36,7 +36,7 @@ lazy val sparkSettings = Seq(
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  libraryDependencies ++= caliban ++ jwt ++ kubernetes ++ http4sclient ++ coreTestLibs,
+  libraryDependencies ++= serverLibs ++ kubernetes ++ coreTestLibs ++ serverTestLibs,
   excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12")
 )
 
@@ -92,6 +92,7 @@ lazy val server = (project in file("modules/server"))
   .settings(serverSettings)
   .settings(
     scalacOptions ++= Seq("-Ypartial-unification"),
+    addCompilerPlugin("org.scalamacros" % "paradise"  % "2.1.1" cross CrossVersion.full),
     Test / parallelExecution := false,
     testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
   )

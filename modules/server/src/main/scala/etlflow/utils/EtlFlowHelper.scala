@@ -1,19 +1,36 @@
 package etlflow.utils
 
 import cron4s.CronExpr
-import etlflow.log.{JobRun, StepRun}
-import zio.stream.ZStream
-import zio.{Has, RIO, ZEnv, ZIO}
+import etlflow.jdbc.DBEnv
+import etlflow.webserver.api.ApiService
+import zio.{Has, RIO, ZEnv}
 
 object EtlFlowHelper {
 
-  type EtlFlowTask[A] = RIO[ZEnv with EtlFlowHas, A]
+  type GQLEnv = Has[ApiService]
+  type EtlFlowTask[A] = RIO[ZEnv with GQLEnv with DBEnv, A]
 
   // DB Objects
   case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
-  case class CronJobDB(job_name: String, schedule: String, failed: Long, success: Long, is_active: Boolean)
-  case class CredentialDB(name: String, `type`: String, value: String)
+  case class JobDB(job_name: String,
+                   job_description: String ,
+                   schedule: String,
+                   failed: Long,
+                   success: Long,
+                   is_active: Boolean)
 
+  case class JobDB1(job_name: String,
+                   job_description: String ,
+                   schedule: String,
+                   failed: Long,
+                   success: Long,
+                   is_active: Boolean,
+                   last_run_time: Option[Long] = None)
+
+  case class JobLogs(job_name: String,  success: String, failed: String)
+  case class JsonString(str: String) extends AnyVal
+  case class CredentialDB(name: String, `type`: String, value: JsonString)
+  case class UpdateCredentialDB(name: String, `type`: String,valid_from:String)
   // GraphQL ARGS and Results
   sealed trait Creds
   object Creds {
@@ -22,7 +39,7 @@ object EtlFlowHelper {
   }
   case class Props(key: String, value: String)
   case class EtlJobStateArgs(name: String, state: Boolean)
-  case class EtlJobArgs(name: String, props: List[Props])
+  case class EtlJobArgs(name: String, props: Option[List[Props]] = None)
   case class UserArgs(user_name: String, password: String)
   case class DbJobRunArgs(
                            jobRunId: Option[String] = None,
@@ -30,11 +47,12 @@ object EtlFlowHelper {
                            startTime: Option[java.time.LocalDate] = None,
                            endTime: Option[java.time.LocalDate] = None,
                            filter: Option[String] = None,
-                           limit: Int, offset: Int
+                           limit: Long, offset: Long
                          )
   case class DbStepRunArgs(job_run_id: String)
   case class CronJobArgs(job_name: String, schedule: CronExpr)
-  case class CredentialsArgs(name: String, `type`: Option[Creds], value: List[Props])
+  case class CredentialsArgs(name: String, `type`: Creds, value: List[Props])
+  case class JobLogsArgs(filter: Option[Double] = None, limit:Option[Long] = None)
 
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
@@ -52,84 +70,23 @@ object EtlFlowHelper {
                            )
   case class CurrentTime(current_time:String)
   case class UserAuth(message: String, token: String)
-  case class CronJob(job_name: String, schedule: Option[CronExpr], failed: Long, success: Long)
+  case class CronJob(job_name: String, job_description: String ,schedule: Option[CronExpr], failed: Long, success: Long)
   case class Credentials(name: String, `type`: String, value: String)
   case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
 
   case class CacheDetails(name:String,details:Map[String,String])
-  case class QueueInfo(job_name:String,submitted_from:String,props:String,execution_time:String)
-  case class QueueDetails(name:String,details:String,submitted_from:String)
-
-
-  case class Job(name: String, props: Map[String,String], schedule: Option[CronExpr],nextSchedule: String,schduleRemainingTime: String ,failed: Long, success: Long, is_active:Boolean,max_active_runs: Int, job_deploy_mode: String)
-
-  object EtlFlow {
-    trait Service {
-      def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]]
-      def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean]
-      def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth]
-      def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
-      def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob]
-      def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
-      def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials]
-      def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime]
-      def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]]
-
-      def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics]
-      def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]]
-      def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]]
-      def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]]
-      def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]]
-
-      def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus]
-    }
-  }
-
-  type EtlFlowHas = Has[EtlFlow.Service]
-
-  def runJob(args: EtlJobArgs): ZIO[EtlFlowHas, Throwable, Option[EtlJob]] =
-    ZIO.accessM[EtlFlowHas](_.get.runJob(args))
-
-  def updateJobState(args: EtlJobStateArgs): ZIO[EtlFlowHas, Throwable, Boolean] =
-    ZIO.accessM[EtlFlowHas](_.get.updateJobState(args))
-
-  def getInfo: ZIO[EtlFlowHas, Throwable, EtlFlowMetrics] =
-    ZIO.accessM[EtlFlowHas](_.get.getInfo)
-
-  def notifications: ZStream[EtlFlowHas, Nothing, EtlJobStatus] =
-    ZStream.accessStream[EtlFlowHas](_.get.notifications)
-
-  def login(args: UserArgs): ZIO[EtlFlowHas, Throwable, UserAuth] =
-    ZIO.accessM[EtlFlowHas](_.get.login(args))
-
-  def addCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] =
-    ZIO.accessM[EtlFlowHas](_.get.addCronJob(args))
-
-  def updateCronJob(args: CronJobArgs): ZIO[EtlFlowHas, Throwable, CronJob] =
-    ZIO.accessM[EtlFlowHas](_.get.updateCronJob(args))
-
-  def getDbJobRuns(args: DbJobRunArgs): ZIO[EtlFlowHas, Throwable, List[JobRun]] =
-    ZIO.accessM[EtlFlowHas](_.get.getDbJobRuns(args))
-
-  def getDbStepRuns(args: DbStepRunArgs): ZIO[EtlFlowHas, Throwable, List[StepRun]] =
-    ZIO.accessM[EtlFlowHas](_.get.getDbStepRuns(args))
-
-  def getJobs: ZIO[EtlFlowHas, Throwable, List[Job]] =
-    ZIO.accessM[EtlFlowHas](_.get.getJobs)
-
-  def getCacheStats: ZIO[EtlFlowHas, Throwable, List[CacheDetails]] =
-    ZIO.accessM[EtlFlowHas](_.get.getCacheStats)
-
-  def addCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] =
-    ZIO.accessM[EtlFlowHas](_.get.addCredentials(args))
-
-  def updateCredentials(args: CredentialsArgs): ZIO[EtlFlowHas, Throwable, Credentials] =
-    ZIO.accessM[EtlFlowHas](_.get.updateCredentials(args))
-
-  def getCurrentTime: ZIO[EtlFlowHas, Throwable, CurrentTime] =
-    ZIO.accessM[EtlFlowHas](_.get.getCurrentTime)
-
-  def getQueueStats: ZIO[EtlFlowHas, Throwable, List[QueueDetails]] =
-    ZIO.accessM[EtlFlowHas](_.get.getQueueStats)
+  case class QueueDetails(name:String,details:String,submitted_from:String,execution_time:String)
+  case class Job(name: String,
+                 props: Map[String,String],
+                 schedule: Option[CronExpr],
+                 nextSchedule: String,
+                 schduleRemainingTime: String ,
+                 failed: Long,
+                 success: Long,
+                 is_active:Boolean,
+                 max_active_runs: Int,
+                 job_deploy_mode: String,
+                 last_run_time: Long,
+                 last_run_description: String)
 
 }

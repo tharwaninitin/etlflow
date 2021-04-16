@@ -4,7 +4,7 @@ import etlflow.coretests.Schema._
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep, SparkReadTransformWriteStep, SparkReadWriteStep}
 import etlflow.spark.SparkUDF
-import etlflow.utils.{BQ, CSV, JSON, PARQUET}
+import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.{EtlStepList, TestSparkSession}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
@@ -16,10 +16,23 @@ case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJob6Props)
   val job_props: EtlJob6Props = job_properties
   val partition_date_col  = "date_int"
 
+  val query = s""" SELECT * FROM `${job_props.ratings_input_dataset}.${job_props.ratings_input_table_name}` """.stripMargin
+
+  val step0 = SparkReadWriteStep[Rating](
+    name                      = "LoadRatings BQ(query) to GCS CSV",
+    input_location            = Seq(query),
+    input_type                = BQ(temp_dataset = "test", operation_type =  "query"),
+    output_type               = CSV(),
+    output_location           = job_props.ratings_intermediate_bucket,
+    output_save_mode          = SaveMode.Overwrite,
+    output_repartitioning     = true,
+    output_repartitioning_num = 3,
+  )
+
   val step1 = SparkReadWriteStep[RatingBQ](
-    name                      = "LoadRatings BQ to GCS CSV",
+    name                      = "LoadRatings BQ(table) to GCS CSV",
     input_location            = Seq(job_props.ratings_input_dataset + "." + job_props.ratings_input_table_name),
-    input_type                = BQ,
+    input_type                = BQ(),
     output_type               = CSV(),
     output_location           = job_props.ratings_intermediate_bucket,
     output_save_mode          = SaveMode.Overwrite,

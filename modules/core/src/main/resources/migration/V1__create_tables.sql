@@ -1,28 +1,52 @@
-CREATE TABLE cronjob(job_name varchar(100) PRIMARY KEY, schedule varchar(100), failed bigint, success bigint, is_active boolean);
-CREATE TABLE jobrun(job_run_id varchar(100) PRIMARY KEY,
-    job_name text,
-    description varchar(100),
-    properties text,
-    state text,
-    start_time varchar(100),
-    inserted_at bigint,
-    elapsed_time varchar(100),
-    job_type varchar(100),
-    is_master varchar(100)
-    );
-CREATE TABLE steprun(job_run_id varchar(100),
-    step_name varchar(100),
-    properties text,
-    state text,
-    start_time varchar(100),
-    inserted_at bigint,
-    elapsed_time varchar(100),
-    step_type varchar(100),
-    step_run_id varchar(100)
-    );
-CREATE INDEX steprun_job_run_id on steprun (job_run_id);
+CREATE TABLE "job" (
+    "job_name" varchar(100) PRIMARY KEY,
+    "job_description" varchar(100) NOT NULL,
+    "schedule" varchar(100) NOT NULL,
+    "failed" bigint NOT NULL,
+    "success" bigint NOT NULL,
+    "is_active" boolean NOT NULL,
+    "last_run_time" bigint
+);
 
-CREATE TABLE userinfo(user_name varchar(100) PRIMARY KEY, password varchar(100), user_active varchar(100),user_role varchar(100));
-CREATE TABLE userauthtokens(token varchar(100) PRIMARY KEY);
+CREATE TABLE "jobrun" (
+    "job_run_id" varchar(100) PRIMARY KEY,
+    "job_name" text NOT NULL,
+    "properties" jsonb NOT NULL,
+    "state" text NOT NULL,
+    "start_time" varchar(100) NOT NULL,
+    "elapsed_time" varchar(100) NOT NULL,
+    "job_type" varchar(100) NOT NULL,
+    "is_master" varchar(100) NOT NULL,
+    "inserted_at" timestamp NOT NULL DEFAULT (current_timestamp)
+);
 
-CREATE TABLE credentials(name varchar(100) PRIMARY KEY,type varchar(100), value text);
+CREATE TABLE "steprun" (
+    "job_run_id" varchar(100) NOT NULL,
+    "step_name" varchar(100) NOT NULL,
+    "properties" jsonb NOT NULL,
+    "state" text NOT NULL,
+    "start_time" varchar(100) NOT NULL,
+    "elapsed_time" varchar(100) NOT NULL,
+    "step_type" varchar(100) NOT NULL,
+    "step_run_id" varchar(100) NOT NULL,
+    "inserted_at" timestamp NOT NULL DEFAULT (current_timestamp)
+);
+
+CREATE TABLE "userinfo" (
+    "user_name" varchar(100) PRIMARY KEY,
+    "password" varchar(100) NOT NULL,
+    "user_active" varchar(100) NOT NULL,
+    "user_role" varchar(100) NOT NULL
+);
+
+CREATE TABLE "credential" (
+   "id" SERIAL PRIMARY KEY,
+   "name" varchar(100) NOT NULL,
+   "type" varchar(100) NOT NULL,
+   "value" jsonb NOT NULL,
+   "valid_from" timestamp NOT NULL DEFAULT NOW(),
+   "valid_to" timestamp
+);
+
+CREATE UNIQUE INDEX "credential_name_type" ON "credential" ("name","type") WHERE ("valid_to" is null);
+CREATE INDEX "steprun_job_run_id" ON "steprun" ("job_run_id");

@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.spark.{ReadApi, WriteApi}
-import etlflow.utils.{IOType, LoggingLevel}
+import etlflow.spark.{IOType, ReadApi, WriteApi}
+import etlflow.utils.LoggingLevel
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import zio.Task

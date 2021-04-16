@@ -7,16 +7,19 @@ import etlflow.spark.SparkManager
 import examples.schema.MyEtlJobProps.EtlJob5Props
 import examples.schema.MyEtlJobSchema.{Rating, RatingBQ}
 import org.apache.spark.sql.{SaveMode, SparkSession}
+import etlflow.spark.IOType
+import etlflow.spark.Environment.{GCP, LOCAL}
+import etlflow.spark.IOType.JDBC
 
 case class EtlJob5Definition(job_properties: EtlJob5Props)
   extends SequentialEtlJob[EtlJob5Props] {
   private val job_props = job_properties.asInstanceOf[EtlJob5Props]
-  private implicit val spark: SparkSession = SparkManager.createSparkSession()
+  private implicit val spark: SparkSession = SparkManager.createSparkSession(Set(LOCAL,GCP("/opt/docker/conf/gcsCred_m-b-r.json", "mint-bi-reporting")),hive_support =false)
   private val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
     input_location   = job_props.ratings_input_path,
-    input_type       = PARQUET,
-    output_type      = config.dbLog,
+    input_type       = IOType.PARQUET,
+    output_type      = JDBC(config.dbLog.url,config.dbLog.user,config.dbLog.password,config.dbLog.driver),
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
   )
@@ -24,8 +27,8 @@ case class EtlJob5Definition(job_properties: EtlJob5Props)
   private val step2 = SparkReadWriteStep[RatingBQ](
     name             = "LoadRatingsBqToJdbc",
     input_location   = Seq("test.ratings"),
-    input_type       = BQ,
-    output_type      = config.dbLog,
+    input_type       = IOType.BQ(),
+    output_type      = JDBC(config.dbLog.url,config.dbLog.user,config.dbLog.password,config.dbLog.driver),
     output_location  = job_props.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
   )

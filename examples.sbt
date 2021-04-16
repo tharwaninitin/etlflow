@@ -1,7 +1,7 @@
 import NativePackagerHelper._
 import Dependencies._
 
-val EtlFlowVersion = "0.9.0"
+val EtlFlowVersion = "0.10.0"
 
 lazy val loggerTask = TaskKey[Unit]("loggerTask")
 
@@ -16,12 +16,12 @@ lazy val examples = (project in file("examples"))
   .settings(
     name := "etlflow-examples",
     organization := "com.github.tharwaninitin",
-    scalaVersion := "2.12.10",
+    scalaVersion := "2.12.13",
     libraryDependencies ++= List(
-        "com.github.tharwaninitin" %% "etlflow-core" % "0.9.0",
-        "com.github.tharwaninitin" %% "etlflow-server" % "0.9.0",
-        "com.github.tharwaninitin" %% "etlflow-spark" % "0.9.0",
-        "com.github.tharwaninitin" %% "etlflow-cloud" % "0.9.0",
+        "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
+        "com.github.tharwaninitin" %% "etlflow-server" % EtlFlowVersion,
+        "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
+        "com.github.tharwaninitin" %% "etlflow-cloud" % EtlFlowVersion,
         "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
         "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
         "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
@@ -43,23 +43,23 @@ lazy val examples = (project in file("examples"))
         "org.slf4j" % "slf4j-log4j12",
         //"log4j" % "log4j"
     ),
-    packageName in Docker := "etlflow",
-    mainClass in Compile := Some("examples.RunServer"),
+    Docker / packageName  := "etlflow",
+    Compile / mainClass := Some("examples.RunServer"),
     dockerBaseImage := "openjdk:jre",
     dockerExposedPorts ++= Seq(8080),
     maintainer := "tharwaninitin182@gmail.com",
     // https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
     // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
     // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json"),
-    mappings in Universal ++= directory(sourceDirectory.value / "main" / "data"),
+    Universal / mappings ++= directory(sourceDirectory.value / "main" / "data"),
     Test / parallelExecution := false,
-    mainClass in assembly := Some("examples.LoadData"),
-    assemblyJarName in assembly := "etljobs-examples-assembly_2.12-0.7.19.jar",
-    assemblyMergeStrategy in assembly := {
+    assembly / mainClass := Some("examples.LoadData"),
+    assembly / assemblyJarName := "etljobs-examples-assembly_2.12-0.7.19.jar",
+    assembly / assemblyMergeStrategy := {
        case PathList("META-INF", xs @ _*) => MergeStrategy.discard
        case x => MergeStrategy.first
     },
-    assemblyShadeRules in assembly := Seq(
+    assembly / assemblyShadeRules := Seq(
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
       ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll
     )

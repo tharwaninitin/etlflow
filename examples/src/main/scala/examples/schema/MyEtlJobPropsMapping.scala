@@ -4,6 +4,7 @@ import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import etlflow.etljobs.EtlJob
 import examples.jobs._
 import examples.schema.MyEtlJobProps._
+
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
 
 object MyEtlJobPropsMapping {

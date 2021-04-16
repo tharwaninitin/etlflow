@@ -1,4 +1,4 @@
-lazy val scala212 = "2.12.10"
+lazy val scala212 = "2.12.13"
 lazy val supportedScalaVersions = List(scala212)
 
 import Dependencies._
@@ -7,7 +7,7 @@ lazy val coreSettings = Seq(
   name := "etlflow-core",
   organization := "com.github.tharwaninitin",
   crossScalaVersions := supportedScalaVersions,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
   libraryDependencies ++= zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs
     ++ miscLibs ++ redis ++ scalajHttp ++ mail ++ coreTestLibs,
   excludeDependencies ++= Seq(
@@ -53,17 +53,17 @@ lazy val core = (project in file("modules/core"))
     initialCommands := "import etlflow._",
     buildInfoKeys := Seq[BuildInfoKey](
       resolvers,
-      libraryDependencies in Compile,
+      Compile / libraryDependencies,
       name, version, scalaVersion, sbtVersion
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow",
-    test in assembly := {},
-    assemblyMergeStrategy in assembly := {
+    assembly / test := {},
+    assembly / assemblyMergeStrategy := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
       case x => MergeStrategy.first
     },
-    assemblyShadeRules in assembly := Seq(
+    assembly / assemblyShadeRules := Seq(
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll
     ),
     Test / parallelExecution := false,

@@ -1,111 +1,141 @@
 package etlflow.utils
 
 import org.slf4j.{Logger, LoggerFactory}
-import scalaj.http._
+import sttp.client3.{asStringAlways, basicRequest}
 import zio.Task
+import sttp.client3.httpclient.zio._
+import zio._
+import scala.concurrent.duration._
+import scala.concurrent.duration.Duration
+import sttp.client3._
+import sttp.model.MediaType
+
+case class PostData(body: Seq[(String,String)])
 
 object HttpClientApi {
   val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  def post(url: String, params: Either[String,Seq[(String,String)]], 
-          headers:Map[String,String], 
-          log_response: Boolean,
-           connectionTimeOut:Int,
-           readTimeOut:Int): Task[HttpResponse[String]] = Task {
-    val request: HttpRequest =
+  def post(url: String, params: Either[String, Seq[(String, String)]],
+           headers: Map[String, String],
+           log_response: Boolean,
+           connectionTimeOut: Int,
+           readTimeOut: Int): Task[Response[String]] = {
+
+    implicit val postBodySerializer: BodySerializer[PostData] = { p: PostData =>
+      val serialized = s"${p.body}"
+      StringBody(serialized, "UTF-8", MediaType.TextPlain)
+    }
+
+    val request =
       params match {
         case Left(value) =>
-          Http(url)
-            .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
-            .postData(value)
+          basicRequest
+            .body(value)
+            .readTimeout(Duration(readTimeOut, MILLISECONDS))
             .headers(headers)
-            .option(HttpOptions.allowUnsafeSSL)
+            .post(uri"${url}")
         case Right(value) =>
-          Http(url)
-            .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
-            .postForm(value)
+          basicRequest
+            .body(postBodySerializer(PostData(value)))
+            .readTimeout(Duration(readTimeOut, MILLISECONDS))
             .headers(headers)
-            .option(HttpOptions.allowUnsafeSSL)
+            .post(uri"${url}")
       }
 
-    logger.info(s"Request Method: ${request.method}")
-    logger.info(s"Request Headers: ${request.headers}")
+    val response = for {
+      op <- HttpClientZioBackend.managed().use { backend =>
+        request.send(backend)
+      }
+    } yield {
 
-    val response = request.asString
-    
-    logger.info(s"Response Code: ${response.code}") 
-    logger.info(s"Response Headers: ${response.headers}")
-    if (log_response) logger.info("Response Body: " + response.body)
-    logger.info("#"*100)
+      logger.info(s"Request Headers: ${op.headers}")
+      logger.info(s"Response Code: ${op.code}")
+      logger.info(s"Response Headers: ${op.headers}")
 
-    if(response.code == 204 || response.code == 200 || response.code == 201) {
-      response
+      if (log_response) logger.info("Response Body: " + op.body)
+      logger.info("#" * 100)
+
+      op.body match {
+        case Left(value) => {
+          logger.error(s"Failed with Response code: ${op.code.code}")
+          throw new RuntimeException(s"Failed with Response code: ${op.code}")
+        }
+        case Right(value) => Response.ok(value)
+      }
     }
-    else {
-      logger.error(s"Failed with Response code: ${response.code}")
-      throw new RuntimeException(s"Failed with Response code: ${response.code}")
-    }
+    response
   }
 
-  def get(url: String, params: Seq[(String,String)] = Nil, 
-          headers:Map[String,String], 
+  def get(url: String, params: Seq[(String, String)] = Nil,
+          headers: Map[String, String],
           log_response: Boolean,
-          connectionTimeOut:Int,
-          readTimeOut:Int): Task[HttpResponse[String]] = Task {
-    val request = Http(url)
-      .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
+          connectionTimeOut: Int,
+          readTimeOut: Int): Task[Response[String]] = {
+
+    val request = basicRequest
       .headers(headers)
-      .params(params)
-      .option(HttpOptions.allowUnsafeSSL)
+      .readTimeout(Duration(readTimeOut, MILLISECONDS))
+      .get(uri"$url?$params")
+      .response(asStringAlways)
 
-    logger.info(s"Request Method: ${request.method}")
-    logger.info(s"Request Headers: ${request.headers}")
+    val response = for {
+      op <- HttpClientZioBackend.managed().use { backend =>
+        request.send(backend)
+      }
+    } yield {
 
-    val response = request.asString
-    
-    logger.info(s"Response Code: ${response.code}") 
-    logger.info(s"Response Headers: ${response.headers}")
-    if (log_response) logger.info("Response Body: " + response.body)
-    logger.info("#"*100)
+      logger.info(s"Request Headers: ${op.headers}")
+      logger.info(s"Response Code: ${op.code}")
+      logger.info(s"Response Headers: ${op.headers}")
 
-    if(response.code == 204 || response.code == 200 || response.code == 201) {
-      response
+      if (log_response) logger.info("Response Body: " + op.body)
+      logger.info("#" * 100)
+
+      if (op.code.code == 204 || op.code.code == 200 || op.code.code == 201) {
+        op
+      }
+      else {
+        logger.error(s"Failed with Response code: ${op.code}")
+        throw new RuntimeException(s"Failed with Response code: ${op.code}")
+      }
     }
-    else {
-      logger.error(s"Failed with Response code: ${response.code}")
-      throw new RuntimeException(s"Failed with Response code: ${response.code}")
-    }
+    response
   }
 
-  def put(url : String,
-          data : String,
-          headers : Map[String,String],
-          log_response : Boolean,
-          connectionTimeOut:Int,
-          readTimeOut:Int
-         ) : Task[HttpResponse[String]] = Task {
-    val request = Http(url)
-      .timeout(connTimeoutMs = connectionTimeOut, readTimeoutMs = readTimeOut)
-      .put(data)
+  def put(url: String,
+          data: String,
+          headers: Map[String, String],
+          log_response: Boolean,
+          connectionTimeOut: Int,
+          readTimeOut: Int
+         ): Task[Response[String]] =  {
+
+    val request = basicRequest
       .headers(headers)
-      .option(HttpOptions.allowUnsafeSSL)
+      .body(data)
+      .readTimeout(Duration(readTimeOut, MILLISECONDS))
+      .put(uri"$url")
+      .response(asStringAlways)
 
-    logger.info(s"Request Method: ${request.method}")
-    logger.info(s"Request Headers: ${request.headers}")
+    val response = for {
+      op <- HttpClientZioBackend.managed().use { backend =>
+        request.send(backend)
+      }
+    } yield {
+      logger.info(s"Request Headers: ${op.headers}")
+      logger.info(s"Response Code: ${op.code}")
+      logger.info(s"Response Headers: ${op.headers}")
+      if (log_response) logger.info("Response Body: " + op.body)
+      logger.info("#" * 100)
 
-    val response = request.asString
-
-    logger.info(s"Response Code: ${response.code}")
-    logger.info(s"Response Headers: ${response.headers}")
-    if (log_response) logger.info("Response Body: " + response.body)
-    logger.info("#"*100)
-
-    if(response.code == 204 || response.code == 200 || response.code == 201) {
-      response
+      if (op.code.code == 204 || op.code.code == 200 || op.code.code == 201) {
+        op
+      }
+      else {
+        logger.error(s"Failed with Response code: ${op.code}")
+        throw new RuntimeException(s"Failed with Response code: ${op.code}")
+      }
     }
-    else {
-      logger.error(s"Failed with Response code: ${response.code}")
-      throw new RuntimeException(s"Failed with Response code: ${response.code}")
-    }
+    response
   }
 }

@@ -102,7 +102,7 @@ object Dependencies {
   )
 
   lazy val scalajHttp = List(
-    "org.scalaj" %% "scalaj-http" % ScalajHttpVersion
+    "com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
   )
 
   lazy val mail = List(

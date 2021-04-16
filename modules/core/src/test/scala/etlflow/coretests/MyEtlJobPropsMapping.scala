@@ -43,7 +43,7 @@ object MyEtlJobPropsMapping {
 
   case object Job3 extends MyEtlJobPropsMapping[EtlJob3Props,Job3HttpSmtpSteps] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
-    override val job_deploy_mode: Executor = dataproc
+    override val job_deploy_mode: Executor = Executor.LOCAL
   }
 
   case object Job4 extends MyEtlJobPropsMapping[EtlJob4Props,Job4DBSteps] {

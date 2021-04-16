@@ -7,8 +7,6 @@ import examples.schema.MyEtlJobProps.EtlJob4Props
 
 case class EtlJob6Definition(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props] {
 
-  private val job_props = job_properties.asInstanceOf[EtlJob4Props]
-
   private val query1 = """CREATE OR REPLACE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
                          |BEGIN
                          |  DECLARE count_dt INT64 DEFAULT 0;

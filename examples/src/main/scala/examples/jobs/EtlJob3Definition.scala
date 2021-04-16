@@ -10,15 +10,14 @@ import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
-case class EtlJob3Definition(job_properties: EtlJob23Props)
-  extends GenericEtlJob[EtlJob23Props] with SparkUDF {
+case class EtlJob3Definition(job_properties: EtlJob23Props) extends GenericEtlJob[EtlJob23Props] with SparkUDF {
 //  private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
   private val gcs_output_path = f""
-
   private var output_date_paths: Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"
   private val job_props = job_properties.asInstanceOf[EtlJob23Props]
   private implicit val spark: SparkSession = SparkManager.createSparkSession()
+
   private def enrichRatingData(job_properties: EtlJob23Props)(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
 
     val ratings_df = in

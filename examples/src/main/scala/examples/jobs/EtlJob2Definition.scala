@@ -12,15 +12,12 @@ import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
 
-case class EtlJob2Definition(job_properties: EtlJob23Props)
-  extends SequentialEtlJob[EtlJob23Props]  with SparkUDF {
+case class EtlJob2Definition(job_properties: EtlJob23Props) extends SequentialEtlJob[EtlJob23Props]  with SparkUDF {
 
   private val gcs_output_path = f"gs://${sys.env("GCS_BUCKET")}/output/ratings"
-
   private var output_date_paths : Seq[(String,String)] = Seq()
   private val temp_date_col = "temp_date_col"
   private val job_props:EtlJob23Props  = job_properties.asInstanceOf[EtlJob23Props]
-
   private implicit val spark: SparkSession = SparkManager.createSparkSession()
 
   def enrichRatingData(spark: SparkSession, in : Dataset[Rating]) : Dataset[RatingOutput] = {
@@ -34,7 +31,7 @@ case class EtlJob2Definition(job_properties: EtlJob23Props)
     ratings_df.as[RatingOutput](mapping)
   }
 
-  def addFilePaths(job_properties: EtlJob23Props)(spark: SparkSession, ip: Unit): Unit = {
+  def addFilePaths()(spark: SparkSession, ip: Unit): Unit = {
     import spark.implicits._
 
     output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(gcs_output_path),IOType.PARQUET)(spark)
@@ -63,7 +60,7 @@ case class EtlJob2Definition(job_properties: EtlJob23Props)
 
   private val step2 = SparkETLStep(
     name               = "GenerateFilePaths",
-    transform_function = addFilePaths(job_props)
+    transform_function = addFilePaths()
   )
 //  {
 //    override def getStepProperties(level: String) : Map[String,String] = Map("paths" -> output_date_paths.mkString(","))

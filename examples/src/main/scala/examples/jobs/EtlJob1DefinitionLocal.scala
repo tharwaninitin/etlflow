@@ -10,7 +10,6 @@ import etlflow.utils.Executor.DATAPROC
 
 case class EtlJob1DefinitionLocal(job_properties: SampleProps) extends SequentialEtlJob[SampleProps] {
 
-  private val job_props = job_properties.asInstanceOf[SampleProps]
   val dpConfig = DATAPROC(
     sys.env("DP_PROJECT_ID"),
     sys.env("DP_REGION"),

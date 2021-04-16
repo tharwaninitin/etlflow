@@ -21,6 +21,13 @@ Add the latest release as a dependency to your project
 
 [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 
+__SBT__
+```
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-server" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
+```
 __Maven__
 ```
 <dependency>
@@ -28,10 +35,6 @@ __Maven__
     <artifactId>etlflow-core_2.12</artifactId>
     <version>x.x.x</version>
 </dependency>
-```
-__SBT__
-```
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 ```
 
 ## QuickStart
@@ -50,11 +53,39 @@ project examples
 runMain examples.LoadData run_db_migration
 ```
 
-STEP 3) Now to run sample job use below command:
+STEP 3) To list commands available to run use below:
 ```shell
 sbt
 project examples
-runMain examples.LoadData run_job --job_name EtlJob2DefinitionLocal
+runMain examples.LoadData --help
+```
+
+STEP 4) To list available jobs:
+```shell
+sbt
+project examples
+runMain examples.LoadData -l
+```
+
+STEP 5) Now to run sample job use below command:
+```shell
+sbt
+project examples
+runMain examples.LoadData run_job --job_name PARQUETtoJDBC
+```
+
+STEP 6) Add user in database for using UI:
+```shell
+sbt
+project examples
+runMain examples.LoadData add_user --user admin --password admin
+```
+
+STEP 7) Now run below command to run server http://localhost:8080:
+```shell
+sbt
+project examples
+runMain examples.RunServer 
 ```
 
 ## Running Tests

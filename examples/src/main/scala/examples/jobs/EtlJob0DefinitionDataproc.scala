@@ -11,29 +11,29 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
 import etlflow.spark.Environment.LOCAL
+
 case class EtlJob0DefinitionDataproc(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
 
-  private val job_props = job_properties.asInstanceOf[EtlJob1Props]
-  private implicit val spark: SparkSession = SparkManager.createSparkSession(Set(LOCAL))
+  private implicit val spark: SparkSession = SparkManager.createSparkSession()
 
   private val step1 = SparkReadWriteStep[Rating](
     name                      = "LoadRatingsParquet",
-    input_location            = job_props.ratings_input_path,
+    input_location            = job_properties.ratings_input_path,
     input_type                = IOType.CSV(",", true, "FAILFAST"),
     output_type               = IOType.ORC,
-    output_location           = job_props.ratings_intermediate_path,
+    output_location           = job_properties.ratings_intermediate_path,
     output_repartitioning     = true,
     output_repartitioning_num = 1,
     output_save_mode          = SaveMode.Overwrite,
-    output_filename           = job_props.ratings_output_file_name,
+    output_filename           = job_properties.ratings_output_file_name,
   )
 
   private val step2 = BQLoadStep(
     name                      = "LoadRatingBQ",
-    input_location            = Left(job_props.ratings_intermediate_path + "/" + job_props.ratings_output_file_name.get),
+    input_location            = Left(job_properties.ratings_intermediate_path + "/" + job_properties.ratings_output_file_name.get),
     input_type                = BQInputType.ORC,
-    output_dataset            = job_props.ratings_output_dataset,
-    output_table              = job_props.ratings_output_table_name,
+    output_dataset            = job_properties.ratings_output_dataset,
+    output_table              = job_properties.ratings_output_table_name,
     output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
   )
 

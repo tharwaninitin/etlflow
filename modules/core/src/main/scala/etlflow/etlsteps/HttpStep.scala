@@ -1,10 +1,9 @@
 package etlflow.etlsteps
 
-import etlflow.utils.{HttpClientApi, JsonCirce, JsonJackson, LoggingLevel}
+import etlflow.utils.{HttpClientApi, JsonCirce, LoggingLevel}
 import io.circe.Decoder
-import scalaj.http._
-import zio.{Task, ZIO}
-
+import zio._
+import sttp.client3._
 sealed trait HttpMethod
 
 object HttpMethod {
@@ -65,9 +64,9 @@ case class HttpResponseStep(
                              connectionTimeOut : Int = 10000,
                              readTimeOut : Int = 150000
                            )
-  extends EtlStep[Unit, HttpResponse[String]] {
+  extends EtlStep[Unit, Response[String]] {
 
-  final def process(in: =>Unit): Task[HttpResponse[String]] = {
+  final def process(in: =>Unit): Task[Response[String]] = {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting HttpResponseStep: $name")
     etl_logger.info(s"URL: $url")
@@ -96,15 +95,15 @@ case class HttpResponseStep(
 }
 
 case class HttpParsedResponseStep[T: Decoder](
-                                                name: String,
-                                                url: String,
-                                                http_method: HttpMethod,
-                                                params: Either[String, Seq[(String,String)]] = Left(""),
-                                                headers: Map[String,String] = Map.empty,
-                                                log_response: Boolean = false,
-                                                connectionTimeOut : Int = 10000,
-                                                readTimeOut : Int = 150000
-                                              )
+                                               name: String,
+                                               url: String,
+                                               http_method: HttpMethod,
+                                               params: Either[String, Seq[(String,String)]] = Left(""),
+                                               headers: Map[String,String] = Map.empty,
+                                               log_response: Boolean = false,
+                                               connectionTimeOut : Int = 10000,
+                                               readTimeOut : Int = 150000
+                                             )
   extends EtlStep[Unit, T] {
 
   final def process(in: =>Unit): Task[T] = {

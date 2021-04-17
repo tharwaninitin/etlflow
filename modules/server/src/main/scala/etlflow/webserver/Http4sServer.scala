@@ -6,9 +6,8 @@ import cats.effect.Blocker
 import etlflow.utils.Config
 import etlflow.utils.EtlFlowHelper._
 import etlflow.webserver.api._
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.jdbc.DBEnv
-import etlflow.{EtlJobProps, EtlJobPropsMapping, BuildInfo => BI}
+import etlflow.{EJPMType, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
@@ -29,8 +28,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def allRoutes[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
+  def allRoutes[EJN <: EJPMType : TypeTag](cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
   : ZManaged[ZEnv with GQLEnv with DBEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
     for {
       blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
@@ -54,8 +52,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
     } yield routes
   }
 
-  def etlFlowWebServer[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
+  def etlFlowWebServer[EJN <: EJPMType : TypeTag](cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
   : ZIO[ZEnv with GQLEnv with DBEnv, Throwable, Nothing] =
     ZIO.runtime[ZEnv with GQLEnv with DBEnv]
       .flatMap{implicit runtime =>

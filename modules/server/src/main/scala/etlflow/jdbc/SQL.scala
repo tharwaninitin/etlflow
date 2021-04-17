@@ -11,6 +11,7 @@ import cron4s.Cron
 import doobie.implicits._
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper._
+
 object SQL {
 
   implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
@@ -25,12 +26,12 @@ object SQL {
       .query[UserInfo]
 
   def getJob(name: String): doobie.Query0[JobDB] =
-    sql"SELECT job_name, job_description, schedule, failed, success, is_active FROM job WHERE job_name = $name"
+    sql"SELECT job_name, schedule, is_active FROM job WHERE job_name = $name"
       .query[JobDB]
 
-  def getJobs: doobie.Query0[JobDB1] =
+  def getJobs: doobie.Query0[JobDBAll] =
     sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
-      .query[JobDB1]
+      .query[JobDBAll]
 
   def getStepRuns(args: DbStepRunArgs): doobie.Query0[StepRun] =
     sql"""SELECT job_run_id,
@@ -291,9 +292,9 @@ object SQL {
     q
   }
 
-  def getCredentials: doobie.Query0[UpdateCredentialDB] =
+  def getCredentials: doobie.Query0[GetCredential] =
     sql"SELECT name, type::TEXT ,valid_from::TEXT FROM credential WHERE valid_to is null;"
-      .query[UpdateCredentialDB]
+      .query[GetCredential]
 
   def updateSuccessJob(job: String, ts: Long): doobie.Update0 =
     sql"UPDATE job SET success = (success + 1), last_run_time = $ts WHERE job_name = $job"
@@ -335,19 +336,19 @@ object SQL {
     query.update
   }
 
-  def insertJobs(jobs: List[JobDB]): ConnectionIO[Int] = {
+  val insertJobs: doobie.Update[JobDB] = {
     val sql = """
        INSERT INTO job AS t (job_name,job_description,schedule,failed,success,is_active)
-       VALUES (?, ?, ?, ?, ?, ?)
+       VALUES (?, '', ?, 0, 0, ?)
        ON CONFLICT (job_name)
        DO UPDATE SET schedule = EXCLUDED.schedule
     """
-    doobie.util.update.Update[JobDB](sql).updateMany(jobs)
+    doobie.Update[JobDB](sql)
   }
 
   val selectJobs: doobie.Query0[JobDB] = {
     sql"""
-       SELECT job_name, job_description, schedule, failed, success, is_active
+       SELECT job_name, schedule, is_active
        FROM job
        """
       .query[JobDB]
@@ -358,10 +359,10 @@ object SQL {
       _        <- logCIO(s"Refreshing jobs in database")
       deleted  <- deleteJobs(args).run
       _        <- logCIO(s"Deleted jobs => $deleted")
-      inserted <- insertJobs(args)
+      inserted <- insertJobs.updateMany(args)
       _        <- logCIO(s"Inserted/Updated jobs => $inserted")
       db_jobs  <- selectJobs.to[List]
-      jobs     = db_jobs.map(x => CronJob(x.job_name,x.job_description, Cron(x.schedule).toOption, x.failed, x.success))
+      jobs     = db_jobs.map(x => CronJob(x.job_name, "", Cron(x.schedule).toOption, 0, 0))
     } yield jobs
 
     singleTran

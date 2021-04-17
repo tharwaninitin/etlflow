@@ -1,15 +1,15 @@
 package etlflow.utils
 
 import caliban.CalibanError.ExecutionError
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.JsonJackson._
 import etlflow.utils.{UtilityFunctions => UF}
-import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import etlflow.EJPMType
 import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
 import zio.{Semaphore, Task}
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowUtils extends ApplicationLogger {
@@ -30,7 +30,7 @@ trait EtlFlowUtils extends ApplicationLogger {
     CacheDetails("JobProps",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
   }
 
-  final def getEtlJobs[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
+  final def getEtlJobs[EJN <: EJPMType : TypeTag](etl_job_name_package: String): Task[List[EtlJob]] = {
     Task {
       UF.getEtlJobs[EJN].map(x => EtlJob(x, getJobPropsMapping[EJN](x,etl_job_name_package))).toList
     }.mapError{ e =>
@@ -39,7 +39,7 @@ trait EtlFlowUtils extends ApplicationLogger {
     }
   }
 
-  final def getJobPropsMapping[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
+  final def getJobPropsMapping[EJN <: EJPMType : TypeTag](jobName: String, etl_job_name_package: String): Map[String, String] = memoizeSync[Map[String, String]](None){
     val props_mapping = UF.getEtlJobName[EJN](jobName,etl_job_name_package)
     convertToJsonByRemovingKeysAsMap(props_mapping.getProps,List.empty).map(x => (x._1, x._2.toString))
   }

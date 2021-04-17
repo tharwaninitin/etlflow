@@ -36,7 +36,7 @@ object GqlAPI extends GenericSchema[GQLEnv with DBEnv with Blocking with Clock] 
                       cacheStats:ZIO[GQLEnv, Throwable, List[CacheDetails]],
                       queueStats:ZIO[GQLEnv, Throwable, List[QueueDetails]],
                       jobLogs: JobLogsArgs => ZIO[GQLEnv with DBEnv, Throwable, List[JobLogs]],
-                      credential: ZIO[GQLEnv with DBEnv, Throwable, List[UpdateCredentialDB]]
+                      credential: ZIO[GQLEnv with DBEnv, Throwable, List[GetCredential]]
 
   )
 

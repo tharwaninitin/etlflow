@@ -10,28 +10,7 @@ object EtlFlowHelper {
   type GQLEnv = Has[ApiService]
   type EtlFlowTask[A] = RIO[ZEnv with GQLEnv with DBEnv, A]
 
-  // DB Objects
-  case class UserInfo(user_name: String, password: String, user_active: String,user_role:String)
-  case class JobDB(job_name: String,
-                   job_description: String ,
-                   schedule: String,
-                   failed: Long,
-                   success: Long,
-                   is_active: Boolean)
-
-  case class JobDB1(job_name: String,
-                   job_description: String ,
-                   schedule: String,
-                   failed: Long,
-                   success: Long,
-                   is_active: Boolean,
-                   last_run_time: Option[Long] = None)
-
-  case class JobLogs(job_name: String,  success: String, failed: String)
-  case class JsonString(str: String) extends AnyVal
-  case class CredentialDB(name: String, `type`: String, value: JsonString)
-  case class UpdateCredentialDB(name: String, `type`: String,valid_from:String)
-  // GraphQL ARGS and Results
+  // API Arguments
   sealed trait Creds
   object Creds {
     case object AWS extends Creds
@@ -54,6 +33,7 @@ object EtlFlowHelper {
   case class CredentialsArgs(name: String, `type`: Creds, value: List[Props])
   case class JobLogsArgs(filter: Option[Double] = None, limit:Option[Long] = None)
 
+  // API Results
   case class EtlJob(name: String, props: Map[String,String])
   case class EtlJobStatus(name: String, status: String, props: Map[String,String])
   case class EtlFlowMetrics(
@@ -71,11 +51,12 @@ object EtlFlowHelper {
   case class CurrentTime(current_time:String)
   case class UserAuth(message: String, token: String)
   case class CronJob(job_name: String, job_description: String ,schedule: Option[CronExpr], failed: Long, success: Long)
+  case class GetCredential(name: String, `type`: String, valid_from: String)
   case class Credentials(name: String, `type`: String, value: String)
   case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
-
   case class CacheDetails(name:String,details:Map[String,String])
   case class QueueDetails(name:String,details:String,submitted_from:String,execution_time:String)
+  case class JobLogs(job_name: String,  success: String, failed: String)
   case class Job(name: String,
                  props: Map[String,String],
                  schedule: Option[CronExpr],

@@ -17,7 +17,7 @@ trait ApiService {
   def getCurrentTime: ZIO[GQLEnv, Throwable, CurrentTime]
   def getQueueStats: ZIO[GQLEnv, Throwable, List[QueueDetails]]
   def getJobLogs(args: JobLogsArgs): ZIO[GQLEnv with DBEnv, Throwable, List[JobLogs]]
-  def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[UpdateCredentialDB]]
+  def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[GetCredential]]
   def getInfo: ZIO[GQLEnv, Throwable, EtlFlowMetrics]
   def getJobs: ZIO[GQLEnv with DBEnv, Throwable, List[Job]]
   def getCacheStats: ZIO[GQLEnv, Throwable, List[CacheDetails]]
@@ -70,7 +70,7 @@ object ApiService {
   def getJobLogs(args: JobLogsArgs): ZIO[GQLEnv with DBEnv, Throwable, List[JobLogs]] =
     ZIO.accessM[GQLEnv with DBEnv](_.get.getJobLogs(args))
 
-  def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[UpdateCredentialDB]] =
+  def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[GetCredential]] =
     ZIO.accessM[GQLEnv with DBEnv](_.get.getCredentials)
 
 }

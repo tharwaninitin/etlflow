@@ -1,20 +1,18 @@
 package etlflow.jdbc
 
-import java.time.LocalDateTime
 import caliban.CalibanError.ExecutionError
-import cron4s.lib.javatime._
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
-import etlflow.utils.{UtilityFunctions => UF}
 import cron4s.Cron
+import cron4s.lib.javatime._
 import doobie.implicits._
-import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import etlflow.EJPMType
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
 import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.{EtlFlowUtils, JsonJackson}
+import etlflow.utils.{EtlFlowUtils, JsonJackson, UtilityFunctions => UF}
 import org.ocpsoft.prettytime.PrettyTime
 import zio.interop.catz._
 import zio.{IO, RIO, Task, UIO, ZIO, ZLayer}
+import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
 
 object DB extends EtlFlowUtils {
@@ -24,35 +22,32 @@ object DB extends EtlFlowUtils {
   trait Service {
     def getUser(user_name: String): IO[ExecutionError, UserInfo]
     def getJob(name: String): IO[ExecutionError, JobDB]
-    def getJobs: IO[ExecutionError, List[JobDB1]]
+    def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): Task[List[Job]]
     def getStepRuns(args: DbStepRunArgs): IO[ExecutionError, List[StepRun]]
     def getJobRuns(args: DbJobRunArgs): IO[ExecutionError, List[JobRun]]
     def getJobLogs(args: JobLogsArgs): IO[ExecutionError, List[JobLogs]]
-    def getCredentials: IO[ExecutionError, List[UpdateCredentialDB]]
+    def getCredentials: IO[ExecutionError, List[GetCredential]]
     def updateSuccessJob(job: String, ts: Long): IO[ExecutionError, Long]
     def updateFailedJob(job: String, ts: Long): IO[ExecutionError, Long]
     def updateJobState(args: EtlJobStateArgs): IO[ExecutionError, Boolean]
-    def addCredentials(args: CredentialsArgs): IO[ExecutionError, Credentials]
-    def updateCredentials(args: CredentialsArgs): IO[ExecutionError, Credentials]
+    def addCredential(args: CredentialsArgs): IO[ExecutionError, Credentials]
+    def updateCredential(args: CredentialsArgs): IO[ExecutionError, Credentials]
     def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[CronJob]]
-    def getJobsFromDb[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): Task[List[Job]]
   }
 
   def getUser(user_name: String): ZIO[DBEnv, ExecutionError, UserInfo] = ZIO.accessM(_.get.getUser(user_name))
   def getJob(name: String): ZIO[DBEnv, ExecutionError, JobDB] = ZIO.accessM(_.get.getJob(name))
-  def getJobs: ZIO[DBEnv, ExecutionError, List[JobDB1]] = ZIO.accessM(_.get.getJobs)
+  def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): RIO[DBEnv ,List[Job]] = ZIO.accessM(_.get.getJobs[EJN](ejpm_package))
   def getStepRuns(args: DbStepRunArgs): ZIO[DBEnv, ExecutionError, List[StepRun]] = ZIO.accessM(_.get.getStepRuns(args))
   def getJobRuns(args: DbJobRunArgs): ZIO[DBEnv, ExecutionError, List[JobRun]] = ZIO.accessM(_.get.getJobRuns(args))
   def getJobLogs(args: JobLogsArgs): ZIO[DBEnv, ExecutionError, List[JobLogs]] = ZIO.accessM(_.get.getJobLogs(args))
-  def getCredentials: ZIO[DBEnv, ExecutionError, List[UpdateCredentialDB]] = ZIO.accessM(_.get.getCredentials)
+  def getCredentials: ZIO[DBEnv, ExecutionError, List[GetCredential]] = ZIO.accessM(_.get.getCredentials)
   def updateSuccessJob(job: String, ts: Long): ZIO[DBEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateSuccessJob(job,ts))
   def updateFailedJob(job: String, ts: Long): ZIO[DBEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateFailedJob(job, ts))
   def updateJobState(args: EtlJobStateArgs): ZIO[DBEnv, ExecutionError, Boolean] = ZIO.accessM(_.get.updateJobState(args))
-  def addCredentials(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredentials(args))
-  def updateCredentials(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredentials(args))
+  def addCredential(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredential(args))
+  def updateCredential(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredential(args))
   def refreshJobs(jobs: List[EtlJob]): ZIO[DBEnv, ExecutionError, List[CronJob]] = ZIO.accessM(_.get.refreshJobs(jobs))
-  def getJobsFromDb[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): RIO[DBEnv ,List[Job]] =
-    ZIO.accessM(_.get.getJobsFromDb[EJN](etl_job_name_package))
 
   val liveDB: ZLayer[TransactorEnv, Throwable, DBEnv] = ZLayer.fromService { transactor =>
     new Service {
@@ -74,9 +69,28 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def getJobs: IO[ExecutionError, List[JobDB1]] = {
+      def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): Task[List[Job]] = {
         SQL.getJobs
           .to[List]
+          .map(y => y.map { x => {
+            val props = getJobPropsMapping[EJN](x.job_name, ejpm_package)
+            val p = new PrettyTime()
+            val lastRunTime = x.last_run_time.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+
+            if (Cron(x.schedule).toOption.isDefined) {
+              val cron = Cron(x.schedule).toOption
+              val startTimeMillis: Long = UF.getCurrentTimestampUsingLocalDateTime
+              val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
+              val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
+              val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+
+              val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
+              Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, props("job_max_active_runs").toInt, props("job_deploy_mode"), x.last_run_time.getOrElse(0), s"$lastRunTime")
+            } else {
+              Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, props("job_max_active_runs").toInt, props("job_deploy_mode"), x.last_run_time.getOrElse(0), s"$lastRunTime")
+            }
+          }
+          })
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -110,7 +124,7 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def getCredentials: IO[ExecutionError, List[UpdateCredentialDB]] = {
+      def getCredentials: IO[ExecutionError, List[GetCredential]] = {
         SQL.getCredentials
           .to[List]
           .transact(transactor)
@@ -149,7 +163,7 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def addCredentials(args: CredentialsArgs): IO[ExecutionError, Credentials] = {
+      def addCredential(args: CredentialsArgs): IO[ExecutionError, Credentials] = {
         val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty))
         val credentialsDB = CredentialDB(
           args.name,
@@ -168,7 +182,7 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def updateCredentials(args: CredentialsArgs): IO[ExecutionError, Credentials] = {
+      def updateCredential(args: CredentialsArgs): IO[ExecutionError, Credentials] = {
         val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty))
         val credentialsDB = CredentialDB(
           args.name,
@@ -187,14 +201,7 @@ object DB extends EtlFlowUtils {
       }
       def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[CronJob]] = {
         val jobsDB = jobs.map{x =>
-          JobDB(
-            x.name,
-            job_description =  "",
-            x.props.getOrElse("job_schedule",""),
-            0,
-            0,
-            is_active = true
-          )
+          JobDB(x.name, x.props.getOrElse("job_schedule",""), is_active = true)
         }
 
         if (jobsDB.isEmpty)
@@ -206,30 +213,6 @@ object DB extends EtlFlowUtils {
             logger.error(e.getMessage)
             ExecutionError(e.getMessage)
           }
-      }
-      def getJobsFromDb[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag](etl_job_name_package: String): Task[List[Job]] = {
-        getJobs
-          .map(y => y.map{x => {
-            val props = getJobPropsMapping[EJN](x.job_name,etl_job_name_package)
-            val p = new PrettyTime()
-            val lastRunTime = x.last_run_time.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-
-            if(Cron(x.schedule).toOption.isDefined) {
-              val cron = Cron(x.schedule).toOption
-              val startTimeMillis: Long =  UF.getCurrentTimestampUsingLocalDateTime
-              val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
-              val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis,ts)).getOrElse("")
-              val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-
-              val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-              Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"),x.last_run_time.getOrElse(0),s"$lastRunTime")
-            }else{
-              Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active,props("job_max_active_runs").toInt, props("job_deploy_mode"),x.last_run_time.getOrElse(0),s"$lastRunTime")
-            }
-          }})
-      }.mapError{ e =>
-        logger.error(e.getMessage)
-        ExecutionError(e.getMessage)
       }
     }
   }

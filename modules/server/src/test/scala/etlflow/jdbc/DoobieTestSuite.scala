@@ -4,10 +4,9 @@ import cats.effect.{ContextShift, IO}
 import doobie.util.{ExecutionContexts, log}
 import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
-import etlflow.utils.EtlFlowHelper.{CredentialDB, DbJobRunArgs, DbStepRunArgs, EtlJob, EtlJobStateArgs, JobDB, JobDB1, JobLogs, JobLogsArgs, JsonString, UpdateCredentialDB, UserInfo}
+import etlflow.utils.EtlFlowHelper._
 import org.scalatest._
 import etlflow.log.{JobRun, StepRun}
-
 import java.time.LocalDate
 
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with ServerSuiteHelper {
@@ -19,14 +18,7 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
   val creds: CredentialDB = CredentialDB("test", "jdbc", JsonString("{}"))
   val jobs = List(EtlJob("Job6", Map.empty),EtlJob("Job5", Map.empty))
   val jobsDB = jobs.map{x =>
-    JobDB(
-      x.name,
-      job_description =  "",
-      x.props.getOrElse("job_schedule",""),
-      0,
-      0,
-      is_active = true
-    )
+    JobDB(x.name, x.props.getOrElse("job_schedule",""), is_active = true)
   }
   val etlJobStateArgs = EtlJobStateArgs("Job6",true)
   val dbStepRunArgs  = DbStepRunArgs("12345")
@@ -109,23 +101,29 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
   val query1: doobie.Update0 = SQL.addCredentials(creds)
     test("addCredentials") { check(query1) }
 
+  val query6: doobie.Update0 = SQL.updateCredentials(creds)
+  test("updateCredentials") { check(query6) }
+
+  val query24:doobie.Query0[GetCredential]  = SQL.getCredentials
+  test("getCredentials") { check(query24)}
+
+  val query4: doobie.Update0 = SQL.deleteJobs(jobsDB)
+  test("deleteJobs") { check(query4) }
+
+  val query41: doobie.Update[JobDB] = SQL.insertJobs
+  test("insertJobs") { check(query41) }
+
+  val query7:doobie.Query0[JobDB]  = SQL.selectJobs
+  test("selectJobs") { check(query7)}
+
   val query2: doobie.Update0 = SQL.updateSuccessJob("Job6",123455678)
   test("updateSuccessJob") { check(query2) }
 
   val query3: doobie.Update0 = SQL.updateFailedJob("Job6",123455678)
   test("updateFailedJob") { check(query3) }
 
-  val query4: doobie.Update0 = SQL.deleteJobs(jobsDB)
-  test("deleteJobs") { check(query4) }
-
   val query5: doobie.Update0 = SQL.updateJobState(etlJobStateArgs)
   test("updateJobState") { check(query5) }
-
-  val query6: doobie.Update0 = SQL.updateCredentials(creds)
-  test("updateCredentials") { check(query6) }
-
-  val query7:doobie.Query0[JobDB]  = SQL.selectJobs
-  test("selectJobs") { check(query7)}
 
   val query8:doobie.Query0[UserInfo]  = SQL.getUser("admin")
   test("getUser") { check(query8)}
@@ -133,7 +131,7 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
   val query10:doobie.Query0[JobDB]  = SQL.getJob("Job6")
   test("getJob") { check(query10)}
 
-  val query11:doobie.Query0[JobDB1]  = SQL.getJobs
+  val query11:doobie.Query0[JobDBAll]  = SQL.getJobs
   test("getJobs") { check(query11)}
 
   val query12:doobie.Query0[StepRun]  = SQL.getStepRuns(dbStepRunArgs)
@@ -171,8 +169,5 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
 
   val query23:doobie.Query0[JobLogs]  = SQL.getJobLogs(jobLogsArgs4)
   test("getJobLogs_case_default") { check(query23)}
-
-  val query24:doobie.Query0[UpdateCredentialDB]  = SQL.getCredentials
-  test("getCredentials") { check(query24)}
 
 }

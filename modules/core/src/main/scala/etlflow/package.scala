@@ -31,6 +31,9 @@ package object etlflow {
   case class StepLogger(db: Option[DbStepLogger], slack: Option[SlackLogger])
   case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogger])
   type StepEnv = Has[StepLogger] with ZEnv
+  trait EtlJobSchema extends Product
+  trait EtlJobProps {}
+  type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {
     val job_description: String         = ""
@@ -65,14 +68,6 @@ package object etlflow {
         "job_send_slack_notification" -> job_send_slack_notification,
         "job_notification_level" -> job_notification_level
       )
-  }
-
-  trait EtlJobSchema extends Product
-
-  trait EtlJobProps {
-//    val job_enable_db_logging: Boolean        = true
-//    val job_send_slack_notification: Boolean  = false
-//    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
   }
 
   object EtlStepList {

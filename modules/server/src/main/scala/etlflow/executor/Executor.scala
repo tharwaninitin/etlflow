@@ -1,16 +1,14 @@
 package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
-import doobie.hikari.HikariTransactor
 import etlflow.utils.EtlFlowUtils
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.jdbc.{DB, DBEnv}
 import etlflow.utils.EtlFlowHelper._
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{Config, UtilityFunctions => UF}
-import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import etlflow.EJPMType
 import zio._
 import zio.blocking.{Blocking, blocking}
 import zio.clock.Clock
@@ -20,8 +18,8 @@ import scala.reflect.runtime.universe.TypeTag
 
 trait Executor extends K8SExecutor with EtlFlowUtils {
 
-  final def runActiveEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)], fork: Boolean = true): RIO[DBEnv with Blocking with Clock, EtlJob] = {
+  final def runActiveEtlJob[EJN <: EJPMType : TypeTag](args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)], fork: Boolean = true)
+  : RIO[DBEnv with Blocking with Clock, EtlJob] = {
     for {
       mapping_props  <- Task(getJobPropsMapping[EJN](args.name,etl_job_name_package)).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
@@ -37,8 +35,8 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
     } yield EtlJob(args.name,final_props)
   }
 
-  final def runEtlJob[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  (args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[DBEnv with Blocking with Clock, Unit] = {
+  final def runEtlJob[EJN <: EJPMType : TypeTag](args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true)
+  : RIO[DBEnv with Blocking with Clock, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
     val jobRun: Task[Unit] = UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {

@@ -2,12 +2,11 @@ package etlflow.api
 
 import cron4s.CronExpr
 import etlflow.jdbc.DBEnv
-import etlflow.webserver.api.ApiService
 import zio.{Has, RIO, ZEnv}
 
 object Schema {
 
-  type GQLEnv = Has[ApiService]
+  type GQLEnv = Has[Service]
   type EtlFlowTask[A] = RIO[ZEnv with GQLEnv with DBEnv, A]
 
   // API Arguments

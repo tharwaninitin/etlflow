@@ -1,9 +1,8 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
-import etlflow.jdbc.DBEnv
 import etlflow.api.Schema.{EtlFlowTask, GQLEnv}
-import etlflow.webserver.Http4sServer
+import etlflow.jdbc.DBEnv
 import io.circe.Json
 import io.circe.parser._
 import org.http4s._

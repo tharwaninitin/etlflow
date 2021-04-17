@@ -4,7 +4,7 @@ import cron4s.{Cron, CronExpr}
 import etlflow.jdbc.{DB, DBEnv}
 import etlflow.api.Schema._
 import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
-import etlflow.webserver.api.ApiService
+import etlflow.api.Service
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -20,7 +20,7 @@ trait Scheduler extends EtlFlowUtils {
     else {
       val listOfCron: List[(CronExpr, URIO[GQLEnv with DBEnv with Blocking with Clock, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        ApiService
+        Service
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
           .map(Some(_))
           .catchAll(_ => UIO.none)

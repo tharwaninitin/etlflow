@@ -1,4 +1,4 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
 import caliban.Macros.gqldoc
 import etlflow.ServerSuiteHelper

@@ -1,16 +1,16 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.api.Schema.EtlFlowTask
+import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.{Config, RequestValidator}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import io.circe._
 import org.http4s.HttpRoutes
+import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
+import zio.interop.catz._
 import zio.{Semaphore, _}
 import scala.reflect.runtime.universe.TypeTag
-import zio.interop.catz._
-import io.circe._
-import org.http4s.circe._
 
 object RestAPI extends Http4sDsl[EtlFlowTask] with etlflow.executor.Executor  {
 

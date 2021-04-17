@@ -1,4 +1,4 @@
-package etlflow.webserver.api
+package etlflow.api
 
 import etlflow.jdbc.DBEnv
 import etlflow.log.{JobRun, StepRun}
@@ -8,7 +8,7 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
 
-trait ApiService {
+trait Service {
   def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with DBEnv with Blocking with Clock, Throwable, EtlJob]
   def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv with DBEnv, Throwable, Boolean]
   def login(args: UserArgs): ZIO[GQLEnv with DBEnv, Throwable, UserAuth]
@@ -26,7 +26,7 @@ trait ApiService {
   def notifications: ZStream[GQLEnv, Nothing, EtlJobStatus]
 }
 
-object ApiService {
+object Service {
 
   def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with DBEnv with Blocking with Clock, Throwable, EtlJob] =
     ZIO.accessM[GQLEnv with DBEnv with Blocking with Clock](_.get.runJob(args,submitter)).absorb

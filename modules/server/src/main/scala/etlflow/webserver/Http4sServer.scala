@@ -5,7 +5,6 @@ import cats.data.Kleisli
 import cats.effect.Blocker
 import etlflow.utils.Config
 import etlflow.api.Schema._
-import etlflow.webserver.api._
 import etlflow.jdbc.DBEnv
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
@@ -48,6 +47,8 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                   "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
                   "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,etl_job_name_package,config,jobQueue), authEnabled = true, cache, config)),
+                  "/swagger"     -> RestAPINew.swaggerRoute,
+                  "/restapi"     -> CORS(Authentication.middleware(RestAPINew.routes, authEnabled = true, cache, config))
                 )
     } yield routes
   }

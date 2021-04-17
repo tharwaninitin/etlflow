@@ -1,21 +1,22 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import caliban.CalibanError.ExecutionError
 import caliban.GraphQL.graphQL
 import caliban.Value.StringValue
 import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
-import etlflow.log.{JobRun, StepRun}
 import etlflow.api.Schema._
-import ApiService._
+import etlflow.api.Service._
 import etlflow.jdbc.DBEnv
+import etlflow.log.{JobRun, StepRun}
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object GqlAPI extends GenericSchema[GQLEnv with DBEnv with Blocking with Clock] {
 

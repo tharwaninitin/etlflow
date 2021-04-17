@@ -1,19 +1,21 @@
-package etlflow.webserver.api
+package etlflow.api
 
+import etlflow.api.Schema._
 import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBEnv}
 import etlflow.log.{JobRun, StepRun}
-import etlflow.api.Schema._
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
+import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
+
 import scala.reflect.runtime.universe.TypeTag
 
-object ApiImplementation extends EtlFlowUtils with Executor {
+object Implementation extends EtlFlowUtils with Executor {
 
   def live[EJN <: EJPMType : TypeTag](
     cache: CaffeineCache[String]
@@ -26,7 +28,7 @@ object ApiImplementation extends EtlFlowUtils with Executor {
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs            <- Ref.make(0)
-    } yield new ApiService {
+    } yield new Service {
 
       private def getLoginCacheStats:CacheDetails = {
         val data:Map[String,String] = CacheHelper.toMap(cache)

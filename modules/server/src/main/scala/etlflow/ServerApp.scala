@@ -1,9 +1,9 @@
 package etlflow
 
+import etlflow.api.Implementation
 import etlflow.scheduler.Scheduler
 import etlflow.utils.{CacheHelper, SetTimeZone}
 import etlflow.webserver.Http4sServer
-import etlflow.webserver.api.ApiImplementation
 import etlflow.jdbc.liveDBWithTransactor
 import zio._
 import scala.reflect.runtime.universe.TypeTag
@@ -20,7 +20,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
       jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
       jobSemaphores   <- createSemaphores(jobs).toManaged_
       dbLayer         = liveDBWithTransactor(config.dbLog)
-      apiLayer        = ApiImplementation.live[EJN](cache,jobSemaphores,jobs,queue,config,etl_job_props_mapping_package)
+      apiLayer        = Implementation.live[EJN](cache,jobSemaphores,jobs,queue,config,etl_job_props_mapping_package)
       finalLayer      = apiLayer ++ dbLayer
       scheduler       = etlFlowScheduler(jobs)
       webserver       = etlFlowWebServer[EJN](cache,jobSemaphores,etl_job_props_mapping_package,queue,config)

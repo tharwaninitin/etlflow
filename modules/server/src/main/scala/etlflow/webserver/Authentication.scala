@@ -1,19 +1,18 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
 import cats.data.{Kleisli, OptionT}
-import etlflow.log.ApplicationLogger
-import etlflow.api.Schema.{EtlFlowTask, UserArgs, UserAuth}
-import etlflow.utils.CacheHelper
-import etlflow.jdbc.{DB, DBEnv}
-import org.http4s.dsl.Http4sDsl
-import org.http4s.{HttpRoutes, Request}
-import org.http4s.util.CaseInsensitiveString
-import scalacache.Cache
-import pdi.jwt.{Jwt, JwtAlgorithm}
 import com.github.t3hnar.bcrypt._
+import etlflow.api.Schema.{EtlFlowTask, UserArgs, UserAuth}
+import etlflow.jdbc.{DB, DBEnv}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.{CacheHelper, Config}
+import org.http4s.dsl.Http4sDsl
+import org.http4s.util.CaseInsensitiveString
+import org.http4s.{HttpRoutes, Request}
+import pdi.jwt.{Jwt, JwtAlgorithm}
+import scalacache.Cache
 import zio.RIO
 import zio.interop.catz._
-import etlflow.utils.Config
 
 object Authentication extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
   def middleware(service: HttpRoutes[EtlFlowTask], authEnabled: Boolean, cache: Cache[String],config : Config): HttpRoutes[EtlFlowTask] = Kleisli {

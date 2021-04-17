@@ -1,8 +1,8 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
-import etlflow.jdbc.DBEnv
 import etlflow.api.Schema.{EtlFlowTask, GQLEnv}
+import etlflow.jdbc.DBEnv
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.dsl.Http4sDsl

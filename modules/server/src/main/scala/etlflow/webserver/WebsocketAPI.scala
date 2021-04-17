@@ -1,11 +1,9 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
-import etlflow.log.ApplicationLogger
-import etlflow.utils.CacheHelper
-import scalacache.Cache
-import scala.concurrent.duration._
 import cats.effect.{ContextShift, Sync, Timer}
 import cats.{Applicative, Functor}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.CacheHelper
 import fs2.{Pipe, Stream}
 import io.circe.Json
 import io.circe.syntax._
@@ -13,6 +11,8 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
+import scalacache.Cache
+import scala.concurrent.duration._
 
 class WebsocketAPI[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) extends Http4sDsl[F] with ApplicationLogger {
   private val mb: Int = 1024*1024

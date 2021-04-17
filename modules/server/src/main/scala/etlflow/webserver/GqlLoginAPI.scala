@@ -1,12 +1,12 @@
-package etlflow.webserver.api
+package etlflow.webserver
 
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema
 import caliban.{GraphQL, RootResolver}
 import etlflow.api.Schema._
-import zio.{Task, UIO, ZIO}
-import ApiService.login
+import etlflow.api.Service.login
 import etlflow.jdbc.DBEnv
+import zio.{Task, UIO, ZIO}
 
 object GqlLoginAPI extends GenericSchema[GQLEnv with DBEnv] {
 

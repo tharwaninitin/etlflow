@@ -6,41 +6,58 @@ import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.Credential.SMTP
+import etlflow.utils.HttpRequest.HttpMethod
 
 case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 
-  val step1 = HttpStep(
-    name         = "HttpGetSimple",
-    url          = "https://httpbin.org/get",
-    http_method  = HttpMethod.GET,
-    log_response = true,
-    connectionTimeOut = 1200000
+  val getStep1 = HttpRequestStep[Unit](
+    name    = "HttpGetSimple",
+    url     = "https://httpbin.org/get",
+    method  = HttpMethod.GET,
+    log     = true,
+    connection_timeout = 1200000
   )
 
-  val step2 = HttpResponseStep(
+  val getStep2 = HttpRequestStep[String](
     name         = "HttpGetParams",
     url          = "https://httpbin.org/get",
-    http_method  = HttpMethod.GET,
-    params       = Right(Seq(("param1","value1"))),
-    log_response = true,
+    method       = HttpMethod.GET,
+    params       = Right(Map("param1"-> "value1")),
+    log          = true,
   )
 
-  val step3 = HttpStep(
+  val getStep3 = HttpRequestStep[HttpBinResponse](
+    name         = "HttpGetParamsParsedResponse",
+    url          = "https://httpbin.org/get",
+    method       = HttpMethod.GET,
+    params       = Right(Map("param1"-> "value1","param2"-> "value2")),
+    log          = true,
+  )
+
+  val postStep1 = HttpRequestStep[Unit](
     name         = "HttpPostJson",
     url          = "https://httpbin.org/post",
-    http_method  = HttpMethod.POST,
+    method       = HttpMethod.POST,
     params       = Left("""{"key":"value"}"""),
-    headers      = Map("content-type"->"application/json"),
-    log_response = true,
+    headers      = Map("X-Auth-Token"->"abcd.xxx.123"),
+    log          = true,
   )
 
+  val postStep2 = HttpRequestStep[String](
+    name         = "HttpPostForm",
+    url          = "https://httpbin.org/post?signup=yes",
+    method       = HttpMethod.POST,
+    params       = Right(Map("name" -> "John", "surname" -> "doe")),
+    log          = true,
+  )
 
-  val step4 = HttpResponseStep(
-    name         = "HttpPostParams",
+  val postStep3 = HttpRequestStep[Unit](
+    name         = "HttpPostJsonParamsIncorrect",
     url          = "https://httpbin.org/post",
-    http_method  = HttpMethod.POST,
-    params       = Right(Seq(("param1","value1"))),
-    log_response = true,
+    method       = HttpMethod.POST,
+    params       = Right(Map("param1"-> "value1")),
+    headers      = Map("Content-Type"->"application/json"), // content-type header is ignored
+    log          = true,
   )
 
   val emailBody: String = {
@@ -51,35 +68,34 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
        |""".stripMargin
   }
 
-  val step5 = HttpParsedResponseStep[HttpBinResponse](
-    name         = "HttpGetParamsStep5",
-    url          = "https://httpbin.org/get",
-    http_method  = HttpMethod.GET,
-    params       = Right(Seq(("param1","value1"))),
-    log_response = true,
-  )
-
   def processData(ip: HttpBinResponse): Unit = {
     etl_job_logger.info("Processing Data")
     etl_job_logger.info(ip.toString)
   }
 
-  val step6 = GenericETLStep(
+  val genericStep = GenericETLStep(
     name               = "ProcessData",
     transform_function = processData,
   )
 
-  val step7 = HttpResponseStep(
+  val putStep1 = HttpRequestStep[String](
     name         = "HttpPutJson",
     url          = "https://httpbin.org/put",
-    http_method  = HttpMethod.PUT,
+    method       = HttpMethod.PUT,
     params       = Left("""{"key":"value"}"""),
     headers      = Map("content-type"->"application/json"),
-    log_response = true,
+    log          = true,
   )
 
+  val putStep2 = HttpRequestStep[Unit](
+    name         = "HttpPutForm",
+    url          = "https://httpbin.org/put",
+    method       = HttpMethod.PUT,
+    params       = Right(Map("param1"-> "value1")),
+    log          = true,
+  )
 
-  val step8 = SendMailStep(
+  val step10 = SendMailStep(
     name           = "SendSMTPEmail",
     body           = emailBody,
     subject        = "EtlFlow Test Ran Successfully",
@@ -93,12 +109,14 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
   )
 
   val job = for {
-    _     <-  step1.execute()
-    op1   <-  step2.execute()
-    _     <-  step3.execute()
-    op3   <-  step4.execute()
-    op5   <-  step5.execute()
-    _     <-  step6.execute(op5)
-    _     <- step7.execute()
+    _   <-  getStep1.execute()
+    op2 <-  getStep2.execute()
+    op3 <-  getStep3.execute()
+    _   <-  postStep1.execute()
+    op2 <-  postStep2.execute()
+    _   <-  postStep3.execute()
+    _   <-  genericStep.execute(op3)
+    _   <-  putStep1.execute()
+    _   <-  putStep2.execute()
   } yield ()
 }

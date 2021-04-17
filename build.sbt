@@ -9,7 +9,7 @@ lazy val coreSettings = Seq(
   crossScalaVersions := supportedScalaVersions,
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
   libraryDependencies ++= zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs
-    ++ miscLibs ++ redis ++ scalajHttp ++ mail ++ coreTestLibs,
+    ++ miscLibs ++ redis ++ httpClient ++ mail ++ coreTestLibs,
   excludeDependencies ++= Seq(
     "org.slf4j" % "slf4j-log4j12",
   ),

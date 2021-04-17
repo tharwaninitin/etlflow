@@ -54,7 +54,7 @@ object Dependencies {
 
   lazy val catsLibs = List(
     "org.typelevel" %% "cats-core" % CatsCoreVersion,
-    "org.typelevel" %% "cats-effect" % CatsEffectVersion,
+    "org.typelevel" %% "cats-effect" % CatsEffectVersion
   )
 
   lazy val dbLibs = List(
@@ -70,7 +70,7 @@ object Dependencies {
     "co.fs2" %% "fs2-io" % Fs2Version,
     "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
     "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
-    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion,
+    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion
   )
 
   lazy val jsonLibs = List(
@@ -79,14 +79,14 @@ object Dependencies {
     "io.circe" %% "circe-parser" % CirceVersion,
     "io.circe" %% "circe-optics" % CirceVersion,
     "io.circe" %% "circe-config" % CirceConfigVersion,
-    "org.json4s" %% "json4s-jackson" % "3.5.3",
+    "org.json4s" %% "json4s-jackson" % "3.5.3"
   )
 
   lazy val googleCloudLibs = List(
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
-    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
+    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion
   )
 
   lazy val awsLibs = List(
@@ -101,8 +101,9 @@ object Dependencies {
     "net.debasishg" %% "redisclient" % RedisVersion
   )
 
-  lazy val scalajHttp = List(
+  lazy val httpClient = List(
     "com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
+    "com.softwaremill.sttp.client3" %% "slf4j-backend" % SttpVersion
   )
 
   lazy val mail = List(
@@ -126,7 +127,6 @@ object Dependencies {
     "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
     "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
-//    "com.pauldijou" %% "jwt-core" % JwtCoreVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
@@ -136,8 +136,7 @@ object Dependencies {
     "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % TapirVersion,
-    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
-    //"com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
+    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
     //"com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % TapirVersion,
   )
 
@@ -153,11 +152,11 @@ object Dependencies {
   lazy val cloudTestLibs = List(
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
     "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
-    "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
+    "org.apache.hadoop" % "hadoop-common" % HadoopS3Version
   ).map(_ % Test)
 
   lazy val sparkTestLibs = List(
-    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
+    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 
   lazy val serverTestLibs = List(

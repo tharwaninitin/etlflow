@@ -1,11 +1,11 @@
 package etlflow.log
 
-import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
+import etlflow.utils.HttpRequest.HttpMethod
 import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
-import etlflow.utils.{HttpClientApi, UtilityFunctions => UF}
+import etlflow.utils.{HttpRequest, LoggingLevel, UtilityFunctions => UF}
 import zio.Runtime.global.unsafeRun
-import etlflow.utils.LoggingLevel
+
 class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel) extends ApplicationLogger {
   /** Slack message templates */
   var final_step_message: String = ""
@@ -74,13 +74,14 @@ class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env
       error_message
     )
 
-    unsafeRun(HttpClientApi.post(
+    unsafeRun(HttpRequest.execute(
+      HttpMethod.POST,
       web_hook_url,
       Left(f""" { "text" : "$data" } """),
-      Map("content-type"->"application/json"),
-      log_response = false,
-      connectionTimeOut =  10000,
-      readTimeOut = 15000
+      Map.empty,
+      log = false,
+      connection_timeout =  10000,
+      read_timeout = 15000
     ).fold(
       ex  => logger.error("Error in sending slack notification: " + ex.getMessage),
       _   => logger.info("Sent slack notification")

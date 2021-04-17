@@ -3,7 +3,7 @@ package etlflow.webserver.api
 import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBEnv}
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.{EJPMType, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
@@ -17,21 +17,18 @@ object ApiImplementation extends EtlFlowUtils with Executor {
 
   def live[EJN <: EJPMType : TypeTag](
     cache: CaffeineCache[String]
-    ,cronJobs: Ref[List[CronJob]]
     ,jobSemaphores: Map[String, Semaphore]
     ,jobs: List[EtlJob]
     ,jobQueue: Queue[(String,String,String,String)]
     ,config: Config
+    ,ejpm_package: String
   ): ZLayer[Blocking, Throwable, GQLEnv] = {
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs            <- Ref.make(0)
-      etl_job_name_package  = UF.getJobNamePackage[EJN] + "$"
-      mb                    = 1024*1024
-      javaRuntime           = java.lang.Runtime.getRuntime
     } yield new ApiService {
 
-      def getLoginCacheStats:CacheDetails = {
+      private def getLoginCacheStats:CacheDetails = {
         val data:Map[String,String] = CacheHelper.toMap(cache)
         val cacheInfo = CacheInfo("Login",
           cache.underlying.stats.hitCount(),
@@ -45,7 +42,7 @@ object ApiImplementation extends EtlFlowUtils with Executor {
         CacheDetails("Login",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
       }
 
-      override def getJobs: ZIO[GQLEnv with DBEnv, Throwable, List[Job]] = DB.getJobs[EJN](etl_job_name_package)
+      override def getJobs: ZIO[GQLEnv with DBEnv, Throwable, List[Job]] = DB.getJobs[EJN](ejpm_package)
 
       override def getCacheStats: ZIO[GQLEnv, Throwable, List[CacheDetails]] = Task(List(getPropsCacheStats,getLoginCacheStats))
 
@@ -56,7 +53,7 @@ object ApiImplementation extends EtlFlowUtils with Executor {
       override def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[GetCredential]] = DB.getCredentials
 
       override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock with DBEnv, Throwable, EtlJob] = {
-        runActiveEtlJob[EJN](args,jobSemaphores(args.name),config,etl_job_name_package,submitter,jobQueue)
+        runActiveEtlJob[EJN](args,jobSemaphores(args.name),config,ejpm_package,submitter,jobQueue)
       }
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[GQLEnv with DBEnv, Throwable, List[StepRun]] = DB.getStepRuns(args)
@@ -71,17 +68,11 @@ object ApiImplementation extends EtlFlowUtils with Executor {
         for {
           x <- activeJobs.get
           y <- subscribers.get
-          z <- cronJobs.get
         } yield EtlFlowMetrics(
           x,
           y.length,
           jobs.length,
-          z.length,
-          used_memory = ((javaRuntime.totalMemory - javaRuntime.freeMemory) / mb).toString,
-          free_memory = (javaRuntime.freeMemory / mb).toString,
-          total_memory = (javaRuntime.totalMemory / mb).toString,
-          max_memory = (javaRuntime.maxMemory / mb).toString,
-          current_time = UF.getCurrentTimestampAsString(),
+          jobs.length,
           build_time = BI.builtAtString
         )
       }

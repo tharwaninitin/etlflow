@@ -13,13 +13,13 @@ object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper wit
       testM("Test scheduler with Job1")(
         for {
           jobs     <- getEtlJobs[MEJP](etlJob_name_package).map(jl => jl.filter(_.name == "Job1"))
-          fiber    <- etlFlowScheduler(testCronJobs,jobs).fork
+          fiber    <- etlFlowScheduler(jobs).fork
           _        <- TestClock.adjust(ZDuration.fromScala(Duration(3,MINUTES)))
           _        <- fiber.interrupt
         } yield assertCompletes
       ),
       testM("Test scheduler with no jobs")(
-        etlFlowScheduler(testCronJobs, List.empty).as(assertCompletes)
+        etlFlowScheduler(List.empty).as(assertCompletes)
       )
     ) @@ TestAspect.sequential).provideCustomLayerShared((testAPILayer ++ testDBLayer).orDie)
 }

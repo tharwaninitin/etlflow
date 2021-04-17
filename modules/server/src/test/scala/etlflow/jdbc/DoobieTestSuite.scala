@@ -4,7 +4,7 @@ import cats.effect.{ContextShift, IO}
 import doobie.util.{ExecutionContexts, log}
 import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import org.scalatest._
 import etlflow.log.{JobRun, StepRun}
 import java.time.LocalDate

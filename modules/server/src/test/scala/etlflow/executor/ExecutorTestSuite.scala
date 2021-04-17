@@ -2,7 +2,7 @@ package etlflow.executor
 
 import etlflow.ServerSuiteHelper
 import etlflow.jdbc.DBEnv
-import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
+import etlflow.api.Schema.{EtlJob, EtlJobArgs}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.test.Assertion.equalTo

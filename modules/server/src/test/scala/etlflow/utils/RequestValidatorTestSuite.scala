@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.utils.EtlFlowHelper.{EtlJobArgs, Props}
+import etlflow.api.Schema.{EtlJobArgs, Props}
 import zio.test.DefaultRunnableSpec
 import zio.test._
 import zio.test.Assertion.{equalTo, containsString}

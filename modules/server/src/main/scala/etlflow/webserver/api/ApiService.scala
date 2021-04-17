@@ -2,7 +2,7 @@ package etlflow.webserver.api
 
 import etlflow.jdbc.DBEnv
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock

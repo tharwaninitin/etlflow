@@ -2,7 +2,7 @@ package etlflow.executor
 
 import java.io.File
 import com.goyeau.kubernetes.client.{KubeConfig, KubernetesClient}
-import etlflow.utils.EtlFlowHelper.EtlJobArgs
+import etlflow.api.Schema.EtlJobArgs
 import etlflow.utils.Executor.KUBERNETES
 import etlflow.Credential.JDBC
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger

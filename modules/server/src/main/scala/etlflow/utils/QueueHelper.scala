@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.utils.EtlFlowHelper.QueueDetails
+import etlflow.api.Schema.QueueDetails
 import zio.{Queue, Task}
 
 object QueueHelper {

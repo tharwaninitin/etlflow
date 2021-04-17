@@ -2,7 +2,7 @@ package etlflow.webserver.api
 
 import cats.data.{Kleisli, OptionT}
 import etlflow.log.ApplicationLogger
-import etlflow.utils.EtlFlowHelper.{EtlFlowTask, UserArgs, UserAuth}
+import etlflow.api.Schema.{EtlFlowTask, UserArgs, UserAuth}
 import etlflow.utils.CacheHelper
 import etlflow.jdbc.{DB, DBEnv}
 import org.http4s.dsl.Http4sDsl
@@ -11,7 +11,7 @@ import org.http4s.util.CaseInsensitiveString
 import scalacache.Cache
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import com.github.t3hnar.bcrypt._
-import zio.{RIO, Task}
+import zio.RIO
 import zio.interop.catz._
 import etlflow.utils.Config
 

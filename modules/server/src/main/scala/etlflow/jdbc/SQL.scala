@@ -7,10 +7,9 @@ import cats.effect.Async
 import doobie.free.connection.ConnectionIO
 import doobie.util.meta.Meta
 import org.postgresql.util.PGobject
-import cron4s.Cron
 import doobie.implicits._
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 
 object SQL {
 
@@ -354,18 +353,15 @@ object SQL {
       .query[JobDB]
   }
 
-  def refreshJobsSingleTran(args: List[JobDB]): ConnectionIO[List[CronJob]] = {
-    val singleTran = for {
+  def refreshJobsSingleTran(args: List[JobDB]): ConnectionIO[List[JobDB]] = {
+    for {
       _        <- logCIO(s"Refreshing jobs in database")
       deleted  <- deleteJobs(args).run
       _        <- logCIO(s"Deleted jobs => $deleted")
       inserted <- insertJobs.updateMany(args)
       _        <- logCIO(s"Inserted/Updated jobs => $inserted")
-      db_jobs  <- selectJobs.to[List]
-      jobs     = db_jobs.map(x => CronJob(x.job_name, "", Cron(x.schedule).toOption, 0, 0))
-    } yield jobs
-
-    singleTran
+      dbjobs   <- selectJobs.to[List]
+    } yield dbjobs
   }
 
   def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))

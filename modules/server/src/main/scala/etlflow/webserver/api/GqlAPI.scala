@@ -9,7 +9,7 @@ import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper.{JobLogsArgs, _}
+import etlflow.api.Schema._
 import ApiService._
 import etlflow.jdbc.DBEnv
 import zio.ZIO

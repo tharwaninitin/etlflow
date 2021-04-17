@@ -1,9 +1,8 @@
 package etlflow.webserver.api
 
-import cats.effect.Blocker
 import etlflow.ServerSuiteHelper
 import etlflow.jdbc.DBEnv
-import etlflow.utils.EtlFlowHelper.{EtlFlowTask, GQLEnv}
+import etlflow.api.Schema.{EtlFlowTask, GQLEnv}
 import etlflow.webserver.Http4sServer
 import io.circe.Json
 import io.circe.parser._

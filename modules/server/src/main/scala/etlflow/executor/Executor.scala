@@ -4,7 +4,7 @@ import caliban.CalibanError.ExecutionError
 import etlflow.utils.EtlFlowUtils
 import etlflow.gcp.{DP, DPService}
 import etlflow.jdbc.{DB, DBEnv}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{Config, UtilityFunctions => UF}

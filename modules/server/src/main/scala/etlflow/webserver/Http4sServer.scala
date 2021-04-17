@@ -4,7 +4,7 @@ import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
 import etlflow.utils.Config
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import etlflow.webserver.api._
 import etlflow.jdbc.DBEnv
 import etlflow.{EJPMType, BuildInfo => BI}

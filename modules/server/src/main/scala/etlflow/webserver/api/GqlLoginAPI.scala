@@ -3,7 +3,7 @@ package etlflow.webserver.api
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema
 import caliban.{GraphQL, RootResolver}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import zio.{Task, UIO, ZIO}
 import ApiService.login
 import etlflow.jdbc.DBEnv

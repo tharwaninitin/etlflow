@@ -6,8 +6,8 @@ import cron4s.lib.javatime._
 import doobie.implicits._
 import etlflow.EJPMType
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.EtlFlowHelper.Creds.{AWS, JDBC}
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema.Creds.{AWS, JDBC}
+import etlflow.api.Schema._
 import etlflow.utils.{EtlFlowUtils, JsonJackson, UtilityFunctions => UF}
 import org.ocpsoft.prettytime.PrettyTime
 import zio.interop.catz._
@@ -32,7 +32,7 @@ object DB extends EtlFlowUtils {
     def updateJobState(args: EtlJobStateArgs): IO[ExecutionError, Boolean]
     def addCredential(args: CredentialsArgs): IO[ExecutionError, Credentials]
     def updateCredential(args: CredentialsArgs): IO[ExecutionError, Credentials]
-    def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[CronJob]]
+    def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[JobDB]]
   }
 
   def getUser(user_name: String): ZIO[DBEnv, ExecutionError, UserInfo] = ZIO.accessM(_.get.getUser(user_name))
@@ -47,7 +47,7 @@ object DB extends EtlFlowUtils {
   def updateJobState(args: EtlJobStateArgs): ZIO[DBEnv, ExecutionError, Boolean] = ZIO.accessM(_.get.updateJobState(args))
   def addCredential(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredential(args))
   def updateCredential(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredential(args))
-  def refreshJobs(jobs: List[EtlJob]): ZIO[DBEnv, ExecutionError, List[CronJob]] = ZIO.accessM(_.get.refreshJobs(jobs))
+  def refreshJobs(jobs: List[EtlJob]): ZIO[DBEnv, ExecutionError, List[JobDB]] = ZIO.accessM(_.get.refreshJobs(jobs))
 
   val liveDB: ZLayer[TransactorEnv, Throwable, DBEnv] = ZLayer.fromService { transactor =>
     new Service {
@@ -199,7 +199,7 @@ object DB extends EtlFlowUtils {
         logger.error(e.getMessage)
         ExecutionError(e.getMessage)
       }
-      def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[CronJob]] = {
+      def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[JobDB]] = {
         val jobsDB = jobs.map{x =>
           JobDB(x.name, x.props.getOrElse("job_schedule",""), is_active = true)
         }

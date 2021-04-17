@@ -1,7 +1,7 @@
 package etlflow.webserver.api
 
 import cats.syntax.all._
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
 import sttp.tapir.generic.auto._

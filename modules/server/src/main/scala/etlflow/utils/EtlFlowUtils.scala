@@ -2,7 +2,7 @@ package etlflow.utils
 
 import caliban.CalibanError.ExecutionError
 import etlflow.log.ApplicationLogger
-import etlflow.utils.EtlFlowHelper._
+import etlflow.api.Schema._
 import etlflow.utils.JsonJackson._
 import etlflow.utils.{UtilityFunctions => UF}
 import etlflow.EJPMType

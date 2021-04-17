@@ -1,7 +1,7 @@
 package etlflow.webserver.api
 
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
-import etlflow.utils.EtlFlowHelper.EtlFlowTask
+import etlflow.api.Schema.EtlFlowTask
 import etlflow.utils.{Config, RequestValidator}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import org.http4s.HttpRoutes

@@ -1,8 +1,7 @@
 package etlflow.webserver
 
-import etlflow.{ServerSuiteHelper, TransactorEnv}
-import etlflow.api.Schema.{EtlFlowTask, GQLEnv}
-import etlflow.jdbc.DBEnv
+import etlflow.ServerSuiteHelper
+import etlflow.api.{EtlFlowTask, ServerEnv}
 import io.circe.Json
 import io.circe.parser._
 import org.http4s._
@@ -12,15 +11,15 @@ import org.http4s.implicits._
 import zio.interop.catz._
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{Task, ZEnv, ZIO}
+import zio.{Task, ZIO}
 
 object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
   val env = (testAPILayer ++ testDBLayer).orDie
 
-  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv with TransactorEnv, Throwable, Either[String, String]] =
-      allRoutes[MEJP](cache, testJobsSemaphore, etlJob_name_package, testJobsQueue, config).use{ routes =>
+  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ServerEnv, Throwable, Either[String, String]] =
+      allRoutes[MEJP](cache, config.webserver).use{ routes =>
         for {
           client <- Task(Client.fromHttpApp[EtlFlowTask](routes.orNotFound))
           output <- client.run(apiRequest).use {
@@ -39,7 +38,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
                   }
                 }"""))
 
-  private def apiResponseWithLogin(apiRequest: String => Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv with TransactorEnv, Throwable, Either[String, String]] = {
+  private def apiResponseWithLogin(apiRequest: String => Request[EtlFlowTask]):ZIO[ServerEnv, Throwable, Either[String, String]] = {
     for {
       jsonOutput  <- apiResponse(Request[EtlFlowTask](method = POST, uri = uri"/api/login").withEntity(gqlLoginBody))
       authToken   = parse(jsonOutput.getOrElse("")).getOrElse(Json.Null).hcursor.downField("data").downField("login").downField("token").as[String].getOrElse("")

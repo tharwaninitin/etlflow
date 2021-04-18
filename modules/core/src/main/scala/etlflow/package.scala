@@ -1,10 +1,12 @@
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
+import etlflow.executor.LocalExecutorService
 import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogger}
 import etlflow.utils.{Executor, LoggingLevel}
-import zio.{Has, Task, ZEnv}
-
+import zio.blocking.Blocking
+import zio.clock.Clock
+import zio.{Has, Task}
 import scala.reflect.ClassTag
 
 package object etlflow {
@@ -32,32 +34,39 @@ package object etlflow {
   case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
   case class StepLogger(db: Option[DbStepLogger], slack: Option[SlackLogger])
   case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogger])
-  type StepEnv = Has[StepLogger] with ZEnv
-  type TransactorEnv = Has[HikariTransactor[Task]]
-  trait EtlJobSchema extends Product
-  trait EtlJobProps {}
+
+  type DBEnv = Has[HikariTransactor[Task]]
+  type StepEnv = Has[StepLogger] with Blocking with Clock
+  type JobEnv = DBEnv with Blocking with Clock
+  type LocalExecutorEnv = Has[LocalExecutorService.Service]
+  type LocalJobEnv = LocalExecutorEnv with JobEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
+  trait EtlJobSchema extends Product
+  trait EtlJobProps
+
   abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {
-    val job_description: String         = ""
-    val job_schedule: String            = ""
-    val job_max_active_runs: Int        = 10
-    val job_deploy_mode: Executor       = Executor.LOCAL
-    val job_retries: Int                = 0
-    val job_retry_delay_in_minutes: Int = 0
+    val job_description: String               = ""
+    val job_schedule: String                  = ""
+    val job_max_active_runs: Int              = 10
+    val job_deploy_mode: Executor             = Executor.LOCAL
+    val job_retries: Int                      = 0
+    val job_retry_delay_in_minutes: Int       = 0
     val job_enable_db_logging: Boolean        = true
     val job_send_slack_notification: Boolean  = false
-    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
+    val job_notification_level: LoggingLevel  = LoggingLevel.INFO
 
-    final val job_name: String          = tag_EJ.toString
-    final val job_props_name: String    = tag_EJP.toString
+    final val job_name: String                = tag_EJ.toString
+    final val job_props_name: String          = tag_EJP.toString
 
     def getActualProperties(job_properties: Map[String, String]): EJP
+
+    // https://stackoverflow.com/questions/46798242/scala-create-instance-by-type-parameter
     final def etlJob(job_properties: Map[String, String]): EJ = {
-      // https://stackoverflow.com/questions/46798242/scala-create-instance-by-type-parameter
       val props = getActualProperties(job_properties)
       tag_EJ.runtimeClass.getConstructor(tag_EJP.runtimeClass).newInstance(props).asInstanceOf[EJ]
     }
+
     final def getProps: Map[String,Any] = Map(
         "job_name" -> job_name,
         "job_props_name" -> job_props_name,

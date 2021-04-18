@@ -1,6 +1,6 @@
 package etlflow.webserver
 
-import etlflow.api.Schema.EtlFlowTask
+import etlflow.api.EtlFlowTask
 import etlflow.api.Service
 import etlflow.utils.RequestValidator
 import io.circe._

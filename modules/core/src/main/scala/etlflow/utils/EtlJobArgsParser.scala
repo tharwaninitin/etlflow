@@ -5,23 +5,27 @@ import etlflow.{BuildInfo => BI}
 
 object EtlJobArgsParser {
   case class EtlJobConfig(
+       init_db: Boolean = false,
+       reset_db: Boolean = false,
        list_jobs: Boolean = false,
        show_job_props: Boolean = false,
        show_step_props: Boolean = false,
        run_job: Boolean = false,
+       run_server: Boolean = false,
        job_name: String = "",
        job_properties: Map[String,String] = Map.empty,
-       init_db: Boolean = false,
        add_user: Boolean = false,
        user: String = "",
        password: String = "",
-       run_server: Boolean = false,
      )
   val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etlflow") {
     head("EtlFlow", BI.version, s"Build with scala version ${BI.scalaVersion}")
     help("help")
     cmd("initdb")
       .action((_, c) => c.copy(init_db = true))
+      .text("Initialize Database")
+    cmd("resetdb")
+      .action((_, c) => c.copy(reset_db = true))
       .text("Initialize Database")
     cmd("list_jobs")
       .action((_, c) => c.copy(list_jobs = true))

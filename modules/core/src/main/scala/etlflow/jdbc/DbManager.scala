@@ -6,7 +6,7 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import etlflow.Credential.JDBC
-import etlflow.TransactorEnv
+import etlflow.DBEnv
 import etlflow.utils.JsonJackson
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
@@ -29,7 +29,7 @@ trait DbManager {
     HikariTransactor.fromHikariConfig[Task](config, ec, blocker)
   }.toManagedZIO
 
-  def liveTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 10): ZLayer[Blocking, Throwable, TransactorEnv] = ZLayer.fromManaged(
+  def liveTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 10): ZLayer[Blocking, Throwable, DBEnv] = ZLayer.fromManaged(
     for {
       rt         <- Task.runtime.toManaged_
       blocker    <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_

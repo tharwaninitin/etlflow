@@ -7,6 +7,7 @@ import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etlflow.utils.{Configuration, UtilityFunctions => UF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]] : TypeTag]
@@ -24,6 +25,9 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
         case ec if ec.init_db =>
           logger.info("Initializing etlflow database")
           runDbMigration(config.dbLog).unit
+        case ec if ec.reset_db =>
+          logger.info("Resetting etlflow database")
+          runDbMigration(config.dbLog, clean = true).unit
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")

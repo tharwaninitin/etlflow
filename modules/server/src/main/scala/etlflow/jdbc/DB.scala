@@ -14,7 +14,7 @@ import zio.interop.catz._
 import zio.{IO, RIO, Task, UIO, ZIO, ZLayer}
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
-import etlflow.TransactorEnv
+import etlflow.DBEnv
 
 object DB extends EtlFlowUtils {
   // Uncomment this to see generated SQL queries in logs
@@ -36,21 +36,21 @@ object DB extends EtlFlowUtils {
     def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[JobDB]]
   }
 
-  def getUser(user_name: String): ZIO[DBEnv, ExecutionError, UserDB] = ZIO.accessM(_.get.getUser(user_name))
-  def getJob(name: String): ZIO[DBEnv, ExecutionError, JobDB] = ZIO.accessM(_.get.getJob(name))
-  def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): RIO[DBEnv ,List[Job]] = ZIO.accessM(_.get.getJobs[EJN](ejpm_package))
-  def getStepRuns(args: DbStepRunArgs): ZIO[DBEnv, ExecutionError, List[StepRun]] = ZIO.accessM(_.get.getStepRuns(args))
-  def getJobRuns(args: DbJobRunArgs): ZIO[DBEnv, ExecutionError, List[JobRun]] = ZIO.accessM(_.get.getJobRuns(args))
-  def getJobLogs(args: JobLogsArgs): ZIO[DBEnv, ExecutionError, List[JobLogs]] = ZIO.accessM(_.get.getJobLogs(args))
-  def getCredentials: ZIO[DBEnv, ExecutionError, List[GetCredential]] = ZIO.accessM(_.get.getCredentials)
-  def updateSuccessJob(job: String, ts: Long): ZIO[DBEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateSuccessJob(job,ts))
-  def updateFailedJob(job: String, ts: Long): ZIO[DBEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateFailedJob(job, ts))
-  def updateJobState(args: EtlJobStateArgs): ZIO[DBEnv, ExecutionError, Boolean] = ZIO.accessM(_.get.updateJobState(args))
-  def addCredential(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredential(args))
-  def updateCredential(args: CredentialsArgs): ZIO[DBEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredential(args))
-  def refreshJobs(jobs: List[EtlJob]): ZIO[DBEnv, ExecutionError, List[JobDB]] = ZIO.accessM(_.get.refreshJobs(jobs))
+  def getUser(user_name: String): ZIO[DBServerEnv, ExecutionError, UserDB] = ZIO.accessM(_.get.getUser(user_name))
+  def getJob(name: String): ZIO[DBServerEnv, ExecutionError, JobDB] = ZIO.accessM(_.get.getJob(name))
+  def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): RIO[DBServerEnv ,List[Job]] = ZIO.accessM(_.get.getJobs[EJN](ejpm_package))
+  def getStepRuns(args: DbStepRunArgs): ZIO[DBServerEnv, ExecutionError, List[StepRun]] = ZIO.accessM(_.get.getStepRuns(args))
+  def getJobRuns(args: DbJobRunArgs): ZIO[DBServerEnv, ExecutionError, List[JobRun]] = ZIO.accessM(_.get.getJobRuns(args))
+  def getJobLogs(args: JobLogsArgs): ZIO[DBServerEnv, ExecutionError, List[JobLogs]] = ZIO.accessM(_.get.getJobLogs(args))
+  def getCredentials: ZIO[DBServerEnv, ExecutionError, List[GetCredential]] = ZIO.accessM(_.get.getCredentials)
+  def updateSuccessJob(job: String, ts: Long): ZIO[DBServerEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateSuccessJob(job,ts))
+  def updateFailedJob(job: String, ts: Long): ZIO[DBServerEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateFailedJob(job, ts))
+  def updateJobState(args: EtlJobStateArgs): ZIO[DBServerEnv, ExecutionError, Boolean] = ZIO.accessM(_.get.updateJobState(args))
+  def addCredential(args: CredentialsArgs): ZIO[DBServerEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredential(args))
+  def updateCredential(args: CredentialsArgs): ZIO[DBServerEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredential(args))
+  def refreshJobs(jobs: List[EtlJob]): ZIO[DBServerEnv, ExecutionError, List[JobDB]] = ZIO.accessM(_.get.refreshJobs(jobs))
 
-  val liveDB: ZLayer[TransactorEnv, Throwable, DBEnv] = ZLayer.fromService { transactor =>
+  val liveDB: ZLayer[DBEnv, Throwable, DBServerEnv] = ZLayer.fromService { transactor =>
     new Service {
       def getUser(name: String): IO[ExecutionError, UserDB] = {
         SQL.getUser(name)

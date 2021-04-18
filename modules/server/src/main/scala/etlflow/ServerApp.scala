@@ -23,7 +23,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
       apiLayer        = Implementation.live[EJN](cache,jobSemaphores,jobs,queue,config,etl_job_props_mapping_package)
       finalLayer      = apiLayer ++ dbLayer
       scheduler       = etlFlowScheduler(jobs)
-      webserver       = etlFlowWebServer[EJN](cache,jobSemaphores,etl_job_props_mapping_package,queue,config)
+      webserver       = etlFlowWebServer[EJN](cache,config.webserver)
       _               <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_
     } yield ()).use_(ZIO.unit)
 

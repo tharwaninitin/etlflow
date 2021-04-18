@@ -7,9 +7,9 @@ import etlflow.etlsteps._
 case class Job5GenericSteps(job_properties: EtlJob5Props) extends GenericEtlJob[EtlJob5Props] {
 
   private def processData(ip: String): Unit = {
-    etl_job_logger.info("Processing Data")
+    logger.info("Processing Data")
     throw new RuntimeException("Exception in Step")
-    ip.foreach(jr => etl_job_logger.info(jr.toString))
+    ip.foreach(jr => logger.info(jr.toString))
   }
 
   private def step1 = GenericETLStep(

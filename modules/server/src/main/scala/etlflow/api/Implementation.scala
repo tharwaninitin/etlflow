@@ -2,17 +2,16 @@ package etlflow.api
 
 import etlflow.api.Schema._
 import etlflow.executor.Executor
-import etlflow.jdbc.{DB, DBEnv}
+import etlflow.jdbc.{DB, DBServerEnv}
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
-import etlflow.{EJPMType, TransactorEnv, BuildInfo => BI}
+import etlflow.{EJPMType, DBEnv, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.stream.ZStream
-
 import scala.reflect.runtime.universe.TypeTag
 
 object Implementation extends EtlFlowUtils with Executor {
@@ -24,7 +23,7 @@ object Implementation extends EtlFlowUtils with Executor {
     ,jobQueue: Queue[(String,String,String,String)]
     ,config: Config
     ,ejpm_package: String
-  ): ZLayer[Blocking, Throwable, GQLEnv] = {
+  ): ZLayer[Blocking, Throwable, APIEnv] = {
     for {
       subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs            <- Ref.make(0)
@@ -44,29 +43,29 @@ object Implementation extends EtlFlowUtils with Executor {
         CacheDetails("Login",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
       }
 
-      override def getJobs: ZIO[GQLEnv with DBEnv, Throwable, List[Job]] = DB.getJobs[EJN](ejpm_package)
+      override def getJobs: ZIO[APIEnv with DBServerEnv, Throwable, List[Job]] = DB.getJobs[EJN](ejpm_package)
 
-      override def getCacheStats: ZIO[GQLEnv, Throwable, List[CacheDetails]] = Task(List(getPropsCacheStats,getLoginCacheStats))
+      override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = Task(List(getPropsCacheStats,getLoginCacheStats))
 
-      override def getQueueStats: ZIO[GQLEnv, Throwable, List[QueueDetails]] = QueueHelper.takeAll(jobQueue)
+      override def getQueueStats: ZIO[APIEnv, Throwable, List[QueueDetails]] = QueueHelper.takeAll(jobQueue)
 
-      override def getJobLogs(args: JobLogsArgs): ZIO[GQLEnv with DBEnv, Throwable, List[JobLogs]] = DB.getJobLogs(args)
+      override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]] = DB.getJobLogs(args)
 
-      override def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[GetCredential]] = DB.getCredentials
+      override def getCredentials: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]] = DB.getCredentials
 
-      override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock with DBEnv with TransactorEnv, Throwable, EtlJob] = {
+      override def runJob(args: EtlJobArgs, submitter: String): ZIO[APIEnv with Blocking with Clock with DBServerEnv with DBEnv, Throwable, EtlJob] = {
         runActiveEtlJob[EJN](args,jobSemaphores(args.name),config,ejpm_package,submitter,jobQueue)
       }
 
-      override def getDbStepRuns(args: DbStepRunArgs): ZIO[GQLEnv with DBEnv, Throwable, List[StepRun]] = DB.getStepRuns(args)
+      override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]] = DB.getStepRuns(args)
 
-      override def getDbJobRuns(args: DbJobRunArgs): ZIO[GQLEnv with DBEnv, Throwable, List[JobRun]] = DB.getJobRuns(args)
+      override def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]] = DB.getJobRuns(args)
 
-      override def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv with DBEnv, Throwable, Boolean] = DB.updateJobState(args)
+      override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean] = DB.updateJobState(args)
 
-      override def login(args: UserArgs): ZIO[GQLEnv with DBEnv, Throwable, UserAuth] =  Authentication.login(args,cache,config)
+      override def login(args: UserArgs): ZIO[APIEnv with DBServerEnv, Throwable, UserAuth] =  Authentication.login(args,cache,config.webserver)
 
-      override def getInfo: ZIO[GQLEnv, Throwable, EtlFlowMetrics] = {
+      override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = {
         for {
           x <- activeJobs.get
           y <- subscribers.get
@@ -79,13 +78,13 @@ object Implementation extends EtlFlowUtils with Executor {
         )
       }
 
-      override def getCurrentTime: ZIO[GQLEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = UF.getCurrentTimestampAsString()))
+      override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = UF.getCurrentTimestampAsString()))
 
-      override def addCredentials(args: CredentialsArgs): ZIO[GQLEnv with DBEnv, Throwable, Credentials] = DB.addCredential(args)
+      override def addCredentials(args: CredentialsArgs): ZIO[APIEnv with DBServerEnv, Throwable, Credentials] = DB.addCredential(args)
 
-      override def updateCredentials(args: CredentialsArgs): ZIO[GQLEnv with DBEnv, Throwable, Credentials] = DB.updateCredential(args)
+      override def updateCredentials(args: CredentialsArgs): ZIO[APIEnv with DBServerEnv, Throwable, Credentials] = DB.updateCredential(args)
 
-      override def notifications: ZStream[GQLEnv, Nothing, EtlJobStatus] = ZStream.unwrap {
+      override def notifications: ZStream[APIEnv, Nothing, EtlJobStatus] = ZStream.unwrap {
         for {
           queue <- Queue.unbounded[EtlJobStatus]
           _     <- UIO(logger.info(s"Starting new subscriber"))

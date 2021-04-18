@@ -1,8 +1,7 @@
 package etlflow.webserver
 
-import etlflow.{ServerSuiteHelper, TransactorEnv}
-import etlflow.api.Schema.{EtlFlowTask, GQLEnv}
-import etlflow.jdbc.DBEnv
+import etlflow.ServerSuiteHelper
+import etlflow.api.{EtlFlowTask, ServerEnv}
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.dsl.Http4sDsl
@@ -10,13 +9,14 @@ import org.http4s.implicits._
 import zio.interop.catz._
 import zio.test.Assertion._
 import zio.test._
-import zio.{Task, ZEnv, ZIO}
+import zio.{Task, ZIO}
 
 object RestTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Http4sDsl[EtlFlowTask] {
 
+  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
   val env = (testAPILayer ++ testDBLayer).orDie
 
-  private def apiResponse(apiRequest: Request[EtlFlowTask]): ZIO[ZEnv with DBEnv with GQLEnv with TransactorEnv, Throwable, Either[String, String]] =
+  private def apiResponse(apiRequest: Request[EtlFlowTask]): ZIO[ServerEnv, Throwable, Either[String, String]] =
     (for {
       client <- Task(Client.fromHttpApp[EtlFlowTask](RestAPINew.routes.orNotFound))
       output <- client.run(apiRequest).use{

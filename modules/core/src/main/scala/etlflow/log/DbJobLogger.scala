@@ -76,5 +76,5 @@ object DbJobLogger extends DbManager {
         Some(new DbJobLogger(transactor, job_name, job_properties,job_run_id,is_master))
       }
     else
-      Managed.unit.map(_ => None)
+      Managed.unit.as(None)
 }

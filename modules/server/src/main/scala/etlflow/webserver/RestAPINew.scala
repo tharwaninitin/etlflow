@@ -1,7 +1,7 @@
 package etlflow.webserver
 
 import etlflow.api.Schema._
-import etlflow.api.Service
+import etlflow.api.{EtlFlowTask, Service}
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
 import sttp.tapir._

@@ -69,8 +69,8 @@ case class Job3HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob
   }
 
   def processData(ip: HttpBinResponse): Unit = {
-    etl_job_logger.info("Processing Data")
-    etl_job_logger.info(ip.toString)
+    logger.info("Processing Data")
+    logger.info(ip.toString)
   }
 
   val genericStep = GenericETLStep(

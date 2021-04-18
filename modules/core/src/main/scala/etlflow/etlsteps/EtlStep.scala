@@ -17,7 +17,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   def getStepProperties(level:LoggingLevel  = LoggingLevel.INFO): Map[String,String] = Map()
 
   final def execute(input_state: =>IPSTATE): ZIO[StepEnv, Throwable, OPSTATE] = {
-    val env = StepLoggerResourceEnv.live >>> StepLoggerEnv.live(self)
+    val env = StepLoggerResourceEnv.live >>> StepLoggerImpl.live(self)
     val step = for {
       step_start_time <- Task.succeed(System.currentTimeMillis())
       _   <- logInit(step_start_time)

@@ -3,15 +3,15 @@ package etlflow.executor
 import java.io.{BufferedReader, InputStreamReader}
 import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
-import etlflow.{EtlJobProps, EtlJobPropsMapping, TransactorEnv}
+import etlflow.{DBEnv, EtlJobProps, EtlJobPropsMapping, LocalExecutorEnv, LocalJobEnv}
 import etlflow.utils.Executor.LOCAL_SUBPROCESS
 import zio.{Layer, Task, UIO, ZEnv, ZIO}
 
 object LocalExecutor {
-  val live: Layer[Throwable, LocalExecutorService] = {
+  val live: Layer[Throwable, LocalExecutorEnv] = {
     UIO {
       new LocalExecutorService.Service {
-        override def executeLocalSubProcessJob(name: String, properties: Map[String, String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit] = Task {
+        override def executeLocalSubProcessJob(name: String, properties: Map[String, String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorEnv, Throwable, Unit] = Task {
           logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
                                   |job_name => $name
                                   |script_path => ${config.script_path}
@@ -55,7 +55,7 @@ object LocalExecutor {
           }
         }
         override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String,job_run_id:Option[String] = None,is_master:Option[String] = None)
-        : ZIO[ZEnv with LocalExecutorService with TransactorEnv, Throwable, Unit] = {
+        : ZIO[LocalJobEnv, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name, etl_job_name_package)
           val job = job_name.etlJob(properties)
           job.job_name = job_name.toString
@@ -64,13 +64,13 @@ object LocalExecutor {
           job.job_notification_level = job_name.job_notification_level
           job.execute(job_run_id,is_master)
         }
-        override def showLocalJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
+        override def showLocalJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorEnv, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name,etl_job_name_package)
           val exclude_keys = List("job_run_id","job_description","job_properties")
           val props = job_name.getActualProperties(properties)
           UIO(println(JsonJackson.convertToJsonByRemovingKeys(props,exclude_keys)))
         }
-        override def showLocalJobStepProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
+        override def showLocalJobStepProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorEnv, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name,etl_job_name_package)
           val etl_job = job_name.etlJob(properties)
           if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {

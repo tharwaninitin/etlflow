@@ -27,19 +27,19 @@ object EtlLogger extends ApplicationLogger {
     }
   }
 
-  object StepLoggerEnv {
+  object StepLoggerImpl {
     def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[StepLoggerResourceEnv, Throwable, LoggingSupport] = ZLayer.fromService { deps: StepLoggerResourceEnv.Service =>
       new LoggerService {
         def logInit(start_time: Long): Task[Unit] = {
           if(deps.res.db.isDefined)
-            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "started", mode = "insert").as(())
+            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "started", mode = "insert").unit
           else
             ZIO.unit
         }
         def logSuccess(start_time: Long): Task[Unit] = {
           deps.res.slack.foreach(_.logStepEnd(start_time, etlStep))
           if(deps.res.db.isDefined)
-            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "pass").as(())
+            deps.res.db.get.updateStepLevelInformation(start_time, etlStep, "pass").unit
           else
             ZIO.unit
         }
@@ -55,8 +55,8 @@ object EtlLogger extends ApplicationLogger {
     }
   }
 
-  object JobLoggerEnv {
-    def live(res: JobLogger, job_type: String): LoggerService = new LoggerService {
+  object JobLoggerImpl {
+    def apply(res: JobLogger, job_type: String): LoggerService = new LoggerService {
       override def logInit(start_time: Long): Task[Unit] = {
         if (res.db.isDefined) res.db.get.logStart(start_time,job_type) else ZIO.unit
       }
@@ -68,7 +68,7 @@ object EtlLogger extends ApplicationLogger {
       override def logError(start_time: Long, ex: Throwable): Task[Unit] = {
         logger.error(s"Job completed with failure in ${UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)}")
         res.slack.foreach(_.logJobEnd(start_time, Some(ex.getMessage)))
-        if (res.db.isDefined) res.db.get.logEnd(start_time, Some(ex.getMessage)).as(()) *> Task.fail(ex) else Task.fail(ex)
+        if (res.db.isDefined) res.db.get.logEnd(start_time, Some(ex.getMessage)).unit *> Task.fail(ex) else Task.fail(ex)
       }
     }
   }

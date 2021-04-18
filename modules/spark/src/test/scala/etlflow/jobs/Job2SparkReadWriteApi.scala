@@ -42,8 +42,8 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   )
 
   def processData(ip: Array[String]): Unit = {
-    etl_job_logger.info("Processing Data")
-    etl_job_logger.info(ip.toList.toString())
+    logger.info("Processing Data")
+    logger.info(ip.toList.toString())
   }
 
   val step3 = GenericETLStep(
@@ -58,8 +58,8 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   )
 
   def processData2(ip: List[EtlJobRun]): Unit = {
-    etl_job_logger.info("Processing Data")
-    ip.foreach(jr => etl_job_logger.info(jr.toString))
+    logger.info("Processing Data")
+    ip.foreach(jr => logger.info(jr.toString))
   }
 
   val step5 = GenericETLStep(

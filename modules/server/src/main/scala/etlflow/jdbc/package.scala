@@ -12,6 +12,6 @@ package object jdbc extends DbManager with ApplicationLogger {
   case class JsonString(str: String) extends AnyVal
   case class CredentialDB(name: String, `type`: String, value: JsonString)
 
-  type DBEnv = Has[DB.Service]
-  def liveDBWithTransactor(db: JDBC): ZLayer[Blocking, Throwable, TransactorEnv with DBEnv] = liveTransactor(db: JDBC) >+> DB.liveDB
+  type DBServerEnv = Has[DB.Service]
+  def liveDBWithTransactor(db: JDBC): ZLayer[Blocking, Throwable, DBEnv with DBServerEnv] = liveTransactor(db: JDBC) >+> DB.liveDB
 }

@@ -11,7 +11,7 @@ case class Job2Retry(job_properties: EtlJob2Props) extends GenericEtlJob[EtlJob2
   //throw new RuntimeException("!! Error in job instance creation")
 
   def processData(ip: Unit): Unit = {
-    etl_job_logger.info("Hello World")
+    logger.info("Hello World")
     Thread.sleep(10000)
     //throw new RuntimeException("!! step failed")
   }

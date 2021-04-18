@@ -1,6 +1,6 @@
 package etlflow.executor
 
-import etlflow.ServerSuiteHelper
+import etlflow.{ServerSuiteHelper, TransactorEnv}
 import etlflow.jdbc.DBEnv
 import etlflow.api.Schema.{EtlJob, EtlJobArgs}
 import zio.blocking.Blocking
@@ -13,7 +13,7 @@ object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSu
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
-  def job(args: EtlJobArgs,sem: Semaphore): RIO[DBEnv with Blocking with Clock, EtlJob] =
+  def job(args: EtlJobArgs,sem: Semaphore): RIO[DBEnv with TransactorEnv with Blocking with Clock, EtlJob] =
     runActiveEtlJob[MEJP](args,sem,config,etlJob_name_package,"Test",testJobsQueue,false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

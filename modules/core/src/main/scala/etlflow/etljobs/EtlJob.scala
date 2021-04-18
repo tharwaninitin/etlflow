@@ -1,6 +1,6 @@
 package etlflow.etljobs
 
-import etlflow.EtlJobProps
+import etlflow.{EtlJobProps, TransactorEnv}
 import etlflow.utils.{Configuration, LoggingLevel}
 import org.slf4j.{Logger, LoggerFactory}
 import zio._
@@ -16,5 +16,5 @@ trait EtlJob[EJP <: EtlJobProps] extends Configuration {
 
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])]
-  def execute(job_run_id:Option[String] = None,is_master:Option[String] = None): ZIO[ZEnv, Throwable, Unit]
+  def execute(job_run_id:Option[String] = None,is_master:Option[String] = None): ZIO[ZEnv with TransactorEnv, Throwable, Unit]
 }

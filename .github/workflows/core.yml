@@ -39,7 +39,7 @@ jobs:
       with:
         java-version: 14
     - name: Run Core Tests
-      run: sbt ";project core; test:runMain etlflow.coretests.LoadData run_db_migration; test;"
+      run: sbt ";project core; test:runMain etlflow.coretests.LoadData initdb; test;"
       env:
         LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
         LOG_DB_USER: etlflow

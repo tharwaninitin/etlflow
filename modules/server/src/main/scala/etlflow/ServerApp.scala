@@ -27,9 +27,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
       _               <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_
     } yield ()).use_(ZIO.unit)
 
-    val finalRunner = if (args.isEmpty) serverRunner else cliRunner(args)
-
-    finalRunner.catchAll{err =>
+    cliRunner(args,serverRunner).catchAll{err =>
       UIO {
         logger.error(err.getMessage)
         err.getStackTrace.foreach(x => logger.error(x.toString))

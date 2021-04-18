@@ -11,44 +11,21 @@ object EtlJobArgsParser {
        run_job: Boolean = false,
        job_name: String = "",
        job_properties: Map[String,String] = Map.empty,
-       run_db_migration:Boolean = false,
+       init_db: Boolean = false,
        add_user: Boolean = false,
        user: String = "",
-       password: String = ""
+       password: String = "",
+       run_server: Boolean = false,
      )
-  val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etlflow-cli") {
+  val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etlflow") {
     head("EtlFlow", BI.version, s"Build with scala version ${BI.scalaVersion}")
     help("help")
-    opt[Unit]('l', "list_jobs")
+    cmd("initdb")
+      .action((_, c) => c.copy(init_db = true))
+      .text("Initialize Database")
+    cmd("list_jobs")
       .action((_, c) => c.copy(list_jobs = true))
-      .text("List all jobs \n")
-    cmd("run_db_migration")
-      .action((_, c) => c.copy(run_db_migration = true))
-      .text("Run Database Migration \n")
-    cmd("show_job_props")
-      .action((_, c) => c.copy(show_job_props = true))
-      .text("Show job props")
-      .children(
-        opt[String]("job_name")
-          .action((x, c) => c.copy(job_name = x))
-          .text("job_name is a EtlJobName"),
-        opt[Map[String, String]]("props")
-          .valueName("k1=v1,k2=v2...")
-          .action((x, c) => c.copy(job_properties = x))
-          .text("other arguments \n")
-      )
-    cmd("show_step_props")
-      .action((_, c) => c.copy(show_step_props = true))
-      .text("Show job step props")
-      .children(
-        opt[String]("job_name")
-          .action((x, c) => c.copy(job_name = x))
-          .text("job_name is a EtlJobName"),
-        opt[Map[String, String]]("props")
-          .valueName("k1=v1,k2=v2...")
-          .action((x, c) => c.copy(job_properties = x))
-          .text("other arguments \n")
-      )
+      .text("List all jobs")
     cmd("run_job")
       .action((_, c) => c.copy(run_job = true))
       .text("Run job")
@@ -59,18 +36,45 @@ object EtlJobArgsParser {
         opt[Map[String, String]]("props")
           .valueName("k1=v1,k2=v2...")
           .action((x, c) => c.copy(job_properties = x))
-          .text("other arguments \n")
+          .text("other arguments")
       )
+    cmd("run_server")
+      .action((_, c) => c.copy(run_server = true))
+      .text("Start Server")
     cmd("add_user")
       .action((_, c) => c.copy(add_user = true))
-      .text("Insert user into database")
+      .text("Add user into database")
       .children(
         opt[String]("user")
           .action((x, c) => c.copy(user = x))
           .text("user"),
         opt[String]("password")
           .action((x, c) => c.copy(password = x))
-          .text("password \n"),
+          .text("password"),
       )
+      cmd("show_job_props")
+        .action((_, c) => c.copy(show_job_props = true))
+        .text("Show job props")
+        .children(
+          opt[String]("job_name")
+            .action((x, c) => c.copy(job_name = x))
+            .text("job_name is a EtlJobName"),
+          opt[Map[String, String]]("props")
+            .valueName("k1=v1,k2=v2...")
+            .action((x, c) => c.copy(job_properties = x))
+            .text("other arguments")
+        )
+      cmd("show_step_props")
+        .action((_, c) => c.copy(show_step_props = true))
+        .text("Show job step props")
+        .children(
+          opt[String]("job_name")
+            .action((x, c) => c.copy(job_name = x))
+            .text("job_name is a EtlJobName"),
+          opt[Map[String, String]]("props")
+            .valueName("k1=v1,k2=v2...")
+            .action((x, c) => c.copy(job_properties = x))
+            .text("other arguments")
+        )
   }
 }

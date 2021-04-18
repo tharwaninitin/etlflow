@@ -1,13 +1,14 @@
 package etlflow.api
 
 import cron4s.CronExpr
+import etlflow.TransactorEnv
 import etlflow.jdbc.DBEnv
 import zio.{Has, RIO, ZEnv}
 
 object Schema {
 
   type GQLEnv = Has[Service]
-  type EtlFlowTask[A] = RIO[ZEnv with GQLEnv with DBEnv, A]
+  type EtlFlowTask[A] = RIO[ZEnv with GQLEnv with DBEnv with TransactorEnv, A]
 
   // API Arguments
   sealed trait Creds

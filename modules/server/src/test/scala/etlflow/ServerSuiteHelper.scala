@@ -22,6 +22,6 @@ trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
   val testJobsQueue: Queue[(String, String, String, String)] = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
   val testJobsSemaphore: Map[String, Semaphore] = Runtime.default.unsafeRun(createSemaphores(List(EtlJob("Job1",Map("job_max_active_runs" -> "1")))))
   val testAPILayer: ZLayer[Blocking, Throwable, GQLEnv] = Implementation.live[MEJP](cache,testJobsSemaphore,List.empty,testJobsQueue,config,etlJob_name_package)
-  val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.dbLog)
+  val testDBLayer: ZLayer[Blocking, Throwable, DBEnv with TransactorEnv] = liveDBWithTransactor(config.dbLog)
 
 }

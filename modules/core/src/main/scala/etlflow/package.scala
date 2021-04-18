@@ -1,8 +1,10 @@
+import doobie.hikari.HikariTransactor
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogger}
 import etlflow.utils.{Executor, LoggingLevel}
-import zio.{Has,ZEnv}
+import zio.{Has, Task, ZEnv}
+
 import scala.reflect.ClassTag
 
 package object etlflow {
@@ -31,6 +33,7 @@ package object etlflow {
   case class StepLogger(db: Option[DbStepLogger], slack: Option[SlackLogger])
   case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogger])
   type StepEnv = Has[StepLogger] with ZEnv
+  type TransactorEnv = Has[HikariTransactor[Task]]
   trait EtlJobSchema extends Product
   trait EtlJobProps {}
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]

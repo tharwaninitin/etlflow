@@ -8,18 +8,19 @@ import etlflow.api.Schema._
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{Config, UtilityFunctions => UF}
-import etlflow.EJPMType
+import etlflow.{EJPMType, TransactorEnv}
 import zio._
 import zio.blocking.{Blocking, blocking}
 import zio.clock.Clock
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 trait Executor extends K8SExecutor with EtlFlowUtils {
 
   final def runActiveEtlJob[EJN <: EJPMType : TypeTag](args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)], fork: Boolean = true)
-  : RIO[DBEnv with Blocking with Clock, EtlJob] = {
+  : RIO[DBEnv with TransactorEnv with Blocking with Clock, EtlJob] = {
     for {
       mapping_props  <- Task(getJobPropsMapping[EJN](args.name,etl_job_name_package)).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
@@ -36,14 +37,16 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
   }
 
   final def runEtlJob[EJN <: EJPMType : TypeTag](args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true)
-  : RIO[DBEnv with Blocking with Clock, Unit] = {
+  : RIO[DBEnv with TransactorEnv with Blocking with Clock, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
-    val jobRun: Task[Unit] = UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {
+    val jobRun: RIO[TransactorEnv,Unit] = UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         LocalExecutorService.executeLocalSubProcessJob(args.name, actual_props, lsp).provideLayer(LocalExecutor.live)
       case LOCAL =>
-        LocalExecutorService.executeLocalJob(args.name, actual_props, etl_job_name_package).provideLayer(LocalExecutor.live)
+        LocalExecutorService
+          .executeLocalJob(args.name, actual_props, etl_job_name_package)
+          .provideSomeLayer[TransactorEnv](ZEnv.live ++ LocalExecutor.live)
       case dp @ DATAPROC(_, _, _, _) =>
         val main_class = config.dataProc.map(_.mainClass).getOrElse("")
         val dp_libs = config.dataProc.map(_.depLibs).getOrElse(List.empty)
@@ -51,15 +54,15 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
       case LIVY(_) =>
         Task.fail(ExecutionError("Deploy mode livy not yet supported"))
       case k8s @ KUBERNETES(_, _, _, _, _, _) =>
-        runK8sJob(args,config.dbLog,k8s).as(())
+        runK8sJob(args, config.dbLog, k8s).unit
     }
 
-    val loggedJobRun: RIO[DBEnv with Blocking with Clock, Long] = blocking(jobRun)
+    val loggedJobRun: RIO[DBEnv with TransactorEnv with Blocking with Clock, Long] = blocking(jobRun)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
         UIO(logger.error(ex.getMessage)) *> DB.updateFailedJob(args.name, UF.getCurrentTimestamp)
       ) *> DB.updateSuccessJob(args.name, UF.getCurrentTimestamp)
 
-    (if(fork) sem.withPermit(loggedJobRun).forkDaemon else sem.withPermit(loggedJobRun)).as(())
+    (if (fork) sem.withPermit(loggedJobRun).forkDaemon else sem.withPermit(loggedJobRun)).unit
   }
 }

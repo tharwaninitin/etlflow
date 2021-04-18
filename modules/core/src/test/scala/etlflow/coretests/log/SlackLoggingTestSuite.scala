@@ -35,7 +35,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-  suite("EtlFlow Steps") (
+  suite("EtlFlow Slack Log Suite)") (
     testM("Execute job with log level INFO - Success Case") {
 
       val step1 = GenericETLStep(

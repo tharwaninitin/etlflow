@@ -14,13 +14,14 @@ import zio.interop.catz._
 import zio.{IO, RIO, Task, UIO, ZIO, ZLayer}
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
+import etlflow.TransactorEnv
 
 object DB extends EtlFlowUtils {
   // Uncomment this to see generated SQL queries in logs
   // implicit val dbLogger = DBLogger()
 
   trait Service {
-    def getUser(user_name: String): IO[ExecutionError, UserInfo]
+    def getUser(user_name: String): IO[ExecutionError, UserDB]
     def getJob(name: String): IO[ExecutionError, JobDB]
     def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): Task[List[Job]]
     def getStepRuns(args: DbStepRunArgs): IO[ExecutionError, List[StepRun]]
@@ -35,7 +36,7 @@ object DB extends EtlFlowUtils {
     def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[JobDB]]
   }
 
-  def getUser(user_name: String): ZIO[DBEnv, ExecutionError, UserInfo] = ZIO.accessM(_.get.getUser(user_name))
+  def getUser(user_name: String): ZIO[DBEnv, ExecutionError, UserDB] = ZIO.accessM(_.get.getUser(user_name))
   def getJob(name: String): ZIO[DBEnv, ExecutionError, JobDB] = ZIO.accessM(_.get.getJob(name))
   def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): RIO[DBEnv ,List[Job]] = ZIO.accessM(_.get.getJobs[EJN](ejpm_package))
   def getStepRuns(args: DbStepRunArgs): ZIO[DBEnv, ExecutionError, List[StepRun]] = ZIO.accessM(_.get.getStepRuns(args))
@@ -51,7 +52,7 @@ object DB extends EtlFlowUtils {
 
   val liveDB: ZLayer[TransactorEnv, Throwable, DBEnv] = ZLayer.fromService { transactor =>
     new Service {
-      def getUser(name: String): IO[ExecutionError, UserInfo] = {
+      def getUser(name: String): IO[ExecutionError, UserDB] = {
         SQL.getUser(name)
           .unique
           .transact(transactor)

@@ -125,7 +125,7 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
   val query5: doobie.Update0 = SQL.updateJobState(etlJobStateArgs)
   test("updateJobState") { check(query5) }
 
-  val query8:doobie.Query0[UserInfo]  = SQL.getUser("admin")
+  val query8:doobie.Query0[UserDB]  = SQL.getUser("admin")
   test("getUser") { check(query8)}
 
   val query10:doobie.Query0[JobDB]  = SQL.getJob("Job6")

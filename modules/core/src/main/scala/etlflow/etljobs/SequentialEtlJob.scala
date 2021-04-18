@@ -12,7 +12,7 @@ trait SequentialEtlJob[EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
 
   final override val job: ZIO[StepEnv, Throwable, Unit] = for {
     step_list <- Task.succeed(etlStepList.map(_.execute()))
-    job       <- ZIO.collectAll(step_list) *> ZIO.unit
+    job       <- ZIO.collectAll(step_list).unit
   } yield job
 
   final override def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {

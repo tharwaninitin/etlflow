@@ -20,9 +20,9 @@ object SQL {
     o
   })
 
-  def getUser(name: String): doobie.Query0[UserInfo] =
+  def getUser(name: String): doobie.Query0[UserDB] =
     sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
-      .query[UserInfo]
+      .query[UserDB]
 
   def getJob(name: String): doobie.Query0[JobDB] =
     sql"SELECT job_name, schedule, is_active FROM job WHERE job_name = $name"

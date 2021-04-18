@@ -6,7 +6,7 @@ import etlflow.jdbc.{DB, DBEnv}
 import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
-import etlflow.{EJPMType, BuildInfo => BI}
+import etlflow.{EJPMType, TransactorEnv, BuildInfo => BI}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
@@ -54,7 +54,7 @@ object Implementation extends EtlFlowUtils with Executor {
 
       override def getCredentials: ZIO[GQLEnv with DBEnv, Throwable, List[GetCredential]] = DB.getCredentials
 
-      override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock with DBEnv, Throwable, EtlJob] = {
+      override def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with Blocking with Clock with DBEnv with TransactorEnv, Throwable, EtlJob] = {
         runActiveEtlJob[EJN](args,jobSemaphores(args.name),config,ejpm_package,submitter,jobQueue)
       }
 

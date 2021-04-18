@@ -6,6 +6,7 @@ import caliban.Value.StringValue
 import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
+import etlflow.TransactorEnv
 import etlflow.api.Schema._
 import etlflow.api.Service._
 import etlflow.jdbc.DBEnv
@@ -18,7 +19,7 @@ import zio.stream.ZStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-object GqlAPI extends GenericSchema[GQLEnv with DBEnv with Blocking with Clock] {
+object GqlAPI extends GenericSchema[GQLEnv with DBEnv with TransactorEnv with Blocking with Clock] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
   implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
@@ -42,7 +43,7 @@ object GqlAPI extends GenericSchema[GQLEnv with DBEnv with Blocking with Clock] 
   )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[GQLEnv with DBEnv with Blocking with Clock, Throwable, EtlJob],
+                        run_job: EtlJobArgs => ZIO[GQLEnv with DBEnv with TransactorEnv with Blocking with Clock, Throwable, EtlJob],
                         update_job_state: EtlJobStateArgs => ZIO[GQLEnv with DBEnv, Throwable, Boolean],
                         add_credentials: CredentialsArgs => ZIO[GQLEnv with DBEnv, Throwable, Credentials],
                         update_credentials: CredentialsArgs => ZIO[GQLEnv with DBEnv, Throwable, Credentials],
@@ -57,7 +58,7 @@ object GqlAPI extends GenericSchema[GQLEnv with DBEnv with Blocking with Clock] 
     case other => Left(ExecutionError(s"Can't build a date from input $other"))
   }
 
-  val api: GraphQL[GQLEnv with DBEnv with Clock with Blocking] =
+  val api: GraphQL[GQLEnv with DBEnv with TransactorEnv with Clock with Blocking] =
     graphQL(
       RootResolver(
         Queries(

@@ -17,12 +17,13 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
 
   val etl_job_props_mapping_package: String = UF.getJobNamePackage[EJN] + "$"
 
-  def cliRunner(args: List[String], app: ZIO[ZEnv, Throwable, Unit] = ZIO.unit): ZIO[ZEnv,Throwable,Unit] = {
+  def cliRunner(args: List[String], app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
+  : ZIO[ZEnv,Throwable,Unit] = {
     parser.parse(args, EtlJobConfig()) match {
       case Some(serverConfig) => serverConfig match {
-        case ec if ec.run_db_migration =>
-          logger.info("Running database migration")
-          runDbMigration(config.dbLog) *> ZIO.unit
+        case ec if ec.init_db =>
+          logger.info("Initializing etlflow database")
+          runDbMigration(config.dbLog).unit
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")
@@ -50,15 +51,15 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           ZIO.fail(new RuntimeException("Need to provide args --job_name"))
         case ec if ec.run_job && ec.job_name != "" =>
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
-          LocalExecutorService.executeLocalJob(ec.job_name, ec.job_properties ,etl_job_props_mapping_package,if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None,if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None).provideLayer(LocalExecutor.live)
-//        case ec if ec.run_server =>
-//          if (ec.migration) {
-//            logger.info("Running server with migration")
-//            runDbMigration(config.dbLog) *> app
-//          } else {
-//            logger.info("Starting server")
-//            app
-//          }
+          val jri = if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None
+          val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
+          val layer = LocalExecutor.live ++ liveTransactor(config.dbLog,"Job-" + ec.job_name + "-Pool",2)
+          LocalExecutorService
+            .executeLocalJob(ec.job_name, ec.job_properties, etl_job_props_mapping_package, jri, is_master)
+            .provideCustomLayer(layer)
+        case ec if ec.run_server =>
+            logger.info("Starting server")
+            app
         case _ =>
           logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
           ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))

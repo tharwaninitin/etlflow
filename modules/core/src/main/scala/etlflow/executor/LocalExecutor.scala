@@ -3,13 +3,13 @@ package etlflow.executor
 import java.io.{BufferedReader, InputStreamReader}
 import etlflow.etljobs.{EtlJob, SequentialEtlJob}
 import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
-import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import etlflow.{EtlJobProps, EtlJobPropsMapping, TransactorEnv}
 import etlflow.utils.Executor.LOCAL_SUBPROCESS
-import zio.{Layer, Task, UIO, ZEnv, ZIO, ZLayer}
+import zio.{Layer, Task, UIO, ZEnv, ZIO}
 
 object LocalExecutor {
-  val live: Layer[Throwable, LocalExecutorService] = ZLayer.fromEffect {
-    Task {
+  val live: Layer[Throwable, LocalExecutorService] = {
+    UIO {
       new LocalExecutorService.Service {
         override def executeLocalSubProcessJob(name: String, properties: Map[String, String], config: LOCAL_SUBPROCESS): ZIO[LocalExecutorService, Throwable, Unit] = Task {
           logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
@@ -54,14 +54,15 @@ object LocalExecutor {
             throw new RuntimeException(s"LOCAL SUB PROCESS JOB $name failed with error")
           }
         }
-        override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String,job_run_id:Option[String] = None,is_master:Option[String] = None): ZIO[LocalExecutorService, Throwable, Unit] = {
+        override def executeLocalJob(name: String, properties: Map[String, String], etl_job_name_package: String,job_run_id:Option[String] = None,is_master:Option[String] = None)
+        : ZIO[ZEnv with LocalExecutorService with TransactorEnv, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name, etl_job_name_package)
           val job = job_name.etlJob(properties)
           job.job_name = job_name.toString
           job.job_enable_db_logging = job_name.job_enable_db_logging
           job.job_send_slack_notification = job_name.job_send_slack_notification
           job.job_notification_level = job_name.job_notification_level
-          job.execute(job_run_id,is_master).provideLayer(ZEnv.live)
+          job.execute(job_run_id,is_master)
         }
         override def showLocalJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[LocalExecutorService, Throwable, Unit] = {
           val job_name = UF.getEtlJobName[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]](name,etl_job_name_package)
@@ -82,6 +83,6 @@ object LocalExecutor {
           }
         }
       }
-    }
+    }.toLayer
   }
 }

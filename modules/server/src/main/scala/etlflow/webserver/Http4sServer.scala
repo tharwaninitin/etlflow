@@ -6,7 +6,7 @@ import cats.effect.Blocker
 import etlflow.utils.Config
 import etlflow.api.Schema._
 import etlflow.jdbc.DBEnv
-import etlflow.{EJPMType, BuildInfo => BI}
+import etlflow.{EJPMType, TransactorEnv, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
@@ -18,6 +18,7 @@ import scalacache.Cache
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.{Queue, Semaphore, ZEnv, ZIO, ZManaged}
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
@@ -28,7 +29,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
   }
 
   def allRoutes[EJN <: EJPMType : TypeTag](cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
-  : ZManaged[ZEnv with GQLEnv with DBEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
+  : ZManaged[ZEnv with GQLEnv with DBEnv with TransactorEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
     for {
       blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
@@ -46,7 +47,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
                   "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache, config))),
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                   "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
-                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes[EJN](jobSemaphores,etl_job_name_package,config,jobQueue), authEnabled = true, cache, config)),
+                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes, authEnabled = true, cache, config)),
                   "/swagger"     -> RestAPINew.swaggerRoute,
                   "/restapi"     -> CORS(Authentication.middleware(RestAPINew.routes, authEnabled = true, cache, config))
                 )
@@ -54,8 +55,8 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
   }
 
   def etlFlowWebServer[EJN <: EJPMType : TypeTag](cache: Cache[String], jobSemaphores: Map[String, Semaphore], etl_job_name_package: String, jobQueue: Queue[(String,String,String,String)], config:Config)
-  : ZIO[ZEnv with GQLEnv with DBEnv, Throwable, Nothing] =
-    ZIO.runtime[ZEnv with GQLEnv with DBEnv]
+  : ZIO[ZEnv with GQLEnv with DBEnv with TransactorEnv, Throwable, Nothing] =
+    ZIO.runtime[ZEnv with GQLEnv with DBEnv with TransactorEnv]
       .flatMap{implicit runtime =>
         (for {
           routes <- allRoutes[EJN](cache,jobSemaphores,etl_job_name_package,jobQueue,config)

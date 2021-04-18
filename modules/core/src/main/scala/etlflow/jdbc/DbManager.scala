@@ -3,15 +3,17 @@ package etlflow.jdbc
 import cats.effect.Blocker
 import com.zaxxer.hikari.HikariConfig
 import doobie.hikari.HikariTransactor
+import doobie.implicits._
 import doobie.util.fragment.Fragment
+import etlflow.Credential.JDBC
+import etlflow.TransactorEnv
 import etlflow.utils.JsonJackson
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
+import zio.blocking.Blocking
 import zio.interop.catz._
-import zio.{Managed, Task}
+import zio.{Managed, Task, ZIO, ZLayer}
 import scala.concurrent.ExecutionContext
-import doobie.implicits._
-import etlflow.Credential.JDBC
 
 trait DbManager {
 
@@ -26,6 +28,14 @@ trait DbManager {
     config.setPoolName(pool_name)
     HikariTransactor.fromHikariConfig[Task](config, ec, blocker)
   }.toManagedZIO
+
+  def liveTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 10): ZLayer[Blocking, Throwable, TransactorEnv] = ZLayer.fromManaged(
+    for {
+      rt         <- Task.runtime.toManaged_
+      blocker    <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
+      transactor <- createDbTransactorManaged(db, rt.platform.executor.asEC, pool_name, pool_size)(blocker)
+    } yield transactor
+  )
 
   def getDbCredentials[T : Manifest](name: String, credentials: JDBC, ec: ExecutionContext): Task[T] = {
     val query = s"SELECT value FROM credential WHERE name='$name' and valid_to is null;"

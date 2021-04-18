@@ -1,6 +1,6 @@
 package etlflow.webserver
 
-import etlflow.ServerSuiteHelper
+import etlflow.{ServerSuiteHelper, TransactorEnv}
 import etlflow.api.Schema.{EtlFlowTask, GQLEnv}
 import etlflow.jdbc.DBEnv
 import io.circe.Json
@@ -19,7 +19,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
   val env = (testAPILayer ++ testDBLayer).orDie
 
-  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv, Throwable, Either[String, String]] =
+  private def apiResponse(apiRequest: Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv with TransactorEnv, Throwable, Either[String, String]] =
       allRoutes[MEJP](cache, testJobsSemaphore, etlJob_name_package, testJobsQueue, config).use{ routes =>
         for {
           client <- Task(Client.fromHttpApp[EtlFlowTask](routes.orNotFound))
@@ -39,7 +39,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
                   }
                 }"""))
 
-  private def apiResponseWithLogin(apiRequest: String => Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv, Throwable, Either[String, String]] = {
+  private def apiResponseWithLogin(apiRequest: String => Request[EtlFlowTask]):ZIO[ZEnv with DBEnv with GQLEnv with TransactorEnv, Throwable, Either[String, String]] = {
     for {
       jsonOutput  <- apiResponse(Request[EtlFlowTask](method = POST, uri = uri"/api/login").withEntity(gqlLoginBody))
       authToken   = parse(jsonOutput.getOrElse("")).getOrElse(Json.Null).hcursor.downField("data").downField("login").downField("token").as[String].getOrElse("")

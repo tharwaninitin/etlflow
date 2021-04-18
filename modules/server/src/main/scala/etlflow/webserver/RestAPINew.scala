@@ -27,7 +27,7 @@ object RestAPINew {
 
   private def runJob(args: RestEtlJobArgs): EtlFlowTask[Either[String,EtlJob]] = {
     val params = EtlJobArgs(args.name,Some(args.props.getOrElse(Map.empty).map(kv => Props(kv._1,kv._2)).toList))
-    Service.runJob(params,"Rest API").mapError(e => e.getMessage).either
+    Service.runJob(params,"New Rest API").mapError(e => e.getMessage).either
   }
 
   private val runJobRoute: HttpRoutes[EtlFlowTask] = Http4sServerInterpreter.toRoutes(runJobEndpointDescription)(runJob)

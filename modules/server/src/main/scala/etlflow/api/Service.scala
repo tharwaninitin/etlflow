@@ -1,5 +1,6 @@
 package etlflow.api
 
+import etlflow.TransactorEnv
 import etlflow.jdbc.DBEnv
 import etlflow.log.{JobRun, StepRun}
 import etlflow.api.Schema._
@@ -9,7 +10,7 @@ import zio.clock.Clock
 import zio.stream.ZStream
 
 trait Service {
-  def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with DBEnv with Blocking with Clock, Throwable, EtlJob]
+  def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with DBEnv with TransactorEnv with Blocking with Clock, Throwable, EtlJob]
   def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv with DBEnv, Throwable, Boolean]
   def login(args: UserArgs): ZIO[GQLEnv with DBEnv, Throwable, UserAuth]
   def addCredentials(args: CredentialsArgs): ZIO[GQLEnv with DBEnv, Throwable, Credentials]
@@ -28,8 +29,8 @@ trait Service {
 
 object Service {
 
-  def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with DBEnv with Blocking with Clock, Throwable, EtlJob] =
-    ZIO.accessM[GQLEnv with DBEnv with Blocking with Clock](_.get.runJob(args,submitter)).absorb
+  def runJob(args: EtlJobArgs, submitter: String): ZIO[GQLEnv with DBEnv with TransactorEnv with Blocking with Clock, Throwable, EtlJob] =
+    ZIO.accessM[GQLEnv with DBEnv with TransactorEnv with Blocking with Clock](_.get.runJob(args,submitter)).absorb
 
   def updateJobState(args: EtlJobStateArgs): ZIO[GQLEnv with DBEnv, Throwable, Boolean] =
     ZIO.accessM[GQLEnv with DBEnv](_.get.updateJobState(args))

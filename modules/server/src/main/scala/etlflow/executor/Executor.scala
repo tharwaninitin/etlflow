@@ -43,11 +43,9 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
 
     val jobRun: RIO[JobEnv,Unit] = UF.getEtlJobName[EJN](args.name,etl_job_name_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
-        LocalExecutorService.executeLocalSubProcessJob(args.name, actual_props, lsp).provideLayer(LocalExecutor.live)
+        LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
       case LOCAL =>
-        LocalExecutorService
-          .executeLocalJob(args.name, actual_props, etl_job_name_package)
-          .provideSomeLayer[JobEnv](ZEnv.live ++ LocalExecutor.live)
+        LocalExecutor(etl_job_name_package).executeJob(args.name, actual_props)
       case dp @ DATAPROC(_, _, _, _) =>
         val main_class = config.dataProc.map(_.mainClass).getOrElse("")
         val dp_libs = config.dataProc.map(_.depLibs).getOrElse(List.empty)

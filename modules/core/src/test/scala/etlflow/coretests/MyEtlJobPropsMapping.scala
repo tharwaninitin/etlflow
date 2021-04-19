@@ -9,11 +9,10 @@ import etlflow.{EtlJobProps, EtlJobPropsMapping}
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
 
-
 object MyEtlJobPropsMapping {
 
   val kubernetes = KUBERNETES(
-    "etlflow:0.7.19",
+    "etlflow:0.10.0",
     "default",
     Map(
       "GOOGLE_APPLICATION_CREDENTIALS"-> Option("<cred_file>"),
@@ -26,7 +25,8 @@ object MyEtlJobPropsMapping {
 
   val dataproc   = DATAPROC("project-name","region","endpoint","cluster-name")
 
-  val local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS("examples/target/docker/stage/opt/docker/bin/load-data")
+  // https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/index.html#
+  val local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS("examples/target/universal/stage/bin/etlflow-examples")
 
   case object Job1 extends MyEtlJobPropsMapping[EtlJob1Props,Job1HelloWorld] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()

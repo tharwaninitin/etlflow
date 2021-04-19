@@ -1,7 +1,6 @@
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
-import etlflow.executor.LocalExecutorService
 import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogger}
 import etlflow.utils.{Executor, LoggingLevel}
 import zio.blocking.Blocking
@@ -38,8 +37,6 @@ package object etlflow {
   type DBEnv = Has[HikariTransactor[Task]]
   type StepEnv = Has[StepLogger] with DBEnv with Blocking with Clock
   type JobEnv = DBEnv with Blocking with Clock
-  type LocalExecutorEnv = Has[LocalExecutorService.Service]
-  type LocalJobEnv = LocalExecutorEnv with JobEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   trait EtlJobSchema extends Product

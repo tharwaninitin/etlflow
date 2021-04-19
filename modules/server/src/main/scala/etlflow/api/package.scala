@@ -2,14 +2,12 @@ package etlflow
 
 import cron4s.CronExpr
 import etlflow.jdbc.DBServerEnv
-import zio.blocking.Blocking
-import zio.clock.Clock
 import zio.{Has, RIO}
 
 package object api {
 
   type APIEnv = Has[Service]
-  type ServerJobEnv = DBServerEnv with DBEnv with Blocking with Clock
+  type ServerJobEnv = DBServerEnv with JobEnv
   type ServerEnv = APIEnv with ServerJobEnv
   type EtlFlowTask[A] = RIO[ServerEnv, A]
 

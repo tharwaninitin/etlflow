@@ -1,13 +1,12 @@
 package etlflow
 
 import etlflow.etljobs.EtlJob
-import etlflow.executor.{LocalExecutor, LocalExecutorService}
+import etlflow.executor.LocalExecutor
 import etlflow.jdbc.{DbManager, QueryApi}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
 import etlflow.utils.{Configuration, UtilityFunctions => UF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
-
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]] : TypeTag]
@@ -43,11 +42,11 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           UIO(UF.printEtlJobs[EJN]())
         case ec if ec.show_job_props && ec.job_name != "" =>
           logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
-          LocalExecutorService.showLocalJobProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package).provideLayer(LocalExecutor.live)
+          LocalExecutor(etl_job_props_mapping_package).showJobProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package)
         case ec if ec.show_step_props && ec.job_name != "" =>
           logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
           logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
-          LocalExecutorService.showLocalJobStepProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package).provideLayer(LocalExecutor.live)
+          LocalExecutor(etl_job_props_mapping_package).showJobStepProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package)
         case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
           logger.error(s"Need to provide args --job_name")
           ZIO.fail(new RuntimeException("Need to provide args --job_name"))
@@ -55,9 +54,9 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
           val jri = if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
-          val layer = LocalExecutor.live ++ liveTransactor(config.dbLog,"Job-" + ec.job_name + "-Pool",2)
-          LocalExecutorService
-            .executeLocalJob(ec.job_name, ec.job_properties, etl_job_props_mapping_package, jri, is_master)
+          val layer = liveTransactor(config.dbLog,"Job-" + ec.job_name + "-Pool",2)
+          LocalExecutor(etl_job_props_mapping_package, jri, is_master)
+            .executeJob(ec.job_name, ec.job_properties)
             .provideCustomLayer(layer)
         case ec if ec.run_server =>
             logger.info("Starting server")

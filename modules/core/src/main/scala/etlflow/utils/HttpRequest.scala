@@ -3,7 +3,7 @@ package etlflow.utils
 import etlflow.log.ApplicationLogger
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
-import sttp.client3.httpclient.zio._
+import sttp.client3.asynchttpclient.zio._
 import sttp.client3.logging.LogLevel
 import sttp.client3.{asStringAlways, basicRequest, _}
 import zio.Task
@@ -34,7 +34,7 @@ object HttpRequest extends ApplicationLogger {
     )
 
   private def logAndParseResponse(req: RequestT[Identity, String, Any], log: Boolean, connection_timeout: Int): Task[Response[String]] = {
-    HttpClientZioBackend
+    AsyncHttpClientZioBackend
       .managed(options(connection_timeout))
       .use(backend => if (log) req.send(logBackend(backend)) else req.send(backend))
       .map { res =>

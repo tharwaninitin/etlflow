@@ -102,7 +102,7 @@ object Dependencies {
   )
 
   lazy val httpClient = List(
-    "com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
+    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
     "com.softwaremill.sttp.client3" %% "slf4j-backend" % SttpVersion
   )
 

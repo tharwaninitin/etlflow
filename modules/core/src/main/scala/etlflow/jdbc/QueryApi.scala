@@ -1,31 +1,35 @@
 package etlflow.jdbc
 
-import doobie.hikari.HikariTransactor
-import zio.{Managed, Task}
 import doobie.implicits._
 import doobie.util.Read
 import doobie.util.fragment.Fragment
-import org.slf4j.LoggerFactory
+import etlflow.DBEnv
+import etlflow.log.ApplicationLogger
 import zio.interop.catz._
+import zio.{RIO, Task, ZIO}
 
-object QueryApi {
-  private val query_logger = LoggerFactory.getLogger(getClass.getName)
-  query_logger.info(s"Loaded ${getClass.getName}")
+object QueryApi extends ApplicationLogger with DbManager {
 
-  def executeQueryWithResponse[T <: Product : Read](db: Managed[Throwable, HikariTransactor[Task]], query: String): Task[List[T]] = {
-    db.use{ transactor =>
-      for {
-        result <- Fragment.const(query).query[T].to[List].transact(transactor)
-      } yield result
-    }
+  // implicit val dbLogger = DoobieQueryLogger()
+
+  def executeQueryWithResponse[T <: Product : Read](query: String): RIO[DBEnv, List[T]] = ZIO.accessM[DBEnv] { x =>
+    Fragment.const(query)
+      .query[T]
+      .to[List]
+      .transact(x.get)
   }
 
-  def executeQuery(db: Managed[Throwable, HikariTransactor[Task]], query: String): Task[Unit] = {
-    db.use{ transactor =>
-      for {
-        n <- Fragment.const(query).update.run.transact(transactor)
-        _ <- Task(query_logger.info(n.toString))
-      } yield ()
-    }
+  def executeQuery(query: String): RIO[DBEnv, Unit] = ZIO.accessM[DBEnv] { x =>
+    for {
+      n <- Fragment.const(query).update.run.transact(x.get)
+      _ <- Task(logger.info(s"No of rows affected: $n"))
+    } yield ()
+  }
+
+  def executeQueryWithSingleResponse[T : Read](query: String): RIO[DBEnv, T] = ZIO.accessM[DBEnv] { x =>
+    Fragment.const(query)
+      .query[T]
+      .unique
+      .transact(x.get)
   }
 }

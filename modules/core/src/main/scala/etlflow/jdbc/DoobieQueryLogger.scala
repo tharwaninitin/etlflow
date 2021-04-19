@@ -1,8 +1,9 @@
 package etlflow.jdbc
 
 import doobie.util.log.{ExecFailure, LogHandler, ProcessingFailure, Success}
+import etlflow.log.ApplicationLogger
 
-object DBLogger {
+object DoobieQueryLogger extends ApplicationLogger {
   def apply(): LogHandler = {
     LogHandler {
       case Success(s, a, e1, e2) =>

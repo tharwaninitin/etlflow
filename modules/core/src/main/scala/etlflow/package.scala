@@ -36,7 +36,7 @@ package object etlflow {
   case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogger])
 
   type DBEnv = Has[HikariTransactor[Task]]
-  type StepEnv = Has[StepLogger] with Blocking with Clock
+  type StepEnv = Has[StepLogger] with DBEnv with Blocking with Clock
   type JobEnv = DBEnv with Blocking with Clock
   type LocalExecutorEnv = Has[LocalExecutorService.Service]
   type LocalJobEnv = LocalExecutorEnv with JobEnv

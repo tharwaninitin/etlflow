@@ -4,8 +4,6 @@ import etlflow.log.EtlLogger.JobLoggerImpl
 import etlflow.log.{DbLogger, SlackLogger}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import etlflow.{EtlJobProps, JobEnv, JobLogger, StepEnv, StepLogger}
-import zio.blocking.Blocking
-import zio.clock.Clock
 import zio.{UIO, ZIO, ZLayer}
 
 trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
@@ -27,7 +25,7 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       job_log         = JobLoggerImpl(JobLogger(db.job,slack),job_type)
       step_layer      = ZLayer.succeed(StepLogger(db.step,slack))
       _               <- job_log.logInit(job_start_time)
-      _               <- job.provideSomeLayer[Blocking with Clock](step_layer).foldM(
+      _               <- job.provideSomeLayer[JobEnv](step_layer).foldM(
                             ex => job_log.logError(job_start_time,ex),
                             _  => job_log.logSuccess(job_start_time)
                           )

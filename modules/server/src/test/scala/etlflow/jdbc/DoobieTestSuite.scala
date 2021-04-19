@@ -12,7 +12,7 @@ import java.time.LocalDate
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with ServerSuiteHelper {
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContexts.synchronous)
-  implicit val dbLogger: log.LogHandler = DBLogger()
+  //implicit val dbLogger: log.LogHandler = DoobieQueryLogger()
   val transactor: doobie.Transactor[IO] = Transactor.fromDriverManager[IO](credentials.driver, credentials.url, credentials.user, credentials.password)
 
   val creds: CredentialDB = CredentialDB("test", "jdbc", JsonString("{}"))

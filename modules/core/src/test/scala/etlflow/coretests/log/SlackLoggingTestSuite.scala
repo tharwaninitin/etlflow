@@ -54,7 +54,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackInfoLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackInfoLevelExecutor)(equalTo(message))
@@ -78,7 +78,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackInfoLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackInfoLevelExecutor)(equalTo(message))
@@ -106,7 +106,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackMessageResult =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackMessageResult)(equalTo(debugMessage))
@@ -133,7 +133,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackDebugLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackDebugLevelExecutor)(equalTo(debugFailureMessage))
@@ -152,7 +152,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackJobLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackJobLevelExecutor)(equalTo(message))
@@ -175,7 +175,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackJobLevelExecutor =
         for {
-          slack  <- JobExecutor.slack(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackJobLevelExecutor)(equalTo(message))

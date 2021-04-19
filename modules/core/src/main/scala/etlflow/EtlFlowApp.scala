@@ -30,11 +30,9 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           runDbMigration(config.dbLog, clean = true).unit
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
-          val db = createDbTransactorManaged(config.dbLog, platform.executor.asEC,  "AddUser-Pool")
           val encryptedPassword = UF.encryptKey(ec.password)
           val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
-          logger.info("Query: " + query)
-          QueryApi.executeQuery(db, query)
+          QueryApi.executeQuery(query).provideLayer(liveTransactor(config.dbLog,"AddUser-Pool", 1))
         case ec if ec.add_user && ec.user == "" =>
           logger.error(s"Need to provide args --user")
           ZIO.fail(new RuntimeException("Need to provide args --user"))

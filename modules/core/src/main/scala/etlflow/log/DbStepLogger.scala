@@ -1,19 +1,17 @@
 package etlflow.log
 
-import cats.effect.Blocker
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.util.meta.Meta
+import etlflow.DBEnv
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.DbManager
-import etlflow.utils.{Config, JsonJackson, LoggingLevel, UtilityFunctions => UF}
+import etlflow.utils.{JsonJackson, LoggingLevel, UtilityFunctions => UF}
 import org.postgresql.util.PGobject
 import zio.interop.catz._
-import zio.{Managed, Task}
+import zio.{Task, URIO, ZIO}
 
-import scala.concurrent.ExecutionContext
-
-class DbStepLogger(transactor: HikariTransactor[Task],job_run_id: String,job_notification_level:LoggingLevel) extends ApplicationLogger {
+class DbStepLogger(transactor: HikariTransactor[Task], job_run_id: String, job_notification_level:LoggingLevel) extends ApplicationLogger {
   private val remoteStep = List("EtlFlowJobStep","DPSparkJobStep","ParallelETLStep")
 
   implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
@@ -72,11 +70,10 @@ class DbStepLogger(transactor: HikariTransactor[Task],job_run_id: String,job_not
 }
 
 object DbStepLogger extends DbManager {
-  def apply(config: Config, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool", job_name: String, job_run_id:String, is_master:String,job_enable_db_logging:Boolean,job_notification_level:LoggingLevel): Managed[Throwable, Option[DbStepLogger]] =
+  def apply(job_run_id: String, job_enable_db_logging:Boolean, job_notification_level:LoggingLevel): URIO[DBEnv, Option[DbStepLogger]] = ZIO.access[DBEnv] { x =>
     if (job_enable_db_logging)
-      createDbTransactorManaged(config.dbLog,ec,pool_name)(blocker).map { transactor =>
-        Some(new DbStepLogger(transactor, job_run_id,job_notification_level))
-      }
+      Some(new DbStepLogger(x.get, job_run_id, job_notification_level))
     else
-      Managed.unit.map(_ => None)
+      None
+  }
 }

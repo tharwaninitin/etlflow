@@ -1,10 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.StepEnv
 import etlflow.log.EtlLogger._
 import etlflow.utils.LoggingLevel
+import etlflow.{JobEnv, StepEnv}
 import org.slf4j.{Logger, LoggerFactory}
-import zio.{Task, ZIO}
+import zio.{RIO, Task, ZIO}
 
 trait EtlStep[IPSTATE,OPSTATE] { self =>
   val etl_logger: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -12,7 +12,7 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   val name: String
   val step_type: String = this.getClass.getSimpleName
 
-  def process(input_state: =>IPSTATE): Task[OPSTATE]
+  def process(input_state: =>IPSTATE): RIO[JobEnv, OPSTATE]
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()
   def getStepProperties(level:LoggingLevel  = LoggingLevel.INFO): Map[String,String] = Map()
 
@@ -26,6 +26,6 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
              }
       _   <- logSuccess(step_start_time)
     } yield op
-    step.provideLayer(env)
+    step.provideSomeLayer[StepEnv](env)
   }
 }

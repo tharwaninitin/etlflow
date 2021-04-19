@@ -1,19 +1,13 @@
 package etlflow.log
 
-import cats.effect.Blocker
-import etlflow.EtlJobProps
-import etlflow.utils.{Config, UtilityFunctions => UF}
-import zio.{Managed, UIO}
-import etlflow.jdbc.DbManager
 import doobie.hikari.HikariTransactor
-import zio.Task
 import doobie.implicits._
-import zio.interop.catz._
 import doobie.util.meta.Meta
-import etlflow.utils.JsonJackson
+import etlflow.EtlJobProps
+import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
 import org.postgresql.util.PGobject
-
-import scala.concurrent.ExecutionContext
+import zio.{Task, UIO}
+import zio.interop.catz._
 
 class DbJobLogger(transactor: HikariTransactor[Task], job_name: String, job_properties: EtlJobProps, job_run_id: String, is_master:String) extends ApplicationLogger {
 
@@ -26,7 +20,7 @@ class DbJobLogger(transactor: HikariTransactor[Task], job_name: String, job_prop
 
   def logStart(start_time: Long, job_type: String): Task[Unit] = {
     val job = JobRun(
-      job_run_id, job_name.toString,
+      job_run_id, job_name,
       JsonJackson.convertToJsonByRemovingKeys(job_properties, List.empty),
       "started",
       UF.getCurrentTimestampAsString(),
@@ -47,7 +41,7 @@ class DbJobLogger(transactor: HikariTransactor[Task], job_name: String, job_prop
          VALUES (${job.job_run_id}, ${job.job_name}, ${JsonString(job.properties)}, ${job.state}, ${job.start_time}, ${job.elapsed_time}, ${job.job_type}, ${job.is_master})"""
       .update
       .run
-      .transact(transactor).map(x => x.toLong).as(())
+      .transact(transactor).unit
       .tapError{e =>
         UIO(logger.error(s"failed in logging to db ${e.getMessage}"))
       }
@@ -62,19 +56,11 @@ class DbJobLogger(transactor: HikariTransactor[Task], job_name: String, job_prop
            WHERE job_run_id = $job_run_id"""
       .update
       .run
-      .transact(transactor).as(())
+      .transact(transactor).unit
       .tapError{e =>
         UIO(logger.error(s"failed in logging to db ${e.getMessage}"))
       }
   }
 }
 
-object DbJobLogger extends DbManager {
-  def apply(config: Config, ec: ExecutionContext, blocker: Blocker, pool_name: String = "LoggerPool", job_name: String, job_properties: EtlJobProps, job_run_id:String, is_master:String,job_enable_db_logging:Boolean): Managed[Throwable, Option[DbJobLogger]] =
-    if (job_enable_db_logging)
-      createDbTransactorManaged(config.dbLog,ec,pool_name)(blocker).map { transactor =>
-        Some(new DbJobLogger(transactor, job_name, job_properties,job_run_id,is_master))
-      }
-    else
-      Managed.unit.as(None)
-}
+

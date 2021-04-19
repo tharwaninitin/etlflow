@@ -13,7 +13,6 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{CORS, Metrics}
 import org.http4s.{HttpRoutes, StaticFile}
-import scalacache.Cache
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.{ZIO, ZManaged}
@@ -26,7 +25,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def allRoutes[EJN <: EJPMType : TypeTag](cache: Cache[String], config: Option[WebServer]): ZManaged[ServerEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
+  def allRoutes[EJN <: EJPMType : TypeTag](auth: Authentication): ZManaged[ServerEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
     for {
       blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
@@ -41,24 +40,24 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
                   "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
                   "/about"       -> otherRoutes,
                   "/etlflow"     -> metricsSvc.routes,
-                  "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(Authentication.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter), authEnabled = true, cache, config))),
+                  "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(auth.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter)))),
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
-                  "/ws/etlflow"  -> CORS(new WebsocketAPI[EtlFlowTask](cache).streamRoutes),
-                  "/api"         -> CORS(Authentication.middleware(RestAPI.routes, authEnabled = true, cache, config)),
+                  "/ws/etlflow"  -> CORS(WebsocketAPI(auth).streamRoutes),
+                  "/api"         -> CORS(auth.middleware(RestAPI.routes)),
                   "/swagger"     -> RestAPINew.swaggerRoute,
-                  "/restapi"     -> CORS(Authentication.middleware(RestAPINew.routes, authEnabled = true, cache, config))
+                  "/restapi"     -> CORS(auth.middleware(RestAPINew.routes))
                 )
     } yield routes
   }
 
-  def etlFlowWebServer[EJN <: EJPMType : TypeTag](cache: Cache[String], config: Option[WebServer]): ZIO[ServerEnv, Throwable, Nothing] =
+  def etlFlowWebServer[EJN <: EJPMType : TypeTag](auth: Authentication, config: Option[WebServer]): ZIO[ServerEnv, Throwable, Nothing] =
     ZIO.runtime[ServerEnv]
       .flatMap{implicit runtime =>
         (for {
-          routes <- allRoutes[EJN](cache,config)
+          routes  <- allRoutes[EJN](auth)
           address = config.map(_.ip_address.getOrElse("0.0.0.0")).getOrElse("0.0.0.0")
           port    = config.map(_.port.getOrElse(8080)).getOrElse(8080)
-          banner = """
+          banner  = """
                      |   ________   _________    _____      ________    _____        ___     ____      ____
                      |  |_   __  | |  _   _  |  |_   _|    |_   __  |  |_   _|     .'   `.  |_  _|    |_  _|
                      |    | |_ \_| |_/ | | \_|    | |        | |_ \_|    | |      /  .-.  \   \ \  /\  / /

@@ -1,46 +1,61 @@
 package etlflow.webserver
 
-import cats.effect.{ContextShift, Sync, Timer}
-import cats.{Applicative, Functor}
+import etlflow.api.EtlFlowTask
 import etlflow.log.ApplicationLogger
-import etlflow.utils.CacheHelper
 import fs2.{Pipe, Stream}
-import io.circe.Json
-import io.circe.syntax._
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
-import scalacache.Cache
+import zio.{Task, UIO}
+import zio.interop.catz._
 import scala.concurrent.duration._
 
-class WebsocketAPI[F[_]: Sync: ContextShift: Timer](cache: Cache[String]) extends Http4sDsl[F] with ApplicationLogger {
+case class WebsocketAPI(auth: Authentication) extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
   private val mb: Int = 1024*1024
   private val runtime: Runtime = Runtime.getRuntime
-
-  private def ticker[F[_]: Functor: Timer, A](stream: Stream[F, A]): Stream[F, A] =
-    (Stream.emit(Duration.Zero) ++ Stream.awakeEvery[F](5.seconds))
+  private def ticker(stream: Stream[EtlFlowTask, String]): Stream[EtlFlowTask, String] =
+    (Stream.emit(Duration.Zero) ++ Stream.awakeEvery[EtlFlowTask](5.seconds))
       .as(stream)
       .flatten
 
-  private def stream[F[_]: Sync: ContextShift: Timer]: Stream[F, String] =
+  val stream: Stream[EtlFlowTask, String] =
     ticker(
-      Stream.eval(Sync[F].delay{
-        s"""${Json.obj("data" -> s"""{"Used_Memory": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "Free_Memory": ${runtime.freeMemory / mb},"Total_Memory": ${runtime.totalMemory / mb},"Max_Memory": ${runtime.maxMemory / mb}}""".asJson)}""".stripMargin
+      Stream.eval(UIO{
+        s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}""".stripMargin
       })
     )
 
-  lazy val streamRoutes: HttpRoutes[F] =
-    HttpRoutes.of[F] {
+  /*
+  TESTING CASE 1 => Invalid Token
+    ws = new WebSocket('ws://localhost:8080/ws/etlflow/abcd')
+    ws.onclose = function(e) { console.error(e) }
+  TESTING CASE 2 => Expired token
+    ws = new WebSocket('ws://localhost:8080/ws/etlflow/xxxxx')
+    ws.onclose = function(e) { console.error(e) }
+  TESTING CASE 3 => Correct token
+    ws = new WebSocket('ws://localhost:8080/ws/etlflow/xxxxx')
+    ws.onclose = function(e) { console.error(e) }
+    ws.onmessage = function(e) { console.info(e) }
+    ws.close()
+  */
+  val streamRoutes: HttpRoutes[EtlFlowTask] =
+    HttpRoutes.of[EtlFlowTask] {
       case GET -> Root / token =>
-        val toClient: Stream[F, WebSocketFrame] =
-          if(CacheHelper.getKey(cache,token).getOrElse("NA") == token){
-            stream.map(s => WebSocketFrame.Text(s.toString()))
+        val toClient: Stream[EtlFlowTask, WebSocketFrame] =
+          if(auth.validateJwt(token)){
+            auth.isCached(token) match {
+              case Some(_) => stream.map(s => WebSocketFrame.Text(s))
+              case None =>
+                logger.warn(s"Expired token $token")
+                Stream.eval(Task.fromEither(WebSocketFrame.Close(1001,"Expired token")))
+            }
           } else {
-            Stream.eval(Sync[F].delay(WebSocketFrame.Close()))
+            logger.warn(s"Invalid token $token")
+            Stream.eval(Task.fromEither(WebSocketFrame.Close(1001,"Invalid token")))
         }
-        val fromClient: Pipe[F, WebSocketFrame, Unit] = _.as(())
-        WebSocketBuilder[F].build(toClient, fromClient, onClose = Applicative[F].pure(logger.info("Closed Web socket")))
+        val fromClient: Pipe[EtlFlowTask, WebSocketFrame, Unit] = _.as(())
+        WebSocketBuilder[EtlFlowTask].build(toClient, fromClient, onClose = UIO(logger.info("Closed Web socket")))
     }
 }
 

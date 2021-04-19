@@ -7,7 +7,6 @@ import etlflow.log.{JobRun, StepRun}
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, DBEnv, BuildInfo => BI}
-import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -17,7 +16,7 @@ import scala.reflect.runtime.universe.TypeTag
 object Implementation extends EtlFlowUtils with Executor {
 
   def live[EJN <: EJPMType : TypeTag](
-    cache: CaffeineCache[String]
+    auth: Authentication
     ,jobSemaphores: Map[String, Semaphore]
     ,jobs: List[EtlJob]
     ,jobQueue: Queue[(String,String,String,String)]
@@ -25,19 +24,19 @@ object Implementation extends EtlFlowUtils with Executor {
     ,ejpm_package: String
   ): ZLayer[Blocking, Throwable, APIEnv] = {
     for {
-      subscribers           <- Ref.make(List.empty[Queue[EtlJobStatus]])
-      activeJobs            <- Ref.make(0)
+      subscribers <- Ref.make(List.empty[Queue[EtlJobStatus]])
+      activeJobs  <- Ref.make(0)
     } yield new Service {
 
       private def getLoginCacheStats:CacheDetails = {
-        val data:Map[String,String] = CacheHelper.toMap(cache)
+        val data:Map[String,String] = CacheHelper.toMap(auth.cache)
         val cacheInfo = CacheInfo("Login",
-          cache.underlying.stats.hitCount(),
-          cache.underlying.stats.hitRate(),
-          cache.underlying.asMap().size(),
-          cache.underlying.stats.missCount(),
-          cache.underlying.stats.missRate(),
-          cache.underlying.stats.requestCount(),
+          auth.cache.underlying.stats.hitCount(),
+          auth.cache.underlying.stats.hitRate(),
+          auth.cache.underlying.asMap().size(),
+          auth.cache.underlying.stats.missCount(),
+          auth.cache.underlying.stats.missRate(),
+          auth.cache.underlying.stats.requestCount(),
           data
         )
         CacheDetails("Login",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
@@ -63,7 +62,7 @@ object Implementation extends EtlFlowUtils with Executor {
 
       override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean] = DB.updateJobState(args)
 
-      override def login(args: UserArgs): ZIO[APIEnv with DBServerEnv, Throwable, UserAuth] =  Authentication.login(args,cache,config.webserver)
+      override def login(args: UserArgs): ZIO[APIEnv with DBServerEnv, Throwable, UserAuth] = auth.login(args)
 
       override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = {
         for {

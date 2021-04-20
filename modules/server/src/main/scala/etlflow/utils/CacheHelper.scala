@@ -1,6 +1,5 @@
 package etlflow.utils
 
-import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import scalacache.{Cache, Entry, Id}
 import scalacache.caffeine._

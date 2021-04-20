@@ -1,24 +1,21 @@
 package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
-import etlflow.utils.EtlFlowUtils
-import etlflow.gcp.{DP, DPService}
-import etlflow.jdbc.{DB, DBServerEnv}
 import etlflow.api.Schema._
 import etlflow.api.ServerJobEnv
+import etlflow.gcp.{DP, DPService}
+import etlflow.jdbc.DB
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
-import etlflow.utils.{Config, UtilityFunctions => UF}
-import etlflow.{DBEnv, EJPMType, JobEnv}
+import etlflow.utils.{Config, EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.{EJPMType, JobEnv}
 import zio._
-import zio.blocking.{Blocking, blocking}
-import zio.clock.Clock
+import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-trait Executor extends K8SExecutor with EtlFlowUtils {
+trait Executor extends EtlFlowUtils {
 
   final def runActiveEtlJob[EJN <: EJPMType : TypeTag](args: EtlJobArgs, sem: Semaphore, config: Config, etl_job_name_package: String, submitted_from: String, job_queue: Queue[(String,String,String,String)], fork: Boolean = true)
   : RIO[ServerJobEnv, EtlJob] = {
@@ -53,7 +50,7 @@ trait Executor extends K8SExecutor with EtlFlowUtils {
       case LIVY(_) =>
         Task.fail(ExecutionError("Deploy mode livy not yet supported"))
       case k8s @ KUBERNETES(_, _, _, _, _, _) =>
-        runK8sJob(args, config.dbLog, k8s).unit
+        Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
     }
 
     val loggedJobRun: RIO[ServerJobEnv, Long] = blocking(jobRun)

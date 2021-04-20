@@ -9,7 +9,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import zio.interop.catz._
 
-object RestAPI extends Http4sDsl[EtlFlowTask] with etlflow.executor.Executor  {
+object RestAPI extends Http4sDsl[EtlFlowTask] {
 
   object jobName extends QueryParamDecoderMatcher[String]("job_name")
   object props   extends OptionalQueryParamDecoderMatcher[String]("props")

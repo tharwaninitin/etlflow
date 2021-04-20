@@ -4,25 +4,17 @@ import etlflow.api.Schema._
 import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBServerEnv}
 import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
+import etlflow.utils.{CacheHelper, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
-import etlflow.{EJPMType, DBEnv, BuildInfo => BI}
+import etlflow.{EJPMType, BuildInfo => BI}
 import zio._
 import zio.blocking.Blocking
-import zio.clock.Clock
 import zio.stream.ZStream
 import scala.reflect.runtime.universe.TypeTag
 
-object Implementation extends EtlFlowUtils with Executor {
+object Implementation extends EtlFlowUtils {
 
-  def live[EJN <: EJPMType : TypeTag](
-    auth: Authentication
-    ,jobSemaphores: Map[String, Semaphore]
-    ,jobs: List[EtlJob]
-    ,jobQueue: Queue[(String,String,String,String)]
-    ,config: Config
-    ,ejpm_package: String
-  ): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String): ZLayer[Blocking, Throwable, APIEnv] = {
     for {
       subscribers <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs  <- Ref.make(0)
@@ -46,15 +38,13 @@ object Implementation extends EtlFlowUtils with Executor {
 
       override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = Task(List(getPropsCacheStats,getLoginCacheStats))
 
-      override def getQueueStats: ZIO[APIEnv, Throwable, List[QueueDetails]] = QueueHelper.takeAll(jobQueue)
+      override def getQueueStats: ZIO[APIEnv, Throwable, List[QueueDetails]] = QueueHelper.takeAll(executor.job_queue)
 
       override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]] = DB.getJobLogs(args)
 
       override def getCredentials: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]] = DB.getCredentials
 
-      override def runJob(args: EtlJobArgs, submitter: String): ZIO[APIEnv with Blocking with Clock with DBServerEnv with DBEnv, Throwable, EtlJob] = {
-        runActiveEtlJob[EJN](args,jobSemaphores(args.name),config,ejpm_package,submitter,jobQueue)
-      }
+      override def runJob(args: EtlJobArgs, submitter: String): ZIO[ServerEnv, Throwable, EtlJob] = executor.runActiveEtlJob(args, submitter)
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]] = DB.getStepRuns(args)
 

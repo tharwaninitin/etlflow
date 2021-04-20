@@ -7,8 +7,8 @@ import zio.{Has, RIO}
 package object api {
 
   type APIEnv = Has[Service]
-  type ServerJobEnv = DBServerEnv with JobEnv
-  type ServerEnv = APIEnv with ServerJobEnv
+  type ExecutorEnv = DBServerEnv with JobEnv
+  type ServerEnv = APIEnv with ExecutorEnv
   type EtlFlowTask[A] = RIO[ServerEnv, A]
 
   object Schema {

@@ -34,7 +34,7 @@ object RestTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Htt
       },
       testM("Test REST runjob end point with incorrect job name") {
         val apiRequest: Request[EtlFlowTask] = Request[EtlFlowTask](method = POST, uri = uri"/runjob/InvalidJob")
-        assertM(apiResponse(apiRequest))(equalTo(Left("400, key not found: InvalidJob")))
+        assertM(apiResponse(apiRequest))(equalTo(Left("400, InvalidJob not present")))
       }
     ) @@ TestAspect.sequential).provideCustomLayerShared(env)
 }

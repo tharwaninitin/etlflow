@@ -70,7 +70,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
       },
       testM("Test REST runjob end point with no job name") {
         def apiRequest(authToken: String): Request[EtlFlowTask] = Request[EtlFlowTask](method = GET, uri = uri"/api/runjob?job_name=InvalidJob", headers = Headers.of(Header("Authorization",authToken)))
-        assertM(apiResponseWithLogin(apiRequest))(equalTo(Left("Status Code 500 with error key not found: InvalidJob")))
+        assertM(apiResponseWithLogin(apiRequest))(equalTo(Left("Status Code 500 with error InvalidJob not present")))
       }
     ) @@ TestAspect.sequential).provideCustomLayerShared(env)
 }

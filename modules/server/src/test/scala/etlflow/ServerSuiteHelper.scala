@@ -6,6 +6,7 @@ import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.jdbc.{DBServerEnv, DbManager, liveDBWithTransactor}
 import etlflow.api.Schema.EtlJob
+import etlflow.executor.Executor
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import io.circe.generic.auto._
@@ -19,11 +20,12 @@ trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
   val cache: CaffeineCache[String] = CacheHelper.createCache[String]
   val config: Config = io.circe.config.parser.decode[Config]().toOption.get
   val credentials: JDBC = config.dbLog
-  val etlJob_name_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]] + "$"
-  val testJobsQueue: Queue[(String, String, String, String)] = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
-  val testJobsSemaphore: Map[String, Semaphore] = Runtime.default.unsafeRun(createSemaphores(List(EtlJob("Job1",Map("job_max_active_runs" -> "1")))))
-  val auth = Authentication(authEnabled = true, cache, config.webserver)
-  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth,testJobsSemaphore,List.empty,testJobsQueue,config,etlJob_name_package)
+  val ejpm_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]] + "$"
+  val queue: Queue[(String, String, String, String)] = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
+  val sem: Map[String, Semaphore] = Runtime.default.unsafeRun(createSemaphores(List(EtlJob("Job1",Map("job_max_active_runs" -> "1")))))
+  val auth: Authentication = Authentication(authEnabled = true, cache, config.webserver)
+  val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, queue)
+  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package)
   val testDBLayer: ZLayer[Blocking, Throwable, DBServerEnv with DBEnv] = liveDBWithTransactor(config.dbLog)
 
 }

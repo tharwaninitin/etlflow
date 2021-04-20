@@ -1,7 +1,7 @@
 package etlflow.webserver
 
 import etlflow.api.Schema._
-import etlflow.api.{EtlFlowTask, Service}
+import etlflow.api.{ServerTask, Service}
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
 import sttp.tapir._
@@ -25,19 +25,19 @@ object RestAPINew {
       .errorOut(stringBody)
       .out(jsonBody[EtlJob])
 
-  private def runJob(args: RestEtlJobArgs): EtlFlowTask[Either[String,EtlJob]] = {
+  private def runJob(args: RestEtlJobArgs): ServerTask[Either[String,EtlJob]] = {
     val params = EtlJobArgs(args.name,Some(args.props.getOrElse(Map.empty).map(kv => Props(kv._1,kv._2)).toList))
     Service.runJob(params,"New Rest API").mapError(e => e.getMessage).either
   }
 
-  private val runJobRoute: HttpRoutes[EtlFlowTask] = Http4sServerInterpreter.toRoutes(runJobEndpointDescription)(runJob)
+  private val runJobRoute: HttpRoutes[ServerTask] = Http4sServerInterpreter.toRoutes(runJobEndpointDescription)(runJob)
 
   private val yaml: String = {
     import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
     import sttp.tapir.openapi.circe.yaml._
     OpenAPIDocsInterpreter.toOpenAPI(List(runJobEndpointDescription), "EtlFlow API", "1.0").toYaml
   }
-  val swaggerRoute: HttpRoutes[EtlFlowTask] = new SwaggerHttp4s(yaml).routes[EtlFlowTask]
+  val swaggerRoute: HttpRoutes[ServerTask] = new SwaggerHttp4s(yaml).routes[ServerTask]
 
-  val routes: HttpRoutes[EtlFlowTask] = runJobRoute
+  val routes: HttpRoutes[ServerTask] = runJobRoute
 }

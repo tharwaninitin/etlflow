@@ -1,6 +1,6 @@
 package etlflow.webserver
 
-import etlflow.api.EtlFlowTask
+import etlflow.api.ServerTask
 import etlflow.log.ApplicationLogger
 import fs2.{Pipe, Stream}
 import org.http4s.HttpRoutes
@@ -41,12 +41,12 @@ case class WebsocketAPI(auth: Authentication) extends Http4sDsl[Task] with Appli
     }
   }
 
-  val streamRoutes: HttpRoutes[EtlFlowTask] =
-    HttpRoutes.of[EtlFlowTask] {
+  val streamRoutes: HttpRoutes[ServerTask] =
+    HttpRoutes.of[ServerTask] {
       case GET -> Root / token =>
-        val toClient: Stream[EtlFlowTask, WebSocketFrame] = websocketStream(token)
-        val fromClient: Pipe[EtlFlowTask, WebSocketFrame, Unit] = _.as(())
-        WebSocketBuilder[EtlFlowTask].build(toClient, fromClient, onClose = UIO(logger.info("Closed Web socket")))
+        val toClient: Stream[ServerTask, WebSocketFrame] = websocketStream(token)
+        val fromClient: Pipe[ServerTask, WebSocketFrame, Unit] = _.as(())
+        WebSocketBuilder[ServerTask].build(toClient, fromClient, onClose = UIO(logger.info("Closed Web socket")))
     }
 }
 

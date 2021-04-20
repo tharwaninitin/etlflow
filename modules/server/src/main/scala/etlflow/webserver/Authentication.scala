@@ -2,7 +2,7 @@ package etlflow.webserver
 
 import cats.data.{Kleisli, OptionT}
 import com.github.t3hnar.bcrypt._
-import etlflow.api.EtlFlowTask
+import etlflow.api.ServerTask
 import etlflow.api.Schema.{UserArgs, UserAuth}
 import etlflow.jdbc.{DB, DBServerEnv}
 import etlflow.log.ApplicationLogger
@@ -15,12 +15,12 @@ import scalacache.caffeine.CaffeineCache
 import zio.RIO
 import zio.interop.catz._
 
-case class Authentication(authEnabled: Boolean, cache: CaffeineCache[String], config: Option[WebServer]) extends Http4sDsl[EtlFlowTask] with ApplicationLogger {
+case class Authentication(authEnabled: Boolean, cache: CaffeineCache[String], config: Option[WebServer]) extends Http4sDsl[ServerTask] with ApplicationLogger {
   final val secret = config.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey")
   def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
   def isCached(token: String): Option[String] = CacheHelper.getKey(cache, token)
-  def middleware(service: HttpRoutes[EtlFlowTask]): HttpRoutes[EtlFlowTask] = Kleisli {
-    req: Request[EtlFlowTask] =>
+  def middleware(service: HttpRoutes[ServerTask]): HttpRoutes[ServerTask] = Kleisli {
+    req: Request[ServerTask] =>
       if(authEnabled) {
         req.headers.get(CaseInsensitiveString("Authorization")) match {
           case Some(value) =>

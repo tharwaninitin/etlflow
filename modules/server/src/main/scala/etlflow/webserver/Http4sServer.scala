@@ -3,7 +3,7 @@ package etlflow.webserver
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
-import etlflow.api.{EtlFlowTask, ServerEnv}
+import etlflow.api.{ServerTask, ServerEnv}
 import etlflow.utils.WebServer
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
@@ -19,20 +19,20 @@ import zio.{ZIO, ZManaged}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-trait Http4sServer extends Http4sDsl[EtlFlowTask] {
+trait Http4sServer extends Http4sDsl[ServerTask] {
 
-  val otherRoutes: HttpRoutes[EtlFlowTask] = HttpRoutes.of[EtlFlowTask] {
+  val otherRoutes: HttpRoutes[ServerTask] = HttpRoutes.of[ServerTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def allRoutes[EJN <: EJPMType : TypeTag](auth: Authentication): ZManaged[ServerEnv, Throwable, HttpRoutes[EtlFlowTask]] = {
+  def allRoutes[EJN <: EJPMType : TypeTag](auth: Authentication): ZManaged[ServerEnv, Throwable, HttpRoutes[ServerTask]] = {
     for {
       blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
-      metricsSvc         <- PrometheusExportService.build[EtlFlowTask].toManagedZIO
-      metrics            <- Prometheus.metricsOps[EtlFlowTask](metricsSvc.collectorRegistry, "server").toManagedZIO
+      metricsSvc         <- PrometheusExportService.build[ServerTask].toManagedZIO
+      metrics            <- Prometheus.metricsOps[ServerTask](metricsSvc.collectorRegistry, "server").toManagedZIO
       etlFlowInterpreter <- GqlAPI.api.interpreter.toManaged_
       loginInterpreter   <- GqlLoginAPI.api.interpreter.toManaged_
-      routes = Router[EtlFlowTask](
+      routes = Router[ServerTask](
                  "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                   "/assets/js/2.800a40b8.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.800a40b8.chunk.js", blocker, None)),
                   "/assets/js/main.a5addb2c.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.a5addb2c.chunk.js", blocker, None)),
@@ -40,7 +40,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
                   "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
                   "/about"       -> otherRoutes,
                   "/etlflow"     -> metricsSvc.routes,
-                  "/api/etlflow" -> CORS(Metrics[EtlFlowTask](metrics)(auth.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter)))),
+                  "/api/etlflow" -> CORS(Metrics[ServerTask](metrics)(auth.middleware(Http4sAdapter.makeHttpService(etlFlowInterpreter)))),
                   "/api/login"   -> CORS(Http4sAdapter.makeHttpService(loginInterpreter)),
                   "/ws/etlflow"  -> CORS(WebsocketAPI(auth).streamRoutes),
                   "/api"         -> CORS(auth.middleware(RestAPI.routes)),
@@ -50,7 +50,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
     } yield routes
   }
 
-  def etlFlowWebServer[EJN <: EJPMType : TypeTag](auth: Authentication, config: Option[WebServer]): ZIO[ServerEnv, Throwable, Nothing] =
+  def etlFlowWebServer[EJN <: EJPMType : TypeTag](auth: Authentication, config: Option[WebServer]): ServerTask[Nothing] =
     ZIO.runtime[ServerEnv]
       .flatMap{implicit runtime =>
         (for {
@@ -66,7 +66,7 @@ trait Http4sServer extends Http4sDsl[EtlFlowTask] {
                      |  |________|   |_____|    |________| |_____|     |________|  `.___.'       \/  \/
                      |
                      |""".stripMargin.split("\n").toList ++ List(" "*75 + s"${BI.version}", "")
-          _                  <- BlazeServerBuilder[EtlFlowTask](runtime.platform.executor.asEC)
+          _                  <- BlazeServerBuilder[ServerTask](runtime.platform.executor.asEC)
             .bindHttp(port, address)
             .withConnectorPoolSize(20)
             .withBanner(banner)

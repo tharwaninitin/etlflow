@@ -1,16 +1,16 @@
 package etlflow.executor
 
 import etlflow.ServerSuiteHelper
-import etlflow.api.ExecutorEnv
+import etlflow.api.ExecutorTask
 import etlflow.api.Schema.{EtlJob, EtlJobArgs}
+import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, ZIO}
 
 object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
-  def job(args: EtlJobArgs): RIO[ExecutorEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
+  def job(args: EtlJobArgs): ExecutorTask[EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Executor Spec")(

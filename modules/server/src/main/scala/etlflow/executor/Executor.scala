@@ -2,7 +2,7 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
-import etlflow.api.ExecutorEnv
+import etlflow.api.ExecutorTask
 import etlflow.gcp.{DP, DPService}
 import etlflow.jdbc.DB
 import etlflow.utils.Executor._
@@ -17,7 +17,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, job_queue: Queue[(String,String,String,String)]) extends EtlFlowUtils {
 
-  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[ExecutorEnv, EtlJob] = {
+  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): ExecutorTask[EtlJob] = {
     for {
       mapping_props  <- Task(getJobPropsMapping[EJN](args.name,ejpm_package)).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
@@ -33,7 +33,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
     } yield EtlJob(args.name,final_props)
   }
 
-  private def runEtlJob(args: EtlJobArgs, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[ExecutorEnv, Unit] = {
+  private def runEtlJob(args: EtlJobArgs, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): ExecutorTask[Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
     val jobRun: RIO[JobEnv,Unit] = UF.getEtlJobName[EJN](args.name,ejpm_package).job_deploy_mode match {
@@ -51,7 +51,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
         Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
     }
 
-    val loggedJobRun: RIO[ExecutorEnv, Long] = blocking(jobRun)
+    val loggedJobRun: ExecutorTask[Long] = blocking(jobRun)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
         UIO(logger.error(ex.getMessage)) *> DB.updateFailedJob(args.name, UF.getCurrentTimestamp)

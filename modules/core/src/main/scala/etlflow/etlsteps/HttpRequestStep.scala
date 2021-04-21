@@ -15,7 +15,8 @@ case class HttpRequestStep[A: TypeTag : Decoder](
      headers: Map[String,String] = Map.empty,
      log: Boolean = false,
      connection_timeout: Int = 10000,
-     read_timeout: Int = 150000
+     read_timeout: Int = 150000,
+     allow_unsafe_ssl: Boolean = false
    )
   extends EtlStep[Unit, A] {
 
@@ -26,7 +27,7 @@ case class HttpRequestStep[A: TypeTag : Decoder](
     etl_logger.info(s"ConnectionTimeOut: $connection_timeout")
     etl_logger.info(s"ReadTimeOut: $read_timeout")
 
-    val output: Task[Response[String]] = HttpRequest.execute(method, url, params, headers, log, connection_timeout, read_timeout)
+    val output: Task[Response[String]] = HttpRequest.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
 
     typeOf[A] match {
       case t if t =:= typeOf[Unit] =>

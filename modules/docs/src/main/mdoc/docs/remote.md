@@ -26,7 +26,7 @@ case class EtlJob4Props (
 case class HelloWorldJob(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props] {
 
   def processData(ip: Unit): Unit = {
-    etl_job_logger.info("Hello World")
+    logger.info("Hello World")
   }
 
   val step1 = GenericETLStep(

@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, Logger}
 LoggerFactory.getLogger("org").asInstanceOf[Logger].setLevel(Level.WARN)
 LoggerFactory.getLogger("io").asInstanceOf[Logger].setLevel(Level.INFO)
-implicit lazy val spark: SparkSession = SparkSession.builder().config("spark.ui.enabled", "false").master("local[*]").getOrCreate()       
+implicit lazy val spark: SparkSession = SparkSession.builder().config("spark.driver.bindAddress", "127.0.0.1").master("local[*]").getOrCreate()       
        
 ```
 

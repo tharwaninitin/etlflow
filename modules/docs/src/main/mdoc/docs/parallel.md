@@ -8,7 +8,7 @@ title: Parallel Step Execution
 **This page shows how to execute more than one steps in parallel**
 
 ### Example 1
-Below is the sample Http Step GET example. 
+Below is the sample Http Step example. 
 
 ```scala mdoc
         
@@ -18,7 +18,7 @@ import etlflow.etljobs.SequentialEtlJob
 import etlflow.EtlJobProps
 import etlflow.utils.Config
 import etlflow.EtlStepList
-
+import etlflow.utils.HttpRequest.HttpMethod
 
 case class EtlJob1Props (
         ratings_output_table_name: String = "ratings",
@@ -26,26 +26,25 @@ case class EtlJob1Props (
 
 case class Job1SparkS3andGCSandBQSteps(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
       
-val step1 = HttpStep(
-             name         = "HttpPostJson",
-             url          = "https://httpbin.org/post",
-             http_method  = HttpMethod.POST,
-             params       = Left("""{"key":"value"}"""),
-             headers      = Map("content-type"->"application/json"),
-             log_response = true,
-)
-      
-val step2 = HttpStep(
-                   name         = "HttpPostJson",
-                   url          = "https://httpbin.org/post",
-                   http_method  = HttpMethod.POST,
-                   params       = Left("""{"key":"value"}"""),
-                   headers      = Map("content-type"->"application/json"),
-                   log_response = true,
-)
+  val postStep1 = HttpRequestStep[Unit](
+    name         = "HttpPostJson",
+    url          = "https://httpbin.org/post",
+    method       = HttpMethod.POST,
+    params       = Left("""{"key":"value"}"""),
+    headers      = Map("X-Auth-Token"->"abcd.xxx.123"),
+    log          = true,
+  )
+
+  val postStep2 = HttpRequestStep[Unit](
+    name         = "HttpPostForm",
+    url          = "https://httpbin.org/post?signup=yes",
+    method       = HttpMethod.POST,
+    params       = Right(Map("name" -> "John", "surname" -> "doe")),
+    log          = true,
+  )
             
                 
-val parstep = ParallelETLStep("ParallelStep")(step1,step2)
+val parstep = ParallelETLStep("ParallelStep")(postStep1,postStep2)
       
 val etlStepList: List[EtlStep[Unit, Unit]] = EtlStepList(parstep)
 

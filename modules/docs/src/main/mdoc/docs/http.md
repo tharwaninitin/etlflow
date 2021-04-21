@@ -24,26 +24,29 @@ Below is the sample Http Step GET example.
 
 ```scala mdoc
 import etlflow.etlsteps._
+import etlflow.utils.HttpRequest.HttpMethod
 
-val step1 = HttpStep(
-         name         = "HttpGet",
-         url          = "https://httpbin.org/get",
-         http_method  = HttpMethod.GET,
-         log_response = true,
-)
+val step1 = HttpRequestStep[Unit](
+    name    = "HttpGetSimple",
+    url     = "https://httpbin.org/get",
+    method  = HttpMethod.GET,
+    log     = true,
+    connection_timeout = 1200000
+ )
 ```       
 ### Example 2
 We can use below http GET step when we want return response from the step. 
 
 ```scala mdoc
 import etlflow.etlsteps._
+import etlflow.utils.HttpRequest.HttpMethod
 
-val step2 = HttpResponseStep(
-        name         = "HttpGetParams",
-        url          = "https://httpbin.org/get",
-        http_method  = HttpMethod.GET,
-        params       = Right(Seq(("param1","value1"))),
-        log_response = true,
+val step2 = HttpRequestStep[String](
+    name         = "HttpGetParams",
+    url          = "https://httpbin.org/get",
+    method       = HttpMethod.GET,
+    params       = Right(Map("param1"-> "value1")),
+    log          = true,
 )
 ```      
  
@@ -52,14 +55,15 @@ Below is the simple Http POST json  example.
 
 ```scala mdoc
 import etlflow.etlsteps._
+import etlflow.utils.HttpRequest.HttpMethod
 
-val step3 = HttpStep(
-        name         = "HttpPostJson",
-        url          = "https://httpbin.org/post",
-        http_method  = HttpMethod.POST,
-        params       = Left("""{"key":"value"}"""),
-        headers      = Map("content-type"->"application/json"),
-        log_response = true,
+val step3 = HttpRequestStep[Unit](
+    name         = "HttpPostJson",
+    url          = "https://httpbin.org/post",
+    method       = HttpMethod.POST,
+    params       = Left("""{"key":"value"}"""),
+    headers      = Map("X-Auth-Token"->"abcd.xxx.123"),
+    log          = true,
 )
 ```
       
@@ -68,12 +72,13 @@ We can use below http POST step when we want return response from the step.
 
 ```scala mdoc
 import etlflow.etlsteps._
+import etlflow.utils.HttpRequest.HttpMethod
 
-val step4 = HttpResponseStep(
-         name         = "HttpPostParams",
-         url          = "https://httpbin.org/post",
-         http_method  = HttpMethod.POST,
-         params       = Right(Seq(("param1","value1"))),
-         log_response = true,
+val step4 = HttpRequestStep[String](
+    name         = "HttpPostForm",
+    url          = "https://httpbin.org/post?signup=yes",
+    method       = HttpMethod.POST,
+    params       = Right(Map("name" -> "John", "surname" -> "doe")),
+    log          = true,
 )
 ```              

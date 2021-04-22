@@ -25,21 +25,21 @@
     <span class="n">command</span>      <span class="k">=</span> <span class="nv">RedisCmd</span><span class="o">.</span><span class="py">SET</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"key1"</span> <span class="o">-&gt;</span> <span class="s">"value1"</span><span class="o">,</span><span class="s">"key2"</span> <span class="o">-&gt;</span> <span class="s">"value3"</span><span class="o">,</span><span class="s">"key3"</span> <span class="o">-&gt;</span> <span class="s">"value3"</span><span class="o">)),</span>
     <span class="n">credentials</span>  <span class="k">=</span> <span class="n">redis_config</span>
   <span class="o">)</span>
-<span class="c1">// step1: RedisStep = etlflow.etlsteps.RedisStep@3438d1a6</span>
+<span class="c1">// step1: RedisStep = etlflow.etlsteps.RedisStep@5e8949ef</span>
 
   <span class="k">val</span> <span class="nv">step2</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
     <span class="n">name</span>        <span class="k">=</span> <span class="s">"delete the keys from redis"</span><span class="o">,</span>
     <span class="n">command</span>     <span class="k">=</span> <span class="nv">RedisCmd</span><span class="o">.</span><span class="py">DELETE</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="s">"*key1*"</span><span class="o">)),</span>
     <span class="n">credentials</span> <span class="k">=</span> <span class="n">redis_config</span>
   <span class="o">)</span>
-<span class="c1">// step2: RedisStep = etlflow.etlsteps.RedisStep@18eaef57</span>
+<span class="c1">// step2: RedisStep = etlflow.etlsteps.RedisStep@142cacfa</span>
 
   <span class="k">val</span> <span class="nv">step3</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
     <span class="n">name</span>        <span class="k">=</span> <span class="s">"flushall the keys from redis"</span><span class="o">,</span>
     <span class="n">command</span>     <span class="k">=</span> <span class="nv">RedisCmd</span><span class="o">.</span><span class="py">FLUSHALL</span><span class="o">,</span>
     <span class="n">credentials</span> <span class="k">=</span> <span class="n">redis_config</span>
   <span class="o">)</span>
-<span class="c1">// step3: RedisStep = etlflow.etlsteps.RedisStep@41cddad3</span>
+<span class="c1">// step3: RedisStep = etlflow.etlsteps.RedisStep@32d9b622</span>
 </code></pre></div></div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

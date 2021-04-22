@@ -30,7 +30,7 @@
 <span class="k">import</span> <span class="nn">ch.qos.logback.classic.</span><span class="o">{</span><span class="nc">Level</span><span class="o">,</span> <span class="nc">Logger</span><span class="o">}</span>
 <span class="nv">LoggerFactory</span><span class="o">.</span><span class="py">getLogger</span><span class="o">(</span><span class="s">"org"</span><span class="o">).</span><span class="py">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="py">setLevel</span><span class="o">(</span><span class="nv">Level</span><span class="o">.</span><span class="py">WARN</span><span class="o">)</span>
 <span class="nv">LoggerFactory</span><span class="o">.</span><span class="py">getLogger</span><span class="o">(</span><span class="s">"io"</span><span class="o">).</span><span class="py">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="py">setLevel</span><span class="o">(</span><span class="nv">Level</span><span class="o">.</span><span class="py">INFO</span><span class="o">)</span>
-<span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="nv">spark</span><span class="k">:</span> <span class="kt">SparkSession</span> <span class="o">=</span> <span class="nv">SparkSession</span><span class="o">.</span><span class="py">builder</span><span class="o">().</span><span class="py">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="py">getOrCreate</span><span class="o">()</span>
+<span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="nv">spark</span><span class="k">:</span> <span class="kt">SparkSession</span> <span class="o">=</span> <span class="nv">SparkSession</span><span class="o">.</span><span class="py">builder</span><span class="o">().</span><span class="py">config</span><span class="o">(</span><span class="s">"spark.driver.bindAddress"</span><span class="o">,</span> <span class="s">"127.0.0.1"</span><span class="o">).</span><span class="py">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="py">getOrCreate</span><span class="o">()</span>
 </code></pre></div></div>
 
 <p><strong>Define ETL Step which will load ratings data with below schema as specified from CSV to ORC</strong></p>
@@ -63,7 +63,7 @@
 <p><strong>Run this step as below</strong></p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">task</span> <span class="k">=</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@6ef80be3</span>
+<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@7f9b443a</span>
 </code></pre></div></div>
 
 <p><strong>Now executing above step has added data in ORC format in path defined in above properties upon completion.</strong></p>
@@ -103,7 +103,7 @@
 <span class="o">)</span>
      
 <span class="k">val</span> <span class="nv">task1</span> <span class="k">=</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@51af33c</span>
+<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@77d504bf</span>
 </code></pre></div></div>
 <p><strong>Lets add another step which will copy this transformed ORC data in BigQuery table. 
 For this step to work correctly <a href="https://cloud.google.com/sdk/install">Google Cloud SDK</a> needs to be installed and configured, 
@@ -129,7 +129,7 @@ as in this library upload from local file to BigQuery uses <a href="https://clou
 <span class="o">)</span>
     
 <span class="k">val</span> <span class="nv">task2</span> <span class="k">=</span> <span class="nv">step2</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@133043b2</span>
+<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@7a281a14</span>
 </code></pre></div></div>
 <p><strong>Now we can run also chain multiple steps together and run as single job as shown below.</strong></p>
 
@@ -137,7 +137,7 @@ as in this library upload from local file to BigQuery uses <a href="https://clou
         <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
         <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step2</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
 <span class="o">}</span> <span class="nf">yield</span> <span class="o">()</span>
-<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@6dde92fe</span>
+<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@497b29d1</span>
 </code></pre></div></div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>

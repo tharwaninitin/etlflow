@@ -20,7 +20,7 @@ For e.g. intermediate path can be dynamically generated for every run based on c
 <span class="k">lazy</span> <span class="k">val</span> <span class="nv">canonical_path</span> <span class="k">=</span> <span class="k">new</span> <span class="nv">java</span><span class="o">.</span><span class="py">io</span><span class="o">.</span><span class="py">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="py">getCanonicalPath</span>
 <span class="k">lazy</span> <span class="k">val</span> <span class="nv">input_file_path</span> <span class="k">=</span> <span class="n">s</span><span class="s">"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"</span>
 <span class="k">val</span> <span class="nv">date_prefix</span> <span class="k">=</span> <span class="nv">LocalDate</span><span class="o">.</span><span class="py">now</span><span class="o">.</span><span class="py">toString</span><span class="o">.</span><span class="py">replace</span><span class="o">(</span><span class="s">"-"</span><span class="o">,</span><span class="s">""</span><span class="o">)</span>
-<span class="c1">// date_prefix: String = "20210320"</span>
+<span class="c1">// date_prefix: String = "20210422"</span>
       
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob1Props</span> <span class="o">(</span>
    <span class="n">ratings_input_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">input_file_path</span><span class="o">,</span>

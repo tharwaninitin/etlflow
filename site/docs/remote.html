@@ -21,7 +21,7 @@
 <span class="k">case</span> <span class="k">class</span> <span class="nc">HelloWorldJob</span><span class="o">(</span><span class="n">job_properties</span><span class="k">:</span> <span class="kt">EtlJob4Props</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">SequentialEtlJob</span><span class="o">[</span><span class="kt">EtlJob4Props</span><span class="o">]</span> <span class="o">{</span>
 
   <span class="k">def</span> <span class="nf">processData</span><span class="o">(</span><span class="n">ip</span><span class="k">:</span> <span class="kt">Unit</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="nv">etl_job_logger</span><span class="o">.</span><span class="py">info</span><span class="o">(</span><span class="s">"Hello World"</span><span class="o">)</span>
+    <span class="nv">logger</span><span class="o">.</span><span class="py">info</span><span class="o">(</span><span class="s">"Hello World"</span><span class="o">)</span>
   <span class="o">}</span>
 
   <span class="k">val</span> <span class="nv">step1</span> <span class="k">=</span> <span class="nc">GenericETLStep</span><span class="o">(</span>
@@ -43,7 +43,7 @@
           <span class="n">name</span> <span class="k">=</span> <span class="s">"Test"</span><span class="o">,</span>
           <span class="n">job</span>  <span class="k">=</span> <span class="nc">HelloWorldJob</span><span class="o">(</span><span class="nc">EtlJob4Props</span><span class="o">()),</span>
     <span class="o">)</span>
-<span class="c1">// step: EtlFlowJobStep[EtlJob4Props] = etlflow.etlsteps.EtlFlowJobStep@17613c08</span>
+<span class="c1">// step: EtlFlowJobStep[EtlJob4Props] = etlflow.etlsteps.EtlFlowJobStep@4479c4a5</span>
 </code></pre></div></div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

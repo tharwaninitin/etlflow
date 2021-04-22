@@ -3,7 +3,7 @@
 <p><strong>This page shows how to execute more than one steps in parallel</strong></p>
 
 <h3 id="example-1">Example 1</h3>
-<p>Below is the sample Http Step GET example.</p>
+<p>Below is the sample Http Step example.</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
 <span class="k">import</span> <span class="nn">etlflow.etlsteps.ParallelETLStep</span>
@@ -11,7 +11,7 @@
 <span class="k">import</span> <span class="nn">etlflow.EtlJobProps</span>
 <span class="k">import</span> <span class="nn">etlflow.utils.Config</span>
 <span class="k">import</span> <span class="nn">etlflow.EtlStepList</span>
-
+<span class="k">import</span> <span class="nn">etlflow.utils.HttpRequest.HttpMethod</span>
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob1Props</span> <span class="o">(</span>
         <span class="n">ratings_output_table_name</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"ratings"</span><span class="o">,</span>
@@ -19,26 +19,25 @@
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Job1SparkS3andGCSandBQSteps</span><span class="o">(</span><span class="n">job_properties</span><span class="k">:</span> <span class="kt">EtlJob1Props</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">SequentialEtlJob</span><span class="o">[</span><span class="kt">EtlJob1Props</span><span class="o">]</span> <span class="o">{</span>
       
-<span class="k">val</span> <span class="nv">step1</span> <span class="k">=</span> <span class="nc">HttpStep</span><span class="o">(</span>
-             <span class="n">name</span>         <span class="k">=</span> <span class="s">"HttpPostJson"</span><span class="o">,</span>
-             <span class="n">url</span>          <span class="k">=</span> <span class="s">"https://httpbin.org/post"</span><span class="o">,</span>
-             <span class="n">http_method</span>  <span class="k">=</span> <span class="nv">HttpMethod</span><span class="o">.</span><span class="py">POST</span><span class="o">,</span>
-             <span class="n">params</span>       <span class="k">=</span> <span class="nc">Left</span><span class="o">(</span><span class="s">"""{"key":"value"}"""</span><span class="o">),</span>
-             <span class="n">headers</span>      <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"content-type"</span><span class="o">-&gt;</span><span class="s">"application/json"</span><span class="o">),</span>
-             <span class="n">log_response</span> <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
-<span class="o">)</span>
-      
-<span class="k">val</span> <span class="nv">step2</span> <span class="k">=</span> <span class="nc">HttpStep</span><span class="o">(</span>
-                   <span class="n">name</span>         <span class="k">=</span> <span class="s">"HttpPostJson"</span><span class="o">,</span>
-                   <span class="n">url</span>          <span class="k">=</span> <span class="s">"https://httpbin.org/post"</span><span class="o">,</span>
-                   <span class="n">http_method</span>  <span class="k">=</span> <span class="nv">HttpMethod</span><span class="o">.</span><span class="py">POST</span><span class="o">,</span>
-                   <span class="n">params</span>       <span class="k">=</span> <span class="nc">Left</span><span class="o">(</span><span class="s">"""{"key":"value"}"""</span><span class="o">),</span>
-                   <span class="n">headers</span>      <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"content-type"</span><span class="o">-&gt;</span><span class="s">"application/json"</span><span class="o">),</span>
-                   <span class="n">log_response</span> <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
-<span class="o">)</span>
+  <span class="k">val</span> <span class="nv">postStep1</span> <span class="k">=</span> <span class="nc">HttpRequestStep</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](</span>
+    <span class="n">name</span>         <span class="k">=</span> <span class="s">"HttpPostJson"</span><span class="o">,</span>
+    <span class="n">url</span>          <span class="k">=</span> <span class="s">"https://httpbin.org/post"</span><span class="o">,</span>
+    <span class="n">method</span>       <span class="k">=</span> <span class="nv">HttpMethod</span><span class="o">.</span><span class="py">POST</span><span class="o">,</span>
+    <span class="n">params</span>       <span class="k">=</span> <span class="nc">Left</span><span class="o">(</span><span class="s">"""{"key":"value"}"""</span><span class="o">),</span>
+    <span class="n">headers</span>      <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"X-Auth-Token"</span><span class="o">-&gt;</span><span class="s">"abcd.xxx.123"</span><span class="o">),</span>
+    <span class="n">log</span>          <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
+  <span class="o">)</span>
+
+  <span class="k">val</span> <span class="nv">postStep2</span> <span class="k">=</span> <span class="nc">HttpRequestStep</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](</span>
+    <span class="n">name</span>         <span class="k">=</span> <span class="s">"HttpPostForm"</span><span class="o">,</span>
+    <span class="n">url</span>          <span class="k">=</span> <span class="s">"https://httpbin.org/post?signup=yes"</span><span class="o">,</span>
+    <span class="n">method</span>       <span class="k">=</span> <span class="nv">HttpMethod</span><span class="o">.</span><span class="py">POST</span><span class="o">,</span>
+    <span class="n">params</span>       <span class="k">=</span> <span class="nc">Right</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"name"</span> <span class="o">-&gt;</span> <span class="s">"John"</span><span class="o">,</span> <span class="s">"surname"</span> <span class="o">-&gt;</span> <span class="s">"doe"</span><span class="o">)),</span>
+    <span class="n">log</span>          <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
+  <span class="o">)</span>
             
                 
-<span class="k">val</span> <span class="nv">parstep</span> <span class="k">=</span> <span class="nc">ParallelETLStep</span><span class="o">(</span><span class="s">"ParallelStep"</span><span class="o">)(</span><span class="n">step1</span><span class="o">,</span><span class="n">step2</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">parstep</span> <span class="k">=</span> <span class="nc">ParallelETLStep</span><span class="o">(</span><span class="s">"ParallelStep"</span><span class="o">)(</span><span class="n">postStep1</span><span class="o">,</span><span class="n">postStep2</span><span class="o">)</span>
       
 <span class="k">val</span> <span class="nv">etlStepList</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">EtlStep</span><span class="o">[</span><span class="kt">Unit</span>, <span class="kt">Unit</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">EtlStepList</span><span class="o">(</span><span class="n">parstep</span><span class="o">)</span>
 

@@ -3,40 +3,32 @@ package etlflow.api
 import etlflow.api.Schema._
 import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBServerEnv}
-import etlflow.log.{JobRun, StepRun}
-import etlflow.utils.{CacheHelper, EtlFlowUtils, JsonJackson, QueueHelper, UtilityFunctions => UF}
+import etlflow.log.{ApplicationLogger, JobRun, StepRun}
+import etlflow.utils.{CacheHelper, EtlFlowUtils, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
+import org.ocpsoft.prettytime.PrettyTime
 import zio._
 import zio.blocking.Blocking
 import zio.stream.ZStream
 import scala.reflect.runtime.universe.TypeTag
 
-object Implementation extends EtlFlowUtils {
+object Implementation extends EtlFlowUtils with ApplicationLogger {
 
   def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String): ZLayer[Blocking, Throwable, APIEnv] = {
     for {
       subscribers <- Ref.make(List.empty[Queue[EtlJobStatus]])
       activeJobs  <- Ref.make(0)
+      pt          = new PrettyTime()
     } yield new Service {
-
-      private def getLoginCacheStats:CacheDetails = {
-        val data:Map[String,String] = CacheHelper.toMap(auth.cache)
-        val cacheInfo = CacheInfo("Login",
-          auth.cache.underlying.stats.hitCount(),
-          auth.cache.underlying.stats.hitRate(),
-          auth.cache.underlying.asMap().size(),
-          auth.cache.underlying.stats.missCount(),
-          auth.cache.underlying.stats.missRate(),
-          auth.cache.underlying.stats.requestCount(),
-          data
-        )
-        CacheDetails("Login",JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
-      }
 
       override def getJobs: ZIO[APIEnv with DBServerEnv, Throwable, List[Job]] = DB.getJobs[EJN](ejpm_package)
 
-      override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = Task(List(getPropsCacheStats,getLoginCacheStats))
+      override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = {
+        val job_props = CacheHelper.getCacheStats(jobPropsMappingCache, "JobProps")
+        val login     = CacheHelper.getCacheStats(auth.cache, "Login")
+        UIO(List(login,job_props))
+      }
 
       override def getQueueStats: ZIO[APIEnv, Throwable, List[QueueDetails]] = QueueHelper.takeAll(executor.job_queue)
 
@@ -58,12 +50,13 @@ object Implementation extends EtlFlowUtils {
         for {
           x <- activeJobs.get
           y <- subscribers.get
+          dt = UF.getLocalDateTimeFromTimestamp(BI.builtAtMillis)
         } yield EtlFlowMetrics(
           x,
           y.length,
           jobs.length,
           jobs.length,
-          build_time = BI.builtAtString
+          build_time = s"${dt.toString.take(16)} ${pt.format(dt)}"
         )
       }
 

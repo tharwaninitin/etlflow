@@ -5,6 +5,7 @@ import etlflow.api.Schema._
 import etlflow.api.ExecutorTask
 import etlflow.gcp.{DP, DPService}
 import etlflow.jdbc.DB
+import etlflow.log.ApplicationLogger
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{Config, EtlFlowUtils, UtilityFunctions => UF}
@@ -15,7 +16,8 @@ import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, job_queue: Queue[(String,String,String,String)]) extends EtlFlowUtils {
+case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, job_queue: Queue[(String,String,String,String)])
+  extends EtlFlowUtils with ApplicationLogger {
 
   final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): ExecutorTask[EtlJob] = {
     for {

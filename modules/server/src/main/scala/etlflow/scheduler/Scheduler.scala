@@ -4,11 +4,12 @@ import cron4s.{Cron, CronExpr}
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
 import etlflow.jdbc.DB
-import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.{UtilityFunctions => UF}
 import zio._
 import zio.duration._
 
-trait Scheduler extends EtlFlowUtils {
+trait Scheduler extends ApplicationLogger {
   case class CronJob(job_name: String, schedule: Option[CronExpr])
   final def scheduleJobs(dbCronJobs: List[CronJob]): ServerTask[Unit] = {
     if (dbCronJobs.isEmpty) {

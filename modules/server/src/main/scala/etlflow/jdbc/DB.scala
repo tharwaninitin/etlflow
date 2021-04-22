@@ -86,9 +86,9 @@ object DB extends EtlFlowUtils {
               val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
 
               val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-              Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, props("job_max_active_runs").toInt, props("job_deploy_mode"), x.last_run_time.getOrElse(0), s"$lastRunTime")
+              Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
             } else {
-              Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, props("job_max_active_runs").toInt, props("job_deploy_mode"), x.last_run_time.getOrElse(0), s"$lastRunTime")
+              Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
             }
           }
           })

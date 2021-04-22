@@ -2,10 +2,11 @@ package etlflow.webserver
 
 import caliban.Macros.gqldoc
 import etlflow.ServerSuiteHelper
+import etlflow.log.ApplicationLogger
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
+object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with ApplicationLogger {
 
   val env = (testAPILayer ++ testDBLayer).orDie
   val etlFlowInterpreter = GqlAPI.api.interpreter
@@ -20,7 +21,6 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
            {
              jobs {
                name
-               max_active_runs
                is_active
              }
            }""")
@@ -28,7 +28,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
           gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query))
           _           = logger.info(gqlResponse.toString)
         } yield gqlResponse.data.toString
-        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","max_active_runs":10,"is_active":true},{"name":"Job2","max_active_runs":1,"is_active":false}]}""")
+        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","is_active":true},{"name":"Job2","is_active":false}]}""")
         )
       },
       testM("Test query jobruns end point") {

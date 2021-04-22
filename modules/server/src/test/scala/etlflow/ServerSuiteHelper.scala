@@ -20,9 +20,9 @@ trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
   val cache: CaffeineCache[String] = CacheHelper.createCache[String]
   val config: Config = io.circe.config.parser.decode[Config]().toOption.get
   val credentials: JDBC = config.dbLog
-  val ejpm_package: String = UF.getJobNamePackage[MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]] + "$"
+  val ejpm_package: String = UF.getJobNamePackage[MEJP] + "$"
   val queue: Queue[(String, String, String, String)] = Runtime.default.unsafeRun(Queue.unbounded[(String,String,String,String)])
-  val sem: Map[String, Semaphore] = Runtime.default.unsafeRun(createSemaphores(List(EtlJob("Job1",Map("job_max_active_runs" -> "1")))))
+  val sem: Map[String, Semaphore] = Map("Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)))
   val auth: Authentication = Authentication(authEnabled = true, cache, config.webserver)
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, queue)
   val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package)

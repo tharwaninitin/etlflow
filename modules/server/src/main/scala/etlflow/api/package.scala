@@ -48,7 +48,7 @@ package object api {
     case class JobLogs(job_name: String,  success: String, failed: String)
     case class Job(
       name: String, props: Map[String,String], schedule: Option[CronExpr], nextSchedule: String, schduleRemainingTime: String ,
-      failed: Long, success: Long, is_active:Boolean, max_active_runs: Int, job_deploy_mode: String, last_run_time: Long, last_run_description: String
+      failed: Long, success: Long, is_active:Boolean, last_run_time: Long, last_run_description: String
     )
   }
 }

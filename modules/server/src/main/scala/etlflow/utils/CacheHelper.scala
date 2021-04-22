@@ -1,15 +1,18 @@
 package etlflow.utils
 
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
+import etlflow.api.Schema.{CacheDetails, CacheInfo}
 import scalacache.{Cache, Entry, Id}
 import scalacache.caffeine._
 import scalacache.modes.sync._
+
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
 
 object CacheHelper {
 
-  var default_ttl = (24 * 60).minutes
+  var default_ttl: FiniteDuration = (24 * 60).minutes
+
   def createCache[T]:CaffeineCache[T] = {
     val caffeineCache: CCache[String, Entry[T]] =
       Caffeine.newBuilder()
@@ -20,13 +23,25 @@ object CacheHelper {
     CaffeineCache(caffeineCache)
   }
 
-  def getKey[T](cache: Cache[T], key: String): Id[Option[T]] =
-    cache.get(key)
+  def getKey[T](cache: Cache[T], key: String): Id[Option[T]] = cache.get(key)
 
-  def putKey[T](cache: Cache[T], key: String, value: T, ttl: Option[Duration] = None): Unit =
-    cache.put(key)(value, ttl)
+  def putKey[T](cache: Cache[T], key: String, value: T, ttl: Option[Duration] = None): Unit = cache.put(key)(value, ttl)
 
-  def toMap[T](cache: CaffeineCache[T]) = {
+  def toMap[T](cache: CaffeineCache[T]): Map[String, String] = {
     cache.underlying.asMap().asScala.map(x => (x._1,x._2.toString)).toMap
+  }
+
+  def getCacheStats[T](cache: CaffeineCache[T], name: String): CacheDetails = {
+    val data:Map[String,String] = CacheHelper.toMap(cache)
+    val cacheInfo = CacheInfo(name,
+      cache.underlying.stats.hitCount(),
+      cache.underlying.stats.hitRate(),
+      cache.underlying.asMap().size(),
+      cache.underlying.stats.missCount(),
+      cache.underlying.stats.missRate(),
+      cache.underlying.stats.requestCount(),
+      data
+    )
+    CacheDetails(name,JsonJackson.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).mapValues(x => (x.toString)))
   }
 }

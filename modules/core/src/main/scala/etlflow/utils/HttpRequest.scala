@@ -39,7 +39,10 @@ object HttpRequest extends ApplicationLogger {
   private def getBackend(allowUnsafeSSL: Boolean, connection_timeout: Int): TaskManaged[SttpBackend[Task, ZioStreams with capabilities.WebSockets]] = {
     if(allowUnsafeSSL) {
       val sslContext: SslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
-      val config: AsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder().setSslContext(sslContext).build()
+      val config: AsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
+        .setSslContext(sslContext)
+        .setConnectTimeout(connection_timeout)
+        .build()
       AsyncHttpClientZioBackend.usingConfig(config).toManaged_
     }
     else {

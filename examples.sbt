@@ -14,7 +14,7 @@ lazy val examples = (project in file("examples"))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
   .settings(
-    name := "etlflow-examples",
+    name := "examples",
     organization := "com.github.tharwaninitin",
     scalaVersion := "2.12.13",
     libraryDependencies ++= List(
@@ -53,15 +53,15 @@ lazy val examples = (project in file("examples"))
     // mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json"),
     Universal / mappings ++= directory(sourceDirectory.value / "main" / "data"),
     Test / parallelExecution := false,
-    assembly / mainClass := Some("examples.LoadData"),
-    assembly / assemblyJarName := "etljobs-examples-assembly_2.12-0.7.19.jar",
-    assembly / assemblyMergeStrategy := {
-       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-       case x => MergeStrategy.first
-    },
-    assembly / assemblyShadeRules := Seq(
-      ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
-      ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll
-    )
+//    assembly / mainClass := Some("examples.LoadData"),
+//    assembly / assemblyJarName := "etljobs-examples-assembly_2.12-0.7.19.jar",
+//    assembly / assemblyMergeStrategy := {
+//       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+//       case x => MergeStrategy.first
+//    },
+//    assembly / assemblyShadeRules := Seq(
+//      ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
+//      ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll
+//    )
   )
   //.dependsOn(etlflowCore, etlflowServer, etlflowSpark, etlflowCloud)

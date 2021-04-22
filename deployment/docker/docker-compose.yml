@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   postgres:
-    image: 'postgres:9.6'
+    image: 'postgres:13-alpine'
     deploy:
       resources:
         limits:
@@ -13,7 +13,9 @@ services:
     ports:
     - '5432:5432'
   webserver:
-    image: 'etlflow:0.7.19'
+    image: 'etlflow:0.10.0'
+#    entrypoint: /opt/docker/bin/examples
+#    command: run_db_migration
     deploy:
       resources:
         limits:
@@ -22,7 +24,6 @@ services:
     depends_on:
      - postgres
     environment:
-        GOOGLE_APPLICATION_CREDENTIALS: /opt/docker/conf/cred.json
         LOG_DB_URL: 'jdbc:postgresql://postgres:5432/etlflow'
         LOG_DB_USER: etlflow
         LOG_DB_PWD: etlflow

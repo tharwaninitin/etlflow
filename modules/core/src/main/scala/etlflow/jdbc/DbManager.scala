@@ -26,7 +26,7 @@ trait DbManager {
       transactor  <- HikariTransactor.fromHikariConfig[Task](config, rt.platform.executor.asEC, blocker).toManagedZIO
     } yield transactor
   }
-  def runDbMigration(credentials: JDBC, clean: Boolean = false): Task[Int] = Task {
+  def runDbMigration(credentials: JDBC, clean: Boolean = false): Task[Unit] = Task {
     val logger: Logger = LoggerFactory.getLogger(getClass.getName)
     val configuration = Flyway
       .configure(this.getClass.getClassLoader)

@@ -1,19 +1,17 @@
 package etlflow.steps.cloud
 
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
-import etlflow.utils.Config
-import io.circe.generic.auto._
+import etlflow.utils.Configuration
 import org.slf4j.{Logger, LoggerFactory}
 import software.amazon.awssdk.regions.Region
 
-trait CloudTestHelper {
+trait CloudTestHelper extends Configuration {
   lazy val logger: Logger               = LoggerFactory.getLogger(getClass.getName)
   lazy val spark_logger: LBLogger       = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
   lazy val spark_jetty_logger: LBLogger = LoggerFactory.getLogger("org.spark_project.jetty").asInstanceOf[LBLogger]
   spark_logger.setLevel(Level.WARN)
   spark_jetty_logger.setLevel(Level.WARN)
 
-  lazy val config: Config              = io.circe.config.parser.decode[Config]().toOption.get
   lazy val gcs_bucket: String          = sys.env("GCS_BUCKET")
   lazy val s3_bucket: String           = sys.env("S3_BUCKET")
   lazy val s3_input_location: String   = sys.env("S3_INPUT_LOCATION")

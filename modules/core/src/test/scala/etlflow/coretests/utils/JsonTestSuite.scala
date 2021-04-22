@@ -5,10 +5,11 @@ import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.coretests.Schema._
 import etlflow.etljobs.EtlJob
 import etlflow.utils.{JsonJackson, LoggingLevel}
-import org.scalatest.{FlatSpec, Matchers}
 import etlflow.utils.{UtilityFunctions => UF}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
-class JsonTestSuite extends FlatSpec with Matchers {
+class JsonTestSuite extends AnyFlatSpec with should.Matchers {
 
   val httpBinJson = """{
     "args": {

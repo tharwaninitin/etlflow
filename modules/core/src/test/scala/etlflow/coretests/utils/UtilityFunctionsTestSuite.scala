@@ -2,10 +2,11 @@ package etlflow.coretests.utils
 
 import java.text.SimpleDateFormat
 import etlflow.utils.{UtilityFunctions => UF}
-import org.scalatest.{FlatSpec, Matchers}
 import com.github.t3hnar.bcrypt._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
-class UtilityFunctionsTestSuite extends FlatSpec with Matchers {
+class UtilityFunctionsTestSuite extends AnyFlatSpec with should.Matchers {
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
   val endTimeDays = sdf.parse("2020-08-21T23:15").getTime

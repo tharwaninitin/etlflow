@@ -1,9 +1,10 @@
 package etlflow
 
-import org.scalatest.{FlatSpec, Matchers}
 import etlflow.spark.SparkUDF
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
-class TransformationTestSuite extends FlatSpec with Matchers with SparkUDF {
+class TransformationTestSuite extends AnyFlatSpec with should.Matchers with SparkUDF {
 
   "get_24hr_formatted_from_12hr function" should "convert 12 hr format to 24 hr format" in {
     assert(get_24hr_formatted_from_12hr("01:39:40 PM").contains("13:39:40"))

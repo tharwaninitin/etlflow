@@ -4,14 +4,16 @@ import cats.effect.Blocker
 import doobie.Transactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor.Aux
-import org.slf4j.{Logger, LoggerFactory}
+import etlflow.jdbc.DbManager
+import etlflow.log.ApplicationLogger
+import etlflow.utils.Configuration
 import zio.Task
 import zio.interop.catz._
 
-trait TestSuiteHelper {
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
-  val canonical_path: String    = new java.io.File(".").getCanonicalPath
-  val file                      = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+trait TestSuiteHelper extends Configuration with DbManager with ApplicationLogger {
+  val canonical_path = new java.io.File(".").getCanonicalPath
+  val file           = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
+  val testDBLayer    = liveTransactor(config.dbLog)
 }
 
 trait DoobieHelper {

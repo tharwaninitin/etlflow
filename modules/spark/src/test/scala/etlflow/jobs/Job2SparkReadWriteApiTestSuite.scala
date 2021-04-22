@@ -14,7 +14,7 @@ object Job2SparkReadWriteApiTestSuite extends DefaultRunnableSpec with TestSuite
         val job = Job2SparkReadWriteApi(EtlJob2Props())
         assertM(job.execute().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    )
+    ).provideCustomLayerShared(testDBLayer.orDie)
 }
 
 

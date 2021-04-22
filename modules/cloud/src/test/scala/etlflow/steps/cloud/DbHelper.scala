@@ -2,12 +2,11 @@ package etlflow.steps.cloud
 
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDateTime}
-
 import cats.effect.Resource
 import io.circe.Json
 import io.circe.optics.JsonPath.root
 import io.circe.parser.parse
-import org.testcontainers.containers.PostgreSQLContainer
+import etlflow.utils.Configuration
 import natchez.Trace.Implicits.noop
 import skunk._
 import skunk.codec.all._
@@ -17,9 +16,7 @@ import zio.interop.catz._
 import zio.Task
 import scala.util.Try
 
-trait DbHelper {
-  val container = new PostgreSQLContainer("postgres:latest")
-  container.start()
+trait DbHelper extends Configuration {
 
   case class QueryMetrics(start_time:LocalDateTime, email:String, query:String, duration:Double, status:String) {
     override def toString: String = s"$start_time $email $duration $status"
@@ -31,10 +28,10 @@ trait DbHelper {
 
   val session: Resource[Task, Session[Task]] = Session.single(
     host = sys.env.getOrElse("DB_HOST","localhost"),
-    port = container.getFirstMappedPort,
-    user = container.getUsername,
-    password = Some(container.getPassword),
-    database = container.getDatabaseName,
+    port = 5432,
+    user = config.dbLog.user,
+    password = Some(config.dbLog.password),
+    database = "etlflow",
   )
 
   val createTableScript: Command[Void] = sql"""CREATE TABLE IF NOT EXISTS bqdump(
@@ -48,7 +45,7 @@ trait DbHelper {
   val createTable: Task[Unit] = {
     session.use { s =>
       s.execute(createTableScript)
-    }.as(())
+    }.unit
   }
 
   def getDateTime(value: String): LocalDateTime = {
@@ -73,7 +70,7 @@ trait DbHelper {
     s.prepare(insert).use { pc =>
       pc.execute(record)
     }
-  }.as(())
+  }.unit
 
   def jsonParser(message: String): Either[Throwable,QueryMetrics] = {
     val json = parse(message).getOrElse(Json.Null)

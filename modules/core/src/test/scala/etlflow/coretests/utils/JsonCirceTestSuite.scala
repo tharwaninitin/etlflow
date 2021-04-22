@@ -1,11 +1,12 @@
 package etlflow.coretests.utils
 
 import etlflow.coretests.Schema._
-import etlflow.utils.{Executor, JsonCirce, LoggingLevel}
+import etlflow.utils.JsonCirce
 import io.circe.generic.auto._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
-class JsonCirceTestSuite extends FlatSpec with Matchers {
+class JsonCirceTestSuite extends AnyFlatSpec with should.Matchers {
 
   val excludeKeys = List("job_run_id","job_description","job_properties","job_aggregate_error")
 

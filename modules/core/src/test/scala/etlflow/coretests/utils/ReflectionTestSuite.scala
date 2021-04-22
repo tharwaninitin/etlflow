@@ -2,11 +2,12 @@ package etlflow.coretests.utils
 
 import etlflow.coretests.Schema.RatingOutput
 import etlflow.utils.{UtilityFunctions => UF}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 import scala.reflect.runtime.universe.TypeTag
 import scala.reflect.runtime.{universe => ru}
 
-class ReflectionTestSuite extends FlatSpec with Matchers {
+class ReflectionTestSuite extends AnyFlatSpec with should.Matchers {
 
   sealed trait EtlJob
   sealed trait EtlJobName

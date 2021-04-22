@@ -1,7 +1,10 @@
-name: Core Workflow
-on: [push]
+name: Publish Docs
+on:
+  push:
+    branches:
+      - gh-pages
 jobs:
-  test:
+  generatedocs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

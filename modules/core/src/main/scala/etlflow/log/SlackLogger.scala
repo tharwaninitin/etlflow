@@ -6,7 +6,7 @@ import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
 import etlflow.utils.{HttpRequest, LoggingLevel, UtilityFunctions => UF}
 import zio.Runtime.global.unsafeRun
 
-class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel) extends ApplicationLogger {
+class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel,host_url:String) extends ApplicationLogger {
   /** Slack message templates */
   var final_step_message: String = ""
   var final_message: String = ""
@@ -19,12 +19,14 @@ class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env
           final_message = final_message.concat(f"""
           :large_blue_circle: $env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
+          *Details Available at*: $host_url
           """)
           final_message
         case INFO | DEBUG =>
           final_message = final_message.concat( f"""
           :large_blue_circle: $env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
+          *Details Available at*: $host_url
           *Steps (Task - Duration)*: $message
           """)
           final_message
@@ -35,6 +37,7 @@ class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env
       final_message = final_message.concat(f"""
           :red_circle: $env - $job_name Process *Failed!*
           *Time of Execution*: $exec_date
+          *Details Available at*: $host_url
           *Steps (Task - Duration)*: $message
           """)
       final_message
@@ -90,9 +93,9 @@ class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env
 }
 
 object SlackLogger {
-  def apply(job_name: String, env: String, slack_url: String,job_notification_level:LoggingLevel,job_send_slack_notification:Boolean): Option[SlackLogger] = {
+  def apply(job_name: String, env: String, slack_url: String,job_notification_level:LoggingLevel,job_send_slack_notification:Boolean, host_url:String): Option[SlackLogger] = {
     if (job_send_slack_notification)
-      Some(new SlackLogger(job_name,slack_url, env,job_notification_level))
+      Some(new SlackLogger(job_name,slack_url, env,job_notification_level,host_url))
     else
       None
   }

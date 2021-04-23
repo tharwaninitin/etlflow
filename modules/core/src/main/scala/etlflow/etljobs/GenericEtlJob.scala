@@ -20,7 +20,8 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       master_job      = is_master.getOrElse("true")
       slack_env       = config.slack.map(_.env).getOrElse("")
       slack_url       = config.slack.map(_.url).getOrElse("")
-      slack           = SlackLogger(job_name, slack_env, slack_url, job_notification_level, job_send_slack_notification)
+      host_url        = config.host.getOrElse("http://localhost:8080/#")  + "/JobRunDetails/" + jri
+      slack           = SlackLogger(job_name, slack_env, slack_url, job_notification_level, job_send_slack_notification,host_url)
       db              <- DbLogger(job_name, job_properties, config, jri, master_job, job_notification_level, job_enable_db_logging)
       job_log         = JobLoggerImpl(JobLogger(db.job,slack),job_type)
       step_layer      = ZLayer.succeed(StepLogger(db.step,slack))

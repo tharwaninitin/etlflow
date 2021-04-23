@@ -16,6 +16,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
   val slack_url = ""
   val slack_env = "dev-testing"
+  val host_url = "localhost:8080"
   val job_name = "EtlSlackJob"
 
   def processData(ip: Unit): Unit = {
@@ -48,13 +49,14 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
       val message = cleanSlackMessage(f"""
               :large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
                 *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
+                *Details Available at*: $host_url
                 *Steps (Task - Duration)*:
                   :small_blue_diamond:*ProcessData* - (x.xx secs)
               """.stripMargin)
 
       val slackInfoLevelExecutor =
         for {
-          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true,host_url)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackInfoLevelExecutor)(equalTo(message))
@@ -71,6 +73,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
       val message = cleanSlackMessage(f"""
                     :red_circle: dev-testing - EtlSlackJob Process *Failed!*
                     *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
+                    *Details Available at*: $host_url
                     *Steps (Task - Duration)*:
                       :small_orange_diamond:*ProcessData* - (x.xx secs)
 			                  error -> Failed in processing data
@@ -78,7 +81,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackInfoLevelExecutor =
         for {
-          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.INFO,true,host_url)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackInfoLevelExecutor)(equalTo(message))
@@ -98,6 +101,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val debugMessage = cleanSlackMessage(s""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
                            |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
+                           |          *Details Available at*: $host_url
                            |          *Steps (Task - Duration)*:
                            | :small_blue_diamond:*ProcessData* - (x.xx secs)
                            |
@@ -106,7 +110,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val slackMessageResult =
         for {
-          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true,host_url)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackMessageResult)(equalTo(debugMessage))
@@ -127,13 +131,14 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val debugFailureMessage = cleanSlackMessage(s""":red_circle: dev-testing - EtlSlackJob Process *Failed!*
                                   |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
+                                  |          *Details Available at*: $host_url
                                   |          *Steps (Task - Duration)*:
                                   | :small_orange_diamond:*ProcessData* - (x.xx secs)
                                   |			 , error -> Failed in processing data""".stripMargin)
 
       val slackDebugLevelExecutor =
         for {
-          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.DEBUG,true,host_url)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackDebugLevelExecutor)(equalTo(debugFailureMessage))
@@ -148,11 +153,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
       val job = step1.execute()
 
       val message = cleanSlackMessage(s""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
-                      |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz""".stripMargin)
+                      |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz*Details Available at*: $host_url""".stripMargin)
 
       val slackJobLevelExecutor =
         for {
-          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true,host_url)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackJobLevelExecutor)(equalTo(message))
@@ -169,13 +174,14 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
 
       val message = cleanSlackMessage(s""":red_circle: dev-testing - EtlSlackJob Process *Failed!*
                       |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
+                      |          *Details Available at*: $host_url
                       |          *Steps (Task - Duration)*:
                       |                      :small_orange_diamond:*ProcessData* - (x.xx secs)
                       |			                  error -> Failed in processing data""".stripMargin)
 
       val slackJobLevelExecutor =
         for {
-          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true)
+          slack  <- JobExecutor.apply(job_name,slack_env,slack_url,job,LoggingLevel.JOB,true,host_url)
         } yield cleanSlackMessage(slack.final_message)
 
       assertM(slackJobLevelExecutor)(equalTo(message))

@@ -49,12 +49,24 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
         def apiRequest(authToken: String): Request[ServerTask] = Request[ServerTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization",authToken))).withEntity(gqlApiBody)
         assertM(apiResponseWithLogin(apiRequest))(equalTo(Right("""{"data":{"jobs":[{"name":"Job1"},{"name":"Job2"}]}}""")))
       },
+      testM("Test GRAPHQL jobs end point with correct X-Auth-Token header") {
+        def apiRequest(authToken: String): Request[ServerTask] = Request[ServerTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("X-Auth-Token",authToken))).withEntity(gqlApiBody)
+        assertM(apiResponseWithLogin(apiRequest))(equalTo(Right("""{"data":{"jobs":[{"name":"Job1"},{"name":"Job2"}]}}""")))
+      },
       testM("Test GRAPHQL jobs end point with blank authorization header") {
         val apiRequest = Request[ServerTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization",""))).withEntity(gqlApiBody)
         assertM(apiResponse(apiRequest))(equalTo(Left("403")))
       },
+      testM("Test GRAPHQL jobs end point with blank X-Auth-Token header") {
+        val apiRequest = Request[ServerTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("X-Auth-Token",""))).withEntity(gqlApiBody)
+        assertM(apiResponse(apiRequest))(equalTo(Left("403")))
+      },
       testM("Test GRAPHQL jobs end point with incorrect authorization header") {
         val apiRequest = Request[ServerTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("Authorization","abcd"))).withEntity(gqlApiBody)
+        assertM(apiResponse(apiRequest))(equalTo(Left("403")))
+      },
+      testM("Test GRAPHQL jobs end point with incorrect X-Auth-Token header") {
+        val apiRequest = Request[ServerTask](method = POST, uri = uri"/api/etlflow",headers = Headers.of(Header("X-Auth-Token","abcd"))).withEntity(gqlApiBody)
         assertM(apiResponse(apiRequest))(equalTo(Left("403")))
       },
       testM("Test GRAPHQL jobs end point without authorization header") {

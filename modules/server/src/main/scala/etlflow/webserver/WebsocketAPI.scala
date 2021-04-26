@@ -7,25 +7,27 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
-import zio.{Task, UIO}
+import zio.clock.Clock
+import zio.{Schedule, Task, UIO}
 import zio.interop.catz._
-import zio.interop.catz.implicits._
-import scala.concurrent.duration._
+import zio.stream.ZStream
+import zio.stream.interop.fs2z._
+import zio.duration._
 
 case class WebsocketAPI(auth: Authentication) extends Http4sDsl[Task] with ApplicationLogger {
   private val mb: Int = 1024*1024
   private val runtime: Runtime = Runtime.getRuntime
-  private def ticker(stream: Stream[Task, String]): Stream[Task, String] =
-    (Stream.emit(Duration.Zero) ++ Stream.awakeEvery[Task](5.seconds))
-      .as(stream)
-      .flatten
-
-  private val stream: Stream[Task, String] =
-    ticker(
-      Stream.eval(UIO{
-        s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}""".stripMargin
-      })
-    )
+  private val stream: Stream[Task, String] = {
+    ZStream
+      .fromEffect(
+        UIO{
+          s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}""".stripMargin
+        }
+      )
+      .repeat(Schedule.forever && Schedule.spaced(5.seconds))
+      .provideLayer(Clock.live)
+      .toFs2Stream
+  }
 
   def websocketStream(token: String): Stream[Task, WebSocketFrame] = {
     if(auth.validateJwt(token)){

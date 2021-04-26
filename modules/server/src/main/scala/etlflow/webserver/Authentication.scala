@@ -15,6 +15,7 @@ import scalacache.caffeine.CaffeineCache
 import zio.RIO
 import zio.interop.catz._
 import org.http4s.Header
+
 case class Authentication(authEnabled: Boolean, cache: CaffeineCache[String], config: Option[WebServer]) extends Http4sDsl[ServerTask] with ApplicationLogger {
   final val secret = config.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey")
   def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
@@ -22,14 +23,10 @@ case class Authentication(authEnabled: Boolean, cache: CaffeineCache[String], co
   def middleware(service: HttpRoutes[ServerTask]): HttpRoutes[ServerTask] = Kleisli {
     req: Request[ServerTask] =>
       if(authEnabled) {
-        var value:Option[Header] = None
-
-        if(req.headers.get(CaseInsensitiveString("Authorization")).isDefined) {
-           value = req.headers.get(CaseInsensitiveString("Authorization"))
-        } else {
-           value = req.headers.get(CaseInsensitiveString("X-Auth-Token"))
-        }
-
+        val value: Option[Header] = if(req.headers.get(CaseInsensitiveString("Authorization")).isDefined)
+           req.headers.get(CaseInsensitiveString("Authorization"))
+        else
+           req.headers.get(CaseInsensitiveString("X-Auth-Token"))
         value match {
           case Some(value) =>
             val token = value.value

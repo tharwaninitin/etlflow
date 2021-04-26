@@ -17,7 +17,7 @@ trait Scheduler extends ApplicationLogger {
       ZIO.unit
     }
     else {
-      val listOfCron: List[(CronExpr, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
+      val listOfCron: List[(String, CronExpr, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.job_name,cj.schedule.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
         Service
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
@@ -25,12 +25,13 @@ trait Scheduler extends ApplicationLogger {
           .catchAll(_ => UIO.none)
       }))
 
-      val scheduledJobs = repeatEffectsForCron(listOfCron)
+      val scheduledJobs = repeatEffectsForCronWithName(listOfCron)
 
       val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
         .repeat(Schedule.forever && Schedule.spaced(60.minute))
 
-      scheduledJobs.zipPar(scheduledLogger).unit
+      //scheduledJobs.zipPar(scheduledLogger).unit
+      scheduledJobs
         .tapError{e =>
           UIO(logger.error("*"*30 + s" Scheduler crashed due to error ${e.getMessage} stacktrace ${e.printStackTrace()}" + "*"*30))
         }

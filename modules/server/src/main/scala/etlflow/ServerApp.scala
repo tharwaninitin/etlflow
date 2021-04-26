@@ -13,12 +13,19 @@ import scala.reflect.runtime.universe.TypeTag
 abstract class ServerApp[EJN <: EJPMType : TypeTag]
   extends EtlFlowApp[EJN] with Http4sServer with Scheduler with EtlFlowUtils  {
 
-  final def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
+  final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
     for {
       rt          <- Task.runtime
       semaphores  = jobs.map(job => (job.name, rt.unsafeRun(Semaphore.make(permits = job.props("job_max_active_runs").toLong)))).toMap
     } yield semaphores
   }
+  
+  final private def monitorFibers(supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]]): ZIO[Any, Nothing, Unit] = for {
+    uio_status <- supervisor.value.map(_.map(_.dump))
+    status     <- ZIO.collectAll(uio_status.toList)
+    _          = logger.info(s"Scheduled fiber info")
+    _          = status.foreach(x => logger.info(s"${x.fiberId} ${x.fiberName} ${x.status}"))
+  } yield ()
 
   val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
     _           <- SetTimeZone(config).toManaged_
@@ -32,7 +39,9 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     dbLayer     = liveDBWithTransactor(config.dbLog)
     apiLayer    = Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package)
     finalLayer  = apiLayer ++ dbLayer
-    scheduler   = etlFlowScheduler(jobs)
+    supervisor  <- Supervisor.track(true).toManaged_
+    //_           <- monitorFibers(supervisor).repeat(Schedule.spaced(60000.milliseconds)).toManaged_.fork
+    scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer[EJN](auth,config.webserver)
     _           <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_
   } yield ()).useNow

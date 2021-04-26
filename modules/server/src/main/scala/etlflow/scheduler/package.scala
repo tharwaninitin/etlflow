@@ -32,6 +32,11 @@ package object scheduler {
 
   def repeatEffectsForCron[R,A](tasks: List[(CronExpr,URIO[R,A])]): RIO[R with Clock, Unit] = {
     val scheduled = tasks.map { case (cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever) }
-    ZIO.collectAllPar(scheduled).as(())
+    ZIO.collectAllPar_(scheduled)
+  }
+
+  def repeatEffectsForCronWithName[R,A](tasks: List[(String,CronExpr,URIO[R,A])]): RIO[R with Clock, Unit] = {
+    val scheduled = tasks.map { case (name,cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name) }
+    ZIO.collectAllPar_(scheduled)
   }
 }

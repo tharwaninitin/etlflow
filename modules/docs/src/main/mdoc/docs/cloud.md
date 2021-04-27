@@ -15,7 +15,7 @@ To use etlflow cloud library in project add below setting in build.sbt file :
 
 ```
 
-lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "cloud")
+lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#x.x.x"), "cloud")
 lazy val docs = (project in file("modules/examples"))
   .dependsOn(etlflowCloud)
          

@@ -40,7 +40,7 @@ To use etlflow server library in project add below setting in build.sbt file
 
 ```scala 
 
-lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "server")
+lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#x.x.x"), "server")
 lazy val root = (project in file(".")).dependsOn(etlflowServer)
          
 ```

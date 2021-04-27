@@ -10,7 +10,7 @@ To use etlflow core library in project add below setting in build.sbt file
 
 ```scala
 
-lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "core")
+lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#x.x.x"), "core")
 lazy val root = (project in file(".")).dependsOn(etlflowCore)
          
 ```

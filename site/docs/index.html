@@ -45,11 +45,34 @@
 <p><img src="etlflow.png" alt="Example" /></p>
 
 <ul>
-  <li><strong>RAW SUCCESS FILE CHECK:</strong>  Using GCSSensorStepGCS we can lookup for specified key in bucket repeatedly until it is
-found or fail after defined number of retries</li>
-  <li><strong>S3-GCS DATA TRANSFER:</strong> Using SparkReadWriteStep we can transfer the data from AWS to GCS.</li>
-  <li><strong>PARALLEL INGESTION:</strong> Load transformed data into Big Query table using parallel step.</li>
-  <li><strong>SUCCESS/FAILURE NOTIFICATION:</strong> Using HTTP/EMAIL step we can send the success or failure notifications/emails to other teams.</li>
+  <li><strong><a href="https://tharwaninitin.github.io/etlflow/site/docs/sensors.html">Sensor Step</a>:</strong>
+    <ol>
+      <li>Using GCSSensorStepGCS we can lookup for specified file in a bucket repeatedly until it is
+found or fail after defined number of retries.</li>
+      <li>For Sensor step we can use S3SensorStep, GCSSensorStep.</li>
+      <li>This steps requires the infomation on Input bucket, Output Bucket, Retry paramaters etc.</li>
+    </ol>
+  </li>
+  <li><strong><a href="https://tharwaninitin.github.io/etlflow/site/docs/cloud_steps.html">Data Transfer Step</a>:</strong>
+    <ol>
+      <li>Using SparkReadWriteStep we can transfer the data from AWS to GCS.</li>
+      <li>For Data transfer step we can use  SparkReadWriteStep, CloudStoreSyncStep.</li>
+      <li>Using above mentioned steps we can transfer data from  GCS-to-LOCAL, LOCAL-to-S3, S3-to-LOCAL, GCS-to-LOCAL etc.</li>
+    </ol>
+  </li>
+  <li><strong><a href="https://tharwaninitin.github.io/etlflow/site/docs/spark.html">Spark Step</a>:</strong>
+    <ol>
+      <li>Load transformed data into Big Query table using parallel step.</li>
+      <li>For Spark Step we can use  SparkReadWriteStep, SparkReadTransformWriteStep.</li>
+      <li>This steps can load the input bucket data, transform the same data and write into destination bucket.</li>
+    </ol>
+  </li>
+  <li><strong><a href="https://tharwaninitin.github.io/etlflow/site/docs/sendmail.html">Success/Failure Step</a>:</strong>
+    <ol>
+      <li>Using HTTP/EMAIL step we can send the success or failure notifications/emails to other teams.</li>
+      <li>For Success/Failure Step we can use SendMailStep.</li>
+    </ol>
+  </li>
 </ul>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

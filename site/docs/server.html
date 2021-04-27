@@ -44,7 +44,7 @@ Unique feature of this is that we can run the same etl job in different modes li
 <p>To use etlflow server library in project add below setting in build.sbt file</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">etlflowServer</span> <span class="k">=</span> <span class="nc">ProjectRef</span><span class="o">(</span><span class="nf">uri</span><span class="o">(</span><span class="s">"git://github.com/tharwaninitin/etlflow.git#minimal"</span><span class="o">),</span> <span class="s">"server"</span><span class="o">)</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="nv">etlflowServer</span> <span class="k">=</span> <span class="nc">ProjectRef</span><span class="o">(</span><span class="nf">uri</span><span class="o">(</span><span class="s">"git://github.com/tharwaninitin/etlflow.git#x.x.x"</span><span class="o">),</span> <span class="s">"server"</span><span class="o">)</span>
 <span class="k">lazy</span> <span class="k">val</span> <span class="nv">root</span> <span class="k">=</span> <span class="o">(</span><span class="n">project</span> <span class="n">in</span> <span class="nf">file</span><span class="o">(</span><span class="s">"."</span><span class="o">)).</span><span class="py">dependsOn</span><span class="o">(</span><span class="n">etlflowServer</span><span class="o">)</span>
          
 </code></pre></div></div>
@@ -60,7 +60,7 @@ For e.g. intermediate path can be dynamically generated for every run based on c
 <span class="k">lazy</span> <span class="k">val</span> <span class="nv">canonical_path</span> <span class="k">=</span> <span class="k">new</span> <span class="nv">java</span><span class="o">.</span><span class="py">io</span><span class="o">.</span><span class="py">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="py">getCanonicalPath</span>
 <span class="k">lazy</span> <span class="k">val</span> <span class="nv">input_file_path</span> <span class="k">=</span> <span class="n">s</span><span class="s">"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"</span>
 <span class="k">val</span> <span class="nv">date_prefix</span> <span class="k">=</span> <span class="nv">LocalDate</span><span class="o">.</span><span class="py">now</span><span class="o">.</span><span class="py">toString</span><span class="o">.</span><span class="py">replace</span><span class="o">(</span><span class="s">"-"</span><span class="o">,</span><span class="s">""</span><span class="o">)</span>
-<span class="c1">// date_prefix: String = "20210422"</span>
+<span class="c1">// date_prefix: String = "20210427"</span>
       
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob1Props</span> <span class="o">(</span>
   <span class="n">ratings_input_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">input_file_path</span><span class="o">,</span>

@@ -63,7 +63,7 @@
 <p><strong>Run this step as below</strong></p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">task</span> <span class="k">=</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@7f9b443a</span>
+<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@3034e0aa</span>
 </code></pre></div></div>
 
 <p><strong>Now executing above step has added data in ORC format in path defined in above properties upon completion.</strong></p>
@@ -103,7 +103,7 @@
 <span class="o">)</span>
      
 <span class="k">val</span> <span class="nv">task1</span> <span class="k">=</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@77d504bf</span>
+<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@33164c96</span>
 </code></pre></div></div>
 <p><strong>Lets add another step which will copy this transformed ORC data in BigQuery table. 
 For this step to work correctly <a href="https://cloud.google.com/sdk/install">Google Cloud SDK</a> needs to be installed and configured, 
@@ -129,7 +129,7 @@ as in this library upload from local file to BigQuery uses <a href="https://clou
 <span class="o">)</span>
     
 <span class="k">val</span> <span class="nv">task2</span> <span class="k">=</span> <span class="nv">step2</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@7a281a14</span>
+<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@72694813</span>
 </code></pre></div></div>
 <p><strong>Now we can run also chain multiple steps together and run as single job as shown below.</strong></p>
 
@@ -137,7 +137,7 @@ as in this library upload from local file to BigQuery uses <a href="https://clou
         <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
         <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step2</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
 <span class="o">}</span> <span class="nf">yield</span> <span class="o">()</span>
-<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@497b29d1</span>
+<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@3214029a</span>
 </code></pre></div></div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>

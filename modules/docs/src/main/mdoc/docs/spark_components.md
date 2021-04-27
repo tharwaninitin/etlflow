@@ -9,7 +9,7 @@ To use etlflow Spark library in project add below setting in build.sbt file :
 
 ```
 
-    lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#minimal"), "spark")
+    lazy val etlflowSpark = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#x.x.x"), "spark")
     lazy val docs = (project in file("modules/examples"))
         .dependsOn(etlflowSpark)
          

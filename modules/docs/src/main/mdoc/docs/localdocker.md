@@ -94,4 +94,4 @@ Below Docker compose file file contains the two services :
       
 * Here you can see we are copying the loaddata.properties file and cred.json file inside docker image. 
 
-[Setting up a docker environment](https://github.com/tharwaninitin/etlflow/tree/minimal/deployment/docker)   
+[Setting up a docker environment](https://github.com/tharwaninitin/etlflow/tree/feature11/deployment/docker)   

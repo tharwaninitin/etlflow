@@ -92,4 +92,4 @@ GKE contains the 2 types of yaml files :
       kubectl get services ( Get the Service's external IP address )  
      
 
-[To setup a kubernetes cluster](https://github.com/tharwaninitin/etlflow/tree/minimal/deployment/gcp)
+[To setup a kubernetes cluster](https://github.com/tharwaninitin/etlflow/tree/feature11/deployment/gcp)

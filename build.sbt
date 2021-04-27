@@ -13,7 +13,8 @@ lazy val etlflowCloud = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.g
 
 lazy val docsSettings = Seq(
   name := "etlflow-docs"
-    , libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % "1.2.3")
+  , libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % "1.2.3",
+    "org.apache.spark" %% "spark-sql" % "2.4.7" exclude("org.slf4j", "slf4j-log4j12"))
 )
 
 lazy val docs = (project in file("modules/docs"))

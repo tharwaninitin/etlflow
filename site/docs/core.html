@@ -3,10 +3,12 @@
 <h3 id="step-1-define-buildsbt">STEP 1) Define build.sbt:</h3>
 <p>To use etlflow core library in project add below setting in build.sbt file</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">etlflowCore</span> <span class="k">=</span> <span class="nc">ProjectRef</span><span class="o">(</span><span class="nf">uri</span><span class="o">(</span><span class="s">"git://github.com/tharwaninitin/etlflow.git#x.x.x"</span><span class="o">),</span> <span class="s">"core"</span><span class="o">)</span>
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">root</span> <span class="k">=</span> <span class="o">(</span><span class="n">project</span> <span class="n">in</span> <span class="nf">file</span><span class="o">(</span><span class="s">"."</span><span class="o">)).</span><span class="py">dependsOn</span><span class="o">(</span><span class="n">etlflowCore</span><span class="o">)</span>
-         
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+lazy val root = (project in file("."))
+  .settings(
+    scalaVersion := "2.12.13",
+    libraryDependencies ++= List("com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"))
+
 </code></pre></div></div>
 
 <h3 id="step-2-define-job-properties-etljobpropsscala">STEP 2) Define job properties EtlJobProps.scala:</h3>

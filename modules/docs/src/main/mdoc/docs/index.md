@@ -36,19 +36,19 @@ This library provides **plug-and-play steps** for Apache Spark, No SQL Databases
 
 ![Example](etlflow.png)
 
-* **[Sensor Step](https://tharwaninitin.github.io/etlflow/site/docs/sensors.html):**  
-  1. Using GCSSensorStepGCS we can lookup for specified file in a bucket repeatedly until it is
+* **Sensor Step:**  
+  1. Using [Sensor Step](https://tharwaninitin.github.io/etlflow/site/docs/sensors.html) we can lookup for specified file in a bucket repeatedly until it is
      found or fail after defined number of retries. 
-  2. For Sensor step we can use S3SensorStep, GCSSensorStep. 
-  3. This steps requires the infomation on Input bucket, Output Bucket, Retry paramaters etc.         
-* **[Data Transfer Step](https://tharwaninitin.github.io/etlflow/site/docs/cloud_steps.html):** 
-  1. Using SparkReadWriteStep we can transfer the data from AWS to GCS. 
-  2. For Data transfer step we can use  SparkReadWriteStep, CloudStoreSyncStep.
-  3. Using above mentioned steps we can transfer data from  GCS-to-LOCAL, LOCAL-to-S3, S3-to-LOCAL, GCS-to-LOCAL etc.  
-* **[Spark Step](https://tharwaninitin.github.io/etlflow/site/docs/spark.html):** 
-  1. Load transformed data into Big Query table using parallel step.  
-  2. For Spark Step we can use  SparkReadWriteStep, SparkReadTransformWriteStep.
+  2. For example, We can use [S3SensorStep](https://tharwaninitin.github.io/etlflow/site/docs/s3sensor.html), [GCSSensorStep](https://tharwaninitin.github.io/etlflow/site/docs/gcssensor.html). 
+  3. These steps require the information on Input bucket, Output Bucket, Retry parameters etc.         
+* **Data Transfer Step:** 
+  1. Using [Data Transfer Steps](https://tharwaninitin.github.io/etlflow/site/docs/cloud_steps.html) we can transfer the data from AWS to GCS. 
+  2. For Data transfer step we can use [CloudStoreSyncStep](https://tharwaninitin.github.io/etlflow/site/docs/cloud_steps.html).
+  3. Using above mentioned steps we can transfer data from GCS-to-LOCAL, LOCAL-to-S3, S3-to-LOCAL, GCS-to-LOCAL etc.  
+* **Spark Step:** 
+  1. Using [Spark Step](https://tharwaninitin.github.io/etlflow/site/docs/spark.html) we can load transformed data into destination(BQ,JDBC,GCS).  
+  2. For example, we can use  [SparkReadWriteStep](https://tharwaninitin.github.io/etlflow/site/docs/spark.html), [SparkReadTransformWriteStep](https://tharwaninitin.github.io/etlflow/site/docs/spark.html).
   3. This steps can load the input bucket data, transform the same data and write into destination bucket.
-* **[Success/Failure Step](https://tharwaninitin.github.io/etlflow/site/docs/sendmail.html):**
-  1. Using HTTP/EMAIL step we can send the success or failure notifications/emails to other teams.
-  2. For Success/Failure Step we can use SendMailStep.
+  4. We can load the data from (AWS,GCS,JDBC,BQ) and we can write the data into (GCS,JDBC,BQ) using spark Step.  
+* **Success/Failure Step:**
+     Using [HTTP](https://tharwaninitin.github.io/etlflow/site/docs/http.html) / [EMAIL](https://tharwaninitin.github.io/etlflow/site/docs/sendmail.html) step we can send the success or failure notifications/emails to other teams.

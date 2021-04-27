@@ -9,6 +9,6 @@ As **Step** can perform any process that can be executed in Scala. Similarly, **
 **They can be used to pause the execution of dependent steps until some criterion has been met**. Basically they are steps with additional retry capabilities.
 
 Following is the list of sensors available in this library:
-- GCSSensorStep
-- S3SensorStep
-- JDBCSensorStep
+- [GCSSensorStep](https://tharwaninitin.github.io/etlflow/site/docs/gcssensor.html) 
+- [S3SensorStep](https://tharwaninitin.github.io/etlflow/site/docs/s3sensor.html)
+- JDBCSensorStep    

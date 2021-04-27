@@ -32,7 +32,6 @@ Unique feature of this is that we can run the same etl job in different modes li
 
 ![Architecture Diagram](executors.jpg)
 
-
 In above diagram we can see docker container is connected to database (postgres) which is getting used for storing all the etl jobs related information in database tables.
 
 ### STEP 1) Define build.sbt: 
@@ -40,9 +39,11 @@ To use etlflow server library in project add below setting in build.sbt file
 
 ```scala 
 
-lazy val etlflowServer = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#x.x.x"), "server")
-lazy val root = (project in file(".")).dependsOn(etlflowServer)
-         
+lazy val root = (project in file("."))
+  .settings(
+    scalaVersion := "2.12.13",
+    libraryDependencies ++= List("com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"))
+            
 ```
 
 ### STEP 2) Define job properties EtlJobProps.scala:

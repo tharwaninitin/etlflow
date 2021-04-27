@@ -8,11 +8,13 @@ title: Etlflow Core
 ### STEP 1) Define build.sbt: 
 To use etlflow core library in project add below setting in build.sbt file
 
-```scala
+```
 
-lazy val etlflowCore = ProjectRef(uri("git://github.com/tharwaninitin/etlflow.git#x.x.x"), "core")
-lazy val root = (project in file(".")).dependsOn(etlflowCore)
-         
+lazy val root = (project in file("."))
+  .settings(
+    scalaVersion := "2.12.13",
+    libraryDependencies ++= List("com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"))
+
 ```
 
 ### STEP 2) Define job properties EtlJobProps.scala:

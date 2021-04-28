@@ -10,6 +10,7 @@ import etlflow.api.Schema._
 import etlflow.utils.GetStartTime
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
+import etlflow.utils.{UtilityFunctions => UF}
 
 object SQL {
 
@@ -185,8 +186,8 @@ object SQL {
 
     if (args.filter.isDefined && args.limit.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val end_time1 = sdf.parse(LocalDate.now().toString).getTime
-      val end_time2 = sdf.parse(LocalDate.now().plusDays(args.filter.get.toLong).toString).getTime
+      val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
+      val end_time2 = UF.getCurrentTimestamp
       q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
@@ -198,7 +199,8 @@ object SQL {
                             THEN sum(count) ELSE 0
                         END failed
                   FROM (select job_name, state,count(*) as count from jobrun
-                  WHERE inserted_at BETWEEN ${end_time1} AND ${end_time2}
+                  WHERE inserted_at >= ${end_time1} AND
+                    inserted_at <= ${end_time2}
                     GROUP by job_name,state limit ${args.limit}) t
                     GROUP by job_name,state
                   ) t1 GROUP by job_name;""".stripMargin
@@ -206,8 +208,8 @@ object SQL {
     }
     else if (args.filter.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val end_time1 = sdf.parse(LocalDate.now().toString).getTime
-      val end_time2 = sdf.parse(LocalDate.now().plusDays(args.filter.get.toLong).toString).getTime
+      val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
+      val end_time2 = UF.getCurrentTimestamp
       q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
@@ -221,7 +223,8 @@ object SQL {
                           ELSE 0
                       END failed
                FROM (select job_name, state,count(*) as count from jobrun
-                  WHERE inserted_at BETWEEN ${end_time1} AND ${end_time2}
+                  WHERE inserted_at >= ${end_time1} AND
+                   inserted_at <= ${end_time2}
                   GROUP by job_name,state limit 50) t
                   GROUP by job_name,state
                ) t1 GROUP by job_name;""".stripMargin

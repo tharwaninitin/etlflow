@@ -5,7 +5,6 @@ import cron4s.Cron
 import cron4s.lib.javatime._
 import doobie.implicits._
 import etlflow.EJPMType
-import etlflow.log.{JobRun, StepRun}
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
 import etlflow.utils.{EtlFlowUtils, JsonJackson, UtilityFunctions => UF}
@@ -101,6 +100,10 @@ object DB extends EtlFlowUtils {
       def getStepRuns(args: DbStepRunArgs): IO[ExecutionError, List[StepRun]] = {
         SQL.getStepRuns(args)
           .to[List]
+          .map(y => y.map { x => {
+            StepRun(x.job_run_id, x.step_name, x.properties, x.state, UF.getTimestampAsString(x.inserted_at), x.elapsed_time, x.step_type, x.step_run_id)
+          }
+          })
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -110,6 +113,10 @@ object DB extends EtlFlowUtils {
       def getJobRuns(args: DbJobRunArgs): IO[ExecutionError, List[JobRun]] = {
         SQL.getJobRuns(args)
           .to[List]
+          .map(y => y.map { x => {
+            JobRun(x.job_run_id, x.job_name, x.properties, x.state, UF.getTimestampAsString(x.inserted_at), x.elapsed_time, x.job_type, x.is_master)
+          }
+          })
           .transact(transactor)
           .mapError { e =>
             logger.error(s"Exception ${e.getMessage} occurred for arguments $args")

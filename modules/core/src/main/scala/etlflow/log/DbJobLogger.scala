@@ -19,26 +19,19 @@ class DbJobLogger(transactor: HikariTransactor[Task], job_name: String, job_prop
   })
 
   def logStart(start_time: Long, job_type: String): Task[Unit] = {
-    val job = JobRun(
-      job_run_id, job_name,
-      JsonJackson.convertToJsonByRemovingKeys(job_properties, List.empty),
-      "started",
-      UF.getCurrentTimestampAsString(),
-      "...",
-      job_type,
-      is_master
-    )
+    val properties = JsonJackson.convertToJsonByRemovingKeys(job_properties, List.empty)
     logger.info("Logging job start in db")
     sql"""INSERT INTO JobRun(
             job_run_id,
             job_name,
             properties,
             state,
-            start_time,
             elapsed_time,
             job_type,
-            is_master)
-         VALUES (${job.job_run_id}, ${job.job_name}, ${JsonString(job.properties)}, ${job.state}, ${job.start_time}, ${job.elapsed_time}, ${job.job_type}, ${job.is_master})"""
+            is_master,
+            inserted_at
+            )
+         VALUES ($job_run_id, $job_name, ${JsonString(properties)}, 'started', '...', $job_type, $is_master, $start_time)"""
       .update
       .run
       .transact(transactor).unit

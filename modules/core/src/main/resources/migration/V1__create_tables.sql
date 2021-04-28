@@ -13,11 +13,10 @@ CREATE TABLE "jobrun" (
     "job_name" text NOT NULL,
     "properties" jsonb NOT NULL,
     "state" text NOT NULL,
-    "start_time" varchar(100) NOT NULL,
     "elapsed_time" varchar(100) NOT NULL,
     "job_type" varchar(100) NOT NULL,
     "is_master" varchar(100) NOT NULL,
-    "inserted_at" timestamp NOT NULL DEFAULT (current_timestamp)
+    "inserted_at" bigint NOT NULL
 );
 
 CREATE TABLE "steprun" (
@@ -25,11 +24,10 @@ CREATE TABLE "steprun" (
     "step_name" varchar(100) NOT NULL,
     "properties" jsonb NOT NULL,
     "state" text NOT NULL,
-    "start_time" varchar(100) NOT NULL,
     "elapsed_time" varchar(100) NOT NULL,
     "step_type" varchar(100) NOT NULL,
     "step_run_id" varchar(100) NOT NULL,
-    "inserted_at" timestamp NOT NULL DEFAULT (current_timestamp)
+    "inserted_at" bigint NOT NULL
 );
 
 CREATE TABLE "userinfo" (

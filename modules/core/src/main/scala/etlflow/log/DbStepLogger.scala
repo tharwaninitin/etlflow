@@ -24,27 +24,20 @@ class DbStepLogger(transactor: HikariTransactor[Task], job_run_id: String, job_n
   def updateStepLevelInformation(execution_start_time: Long, etl_step: EtlStep[_,_], state_status: String, error_message: Option[String] = None, mode: String = "update"): Task[Long] = {
     val formatted_step_name = UF.stringFormatter(etl_step.name)
     if (mode == "insert") {
-      val step = StepRun(
-        job_run_id,
-        formatted_step_name,
-        JsonJackson.convertToJson(etl_step.getStepProperties(job_notification_level)),
-        state_status.toLowerCase(),
-        UF.getCurrentTimestampAsString(),
-        "...",
-        etl_step.step_type,
-        if(remoteStep.contains(etl_step.step_type)) etl_step.getStepProperties(job_notification_level)("step_run_id") else ""
-      )
+      val properties = JsonJackson.convertToJson(etl_step.getStepProperties(job_notification_level))
+      val step_run_id = if(remoteStep.contains(etl_step.step_type)) etl_step.getStepProperties(job_notification_level)("step_run_id") else ""
       logger.info(s"Inserting step info for ${formatted_step_name} in db with status => ${state_status.toLowerCase()}")
       val x = sql"""INSERT INTO StepRun (
               job_run_id,
               step_name,
               properties,
               state,
-              start_time,
               elapsed_time,
               step_type,
-              step_run_id)
-            VALUES (${step.job_run_id}, ${step.step_name},${JsonString(step.properties)}, ${step.state}, ${step.start_time}, ${step.elapsed_time}, ${step.step_type}, ${step.step_run_id})"""
+              step_run_id,
+              inserted_at
+              )
+            VALUES ($job_run_id, $formatted_step_name,${JsonString(properties)}, ${state_status.toLowerCase()}, '...', ${etl_step.step_type}, $step_run_id, $execution_start_time)"""
 
       val y: Task[Long] = x.update.run.transact(transactor).map(x =>x.toLong).mapError{e =>
         logger.error(s"failed in logging to db ${e.getMessage}")

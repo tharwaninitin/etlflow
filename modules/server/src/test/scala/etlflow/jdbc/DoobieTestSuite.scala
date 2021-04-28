@@ -6,7 +6,6 @@ import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
 import etlflow.api.Schema._
 import org.scalatest._
-import etlflow.log.{JobRun, StepRun}
 import java.time.LocalDate
 
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with ServerSuiteHelper {
@@ -134,28 +133,28 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
   val query11:doobie.Query0[JobDBAll]  = SQL.getJobs
   test("getJobs") { check(query11)}
 
-  val query12:doobie.Query0[StepRun]  = SQL.getStepRuns(dbStepRunArgs)
+  val query12:doobie.Query0[StepRunDB]  = SQL.getStepRuns(dbStepRunArgs)
   test("getStepRuns") { check(query12)}
 
-  val query13:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs1)
+  val query13:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs1)
   test("getJobRuns_case1_defined(job_run_id)") { check(query13)}
 
-  val query14:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs2)
+  val query14:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs2)
   test("getJobRuns_case2_defined(job_name,start_time,end_time,filter(IN))") { check(query14)}
 
-  val query15:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs3)
+  val query15:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs3)
   test("getJobRuns_case3_defined(job_name,start_time,end_time,filter(NOT IN))") { check(query15)}
 
-  val query16:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs4)
+  val query16:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs4)
   test("getJobRuns_case_4_defined(job_name,filter(NOT IN))") { check(query16)}
 
-  val query17:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs5)
+  val query17:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs5)
   test("getJobRuns_case5_defined(job_name,filter(IN))") { check(query17)}
 
-  val query18:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs6)
+  val query18:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs6)
   test("getJobRuns_case6_defined(start_time,end_time)") { check(query18)}
 
-  val query19:doobie.Query0[JobRun]  = SQL.getJobRuns(dbJobRunArgs7)
+  val query19:doobie.Query0[JobRunDB]  = SQL.getJobRuns(dbJobRunArgs7)
   test("getJobRuns_case7_default") { check(query19)}
 
   val query20:doobie.Query0[JobLogs]  = SQL.getJobLogs(jobLogsArgs1)

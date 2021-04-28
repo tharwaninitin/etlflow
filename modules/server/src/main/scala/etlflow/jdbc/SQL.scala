@@ -1,15 +1,16 @@
 package etlflow.jdbc
 
-import java.text.SimpleDateFormat
-import java.time.LocalDate
 import cats.data.NonEmptyList
 import cats.effect.Async
 import doobie.free.connection.ConnectionIO
 import doobie.util.meta.Meta
 import org.postgresql.util.PGobject
 import doobie.implicits._
-import etlflow.log.{JobRun, StepRun}
 import etlflow.api.Schema._
+import etlflow.utils.GetStartTime
+import java.text.SimpleDateFormat
+import java.time.{LocalDate, ZoneId}
+import etlflow.utils.{UtilityFunctions => UF}
 
 object SQL {
 
@@ -32,51 +33,27 @@ object SQL {
     sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
       .query[JobDBAll]
 
-  def getStepRuns(args: DbStepRunArgs): doobie.Query0[StepRun] =
+  def getStepRuns(args: DbStepRunArgs): doobie.Query0[StepRunDB] =
     sql"""SELECT job_run_id,
             step_name,
             properties::TEXT,
             state,
-            start_time,
             elapsed_time,
             step_type,
-            step_run_id
+            step_run_id,
+            inserted_at
             FROM StepRun
           WHERE job_run_id = ${args.job_run_id}
           ORDER BY inserted_at DESC"""
-      .query[StepRun]
+      .query[StepRunDB]
 
-  def getJobRuns(args: DbJobRunArgs): doobie.Query0[JobRun] = {
+  def getJobRuns(args: DbJobRunArgs): doobie.Query0[JobRunDB] = {
 
-    var q: doobie.Query0[JobRun] = null
+    var q: doobie.Query0[JobRunDB] = null
 
-    if (args.jobRunId.isDefined && args.jobName.isEmpty) {
-      q =
-        sql"""SELECT job_run_id,
-                job_name,
-                properties::TEXT,
-                state,
-                start_time,
-                elapsed_time,
-                job_type,
-                is_master
-              FROM jobRun
-              WHERE job_run_id = ${args.jobRunId.get}
-              AND is_master = 'true'
-              ORDER BY inserted_at DESC
-              offset ${args.offset} limit ${args.limit}"""
-        .query[JobRun] // Query0[String]
-      // logger.info(s"Query Fragment Generated for arguments $args is ")
-    }
-    else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
-      val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val startTime = if (args.startTime.isDefined)
-        sdf.parse(args.startTime.get.toString)
-      else
-        sdf.parse(LocalDate.now().plusDays(1).toString)
-
-      val endTime =  sdf.parse(args.endTime.get.plusDays(1).toString)
-
+    if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
+      val startTime = GetStartTime(args.startTime)
+      val endTime =  args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       args.filter.get match {
         case "IN" => {
           q = sql"""
@@ -85,18 +62,18 @@ object SQL {
                      job_name,
                      properties::TEXT,
                      state,
-                     start_time,
                      elapsed_time,
                      job_type,
-                     is_master
+                     is_master,
+                     inserted_at
                  FROM jobRun
                  WHERE job_name = ${args.jobName.get}
                  AND is_master = 'true'
-                 AND inserted_at::date >= ${startTime}
-                 AND inserted_at::date < ${endTime}
+                 AND inserted_at >= $startTime
+                 AND inserted_at < $endTime
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRun]
+            .query[JobRunDB]
         }
         case "NOT IN" => {
           q = sql"""
@@ -105,18 +82,18 @@ object SQL {
                      job_name,
                      properties::TEXT,
                      state,
-                     start_time,
                      elapsed_time,
                      job_type,
-                     is_master
+                     is_master,
+                     inserted_at
                  FROM jobRun
                  WHERE job_name != ${args.jobName.get}
                  AND is_master = 'true'
-                 AND inserted_at::date >= ${startTime}
-                 AND inserted_at::date < ${endTime}
+                 AND inserted_at >= ${startTime}
+                 AND inserted_at < ${endTime}
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRun]
+            .query[JobRunDB]
         }
       }
       // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
@@ -130,62 +107,57 @@ object SQL {
                      job_name,
                      properties::TEXT,
                      state,
-                     start_time,
                      elapsed_time,
                      job_type,
-                     is_master
+                     is_master,
+                     inserted_at
                  FROM jobRun
                  WHERE job_name = ${args.jobName.get}
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRun]
+            .query[JobRunDB]
         }
         case "NOT IN" => {
           q = sql"""
                  SELECT
-                     job_run_id,
+                   job_run_id,
                      job_name,
                      properties::TEXT,
                      state,
-                     start_time,
                      elapsed_time,
                      job_type,
-                     is_master
+                     is_master,
+                     inserted_at
                  FROM jobRun
                  WHERE job_name != ${args.jobName.get}
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRun]
+            .query[JobRunDB]
         }
       }
     }
     else if (args.endTime.isDefined) {
-      val sdf = new SimpleDateFormat("yyyy-MM-dd")
-      val startTime = if (args.startTime.isDefined)
-        sdf.parse(args.startTime.get.toString)
-      else
-        sdf.parse(LocalDate.now().plusDays(1).toString)
-
-      val endTime = sdf.parse(args.endTime.get.plusDays(1).toString)
+      val startTime = GetStartTime(args.startTime)
+      val endTime =  args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       q = sql"""
                  SELECT
                      job_run_id,
                      job_name,
                      properties::TEXT,
                      state,
-                     start_time,
                      elapsed_time,
                      job_type,
-                     is_master
+                     is_master,
+                     inserted_at
                  FROM jobRun
-                 WHERE inserted_at::date >= ${startTime}
-                 AND inserted_at::date < ${endTime}
+                 WHERE inserted_at >= $startTime
+                 AND inserted_at < $endTime
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        .query[JobRun]
+        .query[JobRunDB]
       // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
     }
     else {
@@ -195,15 +167,15 @@ object SQL {
                      job_name,
                      properties::TEXT,
                      state,
-                     start_time,
                      elapsed_time,
                      job_type,
-                     is_master
+                     is_master,
+                     inserted_at
                  FROM jobRun
                  WHERE is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        .query[JobRun]
+        .query[JobRunDB]
     }
     q
   }
@@ -213,6 +185,9 @@ object SQL {
     var q: doobie.Query0[JobLogs] = null
 
     if (args.filter.isDefined && args.limit.isDefined) {
+      val sdf = new SimpleDateFormat("yyyy-MM-dd")
+      val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
+      val end_time2 = UF.getCurrentTimestamp
       q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
@@ -224,13 +199,17 @@ object SQL {
                             THEN sum(count) ELSE 0
                         END failed
                   FROM (select job_name, state,count(*) as count from jobrun
-                  WHERE start_time::timestamp::date BETWEEN (current_date - INTERVAL '1 Day' * ${args.filter.get})::date AND current_date
+                  WHERE inserted_at >= ${end_time1} AND
+                    inserted_at <= ${end_time2}
                     GROUP by job_name,state limit ${args.limit}) t
                     GROUP by job_name,state
                   ) t1 GROUP by job_name;""".stripMargin
         .query[JobLogs] // Query0[String]
     }
     else if (args.filter.isDefined) {
+      val sdf = new SimpleDateFormat("yyyy-MM-dd")
+      val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
+      val end_time2 = UF.getCurrentTimestamp
       q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
@@ -244,7 +223,8 @@ object SQL {
                           ELSE 0
                       END failed
                FROM (select job_name, state,count(*) as count from jobrun
-                  WHERE start_time::timestamp::date BETWEEN (current_date - INTERVAL '1 Day' * ${args.filter.get})::date AND current_date
+                  WHERE inserted_at >= ${end_time1} AND
+                   inserted_at <= ${end_time2}
                   GROUP by job_name,state limit 50) t
                   GROUP by job_name,state
                ) t1 GROUP by job_name;""".stripMargin

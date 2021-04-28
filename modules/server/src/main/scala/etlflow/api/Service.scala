@@ -2,7 +2,6 @@ package etlflow.api
 
 import etlflow.DBEnv
 import etlflow.jdbc.DBServerEnv
-import etlflow.log.{JobRun, StepRun}
 import etlflow.api.Schema._
 import zio.ZIO
 import zio.blocking.Blocking

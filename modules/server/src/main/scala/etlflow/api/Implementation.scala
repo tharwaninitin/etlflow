@@ -3,7 +3,7 @@ package etlflow.api
 import etlflow.api.Schema._
 import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBServerEnv}
-import etlflow.log.{ApplicationLogger, JobRun, StepRun}
+import etlflow.log.{ApplicationLogger}
 import etlflow.utils.{CacheHelper, EtlFlowUtils, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
@@ -11,6 +11,7 @@ import org.ocpsoft.prettytime.PrettyTime
 import zio._
 import zio.blocking.Blocking
 import zio.stream.ZStream
+
 import scala.reflect.runtime.universe.TypeTag
 
 object Implementation extends EtlFlowUtils with ApplicationLogger {

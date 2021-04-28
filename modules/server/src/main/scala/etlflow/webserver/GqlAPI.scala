@@ -11,7 +11,6 @@ import etlflow.api.APIEnv
 import etlflow.api.Schema._
 import etlflow.api.Service._
 import etlflow.jdbc.DBServerEnv
-import etlflow.log.{JobRun, StepRun}
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock

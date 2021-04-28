@@ -6,10 +6,10 @@ VALUES ('Job1','','',0,0,'t');
 INSERT INTO job(job_name,job_description,schedule,failed,success,is_active)
 VALUES ('Job2','','',0,0,'f');
 
-INSERT INTO jobrun (job_run_id,job_name,properties,state,start_time,elapsed_time,job_type,is_master)
-VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','EtlJobDownload','{}','pass','2020-08-10 10:35:01','','GenericEtlJob','true');
-INSERT INTO jobrun (job_run_id,job_name,properties,state,start_time,elapsed_time,job_type,is_master)
-VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a302','EtlJobSpr','{}','pass','2020-08-10 10:35:01','','GenericEtlJob','true');
+INSERT INTO jobrun (job_run_id,job_name,properties,state,elapsed_time,job_type,is_master,inserted_at)
+VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','EtlJobDownload','{}','pass','','GenericEtlJob','true',1234567);
+INSERT INTO jobrun (job_run_id,job_name,properties,state,elapsed_time,job_type,is_master,inserted_at)
+VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a302','EtlJobSpr','{}','pass','','GenericEtlJob','true',1234567);
 
-INSERT INTO steprun (job_run_id,step_name,properties,state,start_time,elapsed_time,step_type,step_run_id)
-VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','download_spr','{}','pass','2020-08-10 10:35:01','1.6 mins','GenericEtlStep','123');
+INSERT INTO steprun (job_run_id,step_name,properties,state,elapsed_time,step_type,step_run_id,inserted_at)
+VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','download_spr','{}','pass','1.6 mins','GenericEtlStep','123',1234567);

@@ -5,14 +5,13 @@ import etlflow.api.{APIEnv, Implementation}
 import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.jdbc.{DBServerEnv, DbManager, liveDBWithTransactor}
-import etlflow.api.Schema.EtlJob
 import etlflow.executor.Executor
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import io.circe.generic.auto._
 import scalacache.caffeine.CaffeineCache
 import zio.blocking.Blocking
-import zio.{Queue, Runtime, Semaphore, ZLayer}
+import zio.{Chunk, Fiber, Queue, Runtime, Semaphore, Supervisor, ZLayer}
 
 trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
 
@@ -25,7 +24,8 @@ trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
   val sem: Map[String, Semaphore] = Map("Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)))
   val auth: Authentication = Authentication(authEnabled = true, cache, config.webserver)
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, queue)
-  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package)
+  val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
+  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor)
   val testDBLayer: ZLayer[Blocking, Throwable, DBServerEnv with DBEnv] = liveDBWithTransactor(config.dbLog)
 
 }

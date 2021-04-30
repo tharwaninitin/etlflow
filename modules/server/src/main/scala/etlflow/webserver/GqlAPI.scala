@@ -14,8 +14,6 @@ import etlflow.jdbc.DBServerEnv
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
-import zio.stream.ZStream
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -38,8 +36,8 @@ object GqlAPI extends GenericSchema[APIEnv with DBServerEnv with DBEnv with Bloc
                       cacheStats:ZIO[APIEnv, Throwable, List[CacheDetails]],
                       queueStats:ZIO[APIEnv, Throwable, List[QueueDetails]],
                       jobLogs: JobLogsArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]],
-                      credential: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]]
-
+                      credential: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]],
+                      jobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]
   )
 
   case class Mutations(
@@ -48,8 +46,6 @@ object GqlAPI extends GenericSchema[APIEnv with DBServerEnv with DBEnv with Bloc
                         add_credentials: CredentialsArgs => ZIO[APIEnv with DBServerEnv, Throwable, Credentials],
                         update_credentials: CredentialsArgs => ZIO[APIEnv with DBServerEnv, Throwable, Credentials],
                       )
-
-  case class Subscriptions(notifications: ZStream[APIEnv, Nothing, EtlJobStatus])
 
   implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
 
@@ -70,16 +66,14 @@ object GqlAPI extends GenericSchema[APIEnv with DBServerEnv with DBEnv with Bloc
           getCacheStats,
           getQueueStats,
           args => getJobLogs(args),
-          getCredentials
+          getCredentials,
+          getJobStats
         ),
         Mutations(
           args => runJob(args,"GraphQL API").mapError(ex => ExecutionError(ex.getMessage)),
           args => updateJobState(args),
           args => addCredentials(args),
           args => updateCredentials(args)
-        ),
-        Subscriptions(
-          notifications
         )
       )
     )

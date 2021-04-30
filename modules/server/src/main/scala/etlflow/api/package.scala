@@ -36,7 +36,6 @@ package object api {
 
     // API Results
     case class EtlJob(name: String, props: Map[String,String])
-    case class EtlJobStatus(name: String, status: String, props: Map[String,String])
     case class EtlFlowMetrics(active_jobs: Int, active_subscribers: Int, etl_jobs: Int, cron_jobs: Int, build_time: String)
     case class CurrentTime(current_time:String)
     case class UserAuth(message: String, token: String)
@@ -45,6 +44,7 @@ package object api {
     case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
     case class CacheDetails(name:String,details:Map[String,String])
     case class QueueDetails(name:String,details:String,submitted_from:String,execution_time:String)
+    case class EtlJobStatus(id: String, name: String, start_time: String, `type`: String, status: String)
     case class JobLogs(job_name: String,  success: String, failed: String)
     case class Job(
       name: String, props: Map[String,String], schedule: Option[CronExpr], nextSchedule: String, schduleRemainingTime: String ,

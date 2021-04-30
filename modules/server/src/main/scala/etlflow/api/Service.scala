@@ -23,7 +23,7 @@ trait Service {
   def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]]
   def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]]
   def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]]
-  def notifications: ZStream[APIEnv, Nothing, EtlJobStatus]
+  def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]
 }
 
 object Service {
@@ -36,9 +36,6 @@ object Service {
 
   def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] =
     ZIO.accessM[APIEnv](_.get.getInfo)
-
-  def notifications: ZStream[APIEnv, Nothing, EtlJobStatus] =
-    ZStream.accessStream[APIEnv](_.get.notifications)
 
   def login(args: UserArgs): ZIO[APIEnv with DBServerEnv, Throwable, UserAuth] =
     ZIO.accessM[APIEnv with DBServerEnv](_.get.login(args))
@@ -73,4 +70,6 @@ object Service {
   def getCredentials: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]] =
     ZIO.accessM[APIEnv with DBServerEnv](_.get.getCredentials)
 
+  def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]] =
+    ZIO.accessM[APIEnv](_.get.getJobStats)
 }

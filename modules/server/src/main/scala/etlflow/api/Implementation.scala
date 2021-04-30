@@ -3,25 +3,34 @@ package etlflow.api
 import etlflow.api.Schema._
 import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBServerEnv}
-import etlflow.log.{ApplicationLogger}
+import etlflow.log.ApplicationLogger
 import etlflow.utils.{CacheHelper, EtlFlowUtils, QueueHelper, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
+import zio.Fiber.Status.{Running, Suspended}
 import zio._
 import zio.blocking.Blocking
-import zio.stream.ZStream
-
 import scala.reflect.runtime.universe.TypeTag
 
 object Implementation extends EtlFlowUtils with ApplicationLogger {
 
-  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String): ZLayer[Blocking, Throwable, APIEnv] = {
-    for {
-      subscribers <- Ref.make(List.empty[Queue[EtlJobStatus]])
-      activeJobs  <- Ref.make(0)
-      pt          = new PrettyTime()
-    } yield new Service {
+  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]]): ZLayer[Blocking, Throwable, APIEnv] = {
+    ZLayer.succeed(new Service {
+
+      val pt = new PrettyTime()
+
+      final private def monitorFibers(supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]]): UIO[List[EtlJobStatus]] = for {
+        uio_status <- supervisor.value.map(_.map(_.dump))
+        status     <- ZIO.collectAll(uio_status.toList)
+        op = status.map{x =>
+              val status = x.status match {
+                case Running(_) => "Running"
+                case Suspended(previous, interruptible, epoch, blockingOn, asyncTrace) => s"Suspended($asyncTrace)"
+              }
+              EtlJobStatus(x.fiberId.seqNumber.toString, x.fiberName.getOrElse(""), UF.getTimestampAsString(x.fiberId.startTimeMillis), "Scheduled", status)
+             }
+      } yield op
 
       override def getJobs: ZIO[APIEnv with DBServerEnv, Throwable, List[Job]] = DB.getJobs[EJN](ejpm_package)
 
@@ -32,6 +41,8 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
       }
 
       override def getQueueStats: ZIO[APIEnv, Throwable, List[QueueDetails]] = QueueHelper.takeAll(executor.job_queue)
+
+      override def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]] = monitorFibers(supervisor)
 
       override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]] = DB.getJobLogs(args)
 
@@ -47,14 +58,11 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
 
       override def login(args: UserArgs): ZIO[APIEnv with DBServerEnv, Throwable, UserAuth] = auth.login(args)
 
-      override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = {
-        for {
-          x <- activeJobs.get
-          y <- subscribers.get
-          dt = UF.getLocalDateTimeFromTimestamp(BI.builtAtMillis)
-        } yield EtlFlowMetrics(
-          x,
-          y.length,
+      override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = Task {
+        val dt = UF.getLocalDateTimeFromTimestamp(BI.builtAtMillis)
+        EtlFlowMetrics(
+          0,
+          0,
           jobs.length,
           jobs.length,
           build_time = s"${dt.toString.take(16)} ${pt.format(dt)}"
@@ -66,14 +74,6 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
       override def addCredentials(args: CredentialsArgs): ZIO[APIEnv with DBServerEnv, Throwable, Credentials] = DB.addCredential(args)
 
       override def updateCredentials(args: CredentialsArgs): ZIO[APIEnv with DBServerEnv, Throwable, Credentials] = DB.updateCredential(args)
-
-      override def notifications: ZStream[APIEnv, Nothing, EtlJobStatus] = ZStream.unwrap {
-        for {
-          queue <- Queue.unbounded[EtlJobStatus]
-          _     <- UIO(logger.info(s"Starting new subscriber"))
-          _     <- subscribers.update(queue :: _)
-        } yield ZStream.fromQueue(queue).ensuring(queue.shutdown)
-      }
-    }
-  }.toLayer
+    })
+  }
 }

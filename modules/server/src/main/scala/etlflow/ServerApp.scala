@@ -5,7 +5,7 @@ import etlflow.api.Schema.EtlJob
 import etlflow.executor.Executor
 import etlflow.jdbc.liveDBWithTransactor
 import etlflow.scheduler.Scheduler
-import etlflow.utils.{CacheHelper, EtlFlowUtils, SetTimeZone}
+import etlflow.utils.{CacheHelper, EtlFlowUtils, GetCorsConfig, SetTimeZone}
 import etlflow.webserver.{Authentication, Http4sServer}
 import zio._
 import scala.reflect.runtime.universe.TypeTag
@@ -19,6 +19,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
       semaphores  = jobs.map(job => (job.name, rt.unsafeRun(Semaphore.make(permits = job.props("job_max_active_runs").toLong)))).toMap
     } yield semaphores
   }
+
 
   val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
     _           <- SetTimeZone(config).toManaged_
@@ -34,7 +35,8 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     apiLayer    = Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor)
     finalLayer  = apiLayer ++ dbLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
-    webserver   = etlFlowWebServer[EJN](auth,config.webserver)
+    corsConfig  = GetCorsConfig(config.webserver)
+    webserver   = etlFlowWebServer[EJN](auth,config.webserver,corsConfig)
     _           <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_
   } yield ()).useNow
 

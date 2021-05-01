@@ -44,7 +44,7 @@ object WebSocketTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
         assertM(testStream(token))(containsString("Expired token"))
       },
       testM("Test WebSocketFrame stream with correct token") {
-        CacheHelper.putKey(cache, token, token, Some(CacheHelper.default_ttl))
+        CacheHelper.putKey(authCache, token, token, Some(CacheHelper.default_ttl))
         assertM(testStream(token))(containsString("memory"))
       },
     ) @@ TestAspect.sequential

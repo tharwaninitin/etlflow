@@ -3,8 +3,8 @@ package etlflow.webserver
 import caliban.Http4sAdapter
 import cats.data.Kleisli
 import cats.effect.Blocker
-import etlflow.api.{ServerTask, ServerEnv}
-import etlflow.utils.WebServer
+import etlflow.api.{ServerEnv, ServerTask}
+import etlflow.utils.{GetCorsConfig, WebServer}
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
@@ -16,6 +16,7 @@ import org.http4s.{HttpRoutes, StaticFile}
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.{ZIO, ZManaged}
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
@@ -25,13 +26,14 @@ trait Http4sServer extends Http4sDsl[ServerTask] {
     case _@GET -> Root => Ok(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
   }
 
-  def allRoutes[EJN <: EJPMType : TypeTag](auth: Authentication): ZManaged[ServerEnv, Throwable, HttpRoutes[ServerTask]] = {
+  def allRoutes[EJN <: EJPMType : TypeTag](auth: Authentication, config: Option[WebServer]): ZManaged[ServerEnv, Throwable, HttpRoutes[ServerTask]] = {
     for {
       blocker            <- ZIO.access[Blocking](_.get.blockingExecutor.asEC).map(Blocker.liftExecutionContext).toManaged_
       metricsSvc         <- PrometheusExportService.build[ServerTask].toManagedZIO
       metrics            <- Prometheus.metricsOps[ServerTask](metricsSvc.collectorRegistry, "server").toManagedZIO
       etlFlowInterpreter <- GqlAPI.api.interpreter.toManaged_
       loginInterpreter   <- GqlLoginAPI.api.interpreter.toManaged_
+      corsConfig         = GetCorsConfig(config)
       routes = Router[ServerTask](
                  "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                   "/assets/js/2.8cc5e09d.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.8cc5e09d.chunk.js", blocker, None)),
@@ -45,7 +47,7 @@ trait Http4sServer extends Http4sDsl[ServerTask] {
                   "/ws/etlflow"  -> CORS(WebsocketAPI(auth).streamRoutes),
                   "/api"         -> CORS(auth.middleware(RestAPI.routes)),
                   "/swagger"     -> RestAPINew.swaggerRoute,
-                  "/restapi"     -> CORS(auth.middleware(RestAPINew.routes))
+                  "/restapi"     -> CORS(auth.middleware(RestAPINew.routes), corsConfig)
                 )
     } yield routes
   }
@@ -54,7 +56,7 @@ trait Http4sServer extends Http4sDsl[ServerTask] {
     ZIO.runtime[ServerEnv]
       .flatMap{implicit runtime =>
         (for {
-          routes  <- allRoutes[EJN](auth)
+          routes  <- allRoutes[EJN](auth, config)
           address = config.map(_.ip_address.getOrElse("0.0.0.0")).getOrElse("0.0.0.0")
           port    = config.map(_.port.getOrElse(8080)).getOrElse(8080)
           banner  = """

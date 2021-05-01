@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.api.Implementation
-import etlflow.api.Schema.EtlJob
+import etlflow.api.Schema.{EtlJob, QueueDetails}
 import etlflow.executor.Executor
 import etlflow.jdbc.liveDBWithTransactor
 import etlflow.scheduler.Scheduler
@@ -22,16 +22,16 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
 
   val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
     _           <- SetTimeZone(config).toManaged_
-    queue       <- Queue.sliding[(String,String,String,String)](10).toManaged_
-    cache       = CacheHelper.createCache[String]
-    _           = config.token.map(_.foreach(tkn => CacheHelper.putKey(cache,tkn,tkn)))
-    auth        = Authentication(authEnabled = true, cache, config.webserver)
+    statsCache  = CacheHelper.createCache[QueueDetails]
+    authCache   = CacheHelper.createCache[String]
+    _           = config.token.map(_.foreach(tkn => CacheHelper.putKey(authCache,tkn,tkn)))
+    auth        = Authentication(authEnabled = true, authCache, config.webserver)
     jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
     sem         <- createSemaphores(jobs).toManaged_
-    executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, queue)
+    executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
     dbLayer     = liveDBWithTransactor(config.dbLog)
     supervisor  <- Supervisor.track(true).toManaged_
-    apiLayer    = Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor)
+    apiLayer    = Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
     finalLayer  = apiLayer ++ dbLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer[EJN](auth,config.webserver)

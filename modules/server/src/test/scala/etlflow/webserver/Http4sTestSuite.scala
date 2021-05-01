@@ -2,6 +2,7 @@ package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
 import etlflow.api.ServerTask
+import etlflow.utils.GetCorsConfig
 import io.circe.Json
 import io.circe.parser._
 import org.http4s._
@@ -18,7 +19,7 @@ object Http4sTestSuite extends DefaultRunnableSpec with Http4sServer with Server
   zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
   val env = (testAPILayer ++ testDBLayer).orDie
 
-  private def apiResponse(apiRequest: Request[ServerTask]): ServerTask[Either[String, String]] = allRoutes[MEJP](auth).use { routes =>
+  private def apiResponse(apiRequest: Request[ServerTask]): ServerTask[Either[String, String]] = allRoutes[MEJP](auth,config.webserver).use { routes =>
     for {
       client <- Task(Client.fromHttpApp[ServerTask](routes.orNotFound))
       output <- client.run(apiRequest).use {

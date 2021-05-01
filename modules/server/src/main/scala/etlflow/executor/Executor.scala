@@ -8,15 +8,16 @@ import etlflow.jdbc.DB
 import etlflow.log.ApplicationLogger
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
-import etlflow.utils.{Config, EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.{EJPMType, JobEnv}
+import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, job_queue: Queue[(String,String,String,String)])
+case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: CaffeineCache[QueueDetails])
   extends EtlFlowUtils with ApplicationLogger {
 
   final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): ExecutorTask[EtlJob] = {
@@ -27,15 +28,21 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       db_job         <- DB.getJob(args.name)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
       props_json     = convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
-      _              <- job_queue.offer((args.name,submitted_from,props_json,UF.getCurrentTimestampAsString()))
       retry          = mapping_props.getOrElse("job_retries","0").toInt
       spaced         = mapping_props.getOrElse("job_retry_delay_in_minutes","0").toInt
-      _              <- if (db_job.is_active) UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> runEtlJob(args, retry, spaced, fork)
+      _              <- if (db_job.is_active)
+                        for {
+                          _     <- UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}"))
+                          key   = s"${args.name} ${UF.getCurrentTimestamp}"
+                          value = QueueDetails(args.name, props_json, submitted_from, UF.getCurrentTimestampAsString())
+                          _     = CacheHelper.putKey(cache, key, value)
+                          _ <- runEtlJob(args, key, retry, spaced, fork)
+                        } yield ()
                         else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
     } yield EtlJob(args.name,final_props)
   }
 
-  private def runEtlJob(args: EtlJobArgs, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): ExecutorTask[Unit] = {
+  private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): ExecutorTask[Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
     val jobRun: RIO[JobEnv,Unit] = UF.getEtlJobName[EJN](args.name,ejpm_package).job_deploy_mode match {
@@ -53,12 +60,13 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
         Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
     }
 
-    val loggedJobRun: ExecutorTask[Long] = blocking(jobRun)
+    val loggedJobRun: ExecutorTask[Long] = jobRun
+      .ensuring(UIO(CacheHelper.removeKey(cache, cache_key)))
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
         UIO(logger.error(ex.getMessage)) *> DB.updateFailedJob(args.name, UF.getCurrentTimestamp)
       ) *> DB.updateSuccessJob(args.name, UF.getCurrentTimestamp)
 
-    (if (fork) sem(args.name).withPermit(loggedJobRun).forkDaemon else sem(args.name).withPermit(loggedJobRun)).unit
+    blocking(if (fork) sem(args.name).withPermit(loggedJobRun).forkDaemon else sem(args.name).withPermit(loggedJobRun)).unit
   }
 }

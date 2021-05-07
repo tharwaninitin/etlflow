@@ -36,9 +36,9 @@ trait Http4sServer extends Http4sDsl[ServerTask] {
       corsConfig         = GetCorsConfig(config)
       routes = Router[ServerTask](
                  "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
-                  "/assets/js/2.dd6933f9.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.dd6933f9.chunk.js", blocker, None)),
-                  "/assets/js/main.bf05146d.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.bf05146d.chunk.js", blocker, None)),
-                  "/assets/css/2.83b1b994.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.83b1b994.chunk.css", blocker, None)),
+                  "/assets/js/2.ac0e6fa5.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.ac0e6fa5.chunk.js", blocker, None)),
+                  "/assets/js/main.978896b4.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.978896b4.chunk.js", blocker, None)),
+                  "/assets/css/2.1b720eed.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.1b720eed.chunk.css", blocker, None)),
                   "/assets/css/main.025b9fa1.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.025b9fa1.chunk.css", blocker, None)),
                   "/about"       -> otherRoutes,
                   "/etlflow"     -> metricsSvc.routes,

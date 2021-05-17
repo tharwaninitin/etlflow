@@ -29,28 +29,6 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
     etl_logger.info("#" * 50)
     etl_logger.info(s"Starting BQ Data Export Step : $name")
 
-    def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
-      case "String" => LegacySQLTypeName.STRING
-      case "Int" => LegacySQLTypeName.INTEGER
-      case "Long" => LegacySQLTypeName.INTEGER
-      case "Double" => LegacySQLTypeName.FLOAT
-      case "java.sql.Date" => LegacySQLTypeName.DATE
-      case "java.util.Date" => LegacySQLTypeName.DATE
-      case "Boolean" => LegacySQLTypeName.BOOLEAN
-      case _ => LegacySQLTypeName.STRING
-    }
-
-    val schema: Option[Schema] = Try {
-      val fields = new util.ArrayList[Field]
-      val ccFields = UF.getFields[T].reverse
-      if (ccFields.isEmpty)
-        throw new RuntimeException("Schema not provided")
-      ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))
-      val s = Schema.of(fields)
-      etl_logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName, x.getType))}")
-      s
-    }.toOption
-
     val env = BQ.live(credentials)
 
     val program: Task[Unit] = {
@@ -66,40 +44,29 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
     Map(name ->
       Map(
         "total_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
-        // "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
       )
     )
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = {
-//    if (level == LoggingLevel.INFO) {
-//      Map(
-//          "input_type" -> input_type.toString
-//        , "input_location" -> input_location.fold(
-//          source_path => source_path,
-//          source_paths_partitions => source_paths_partitions.length.toString
-//        )
-//        , "output_dataset" -> output_dataset
-//        , "output_table" -> output_table
-//        , "output_table_write_disposition" -> output_write_disposition.toString
-//        , "output_table_create_disposition" -> output_create_disposition.toString
-//        , "output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
-//      )
-//    } else {
-//      Map(
-//        "input_type" -> input_type.toString
-//        , "input_location" -> input_location.fold(
-//          source_path => source_path,
-//          source_paths_partitions => source_paths_partitions.mkString(",")
-//        )
-//        , "input_class" -> Try(UF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
-//        , "output_dataset" -> output_dataset
-//        , "output_table" -> output_table
-//        , "output_table_write_disposition" -> output_write_disposition.toString
-//        , "output_table_create_disposition" -> output_create_disposition.toString
-//        , "output_rows" -> row_count.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
-//      )
-//    }
+    if (level == LoggingLevel.INFO) {
+      Map(
+         "input_project" -> source_project
+        , "input_dataset" -> source_dataset
+        , "input_table" -> source_table
+        , "output_type" -> destination_format
+        , "output_location" -> destination_path
+      )
+    } else {
+      Map(
+         "input_project" -> source_project
+        , "input_dataset" -> source_dataset
+        , "input_table" -> source_table
+        , "output_type" -> destination_format
+        , "output_location" -> destination_path
+        , "input_class" -> Try(UF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+      )
+    }
     Map.empty
   }
 }

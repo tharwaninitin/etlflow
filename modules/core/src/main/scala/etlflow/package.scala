@@ -3,9 +3,11 @@ import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogger}
 import etlflow.utils.{Executor, LoggingLevel}
+import io.circe.generic.semiauto.deriveDecoder
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.{Has, Task}
+
 import scala.reflect.ClassTag
 
 package object etlflow {
@@ -26,6 +28,14 @@ package object etlflow {
     }
     final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") extends Credential {
       override def toString: String = s"SMTP with host  => $host and user => $user"
+    }
+
+    object AWS {
+      implicit val AwsDecoder = deriveDecoder[AWS]
+    }
+
+    object JDBC {
+      implicit val JdbcDecoder = deriveDecoder[JDBC]
     }
   }
 

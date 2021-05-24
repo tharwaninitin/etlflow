@@ -43,6 +43,7 @@ object Dependencies {
   val JwtCoreVersion = "7.1.3"
   val Sl4jVersion = "1.7.30"
   val bcryptVersion = "4.3.0"
+  val ZioHttpVersion = "0.10.0"
 
   val ScalaTestVersion = "3.2.8"
 
@@ -125,6 +126,7 @@ object Dependencies {
   lazy val serverLibs = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
+    "com.github.ghostdogpr" %% "caliban-zio-http" % ZioHttpVersion,
     "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
     "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
     "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,

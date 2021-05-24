@@ -61,6 +61,12 @@ package object gcp {
           destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
           create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
         ): ZIO[BQService, Throwable, Map[String, Long]]
+      def exportFromBQTable(
+          source_project: Option[String], source_dataset: String,
+          source_table: String, destination_path: String, destination_file_name:Option[String] ,
+          destination_format: BQInputType, destination_compression_type:String = "gzip"
+        ): ZIO[BQService, Throwable, Unit]
+
     }
     def getDataFromBQ(query: String): ZIO[BQService, Throwable, Iterable[FieldValueList]] =
       ZIO.accessM(_.get.getDataFromBQ(query))
@@ -87,6 +93,14 @@ package object gcp {
       ): ZIO[BQService, Throwable, Map[String, Long]] =
       ZIO.accessM(_.get.loadIntoPartitionedBQTable(source_paths_partitions,source_format,destination_project,destination_dataset,
         destination_table,write_disposition,create_disposition,schema,parallelism)
+      )
+    def exportFromBQTable(
+        source_project: Option[String], source_dataset: String,
+        source_table: String, destination_path: String,destination_file_name:Option[String], destination_format: BQInputType,
+        destination_compression_type:String = "gzip"
+      ): ZIO[BQService, Throwable, Unit] =
+      ZIO.accessM(_.get.exportFromBQTable(source_project,source_dataset,
+        source_table,destination_path,destination_file_name,destination_format,destination_compression_type)
       )
   }
 

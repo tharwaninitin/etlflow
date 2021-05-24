@@ -3,10 +3,11 @@ package etlflow.gcp
 import java.io.FileInputStream
 import java.util.UUID
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
-import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
+import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, ExtractJobConfiguration, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
 import etlflow.Credential
-import etlflow.gcp.BQInputType.{CSV, ORC, PARQUET}
+import etlflow.gcp.BQInputType.{CSV, JSON, ORC, PARQUET}
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
+
 import scala.sys.process._
 
 object BQ {
@@ -191,6 +192,55 @@ object BQ {
               s"""Could not load data in ${source_format.toString} format in table ${destination_dataset + "." + destination_table} due to error ${completedJob.getStatus.getError.getMessage}""".stripMargin)
           }
           Map(destination_table -> destinationTable.getNumRows)
+        }
+
+        override def exportFromBQTable(source_project: Option[String], source_dataset: String,
+                                       source_table: String, destination_path: String,destination_file_name:Option[String],
+                                       destination_format: BQInputType,
+                                       destination_compression_type:String = "gzip")
+        : Task[Unit] = Task {
+
+          val tableId = source_project match {
+            case Some(project) => TableId.of(project, source_dataset, source_table)
+            case None          => TableId.of(source_dataset, source_table)
+          }
+
+          val destinationFormat = destination_format match {
+            case CSV(_,_,_,_) => "CSV"
+            case PARQUET => "PARQUET"
+          }
+
+          val destinationUri = destination_path + "/" + destination_file_name.getOrElse(s"part-*.${destinationFormat.toLowerCase}")
+
+          val extractJobConfiguration: ExtractJobConfiguration = destination_format match {
+            case CSV(delimiter,_,_,_) => ExtractJobConfiguration.newBuilder(tableId, destinationUri)
+              .setFormat(CSV.toString())
+              .setFieldDelimiter(delimiter)
+              .build();
+            case PARQUET => ExtractJobConfiguration.newBuilder(tableId, destinationUri)
+              .setFormat(PARQUET.toString)
+              .setCompression(destination_compression_type)
+              .build();
+            case JSON(_) => ExtractJobConfiguration.newBuilder(tableId, destinationUri)
+              .setFormat(JSON.toString())
+              .setCompression(destination_compression_type)
+              .build();
+            case _ => throw BQLoadException("Unsupported Destination Format")
+          }
+
+          val job = bq.create(JobInfo.of(extractJobConfiguration));
+          val completedJob = job.waitFor()
+
+          if (completedJob.getStatus.getError == null) {
+            gcp_logger.info(s"Source table: $source_dataset.$source_table")
+            gcp_logger.info(s"Destination path: $destination_path")
+            gcp_logger.info(s"Job State: ${completedJob.getStatus.getState}")
+          } else if (completedJob.getStatus().getError() != null) {
+            gcp_logger.error(s"BigQuery was unable to extract due to an error:" + job.getStatus().getError())
+          } else {
+            throw BQLoadException(
+              s"""Could not load data from bq table ${source_dataset}.${source_table} to  location  ${destination_file_name} due to error ${completedJob.getStatus.getError.getMessage}""".stripMargin)
+          }
         }
       }
     }

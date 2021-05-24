@@ -3,14 +3,14 @@ package etlflow.jdbc
 import cats.data.NonEmptyList
 import cats.effect.Async
 import doobie.free.connection.ConnectionIO
-import doobie.util.meta.Meta
-import org.postgresql.util.PGobject
 import doobie.implicits._
+import doobie.util.meta.Meta
 import etlflow.api.Schema._
-import etlflow.utils.GetStartTime
+import etlflow.utils.{GetEncryptCred, GetStartTime, UtilityFunctions => UF}
+import org.postgresql.util.PGobject
+
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
-import etlflow.utils.{UtilityFunctions => UF}
 
 object SQL {
 
@@ -287,9 +287,10 @@ object SQL {
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
       .update
 
-  def addCredentials(args: CredentialDB): doobie.Update0 =
-    sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${args.value})".update
-
+  def addCredentials(args: CredentialDB): doobie.Update0 = {
+    val actualSerializerOutput = GetEncryptCred(args.`type`,args.value)
+    sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${actualSerializerOutput})".update
+  }
   def updateCredentials(args: CredentialDB): doobie.Update0 = {
     sql"""
     UPDATE credential

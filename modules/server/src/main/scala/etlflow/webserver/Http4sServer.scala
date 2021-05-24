@@ -37,7 +37,7 @@ trait Http4sServer extends Http4sDsl[ServerTask] {
       routes = Router[ServerTask](
                  "/"               -> Kleisli.liftF(StaticFile.fromResource("static/index.html", blocker, None)),
                   "/assets/js/2.70d81952.chunk.js"      -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/2.70d81952.chunk.js", blocker, None)),
-                  "/assets/js/main.d0046ef3.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.d0046ef3.chunk.js", blocker, None)),
+                  "/assets/js/main.9b2263d7.chunk.js"   -> Kleisli.liftF(StaticFile.fromResource("static/assets/js/main.9b2263d7.chunk.js", blocker, None)),
                   "/assets/css/2.f4ede277.chunk.css"    -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/2.f4ede277.chunk.css", blocker, None)),
                   "/assets/css/main.2470ea74.chunk.css" -> Kleisli.liftF(StaticFile.fromResource("static/assets/css/main.2470ea74.chunk.css", blocker, None)),
                   "/about"       -> otherRoutes,

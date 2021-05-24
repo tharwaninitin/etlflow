@@ -8,7 +8,7 @@ import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
 import etlflow.jdbc.{DBServerEnv, DbManager, liveDBWithTransactor}
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
-import etlflow.webserver.Authentication
+import etlflow.webserver.{Authentication, ZioAuthentication}
 import io.circe.generic.auto._
 import scalacache.caffeine.CaffeineCache
 import zio.blocking.Blocking
@@ -23,7 +23,8 @@ trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
   val credentials: JDBC = config.dbLog
   val ejpm_package: String = UF.getJobNamePackage[MEJP] + "$"
   val sem: Map[String, Semaphore] = Map("Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)))
-  val auth: Authentication = Authentication(authEnabled = true, authCache, config.webserver)
+//  val auth: Authentication = Authentication(authEnabled = true, authCache, config.webserver)
+  val auth: ZioAuthentication = ZioAuthentication(authCache, config.webserver)
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
   val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor, jobStatsCache)

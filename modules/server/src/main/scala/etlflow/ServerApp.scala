@@ -12,7 +12,7 @@ import zio._
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class ServerApp[EJN <: EJPMType : TypeTag]
-  extends EtlFlowApp[EJN] with Http4sServer with Scheduler with EtlFlowUtils  {
+  extends EtlFlowApp[EJN] with ZioHttpServer with Scheduler with EtlFlowUtils  {
 
   //ZioHttpServer
 
@@ -28,8 +28,8 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     statsCache  = CacheHelper.createCache[QueueDetails]
     authCache   = CacheHelper.createCache[String]
     _           = config.token.map(_.foreach(tkn => CacheHelper.putKey(authCache,tkn,tkn)))
-    auth        = Authentication(authEnabled = true, authCache, config.webserver)
-//    auth        = ZioAuthentication(authCache, config.webserver)
+//    auth        = Authentication(authEnabled = true, authCache, config.webserver)
+    auth        = ZioAuthentication(authCache, config.webserver)
     jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
@@ -38,8 +38,8 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     apiLayer    = Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
     finalLayer  = apiLayer ++ dbLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
-//    webserver   = etlFlowWebServer(auth1, config.webserver)
-      webserver   = etlFlowWebServer[EJN](auth, config.webserver)
+    webserver   = etlFlowWebServer(auth, config.webserver)
+//      webserver   = etlFlowWebServer[EJN](auth, config.webserver)
     _           <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_
   } yield ()).useNow
 

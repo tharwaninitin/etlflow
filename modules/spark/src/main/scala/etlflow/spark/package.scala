@@ -19,6 +19,10 @@ package object spark {
     final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
       override def toString: String = s"JDBC with url => $url"
     }
+    final case class RDB(jdbc:JDBC, partition:Partition) extends IOType {
+      override def toString: String = s"RDB with url => ${jdbc.url}"
+    }
+    final case class Partition (num_partition:Int, partition_column:String, lower_bound:String, upper_bound:String)
     final case class BQ(temp_dataset: String = "temp", operation_type: String = "table") extends IOType
     final case object PARQUET extends IOType
     final case object ORC extends IOType

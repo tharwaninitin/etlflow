@@ -5,7 +5,7 @@ import etlflow.executor.Executor
 import etlflow.jdbc.{DB, DBServerEnv}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.{CacheHelper, EtlFlowUtils, UtilityFunctions => UF}
-import etlflow.webserver.{Authentication, ZioAuthentication}
+import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
 import scalacache.caffeine.CaffeineCache
@@ -17,7 +17,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 object Implementation extends EtlFlowUtils with ApplicationLogger {
 
-  def live[EJN <: EJPMType : TypeTag](auth: ZioAuthentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: CaffeineCache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: CaffeineCache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
 
       val pt = new PrettyTime()

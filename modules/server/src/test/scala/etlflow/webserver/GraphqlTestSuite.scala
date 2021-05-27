@@ -179,7 +179,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
                  name
                 }
                }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.errors.map(_.getMessage)))(equalTo(List("""Can't build a String from input [{"key":"url","value":"jdbc:postgresql://localhost:5432/postgres"},{"key":"user","value":"postgres"},{"key":"password","value":"testing"},{"key":"driver","value":"org.postgresql.Driver"}]"""))
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.errors.map(_.getMessage)))(equalTo(List("""Invalid value testing for trait Creds"""))
         )
       },
       testM("Test mutation update credentials end point") {

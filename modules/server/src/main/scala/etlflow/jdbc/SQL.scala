@@ -1,12 +1,12 @@
 package etlflow.jdbc
 
 import cats.data.NonEmptyList
-import cats.effect.Async
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.meta.Meta
 import etlflow.api.Schema._
-import etlflow.utils.{GetEncryptCred, GetStartTime, UtilityFunctions => UF}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.{EncryptCred, GetStartTime, UtilityFunctions => UF}
 import org.postgresql.util.PGobject
 
 import java.text.SimpleDateFormat
@@ -288,7 +288,7 @@ object SQL {
       .update
 
   def addCredentials(args: CredentialDB): doobie.Update0 = {
-    val actualSerializerOutput = GetEncryptCred(args.`type`,args.value)
+    val actualSerializerOutput = EncryptCred(args.`type`,args.value)
     sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${actualSerializerOutput})".update
   }
   def updateCredentials(args: CredentialDB): doobie.Update0 = {
@@ -336,17 +336,17 @@ object SQL {
 
   def refreshJobsSingleTran(args: List[JobDB]): ConnectionIO[List[JobDB]] = {
     for {
-      _        <- logCIO(s"Refreshing jobs in database")
       deleted  <- deleteJobs(args).run
-      _        <- logCIO(s"Deleted jobs => $deleted")
+      _        = logger.info(s"Deleted jobs => $deleted")
       inserted <- insertJobs.updateMany(args)
-      _        <- logCIO(s"Inserted/Updated jobs => $inserted")
+      _        = logger.info(s"Inserted/Updated jobs => $inserted")
       dbjobs   <- selectJobs.to[List]
     } yield dbjobs
   }
 
-  def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
 
-  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
+//  def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
+//
+//  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
 
 }

@@ -37,7 +37,7 @@ object GCS {
 
   def live(credentials: Option[GCP] = None): Layer[Throwable, GCSService] = ZLayer.fromManaged {
     val acquire = IO.effect{
-      getClient(Location.GCS("",credentials))
+      getClient(Location.GCS("","",credentials))
     }
     Managed.fromEffect(acquire).map { storage =>
       new GCSService.Service {

@@ -1,6 +1,6 @@
 package etlflow.jdbc
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import doobie.util.{ExecutionContexts, log}
 import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
@@ -10,7 +10,6 @@ import java.time.LocalDate
 
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with ServerSuiteHelper {
 
-  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContexts.synchronous)
   //implicit val dbLogger: log.LogHandler = DoobieQueryLogger()
   val transactor: doobie.Transactor[IO] = Transactor.fromDriverManager[IO](credentials.driver, credentials.url, credentials.user, credentials.password)
 

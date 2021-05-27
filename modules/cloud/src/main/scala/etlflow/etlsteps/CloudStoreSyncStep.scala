@@ -1,18 +1,19 @@
 package etlflow.etlsteps
 
-import java.nio.file.Paths
-import blobstore.fs.FileStore
+import blobstore.Store
 import blobstore.gcs.GcsStore
+import blobstore.fs.FileStore
 import blobstore.s3.S3Store
-import blobstore.{Path, Store}
-import cats.effect.Blocker
+import blobstore.url.{Authority, FsObject, Path, Url}
 import etlflow.aws.S3CustomClient
 import etlflow.gcp.GCS
 import etlflow.utils.Location
 import fs2.{Pipe, Stream}
 import zio.Runtime.default.unsafeRun
-import zio.Task
+import zio.{Task}
 import zio.interop.catz._
+import zio.interop.catz.implicits._
+import cats.syntax.all._
 
 case class CloudStoreSyncStep (
        name: String,
@@ -25,66 +26,76 @@ case class CloudStoreSyncStep (
      )
   extends EtlStep[Unit,Unit] {
 
+  def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
+
   final def process(input: => Unit): Task[Unit] = {
-    Task.concurrentEffectWith { implicit CE =>
-      Blocker[Task].use { blocker =>
+    etl_logger.info("#" * 50)
 
-        etl_logger.info("#"*50)
-        etl_logger.info(s"Starting Sync Step: $name")
+    etl_logger.info(s"Starting Sync Step: $name")
 
-        val inputStore: Store[Task] = input_location match {
-          case location: Location.GCS =>
-            val storage = GCS.getClient(location)
-            GcsStore[Task](storage, blocker, List.empty)
-          case location: Location.S3 =>
-            val storage = S3CustomClient(location)
-            unsafeRun(S3Store[Task](storage))
-          case _: Location.LOCAL =>
-            FileStore[Task](Paths.get(""), blocker)
-        }
+    val inputBucket: Authority = getBucketInfo(input_location.bucket)
+    val outputBucket: Authority = getBucketInfo(output_location.bucket)
 
-        val inputStorePath: Path = Path(input_location.location)
+    var inputStorePath: Url[String] = null
+    var outputStorePath: Url[String] = null
+    var output_scheme:String = null   // default value. This var will get set below
 
-        val outputStore: Store[Task] = output_location match {
-          case location: Location.GCS =>
-            val storage = GCS.getClient(location)
-            GcsStore[Task](storage, blocker, List.empty)
-          case location: Location.S3 =>
-            val storage = S3CustomClient(location)
-            unsafeRun(S3Store[Task](storage))
-          case _: Location.LOCAL =>
-            FileStore[Task](Paths.get(""), blocker)
-        }
+    val inputStore: Store[Task, FsObject] = input_location match {
+      case location: Location.GCS =>
+        val storage = GCS.getClient(location)
+        inputStorePath = Url("gs", inputBucket, Path(input_location.location))
+        GcsStore[Task](storage, List.empty)
+      case location: Location.S3 =>
+        val storage = S3CustomClient(location)
+        inputStorePath = Url("s3", inputBucket, Path(input_location.location))
+        unsafeRun(S3Store[Task](storage))
+      case _: Location.LOCAL =>
+        inputStorePath = Url("file", Authority.localhost, Path(input_location.location))
+        FileStore[Task].lift((u: Url[String]) => u.path.valid)
+    }
 
-        val outputStorePath: Path = Path(output_location.location)
+    val outputStore: Store[Task, FsObject] = output_location match {
+      case location: Location.GCS =>
+        val storage = GCS.getClient(location)
+        outputStorePath = Url("gs", outputBucket, Path(output_location.location))
+        output_scheme = "gs"
+        GcsStore[Task](storage, List.empty)
+      case location: Location.S3 =>
+        val storage = S3CustomClient(location)
+        outputStorePath = Url("s3", outputBucket, Path(output_location.location))
+        output_scheme = "s3"
+        unsafeRun(S3Store[Task](storage))
+      case _: Location.LOCAL =>
+        outputStorePath = Url("file", Authority.localhost, Path(output_location.location))
+        output_scheme = "file"
+        FileStore[Task].lift((u: Url[String]) => u.path.valid)
+    }
 
-        inputStore.list(inputStorePath)
-          .map { input_path: Path =>
-
-            if (input_path.fileName.isDefined) {
-              if (input_path.fileName.get.endsWith("/")) {
-                Stream.empty
-              } else {
-                val output_path       = Path(outputStorePath + input_path.fileName.get).withSize(input_path.size)
-                val startMarkerStream = Stream.eval(Task(println(s"Starting to load file from $input_path with size ${input_path.size.getOrElse(0L)/1024.0} KB to $output_path")))
-                val inputStream       = inputStore.get(input_path, chunk_size)
-                val transferStream    = transformation.map(trans => inputStream.through(trans)).getOrElse(inputStream)
-                val outputStream      = transferStream.through(outputStore.put(output_path,output_overwrite))
-                                          .handleErrorWith{ex =>
-                                            etl_logger.error(ex.getMessage)
-                                            etl_logger.error(ex.getStackTrace.mkString("\n"))
-                                            Stream.raiseError[Task](ex)
-                                          }
-                val doneMarkerStream  = Stream.eval(Task(println(s"Done loading file $input_path")))
-                startMarkerStream ++ outputStream ++ doneMarkerStream
+    inputStore.list(inputStorePath, true)
+      .map { input_path =>
+        if (input_path.path.fileName.isDefined) {
+          if (input_path.path.fileName.get.endsWith("/")) {
+            Stream.empty
+          } else {
+            val output_path = Url(output_scheme, outputBucket, Path(output_location.location  + input_path.path.fileName.get))
+            val startMarkerStream = Stream.eval(Task(println(s"Starting to load file from $input_path with size ${input_path.path.size.getOrElse(0L) / 1024.0} KB to $output_path")))
+            val inputStream = inputStore.get(input_path, chunk_size)
+            val transferStream = transformation.map(trans => inputStream.through(trans)).getOrElse(inputStream)
+            val outputStream = transferStream.through(outputStore.put(output_path, output_overwrite))
+              .handleErrorWith { ex =>
+                etl_logger.error(ex.getMessage)
+                etl_logger.error(ex.getStackTrace.mkString("\n"))
+                Stream.raiseError[Task](ex)
               }
-            } else {
-              Stream.empty
-            }
+            val doneMarkerStream = Stream.eval(Task(println(s"Done loading file $input_path")))
+            startMarkerStream ++ outputStream ++ doneMarkerStream
           }
-          .parJoin(maxOpen = parallelism)
-          .compile.drain
+        }
+        else {
+          Stream.empty
+        }
       }
-    } *> Task(etl_logger.info("#"*50))
-  }
+      .parJoin(maxOpen = parallelism)
+      .compile.drain
+  } *> Task(etl_logger.info("#" * 50))
 }

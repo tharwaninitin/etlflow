@@ -69,6 +69,17 @@ object ReadApi {
       case ORC => df_reader.format("orc")
       case JDBC(url, user, password, driver) => df_reader.format("jdbc")
         .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password).option("driver", driver)
+      case RDB(jdbc,partition) =>
+        df_reader.format("jdbc")
+          .option("url", jdbc.url)
+          .option("dbtable", location.mkString)
+          .option("user", jdbc.user)
+          .option("password", jdbc.password)
+          .option("driver", jdbc.driver)
+          .option("numPartitions", partition.num_partition)
+          .option("partitionColumn", partition.partition_column)
+          .option("lowerBound", partition.lower_bound)
+          .option("upperBound", partition.upper_bound)
       case BQ(temp_dataset,operation_type) =>
         operation_type match {
           case "table" => df_reader.format("bigquery").option("table", location.mkString)

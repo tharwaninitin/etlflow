@@ -1,54 +1,52 @@
 package etlflow.webserver
 
-import etlflow.api.ServerTask
 import etlflow.log.ApplicationLogger
-import fs2.{Pipe, Stream}
-import org.http4s.HttpRoutes
-import org.http4s.dsl.Http4sDsl
-import org.http4s.server.websocket.WebSocketBuilder
-import org.http4s.websocket.WebSocketFrame
+import zhttp.http._
+import zhttp.socket.{Socket, SocketApp, WebSocketFrame}
 import zio.clock.Clock
-import zio.{Schedule, Task, UIO}
-import zio.interop.catz._
-import zio.stream.ZStream
-import zio.stream.interop.fs2z._
 import zio.duration._
+import zio.stream.ZStream
+import zio.{Schedule, UIO}
 
-case class WebsocketAPI(auth: Authentication) extends Http4sDsl[Task] with ApplicationLogger {
-  private val mb: Int = 1024*1024
+case class WebsocketAPI(auth: Authentication)  extends ApplicationLogger {
+  private val mb: Int = 1024 * 1024
   private val runtime: Runtime = Runtime.getRuntime
-  private val stream: Stream[Task, String] = {
+
+  private val stream = {
     ZStream
       .fromEffect(
-        UIO{
-          s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}""".stripMargin
-        }
-      )
-      .repeat(Schedule.forever && Schedule.spaced(5.seconds))
-      .provideLayer(Clock.live)
-      .toFs2Stream
+        UIO(
+        s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}"""
+      )).repeat(Schedule.forever && Schedule.spaced(1.seconds))
   }
 
-  def websocketStream(token: String): Stream[Task, WebSocketFrame] = {
+  def websocketStream(token: String): ZStream[Any with Clock, Nothing, WebSocketFrame] = {
     if(auth.validateJwt(token)){
       auth.isCached(token) match {
-        case Some(_) => stream.map(s => WebSocketFrame.Text(s))
+        case Some(_) => stream.map(s => WebSocketFrame.text(s))
+
         case None =>
           logger.warn(s"Expired token $token")
-          Stream.eval(Task.fromEither(WebSocketFrame.Close(1001,"Expired token")))
+          ZStream.fromEffect(UIO(WebSocketFrame.Close(1001,Some("Expired token"))))
       }
     } else {
       logger.warn(s"Invalid token $token")
-      Stream.eval(Task.fromEither(WebSocketFrame.Close(1001,"Invalid token")))
+      ZStream.fromEffect(UIO(WebSocketFrame.Close(1001,Some("Invalid token"))))
     }
   }
 
-  val streamRoutes: HttpRoutes[ServerTask] =
-    HttpRoutes.of[ServerTask] {
-      case GET -> Root / token =>
-        val toClient: Stream[ServerTask, WebSocketFrame] = websocketStream(token)
-        val fromClient: Pipe[ServerTask, WebSocketFrame, Unit] = _.as(())
-        WebSocketBuilder[ServerTask].build(toClient, fromClient, onClose = UIO(logger.info("Closed Web socket")))
+  private def openConnection(token: String): Socket[Any with Clock, Nothing, Any, WebSocketFrame] =
+    Socket.collect[Any] {
+      case _ => websocketStream(token)
     }
+
+  private def socketApp(token: String): SocketApp[Any with Clock, Nothing] =
+    SocketApp.open(openConnection(token))
+
+  val webSocketApp =
+    HttpApp.collect {
+      case Method.GET -> Root / "ws" / "etlflow" / token => socketApp(token)
+    }
+
 }
 

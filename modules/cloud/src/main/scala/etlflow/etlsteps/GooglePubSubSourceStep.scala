@@ -1,12 +1,12 @@
 package etlflow.etlsteps
 
-import cats.effect.Blocker
 import com.google.pubsub.v1.PubsubMessage
-import com.permutive.pubsub.consumer.{ConsumerRecord, Model}
 import com.permutive.pubsub.consumer.decoder.MessageDecoder
 import com.permutive.pubsub.consumer.grpc.{PubsubGoogleConsumer, PubsubGoogleConsumerConfig}
+import com.permutive.pubsub.consumer.{ConsumerRecord, Model}
 import zio.Task
 import zio.interop.catz._
+import zio.interop.catz.implicits._
 
 case class GooglePubSubSourceStep[T: MessageDecoder](
        name: String,
@@ -20,14 +20,10 @@ case class GooglePubSubSourceStep[T: MessageDecoder](
   extends EtlStep[Unit,Unit] {
 
   final def process(input: => Unit): Task[Unit] = {
-    Task.concurrentEffectWith { implicit CE =>
-      Blocker[Task].use { blocker =>
-
         etl_logger.info("#"*50)
         etl_logger.info(s"Starting Pub Sub Step: $name")
 
         val stream = PubsubGoogleConsumer.subscribe[Task, T](
-          blocker,
           Model.ProjectId(project_id),
           Model.Subscription(subscription),
           error_handler,
@@ -48,7 +44,5 @@ case class GooglePubSubSourceStep[T: MessageDecoder](
             .compile
             .drain
         )
-      }
     } *> Task(etl_logger.info("#"*50))
-  }
 }

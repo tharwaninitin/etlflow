@@ -1,6 +1,6 @@
 package etlflow.jdbc
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import doobie.util.{ExecutionContexts, log}
 import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
@@ -10,11 +10,19 @@ import java.time.LocalDate
 
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with ServerSuiteHelper {
 
-  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContexts.synchronous)
   //implicit val dbLogger: log.LogHandler = DoobieQueryLogger()
   val transactor: doobie.Transactor[IO] = Transactor.fromDriverManager[IO](credentials.driver, credentials.url, credentials.user, credentials.password)
 
-  val creds: CredentialDB = CredentialDB("test", "jdbc", JsonString("{}"))
+  val cred_value =
+    """{
+        "url":"jdbc:postgresql://localhost:5432/etlflow",
+        "user": "localhost",
+        "driver": "org.postgresql.Driver",
+        "password": "localhost"
+       }"""
+      .stripMargin
+
+  val creds: CredentialDB = CredentialDB("test", "jdbc", JsonString(cred_value))
   val jobs = List(EtlJob("Job6", Map.empty),EtlJob("Job5", Map.empty))
   val jobsDB = jobs.map{x =>
     JobDB(x.name, x.props.getOrElse("job_schedule",""), is_active = true)

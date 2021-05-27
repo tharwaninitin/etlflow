@@ -2,22 +2,21 @@ import sbt._
 
 object Dependencies {
   val ZioVersion = "1.0.6"
-  val ZioCatsInteropVersion = "2.4.1.0"
-  val CalibanVersion = "0.9.5"
+  val ZioCatsInteropVersion = "3.1.1.0"
+  val CalibanVersion ="0.10.1"
 
   val CatsCoreVersion = "2.6.0"
-  val CatsEffectVersion = "2.5.0"
+  val CatsEffectVersion = "3.1.0"
   val K8sClientVersion = "0.5.0"
   val Cron4sVersion = "0.6.1"
-  val Fs2Version = "2.5.4"
-  val Fs2PubSubVersion = "0.17.0"
-  val Fs2BlobStoreVersion = "0.7.3"
+  val Fs2Version = "3.0.2"
+  val Fs2PubSubVersion = "0.18.0-M1"
+  val Fs2BlobStoreVersion = "0.9.0-beta3"
   val CirceVersion = "0.13.0"
   val CirceConfigVersion = "0.8.0"
-  val DoobieVersion = "0.13.0"
+  val DoobieVersion = "1.0.0-M4"
   val ShapelessVersion = "2.3.4"
-  val SkunkVersion = "0.0.24"
-  val Http4sVersion = "0.21.20"
+  val SkunkVersion = "0.1.2"
   val ScalaCacheVersion = "0.28.0"
   val SttpVersion = "3.2.3"
   val TapirVersion = "0.17.19"
@@ -31,7 +30,7 @@ object Dependencies {
   val GcpPubSubVersion = "1.111.4"
   val HadoopGCSVersion = "1.6.1-hadoop2"
   val HadoopS3Version = "2.10.1"
-  val AwsS3Version = "2.16.14"
+  val AwsS3Version = "2.16.70"
 
   val FlywayVersion = "7.8.1"
   val Json4sVersion = "3.6.11"
@@ -55,7 +54,9 @@ object Dependencies {
 
   lazy val catsLibs = List(
     "org.typelevel" %% "cats-core" % CatsCoreVersion,
-    "org.typelevel" %% "cats-effect" % CatsEffectVersion
+    "org.typelevel" %% "cats-effect" % CatsEffectVersion,
+    "org.typelevel" %% "cats-effect-kernel" % CatsEffectVersion,
+    "org.typelevel" %% "cats-effect-std"    % CatsEffectVersion
   )
 
   lazy val dbLibs = List(
@@ -71,7 +72,7 @@ object Dependencies {
   lazy val streamingLibs = List(
     "org.tpolecat" %% "skunk-core" % SkunkVersion,
     "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
-    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
+    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion ,
     "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion
   )
 
@@ -125,18 +126,11 @@ object Dependencies {
 
   lazy val serverLibs = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
-    "com.github.ghostdogpr" %% "caliban-http4s" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-zio-http" % ZioHttpVersion,
-    "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
-    "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
-    "org.http4s" %% "http4s-prometheus-metrics" % Http4sVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
-    "com.github.cb372" %% "scalacache-cats-effect" % ScalaCacheVersion,
-    "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % TapirVersion,
-    "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % TapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % TapirVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion

@@ -3,7 +3,7 @@ package etlflow.utils
 import etlflow.Credential.{AWS, JDBC}
 import etlflow.jdbc.JsonString
 
-object GetEncryptCred {
+object EncryptCred {
 
   def apply(`type`: String,value:JsonString):JsonString = {
     `type` match {

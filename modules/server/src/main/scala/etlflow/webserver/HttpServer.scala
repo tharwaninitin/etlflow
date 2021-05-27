@@ -2,14 +2,14 @@ package etlflow.webserver
 
 import caliban.ZHttpAdapter
 import etlflow.api.ServerTask
-import etlflow.utils.{GetCorsConfigZio, WebServer}
+import etlflow.utils.{CorsConfig, WebServer}
 import etlflow.{BuildInfo => BI}
 import zhttp.http.Method.{GET, POST}
 import zhttp.http._
 import zhttp.service.Server
 import zio.stream._
 
-trait ZioHttpServer {
+trait HttpServer {
 
   val staticRoutes = HttpApp.collect {
     case _ -> Root / "about" => Response.text(s"Hello, Welcome to EtlFlow API ${BI.version}, Build with scala version ${BI.scalaVersion}")
@@ -20,11 +20,11 @@ trait ZioHttpServer {
     case _ -> Root / "assets" / "css" / "main.2470ea74.chunk.css" => Response.http(content = HttpData.fromStream(ZStream.fromResource("static/assets/css/main.2470ea74.chunk.css")))
   }
 
-  def etlFlowWebServer(auth: ZioAuthentication, config: Option[WebServer]) : ServerTask[Nothing] =
+  def etlFlowWebServer(auth: Authentication, config: Option[WebServer]) : ServerTask[Nothing] =
     (for {
       etlFlowInterpreter <- GqlAPI.api.interpreter
       loginInterpreter   <- GqlLoginAPI.api.interpreter
-      corsConfig         = GetCorsConfigZio(config)
+      corsConfig         = CorsConfig(config)
       port               = config.map(_.port.getOrElse(8080)).getOrElse(8080)
       _           <- Server
         .start(
@@ -33,7 +33,7 @@ trait ZioHttpServer {
             Http.route {
               case _ -> Root / "api" / "etlflow" => CORS(auth.middleware(ZHttpAdapter.makeHttpService(etlFlowInterpreter)))
               case _ -> Root / "api" / "login" => CORS(ZHttpAdapter.makeHttpService(loginInterpreter))
-              case _ -> Root / "ws" / "etlflow" / token => CORS(ZioWebsocketAPI(auth).webSocketApp)
+              case _ -> Root / "ws" / "etlflow" / token => CORS(WebsocketAPI(auth).webSocketApp)
               case GET  -> Root / "api" / "runjob" => CORS(auth.middleware(ZioRestAPI.oldRestApi))
               case POST  -> Root /  "restapi" / "runjob" / name =>  CORS(auth.middleware(ZioRestAPI.newRestApi), corsConfig)
             }

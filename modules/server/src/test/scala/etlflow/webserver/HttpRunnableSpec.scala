@@ -7,7 +7,7 @@ import zhttp.service._
 import zio.test.DefaultRunnableSpec
 import zio.{Chunk, Has, ZIO, ZManaged}
 
-abstract class ZioHttpRunnableSpec(port: Int) extends DefaultRunnableSpec {
+abstract class HttpRunnableSpec(port: Int) extends DefaultRunnableSpec {
 
   def serve[R <: Has[_]](
                           app: RHttpApp[R],

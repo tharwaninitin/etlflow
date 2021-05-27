@@ -72,8 +72,7 @@ object Dependencies {
   lazy val streamingLibs = List(
     "org.tpolecat" %% "skunk-core" % SkunkVersion,
     "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
-    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion ,
-    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion
+    "co.fs2"                %% "fs2-reactive-streams"      % Fs2Version
   )
 
   lazy val jsonLibs = List(

@@ -1,10 +1,10 @@
 package etlflow.etlsteps
 
-import blobstore.Store
-import blobstore.fs.FileStore
-import blobstore.gcs.GcsStore
-import blobstore.s3.S3Store
-import blobstore.url.{Authority, FsObject, Path, Url}
+import etlflow.blobstore.Store
+import etlflow.blobstore.FileStore
+import etlflow.blobstore.GcsStore
+import etlflow.blobstore.S3Store
+import etlflow.blobstore.url.{Authority, FsObject, Path, Url}
 import etlflow.aws.S3CustomClient
 import etlflow.gcp.GCS
 import etlflow.utils.Location

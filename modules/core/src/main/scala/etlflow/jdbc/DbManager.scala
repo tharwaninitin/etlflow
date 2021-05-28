@@ -24,7 +24,7 @@ trait DbManager {
       config.setPoolName(pool_name)
       for {
         rt <- Task.runtime.toManaged_
-        transactor <- HikariTransactor.newHikariTransactor[Task](db.driver, db.url, db.user, db.password, rt.platform.executor.asEC).toManagedZIO
+        transactor <- HikariTransactor.fromHikariConfig[Task](config, rt.platform.executor.asEC).toManagedZIO
       } yield transactor
   }
 

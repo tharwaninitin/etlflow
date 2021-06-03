@@ -1,5 +1,6 @@
 package etlflow.jobs
 
+import etlflow.Credential.JDBC
 import etlflow.coretests.Schema.EtlJobDeltaLake
 import etlflow.coretests.TestSuiteHelper
 import etlflow.jobs.Job2SparkReadWriteApiTestSuite.testDBLayer
@@ -8,6 +9,9 @@ import zio.test.Assertion.equalTo
 import zio.test._
 
 object JobsTestSuite extends DefaultRunnableSpec with TestSuiteHelper  {
+
+  val credentials: JDBC = config.dbLog
+  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Jobs") (

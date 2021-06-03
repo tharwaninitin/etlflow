@@ -1,4 +1,4 @@
-name: Server Workflow
+name: Spark Workflow
 on: [push]
 jobs:
   test:

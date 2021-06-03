@@ -25,7 +25,10 @@ object SparkManager {
                             "spark.scheduler.mode" -> "FAIR",
                             "spark.sql.sources.partitionOverwriteMode" -> "dynamic",
                             "spark.default.parallelism" -> "10",
-                            "spark.sql.shuffle.partitions" -> "10"
+                            "spark.sql.shuffle.partitions" -> "10",
+                            "spark.sql.extensions"-> "io.delta.sql.DeltaSparkSessionExtension",
+                            "spark.sql.catalog.spark_catalog" -> "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+                            "spark.databricks.delta.retentionDurationCheck.enabled"-> "false"
                           ),
                           hive_support: Boolean = true
                         ): SparkSession =  {

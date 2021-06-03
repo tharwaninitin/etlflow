@@ -20,7 +20,7 @@ lazy val coreSettings = Seq(
   crossScalaVersions := supportedScalaVersions,
   libraryDependencies ++= zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs
     ++ miscLibs ++ redis ++ httpClient ++ mail ++ coreTestLibs,
-    //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
+  //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
   dependencyOverrides ++= {
     Seq(
       "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
@@ -32,7 +32,13 @@ lazy val coreSettings = Seq(
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
   crossScalaVersions := sparkSupportedScalaVersions,
-  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs,
+  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs ++ deltaLake,
+  dependencyOverrides ++= {
+    Seq(
+      "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
+    )
+  }
 )
 
 lazy val cloudSettings = Seq(

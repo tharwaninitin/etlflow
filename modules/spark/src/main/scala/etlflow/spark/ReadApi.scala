@@ -1,10 +1,11 @@
 package etlflow.spark
 
 import etlflow.utils.LoggingLevel
-import etlflow.spark.IOType._
+import etlflow.spark.IOType.{DELTA, _}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, split}
 import org.slf4j.LoggerFactory
+
 import scala.reflect.runtime.universe.TypeTag
 
 object ReadApi {
@@ -88,11 +89,17 @@ object ReadApi {
             spark.conf.set("materializationDataset",temp_dataset)
             df_reader.format("bigquery").option("query", location.mkString)
         }
+      case DELTA(overwriteSchema,mergeSchema) => {
+        df_reader.format("delta")
+          .option("overwriteSchema",overwriteSchema)
+          .option("mergeSchema",mergeSchema)
+      }
       case _ => df_reader.format("text")
     }
 
     val df = input_type match {
       case JDBC(_,_,_,_) | BQ(_,_) => df_reader_options.load().where(where_clause)
+      case DELTA(_,_) => df_reader_options.load(location(0)).where(where_clause)
       case _ => df_reader_options.load(location: _*).where(where_clause)
     }
 

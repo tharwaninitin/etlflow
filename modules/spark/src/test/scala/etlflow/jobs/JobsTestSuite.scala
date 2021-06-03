@@ -1,12 +1,13 @@
 package etlflow.jobs
 
 import etlflow.coretests.Schema.EtlJobDeltaLake
+import etlflow.coretests.TestSuiteHelper
 import etlflow.jobs.Job2SparkReadWriteApiTestSuite.testDBLayer
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object JobsTestSuite extends DefaultRunnableSpec {
+object JobsTestSuite extends DefaultRunnableSpec with TestSuiteHelper  {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Jobs") (

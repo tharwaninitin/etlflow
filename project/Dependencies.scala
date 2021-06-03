@@ -61,7 +61,7 @@ object Dependencies {
   )
 
   lazy val deltaLake = List(
-    "io.delta" %% "delta-core" % deltaLakeVersion
+    "io.delta" %% "delta-core" % deltaLakeVersion % Provided
   )
 
   lazy val dbLibs = List(

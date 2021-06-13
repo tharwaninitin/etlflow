@@ -5,6 +5,7 @@ import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
 import etlflow.jdbc.DB
 import etlflow.log.ApplicationLogger
+import etlflow.schema.EtlJob
 import etlflow.utils.{UtilityFunctions => UF}
 import zio._
 import zio.duration._

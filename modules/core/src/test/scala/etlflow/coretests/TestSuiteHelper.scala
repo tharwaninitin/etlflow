@@ -2,9 +2,8 @@ package etlflow.coretests
 
 import doobie.Transactor
 import doobie.util.transactor.Transactor.Aux
-import etlflow.jdbc.DbManager
 import etlflow.log.ApplicationLogger
-import etlflow.utils.Configuration
+import etlflow.utils.{Configuration, DbManager}
 import zio.Task
 import zio.interop.catz._
 import zio.interop.catz.implicits._

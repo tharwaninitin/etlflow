@@ -2,11 +2,12 @@ package etlflow.etlsteps
 
 import etlflow.EtlJobException
 import etlflow.aws._
-import etlflow.Credential.AWS
+import etlflow.schema.Credential.AWS
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import zio.Task
 import zio.clock.Clock
+
 import scala.concurrent.duration._
 
 class S3SensorStep private[etlsteps](

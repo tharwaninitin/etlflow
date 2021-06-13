@@ -71,7 +71,10 @@ object Dependencies {
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
-    "org.flywaydb" % "flyway-core"      % FlywayVersion
+    "org.flywaydb" % "flyway-core"      % FlywayVersion,
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
+    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
+    "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
   )
 
   lazy val streamingLibs = List(

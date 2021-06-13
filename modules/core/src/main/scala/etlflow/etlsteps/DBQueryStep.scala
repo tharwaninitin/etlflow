@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.Credential.JDBC
-import etlflow.jdbc.{DbManager, QueryApi}
-import etlflow.utils.LoggingLevel
+import etlflow.jdbc.QueryApi
+import etlflow.schema.Credential.JDBC
+import etlflow.utils.{DbManager, LoggingLevel}
 import zio.RIO
 import zio.blocking.Blocking
 

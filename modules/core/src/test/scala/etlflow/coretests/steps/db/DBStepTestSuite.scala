@@ -1,12 +1,12 @@
 package etlflow.coretests.steps.db
 
-import etlflow.Credential.JDBC
 import etlflow.etlsteps.DBQueryStep
+import etlflow.schema.Credential.JDBC
 import etlflow.utils.Configuration
 //import org.testcontainers.containers.PostgreSQLContainer
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
 object DBStepTestSuite extends DefaultRunnableSpec with Configuration {
 

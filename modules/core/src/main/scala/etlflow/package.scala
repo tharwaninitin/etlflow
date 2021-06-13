@@ -1,7 +1,8 @@
 import doobie.hikari.HikariTransactor
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
-import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogger}
+import etlflow.jdbc.DBServerEnv
+import etlflow.log.DbStepLogger.StepReq
 import etlflow.utils.{Executor, LoggingLevel}
 import io.circe.generic.semiauto.deriveDecoder
 import zio.blocking.Blocking
@@ -12,41 +13,39 @@ import scala.reflect.ClassTag
 
 package object etlflow {
 
-  sealed trait Credential
-  object Credential {
-    final case class GCP(service_account_key_path: String, project_id: String = "") extends Credential {
-      override def toString: String = "****service_account_key_path****"
-    }
-    final case class AWS(access_key: String, secret_key: String) extends Credential {
-      override def toString: String = "****access_key****secret_key****"
-    }
-    final case class JDBC(url: String, user: String, password: String, driver: String) extends Credential {
-      override def toString: String = s"JDBC with url => $url"
-    }
-    final case class REDIS(host_name: String, password: Option[String] = None, port: Int = 6379) extends Credential {
-      override def toString: String = s"REDIS with url $host_name and port $port"
-    }
-    final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") extends Credential {
-      override def toString: String = s"SMTP with host  => $host and user => $user"
-    }
-
-    object AWS {
-      implicit val AwsDecoder = deriveDecoder[AWS]
-    }
-
-    object JDBC {
-      implicit val JdbcDecoder = deriveDecoder[JDBC]
-    }
-  }
+//  sealed trait Credential
+//  object Credential {
+//    final case class GCP(service_account_key_path: String, project_id: String = "") extends Credential {
+//      override def toString: String = "****service_account_key_path****"
+//    }
+//    final case class AWS(access_key: String, secret_key: String) extends Credential {
+//      override def toString: String = "****access_key****secret_key****"
+//    }
+//    final case class JDBC(url: String, user: String, password: String, driver: String) extends Credential {
+//      override def toString: String = s"JDBC with url => $url"
+//    }
+//    final case class REDIS(host_name: String, password: Option[String] = None, port: Int = 6379) extends Credential {
+//      override def toString: String = s"REDIS with url $host_name and port $port"
+//    }
+//    final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") extends Credential {
+//      override def toString: String = s"SMTP with host  => $host and user => $user"
+//    }
+//
+//    object AWS {
+//      implicit val AwsDecoder = deriveDecoder[AWS]
+//    }
+//
+//    object JDBC {
+//      implicit val JdbcDecoder = deriveDecoder[JDBC]
+//    }
+//  }
 
   case class EtlJobException(msg : String) extends RuntimeException(msg)
   case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
-  case class StepLogger(db: Option[DbStepLogger], slack: Option[SlackLogger])
-  case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogger])
 
   type DBEnv = Has[HikariTransactor[Task]]
-  type StepEnv = Has[StepLogger] with DBEnv with Blocking with Clock
-  type JobEnv = DBEnv with Blocking with Clock
+  type JobEnv = DBEnv with DBServerEnv with Blocking with Clock
+  type StepEnv = Has[StepReq] with JobEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   trait EtlJobSchema extends Product

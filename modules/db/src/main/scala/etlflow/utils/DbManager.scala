@@ -1,9 +1,9 @@
-package etlflow.jdbc
+package etlflow.utils
 
 import com.zaxxer.hikari.HikariConfig
 import doobie.hikari.HikariTransactor
-import etlflow.Credential.JDBC
-import etlflow.DBEnv
+import etlflow.jdbc.DBEnv
+import etlflow.schema.Credential.JDBC
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.blocking.Blocking

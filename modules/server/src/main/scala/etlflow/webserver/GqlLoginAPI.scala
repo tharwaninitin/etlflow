@@ -6,7 +6,7 @@ import caliban.{GraphQL, RootResolver}
 import etlflow.api.APIEnv
 import etlflow.api.Schema._
 import etlflow.api.Service.login
-import etlflow.jdbc.DBServerEnv
+import etlflow.jdbc.{DBServerEnv, UserArgs}
 import zio.{Task, UIO, ZIO}
 
 object GqlLoginAPI extends GenericSchema[APIEnv with DBServerEnv] {

@@ -1,8 +1,8 @@
 package etlflow.webserver
 
 import com.github.t3hnar.bcrypt._
-import etlflow.api.Schema.{UserArgs, UserAuth}
-import etlflow.jdbc.{DB, DBServerEnv}
+import etlflow.api.Schema.UserAuth
+import etlflow.jdbc.{DB, DBServerEnv, UserArgs}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.{CacheHelper, WebServer}
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}

@@ -1,13 +1,14 @@
 package etlflow
 
-import java.net.URI
-import etlflow.Credential.AWS
+import etlflow.schema.Credential.AWS
 import org.slf4j.{Logger, LoggerFactory}
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
 import zio.{Has, Task, ZIO}
+
+import java.net.URI
 
 package object aws {
   val aws_logger: Logger = LoggerFactory.getLogger(getClass.getName)

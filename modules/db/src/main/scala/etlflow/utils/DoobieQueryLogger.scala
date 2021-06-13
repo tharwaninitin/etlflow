@@ -1,9 +1,11 @@
-package etlflow.jdbc
+package etlflow.utils
 
 import doobie.util.log.{ExecFailure, LogHandler, ProcessingFailure, Success}
-import etlflow.log.ApplicationLogger
+import org.slf4j.{Logger, LoggerFactory}
 
-object DoobieQueryLogger extends ApplicationLogger {
+object DoobieQueryLogger {
+  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+
   def apply(): LogHandler = {
     LogHandler {
       case Success(s, a, e1, e2) =>

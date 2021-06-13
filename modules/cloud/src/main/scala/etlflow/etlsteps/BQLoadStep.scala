@@ -1,15 +1,15 @@
 package etlflow.etlsteps
 
-import java.util
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
-import etlflow.Credential
 import etlflow.gcp._
-import etlflow.utils.LoggingLevel
+import etlflow.schema.Credential
+import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import zio.{Task, UIO}
+
+import java.util
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
-import etlflow.utils.{UtilityFunctions => UF}
 
 class BQLoadStep[T <: Product : TypeTag] private[etlflow](
        val name: String

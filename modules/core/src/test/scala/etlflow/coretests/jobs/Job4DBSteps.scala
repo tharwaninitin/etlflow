@@ -3,7 +3,7 @@ package etlflow.coretests.jobs
 import etlflow.coretests.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
-import etlflow.Credential.JDBC
+import etlflow.schema.Credential.JDBC
 import etlflow.utils.Encryption
 case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
 

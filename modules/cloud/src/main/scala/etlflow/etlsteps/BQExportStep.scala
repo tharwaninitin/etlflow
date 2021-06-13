@@ -1,13 +1,10 @@
 package etlflow.etlsteps
 
-import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
-import etlflow.Credential
 import etlflow.gcp._
+import etlflow.schema.Credential
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import zio.{Task, UIO}
 
-import java.util
-import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
 

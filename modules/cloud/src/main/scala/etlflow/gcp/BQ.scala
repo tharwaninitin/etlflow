@@ -4,8 +4,8 @@ import java.io.FileInputStream
 import java.util.UUID
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, ExtractJobConfiguration, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
-import etlflow.Credential
 import etlflow.gcp.BQInputType.{CSV, JSON, ORC, PARQUET}
+import etlflow.schema.Credential
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
 
 import scala.sys.process._

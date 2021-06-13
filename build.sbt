@@ -20,7 +20,7 @@ lazy val coreSettings = Seq(
   crossScalaVersions := supportedScalaVersions,
   libraryDependencies ++= zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs
     ++ miscLibs ++ redis ++ httpClient ++ mail ++ coreTestLibs,
-    //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
+  //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
   dependencyOverrides ++= {
     Seq(
       "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
@@ -32,7 +32,13 @@ lazy val coreSettings = Seq(
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
   crossScalaVersions := sparkSupportedScalaVersions,
-  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs,
+  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs ++ deltaLake,
+  dependencyOverrides ++= {
+    Seq(
+      "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
+    )
+  }
 )
 
 lazy val cloudSettings = Seq(
@@ -47,12 +53,24 @@ lazy val serverSettings = Seq(
   libraryDependencies ++= serverLibs ++ coreTestLibs,
 )
 
+lazy val dbSettings = Seq(
+  name := "etlflow-db",
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++=  zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs,
+)
+
+lazy val utilsSettings = Seq(
+  name := "etlflow-utils",
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++= jsonLibs ++ dbLibs,
+)
+
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(core,spark,cloud,server)
+  .aggregate(db,core,spark,cloud,server,utils)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
@@ -76,21 +94,32 @@ lazy val core = (project in file("modules/core"))
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll
     ),
   )
+  .dependsOn(db % "compile->compile;test->test", utils)
+
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)
   .settings(sparkSettings)
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test",db, utils)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
   .settings(cloudSettings)
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test",db, utils)
 
 lazy val server = (project in file("modules/server"))
   .settings(commonSettings)
   .settings(serverSettings)
-  .dependsOn(core % "compile->compile;test->test", cloud)
+  .dependsOn(core % "compile->compile;test->test", cloud, db, utils)
+
+lazy val db = (project in file("modules/db"))
+  .settings(commonSettings)
+  .settings(dbSettings)
+  .dependsOn(utils)
+
+lazy val utils = (project in file("modules/utils"))
+  .settings(commonSettings)
+  .settings(utilsSettings)
 
 
 

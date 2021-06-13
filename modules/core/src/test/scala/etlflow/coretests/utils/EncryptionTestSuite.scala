@@ -1,6 +1,6 @@
 package etlflow.coretests.utils
 
-import etlflow.Credential.{AWS, JDBC}
+import etlflow.schema.Credential.{AWS, JDBC}
 import etlflow.utils.{Encryption, JsonCirce, JsonJackson}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

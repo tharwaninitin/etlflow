@@ -1,11 +1,11 @@
 package etlflow.etljobs
 
-import etlflow.log.EtlLogger.JobLoggerImpl
-import etlflow.log.{DbLogger, SlackLogger}
+import etlflow.jdbc.DBServerEnv
+import etlflow.log.{DbJobLogger}
 import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
-import etlflow.{EtlJobProps, JobEnv, JobLogger, StepEnv, StepLogger}
-import zio.{UIO, ZIO, ZLayer}
-
+import etlflow.{EtlJobProps, JobEnv, StepEnv}
+import zio.{Task, UIO, ZIO, ZLayer}
+import etlflow.log.DbStepLogger.StepReq
 trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
 
   def job: ZIO[StepEnv, Throwable, Unit]
@@ -21,14 +21,12 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       slack_env       = config.slack.map(_.env).getOrElse("")
       slack_url       = config.slack.map(_.url).getOrElse("")
       host_url        = config.host.getOrElse("http://localhost:8080/#")  + "/JobRunDetails/" + jri
-      slack           = SlackLogger(job_name, slack_env, slack_url, job_notification_level, job_send_slack_notification,host_url)
-      db              <- DbLogger(job_name, job_properties, config, jri, master_job, job_notification_level, job_enable_db_logging)
-      job_log         = JobLoggerImpl(JobLogger(db.job,slack),job_type)
-      step_layer      = ZLayer.succeed(StepLogger(db.step,slack))
-      _               <- job_log.logInit(job_start_time)
+      dbJob           = new DbJobLogger(job_name, job_properties, jri, master_job)
+      step_layer      = ZLayer.succeed(StepReq(jri))
+      _               <- dbJob.logStart(job_start_time, job_type)
       _               <- job.provideSomeLayer[JobEnv](step_layer).foldM(
-                            ex => job_log.logError(job_start_time,ex),
-                            _  => job_log.logSuccess(job_start_time)
+                            ex => dbJob.logEnd(job_start_time, Some(ex.getMessage)).unit *> Task.fail(ex),
+                            _  => dbJob.logEnd(job_start_time)
                           )
     } yield ()
   }

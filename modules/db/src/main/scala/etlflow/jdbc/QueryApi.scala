@@ -3,14 +3,14 @@ package etlflow.jdbc
 import doobie.implicits._
 import doobie.util.Read
 import doobie.util.fragment.Fragment
-import etlflow.DBEnv
-import etlflow.log.ApplicationLogger
+import etlflow.utils.DbManager
+import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{RIO, Task, ZIO}
 
-object QueryApi extends ApplicationLogger with DbManager {
+object QueryApi extends DbManager {
 
-  // implicit val dbLogger = DoobieQueryLogger()
+  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def executeQueryWithResponse[T <: Product : Read](query: String): RIO[DBEnv, List[T]] = ZIO.accessM[DBEnv] { x =>
     Fragment.const(query)

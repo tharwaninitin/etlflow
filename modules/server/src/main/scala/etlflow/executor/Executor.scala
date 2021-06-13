@@ -4,8 +4,9 @@ import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
 import etlflow.api.ExecutorTask
 import etlflow.gcp.{DP, DPService}
-import etlflow.jdbc.DB
+import etlflow.jdbc.{DB}
 import etlflow.log.ApplicationLogger
+import etlflow.schema.EtlJob
 import etlflow.utils.Executor._
 import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
@@ -14,6 +15,7 @@ import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 

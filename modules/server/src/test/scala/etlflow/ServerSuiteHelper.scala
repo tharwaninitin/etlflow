@@ -1,14 +1,14 @@
 package etlflow
 
-import etlflow.Credential.JDBC
 import etlflow.api.Schema.QueueDetails
 import etlflow.api.{APIEnv, Implementation}
 import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
-import etlflow.jdbc.{DBServerEnv, DbManager, liveDBWithTransactor}
-import etlflow.utils.{CacheHelper, Config, EtlFlowUtils, UtilityFunctions => UF}
-import etlflow.webserver.{Authentication}
+import etlflow.jdbc.{DBServerEnv, liveDBWithTransactor}
+import etlflow.schema.Credential.JDBC
+import etlflow.utils.{CacheHelper, Config, DbManager, EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.webserver.Authentication
 import io.circe.generic.auto._
 import scalacache.caffeine.CaffeineCache
 import zio.blocking.Blocking

@@ -1,7 +1,7 @@
 package etlflow.utils
 
-import etlflow.Credential.{AWS, JDBC}
 import etlflow.log.ApplicationLogger
+import etlflow.schema.Credential.{AWS, JDBC}
 
 import java.security.InvalidKeyException
 import java.util.Base64

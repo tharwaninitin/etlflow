@@ -1,12 +1,13 @@
 package etlflow.utils
 
 import etlflow.EJPMType
-import etlflow.api.Schema._
+import etlflow.schema.EtlJob
 import etlflow.utils.JsonJackson._
 import etlflow.utils.{UtilityFunctions => UF}
 import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
 import zio.{Task, UIO}
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait EtlFlowUtils {

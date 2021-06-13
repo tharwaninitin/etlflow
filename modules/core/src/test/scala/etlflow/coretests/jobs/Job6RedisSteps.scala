@@ -3,9 +3,9 @@ package etlflow.coretests.jobs
 import etlflow.EtlStepList
 import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{EtlStep, ParallelETLStep, RedisStep}
-import etlflow.Credential.REDIS
 import etlflow.etlsteps.RedisStep.RedisCmd
+import etlflow.etlsteps.{EtlStep, ParallelETLStep, RedisStep}
+import etlflow.schema.Credential.REDIS
 
 case class Job6RedisSteps(job_properties: EtlJob3Props) extends SequentialEtlJob[EtlJob3Props] {
 

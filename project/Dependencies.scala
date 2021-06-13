@@ -45,6 +45,7 @@ object Dependencies {
   val ZioHttpVersion = "0.10.0"
 
   val ScalaTestVersion = "3.2.8"
+  val deltaLakeVersion = "0.6.1"
 
   lazy val zioLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
@@ -59,6 +60,10 @@ object Dependencies {
     "org.typelevel" %% "cats-effect-std"    % CatsEffectVersion
   )
 
+  lazy val deltaLake = List(
+    "io.delta" %% "delta-core" % deltaLakeVersion % Provided
+  )
+
   lazy val dbLibs = List(
     "co.fs2"       %% "fs2-core"         % Fs2Version,
     "co.fs2"       %% "fs2-io"           % Fs2Version,
@@ -66,7 +71,10 @@ object Dependencies {
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
-    "org.flywaydb" % "flyway-core"      % FlywayVersion
+    "org.flywaydb" % "flyway-core"      % FlywayVersion,
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
+    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
+    "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
   )
 
   lazy val streamingLibs = List(
@@ -153,6 +161,7 @@ object Dependencies {
 
   lazy val sparkTestLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion,
+    "io.delta" %% "delta-core" % deltaLakeVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 }

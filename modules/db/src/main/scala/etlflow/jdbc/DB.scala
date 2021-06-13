@@ -3,41 +3,59 @@ package etlflow.jdbc
 import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import cron4s.lib.javatime._
+import cats.free.Free
+import doobie.free.connection
 import doobie.implicits._
-import etlflow.EJPMType
-import etlflow.api.Schema.Creds.{AWS, JDBC}
-import etlflow.api.Schema._
-import etlflow.utils.{EtlFlowUtils, JsonJackson, UtilityFunctions => UF}
-import org.ocpsoft.prettytime.PrettyTime
+import etlflow.jdbc.SQL.getTimestampAsString
+import etlflow.schema._
+import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{IO, RIO, Task, UIO, ZIO, ZLayer}
-import java.time.LocalDateTime
-import scala.reflect.runtime.universe.TypeTag
-import etlflow.DBEnv
 
-object DB extends EtlFlowUtils {
+object DB {
   // Uncomment this to see generated SQL queries in logs
   // implicit val dbLogger = DBLogger()
+  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   trait Service {
     def getUser(user_name: String): IO[ExecutionError, UserDB]
+
     def getJob(name: String): IO[ExecutionError, JobDB]
-    def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): Task[List[Job]]
+
+    def getJobs(args: Free[connection.ConnectionOp, List[Job]]): Task[List[Job]]
+
     def getStepRuns(args: DbStepRunArgs): IO[ExecutionError, List[StepRun]]
+
     def getJobRuns(args: DbJobRunArgs): IO[ExecutionError, List[JobRun]]
+
     def getJobLogs(args: JobLogsArgs): IO[ExecutionError, List[JobLogs]]
+
     def getCredentials: IO[ExecutionError, List[GetCredential]]
+
     def updateSuccessJob(job: String, ts: Long): IO[ExecutionError, Long]
+
     def updateFailedJob(job: String, ts: Long): IO[ExecutionError, Long]
+
     def updateJobState(args: EtlJobStateArgs): IO[ExecutionError, Boolean]
-    def addCredential(args: CredentialsArgs): IO[ExecutionError, Credentials]
-    def updateCredential(args: CredentialsArgs): IO[ExecutionError, Credentials]
+
+    def addCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[ExecutionError, Credentials]
+
+    def updateCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[ExecutionError, Credentials]
+
     def refreshJobs(jobs: List[EtlJob]): IO[ExecutionError, List[JobDB]]
+
+    def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[ExecutionError, Unit]
+
+    def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[ExecutionError, Unit]
+
+    def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[ExecutionError, Unit]
+
+    def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[ExecutionError, Unit]
   }
 
   def getUser(user_name: String): ZIO[DBServerEnv, ExecutionError, UserDB] = ZIO.accessM(_.get.getUser(user_name))
   def getJob(name: String): ZIO[DBServerEnv, ExecutionError, JobDB] = ZIO.accessM(_.get.getJob(name))
-  def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): RIO[DBServerEnv ,List[Job]] = ZIO.accessM(_.get.getJobs[EJN](ejpm_package))
+  def getJobs(args: Free[connection.ConnectionOp, List[Job]]): RIO[DBServerEnv ,List[Job]] = ZIO.accessM(_.get.getJobs(args))
   def getStepRuns(args: DbStepRunArgs): ZIO[DBServerEnv, ExecutionError, List[StepRun]] = ZIO.accessM(_.get.getStepRuns(args))
   def getJobRuns(args: DbJobRunArgs): ZIO[DBServerEnv, ExecutionError, List[JobRun]] = ZIO.accessM(_.get.getJobRuns(args))
   def getJobLogs(args: JobLogsArgs): ZIO[DBServerEnv, ExecutionError, List[JobLogs]] = ZIO.accessM(_.get.getJobLogs(args))
@@ -45,9 +63,13 @@ object DB extends EtlFlowUtils {
   def updateSuccessJob(job: String, ts: Long): ZIO[DBServerEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateSuccessJob(job,ts))
   def updateFailedJob(job: String, ts: Long): ZIO[DBServerEnv, ExecutionError, Long] = ZIO.accessM(_.get.updateFailedJob(job, ts))
   def updateJobState(args: EtlJobStateArgs): ZIO[DBServerEnv, ExecutionError, Boolean] = ZIO.accessM(_.get.updateJobState(args))
-  def addCredential(args: CredentialsArgs): ZIO[DBServerEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredential(args))
-  def updateCredential(args: CredentialsArgs): ZIO[DBServerEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredential(args))
+  def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): ZIO[DBServerEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.addCredential(credentialsDB,actualSerializerOutput))
+  def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): ZIO[DBServerEnv, ExecutionError, Credentials] = ZIO.accessM(_.get.updateCredential(credentialsDB,actualSerializerOutput))
   def refreshJobs(jobs: List[EtlJob]): ZIO[DBServerEnv, ExecutionError, List[JobDB]] = ZIO.accessM(_.get.refreshJobs(jobs))
+  def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): ZIO[DBServerEnv, Throwable, Unit] = ZIO.accessM(_.get.updateStepRun(job_run_id, step_name, props, status, elapsed_time))
+  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): ZIO[DBServerEnv, Throwable, Unit] = ZIO.accessM(_.get.insertStepRun(job_run_id, step_name, props, step_type, step_run_id, start_time))
+  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): ZIO[DBServerEnv, Throwable, Unit] = ZIO.accessM(_.get.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time))
+  def updateJobRun(job_run_id: String, status: String, elapsed_time: String): ZIO[DBServerEnv, Throwable, Unit] = ZIO.accessM(_.get.updateJobRun(job_run_id, status, elapsed_time))
 
   val liveDB: ZLayer[DBEnv, Throwable, DBServerEnv] = ZLayer.fromService { transactor =>
     new Service {
@@ -69,28 +91,8 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def getJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): Task[List[Job]] = {
-        SQL.getJobs
-          .to[List]
-          .map(y => y.map { x => {
-            val props = getJobPropsMapping[EJN](x.job_name, ejpm_package)
-            val p = new PrettyTime()
-            val lastRunTime = x.last_run_time.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-
-            if (Cron(x.schedule).toOption.isDefined) {
-              val cron = Cron(x.schedule).toOption
-              val startTimeMillis: Long = UF.getCurrentTimestampUsingLocalDateTime
-              val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
-              val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
-              val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-
-              val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-              Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
-            } else {
-              Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
-            }
-          }
-          })
+      def getJobs(args: Free[connection.ConnectionOp, List[Job]]): Task[List[Job]] = {
+        args
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
@@ -101,7 +103,7 @@ object DB extends EtlFlowUtils {
         SQL.getStepRuns(args)
           .to[List]
           .map(y => y.map { x => {
-            StepRun(x.job_run_id, x.step_name, x.properties, x.state, UF.getTimestampAsString(x.inserted_at), x.elapsed_time, x.step_type, x.step_run_id)
+            StepRun(x.job_run_id, x.step_name, x.properties, x.state, getTimestampAsString(x.inserted_at), x.elapsed_time, x.step_type, x.step_run_id)
           }
           })
           .transact(transactor)
@@ -114,7 +116,7 @@ object DB extends EtlFlowUtils {
         SQL.getJobRuns(args)
           .to[List]
           .map(y => y.map { x => {
-            JobRun(x.job_run_id, x.job_name, x.properties, x.state, UF.getTimestampAsString(x.inserted_at), x.elapsed_time, x.job_type, x.is_master)
+            JobRun(x.job_run_id, x.job_name, x.properties, x.state, getTimestampAsString(x.inserted_at), x.elapsed_time, x.job_type, x.is_master)
           }
           })
           .transact(transactor)
@@ -171,17 +173,8 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def addCredential(args: CredentialsArgs): IO[ExecutionError, Credentials] = {
-        val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty))
-        val credentialsDB = CredentialDB(
-          args.name,
-          args.`type` match {
-            case JDBC => "jdbc"
-            case AWS => "aws"
-          },
-          value
-        )
-        SQL.addCredentials(credentialsDB)
+      def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): IO[ExecutionError, Credentials] = {
+        SQL.addCredentials(credentialsDB,actualSerializerOutput)
           .run
           .transact(transactor)
           .map(_ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str))
@@ -190,17 +183,8 @@ object DB extends EtlFlowUtils {
             ExecutionError(e.getMessage)
           }
       }
-      def updateCredential(args: CredentialsArgs): IO[ExecutionError, Credentials] = {
-        val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty))
-        val credentialsDB = CredentialDB(
-          args.name,
-          args.`type` match {
-            case JDBC => "jdbc"
-            case AWS => "aws"
-          },
-          value
-        )
-        SQL.updateCredentialSingleTran(credentialsDB)
+      def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[ExecutionError, Credentials] = {
+        SQL.updateCredentialSingleTran(credentialsDB,actualSerializerOutput)
           .transact(transactor)
           .map(_ => Credentials(credentialsDB.name,credentialsDB.`type`,credentialsDB.value.str))
       }.mapError { e =>
@@ -219,6 +203,50 @@ object DB extends EtlFlowUtils {
           .transact(transactor)
           .mapError { e =>
             logger.error(e.getMessage)
+            ExecutionError(e.getMessage)
+          }
+      }
+
+      def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[ExecutionError, Unit] = {
+        SQL
+          .updateStepRun(job_run_id, step_name, props, status, elapsed_time)
+          .run
+          .transact(transactor).unit
+          .mapError { e =>
+            logger.error(s"failed in logging to db ${e.getMessage}")
+            ExecutionError(e.getMessage)
+          }
+      }
+
+      def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[ExecutionError, Unit] = {
+        SQL
+          .insertStepRun(job_run_id, step_name, props, step_type, step_run_id, start_time)
+          .run
+          .transact(transactor).unit
+          .mapError { e =>
+            logger.error(s"failed in logging to db ${e.getMessage}")
+            ExecutionError(e.getMessage)
+          }
+      }
+
+      def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[ExecutionError, Unit] = {
+        SQL
+          .insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
+          .run
+          .transact(transactor).unit
+          .mapError { e =>
+            logger.error(s"failed in logging to db ${e.getMessage}")
+            ExecutionError(e.getMessage)
+          }
+      }
+
+      def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[ExecutionError, Unit] = {
+        SQL
+          .updateJobRun(job_run_id, status, elapsed_time)
+          .run
+          .transact(transactor).unit
+          .mapError { e =>
+            logger.error(s"failed in logging to db ${e.getMessage}")
             ExecutionError(e.getMessage)
           }
       }

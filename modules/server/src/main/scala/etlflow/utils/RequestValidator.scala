@@ -1,6 +1,7 @@
 package etlflow.utils
 
-import etlflow.api.Schema.{EtlJobArgs, Props}
+import etlflow.api.Schema.EtlJobArgs
+import etlflow.schema.Props
 
 object RequestValidator {
   def apply(job_name: String, props: Option[String]): Either[String, EtlJobArgs] = {

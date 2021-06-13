@@ -24,6 +24,7 @@ package object spark {
     }
     final case class Partition (num_partition:Int, partition_column:String, lower_bound:String, upper_bound:String)
     final case class BQ(temp_dataset: String = "temp", operation_type: String = "table") extends IOType
+    final case class DELTA(overwriteSchema:Boolean = false,mergeSchema: Boolean = false) extends IOType
     final case object PARQUET extends IOType
     final case object ORC extends IOType
     final case object TEXT extends IOType

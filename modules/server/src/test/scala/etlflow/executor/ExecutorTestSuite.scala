@@ -2,7 +2,8 @@ package etlflow.executor
 
 import etlflow.ServerSuiteHelper
 import etlflow.api.ExecutorTask
-import etlflow.api.Schema.{EtlJob, EtlJobArgs}
+import etlflow.api.Schema.EtlJobArgs
+import etlflow.jdbc.EtlJob
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

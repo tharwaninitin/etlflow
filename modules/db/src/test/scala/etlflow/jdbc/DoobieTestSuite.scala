@@ -1,11 +1,10 @@
 package etlflow.jdbc
 
 import cats.effect.IO
-import doobie.util.{ExecutionContexts, log}
 import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
-import etlflow.api.Schema._
 import org.scalatest._
+
 import java.time.LocalDate
 
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with ServerSuiteHelper {
@@ -105,7 +104,7 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
     limit =  None
   )
 
-  val query1: doobie.Update0 = SQL.addCredentials(creds)
+  val query1: doobie.Update0 = SQL.addCredentials(creds,JsonString(cred_value))
     test("addCredentials") { check(query1) }
 
   val query6: doobie.Update0 = SQL.updateCredentials(creds)

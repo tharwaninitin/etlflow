@@ -2,7 +2,8 @@ package etlflow.webserver
 
 import caliban.ZHttpAdapter
 import etlflow.api.ServerTask
-import etlflow.utils.{CorsConfig, WebServer}
+import etlflow.schema.WebServer
+import etlflow.utils.CorsConfig
 import etlflow.{BuildInfo => BI}
 import zhttp.http.Method.{GET, POST}
 import zhttp.http._

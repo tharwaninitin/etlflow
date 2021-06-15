@@ -1,6 +1,6 @@
 //package etlflow.webserver
 //
-//import etlflow.ServerSuiteHelper
+//import etlflow.etlflow.ServerSuiteHelper
 //import etlflow.utils.CacheHelper
 //import zhttp.http._
 //import zhttp.service.server._
@@ -9,7 +9,7 @@
 //import zio.test.Assertion.equalTo
 //import zio.test.assertM
 //
-//object ZioHttpTestSuite extends ZioHttpRunnableSpec(8083) with ZioHttpServer with ServerSuiteHelper {
+//object ZioHttpTestSuite extends ZioHttpRunnableSpec(8083) with ZioHttpServer with etlflow.ServerSuiteHelper {
 //
 //  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer).orDie
 //

@@ -2,11 +2,12 @@ package etlflow
 
 import etlflow.etljobs.EtlJob
 import etlflow.executor.LocalExecutor
-import etlflow.jdbc.{DbManager, QueryApi}
+import etlflow.jdbc.{DB, liveDBWithTransactor}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
-import etlflow.utils.{Configuration, UtilityFunctions => UF}
+import etlflow.utils.{Configuration, DbManager, UtilityFunctions => UF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
+
 import scala.reflect.runtime.universe.TypeTag
 
 abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]] : TypeTag]
@@ -31,7 +32,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.info("Inserting user into database")
           val encryptedPassword = UF.encryptKey(ec.password)
           val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
-          QueryApi.executeQuery(query).provideLayer(liveTransactor(config.dbLog,"AddUser-Pool", 1))
+          val dbLayer = liveDBWithTransactor(config.dbLog)
+          DB.executeQuery(query).provideCustomLayer(dbLayer)
         case ec if ec.add_user && ec.user == "" =>
           logger.error(s"Need to provide args --user")
           ZIO.fail(new RuntimeException("Need to provide args --user"))
@@ -54,10 +56,11 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
           val jri = if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
-          val layer = liveTransactor(config.dbLog,"Job-" + ec.job_name + "-Pool",2)
+          val layer   = liveTransactor(config.dbLog,"Job-" + ec.job_name + "-Pool",2)
+          val dbLayer = liveDBWithTransactor(config.dbLog)
           LocalExecutor(etl_job_props_mapping_package, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
-            .provideCustomLayer(layer)
+            .provideCustomLayer(dbLayer)
         case ec if ec.run_server =>
             logger.info("Starting server")
             app

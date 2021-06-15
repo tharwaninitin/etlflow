@@ -3,7 +3,7 @@ package etlflow.scheduler
 import cron4s.{Cron, CronExpr}
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
-import etlflow.jdbc.DB
+import etlflow.jdbc.{DB, EtlJob}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.{UtilityFunctions => UF}
 import zio._

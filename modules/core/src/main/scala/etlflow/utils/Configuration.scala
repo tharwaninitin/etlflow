@@ -3,6 +3,7 @@ package etlflow.utils
 import cats.data._
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
+import etlflow.schema.Config
 import io.circe.generic.auto._
 
 trait Configuration {

@@ -1,10 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.log.EtlLogger._
-import etlflow.utils.LoggingLevel
 import etlflow.{JobEnv, StepEnv}
+import etlflow.utils.LoggingLevel
 import org.slf4j.{Logger, LoggerFactory}
-import zio.{RIO, Task, ZIO}
+import zio.{Has, RIO, Task, ZIO, ZLayer}
+import etlflow.log.StepLogger.{LoggingSupport, StepLoggerImpl, StepLoggerResourceEnv, StepReq, logError, logInit, logSuccess}
 
 trait EtlStep[IPSTATE,OPSTATE] { self =>
   val etl_logger: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -17,8 +17,8 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
   def getStepProperties(level:LoggingLevel  = LoggingLevel.INFO): Map[String,String] = Map()
 
   final def execute(input_state: =>IPSTATE): ZIO[StepEnv, Throwable, OPSTATE] = {
-    val env = StepLoggerResourceEnv.live >>> StepLoggerImpl.live(self)
-    val step = for {
+    val env: ZLayer[Has[StepReq], Throwable, LoggingSupport] = StepLoggerResourceEnv.live >>> StepLoggerImpl.live(self)
+    val step: ZIO[LoggingSupport with JobEnv, Throwable, OPSTATE] = for {
       step_start_time <- Task.succeed(System.currentTimeMillis())
       _   <- logInit(step_start_time)
       op  <- process(input_state).tapError{ex =>
@@ -26,6 +26,6 @@ trait EtlStep[IPSTATE,OPSTATE] { self =>
              }
       _   <- logSuccess(step_start_time)
     } yield op
-    step.provideSomeLayer[StepEnv](env)
+    step.provideSomeLayer[Has[StepReq] with JobEnv](env)
   }
 }

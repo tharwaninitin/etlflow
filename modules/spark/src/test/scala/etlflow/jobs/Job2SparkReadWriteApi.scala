@@ -54,7 +54,6 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   val step4 = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
-    credentials = config.dbLog
   )
 
   def processData2(ip: List[EtlJobRun]): Unit = {

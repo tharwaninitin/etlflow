@@ -4,15 +4,22 @@ import cats.data.NonEmptyList
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.meta.Meta
-import etlflow.api.Schema._
-import etlflow.log.ApplicationLogger
-import etlflow.utils.{EncryptCred, GetStartTime, UtilityFunctions => UF}
+import etlflow.utils.GetStartTime
 import org.postgresql.util.PGobject
+import org.slf4j.{Logger, LoggerFactory}
 
 import java.text.SimpleDateFormat
-import java.time.{LocalDate, ZoneId}
+import java.time.format.DateTimeFormatter
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.util.TimeZone
 
 object SQL {
+
+  def getCurrentTimestamp: Long = System.currentTimeMillis()
+  def getTimestampAsString(timestamp: Long, pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
+    DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp),ZoneId.systemDefault())) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
+
+  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
     val o = new PGobject
@@ -187,7 +194,7 @@ object SQL {
     if (args.filter.isDefined && args.limit.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
       val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
-      val end_time2 = UF.getCurrentTimestamp
+      val end_time2 = getCurrentTimestamp
       q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
@@ -209,7 +216,7 @@ object SQL {
     else if (args.filter.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
       val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
-      val end_time2 = UF.getCurrentTimestamp
+      val end_time2 = getCurrentTimestamp
       q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
@@ -287,8 +294,7 @@ object SQL {
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
       .update
 
-  def addCredentials(args: CredentialDB): doobie.Update0 = {
-    val actualSerializerOutput = EncryptCred(args.`type`,args.value)
+  def addCredentials(args: CredentialDB, actualSerializerOutput: JsonString): doobie.Update0 = {
     sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${actualSerializerOutput})".update
   }
   def updateCredentials(args: CredentialDB): doobie.Update0 = {
@@ -300,11 +306,11 @@ object SQL {
     """.stripMargin.update
   }
 
-  def updateCredentialSingleTran(args: CredentialDB): ConnectionIO[Unit]  = {
+  def updateCredentialSingleTran(args: CredentialDB, actualSerializerOutput: JsonString): ConnectionIO[Unit]  = {
 
     val singleTran = for {
       _ <- updateCredentials(args).run
-      _ <- addCredentials(args).run
+      _ <- addCredentials(args, actualSerializerOutput).run
     } yield ()
 
     singleTran
@@ -349,4 +355,48 @@ object SQL {
 //
 //  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
 
+  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): doobie.Update0 = {
+    sql"""INSERT INTO JobRun(
+            job_run_id,
+            job_name,
+            properties,
+            state,
+            elapsed_time,
+            job_type,
+            is_master,
+            inserted_at
+            )
+         VALUES ($job_run_id, $job_name, ${JsonString(props)}, 'started', '...', $job_type, $is_master, $start_time)"""
+      .update
+  }
+  def updateJobRun(job_run_id: String, status: String, elapsed_time: String): doobie.Update0 = {
+    sql""" UPDATE JobRun
+              SET state = $status,
+                  elapsed_time = $elapsed_time
+           WHERE job_run_id = $job_run_id"""
+      .update
+  }
+  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): doobie.Update0 = {
+    sql"""INSERT INTO StepRun (
+            job_run_id,
+            step_name,
+            properties,
+            state,
+            elapsed_time,
+            step_type,
+            step_run_id,
+            inserted_at
+            )
+          VALUES ($job_run_id, $step_name, ${JsonString(props)}, 'started', '...', $step_type, $step_run_id, $start_time)"""
+    .update
+  }
+
+  def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): doobie.Update0 = {
+    sql"""UPDATE StepRun
+            SET state = $status,
+                properties = ${JsonString(props)},
+                elapsed_time = $elapsed_time
+          WHERE job_run_id = $job_run_id AND step_name = $step_name"""
+      .update
+  }
 }

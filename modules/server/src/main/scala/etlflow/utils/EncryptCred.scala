@@ -1,9 +1,13 @@
 package etlflow.utils
 
-import etlflow.Credential.{AWS, JDBC}
 import etlflow.jdbc.JsonString
+import etlflow.schema.Credential.{AWS, JDBC}
+import io.circe.generic.semiauto.deriveDecoder
 
 object EncryptCred {
+
+  implicit val AwsDecoder = deriveDecoder[AWS]
+  implicit val JdbcDecoder = deriveDecoder[JDBC]
 
   def apply(`type`: String,value:JsonString):JsonString = {
     `type` match {

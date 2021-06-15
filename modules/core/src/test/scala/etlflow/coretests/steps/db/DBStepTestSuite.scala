@@ -1,18 +1,17 @@
 package etlflow.coretests.steps.db
 
-import etlflow.Credential.JDBC
 import etlflow.etlsteps.DBQueryStep
+import etlflow.jdbc.liveDBWithTransactor
+import etlflow.schema.Credential.JDBC
 import etlflow.utils.Configuration
-//import org.testcontainers.containers.PostgreSQLContainer
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
 object DBStepTestSuite extends DefaultRunnableSpec with Configuration {
 
   //val container = new PostgreSQLContainer("postgres:latest")
   //container.start()
-
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
       suite("DB Steps")(
@@ -36,9 +35,10 @@ object DBStepTestSuite extends DefaultRunnableSpec with Configuration {
             query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
             credentials = JDBC(config.dbLog.url, config.dbLog.user, config.dbLog.password, "org.postgresql.Driver")
           )
+          val dbLayer = liveDBWithTransactor(config.dbLog)
           val job = for {
-            _ <- step1.process()
-            _ <- step2.process()
+            _ <- step1.process().provideCustomLayer(dbLayer)
+            _ <- step2.process().provideCustomLayer(dbLayer)
           } yield ()
           assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
         }

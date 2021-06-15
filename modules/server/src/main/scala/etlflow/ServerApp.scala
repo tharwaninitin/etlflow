@@ -1,9 +1,9 @@
 package etlflow
 
 import etlflow.api.Implementation
-import etlflow.api.Schema.{EtlJob, QueueDetails}
+import etlflow.api.Schema.QueueDetails
 import etlflow.executor.Executor
-import etlflow.jdbc.liveDBWithTransactor
+import etlflow.jdbc.{EtlJob, liveDBWithTransactor}
 import etlflow.scheduler.Scheduler
 import etlflow.utils.{CacheHelper, EtlFlowUtils, SetTimeZone}
 import etlflow.webserver.{Authentication, HttpServer}

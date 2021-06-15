@@ -1,19 +1,18 @@
-package etlflow.jdbc
+package etlflow.utils
 
 import com.zaxxer.hikari.HikariConfig
 import doobie.hikari.HikariTransactor
-import etlflow.Credential.JDBC
-import etlflow.DBEnv
+import etlflow.jdbc.TransactorEnv
+import etlflow.schema.Credential.JDBC
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import zio.{Task, ZLayer}
-
 trait DbManager {
 
-  def liveTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
+  def liveTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, TransactorEnv] =
     ZLayer.fromManaged {
       val config = new HikariConfig()
       config.setDriverClassName(db.driver)

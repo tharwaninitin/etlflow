@@ -2,9 +2,10 @@ package etlflow.webserver
 
 import com.github.t3hnar.bcrypt._
 import etlflow.api.Schema.{UserArgs, UserAuth}
-import etlflow.jdbc.{DB, DBServerEnv}
+import etlflow.jdbc.{DB, DBEnv}
 import etlflow.log.ApplicationLogger
-import etlflow.utils.{CacheHelper, WebServer}
+import etlflow.schema.WebServer
+import etlflow.utils.CacheHelper
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import scalacache.caffeine.CaffeineCache
 import zhttp.http.{HttpApp, _}
@@ -48,7 +49,7 @@ case class Authentication(cache: CaffeineCache[String], config: Option[WebServer
   }
 
 
-  def login(args: UserArgs): RIO[DBServerEnv, UserAuth] =  {
+  def login(args: UserArgs): RIO[DBEnv, UserAuth] =  {
     DB.getUser(args.user_name).fold(ex => {
       logger.error("Error in fetching user from db => " + ex.getMessage)
       UserAuth("Invalid User/Password", "")

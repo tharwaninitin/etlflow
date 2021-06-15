@@ -1,7 +1,8 @@
 package etlflow.utils
 
-import etlflow.Credential.{AWS, JDBC}
 import etlflow.log.ApplicationLogger
+import etlflow.schema.Credential.{AWS, JDBC}
+import io.circe.generic.semiauto.deriveDecoder
 
 import java.security.InvalidKeyException
 import java.util.Base64
@@ -9,9 +10,11 @@ import javax.crypto.Cipher
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
-
 //https://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
 object Encryption extends ApplicationLogger  with Configuration{
+
+  implicit val AwsDecoder = deriveDecoder[AWS]
+  implicit val JdbcDecoder = deriveDecoder[JDBC]
 
   final val secretKey = config.webserver.map(_.secretKey.getOrElse("enIntVecTest2020")).getOrElse("enIntVecTest2020")
   val iv = new IvParameterSpec(secretKey.getBytes("UTF-8"))

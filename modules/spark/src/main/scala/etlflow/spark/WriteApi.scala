@@ -1,12 +1,13 @@
 package etlflow.spark
 
 import etlflow.EtlJobException
-import etlflow.spark.IOType._
+import etlflow.spark.IOType.{DELTA, _}
 import etlflow.utils.LoggingLevel
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql._
 import org.slf4j.LoggerFactory
+
 import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi {
@@ -69,6 +70,9 @@ object WriteApi {
       case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
       case TEXT => df_writer.format("text")
       case JDBC(_, _, _, _) => df_writer
+      case DELTA(overwriteSchema, mergeSchema) => df_writer.format("delta")
+        .option("overwriteSchema",overwriteSchema)
+        .option("mergeSchema",mergeSchema)
     }
 
     partition_by match {

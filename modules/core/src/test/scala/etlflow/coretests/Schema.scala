@@ -37,11 +37,13 @@ object Schema {
 
   case class EtlJob1Props() extends EtlJobProps
 
+  private val delta_input_file_path = s"$canonical_path/modules/core/src/test/resources/delta_op"
   private val input_file_path = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
   case class EtlJob2Props (
     ratings_input_path: List[String] = List(input_file_path),
     ratings_output_table_name: String = "ratings",
   ) extends EtlJobProps
+
 
   case class EtlJob23Props (
                              ratings_input_path: String = input_file_path,
@@ -63,4 +65,8 @@ object Schema {
                             ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
                             ratings_output_file_name: Option[String] = Some("ratings.csv"),
                           ) extends EtlJobProps
+
+  case class EtlJobDeltaLake (
+                              input_path: String = delta_input_file_path
+                             ) extends EtlJobProps
 }

@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.Credential
+import etlflow.schema.Credential
 import software.amazon.awssdk.regions.Region
 
 sealed trait Location {

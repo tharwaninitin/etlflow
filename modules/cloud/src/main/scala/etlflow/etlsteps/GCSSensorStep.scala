@@ -2,9 +2,10 @@ package etlflow.etlsteps
 
 import etlflow.EtlJobException
 import etlflow.gcp._
-import etlflow.Credential.GCP
+import etlflow.schema.Credential.GCP
 import zio.Task
 import zio.clock.Clock
+
 import scala.concurrent.duration.Duration
 
 class GCSSensorStep private [etlsteps](

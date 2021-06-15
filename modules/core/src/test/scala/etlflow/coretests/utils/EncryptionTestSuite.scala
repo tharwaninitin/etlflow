@@ -1,11 +1,15 @@
 package etlflow.coretests.utils
 
-import etlflow.Credential.{AWS, JDBC}
+import etlflow.schema.Credential.{AWS, JDBC}
 import etlflow.utils.{Encryption, JsonCirce, JsonJackson}
+import io.circe.generic.semiauto.deriveDecoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 class EncryptionTestSuite extends AnyFlatSpec with should.Matchers {
+
+  implicit val AwsDecoder = deriveDecoder[AWS]
+  implicit val JdbcDecoder = deriveDecoder[JDBC]
 
   val jdbc_value = """{"url": "localhost123","user": "localhost","password": "swap123","driver": "org.postgresql.Driver"}""".stripMargin
 

@@ -3,6 +3,7 @@ package etlflow.utils
 import java.util.TimeZone
 import java.util.Calendar
 import etlflow.log.ApplicationLogger
+import etlflow.schema.Config
 import zio.Task
 
 object SetTimeZone extends ApplicationLogger {

@@ -1,6 +1,7 @@
 package etlflow.utils
 
 
+import etlflow.schema.WebServer
 import zhttp.http.CORSConfig
 
 import scala.concurrent.duration._

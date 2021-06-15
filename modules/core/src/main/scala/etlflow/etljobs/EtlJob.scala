@@ -1,8 +1,8 @@
 package etlflow.etljobs
 
 import etlflow.log.ApplicationLogger
-import etlflow.{EtlJobProps, JobEnv}
 import etlflow.utils.{Configuration, LoggingLevel}
+import etlflow.{EtlJobProps, JobEnv}
 import zio._
 
 trait EtlJob[EJP <: EtlJobProps] extends Configuration with ApplicationLogger {

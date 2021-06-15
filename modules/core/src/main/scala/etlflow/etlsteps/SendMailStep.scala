@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.Credential.SMTP
+import etlflow.schema.Credential.SMTP
 import etlflow.utils.{LoggingLevel, MailClientApi}
 import zio.Task
 

@@ -1,9 +1,8 @@
 package etlflow.utils
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
-import zio.test.DefaultRunnableSpec
-import zio.test._
-import zio.test.Assertion.{equalTo, containsString}
+import zio.test.Assertion.{containsString, equalTo}
+import zio.test.{DefaultRunnableSpec, _}
 
 object RequestValidatorTestSuite extends DefaultRunnableSpec {
 

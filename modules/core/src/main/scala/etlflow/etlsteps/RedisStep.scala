@@ -1,10 +1,10 @@
 package etlflow.etlsteps
 
 import com.redis._
+import etlflow.etlsteps.RedisStep.RedisCmd
+import etlflow.schema.Credential.REDIS
 import etlflow.utils.LoggingLevel
 import zio.Task
-import RedisStep.RedisCmd
-import etlflow.Credential.REDIS
 
 class RedisStep (
                   val name: String,

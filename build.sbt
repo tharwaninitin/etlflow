@@ -18,7 +18,7 @@ lazy val commonSettings = Seq(
 lazy val coreSettings = Seq(
   name := "etlflow-core",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= zioLibs ++ jsonLibs ++ miscLibs ++ redis ++ httpClient ++ mail ++ coreTestLibs,
+  libraryDependencies ++= coreLibs ++ coreTestLibs,
   //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
   dependencyOverrides ++= {
     Seq(
@@ -37,7 +37,7 @@ lazy val sparkSettings = Seq(
 lazy val cloudSettings = Seq(
   name := "etlflow-cloud",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= streamingLibs ++ googleCloudLibs ++ awsLibs ++ coreTestLibs ++ cloudTestLibs,
+  libraryDependencies ++= cloudLibs ++ coreTestLibs ++ cloudTestLibs,
 )
 
 lazy val serverSettings = Seq(
@@ -49,7 +49,7 @@ lazy val serverSettings = Seq(
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++=  zioLibs ++ dbLibs ++ catsLibs ++ coreTestLibs  ++ jsonLibs,
+  libraryDependencies ++=  dbLibs ++ coreTestLibs ++ dbTestLibs,
 )
 
 lazy val utilsSettings = Seq(
@@ -57,12 +57,24 @@ lazy val utilsSettings = Seq(
   crossScalaVersions := supportedScalaVersions
 )
 
+lazy val httpSettings = Seq(
+  name := "etlflow-http",
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++= httpLibs
+)
+
+lazy val redisSettings = Seq(
+  name := "etlflow-redis",
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++= redisLibs
+)
+
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(db,core,spark,cloud,server,utils)
+  .aggregate(db,core,spark,cloud,server,utils,http,redis)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
@@ -86,7 +98,7 @@ lazy val core = (project in file("modules/core"))
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll
     ),
   )
-  .dependsOn(db % "compile->compile;test->test", utils)
+  .dependsOn(db, utils)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)
@@ -111,6 +123,16 @@ lazy val db = (project in file("modules/db"))
 lazy val utils = (project in file("modules/utils"))
   .settings(commonSettings)
   .settings(utilsSettings)
+
+lazy val http = (project in file("modules/http"))
+  .settings(commonSettings)
+  .settings(httpSettings)
+  .dependsOn(core % "compile->compile;test->test", utils)
+
+lazy val redis = (project in file("modules/redis"))
+  .settings(commonSettings)
+  .settings(redisSettings)
+  .dependsOn(core % "compile->compile;test->test", utils)
 
 
 

@@ -1,11 +1,12 @@
 package etlflow.etlsteps
 
-import etlflow.EtlJobException
+import etlflow.common.EtlflowError.EtlJobException
 import org.slf4j.{Logger, LoggerFactory}
 import zio.Schedule.Decision
-import zio.{Schedule, Task}
 import zio.clock.Clock
 import zio.duration.{Duration => ZDuration}
+import zio.{Schedule, Task}
+
 import scala.concurrent.duration.Duration
 
 trait SensorStep {

@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.EtlJobException
+import etlflow.common.EtlflowError.EtlJobException
 import etlflow.gcp._
 import etlflow.schema.Credential.GCP
 import zio.Task

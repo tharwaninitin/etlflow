@@ -3,6 +3,7 @@ package etlflow.coretests.utils
 import java.text.SimpleDateFormat
 import etlflow.utils.{UtilityFunctions => UF}
 import com.github.t3hnar.bcrypt._
+import etlflow.common.DateTimeFunctions.getTimeDifferenceAsString
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -12,19 +13,19 @@ class UtilityFunctionsTestSuite extends AnyFlatSpec with should.Matchers {
   val endTimeDays = sdf.parse("2020-08-21T23:15").getTime
   val startTimeDays = sdf.parse("2020-08-18T23:15").getTime
 
-  val actualDaysOutput = UF.getTimeDifferenceAsString(startTimeDays,endTimeDays)
+  val actualDaysOutput = getTimeDifferenceAsString(startTimeDays,endTimeDays)
   val expectedDaysOutput = "3 days 0.0 hrs"
 
   val endTimeMins = sdf.parse("2020-08-19T00:30").getTime
   val startTimeMins = sdf.parse("2020-08-19T00:16").getTime
 
-  val actualOutputMins = UF.getTimeDifferenceAsString(startTimeMins,endTimeMins)
+  val actualOutputMins = getTimeDifferenceAsString(startTimeMins,endTimeMins)
   val expectedOutputMins = "14.0 mins"
 
   val endTimeHrs = sdf.parse("2020-08-19T05:00").getTime
   val startTimeHrs = sdf.parse("2020-08-19T00:34").getTime
 
-  val actualOutputHrs = UF.getTimeDifferenceAsString(startTimeHrs,endTimeHrs)
+  val actualOutputHrs = getTimeDifferenceAsString(startTimeHrs,endTimeHrs)
   val expectedOutputHrs  = "4.43 hrs"
 
   val actualStepName1 = "DataTransfer For EtlJobPricing Raw Data"

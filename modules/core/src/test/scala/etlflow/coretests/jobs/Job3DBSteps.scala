@@ -5,7 +5,7 @@ import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.Encryption
-case class Job4DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
+case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
 
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 

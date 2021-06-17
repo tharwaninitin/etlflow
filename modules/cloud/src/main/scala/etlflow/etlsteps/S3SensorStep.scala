@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.EtlJobException
 import etlflow.aws._
+import etlflow.common.EtlflowError.EtlJobException
 import etlflow.schema.Credential.AWS
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient

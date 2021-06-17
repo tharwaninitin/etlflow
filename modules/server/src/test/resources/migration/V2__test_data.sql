@@ -6,7 +6,7 @@ VALUES ('Job1','','',0,0,'t');
 INSERT INTO job(job_name,job_description,schedule,failed,success,is_active)
 VALUES ('Job2','','',0,0,'f');
 INSERT INTO job(job_name,job_description,schedule,failed,success,is_active)
-VALUES ('Job5','','',0,0,'t');
+VALUES ('Job3','','',0,0,'t');
 
 INSERT INTO jobrun (job_run_id,job_name,properties,state,elapsed_time,job_type,is_master,inserted_at)
 VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','EtlJobDownload','{}','pass','','GenericEtlJob','true',1234567);

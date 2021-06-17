@@ -3,6 +3,7 @@ package etlflow.scheduler
 import cron4s.{Cron, CronExpr}
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
+import etlflow.common.DateTimeFunctions.getCurrentTimestampAsString
 import etlflow.jdbc.{DB, EtlJob}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.{UtilityFunctions => UF}
@@ -18,7 +19,7 @@ trait Scheduler extends ApplicationLogger {
     }
     else {
       val listOfCron: List[(String, CronExpr, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.job_name,cj.schedule.get, {
-        logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
+        logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${getCurrentTimestampAsString()}")
         Service
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
           .map(Some(_))
@@ -27,7 +28,7 @@ trait Scheduler extends ApplicationLogger {
 
       val scheduledJobs = repeatEffectsForCronWithName(listOfCron)
 
-      val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
+      val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${getCurrentTimestampAsString()} " + "*"*30))
         .repeat(Schedule.forever && Schedule.spaced(60.minute))
 
       //scheduledJobs.zipPar(scheduledLogger).unit

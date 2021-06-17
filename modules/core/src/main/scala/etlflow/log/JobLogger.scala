@@ -1,8 +1,9 @@
 package etlflow.log
 
 import etlflow.EtlJobProps
+import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString}
 import etlflow.jdbc.{DB, DBEnv}
-import etlflow.utils.{JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.JsonJackson
 import zio.ZIO
 
 class JobLogger(job_name: String, job_properties: EtlJobProps, job_run_id: String, is_master:String, slack: Option[SlackLogger]) extends ApplicationLogger {
@@ -23,7 +24,7 @@ class JobLogger(job_name: String, job_properties: EtlJobProps, job_run_id: Strin
       job_status = "pass"
     }
     logger.info(s"Logging job completion in db with status $job_status")
-    val elapsed_time = UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)
+    val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
     DB.updateJobRun(job_run_id, job_status, elapsed_time)
   }
 }

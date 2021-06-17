@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val ZioVersion = "1.0.6"
   val ZioCatsInteropVersion = "3.1.1.0"
-  val CalibanVersion ="0.10.1"
+  val CalibanVersion ="1.0.0"
 
   val CatsCoreVersion = "2.6.0"
   val CatsEffectVersion = "3.1.0"
@@ -46,20 +46,38 @@ object Dependencies {
 
   val ScalaTestVersion = "3.2.8"
 
-  lazy val zioLibs = List(
+  lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-macros" % ZioVersion,
-    "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion
+    "io.circe" %% "circe-core" % CirceVersion,
+    "io.circe" %% "circe-generic" % CirceVersion,
+    "io.circe" %% "circe-parser" % CirceVersion,
+    "io.circe" %% "circe-optics" % CirceVersion,
+    "io.circe" %% "circe-config" % CirceConfigVersion,
+    "org.json4s" %% "json4s-jackson" % Json4sVersion,
+    "com.github.scopt" %% "scopt" % ScoptVersion,
+    "org.slf4j" % "slf4j-api" % Sl4jVersion,
+    "com.github.t3hnar" %% "scala-bcrypt" % bcryptVersion,
+    "javax.mail" % "javax.mail-api" % mailVersion,
+    "com.sun.mail" % "javax.mail"   % mailVersion
   )
 
-  lazy val catsLibs = List(
-    "org.typelevel" %% "cats-core" % CatsCoreVersion,
-    "org.typelevel" %% "cats-effect" % CatsEffectVersion,
-    "org.typelevel" %% "cats-effect-kernel" % CatsEffectVersion,
-    "org.typelevel" %% "cats-effect-std"    % CatsEffectVersion
+  lazy val cloudLibs = List(
+    "org.tpolecat" %% "skunk-core" % SkunkVersion,
+    "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
+    "co.fs2"        %% "fs2-reactive-streams"      % Fs2Version,
+    "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
+    "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
+    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
+    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
+    "software.amazon.awssdk" % "s3" % AwsS3Version
+//    "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
+//    "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
+//    "org.apache.hadoop" % "hadoop-common" % HadoopS3Version
   )
 
   lazy val dbLibs = List(
+    "dev.zio"      %% "zio" % ZioVersion,
+    "dev.zio"      %% "zio-interop-cats" % ZioCatsInteropVersion,
     "co.fs2"       %% "fs2-core"         % Fs2Version,
     "co.fs2"       %% "fs2-io"           % Fs2Version,
     "com.chuusai"  %% "shapeless"        % ShapelessVersion,
@@ -67,61 +85,20 @@ object Dependencies {
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
     "org.flywaydb" % "flyway-core"      % FlywayVersion,
-    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
+    "org.typelevel" %% "cats-core" % CatsCoreVersion,
+    "org.typelevel" %% "cats-effect" % CatsEffectVersion,
+    "org.typelevel" %% "cats-effect-kernel" % CatsEffectVersion,
+    "org.typelevel" %% "cats-effect-std"    % CatsEffectVersion
   )
 
-  lazy val streamingLibs = List(
-    "org.tpolecat" %% "skunk-core" % SkunkVersion,
-    "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
-    "co.fs2"                %% "fs2-reactive-streams"      % Fs2Version
-  )
-
-  lazy val jsonLibs = List(
-    "io.circe" %% "circe-core" % CirceVersion,
-    "io.circe" %% "circe-generic" % CirceVersion,
-    "io.circe" %% "circe-parser" % CirceVersion,
-    "io.circe" %% "circe-optics" % CirceVersion,
-    "io.circe" %% "circe-config" % CirceConfigVersion,
-    "org.json4s" %% "json4s-jackson" % Json4sVersion
-  )
-
-  lazy val googleCloudLibs = List(
-    "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
-    "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
-    "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
-    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion
-  )
-
-  lazy val awsLibs = List(
-    "software.amazon.awssdk" % "s3" % AwsS3Version
-  )
-
-  lazy val sparkLibs = List(
-    "org.apache.spark" %% "spark-sql" % SparkVersion % Provided
-  )
-
-  lazy val redis = List(
-    "net.debasishg" %% "redisclient" % RedisVersion
-  )
-
-  lazy val httpClient = List(
+  lazy val httpLibs = List(
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
     "com.softwaremill.sttp.client3" %% "slf4j-backend" % SttpVersion
   )
 
-  lazy val mail = List(
-    "javax.mail" % "javax.mail-api" % mailVersion,
-    "com.sun.mail" % "javax.mail"   % mailVersion
-  )
-
-  lazy val kubernetes = List(
-    "com.goyeau" %% "kubernetes-client" % K8sClientVersion
-  )
-
-  lazy val miscLibs = List(
-    "com.github.scopt" %% "scopt" % ScoptVersion,
-    "org.slf4j" % "slf4j-api" % Sl4jVersion,
-    "com.github.t3hnar" %% "scala-bcrypt" % bcryptVersion
+  lazy val redisLibs = List(
+    "net.debasishg" %% "redisclient" % RedisVersion
   )
 
   lazy val serverLibs = List(
@@ -130,11 +107,11 @@ object Dependencies {
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
-    "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % TapirVersion,
-    "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % TapirVersion,
-    "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % TapirVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
-    //"com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % TapirVersion,
+  )
+
+  lazy val sparkLibs = List(
+    "org.apache.spark" %% "spark-sql" % SparkVersion % Provided
   )
 
   lazy val coreTestLibs = List(
@@ -155,5 +132,10 @@ object Dependencies {
   lazy val sparkTestLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
+  ).map(_ % Test)
+
+  lazy val dbTestLibs = List(
+    "io.circe" %% "circe-config" % CirceConfigVersion,
+    "io.circe" %% "circe-generic" % CirceVersion
   ).map(_ % Test)
 }

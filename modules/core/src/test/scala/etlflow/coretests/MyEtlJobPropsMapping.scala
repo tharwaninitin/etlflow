@@ -41,27 +41,19 @@ object MyEtlJobPropsMapping {
     override val job_enable_db_logging: Boolean = false
   }
 
-  case object Job3 extends MyEtlJobPropsMapping[EtlJob3Props,Job3HttpSmtpSteps] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
+  case object Job3 extends MyEtlJobPropsMapping[EtlJob4Props,Job3DBSteps] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props()
+    override val job_schedule: String = "0 30 7 ? * *"
     override val job_deploy_mode: Executor = dataproc
   }
 
-  case object Job4 extends MyEtlJobPropsMapping[EtlJob4Props,Job4DBSteps] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props()
-    override val job_schedule: String = "0 30 7 ? * *"
-    override val job_deploy_mode: Executor = Executor.LOCAL
-  }
-
-  case object Job5 extends MyEtlJobPropsMapping[EtlJob5Props,Job5GenericSteps] {
+  case object Job4 extends MyEtlJobPropsMapping[EtlJob5Props,Job4GenericSteps] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob5Props = EtlJob5Props()
     override val job_schedule: String = "0 0 11 ? * 4"
     override val job_deploy_mode: Executor = Executor.LOCAL
     override val job_retries: Int = 3
     override val job_retry_delay_in_minutes: Int = 1
-  }
 
-  case object Job6 extends MyEtlJobPropsMapping[EtlJob3Props,Job6RedisSteps] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
   }
 }
 

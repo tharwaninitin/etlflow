@@ -74,7 +74,7 @@ lazy val root = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(db,core,spark,cloud,server,utils,http)
+  .aggregate(db,core,spark,cloud,server,utils,http,redis)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)

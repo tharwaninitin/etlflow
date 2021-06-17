@@ -8,4 +8,6 @@ import io.circe.generic.auto._
 trait ServerSuiteHelper extends DbManager  {
   val config: Config = io.circe.config.parser.decode[Config]().toOption.get
   val credentials: JDBC = config.dbLog
+  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+
 }

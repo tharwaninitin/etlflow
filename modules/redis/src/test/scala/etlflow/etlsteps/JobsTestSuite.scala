@@ -1,4 +1,4 @@
-package etlflow.redis
+package etlflow.etlsteps
 
 import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.coretests.TestSuiteHelper

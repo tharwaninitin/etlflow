@@ -1,15 +1,15 @@
-package etlflow.redis
+package etlflow.etlsteps
 
 import etlflow.EtlStepList
 import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, ParallelETLStep}
-import etlflow.redis.RedisStep.RedisCmd
+import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
 
 case class RedisSteps(job_properties: EtlJob3Props) extends SequentialEtlJob[EtlJob3Props] {
 
-  val redis_config: REDIS = REDIS("redis")
+  val redis_config: REDIS = REDIS("localhost")
 
   val step1 = RedisStep(
     name         = "set_redis_key_value_1",

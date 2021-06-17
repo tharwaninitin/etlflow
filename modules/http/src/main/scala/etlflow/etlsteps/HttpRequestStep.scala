@@ -1,4 +1,4 @@
-package etlflow.http
+package etlflow.etlsteps
 
 import etlflow.etlsteps.EtlStep
 import etlflow.utils.{HttpRequest, JsonCirce, LoggingLevel}

@@ -1,4 +1,4 @@
-package etlflow.http
+package etlflow.etlsteps
 
 import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob

@@ -8,6 +8,7 @@ case class SendMailStep(
                          name: String,
                          body: String,
                          subject: String,
+                         sender: Option[String]= None,
                          recipient_list: List[String] = List(""),
                          credentials: SMTP
                        )
@@ -17,7 +18,7 @@ case class SendMailStep(
   final def process(in: =>Unit): Task[Unit] = Task {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting SendMailStep")
-    MailClientApi.sendMail(recipient_list,body,subject,credentials)
+    MailClientApi.sendMail(sender,recipient_list,body,subject,credentials)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipient_list.mkString(","))

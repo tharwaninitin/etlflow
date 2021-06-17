@@ -1,5 +1,6 @@
 package etlflow.log
 
+import etlflow.common.DateTimeFunctions._
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.{DB, DBEnv}
 import etlflow.utils.{JsonJackson, LoggingLevel, UtilityFunctions => UF}
@@ -22,7 +23,7 @@ object StepLogger extends ApplicationLogger {
       }
       else {
         val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
-        val elapsed_time = UF.getTimeDifferenceAsString(start_time, UF.getCurrentTimestamp)
+        val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
         logger.info(s"Updating step info for $step_name in db with status => $status")
         DB.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
       }

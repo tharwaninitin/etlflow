@@ -1,7 +1,8 @@
-package etlflow.etlsteps
+package etlflow.redis
 
 import com.redis._
-import etlflow.etlsteps.RedisStep.RedisCmd
+import etlflow.etlsteps.EtlStep
+import etlflow.redis.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
 import etlflow.utils.LoggingLevel
 import zio.Task

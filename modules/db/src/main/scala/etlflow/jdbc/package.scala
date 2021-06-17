@@ -11,7 +11,6 @@ package object jdbc extends DbManager {
 
   type TransactorEnv = Has[HikariTransactor[Task]]
   type DBEnv = Has[DB.Service]
-  case class DBException(msg : String) extends RuntimeException(msg)
 
   case class DbStepRunArgs(job_run_id: String)
   case class DbJobRunArgs(

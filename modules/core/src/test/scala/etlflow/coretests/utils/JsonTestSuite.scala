@@ -197,12 +197,12 @@ class JsonTestSuite extends AnyFlatSpec with should.Matchers {
       "job_enable_db_logging" -> "true",
       "job_notification_level" -> "info",
       "job_max_active_runs" -> "10",
-      "job_name" -> "etlflow.coretests.jobs.Job3HttpSmtpSteps",
+      "job_name" -> "etlflow.coretests.jobs.Job3DBSteps",
       "job_description" -> "",
-      "job_props_name" -> "etlflow.coretests.Schema$EtlJob3Props",
+      "job_props_name" -> "etlflow.coretests.Schema$EtlJob4Props",
       "job_deploy_mode" -> "dataproc",
       "job_retry_delay_in_minutes" -> "0",
-      "job_schedule" -> "",
+      "job_schedule" -> "0 30 7 ? * *",
       "job_retries" -> "0"
     )
     assert(props_map_job3 == expected_props_map_job3)

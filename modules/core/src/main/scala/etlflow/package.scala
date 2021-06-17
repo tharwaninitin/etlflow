@@ -1,3 +1,4 @@
+import etlflow.common.EtlflowError.EtlJobException
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.{DBEnv, TransactorEnv}
@@ -10,9 +11,6 @@ import zio.clock.Clock
 import scala.reflect.ClassTag
 
 package object etlflow {
-
-  case class EtlJobException(msg : String) extends RuntimeException(msg)
-  case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
 
   type JobEnv = TransactorEnv with DBEnv with Blocking with Clock
   type StepEnv = Has[StepReq] with JobEnv

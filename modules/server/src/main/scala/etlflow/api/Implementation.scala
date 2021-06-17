@@ -5,6 +5,7 @@ import cron4s.Cron
 import cron4s.lib.javatime._
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
+import etlflow.common.DateTimeFunctions._
 import etlflow.executor.Executor
 import etlflow.jdbc._
 import etlflow.log.ApplicationLogger
@@ -35,7 +36,7 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
             case Running(_) => "Running"
             case Suspended(previous, interruptible, epoch, blockingOn, asyncTrace) => s"Suspended($asyncTrace)"
           }
-          EtlJobStatus(x.fiberId.seqNumber.toString, x.fiberName.getOrElse(""), UF.getTimestampAsString(x.fiberId.startTimeMillis), "Scheduled", status)
+          EtlJobStatus(x.fiberId.seqNumber.toString, x.fiberName.getOrElse(""), getTimestampAsString(x.fiberId.startTimeMillis), "Scheduled", status)
         }
       } yield op
 
@@ -45,14 +46,14 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
           .map(y => y.map { x => {
             val props = getJobPropsMapping[EJN](x.job_name, ejpm_package)
             val p = new PrettyTime()
-            val lastRunTime = x.last_run_time.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+            val lastRunTime = x.last_run_time.map(ts => p.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
 
             if (Cron(x.schedule).toOption.isDefined) {
               val cron = Cron(x.schedule).toOption
-              val startTimeMillis: Long = UF.getCurrentTimestampUsingLocalDateTime
-              val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => UF.getTimestampFromLocalDateTime(dt))
-              val remTime1 = endTimeMillis.map(ts => UF.getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
-              val remTime2 = endTimeMillis.map(ts => p.format(UF.getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+              val startTimeMillis: Long = getCurrentTimestampUsingLocalDateTime
+              val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => getTimestampFromLocalDateTime(dt))
+              val remTime1 = endTimeMillis.map(ts => getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
+              val remTime2 = endTimeMillis.map(ts => p.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
 
               val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
               Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
@@ -90,7 +91,7 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
       override def login(args: UserArgs): ZIO[APIEnv with DBEnv, Throwable, UserAuth] = auth.login(args)
 
       override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = Task {
-        val dt = UF.getLocalDateTimeFromTimestamp(BI.builtAtMillis)
+        val dt = getLocalDateTimeFromTimestamp(BI.builtAtMillis)
         EtlFlowMetrics(
           0,
           0,
@@ -100,7 +101,7 @@ object Implementation extends EtlFlowUtils with ApplicationLogger {
         )
       }
 
-      override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = UF.getCurrentTimestampAsString()))
+      override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = getCurrentTimestampAsString()))
 
       override def addCredentials(args: CredentialsArgs): ZIO[APIEnv with DBEnv, Throwable, Credentials] = {
         val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty))

@@ -4,20 +4,15 @@ import cats.data.NonEmptyList
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.meta.Meta
+import etlflow.common.DateTimeFunctions.getCurrentTimestamp
 import etlflow.utils.GetStartTime
 import org.postgresql.util.PGobject
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
-import java.util.TimeZone
+import java.time.{LocalDate, ZoneId}
 
 object SQL {
-
-  def getCurrentTimestamp: Long = System.currentTimeMillis()
-  def getTimestampAsString(timestamp: Long, pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
-    DateTimeFormatter.ofPattern(pattern).format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp),ZoneId.systemDefault())) + " " + TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 

@@ -29,7 +29,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
           gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query))
           _           = logger.info(gqlResponse.toString)
         } yield gqlResponse.data.toString
-        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","is_active":true},{"name":"Job2","is_active":false},{"name":"Job5","is_active":true}]}""")
+        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","is_active":true},{"name":"Job2","is_active":false},{"name":"Job3","is_active":true}]}""")
         )
       },
       testM("Test query jobruns end point") {

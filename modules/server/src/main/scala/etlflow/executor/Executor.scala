@@ -3,6 +3,7 @@ package etlflow.executor
 import caliban.CalibanError.ExecutionError
 import etlflow.api.ExecutorTask
 import etlflow.api.Schema._
+import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.gcp.{DP, DPService}
 import etlflow.jdbc.{DB, EtlJob}
 import etlflow.log.ApplicationLogger
@@ -26,7 +27,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
     for {
       mapping_props  <- Task(getJobPropsMapping[EJN](args.name,ejpm_package)).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
-      _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${UF.getCurrentTimestampAsString()}"))
+      _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
       db_job         <- DB.getJob(args.name)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
       props_json     = convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
@@ -34,13 +35,13 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       spaced         = mapping_props.getOrElse("job_retry_delay_in_minutes","0").toInt
       _              <- if (db_job.is_active)
                         for {
-                          _     <- UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${UF.getCurrentTimestampAsString()}"))
-                          key   = s"${args.name} ${UF.getCurrentTimestamp}"
-                          value = QueueDetails(args.name, props_json, submitted_from, UF.getCurrentTimestampAsString())
+                          _     <- UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${getCurrentTimestampAsString()}"))
+                          key   = s"${args.name} ${getCurrentTimestamp}"
+                          value = QueueDetails(args.name, props_json, submitted_from, getCurrentTimestampAsString())
                           _     = CacheHelper.putKey(cache, key, value)
                           _ <- runEtlJob(args, key, retry, spaced, fork)
                         } yield ()
-                        else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${UF.getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
+                        else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
     } yield EtlJob(args.name,final_props)
   }
 
@@ -66,8 +67,8 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       .ensuring(UIO(CacheHelper.removeKey(cache, cache_key)))
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
-        UIO(logger.error(ex.getMessage)) *> DB.updateFailedJob(args.name, UF.getCurrentTimestamp)
-      ) *> DB.updateSuccessJob(args.name, UF.getCurrentTimestamp)
+        UIO(logger.error(ex.getMessage)) *> DB.updateFailedJob(args.name, getCurrentTimestamp)
+      ) *> DB.updateSuccessJob(args.name, getCurrentTimestamp)
 
     blocking(if (fork) sem(args.name).withPermit(loggedJobRun).forkDaemon else sem(args.name).withPermit(loggedJobRun)).unit
   }

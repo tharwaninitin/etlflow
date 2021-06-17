@@ -4,7 +4,7 @@ import etlflow.coretests.Schema.EtlJob5Props
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 
-case class Job5GenericSteps(job_properties: EtlJob5Props) extends GenericEtlJob[EtlJob5Props] {
+case class Job4GenericSteps(job_properties: EtlJob5Props) extends GenericEtlJob[EtlJob5Props] {
 
   private def processData(ip: String): Unit = {
     logger.info("Processing Data")

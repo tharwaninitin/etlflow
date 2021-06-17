@@ -1,12 +1,13 @@
 package etlflow.spark
 
-import etlflow.EtlJobException
+import etlflow.common.EtlflowError.EtlJobException
 import etlflow.spark.IOType._
 import etlflow.utils.LoggingLevel
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.sql.functions.col
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions.col
 import org.slf4j.LoggerFactory
+
 import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi {

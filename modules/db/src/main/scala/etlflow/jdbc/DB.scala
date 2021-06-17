@@ -5,7 +5,8 @@ import doobie.free.connection
 import doobie.implicits._
 import doobie.util.Read
 import doobie.util.fragment.Fragment
-import etlflow.jdbc.SQL.getTimestampAsString
+import etlflow.common.DateTimeFunctions.getTimestampAsString
+import etlflow.common.EtlflowError.DBException
 import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{IO, RIO, Task, UIO, ZIO, ZLayer}

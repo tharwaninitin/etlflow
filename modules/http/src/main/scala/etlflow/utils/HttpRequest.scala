@@ -1,18 +1,20 @@
 package etlflow.utils
 
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory
-import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}
-import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import etlflow.log.ApplicationLogger
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory
+import io.netty.handler.ssl.{SslContext, SslContextBuilder}
+import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.asynchttpclient.zio._
 import sttp.client3.logging.LogLevel
-import sttp.client3.{asStringAlways, basicRequest, _}
-import zio.{Task, TaskManaged}
-import scala.concurrent.duration.{Duration, _}
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
+import sttp.client3.{asStringAlways, basicRequest, _}
 import sttp.model.MediaType
+import zio.{Task, TaskManaged}
+import zio.Runtime.global.unsafeRun
+
+import scala.concurrent.duration.{Duration, _}
 
 object HttpRequest extends ApplicationLogger {
 

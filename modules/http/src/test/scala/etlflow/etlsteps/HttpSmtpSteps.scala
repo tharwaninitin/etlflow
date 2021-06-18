@@ -1,13 +1,12 @@
 package etlflow.etlsteps
 
-import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
-import etlflow.etljobs.GenericEtlJob
-import etlflow.etlsteps.{GenericETLStep, SendMailStep}
-import etlflow.schema.Credential.SMTP
-import etlflow.utils.HttpRequest.HttpMethod
-
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
+import etlflow.etljobs.GenericEtlJob
+import etlflow.schema.Credential.SMTP
+import etlflow.utils.HttpRequest.HttpMethod
 
 case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 
@@ -100,6 +99,7 @@ case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[Etl
     name = "SendSMTPEmail",
     body = emailBody,
     subject = "EtlFlow Test Ran Successfully",
+    sender  = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
     recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
     credentials = SMTP(
       sys.env.getOrElse("SMTP_PORT", "587"),

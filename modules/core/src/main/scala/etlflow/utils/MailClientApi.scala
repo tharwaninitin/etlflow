@@ -10,7 +10,7 @@ import org.slf4j.{Logger, LoggerFactory}
 object MailClientApi {
   val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  def sendMail(recipient: List[String],content:String,subject:String,credentials: SMTP): Unit = {
+  def sendMail(sender:Option[String],recipient: List[String],content:String,subject:String,credentials: SMTP): Unit = {
     try {
       val properties = new Properties
       properties.put("mail.smtp.port", credentials.port)
@@ -25,7 +25,7 @@ object MailClientApi {
       val recipientAddress: Array[Address] = (recipient map { recipient => new InternetAddress(recipient) }).toArray
 
       val message = new MimeMessage(session)
-      message.setFrom(new InternetAddress(credentials.user))
+      message.setFrom(sender.getOrElse(new InternetAddress(credentials.user)).toString)
       message.addRecipients(Message.RecipientType.TO, recipientAddress)
       message.setSubject(subject)
       message.setHeader("Content-Type", "text/plain;")

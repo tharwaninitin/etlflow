@@ -4,7 +4,7 @@ import etlflow.EtlJobProps
 import etlflow.etlsteps.EtlStep
 import org.slf4j.{Logger, LoggerFactory}
 
-trait LogManager[A] {
+private[etlflow] trait LogManager[A] {
   val job_name: String
   val job_properties: EtlJobProps
   val lm_logger: Logger = LoggerFactory.getLogger(getClass.getName)

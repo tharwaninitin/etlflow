@@ -11,7 +11,7 @@ import scala.util.Try
 import zio.Runtime.global.unsafeRun
 import zio.Task
 
-class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel,host_url:String) extends ApplicationLogger {
+private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel,host_url:String) extends ApplicationLogger {
   /** Slack message templates */
   var final_step_message: String = ""
   var final_message: String = ""

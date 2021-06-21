@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigFactory
 import etlflow.schema.Config
 import io.circe.generic.auto._
 
-trait Configuration {
+private[etlflow] trait Configuration {
   class Error(msg: String) extends RuntimeException(msg)
 
   private val configEN: EitherNec[Throwable, Config] = Either

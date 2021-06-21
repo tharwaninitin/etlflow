@@ -17,7 +17,7 @@ import zio.clock.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-object GqlAPI extends GenericSchema[APIEnv with DBEnv with TransactorEnv with Blocking with Clock] {
+private[etlflow] object GqlAPI extends GenericSchema[APIEnv with DBEnv with TransactorEnv with Blocking with Clock] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
   implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {

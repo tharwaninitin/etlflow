@@ -1,50 +1,48 @@
 import sbt._
 
 object Dependencies {
-  val ZioVersion = "1.0.6"
+  val ZioVersion = "1.0.9"
   val ZioCatsInteropVersion = "3.1.1.0"
-  val CalibanVersion ="1.0.0"
+  val CalibanVersion ="1.0.1"
 
-  val CatsCoreVersion = "2.6.0"
-  val CatsEffectVersion = "3.1.0"
-  val K8sClientVersion = "0.5.0"
+  val CatsCoreVersion = "2.6.1"
+  val CatsEffectVersion = "3.1.1"
   val Cron4sVersion = "0.6.1"
-  val Fs2Version = "3.0.2"
+  val Fs2Version = "3.0.4"
   val Fs2PubSubVersion = "0.18.0-M1"
-  val Fs2BlobStoreVersion = "0.9.0-beta3"
-  val CirceVersion = "0.13.0"
+  val CirceVersion = "0.14.1"
   val CirceConfigVersion = "0.8.0"
-  val DoobieVersion = "1.0.0-M4"
-  val ShapelessVersion = "2.3.4"
-  val SkunkVersion = "0.1.2"
+  val DoobieVersion = "1.0.0-M5"
+  val ShapelessVersion = "2.3.7"
+  val SkunkVersion = "0.2.0"
   val ScalaCacheVersion = "0.28.0"
-  val SttpVersion = "3.2.3"
-  val TapirVersion = "0.17.19"
-  val PrettyTimeVersion = "5.0.0.Final"
+  val SttpVersion = "3.3.7"
+  val PrettyTimeVersion = "5.0.1.Final"
 
   val SparkVersion = "2.4.4"
-  val SparkBQVersion = "0.19.1"
-  val GcpBqVersion = "1.127.6"
-  val GcpDpVersion = "1.2.1"
-  val GcpGcsVersion = "1.113.13"
-  val GcpPubSubVersion = "1.111.4"
-  val HadoopGCSVersion = "1.6.1-hadoop2"
-  val HadoopS3Version = "2.10.1"
-  val AwsS3Version = "2.16.70"
+  val SparkBQVersion = "0.21.0"
+  val GcpBqVersion = "1.133.1"
+  val GcpDpVersion = "1.5.2"
+  val GcpGcsVersion = "1.116.0"
+  val GcpPubSubVersion = "1.113.3"
+  val HadoopGCSVersion = "1.9.4-hadoop3"
+  val HadoopS3Version = "3.3.1"
+  val AwsS3Version = "2.16.87"
 
-  val FlywayVersion = "7.8.1"
-  val Json4sVersion = "3.6.11"
+  val FlywayVersion = "7.10.0"
+  val Json4sVersion = "4.0.0"
   val ScoptVersion = "4.0.1"
   val LogbackVersion = "1.2.3"
-  val PgVersion = "42.2.19"
+  val PgVersion = "42.2.22"
   val RedisVersion = "3.30"
   val mailVersion = "1.6.2"
-  val JwtCoreVersion = "7.1.3"
-  val Sl4jVersion = "1.7.30"
+  val JwtCoreVersion = "8.0.2"
+  val Sl4jVersion = "1.7.31"
   val bcryptVersion = "4.3.0"
   val ZioHttpVersion = "0.10.0"
+  val d11ZioHttpVersion = "1.0.0.0-RC16"
 
-  val ScalaTestVersion = "3.2.8"
+  val ScalaTestVersion = "3.2.9"
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
@@ -70,9 +68,6 @@ object Dependencies {
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
     "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
     "software.amazon.awssdk" % "s3" % AwsS3Version
-//    "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
-//    "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
-//    "org.apache.hadoop" % "hadoop-common" % HadoopS3Version
   )
 
   lazy val dbLibs = List(
@@ -104,6 +99,7 @@ object Dependencies {
   lazy val serverLibs = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-zio-http" % ZioHttpVersion,
+    "io.d11" %% "zhttp" % d11ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,

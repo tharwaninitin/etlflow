@@ -7,7 +7,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}
 
-object JsonCirce  {
+private[etlflow] object JsonCirce  {
 
   implicit val customSerializer2: Encoder[EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] = Encoder[String].contramap {
     case _: EtlJobPropsMapping[_,_] => ""
@@ -20,7 +20,7 @@ object JsonCirce  {
   }
 
   implicit val customSerializer4: Encoder[Executor] = Encoder[String].contramap {
-    case Executor.DATAPROC(_, _, _, _) => "dataproc"
+    case Executor.DATAPROC(_, _, _, _, _) => "dataproc"
     case Executor.LOCAL            => "local"
     case Executor.LIVY(_) => "livy"
     case Executor.KUBERNETES(_, _, _, _, _, _)=> "kubernetes"

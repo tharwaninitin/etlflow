@@ -10,7 +10,7 @@ import zio.{Task, UIO}
 
 import scala.reflect.runtime.universe.TypeTag
 
-trait EtlFlowUtils {
+private [etlflow] trait EtlFlowUtils {
 
   implicit val jobPropsMappingCache = CacheHelper.createCache[Map[String, String]]
 

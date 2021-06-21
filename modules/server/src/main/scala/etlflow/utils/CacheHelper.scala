@@ -8,7 +8,7 @@ import scalacache.modes.sync._
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
 
-object CacheHelper {
+private [etlflow] object CacheHelper {
 
   var default_ttl: FiniteDuration = (24 * 60).minutes
 

@@ -7,7 +7,7 @@ import etlflow.utils.Executor.DATAPROC
 import zio.{Layer, Task, ZIO, ZLayer}
 import scala.collection.JavaConverters._
 
-object DP {
+private[etlflow] object DP {
 
   private def submitAndWaitForJobCompletion(name: String, jobControllerClient: JobControllerClient, projectId: String,
                                             region: String, job: Job): Unit = {
@@ -49,7 +49,8 @@ object DP {
                              |dp_endpoint => ${config.endpoint}
                              |dp_cluster_name => ${config.cluster_name}
                              |main_class => $main_class
-                             |properties => $properties""".stripMargin)
+                             |properties => $properties
+                             |spark_conf => ${config.sp}""".stripMargin)
           val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
           val jobControllerClient = JobControllerClient.create(jobControllerSettings)
           val jobPlacement = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
@@ -61,8 +62,10 @@ object DP {
 
           gcp_logger.info("dp_libs")
           libs.foreach(gcp_logger.info)
+          val spark_conf = config.sp.map(x => (x.key,x.value)).toMap
           val sparkJob = SparkJob.newBuilder()
             .addAllJarFileUris(libs.asJava)
+            .putAllProperties(spark_conf.asJava)
             .setMainClass(main_class)
             .addAllArgs(args.asJava)
             .build()

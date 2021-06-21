@@ -4,8 +4,9 @@ import etlflow.TestSparkSession
 import etlflow.coretests.Schema.{EtlJob2Props, EtlJobRun, Rating}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
+import etlflow.schema.Credential.JDBC
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
-import etlflow.spark.IOType.{PARQUET,JDBC}
+import etlflow.spark.IOType.{PARQUET, RDB}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -14,7 +15,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   extends GenericEtlJob[EtlJob2Props] with TestSparkSession with SparkUDF {
 
   val job_props: EtlJob2Props = job_properties
-  val jdbc = JDBC(config.dbLog.url,config.dbLog.user,config.dbLog.password,config.dbLog.driver)
+  val jdbc = RDB(JDBC(config.dbLog.url,config.dbLog.user,config.dbLog.password,config.dbLog.driver))
 
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
@@ -54,6 +55,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   val step4 = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
+    credentials = config.dbLog
   )
 
   def processData2(ip: List[EtlJobRun]): Unit = {

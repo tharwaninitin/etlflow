@@ -16,7 +16,7 @@ import zio.Runtime.global.unsafeRun
 
 import scala.concurrent.duration.{Duration, _}
 
-object HttpRequest extends ApplicationLogger {
+private[etlflow] object HttpRequest extends ApplicationLogger {
 
   sealed trait HttpMethod
 

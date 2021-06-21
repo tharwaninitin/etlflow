@@ -4,7 +4,7 @@ import etlflow.jdbc.JsonString
 import etlflow.schema.Credential.{AWS, JDBC}
 import io.circe.generic.semiauto.deriveDecoder
 
-object EncryptCred {
+private [etlflow]  object EncryptCred {
 
   implicit val AwsDecoder = deriveDecoder[AWS]
   implicit val JdbcDecoder = deriveDecoder[JDBC]

@@ -1,5 +1,5 @@
 lazy val scala212 = "2.12.13"
-lazy val scala213 = "2.13.5"
+lazy val scala213 = "2.13.6"
 lazy val supportedScalaVersions = List(scala212)
 lazy val sparkSupportedScalaVersions = List(scala212)
 
@@ -10,7 +10,7 @@ lazy val commonSettings = Seq(
   excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12"),
   scalacOptions ++= Seq("-Ypartial-unification"),
   Test / parallelExecution := false,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.0" cross CrossVersion.full),
   addCompilerPlugin("org.scalamacros" % "paradise"  % "2.1.1" cross CrossVersion.full),
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )

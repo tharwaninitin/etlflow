@@ -15,13 +15,13 @@ case class LocalExecutor(etl_job_name_package: String, job_run_id: Option[String
     job.job_notification_level = job_name.job_notification_level
     job.execute(job_run_id, is_master)
   }
-  def showJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): Task[Unit] = {
+  private[etlflow] def showJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): Task[Unit] = {
     val job_name = UF.getEtlJobName[EJPMType](name,etl_job_name_package)
     val exclude_keys = List("job_run_id","job_description","job_properties")
     val props = job_name.getActualProperties(properties)
     UIO(println(JsonJackson.convertToJsonByRemovingKeys(props,exclude_keys)))
   }
-  def showJobStepProps(name: String, properties: Map[String, String], etl_job_name_package: String): Task[Unit] = {
+  private[etlflow] def showJobStepProps(name: String, properties: Map[String, String], etl_job_name_package: String): Task[Unit] = {
     val job_name = UF.getEtlJobName[EJPMType](name,etl_job_name_package)
     val etl_job = job_name.etlJob(properties)
     if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {

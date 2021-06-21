@@ -21,7 +21,7 @@ import zio.{Task, UIO, ZIO, ZLayer, _}
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
 
-object Implementation extends EtlFlowUtils with ApplicationLogger {
+private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
 
   def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: CaffeineCache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {

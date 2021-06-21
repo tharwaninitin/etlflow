@@ -6,11 +6,10 @@ import etlflow.api.{ServerEnv, ServerTask, Service}
 import etlflow.common.DateTimeFunctions.getCurrentTimestampAsString
 import etlflow.jdbc.{DB, EtlJob}
 import etlflow.log.ApplicationLogger
-import etlflow.utils.{UtilityFunctions => UF}
 import zio._
 import zio.duration._
 
-trait Scheduler extends ApplicationLogger {
+private [etlflow] trait Scheduler extends ApplicationLogger {
   case class CronJob(job_name: String, schedule: Option[CronExpr])
   final def scheduleJobs(dbCronJobs: List[CronJob]): ServerTask[Unit] = {
     if (dbCronJobs.isEmpty) {

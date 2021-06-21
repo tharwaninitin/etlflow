@@ -13,14 +13,14 @@ import zio.RIO
 
 case class Authentication(cache: CaffeineCache[String], config: Option[WebServer]) extends  ApplicationLogger {
   final val secret = config.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey")
-  def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
+  private [etlflow] def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
 
-  def jwtDecode(token: String): Option[JwtClaim] = {
+  private [etlflow] def jwtDecode(token: String): Option[JwtClaim] = {
     Jwt.decode(token, secret, Seq(JwtAlgorithm.HS512)).toOption
   }
-  def isCached(token: String): Option[String] = CacheHelper.getKey(cache, token)
+  private [etlflow] def isCached(token: String): Option[String] = CacheHelper.getKey(cache, token)
 
-  def middleware[R, E](app: HttpApp[R, E]): HttpApp[R, E] =  Http.flatten {
+  private [etlflow] def middleware[R, E](app: HttpApp[R, E]): HttpApp[R, E] =  Http.flatten {
     Http.fromFunction[Request](req => {
       val headerValue = if(req.getHeader("Authorization").isDefined)
         req.getHeader("Authorization")
@@ -48,8 +48,7 @@ case class Authentication(cache: CaffeineCache[String], config: Option[WebServer
     })
   }
 
-
-  def login(args: UserArgs): RIO[DBEnv, UserAuth] =  {
+  private [etlflow] def login(args: UserArgs): RIO[DBEnv, UserAuth] =  {
     DB.getUser(args.user_name).fold(ex => {
       logger.error("Error in fetching user from db => " + ex.getMessage)
       UserAuth("Invalid User/Password", "")

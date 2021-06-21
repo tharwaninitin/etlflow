@@ -7,7 +7,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
 
-object UtilityFunctions{
+private[etlflow] object UtilityFunctions{
   lazy val uf_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def parser(args: Array[String]): Map[String, String] = {

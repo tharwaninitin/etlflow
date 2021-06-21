@@ -2,7 +2,7 @@ package etlflow.utils
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
 
-object RequestValidator {
+private [etlflow] object RequestValidator {
   def apply(job_name: String, props: Option[String]): Either[String, EtlJobArgs] = {
     if(props.isDefined) {
       val expected_props = JsonCirce.convertToObjectEither[Map[String, String]](props.get.replaceAll("\\(","\\{").replaceAll("\\)","\\}"))

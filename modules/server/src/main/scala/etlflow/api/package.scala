@@ -6,13 +6,13 @@ import zio.{Has, RIO}
 
 package object api {
 
-  type APIEnv = Has[Service]
-  type ExecutorEnv = DBEnv with JobEnv
-  type ExecutorTask[A] = RIO[ExecutorEnv, A]
-  type ServerEnv = APIEnv with ExecutorEnv
-  type ServerTask[A] = RIO[ServerEnv, A]
+  private[etlflow] type APIEnv = Has[Service]
+  private[etlflow] type ExecutorEnv = DBEnv with JobEnv
+  private[etlflow] type ExecutorTask[A] = RIO[ExecutorEnv, A]
+  private[etlflow] type ServerEnv = APIEnv with ExecutorEnv
+  private[etlflow] type ServerTask[A] = RIO[ServerEnv, A]
 
-  object Schema {
+  private[etlflow] object Schema {
 
     // case class Props(key: String, value: String)
     case class EtlJobArgs(name: String, props: Option[List[Props]] = None)

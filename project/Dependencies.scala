@@ -30,7 +30,7 @@ object Dependencies {
   val AwsS3Version = "2.16.87"
 
   val FlywayVersion = "7.10.0"
-  val Json4sVersion = "4.0.0"
+  val Json4sVersion = "3.6.11"
   val ScoptVersion = "4.0.1"
   val LogbackVersion = "1.2.3"
   val PgVersion = "42.2.22"

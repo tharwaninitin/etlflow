@@ -53,7 +53,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
         LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
       case LOCAL =>
         LocalExecutor(ejpm_package).executeJob(args.name, actual_props)
-      case dp @ DATAPROC(_, _, _, _) =>
+      case dp @ DATAPROC(_, _, _, _, _) =>
         val main_class = config.dataProc.map(_.mainClass).getOrElse("")
         val dp_libs = config.dataProc.map(_.depLibs).getOrElse(List.empty)
         DPService.executeSparkJob(args.name, actual_props, main_class, dp_libs).provideLayer(DP.live(dp))

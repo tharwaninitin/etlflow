@@ -6,7 +6,7 @@ import etlflow.jdbc.{DB, DBEnv}
 import etlflow.utils.JsonJackson
 import zio.ZIO
 
-class JobLogger(job_name: String, job_properties: EtlJobProps, job_run_id: String, is_master:String, slack: Option[SlackLogger]) extends ApplicationLogger {
+private[etlflow] class JobLogger(job_name: String, job_properties: EtlJobProps, job_run_id: String, is_master:String, slack: Option[SlackLogger]) extends ApplicationLogger {
 
   def logStart(start_time: Long, job_type: String): ZIO[DBEnv, Throwable, Unit] = {
     val properties = JsonJackson.convertToJsonByRemovingKeys(job_properties, List.empty)

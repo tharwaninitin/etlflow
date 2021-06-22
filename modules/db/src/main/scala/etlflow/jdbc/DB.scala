@@ -11,7 +11,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import zio.interop.catz._
 import zio.{IO, RIO, Task, UIO, ZIO, ZLayer}
 
-object DB {
+private[etlflow] object DB {
   // Uncomment this to see generated SQL queries in logs
   // implicit val dbLogger = DBLogger()
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)

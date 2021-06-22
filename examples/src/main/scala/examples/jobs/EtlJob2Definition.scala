@@ -42,7 +42,7 @@ case class EtlJob2Definition(job_properties: EtlJob23Props) extends SequentialEt
       .collect()
       .map((date) => (gcs_output_path + f"/$temp_date_col=" + date._1 + "/" + date._2.split("/").last, date._1))
 
-    etl_job_logger.info("Filepaths generated are: ")
+    logger.info("Filepaths generated are: ")
     output_date_paths.foreach(path => println(path))
   }
 

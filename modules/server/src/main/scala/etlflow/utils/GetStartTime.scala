@@ -4,7 +4,7 @@ package etlflow.utils
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
-object GetStartTime {
+private [etlflow] object GetStartTime {
   def apply(startTime:Option[java.time.LocalDate]): Long = {
     val sdf = new SimpleDateFormat("yyyy-MM-dd")
     if (startTime.isDefined)

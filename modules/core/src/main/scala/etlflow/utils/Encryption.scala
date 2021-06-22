@@ -11,7 +11,7 @@ import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 //https://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
-object Encryption extends ApplicationLogger  with Configuration{
+private[etlflow] object Encryption extends ApplicationLogger  with Configuration{
 
   implicit val AwsDecoder = deriveDecoder[AWS]
   implicit val JdbcDecoder = deriveDecoder[JDBC]

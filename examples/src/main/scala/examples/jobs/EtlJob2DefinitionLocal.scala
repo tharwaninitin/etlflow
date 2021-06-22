@@ -9,7 +9,7 @@ import zio.duration._
 case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
 
   def processData(ip: Unit): Unit = {
-    etl_job_logger.info("Hello World")
+    logger.info("Hello World")
     throw  new RuntimeException("Error123")
     Thread.sleep(10000)
   }

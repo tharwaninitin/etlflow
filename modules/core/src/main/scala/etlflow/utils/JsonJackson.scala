@@ -8,7 +8,7 @@ import org.json4s.jackson.Serialization.writePretty
 import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
 import org.slf4j.{Logger, LoggerFactory}
 
-object JsonJackson {
+private[etlflow] object JsonJackson {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def convertToJson(entity: AnyRef): String = {
@@ -43,7 +43,7 @@ object JsonJackson {
     val customSerializer4 = new CustomSerializer[Executor](_ =>
       (PartialFunction.empty, {
         case executor: Executor => executor match {
-          case Executor.DATAPROC(_, _, _, _) => JString("dataproc")
+          case Executor.DATAPROC(_, _, _, _, _) => JString("dataproc")
           case Executor.LOCAL => JString("local")
           case Executor.LIVY(_) => JString("livy")
           case Executor.KUBERNETES(_, _, _, _, _, _)=> JString("kubernetes")
@@ -84,7 +84,7 @@ object JsonJackson {
     val customSerializer4 = new CustomSerializer[Executor](_ =>
       (PartialFunction.empty, {
         case executor: Executor => executor match {
-          case Executor.DATAPROC(_, _, _, _) => JString("dataproc")
+          case Executor.DATAPROC(_, _, _, _, _) => JString("dataproc")
           case Executor.LOCAL => JString("local")
           case Executor.LIVY(_) => JString("livy")
           case Executor.KUBERNETES(_, _, _, _, _, _)=> JString("kubernetes")

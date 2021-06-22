@@ -67,19 +67,18 @@ object ReadApi {
       case JSON(multi_line) => df_reader.format("json").option("multiline",multi_line).schema(mapping.schema)
       case PARQUET => df_reader.format("parquet")
       case ORC => df_reader.format("orc")
-      case JDBC(url, user, password, driver) => df_reader.format("jdbc")
-        .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password).option("driver", driver)
       case RDB(jdbc,partition) =>
-        df_reader.format("jdbc")
-          .option("url", jdbc.url)
-          .option("dbtable", location.mkString)
-          .option("user", jdbc.user)
-          .option("password", jdbc.password)
-          .option("driver", jdbc.driver)
-          .option("numPartitions", partition.num_partition)
-          .option("partitionColumn", partition.partition_column)
-          .option("lowerBound", partition.lower_bound)
-          .option("upperBound", partition.upper_bound)
+        if(partition.isDefined) {
+          df_reader.format("jdbc")
+            .option("url", jdbc.url).option("dbtable", location.mkString).option("user", jdbc.user)
+            .option("password", jdbc.password).option("driver", jdbc.driver)
+            .option("numPartitions", partition.get.num_partition)
+            .option("partitionColumn", partition.get.partition_column).option("lowerBound", partition.get.lower_bound)
+            .option("upperBound", partition.get.upper_bound)
+        } else{
+          df_reader.format("jdbc").option("url", jdbc.url).option("dbtable", location.mkString).option("user", jdbc.user)
+            .option("password", jdbc.password).option("driver", jdbc.driver)
+        }
       case BQ(temp_dataset,operation_type) =>
         operation_type match {
           case "table" => df_reader.format("bigquery").option("table", location.mkString)
@@ -92,7 +91,7 @@ object ReadApi {
     }
 
     val df = input_type match {
-      case JDBC(_,_,_,_) | BQ(_,_) => df_reader_options.load().where(where_clause)
+      case RDB(_,_) | BQ(_,_) => df_reader_options.load().where(where_clause)
       case _ => df_reader_options.load(location: _*).where(where_clause)
     }
 

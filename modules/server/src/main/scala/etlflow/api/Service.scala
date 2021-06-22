@@ -6,7 +6,7 @@ import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock
 
-trait Service {
+private[etlflow] trait Service {
   def runJob(args: EtlJobArgs, submitter: String): ZIO[APIEnv with DBEnv with TransactorEnv with Blocking with Clock, Throwable, EtlJob]
   def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBEnv, Throwable, Boolean]
   def login(args: UserArgs): ZIO[APIEnv with DBEnv, Throwable, UserAuth]
@@ -24,7 +24,7 @@ trait Service {
   def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]
 }
 
-object Service {
+private[etlflow] object Service {
 
   def runJob(args: EtlJobArgs, submitter: String): ZIO[APIEnv with DBEnv with TransactorEnv with Blocking with Clock, Throwable, EtlJob] =
     ZIO.accessM[APIEnv with DBEnv with TransactorEnv with Blocking with Clock](_.get.runJob(args,submitter)).absorb

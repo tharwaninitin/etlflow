@@ -1,11 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.etlsteps.EtlStep
-import etlflow.utils.{HttpRequest, JsonCirce, LoggingLevel}
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.{HttpMethod, HttpRequest, JsonCirce, LoggingLevel}
 import io.circe.Decoder
 import sttp.client3.Response
 import zio._
+
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 case class HttpRequestStep[A: TypeTag : Decoder](

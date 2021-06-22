@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 import scala.util.{Failure, Success, Try}
 
-object DateTimeFunctions {
+private[etlflow] object DateTimeFunctions {
 
   def getCurrentTimestamp: Long = System.currentTimeMillis()
   def getCurrentTimestampUsingLocalDateTime: Long = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant.toEpochMilli

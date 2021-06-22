@@ -3,7 +3,7 @@ package etlflow.utils
 import scopt.OptionParser
 import etlflow.{BuildInfo => BI}
 
-object EtlJobArgsParser {
+private[etlflow] object EtlJobArgsParser {
   case class EtlJobConfig(
        init_db: Boolean = false,
        reset_db: Boolean = false,

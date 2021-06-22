@@ -3,7 +3,7 @@ package etlflow.utils
 import doobie.util.log.{ExecFailure, LogHandler, ProcessingFailure, Success}
 import org.slf4j.{Logger, LoggerFactory}
 
-object DoobieQueryLogger {
+private[etlflow] object DoobieQueryLogger {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def apply(): LogHandler = {

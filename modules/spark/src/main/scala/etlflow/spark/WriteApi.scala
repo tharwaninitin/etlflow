@@ -69,23 +69,23 @@ object WriteApi {
       case ORC => df_writer.format("orc")
       case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
       case TEXT => df_writer.format("text")
-      case JDBC(_, _, _, _) => df_writer
+      case RDB(_, _) => df_writer
     }
 
     partition_by match {
       case partition if partition.nonEmpty =>
         output_type match {
-          case JDBC(_, _, _, _) => throw EtlJobException("Output partitioning with JDBC is not yet implemented")
+          case RDB(_, _) => throw EtlJobException("Output partitioning with JDBC is not yet implemented")
           case _ => df_writer_options.partitionBy(partition: _*).mode(save_mode).save(output_location)
         }
       case _ => {
         output_type match {
-          case JDBC(url, user, password, driver) => {
+          case RDB(jdbc,_) => {
             val prop = new java.util.Properties
-            prop.setProperty("driver", driver)
-            prop.setProperty("user", user)
-            prop.setProperty("password", password)
-            df_writer_options.mode(save_mode).jdbc(url, output_location, prop)
+            prop.setProperty("driver", jdbc.driver)
+            prop.setProperty("user", jdbc.user)
+            prop.setProperty("password", jdbc.password)
+            df_writer_options.mode(save_mode).jdbc(jdbc.url, output_location, prop)
           }
           case _ => df_writer_options.mode(save_mode).save(output_location)
         }

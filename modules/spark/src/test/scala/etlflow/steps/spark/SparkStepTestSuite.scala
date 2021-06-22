@@ -6,8 +6,9 @@ import etlflow.TestSparkSession
 import etlflow.coretests.{DoobieHelper, TestSuiteHelper}
 import etlflow.coretests.Schema._
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
+import etlflow.schema.Credential.JDBC
 import etlflow.spark.{ReadApi, SparkUDF}
-import etlflow.spark.IOType.{JDBC, PARQUET}
+import etlflow.spark.IOType.{PARQUET, RDB}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -31,7 +32,7 @@ class SparkStepTestSuite extends AnyFlatSpec
     name             = "LoadRatingsParquetToJdbc",
     input_location   = Seq(input_path_parquet),
     input_type       = PARQUET,
-    output_type      = JDBC(config.dbLog.url, config.dbLog.user, config.dbLog.password, "org.postgresql.Driver"),
+    output_type      = RDB(JDBC(config.dbLog.url, config.dbLog.user, config.dbLog.password, "org.postgresql.Driver")),
     output_location  = "ratings",
     output_save_mode = SaveMode.Overwrite
   )

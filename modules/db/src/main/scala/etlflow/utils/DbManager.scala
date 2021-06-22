@@ -10,7 +10,8 @@ import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import zio.{Task, ZLayer}
-trait DbManager {
+
+private[etlflow] trait DbManager {
 
   def liveTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, TransactorEnv] =
     ZLayer.fromManaged {
@@ -27,7 +28,7 @@ trait DbManager {
       } yield transactor
   }
 
-  def runDbMigration(credentials: JDBC, clean: Boolean = false): Task[Unit] = Task {
+    def runDbMigration(credentials: JDBC, clean: Boolean = false): Task[Unit] = Task {
     val logger: Logger = LoggerFactory.getLogger(getClass.getName)
     val configuration = Flyway
       .configure(this.getClass.getClassLoader)

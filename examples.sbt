@@ -22,6 +22,7 @@ lazy val examples = (project in file("examples"))
         "com.github.tharwaninitin" %% "etlflow-server" % EtlFlowVersion,
         "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
         "com.github.tharwaninitin" %% "etlflow-cloud" % EtlFlowVersion,
+        "org.apache.spark" %% "spark-sql" % SparkVersion,
         "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion,
         "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
         "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,

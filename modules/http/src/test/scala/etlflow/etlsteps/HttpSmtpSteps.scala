@@ -2,11 +2,10 @@ package etlflow.etlsteps
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
 import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.schema.Credential.SMTP
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.HttpMethod
 
 case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 

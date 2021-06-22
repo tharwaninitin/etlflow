@@ -10,7 +10,7 @@ import zio.{Has, ZIO}
 package object gcp {
   val gcp_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  type GCSService = Has[GCSService.Service]
+  private[etlflow] type GCSService = Has[GCSService.Service]
   sealed trait BQInputType extends Serializable
   object BQInputType {
     final case class CSV(delimiter: String = ",", header_present: Boolean = true, parse_mode: String = "FAILFAST", quotechar: String = "\"") extends BQInputType {
@@ -23,13 +23,14 @@ package object gcp {
     final case object PARQUET extends BQInputType
     final case object ORC extends BQInputType
   }
+
   sealed trait FSType
   object FSType {
     case object LOCAL extends FSType
     case object GCS extends FSType
   }
 
-  object GCSService {
+  private[etlflow] object GCSService {
     trait Service {
       def listObjects(bucket: String, options: List[BlobListOption]): ZIO[GCSService, Throwable, Page[Blob]]
       def listObjects(bucket: String, prefix: String): ZIO[GCSService, Throwable, List[Blob]]
@@ -42,9 +43,9 @@ package object gcp {
     def listObjects(bucket: String, prefix: String): ZIO[GCSService, Throwable, List[Blob]] = ZIO.accessM(_.get.listObjects(bucket,prefix))
   }
 
-  type BQService = Has[BQService.Service]
+  private[etlflow] type BQService = Has[BQService.Service]
 
-  object BQService {
+  private[etlflow] object BQService {
     trait Service {
       def executeQuery(query: String): ZIO[BQService, Throwable, Unit]
       def getDataFromBQ(query: String): ZIO[BQService, Throwable, Iterable[FieldValueList]]
@@ -104,7 +105,7 @@ package object gcp {
       )
   }
 
-  type DPService = Has[DPService.Service]
+  private[etlflow] type DPService = Has[DPService.Service]
 
   case class DataprocProperties (
     bucket_name: String,
@@ -122,7 +123,7 @@ package object gcp {
     worker_num_instance: Int = 3
   )
 
-  object DPService {
+  private[etlflow] object DPService {
     trait Service {
       def executeSparkJob(name: String, properties: Map[String,String], main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit]
       def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit]

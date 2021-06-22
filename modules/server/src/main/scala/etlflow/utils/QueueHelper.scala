@@ -3,7 +3,7 @@ package etlflow.utils
 import etlflow.api.Schema.QueueDetails
 import zio.{Queue, Task}
 
-object QueueHelper {
+private [etlflow] object QueueHelper {
 
   def takeAll(jobQueue: Queue[(String,String,String,String)]): Task[List[QueueDetails]]  = {
     for {

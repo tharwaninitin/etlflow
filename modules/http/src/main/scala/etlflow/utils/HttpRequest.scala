@@ -12,19 +12,10 @@ import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3.{asStringAlways, basicRequest, _}
 import sttp.model.MediaType
 import zio.{Task, TaskManaged}
-import zio.Runtime.global.unsafeRun
 
 import scala.concurrent.duration.{Duration, _}
 
-object HttpRequest extends ApplicationLogger {
-
-  sealed trait HttpMethod
-
-  object HttpMethod {
-    case object GET extends HttpMethod
-    case object POST extends HttpMethod
-    case object PUT extends HttpMethod
-  }
+private[etlflow] object HttpRequest extends ApplicationLogger {
 
   private def options(ms: Int) = SttpBackendOptions.connectionTimeout(ms.millisecond)
 

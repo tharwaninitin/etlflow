@@ -9,7 +9,7 @@ import etlflow.api.Service.login
 import etlflow.jdbc.{DBEnv}
 import zio.{Task, UIO, ZIO}
 
-object GqlLoginAPI extends GenericSchema[APIEnv with DBEnv] {
+private[etlflow] object GqlLoginAPI extends GenericSchema[APIEnv with DBEnv] {
 
   case class Mutations(login: UserArgs => ZIO[APIEnv with DBEnv, Throwable, UserAuth])
   case class Queries(dummy: Task[String])

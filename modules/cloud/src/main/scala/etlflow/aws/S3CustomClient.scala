@@ -5,7 +5,7 @@ import etlflow.utils.Location.S3
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
-object S3CustomClient {
+private[etlflow] object S3CustomClient {
   def apply(Location: S3, endpointOverride: Option[String] = None): S3AsyncClient = {
     val ACCESS_KEY = sys.env.getOrElse("ACCESS_KEY", "NOT_SET_IN_ENV")
     val SECRET_KEY = sys.env.getOrElse("SECRET_KEY", "NOT_SET_IN_ENV")

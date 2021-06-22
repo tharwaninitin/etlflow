@@ -4,13 +4,11 @@ import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQLoadStep, EtlStep, SparkReadWriteStep}
-import etlflow.spark.SparkManager
+import etlflow.gcp.BQInputType
+import etlflow.spark.{IOType, SparkManager}
 import examples.schema.MyEtlJobProps.EtlJob1Props
 import examples.schema.MyEtlJobSchema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import etlflow.spark.IOType
-import etlflow.gcp.BQInputType
-import etlflow.spark.Environment.LOCAL
 
 case class EtlJob0DefinitionDataproc(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
 

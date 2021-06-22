@@ -12,7 +12,7 @@ import zio.{IO, Layer, Managed, Task, ZLayer}
 
 import scala.collection.JavaConverters._
 
-object GCS {
+private[etlflow] object GCS {
 
   def getClient(location: Location.GCS): Storage = {
     val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")

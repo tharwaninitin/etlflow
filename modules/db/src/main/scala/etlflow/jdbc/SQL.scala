@@ -12,7 +12,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
-object SQL {
+private[etlflow] object SQL {
 
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 

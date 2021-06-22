@@ -14,7 +14,7 @@ package object aws {
   val aws_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   type S3Api = Has[Service]
-  trait Service {
+  private[etlflow] trait Service {
     def listBuckets: Task[ListBucketsResponse]
     def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean]
     def listBucketObjects(bucket: String, prefix: String, maxKeys: Int): Task[ListObjectsV2Response]
@@ -22,7 +22,7 @@ package object aws {
     def getObject(bucket: String, key: String, file: String): Task[GetObjectResponse]
     def delObject(bucket: String, key: String): Task[DeleteObjectResponse]
   }
-  object S3Api {
+  private[etlflow] object S3Api {
     lazy val env = S3Impl.live
     def createClient(region: Region, endpointOverride: Option[String] = None, credentials: Option[AWS] = None): Task[S3AsyncClient] = {
       val ACCESS_KEY = sys.env.getOrElse("ACCESS_KEY", "NOT_SET_IN_ENV")

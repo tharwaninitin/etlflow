@@ -10,7 +10,7 @@ import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
 
 import scala.sys.process._
 
-object BQ {
+private[etlflow] object BQ {
   case class BQLoadException(msg : String) extends RuntimeException(msg)
 
   private def getBQ(path: String): BigQuery = {

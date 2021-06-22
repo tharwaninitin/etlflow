@@ -9,8 +9,8 @@ import zio.{Has, Task, ZLayer}
 
 package object jdbc extends DbManager {
 
-  type TransactorEnv = Has[HikariTransactor[Task]]
-  type DBEnv = Has[DB.Service]
+  private[etlflow] type TransactorEnv = Has[HikariTransactor[Task]]
+  private[etlflow] type DBEnv = Has[DB.Service]
 
   case class DbStepRunArgs(job_run_id: String)
   case class DbJobRunArgs(
@@ -40,5 +40,5 @@ package object jdbc extends DbManager {
   case class JobRunDB(job_run_id: String,job_name: String,properties: String,state: String,elapsed_time: String,job_type: String,is_master:String,inserted_at:Long)
   case class StepRunDB(job_run_id: String,step_name: String,properties: String,state: String,elapsed_time:String,step_type:String,step_run_id:String, inserted_at:Long)
 
-  def liveDBWithTransactor(db: JDBC): ZLayer[Blocking, Throwable, TransactorEnv with DBEnv] = liveTransactor(db: JDBC) >+> DB.liveDB
+  private[etlflow] def liveDBWithTransactor(db: JDBC): ZLayer[Blocking, Throwable, TransactorEnv with DBEnv] = liveTransactor(db: JDBC) >+> DB.liveDB
 }

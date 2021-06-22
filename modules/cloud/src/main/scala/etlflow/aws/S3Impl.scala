@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.s3.model._
 import zio.{Task, ZLayer}
 import scala.collection.JavaConverters._
 
-object S3Impl {
+private[etlflow] object S3Impl {
   val live: ZLayer[S3AsyncClient, Throwable, S3Api] = ZLayer.fromFunction{s3: S3AsyncClient =>
     new Service {
       def listBuckets: Task[ListBucketsResponse] =

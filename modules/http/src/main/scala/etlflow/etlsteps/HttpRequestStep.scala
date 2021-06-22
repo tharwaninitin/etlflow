@@ -1,7 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.utils.HttpRequest.HttpMethod
-import etlflow.utils.{HttpRequest, JsonCirce, LoggingLevel}
+import etlflow.utils.{HttpMethod, HttpRequest, JsonCirce, LoggingLevel}
 import io.circe.Decoder
 import sttp.client3.Response
 import zio._

@@ -35,13 +35,12 @@ object Dependencies {
   val LogbackVersion = "1.2.3"
   val PgVersion = "42.2.22"
   val RedisVersion = "3.30"
-  val mailVersion = "1.6.2"
+  val MailVersion = "1.6.2"
   val JwtCoreVersion = "8.0.2"
   val Sl4jVersion = "1.7.31"
-  val bcryptVersion = "4.3.0"
-  val ZioHttpVersion = "0.10.0"
-  val d11ZioHttpVersion = "1.0.0.0-RC16"
+  val BcryptVersion = "4.3.0"
 
+  val ZioHttpVersion = "1.0.0.0-RC17"
   val ScalaTestVersion = "3.2.9"
 
   lazy val coreLibs = List(
@@ -54,9 +53,9 @@ object Dependencies {
     "org.json4s" %% "json4s-jackson" % Json4sVersion,
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % Sl4jVersion,
-    "com.github.t3hnar" %% "scala-bcrypt" % bcryptVersion,
-    "javax.mail" % "javax.mail-api" % mailVersion,
-    "com.sun.mail" % "javax.mail"   % mailVersion
+    "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion,
+    "javax.mail" % "javax.mail-api" % MailVersion,
+    "com.sun.mail" % "javax.mail"   % MailVersion
   )
 
   lazy val cloudLibs = List(
@@ -98,8 +97,8 @@ object Dependencies {
 
   lazy val serverLibs = List(
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
-    "com.github.ghostdogpr" %% "caliban-zio-http" % ZioHttpVersion,
-    "io.d11" %% "zhttp" % d11ZioHttpVersion,
+    "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
+    "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,

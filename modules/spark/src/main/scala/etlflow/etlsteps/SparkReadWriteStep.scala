@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.spark.{IOType, ReadApi, SparkMemoryConf, WriteApi}
+import etlflow.spark.{IOType, ReadApi, SparkRuntimeConf, WriteApi}
 import etlflow.utils.LoggingLevel
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
@@ -85,7 +85,7 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
       output_save_mode, output_filename, recordsWrittenCount,
       repartition=output_repartitioning
     )
-    val spark_conf = SparkMemoryConf(spark)
+    val spark_conf = SparkRuntimeConf(spark)
 
     in_map ++ out_map ++ spark_conf
   }

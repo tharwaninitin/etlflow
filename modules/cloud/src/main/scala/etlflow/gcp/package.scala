@@ -8,11 +8,11 @@ import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, ZIO}
 
 package object gcp {
-  private[etlflow] val gcp_logger: Logger = LoggerFactory.getLogger(getClass.getName)
+  val gcp_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   private[etlflow] type GCSService = Has[GCSService.Service]
   sealed trait BQInputType extends Serializable
-  private[etlflow] object BQInputType {
+  object BQInputType {
     final case class CSV(delimiter: String = ",", header_present: Boolean = true, parse_mode: String = "FAILFAST", quotechar: String = "\"") extends BQInputType {
       override def toString: String = s"CSV with delimiter => $delimiter header_present => $header_present parse_mode => $parse_mode"
     }
@@ -23,8 +23,9 @@ package object gcp {
     final case object PARQUET extends BQInputType
     final case object ORC extends BQInputType
   }
+
   sealed trait FSType
-  private[etlflow] object FSType {
+  object FSType {
     case object LOCAL extends FSType
     case object GCS extends FSType
   }

@@ -4,14 +4,14 @@ package etlflow
 package object utils {
 
   sealed trait LoggingLevel
-  private[etlflow] object LoggingLevel {
+  object LoggingLevel {
     case object JOB extends LoggingLevel
     case object DEBUG extends LoggingLevel
     case object INFO extends LoggingLevel
   }
 
   sealed trait Executor
-  private[etlflow] object Executor {
+  object Executor {
     case object LOCAL extends Executor
     case class DATAPROC(project: String, region: String, endpoint: String, cluster_name: String, sp: List[SPARK_CONF] = List.empty) extends Executor
     case class SPARK_CONF(key: String, value: String)

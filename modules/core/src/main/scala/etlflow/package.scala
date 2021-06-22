@@ -2,12 +2,11 @@ import etlflow.common.EtlflowError.EtlJobException
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.jdbc.{DBEnv, TransactorEnv}
-import etlflow.log.StepLogger.StepReq
+import etlflow.log.StepReq
 import etlflow.utils.{Executor, LoggingLevel}
 import zio.Has
 import zio.blocking.Blocking
 import zio.clock.Clock
-
 import scala.reflect.ClassTag
 
 package object etlflow {

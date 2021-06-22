@@ -5,10 +5,8 @@ import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.meta.Meta
 import etlflow.common.DateTimeFunctions.getCurrentTimestamp
-import etlflow.utils.GetStartTime
 import org.postgresql.util.PGobject
 import org.slf4j.{Logger, LoggerFactory}
-
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
@@ -49,12 +47,20 @@ private[etlflow] object SQL {
           ORDER BY inserted_at DESC"""
       .query[StepRunDB]
 
+  private def getStartTime(startTime:Option[java.time.LocalDate]): Long = {
+    val sdf = new SimpleDateFormat("yyyy-MM-dd")
+    if (startTime.isDefined)
+      startTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    else
+      sdf.parse(LocalDate.now().toString).getTime
+  }
+
   def getJobRuns(args: DbJobRunArgs): doobie.Query0[JobRunDB] = {
 
     var q: doobie.Query0[JobRunDB] = null
 
     if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
-      val startTime = GetStartTime(args.startTime)
+      val startTime = getStartTime(args.startTime)
       val endTime =  args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       args.filter.get match {
         case "IN" => {
@@ -141,7 +147,7 @@ private[etlflow] object SQL {
       }
     }
     else if (args.endTime.isDefined) {
-      val startTime = GetStartTime(args.startTime)
+      val startTime = getStartTime(args.startTime)
       val endTime =  args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       q = sql"""
                  SELECT
@@ -292,6 +298,7 @@ private[etlflow] object SQL {
   def addCredentials(args: CredentialDB, actualSerializerOutput: JsonString): doobie.Update0 = {
     sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${actualSerializerOutput})".update
   }
+
   def updateCredentials(args: CredentialDB): doobie.Update0 = {
     sql"""
     UPDATE credential
@@ -345,7 +352,6 @@ private[etlflow] object SQL {
     } yield dbjobs
   }
 
-
 //  def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
 //
 //  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
@@ -364,6 +370,7 @@ private[etlflow] object SQL {
          VALUES ($job_run_id, $job_name, ${JsonString(props)}, 'started', '...', $job_type, $is_master, $start_time)"""
       .update
   }
+
   def updateJobRun(job_run_id: String, status: String, elapsed_time: String): doobie.Update0 = {
     sql""" UPDATE JobRun
               SET state = $status,
@@ -371,6 +378,7 @@ private[etlflow] object SQL {
            WHERE job_run_id = $job_run_id"""
       .update
   }
+
   def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): doobie.Update0 = {
     sql"""INSERT INTO StepRun (
             job_run_id,

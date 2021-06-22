@@ -1,11 +1,12 @@
 package etlflow.etljobs
 
 import etlflow.common.DateTimeFunctions.getCurrentTimestamp
-import etlflow.log.StepLogger.StepReq
+import etlflow.log.StepReq
 import etlflow.log.{JobLogger, SlackLogger}
 import etlflow.utils.LoggingLevel
 import etlflow.{EtlJobProps, JobEnv, StepEnv}
 import zio.{Task, UIO, ZIO, ZLayer}
+
 trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
 
   def job: ZIO[StepEnv, Throwable, Unit]

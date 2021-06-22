@@ -1,7 +1,6 @@
 package etlflow.etlsteps
 
 import com.redis._
-import etlflow.etlsteps.EtlStep
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
 import etlflow.utils.LoggingLevel

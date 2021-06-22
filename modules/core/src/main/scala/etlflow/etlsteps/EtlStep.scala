@@ -4,7 +4,8 @@ import etlflow.{JobEnv, StepEnv}
 import etlflow.utils.LoggingLevel
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, RIO, Task, ZIO, ZLayer}
-import etlflow.log.StepLogger.{LoggingSupport, StepLoggerImpl, StepLoggerResourceEnv, StepReq, logError, logInit, logSuccess}
+import etlflow.log.StepLogger.{LoggingSupport, StepLoggerImpl, StepLoggerResourceEnv, logError, logInit, logSuccess}
+import etlflow.log.StepReq
 
 trait EtlStep[IPSTATE,OPSTATE] { self =>
   val etl_logger: Logger = LoggerFactory.getLogger(getClass.getName)

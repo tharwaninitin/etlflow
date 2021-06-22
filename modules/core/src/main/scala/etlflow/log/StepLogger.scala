@@ -6,12 +6,11 @@ import etlflow.jdbc.{DB, DBEnv}
 import etlflow.utils.{JsonJackson, LoggingLevel, UtilityFunctions => UF}
 import zio.{Has, Task, ZIO, ZLayer}
 
-object StepLogger extends ApplicationLogger {
+private[etlflow] object StepLogger extends ApplicationLogger {
 
-  class StepHelper(etlStep: EtlStep[_,_], job_run_id: String, job_notification_level: LoggingLevel = LoggingLevel.INFO) extends ApplicationLogger {
+  class StepLoggerHelper(etlStep: EtlStep[_,_], job_run_id: String, job_notification_level: LoggingLevel = LoggingLevel.INFO) extends ApplicationLogger {
     val remoteStep = List("EtlFlowJobStep", "DPSparkJobStep", "ParallelETLStep")
-
-    def updateStepLevelInformation(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBEnv, Throwable, Unit] =
+    def update(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBEnv, Throwable, Unit] =
     {
       val step_name = UF.stringFormatter(etlStep.name)
       val properties = JsonJackson.convertToJson(etlStep.getStepProperties(job_notification_level))
@@ -29,8 +28,6 @@ object StepLogger extends ApplicationLogger {
       }
     }
   }
-
-  case class StepReq(job_run_id: String, slack: Option[SlackLogger] = None, job_notification_level: LoggingLevel = LoggingLevel.INFO)
 
   type LoggingSupport = Has[LoggerService]
   trait LoggerService {
@@ -56,18 +53,18 @@ object StepLogger extends ApplicationLogger {
   object StepLoggerImpl {
     def live[IP,OP](etlStep: EtlStep[IP,OP]): ZLayer[StepLoggerResourceEnv, Throwable, LoggingSupport] = ZLayer.fromService { deps: StepLoggerResourceEnv.Service =>
       new LoggerService {
-        val stepLogger = new StepHelper(etlStep, deps.res.job_run_id)
+        val stepLogger = new StepLoggerHelper(etlStep, deps.res.job_run_id)
         def logInit(start_time: Long): ZIO[DBEnv, Throwable, Unit] = {
-          stepLogger.updateStepLevelInformation(start_time, "started", mode = "insert")
+          stepLogger.update(start_time, "started", mode = "insert")
         }
         def logSuccess(start_time: Long): ZIO[DBEnv, Throwable, Unit] = {
           deps.res.slack.foreach(_.logStepEnd(start_time, etlStep))
-          stepLogger.updateStepLevelInformation(start_time, "pass")
+          stepLogger.update(start_time, "pass")
         }
         def logError(start_time: Long, ex: Throwable): ZIO[DBEnv, Throwable, Unit] = {
           logger.error("Step Error StackTrace:"+"\n"+ex.getStackTrace.mkString("\n"))
           deps.res.slack.foreach(_.logStepEnd(start_time, etlStep, Some(ex.getMessage)))
-          stepLogger.updateStepLevelInformation(start_time, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
+          stepLogger.update(start_time, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
         }
       }
     }

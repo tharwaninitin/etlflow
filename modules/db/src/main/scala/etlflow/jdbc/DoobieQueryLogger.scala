@@ -1,9 +1,9 @@
-package etlflow.utils
+package etlflow.jdbc
 
 import doobie.util.log.{ExecFailure, LogHandler, ProcessingFailure, Success}
 import org.slf4j.{Logger, LoggerFactory}
 
-private[etlflow] object DoobieQueryLogger {
+private[jdbc] object DoobieQueryLogger {
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   def apply(): LogHandler = {

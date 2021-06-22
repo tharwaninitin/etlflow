@@ -1,9 +1,9 @@
 package etlflow.etlsteps
 
 import etlflow.JobEnv
+import etlflow.log.StepReq
 import etlflow.utils.{Configuration, LoggingLevel}
 import zio.{RIO, ZIO, ZLayer}
-import etlflow.log.StepLogger.StepReq
 
 case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] with Configuration {
 

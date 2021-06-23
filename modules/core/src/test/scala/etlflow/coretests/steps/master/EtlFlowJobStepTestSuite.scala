@@ -1,15 +1,15 @@
 package etlflow.coretests.steps.master
 
 import etlflow.coretests.Schema.EtlJob1Props
-import etlflow.etlsteps.EtlFlowJobStep
 import etlflow.coretests.jobs.Job1HelloWorld
-import etlflow.jdbc.liveDBWithTransactor
-import etlflow.utils.{Configuration, DbManager}
+import etlflow.db.liveDBWithTransactor
+import etlflow.etlsteps.EtlFlowJobStep
+import etlflow.utils.Configuration
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
 
-object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with Configuration with DbManager {
+object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with Configuration  {
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlowJobStepTestSuite") (
       testM("Execute EtlFlowJobStep") {

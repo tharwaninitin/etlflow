@@ -1,7 +1,7 @@
 package etlflow.utils
 
 import etlflow.EJPMType
-import etlflow.jdbc.EtlJob
+import etlflow.db.EtlJob
 import etlflow.utils.JsonJackson._
 import etlflow.utils.{UtilityFunctions => UF}
 import scalacache.memoization.memoizeSync

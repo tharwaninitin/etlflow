@@ -6,10 +6,10 @@ import cron4s.lib.javatime._
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
 import etlflow.common.DateTimeFunctions._
+import etlflow.db._
 import etlflow.executor.Executor
-import etlflow.jdbc._
 import etlflow.log.ApplicationLogger
-import etlflow.utils.{CacheHelper, EncryptCred, EtlFlowUtils, JsonJackson, UtilityFunctions => UF}
+import etlflow.utils.{CacheHelper, EncryptCred, EtlFlowUtils, JsonJackson}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
@@ -17,6 +17,7 @@ import scalacache.caffeine.CaffeineCache
 import zio.Fiber.Status.{Running, Suspended}
 import zio.blocking.Blocking
 import zio.{Task, UIO, ZIO, ZLayer, _}
+import zio.Runtime.default.unsafeRun
 
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
@@ -41,8 +42,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
       } yield op
 
       override def getJobs: ZIO[APIEnv with DBEnv, Throwable, List[Job]] =  {
-        val jobs = SQL.getJobs
-          .to[List]
+      DBApi.getJobs
           .map(y => y.map { x => {
             val props = getJobPropsMapping[EJN](x.job_name, ejpm_package)
             val p = new PrettyTime()
@@ -62,8 +62,6 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
             }
           }
           })
-
-        DB.getJobs(jobs)
       }
 
       override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = {
@@ -76,17 +74,17 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
 
       override def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]] = monitorFibers(supervisor)
 
-      override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]] = DB.getJobLogs(args)
+      override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]] = DBApi.getJobLogs(args)
 
-      override def getCredentials: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]] = DB.getCredentials
+      override def getCredentials: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]] = DBApi.getCredentials
 
       override def runJob(args: EtlJobArgs, submitter: String): ServerTask[EtlJob] = executor.runActiveEtlJob(args, submitter)
 
-      override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[StepRun]] = DB.getStepRuns(args)
+      override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[StepRun]] = DBApi.getStepRuns(args)
 
-      override def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobRun]] = DB.getJobRuns(args)
+      override def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobRun]] = DBApi.getJobRuns(args)
 
-      override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBEnv, Throwable, Boolean] = DB.updateJobState(args)
+      override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBEnv, Throwable, Boolean] = DBApi.updateJobState(args)
 
       override def login(args: UserArgs): ZIO[APIEnv with DBEnv, Throwable, UserAuth] = auth.login(args)
 
@@ -114,7 +112,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
           value
         )
         val actualSerializerOutput = EncryptCred(credentialsDB.`type`,credentialsDB.value)
-        DB.addCredential(credentialsDB,actualSerializerOutput).mapError(ex => ExecutionError(ex.getMessage))
+        DBApi.addCredential(credentialsDB,actualSerializerOutput).mapError(ex => ExecutionError(ex.getMessage))
       }
 
       override def updateCredentials(args: CredentialsArgs): ZIO[APIEnv with DBEnv, Throwable, Credentials] = {
@@ -128,7 +126,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
           value
         )
         val actualSerializerOutput = EncryptCred(credentialsDB.`type`,credentialsDB.value)
-        DB.updateCredential(credentialsDB,actualSerializerOutput)
+        DBApi.updateCredential(credentialsDB,actualSerializerOutput)
       }
     })
   }

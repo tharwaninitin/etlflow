@@ -2,7 +2,7 @@ package etlflow.log
 
 import etlflow.EtlJobProps
 import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString}
-import etlflow.jdbc.{DB, DBEnv}
+import etlflow.db.{DBApi, DBEnv}
 import etlflow.utils.JsonJackson
 import zio.ZIO
 
@@ -11,7 +11,7 @@ private[etlflow] class JobLogger(job_name: String, job_properties: EtlJobProps, 
   def logStart(start_time: Long, job_type: String): ZIO[DBEnv, Throwable, Unit] = {
     val properties = JsonJackson.convertToJsonByRemovingKeys(job_properties, List.empty)
     logger.info("Logging job start in db")
-    DB.insertJobRun(job_run_id, job_name, properties, job_type, is_master, start_time)
+    DBApi.insertJobRun(job_run_id, job_name, properties, job_type, is_master, start_time)
   }
 
   def logEnd(start_time: Long, error_message: Option[String] = None):  ZIO[DBEnv, Throwable, Unit]  = {
@@ -25,7 +25,7 @@ private[etlflow] class JobLogger(job_name: String, job_properties: EtlJobProps, 
     }
     logger.info(s"Logging job completion in db with status $job_status")
     val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
-    DB.updateJobRun(job_run_id, job_status, elapsed_time)
+    DBApi.updateJobRun(job_run_id, job_status, elapsed_time)
   }
 }
 

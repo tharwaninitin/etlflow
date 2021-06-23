@@ -1,7 +1,7 @@
 package etlflow.coretests.steps.db
 
+import etlflow.db.liveDBWithTransactor
 import etlflow.etlsteps.DBQueryStep
-import etlflow.jdbc.liveDBWithTransactor
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.Configuration
 import zio.ZIO

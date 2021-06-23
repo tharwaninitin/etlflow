@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.jdbc.JsonString
+import etlflow.db.JsonString
 import etlflow.schema.Credential.{AWS, JDBC}
 import io.circe.generic.semiauto.deriveDecoder
 

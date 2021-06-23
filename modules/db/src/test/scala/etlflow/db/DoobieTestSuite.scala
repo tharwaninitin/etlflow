@@ -1,8 +1,9 @@
-package etlflow.jdbc
+package etlflow.db
 
 import cats.effect.IO
 import doobie.util.transactor.Transactor
 import etlflow.ServerSuiteHelper
+import etlflow.db.{CredentialDB, DbJobRunArgs, DbStepRunArgs, EtlJob, EtlJobStateArgs, JobDB, JobLogsArgs, JsonString}
 import org.scalatest._
 
 import java.time.LocalDate

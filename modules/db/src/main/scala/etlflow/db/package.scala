@@ -1,16 +1,18 @@
 package etlflow
 
+import com.zaxxer.hikari.HikariConfig
 import cron4s.CronExpr
 import doobie.hikari.HikariTransactor
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.DbManager
 import zio.blocking.Blocking
+import zio.interop.catz._
+import zio.interop.catz.implicits._
 import zio.{Has, Task, ZLayer}
 
-package object jdbc extends DbManager {
+package object db {
 
   private[etlflow] type TransactorEnv = Has[HikariTransactor[Task]]
-  private[etlflow] type DBEnv = Has[DB.Service]
+  private[etlflow] type DBEnv = Has[DBApi.Service]
 
   case class DbStepRunArgs(job_run_id: String)
   case class DbJobRunArgs(
@@ -40,5 +42,21 @@ package object jdbc extends DbManager {
   case class JobRunDB(job_run_id: String,job_name: String,properties: String,state: String,elapsed_time: String,job_type: String,is_master:String,inserted_at:Long)
   case class StepRunDB(job_run_id: String,step_name: String,properties: String,state: String,elapsed_time:String,step_type:String,step_run_id:String, inserted_at:Long)
 
-  private[etlflow] def liveDBWithTransactor(db: JDBC): ZLayer[Blocking, Throwable, TransactorEnv with DBEnv] = liveTransactor(db: JDBC) >+> DB.liveDB
+  private[etlflow] def liveDBWithTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, TransactorEnv with DBEnv] =
+    liveTransactor(db: JDBC, pool_name, pool_size) >+> Implementation.liveDB
+
+  private[db] def liveTransactor(db: JDBC, pool_name: String , pool_size: Int ): ZLayer[Blocking, Throwable, TransactorEnv] =
+    ZLayer.fromManaged {
+      val config = new HikariConfig()
+      config.setDriverClassName(db.driver)
+      config.setJdbcUrl(db.url)
+      config.setUsername(db.user)
+      config.setPassword(db.password)
+      config.setMaximumPoolSize(pool_size)
+      config.setPoolName(pool_name)
+      for {
+        rt <- Task.runtime.toManaged_
+        transactor <- HikariTransactor.fromHikariConfig[Task](config, rt.platform.executor.asEC).toManagedZIO
+      } yield transactor
+    }
 }

@@ -2,18 +2,18 @@ package etlflow.etlsteps
 
 import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.coretests.TestSuiteHelper
-import etlflow.jdbc.liveDBWithTransactor
+import etlflow.db.RunDbMigration
 import etlflow.log.ApplicationLogger
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.{Configuration, DbManager}
+import etlflow.utils.Configuration
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object JobsTestSuite extends DefaultRunnableSpec with Configuration with DbManager with ApplicationLogger with TestSuiteHelper {
+object JobsTestSuite extends DefaultRunnableSpec with Configuration with ApplicationLogger with TestSuiteHelper {
 
   val credentials: JDBC = config.dbLog
-  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(

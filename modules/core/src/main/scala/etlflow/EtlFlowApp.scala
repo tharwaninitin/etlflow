@@ -55,7 +55,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
           val jri = if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
-          val dbLayer = liveDBWithTransactor(config.dbLog)
+          val dbLayer = liveDBWithTransactor(config.dbLog,"Job-" + ec.job_name + "-Pool",2)
           LocalExecutor(etl_job_props_mapping_package, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
             .provideCustomLayer(dbLayer)

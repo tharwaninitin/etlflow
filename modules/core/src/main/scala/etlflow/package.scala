@@ -1,5 +1,5 @@
 import etlflow.common.EtlflowError.EtlJobException
-import etlflow.db.{DBEnv, TransactorEnv}
+import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.StepReq
@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
 
 package object etlflow {
 
-  type JobEnv = TransactorEnv with DBEnv with Blocking with Clock
+  type JobEnv = DBEnv with Blocking with Clock
   type StepEnv = Has[StepReq] with JobEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 

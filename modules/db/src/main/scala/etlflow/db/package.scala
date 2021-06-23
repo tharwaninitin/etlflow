@@ -11,7 +11,6 @@ import zio.{Has, Task, ZLayer}
 
 package object db {
 
-  private[etlflow] type TransactorEnv = Has[HikariTransactor[Task]]
   private[etlflow] type DBEnv = Has[DBApi.Service]
 
   case class DbStepRunArgs(job_run_id: String)
@@ -42,11 +41,9 @@ package object db {
   case class JobRunDB(job_run_id: String,job_name: String,properties: String,state: String,elapsed_time: String,job_type: String,is_master:String,inserted_at:Long)
   case class StepRunDB(job_run_id: String,step_name: String,properties: String,state: String,elapsed_time:String,step_type:String,step_run_id:String, inserted_at:Long)
 
-  private[etlflow] def liveDBWithTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, TransactorEnv with DBEnv] =
-    liveTransactor(db: JDBC, pool_name, pool_size) >+> Implementation.liveDB
+  private[db] type TransactorEnv = Has[HikariTransactor[Task]]
 
-  private[db] def liveTransactor(db: JDBC, pool_name: String , pool_size: Int ): ZLayer[Blocking, Throwable, TransactorEnv] =
-    ZLayer.fromManaged {
+  private def createTransactor(db: JDBC, pool_name: String , pool_size: Int): ZLayer[Blocking, Throwable, TransactorEnv] = ZLayer.fromManaged {
       val config = new HikariConfig()
       config.setDriverClassName(db.driver)
       config.setJdbcUrl(db.url)
@@ -59,4 +56,8 @@ package object db {
         transactor <- HikariTransactor.fromHikariConfig[Task](config, rt.platform.executor.asEC).toManagedZIO
       } yield transactor
     }
+
+  private[etlflow] def liveDBWithTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
+    createTransactor(db, pool_name, pool_size) >>> Implementation.liveDB
+
 }

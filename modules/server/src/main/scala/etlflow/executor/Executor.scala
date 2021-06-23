@@ -4,8 +4,8 @@ import caliban.CalibanError.ExecutionError
 import etlflow.api.ExecutorTask
 import etlflow.api.Schema._
 import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
+import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
-import etlflow.jdbc.{DB, EtlJob}
 import etlflow.log.ApplicationLogger
 import etlflow.schema.Config
 import etlflow.utils.Executor._
@@ -28,7 +28,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       mapping_props  <- Task(getJobPropsMapping[EJN](args.name,ejpm_package)).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
-      db_job         <- DB.getJob(args.name)
+      db_job         <- DBApi.getJob(args.name)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
       props_json     = convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
       retry          = mapping_props.getOrElse("job_retries","0").toInt
@@ -67,8 +67,8 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       .ensuring(UIO(CacheHelper.removeKey(cache, cache_key)))
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
-        UIO(logger.error(ex.getMessage)) *> DB.updateFailedJob(args.name, getCurrentTimestamp)
-      ) *> DB.updateSuccessJob(args.name, getCurrentTimestamp)
+        UIO(logger.error(ex.getMessage)) *> DBApi.updateFailedJob(args.name, getCurrentTimestamp)
+      ) *> DBApi.updateSuccessJob(args.name, getCurrentTimestamp)
 
     blocking(if (fork) sem(args.name).withPermit(loggedJobRun).forkDaemon else sem(args.name).withPermit(loggedJobRun)).unit
   }

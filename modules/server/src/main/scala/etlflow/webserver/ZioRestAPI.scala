@@ -2,7 +2,7 @@ package etlflow.webserver
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
 import etlflow.api.{APIEnv, Service}
-import etlflow.jdbc.{DBEnv, TransactorEnv}
+import etlflow.db.{DBEnv, TransactorEnv}
 import etlflow.utils.{JsonJackson, RequestValidator}
 import zhttp.http.Method._
 import zhttp.http.{HttpApp, Response, _}

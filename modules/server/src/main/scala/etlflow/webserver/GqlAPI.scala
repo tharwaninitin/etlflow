@@ -9,7 +9,7 @@ import cron4s.{Cron, CronExpr}
 import etlflow.api.APIEnv
 import etlflow.api.Schema._
 import etlflow.api.Service._
-import etlflow.jdbc._
+import etlflow.db.{Credentials, DBEnv, DbJobRunArgs, DbStepRunArgs, EtlJob, EtlJobStateArgs, GetCredential, Job, JobLogs, JobLogsArgs, JobRun, StepRun, TransactorEnv}
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock

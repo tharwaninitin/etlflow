@@ -1,4 +1,4 @@
-package etlflow.jdbc
+package etlflow.db
 
 import cats.data.NonEmptyList
 import doobie.free.connection.ConnectionIO
@@ -10,7 +10,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
-private[etlflow] object SQL {
+private[db] object SQL {
 
   lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
 

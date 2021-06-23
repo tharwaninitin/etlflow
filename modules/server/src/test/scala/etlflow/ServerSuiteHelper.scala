@@ -3,19 +3,19 @@ package etlflow
 import etlflow.api.Schema.QueueDetails
 import etlflow.api.{APIEnv, Implementation}
 import etlflow.coretests.MyEtlJobPropsMapping
+import etlflow.db.{DBEnv, TransactorEnv, liveDBWithTransactor}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
-import etlflow.jdbc.{DBEnv, TransactorEnv, liveDBWithTransactor}
 import etlflow.schema.Config
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.{CacheHelper, DbManager, EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.utils.{CacheHelper, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.webserver.Authentication
 import io.circe.generic.auto._
 import scalacache.caffeine.CaffeineCache
 import zio.blocking.Blocking
 import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
 
-trait ServerSuiteHelper extends DbManager with EtlFlowUtils {
+trait ServerSuiteHelper extends EtlFlowUtils {
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
   val authCache: CaffeineCache[String] = CacheHelper.createCache[String]

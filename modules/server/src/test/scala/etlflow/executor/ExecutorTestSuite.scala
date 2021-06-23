@@ -3,14 +3,14 @@ package etlflow.executor
 import etlflow.ServerSuiteHelper
 import etlflow.api.ExecutorTask
 import etlflow.api.Schema.EtlJobArgs
-import etlflow.jdbc.EtlJob
+import etlflow.db.{EtlJob, RunDbMigration}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
-  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
   def job(args: EtlJobArgs): ExecutorTask[EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

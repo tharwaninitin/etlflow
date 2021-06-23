@@ -1,7 +1,7 @@
 package etlflow.api
 
 import etlflow.api.Schema._
-import etlflow.jdbc._
+import etlflow.db._
 import zio.ZIO
 import zio.blocking.Blocking
 import zio.clock.Clock

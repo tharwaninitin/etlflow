@@ -3,7 +3,6 @@ package etlflow.etlsteps
 import etlflow.EtlStepList
 import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{EtlStep, ParallelETLStep}
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
 

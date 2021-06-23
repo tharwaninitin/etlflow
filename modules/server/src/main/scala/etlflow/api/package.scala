@@ -1,7 +1,7 @@
 package etlflow
 
 import cron4s.CronExpr
-import etlflow.jdbc.DBEnv
+import etlflow.db.DBEnv
 import zio.{Has, RIO}
 
 package object api {

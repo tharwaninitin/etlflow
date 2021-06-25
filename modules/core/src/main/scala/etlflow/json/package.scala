@@ -21,7 +21,7 @@ package object json {
       def convertToJsonByRemovingKeysAsMap[A](entity: A, Keys:List[String])(implicit encoder: Encoder[A]): Task[Map[String,Any]]
       def convertToJsonByRemovingKeys[A](obj: A, Keys:List[String])(implicit encoder: Encoder[A]): Task[Json]
       def convertToObjectEither[T](str: String)(implicit Decoder: Decoder[T]): Task[Either[circe.Error, T]]
-      def convertToJson(entity: AnyRef): Task[String]
+      def convertToJson[A](obj: A)(implicit encoder: Encoder[A]): Task[String]
       def convertToJsonJacksonByRemovingKeys(entity: AnyRef, keys: List[String]): Task[String]
       def convertToJsonJacksonByRemovingKeysAsMap(entity: AnyRef, keys: List[String]): Task[Map[String,Any]]
       def convertToObjectUsingJackson[T](str: String, fmt: Formats = DefaultFormats)(implicit mf: Manifest[T]): Task[T]
@@ -35,8 +35,8 @@ package object json {
       ZIO[JsonService, Throwable, Json] = ZIO.accessM(_.get.convertToJsonByRemovingKeys[T](obj, Keys))
     def convertToObjectEither[T](str: String)(implicit Decoder: Decoder[T]) : ZIO[JsonService, Throwable, Either[circe.Error, T]] =
       ZIO.accessM(_.get.convertToObjectEither[T](str))
-    def convertToJson(entity: AnyRef): ZIO[JsonService, Throwable, String] =
-      ZIO.accessM(_.get.convertToJson(entity))
+    def convertToJson[A](obj: A)(implicit encoder: Encoder[A]): ZIO[JsonService, Throwable, String] =
+      ZIO.accessM(_.get.convertToJson(obj))
     def convertToJsonJacksonByRemovingKeys(entity: AnyRef, keys: List[String]): ZIO[JsonService, Throwable, String] =
       ZIO.accessM(_.get.convertToJsonJacksonByRemovingKeys(entity,keys))
     def convertToJsonJacksonByRemovingKeysAsMap(entity: AnyRef, keys: List[String]): ZIO[JsonService, Throwable, Map[String,Any]] =

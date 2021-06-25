@@ -37,9 +37,8 @@ object Implementation {
         removeField(parsedJsonString)(Keys)
       }
 
-      override def convertToJson(entity: AnyRef): Task[String] = Task{
-        implicit val formats = DefaultFormats
-        writePretty(entity)
+      override def convertToJson[A](obj: A)(implicit encoder: Encoder[A]): Task[String] = Task{
+        obj.asJson.noSpaces
       }
 
       override def convertToJsonJacksonByRemovingKeys(entity: AnyRef, keys: List[String]): Task[String] = Task{

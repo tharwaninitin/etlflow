@@ -104,6 +104,8 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
                                      |  "job_notification_level" : "debug"
                                      |}""".stripMargin
 
+  val expected_json = """{"job_send_slack_notification":"false","job_enable_db_logging":"true","job_notification_level":"info","job_max_active_runs":"10","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_description":"","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_deploy_mode":"dataproc","job_retry_delay_in_minutes":"0","job_schedule":"0 30 7 ? * *","job_retries":"0"}"""
+
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Json Test")(
       testM("Circe Json Deserializer : ConvertToObject  Student1") {
@@ -142,6 +144,13 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
         }  yield actualSerializerInput.toString()
         assertM(actualSerializerInput)(equalTo(expectedserializerOutput))
       },
+      testM("Circe Jackson Serializer : ConvertToJson") {
+        val actualSerializerInput = for {
+          actualSerializerInput <- JsonService.convertToJson[Map[String,String]](expected_props_map_job3)
+        }  yield actualSerializerInput
+        println("actualSerializerInput :" + actualSerializerInput)
+        assertM(actualSerializerInput)(equalTo(expected_json))
+      },
       testM("Json Jackson Deserializer : ConvertToObject  Student1") {
         val student1 = for {
           name <- JsonService.convertToObjectUsingJackson[Student](student1Json)
@@ -175,8 +184,8 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
       testM("Json Jackson Serializer : ConvertToJsonByRemovingKeys debug,kubenetes") {
         val actualSerializerInput = for {
           actualSerializerInput <- JsonService.convertToJsonJacksonByRemovingKeys(inputDebugLevel,List.empty)
-        }  yield actualSerializerInput.toString()
+        }  yield actualSerializerInput
         assertM(actualSerializerInput)(equalTo(expectedserializerOutput))
-      },
+      }
     ).provideLayer(Implementation.live)
 }

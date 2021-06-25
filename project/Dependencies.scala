@@ -50,6 +50,7 @@ object Dependencies {
     "io.circe" %% "circe-parser" % CirceVersion,
     "io.circe" %% "circe-optics" % CirceVersion,
     "io.circe" %% "circe-config" % CirceConfigVersion,
+    "io.circe" %% "circe-generic-extras" % CirceVersion,
     "org.json4s" %% "json4s-jackson" % Json4sVersion,
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % Sl4jVersion,

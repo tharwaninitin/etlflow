@@ -3,7 +3,9 @@ import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.log.StepReq
+import etlflow.schema.Credential.AWS
 import etlflow.utils.{Executor, LoggingLevel}
+import io.circe.generic.semiauto.deriveEncoder
 import zio.Has
 import zio.blocking.Blocking
 import zio.clock.Clock

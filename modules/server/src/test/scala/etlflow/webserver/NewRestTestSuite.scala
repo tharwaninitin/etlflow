@@ -11,7 +11,7 @@ object NewRestTestSuite extends HttpRunnableSpec(8080) {
 
   val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer).orDie
 
-  val newRestApi = serve {ZioRestAPI.newRestApi}
+  val newRestApi = serve {RestAPI.newRestApi}
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
     suiteM("New Rest Api")(

@@ -1,20 +1,19 @@
 package etlflow.utils
 
+import etlflow.json.{Implementation, JsonImplicits, JsonService}
 import etlflow.log.ApplicationLogger
 import etlflow.schema.Credential.{AWS, JDBC}
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.Json
+import zio.Task
 
 import java.security.InvalidKeyException
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
-
+import etlflow.json.CredentialImplicits._
 //https://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
-private[etlflow] object Encryption extends ApplicationLogger  with Configuration{
-
-  implicit val AwsDecoder = deriveDecoder[AWS]
-  implicit val JdbcDecoder = deriveDecoder[JDBC]
+private[etlflow] object Encryption extends ApplicationLogger  with Configuration {
 
   final val secretKey = config.webserver.map(_.secretKey.getOrElse("enIntVecTest2020")).getOrElse("enIntVecTest2020")
   val iv = new IvParameterSpec(secretKey.getBytes("UTF-8"))
@@ -47,16 +46,20 @@ private[etlflow] object Encryption extends ApplicationLogger  with Configuration
     }
   }
 
-  def getDecreptValues[T : TypeTag](result: String): String = {
+  def getDecreptValues[T : TypeTag](result: String): Task[Json] = {
     typeOf[T] match {
       case t if t =:= typeOf[JDBC] =>{
-        val aws_obj = JsonCirce.convertToObject[JDBC](result)
-        JsonJackson.convertToJsonByRemovingKeys(JDBC(aws_obj.url, Encryption.decrypt(aws_obj.user),Encryption.decrypt(aws_obj.password),aws_obj.driver),List.empty)
-      }
+        for {
+          jdbc_obj <- JsonService.convertToObject[JDBC](result)
+          json    <- JsonService.convertToJsonByRemovingKeys(JDBC(jdbc_obj.url, Encryption.decrypt(jdbc_obj.user), Encryption.decrypt(jdbc_obj.password), jdbc_obj.driver), List.empty)
+        } yield json
+      }.provideLayer(Implementation.live)
       case t if t =:= typeOf[AWS] =>{
-        val aws_obj = JsonCirce.convertToObject[AWS](result)
-        JsonJackson.convertToJsonByRemovingKeys(AWS(Encryption.decrypt(aws_obj.access_key),Encryption.decrypt(aws_obj.secret_key)),List.empty)
-      }
+        for {
+          aws_obj <- JsonService.convertToObject[AWS](result)
+          json    <- JsonService.convertToJsonByRemovingKeys(AWS(Encryption.decrypt(aws_obj.access_key),Encryption.decrypt(aws_obj.secret_key)),List.empty)
+        } yield json
+      }.provideLayer(Implementation.live)
     }
   }
 }

@@ -1,6 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.utils.{HttpMethod, HttpRequest, JsonCirce, LoggingLevel}
+import etlflow.json.{Implementation, JsonService}
+import etlflow.utils.{HttpMethod, HttpRequest, LoggingLevel}
 import io.circe.Decoder
 import sttp.client3.Response
 import zio._
@@ -36,8 +37,12 @@ case class HttpRequestStep[A: TypeTag : Decoder](
         output.map(_.body).asInstanceOf[Task[A]]
       case t if t =:= typeOf[Nothing] =>
         Task.fail(new RuntimeException("Need type parameter in HttpStep, if no output is required use HttpStep[Unit]"))
-      case _ =>
-        output.map(x => JsonCirce.convertToObject[A](x.body))
+      case _ => {
+        for {
+          op <- output
+          obj <- JsonService.convertToObject[A](op.body).provideLayer(Implementation.live)
+        } yield obj
+      }
     }
   }
 

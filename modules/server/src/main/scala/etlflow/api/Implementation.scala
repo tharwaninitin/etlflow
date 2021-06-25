@@ -1,6 +1,5 @@
 package etlflow.api
 
-import caliban.CalibanError.ExecutionError
 import cron4s.Cron
 import cron4s.lib.javatime._
 import etlflow.api.Schema.Creds.{AWS, JDBC}
@@ -8,6 +7,7 @@ import etlflow.api.Schema._
 import etlflow.common.DateTimeFunctions._
 import etlflow.db._
 import etlflow.executor.Executor
+import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.log.ApplicationLogger
 import etlflow.utils.{CacheHelper, EncryptCred, EtlFlowUtils}
 import etlflow.webserver.Authentication
@@ -15,13 +15,11 @@ import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
 import scalacache.caffeine.CaffeineCache
 import zio.Fiber.Status.{Running, Suspended}
+import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Task, UIO, ZIO, ZLayer, _}
-import zio.Runtime.default.unsafeRun
-
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
-import etlflow.json.{JsonService, Implementation => JI}
 
 private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
 
@@ -65,7 +63,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
           })
       }
 
-      override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = {
+      override def getCacheStats: ZIO[APIEnv with JsonEnv, Throwable, List[CacheDetails]] = {
         for {
           job_props <- CacheHelper.getCacheStats(jobPropsMappingCache, "JobProps")
           login     <- CacheHelper.getCacheStats(auth.cache, "Login")
@@ -80,7 +78,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
 
       override def getCredentials: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]] = DBApi.getCredentials
 
-      override def runJob(args: EtlJobArgs, submitter: String): ServerTask[EtlJob] = executor.runActiveEtlJob(args, submitter)
+      override def runJob(args: EtlJobArgs, submitter: String): RIO[ServerEnv, EtlJob] = executor.runActiveEtlJob(args, submitter)
 
       override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[StepRun]] = DBApi.getStepRuns(args)
 
@@ -102,9 +100,10 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
       }
 
       override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = getCurrentTimestampAsString()))
-      override def addCredentials(args: CredentialsArgs): ZIO[APIEnv with DBEnv, Throwable, Credentials] = {
+
+      override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
         for{
-          value <- JsonService.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty).provideLayer(JI.live)
+          value <- JsonApi.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty)
           credentialDB = CredentialDB(
             args.name,
             args.`type` match {
@@ -118,9 +117,9 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
         } yield addCredential
       }
 
-      override def updateCredentials(args: CredentialsArgs): ZIO[APIEnv with DBEnv, Throwable, Credentials] = {
+      override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
         for{
-          value <- JsonService.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty).provideLayer(JI.live)
+          value <- JsonApi.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty)
           credentialDB = CredentialDB(
             args.name,
             args.`type` match {

@@ -2,15 +2,14 @@ package etlflow.utils
 
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import etlflow.api.Schema.{CacheDetails, CacheInfo}
-import etlflow.json.{Implementation, JsonService}
-import scalacache.{Cache, Entry, Id}
+import etlflow.json.{JsonApi, JsonEnv}
+import io.circe.generic.auto._
 import scalacache.caffeine._
 import scalacache.modes.sync._
-import zio.Task
-
-import scala.concurrent.duration._
+import scalacache.{Cache, Entry, Id}
+import zio.RIO
 import scala.collection.JavaConverters._
-import io.circe.generic.auto._
+import scala.concurrent.duration._
 
 private [etlflow] object CacheHelper {
 
@@ -40,7 +39,7 @@ private [etlflow] object CacheHelper {
     cache.underlying.asMap().asScala.values.map(_.value).toList
   }
 
-  def getCacheStats[T](cache: CaffeineCache[T], name: String): Task[CacheDetails] = {
+  def getCacheStats[T](cache: CaffeineCache[T], name: String): RIO[JsonEnv,CacheDetails] = {
     val data:Map[String,String] = CacheHelper.toMap(cache)
     val cacheInfo = CacheInfo(name,
       cache.underlying.stats.hitCount(),
@@ -53,7 +52,7 @@ private [etlflow] object CacheHelper {
     )
 
     for {
-      cacheJson <- JsonService.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data")).provideLayer(Implementation.live)
+      cacheJson <- JsonApi.convertToJsonByRemovingKeysAsMap(cacheInfo,List("data"))
       cacheDetails = CacheDetails(name,cacheJson.mapValues(x => x.toString))
     } yield cacheDetails
   }

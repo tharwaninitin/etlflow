@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.JobEnv
 import etlflow.db.DBApi
-import etlflow.json.{Implementation, JsonService}
+import etlflow.json.JsonApi
 import etlflow.utils.{Encryption, LoggingLevel}
 import io.circe.Decoder
 import zio.RIO
@@ -14,8 +14,8 @@ case class GetCredentialStep[T : TypeTag : Decoder](name: String, credential_nam
     val query = s"SELECT value FROM credential WHERE name='$credential_name' and valid_to is null;"
     for {
       result <- DBApi.executeQueryWithSingleResponse[String](query)
-      dValue <- Encryption.getDecreptValues[T](result)
-      op     <- JsonService.convertToObject[T](dValue.toString()).provideLayer(Implementation.live)
+      dValue <- Encryption.getDecryptValues[T](result)
+      op     <- JsonApi.convertToObject[T](dValue.toString())
     } yield op
   }
 

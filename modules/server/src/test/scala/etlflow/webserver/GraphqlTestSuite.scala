@@ -3,14 +3,13 @@ package etlflow.webserver
 import caliban.Macros.gqldoc
 import etlflow.ServerSuiteHelper
 import etlflow.db.RunDbMigration
-import etlflow.executor.ExecutorTestSuite.{testAPILayer, testDBLayer}
 import etlflow.log.ApplicationLogger
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with ApplicationLogger {
 
-  val env = (testAPILayer ++ testDBLayer).orDie
+  val env = (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
   val etlFlowInterpreter = GqlAPI.api.interpreter
   val loginInterpreter = GqlLoginAPI.api.interpreter
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))

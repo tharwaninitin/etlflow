@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.json.{Implementation, JsonService}
+import etlflow.json.{Implementation, JsonApi}
 import etlflow.utils.{HttpMethod, HttpRequest, LoggingLevel}
 import io.circe.Decoder
 import sttp.client3.Response
@@ -40,7 +40,7 @@ case class HttpRequestStep[A: TypeTag : Decoder](
       case _ => {
         for {
           op <- output
-          obj <- JsonService.convertToObject[A](op.body).provideLayer(Implementation.live)
+          obj <- JsonApi.convertToObject[A](op.body).provideLayer(Implementation.live)
         } yield obj
       }
     }

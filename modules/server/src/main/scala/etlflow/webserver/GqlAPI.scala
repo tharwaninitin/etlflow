@@ -6,18 +6,17 @@ import caliban.Value.StringValue
 import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import cron4s.{Cron, CronExpr}
-import etlflow.api.APIEnv
 import etlflow.api.Schema._
 import etlflow.api.Service._
-import etlflow.db.{Credentials, DBEnv, DbJobRunArgs, DbStepRunArgs, EtlJob, EtlJobStateArgs, GetCredential, Job, JobLogs, JobLogsArgs, JobRun, StepRun, TransactorEnv}
+import etlflow.api.{APIEnv, ServerEnv}
+import etlflow.db._
+import etlflow.json.JsonEnv
 import zio.ZIO
-import zio.blocking.Blocking
-import zio.clock.Clock
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-private[etlflow] object GqlAPI extends GenericSchema[APIEnv with DBEnv with Blocking with Clock] {
+private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
   implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
@@ -33,7 +32,7 @@ private[etlflow] object GqlAPI extends GenericSchema[APIEnv with DBEnv with Bloc
                       stepruns: DbStepRunArgs => ZIO[APIEnv with DBEnv, Throwable, List[StepRun]],
                       metrics: ZIO[APIEnv, Throwable, EtlFlowMetrics],
                       currentime: ZIO[APIEnv, Throwable, CurrentTime],
-                      cacheStats:ZIO[APIEnv, Throwable, List[CacheDetails]],
+                      cacheStats:ZIO[APIEnv with JsonEnv, Throwable, List[CacheDetails]],
                       queueStats:ZIO[APIEnv, Throwable, List[QueueDetails]],
                       jobLogs: JobLogsArgs => ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]],
                       credential: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]],
@@ -41,10 +40,10 @@ private[etlflow] object GqlAPI extends GenericSchema[APIEnv with DBEnv with Bloc
   )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[APIEnv with DBEnv with Blocking with Clock, Throwable, EtlJob],
+                        run_job: EtlJobArgs => ZIO[ServerEnv, Throwable, EtlJob],
                         update_job_state: EtlJobStateArgs => ZIO[APIEnv with DBEnv, Throwable, Boolean],
-                        add_credentials: CredentialsArgs => ZIO[APIEnv with DBEnv, Throwable, Credentials],
-                        update_credentials: CredentialsArgs => ZIO[APIEnv with DBEnv, Throwable, Credentials],
+                        add_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
+                        update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
                       )
 
   implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
@@ -54,7 +53,7 @@ private[etlflow] object GqlAPI extends GenericSchema[APIEnv with DBEnv with Bloc
     case other => Left(ExecutionError(s"Can't build a date from input $other"))
   }
 
-  val api: GraphQL[APIEnv with DBEnv with Clock with Blocking] =
+  val api: GraphQL[ServerEnv] =
     graphQL(
       RootResolver(
         Queries(

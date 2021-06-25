@@ -1,7 +1,7 @@
 package etlflow.coretests.json
 
 import zio.test.{DefaultRunnableSpec, ZSpec, environment}
-import etlflow.json.{Implementation, JsonImplicits, JsonService}
+import etlflow.json.{Implementation, JsonImplicits, JsonApi}
 import etlflow.coretests.Schema._
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -110,80 +110,80 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
     suite("Json Test")(
       testM("Circe Json Deserializer : ConvertToObject  Student1") {
        val student1 = for {
-          name <- JsonService.convertToObject[Student](student1Json)
+          name <- JsonApi.convertToObject[Student](student1Json)
         }  yield name
         assertM(student1)(equalTo(Student("63","John",Some("101"))))
       },
       testM("Circe Json Deserializer : ConvertToObject  Student1") {
         val student2 = for {
-          name <- JsonService.convertToObject[Student](student2Json)
+          name <- JsonApi.convertToObject[Student](student2Json)
         }  yield name
         assertM(student2)(equalTo(Student("63","John",None)))
       },
       testM("Circe Json Deserializer : ConvertToJsonByRemovingKeysAsMap debug") {
         val actualOutputDebugLevel = for {
-          actualOutputDebugLevel <- JsonService.convertToJsonByRemovingKeysAsMap(inputDebugLevel,List.empty)
+          actualOutputDebugLevel <- JsonApi.convertToJsonByRemovingKeysAsMap(inputDebugLevel,List.empty)
         }  yield actualOutputDebugLevel
         assertM(actualOutputDebugLevel)(equalTo(outputDebugLevel))
       },
       testM("Circe Json Deserializer : ConvertToJsonByRemovingKeysAsMap info") {
         val actualOutputInfoLevel = for {
-          actualOutputInfoLevel <- JsonService.convertToJsonByRemovingKeysAsMap(inputInfoLevel,List.empty)
+          actualOutputInfoLevel <- JsonApi.convertToJsonByRemovingKeysAsMap(inputInfoLevel,List.empty)
         }  yield actualOutputInfoLevel
         assertM(actualOutputInfoLevel)(equalTo(outputInfoLevel))
       },
       testM("Circe Json Deserializer : ConvertToJsonByRemovingKeysAsMap job") {
         val actualOutputJobLevel = for {
-          actualOutputJobLevel <- JsonService.convertToJsonByRemovingKeysAsMap(inputJobInput,List.empty)
+          actualOutputJobLevel <- JsonApi.convertToJsonByRemovingKeysAsMap(inputJobInput,List.empty)
         }  yield actualOutputJobLevel
         assertM(actualOutputJobLevel)(equalTo(outputJobLevel))
       },
       testM("Circe Json Serializer : ConvertToJsonByRemovingKeys debug,kubenetes") {
         val actualSerializerInput = for {
-          actualSerializerInput <- JsonService.convertToJsonByRemovingKeys(inputDebugLevel,List.empty)
+          actualSerializerInput <- JsonApi.convertToJsonByRemovingKeys(inputDebugLevel,List.empty)
         }  yield actualSerializerInput.toString()
         assertM(actualSerializerInput)(equalTo(expectedserializerOutput))
       },
       testM("Circe Jackson Serializer : ConvertToJson") {
         val actualSerializerInput = for {
-          actualSerializerInput <- JsonService.convertToJson[Map[String,String]](expected_props_map_job3)
+          actualSerializerInput <- JsonApi.convertToJson[Map[String,String]](expected_props_map_job3)
         }  yield actualSerializerInput
         println("actualSerializerInput :" + actualSerializerInput)
         assertM(actualSerializerInput)(equalTo(expected_json))
       },
       testM("Json Jackson Deserializer : ConvertToObject  Student1") {
         val student1 = for {
-          name <- JsonService.convertToObjectUsingJackson[Student](student1Json)
+          name <- JsonApi.convertToObjectUsingJackson[Student](student1Json)
         }  yield name
         assertM(student1)(equalTo(Student("63","John",Some("101"))))
       },
       testM("Json Jackson Deserializer : ConvertToObject  Student1") {
         val student2 = for {
-          name <- JsonService.convertToObjectUsingJackson[Student](student2Json)
+          name <- JsonApi.convertToObjectUsingJackson[Student](student2Json)
         }  yield name
         assertM(student2)(equalTo(Student("63","John",None)))
       },
       testM("Json Jackson Deserializer : ConvertToJsonByRemovingKeysAsMap debug") {
         val actualOutputDebugLevel = for {
-          actualOutputDebugLevel <- JsonService.convertToJsonJacksonByRemovingKeysAsMap(inputDebugLevel,List.empty)
+          actualOutputDebugLevel <- JsonApi.convertToJsonJacksonByRemovingKeysAsMap(inputDebugLevel,List.empty)
         }  yield actualOutputDebugLevel
         assertM(actualOutputDebugLevel)(equalTo(outputDebugLevel))
       },
       testM("Json Jackson Deserializer : ConvertToJsonByRemovingKeysAsMap info") {
         val actualOutputInfoLevel = for {
-          actualOutputInfoLevel <- JsonService.convertToJsonJacksonByRemovingKeysAsMap(inputInfoLevel,List.empty)
+          actualOutputInfoLevel <- JsonApi.convertToJsonJacksonByRemovingKeysAsMap(inputInfoLevel,List.empty)
         }  yield actualOutputInfoLevel
         assertM(actualOutputInfoLevel)(equalTo(outputInfoLevel))
       },
       testM("Json Jackson Deserializer : ConvertToJsonByRemovingKeysAsMap job") {
         val actualOutputJobLevel = for {
-          actualOutputJobLevel <- JsonService.convertToJsonJacksonByRemovingKeysAsMap(inputJobInput,List.empty)
+          actualOutputJobLevel <- JsonApi.convertToJsonJacksonByRemovingKeysAsMap(inputJobInput,List.empty)
         }  yield actualOutputJobLevel
         assertM(actualOutputJobLevel)(equalTo(outputJobLevel))
       },
       testM("Json Jackson Serializer : ConvertToJsonByRemovingKeys debug,kubenetes") {
         val actualSerializerInput = for {
-          actualSerializerInput <- JsonService.convertToJsonJacksonByRemovingKeys(inputDebugLevel,List.empty)
+          actualSerializerInput <- JsonApi.convertToJsonJacksonByRemovingKeys(inputDebugLevel,List.empty)
         }  yield actualSerializerInput
         assertM(actualSerializerInput)(equalTo(expectedserializerOutput))
       }

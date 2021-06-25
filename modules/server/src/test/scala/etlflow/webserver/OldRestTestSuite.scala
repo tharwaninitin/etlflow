@@ -1,18 +1,18 @@
 package etlflow.webserver
 
-import etlflow.executor.ExecutorTestSuite.{testAPILayer, testDBLayer}
 import zhttp.http._
 import zhttp.service.server._
 import zhttp.service.{ChannelFactory, Client, EventLoopGroup}
 import zio.test.Assertion.equalTo
-import zio.test.{ZSpec, assertM}
+import zio.test.{ZSpec, environment, assertM}
 
 object OldRestTestSuite extends HttpRunnableSpec(8080) {
-  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer).orDie
+
+  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
 
   val oldRestApi = serve {RestAPI.oldRestApi}
 
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
+  override def spec: ZSpec[environment.TestEnvironment, Any] =
     suiteM("Old Rest Api")(
       oldRestApi
       .as(

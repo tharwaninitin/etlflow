@@ -1,12 +1,11 @@
 package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
-import etlflow.api.ExecutorTask
 import etlflow.api.Schema._
 import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
-import etlflow.json.{Implementation, JsonService}
+import etlflow.json.JsonApi
 import etlflow.log.ApplicationLogger
 import etlflow.schema.Config
 import etlflow.utils.Executor._
@@ -16,14 +15,13 @@ import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: CaffeineCache[QueueDetails])
   extends EtlFlowUtils with ApplicationLogger {
 
-  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): ExecutorTask[EtlJob] = {
+  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[JobEnv,EtlJob] = {
     for {
       getJobProps <- getJobPropsMapping[EJN](args.name,ejpm_package)
       mapping_props  <- Task(getJobProps).mapError(e => ExecutionError(e.getMessage))
@@ -31,7 +29,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
       db_job         <- DBApi.getJob(args.name)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
-      props_json     <- JsonService.convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")).provideLayer(Implementation.live)
+      props_json     <- JsonApi.convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
       retry          = mapping_props.getOrElse("job_retries","0").toInt
       spaced         = mapping_props.getOrElse("job_retry_delay_in_minutes","0").toInt
       _              <- if (db_job.is_active)
@@ -46,7 +44,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
     } yield EtlJob(args.name,final_props)
   }
 
-  private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): ExecutorTask[Unit] = {
+  private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[JobEnv,Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
     val jobRun: RIO[JobEnv,Unit] = UF.getEtlJobName[EJN](args.name,ejpm_package).job_deploy_mode match {
@@ -64,7 +62,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
         Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
     }
 
-    val loggedJobRun: ExecutorTask[Long] = jobRun
+    val loggedJobRun: RIO[JobEnv, Long] = jobRun
       .ensuring(UIO(CacheHelper.removeKey(cache, cache_key)))
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>

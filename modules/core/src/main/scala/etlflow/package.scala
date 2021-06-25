@@ -2,19 +2,17 @@ import etlflow.common.EtlflowError.EtlJobException
 import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
+import etlflow.json.JsonEnv
 import etlflow.log.StepReq
-import etlflow.schema.Credential.AWS
 import etlflow.utils.{Executor, LoggingLevel}
-import io.circe.generic.semiauto.deriveEncoder
 import zio.Has
 import zio.blocking.Blocking
 import zio.clock.Clock
-
 import scala.reflect.ClassTag
 
 package object etlflow {
 
-  type JobEnv = DBEnv with Blocking with Clock
+  type JobEnv = DBEnv with JsonEnv with Blocking with Clock
   type StepEnv = Has[StepReq] with JobEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 

@@ -6,6 +6,7 @@ import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.db.{DBEnv, liveDBWithTransactor}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
+import etlflow.json.JsonEnv
 import etlflow.schema.Config
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.{CacheHelper, EtlFlowUtils, UtilityFunctions => UF}
@@ -30,5 +31,5 @@ trait ServerSuiteHelper extends EtlFlowUtils {
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
   val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor, jobStatsCache)
   val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.dbLog)
-
+  val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
 }

@@ -3,16 +3,16 @@ package etlflow.log
 import etlflow.EtlJobProps
 import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString}
 import etlflow.db.{DBApi, DBEnv}
-import etlflow.json.{Implementation, JsonService}
+import etlflow.json.{JsonApi, JsonEnv}
 import zio.ZIO
 
 private[etlflow] class JobLogger(job_name: String, job_properties: EtlJobProps, job_run_id: String, is_master:String, slack: Option[SlackLogger]) extends ApplicationLogger {
 
-  def logStart(start_time: Long, job_type: String): ZIO[DBEnv, Throwable, Unit] = {
+  def logStart(start_time: Long, job_type: String): ZIO[DBEnv with JsonEnv, Throwable, Unit] = {
     for{
-      properties   <- JsonService.convertToJsonJacksonByRemovingKeys(job_properties, List.empty).provideLayer(Implementation.live)
-      _            = logger.info("Logging job start in db")
-      _ <- DBApi.insertJobRun(job_run_id, job_name, properties, job_type, is_master, start_time)
+      properties <- JsonApi.convertToJsonJacksonByRemovingKeys(job_properties, List.empty)
+      _          = logger.info("Logging job start in db")
+      _          <- DBApi.insertJobRun(job_run_id, job_name, properties, job_type, is_master, start_time)
     } yield ()
   }
 

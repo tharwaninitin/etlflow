@@ -9,11 +9,10 @@ import zio.Task
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 
-trait TestSuiteHelper extends Configuration  with ApplicationLogger {
+trait TestSuiteHelper extends Configuration with ApplicationLogger {
   val canonical_path = new java.io.File(".").getCanonicalPath
   val file           = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
-  val testDBLayer    = liveDBWithTransactor(config.dbLog)
-
+  val fullLayer      = liveDBWithTransactor(config.dbLog) ++ etlflow.json.Implementation.live
 }
 
 trait DoobieHelper {

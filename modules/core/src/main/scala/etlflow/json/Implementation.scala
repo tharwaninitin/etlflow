@@ -10,14 +10,13 @@ import io.circe.{Decoder, Encoder, Json, parser}
 import org.json4s.JsonAST.{JNothing, JString}
 import org.json4s.jackson.Serialization.writePretty
 import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
-import zio.{Task, ZLayer}
+import zio.{Task, ULayer, ZLayer}
 import org.json4s.jackson.JsonMethods.{parse => JacksonParse}
 
 object Implementation {
 
-  val live: ZLayer[Any, Nothing, JsonService] = ZLayer.succeed(
-
-    new JsonService.Service {
+  val live: ULayer[JsonEnv] = ZLayer.succeed(
+    new JsonApi.Service {
       override def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): Task[T] = Task{
         val decodeResult1 = parser.decode[T](str)
         decodeResult1.toOption.get

@@ -4,7 +4,7 @@ import etlflow.coretests.Schema.EtlJob2Props
 import etlflow.coretests.TestSuiteHelper
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, suite, testM}
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
 object Job2SparkReadWriteApiTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
@@ -14,7 +14,7 @@ object Job2SparkReadWriteApiTestSuite extends DefaultRunnableSpec with TestSuite
         val job = Job2SparkReadWriteApi(EtlJob2Props())
         assertM(job.execute().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    ).provideCustomLayerShared(testDBLayer.orDie)
+    ).provideCustomLayerShared(fullLayer.orDie)
 }
 
 

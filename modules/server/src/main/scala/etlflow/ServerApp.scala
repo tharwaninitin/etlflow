@@ -1,6 +1,5 @@
 package etlflow
 
-import etlflow.api.Implementation
 import etlflow.api.Schema.QueueDetails
 import etlflow.db.{EtlJob, liveDBWithTransactor}
 import etlflow.executor.Executor
@@ -32,8 +31,9 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
     dbLayer     = liveDBWithTransactor(config.dbLog)
     supervisor  <- Supervisor.track(true).toManaged_
-    apiLayer    = Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
-    finalLayer  = apiLayer ++ dbLayer
+    apiLayer    = api.Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
+    jsonLayer   = json.Implementation.live
+    finalLayer  = apiLayer ++ dbLayer ++ jsonLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer(auth, config.webserver)
     _           <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_

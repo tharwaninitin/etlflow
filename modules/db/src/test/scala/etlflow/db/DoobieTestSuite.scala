@@ -3,9 +3,7 @@ package etlflow.db
 import cats.effect.IO
 import doobie.util.transactor.Transactor
 import etlflow.DbSuiteHelper
-import etlflow.db.{CredentialDB, DbJobRunArgs, DbStepRunArgs, EtlJob, EtlJobStateArgs, JobDB, JobLogsArgs, JsonString}
 import org.scalatest._
-
 import java.time.LocalDate
 
 class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers with doobie.scalatest.IOChecker with DbSuiteHelper {

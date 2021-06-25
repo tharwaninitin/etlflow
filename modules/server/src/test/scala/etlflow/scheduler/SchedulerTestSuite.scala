@@ -22,6 +22,6 @@ object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper wit
       testM("Test scheduler with no jobs")(
         etlFlowScheduler(List.empty).as(assertCompletes)
       )
-    ) @@ TestAspect.sequential).provideCustomLayerShared((testAPILayer ++ testDBLayer).orDie)
+    ) @@ TestAspect.sequential).provideCustomLayerShared((testAPILayer ++ testDBLayer ++ testJsonLayer).orDie)
 }
 

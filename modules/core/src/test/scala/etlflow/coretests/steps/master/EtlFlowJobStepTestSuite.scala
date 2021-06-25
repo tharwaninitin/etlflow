@@ -1,23 +1,21 @@
 package etlflow.coretests.steps.master
 
 import etlflow.coretests.Schema.EtlJob1Props
+import etlflow.coretests.TestSuiteHelper
 import etlflow.coretests.jobs.Job1HelloWorld
-import etlflow.db.liveDBWithTransactor
 import etlflow.etlsteps.EtlFlowJobStep
-import etlflow.utils.Configuration
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
 
-object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with Configuration  {
+object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper  {
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlowJobStepTestSuite") (
       testM("Execute EtlFlowJobStep") {
-        val dbLayer = liveDBWithTransactor(config.dbLog)
         val step = EtlFlowJobStep[EtlJob1Props](
           name = "Test",
           job  = Job1HelloWorld(EtlJob1Props()),
-        ).process().provideCustomLayer(dbLayer)
+        ).process().provideCustomLayer(fullLayer)
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
   )

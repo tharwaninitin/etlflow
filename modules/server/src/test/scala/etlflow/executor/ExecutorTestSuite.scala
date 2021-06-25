@@ -1,17 +1,16 @@
 package etlflow.executor
 
-import etlflow.ServerSuiteHelper
-import etlflow.api.ExecutorTask
+import etlflow.{JobEnv, ServerSuiteHelper}
 import etlflow.api.Schema.EtlJobArgs
 import etlflow.db.{EtlJob, RunDbMigration}
-import zio.ZIO
+import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
-  def job(args: EtlJobArgs): ExecutorTask[EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
+  def job(args: EtlJobArgs): RIO[JobEnv,EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Executor Spec")(
@@ -21,6 +20,6 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
       testM("Test runActiveEtlJob with disabled JobName") {
         assertM(job(EtlJobArgs("Job2")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Job Job2 is disabled"))
       },
-    ) @@ TestAspect.sequential).provideCustomLayerShared(testDBLayer.orDie)
+    ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer).orDie)
 
 }

@@ -2,7 +2,7 @@ package etlflow.utils
 
 import etlflow.EJPMType
 import etlflow.db.EtlJob
-import etlflow.json.{Implementation, JsonService}
+import etlflow.json.{Implementation, JsonApi}
 import etlflow.utils.MailClientApi.logger
 import etlflow.utils.{UtilityFunctions => UF}
 import scalacache.memoization.memoizeSync
@@ -20,7 +20,7 @@ private [etlflow] trait EtlFlowUtils {
     memoizeSync[Task[Map[String, String]]](None) {
       val props_mapping = UF.getEtlJobName[EJN](job_name, ejpm_package)
       for {
-        json <- JsonService.convertToJsonJacksonByRemovingKeysAsMap(props_mapping.getProps, List.empty).provideLayer(Implementation.live)
+        json <- JsonApi.convertToJsonJacksonByRemovingKeysAsMap(props_mapping.getProps, List.empty).provideLayer(Implementation.live)
         jsonMap = json.map(x => (x._1, x._2.toString))
       } yield jsonMap
     }

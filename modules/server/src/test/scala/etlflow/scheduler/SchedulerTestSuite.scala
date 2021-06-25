@@ -1,9 +1,10 @@
 package etlflow.scheduler
 
-import etlflow.ServerSuiteHelper
+import etlflow.{ServerSuiteHelper}
 import zio.test._
 import zio.test.environment.TestClock
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration.{Duration, MINUTES}
 
 object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Scheduler {

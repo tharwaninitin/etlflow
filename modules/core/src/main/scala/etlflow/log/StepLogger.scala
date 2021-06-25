@@ -3,7 +3,8 @@ package etlflow.log
 import etlflow.common.DateTimeFunctions._
 import etlflow.db.{DBApi, DBEnv}
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.{JsonJackson, LoggingLevel, UtilityFunctions => UF}
+import etlflow.json.{Implementation, JsonService}
+import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
 import zio.{Has, Task, ZIO, ZLayer}
 
 private[etlflow] object StepLogger extends ApplicationLogger {
@@ -13,18 +14,23 @@ private[etlflow] object StepLogger extends ApplicationLogger {
     def update(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBEnv, Throwable, Unit] =
     {
       val step_name = UF.stringFormatter(etlStep.name)
-      val properties = JsonJackson.convertToJson(etlStep.getStepProperties(job_notification_level))
 
       if (mode == "insert") {
         val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties(job_notification_level)("step_run_id") else ""
-        logger.info(s"Inserting step info for $step_name in db with status => ${state_status.toLowerCase()}")
-        DBApi.insertStepRun(job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
+        for{
+          properties <- JsonService.convertToJson(etlStep.getStepProperties(job_notification_level)).provideLayer(Implementation.live)
+          _           = logger.info(s"Inserting step info for $step_name in db with status => ${state_status.toLowerCase()}")
+          _ <- DBApi.insertStepRun(job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
+        } yield ()
       }
       else {
         val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
         val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
-        logger.info(s"Updating step info for $step_name in db with status => $status")
-        DBApi.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
+        for{
+          properties <- JsonService.convertToJson(etlStep.getStepProperties(job_notification_level)).provideLayer(Implementation.live)
+          _           = logger.info(s"Updating step info for $step_name in db with status => $status")
+          _ <- DBApi.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
+        } yield ()
       }
     }
   }

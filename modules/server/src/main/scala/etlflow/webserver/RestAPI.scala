@@ -2,13 +2,17 @@ package etlflow.webserver
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
 import etlflow.api.{APIEnv, Service}
-import etlflow.db.DBEnv
-import etlflow.utils.{JsonJackson, RequestValidator}
+import etlflow.db.{DBEnv, EtlJob}
+import etlflow.json.{Implementation, JsonService}
+import etlflow.utils.RequestValidator
+import io.circe.generic.semiauto.deriveEncoder
 import zhttp.http.Method._
 import zhttp.http.{HttpApp, Response, _}
 import zio.blocking.Blocking
 import zio.clock.Clock
-object ZioRestAPI {
+object RestAPI {
+
+  implicit val caseDecoder = deriveEncoder[EtlJob]
 
   def oldRestApi: HttpApp[APIEnv with DBEnv with Blocking with Clock, Throwable] =
     HttpApp.collectM {
@@ -29,8 +33,11 @@ object ZioRestAPI {
         case Left(_) => None
         case Right(value) => Some(value.map(kv => Props(kv._1,kv._2)).toList)
       }
-      val etlJobArgs = EtlJobArgs(name,props)
-      Service.runJob(etlJobArgs,"New Rest API")
-        .map(x =>  Response.jsonString(s"""${JsonJackson.convertToJsonByRemovingKeys(x,List.empty)}"""))
-  }
+      for {
+          etlJob <- Service.runJob(EtlJobArgs(name,props),"New Rest API")
+          json      <- JsonService.convertToJsonByRemovingKeys(etlJob,List.empty).provideLayer(Implementation.live)
+          response  = Response.jsonString(json.toString())
+        } yield response
+
+    }
 }

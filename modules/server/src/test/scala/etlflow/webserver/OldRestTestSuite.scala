@@ -10,7 +10,7 @@ import zio.test.{ZSpec, assertM}
 object OldRestTestSuite extends HttpRunnableSpec(8080) {
   val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer).orDie
 
-  val oldRestApi = serve {ZioRestAPI.oldRestApi}
+  val oldRestApi = serve {RestAPI.oldRestApi}
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
     suiteM("Old Rest Api")(

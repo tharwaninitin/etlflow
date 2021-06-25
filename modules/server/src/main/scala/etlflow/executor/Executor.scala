@@ -6,10 +6,10 @@ import etlflow.api.Schema._
 import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
+import etlflow.json.{Implementation, JsonService}
 import etlflow.log.ApplicationLogger
 import etlflow.schema.Config
 import etlflow.utils.Executor._
-import etlflow.utils.JsonJackson.convertToJson
 import etlflow.utils.{CacheHelper, EtlFlowUtils, UtilityFunctions => UF}
 import etlflow.{EJPMType, JobEnv}
 import scalacache.caffeine.CaffeineCache
@@ -25,12 +25,13 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
 
   final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): ExecutorTask[EtlJob] = {
     for {
-      mapping_props  <- Task(getJobPropsMapping[EJN](args.name,ejpm_package)).mapError(e => ExecutionError(e.getMessage))
+      getJobProps <- getJobPropsMapping[EJN](args.name,ejpm_package)
+      mapping_props  <- Task(getJobProps).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
       db_job         <- DBApi.getJob(args.name)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
-      props_json     = convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
+      props_json     <- JsonService.convertToJson(final_props.filter(x => x._2 != null && x._2.trim != "")).provideLayer(Implementation.live)
       retry          = mapping_props.getOrElse("job_retries","0").toInt
       spaced         = mapping_props.getOrElse("job_retry_delay_in_minutes","0").toInt
       _              <- if (db_job.is_active)

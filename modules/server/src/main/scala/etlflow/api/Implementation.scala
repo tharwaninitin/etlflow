@@ -9,7 +9,7 @@ import etlflow.common.DateTimeFunctions._
 import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.log.ApplicationLogger
-import etlflow.utils.{CacheHelper, EncryptCred, EtlFlowUtils, JsonJackson}
+import etlflow.utils.{CacheHelper, EncryptCred, EtlFlowUtils}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
@@ -21,6 +21,7 @@ import zio.Runtime.default.unsafeRun
 
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
+import etlflow.json.{JsonService, Implementation => JI}
 
 private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
 
@@ -44,7 +45,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
       override def getJobs: ZIO[APIEnv with DBEnv, Throwable, List[Job]] =  {
       DBApi.getJobs
           .map(y => y.map { x => {
-            val props = getJobPropsMapping[EJN](x.job_name, ejpm_package)
+            val props = unsafeRun(getJobPropsMapping[EJN](x.job_name, ejpm_package))
             val p = new PrettyTime()
             val lastRunTime = x.last_run_time.map(ts => p.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
 
@@ -65,9 +66,10 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
       }
 
       override def getCacheStats: ZIO[APIEnv, Throwable, List[CacheDetails]] = {
-        val job_props = CacheHelper.getCacheStats(jobPropsMappingCache, "JobProps")
-        val login     = CacheHelper.getCacheStats(auth.cache, "Login")
-        UIO(List(login,job_props))
+        for {
+          job_props <- CacheHelper.getCacheStats(jobPropsMappingCache, "JobProps")
+          login     <- CacheHelper.getCacheStats(auth.cache, "Login")
+        } yield (List(login,job_props))
       }
 
       override def getQueueStats: ZIO[APIEnv, Throwable, List[QueueDetails]] = UIO(CacheHelper.getValues(cache))
@@ -100,33 +102,36 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
       }
 
       override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = getCurrentTimestampAsString()))
-
       override def addCredentials(args: CredentialsArgs): ZIO[APIEnv with DBEnv, Throwable, Credentials] = {
-        val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty))
-        val credentialsDB = CredentialDB(
-          args.name,
-          args.`type` match {
-            case JDBC => "jdbc"
-            case AWS => "aws"
-          },
-          value
-        )
-        val actualSerializerOutput = EncryptCred(credentialsDB.`type`,credentialsDB.value)
-        DBApi.addCredential(credentialsDB,actualSerializerOutput).mapError(ex => ExecutionError(ex.getMessage))
+        for{
+          value <- JsonService.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty).provideLayer(JI.live)
+          credentialDB = CredentialDB(
+            args.name,
+            args.`type` match {
+              case JDBC => "jdbc"
+              case AWS => "aws"
+            },
+            JsonString(value.toString())
+          )
+          actualSerializerOutput <- EncryptCred(credentialDB.`type`,credentialDB.value)
+          addCredential <- DBApi.addCredential(credentialDB,JsonString(actualSerializerOutput.toString()))
+        } yield addCredential
       }
 
       override def updateCredentials(args: CredentialsArgs): ZIO[APIEnv with DBEnv, Throwable, Credentials] = {
-        val value = JsonString(JsonJackson.convertToJsonByRemovingKeys(args.value.map(x => (x.key,x.value)).toMap, List.empty))
-        val credentialsDB = CredentialDB(
-          args.name,
-          args.`type` match {
-            case JDBC => "jdbc"
-            case AWS => "aws"
-          },
-          value
-        )
-        val actualSerializerOutput = EncryptCred(credentialsDB.`type`,credentialsDB.value)
-        DBApi.updateCredential(credentialsDB,actualSerializerOutput)
+        for{
+          value <- JsonService.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty).provideLayer(JI.live)
+          credentialDB = CredentialDB(
+            args.name,
+            args.`type` match {
+              case JDBC => "jdbc"
+              case AWS => "aws"
+            },
+            JsonString(value.toString())
+          )
+          actualSerializerOutput <- EncryptCred(credentialDB.`type`,credentialDB.value)
+          updateCredential <- DBApi.updateCredential(credentialDB,JsonString(actualSerializerOutput.toString()))
+        } yield updateCredential
       }
     })
   }

@@ -151,18 +151,6 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
         println("actualSerializerInput :" + actualSerializerInput)
         assertM(actualSerializerInput)(equalTo(expected_json))
       },
-      testM("Json Jackson Deserializer : ConvertToObject  Student1") {
-        val student1 = for {
-          name <- JsonApi.convertToObjectUsingJackson[Student](student1Json)
-        }  yield name
-        assertM(student1)(equalTo(Student("63","John",Some("101"))))
-      },
-      testM("Json Jackson Deserializer : ConvertToObject  Student1") {
-        val student2 = for {
-          name <- JsonApi.convertToObjectUsingJackson[Student](student2Json)
-        }  yield name
-        assertM(student2)(equalTo(Student("63","John",None)))
-      },
       testM("Json Jackson Deserializer : ConvertToJsonByRemovingKeysAsMap debug") {
         val actualOutputDebugLevel = for {
           actualOutputDebugLevel <- JsonApi.convertToJsonJacksonByRemovingKeysAsMap(inputDebugLevel,List.empty)

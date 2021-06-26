@@ -1,22 +1,19 @@
 package etlflow.utils
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
-import etlflow.json.{Implementation, JsonApi}
-import zio.Runtime.default.unsafeRun
+import etlflow.json.{JsonApi, JsonEnv}
+import zio.{RIO, Task}
 
 private [etlflow] object RequestValidator {
-  def apply(job_name: String, props: Option[String]): Either[String, EtlJobArgs] = {
+
+  def apply(job_name: String, props: Option[String]): RIO[JsonEnv, EtlJobArgs] = {
     if(props.isDefined) {
-      val expected_props = unsafeRun(JsonApi.convertToObjectEither[Map[String, String]](props.get.replaceAll("\\(","\\{").replaceAll("\\)","\\}")).provideLayer(Implementation.live))
-      expected_props match {
-        case Left(e) => Left(e.getMessage)
-        case Right(props) =>
-          val output = EtlJobArgs(job_name, Some(props.map{ case (k, v) => Props(k, v) }.toList))
-          Right(output)
+      val expected_props = JsonApi.convertToObject[Map[String, String]](props.get.replaceAll("\\(","\\{").replaceAll("\\)","\\}"))
+      expected_props.map{props =>
+          EtlJobArgs(job_name, Some(props.map{ case (k, v) => Props(k, v) }.toList))
       }
     } else {
-      val output = EtlJobArgs(job_name)
-      Right(output)
+      Task(EtlJobArgs(job_name))
     }
   }
 }

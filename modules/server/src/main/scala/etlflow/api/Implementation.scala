@@ -40,27 +40,26 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
         }
       } yield op
 
-      override def getJobs: ZIO[APIEnv with DBEnv, Throwable, List[Job]] =  {
-      DBApi.getJobs
-          .map(y => y.map { x => {
-            val props = unsafeRun(getJobPropsMapping[EJN](x.job_name, ejpm_package))
-            val p = new PrettyTime()
-            val lastRunTime = x.last_run_time.map(ts => p.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-
-            if (Cron(x.schedule).toOption.isDefined) {
-              val cron = Cron(x.schedule).toOption
-              val startTimeMillis: Long = getCurrentTimestampUsingLocalDateTime
-              val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => getTimestampFromLocalDateTime(dt))
-              val remTime1 = endTimeMillis.map(ts => getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
-              val remTime2 = endTimeMillis.map(ts => p.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-
-              val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-              Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
-            } else {
-              Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
+      override def getJobs: ZIO[ServerEnv, Throwable, List[Job]] = {
+        for {
+          jobs     <- DBApi.getJobs
+          etljobs  <- ZIO.foreach(jobs)(x =>
+            getJobPropsMapping[EJN](x.job_name,ejpm_package).map{props =>
+              val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+              if (Cron(x.schedule).toOption.isDefined) {
+                val cron = Cron(x.schedule).toOption
+                val startTimeMillis: Long = getCurrentTimestampUsingLocalDateTime
+                val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => getTimestampFromLocalDateTime(dt))
+                val remTime1 = endTimeMillis.map(ts => getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
+                val remTime2 = endTimeMillis.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+                val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
+                Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
+              } else {
+                Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
+              }
             }
-          }
-          })
+          )
+        } yield etljobs
       }
 
       override def getCacheStats: ZIO[APIEnv with JsonEnv, Throwable, List[CacheDetails]] = {

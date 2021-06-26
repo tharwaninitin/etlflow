@@ -1,11 +1,11 @@
 package etlflow.coretests.utils
 
 import etlflow.json.CredentialImplicits._
-import etlflow.json.{Implementation, JsonApi}
+import etlflow.json.JsonApi
 import etlflow.schema.Credential.{AWS, JDBC}
 import etlflow.utils.Encryption
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
+import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
 
 object EncryptionTestSuite  extends DefaultRunnableSpec  {
 
@@ -30,23 +30,23 @@ object EncryptionTestSuite  extends DefaultRunnableSpec  {
     suite("Encryption Test")(
       testM("Encryption should return correct decrypted JDBC value") {
         val actual_jdbc_encrypt = for {
-          jdbc <- JsonApi.convertToObject[JDBC](jdbc_value)
-          userName    = Encryption.encrypt(jdbc.user)
-          password    = Encryption.encrypt(jdbc.password)
-          jdbc_schema = JDBC(jdbc.url,userName,password,jdbc.driver)
-          jdbc_encrypted    <- JsonApi.convertToJsonByRemovingKeys(jdbc_schema, List.empty)
+          jdbc           <- JsonApi.convertToObject[JDBC](jdbc_value)
+          userName       = Encryption.encrypt(jdbc.user)
+          password       = Encryption.encrypt(jdbc.password)
+          jdbc_schema    = JDBC(jdbc.url,userName,password,jdbc.driver)
+          jdbc_encrypted <- JsonApi.convertToJsonByRemovingKeys(jdbc_schema, List.empty)
         } yield jdbc_encrypted.toString().replaceAll("\\s", "")
         assertM(actual_jdbc_encrypt)(equalTo(expected_jdbc_encrypt.replaceAll("\\s", "") ))
       },
       testM("Encryption should return correct decrypted AWS value") {
         val actual_aws_encrypt = for {
-          aws <- JsonApi.convertToObject[AWS](aws_value)
+          aws           <- JsonApi.convertToObject[AWS](aws_value)
           access_key    = Encryption.encrypt(aws.access_key)
           secret_key    = Encryption.encrypt(aws.secret_key)
-          aws_schema = AWS(access_key,secret_key)
-          aws_encrypted    <- JsonApi.convertToJsonByRemovingKeys(aws_schema, List.empty)
+          aws_schema    = AWS(access_key,secret_key)
+          aws_encrypted <- JsonApi.convertToJsonByRemovingKeys(aws_schema, List.empty)
         } yield aws_encrypted.toString().replaceAll("\\s", "")
         assertM(actual_aws_encrypt)(equalTo(expected_aws_encrypt.replaceAll("\\s", "") ))
       }
-    ).provideLayer(Implementation.live)
+    ).provideLayer(etlflow.json.Implementation.live) @@ TestAspect.flaky
 }

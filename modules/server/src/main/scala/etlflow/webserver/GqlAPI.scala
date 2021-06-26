@@ -12,7 +12,6 @@ import etlflow.api.{APIEnv, ServerEnv}
 import etlflow.db._
 import etlflow.json.JsonEnv
 import zio.ZIO
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -27,7 +26,7 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 
 
   case class Queries(
-                      jobs: ZIO[APIEnv with DBEnv, Throwable, List[Job]],
+                      jobs: ZIO[ServerEnv, Throwable, List[Job]],
                       jobruns: DbJobRunArgs => ZIO[APIEnv with DBEnv, Throwable, List[JobRun]],
                       stepruns: DbStepRunArgs => ZIO[APIEnv with DBEnv, Throwable, List[StepRun]],
                       metrics: ZIO[APIEnv, Throwable, EtlFlowMetrics],

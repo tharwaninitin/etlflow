@@ -16,11 +16,10 @@ object RestAPI {
   def oldRestApi: HttpApp[ServerEnv, Throwable] =
     HttpApp.collectM {
     case req@GET -> Root / "api" /"runjob" =>
-      val job_name =  req.url.queryParams.getOrElse("job_name",List("Job"))
+      val job_name = req.url.queryParams.getOrElse("job_name",List("Job"))
       val props = req.url.queryParams.getOrElse("props",List.empty)
-      RequestValidator(job_name.head, if(props.isEmpty) None  else Some(props.mkString(","))) match {
-        case Right(output) =>
-          Service.runJob(output,"Rest API")
+      RequestValidator(job_name.head, if(props.isEmpty) None else Some(props.mkString(","))).flatMap{output =>
+        Service.runJob(output,"Rest API")
             .map(x =>  Response.jsonString(s"""{"message" -> "Job ${x.name} submitted successfully"}"""))
       }
   }
@@ -34,7 +33,7 @@ object RestAPI {
       }
       for {
           etlJob   <- Service.runJob(EtlJobArgs(name,props),"New Rest API")
-          json     <- JsonApi.convertToJsonByRemovingKeys(etlJob,List.empty).provideLayer(Implementation.live)
+          json     <- JsonApi.convertToJsonByRemovingKeys(etlJob,List.empty)
           response = Response.jsonString(json.toString())
         } yield response
 

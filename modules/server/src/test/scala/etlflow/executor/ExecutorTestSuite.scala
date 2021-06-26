@@ -20,6 +20,9 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
       testM("Test runActiveEtlJob with disabled JobName") {
         assertM(job(EtlJobArgs("Job2")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Job Job2 is disabled"))
       },
+      testM("Test runActiveEtlJob with incorrect JobName") {
+        assertM(job(EtlJobArgs("InvalidEtlJob")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present"))
+      },
     ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer).orDie)
 
 }

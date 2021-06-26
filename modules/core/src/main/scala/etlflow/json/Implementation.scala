@@ -3,24 +3,21 @@ package etlflow.json
 import etlflow.etljobs.EtlJob
 import etlflow.utils.{Executor, LoggingLevel}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
-import io.circe
 import io.circe.parser.parse
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, parser}
 import org.json4s.JsonAST.{JNothing, JString}
+import org.json4s.jackson.JsonMethods.{parse => JacksonParse}
 import org.json4s.jackson.Serialization.writePretty
 import org.json4s.{CustomSerializer, DefaultFormats, Extraction, FieldSerializer, Formats, JValue}
 import zio.{Task, ULayer, ZLayer}
-import org.json4s.jackson.JsonMethods.{parse => JacksonParse}
 
 object Implementation {
 
   val live: ULayer[JsonEnv] = ZLayer.succeed(
     new JsonApi.Service {
-      override def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): Task[T] = Task{
-        val decodeResult1 = parser.decode[T](str)
-        decodeResult1.toOption.get
-      }
+      override def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): Task[T] = Task.fromEither{parser.decode[T](str)}
+
       override def convertToJsonByRemovingKeysAsMap[T](entity: T, Keys: List[String])(implicit encoder: Encoder[T]): Task[Map[String, Any]] = Task {
         val parsedJsonString = parse(entity.asJson.noSpaces).toOption.get
         removeField(parsedJsonString)(Keys).asObject.get.toMap.mapValues(x => {
@@ -31,6 +28,7 @@ object Implementation {
           }
         })
       }
+
       override def convertToJsonByRemovingKeys[T](obj: T, Keys: List[String])(implicit encoder: Encoder[T]): Task[Json] = Task {
         val parsedJsonString = parse(obj.asJson.noSpaces).toOption.get
         removeField(parsedJsonString)(Keys)
@@ -120,15 +118,6 @@ object Implementation {
         implicit val formats: Formats = DefaultFormats + customSerializer1 + customSerializer2 + customSerializer3 + customSerializer4
         val json: JValue = Extraction.decompose(entity).removeField { x => keys.contains(x._1)}
         JacksonParse(writePretty(json)).extract[Map[String, Any]]
-      }
-
-      override def convertToObjectUsingJackson[T](str: String, fmt: Formats = DefaultFormats)(implicit mf: Manifest[T]): Task[T] = Task{
-        val json = JacksonParse(str)
-        Extraction.extract(json)(fmt,mf)
-      }
-
-      override def convertToObjectEither[T](str: String)(implicit Decoder: Decoder[T]): Task[Either[circe.Error, T]] = Task{
-        parser.decode[T](str)
       }
     })
 }

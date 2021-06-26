@@ -1,11 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.json.{Implementation, JsonApi}
+import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.utils.{HttpMethod, HttpRequest, LoggingLevel}
 import io.circe.Decoder
 import sttp.client3.Response
 import zio._
-
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 case class HttpRequestStep[A: TypeTag : Decoder](
@@ -21,7 +20,7 @@ case class HttpRequestStep[A: TypeTag : Decoder](
    )
   extends EtlStep[Unit, A] {
 
-  final def process(in: =>Unit): Task[A] = {
+  final def process(in: =>Unit): RIO[JsonEnv, A] = {
     etl_logger.info("#"*100)
     etl_logger.info(s"Starting HttpRequestStep: $name")
     etl_logger.info(s"URL: $url")
@@ -37,12 +36,11 @@ case class HttpRequestStep[A: TypeTag : Decoder](
         output.map(_.body).asInstanceOf[Task[A]]
       case t if t =:= typeOf[Nothing] =>
         Task.fail(new RuntimeException("Need type parameter in HttpStep, if no output is required use HttpStep[Unit]"))
-      case _ => {
+      case _ =>
         for {
           op <- output
-          obj <- JsonApi.convertToObject[A](op.body).provideLayer(Implementation.live)
+          obj <- JsonApi.convertToObject[A](op.body)
         } yield obj
-      }
     }
   }
 

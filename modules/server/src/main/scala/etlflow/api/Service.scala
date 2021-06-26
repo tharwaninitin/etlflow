@@ -16,7 +16,7 @@ private[etlflow] trait Service {
   def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]]
   def getCredentials: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]]
   def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics]
-  def getJobs: ZIO[APIEnv with DBEnv, Throwable, List[Job]]
+  def getJobs: ZIO[ServerEnv, Throwable, List[Job]]
   def getCacheStats: ZIO[APIEnv with JsonEnv, Throwable, List[CacheDetails]]
   def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobRun]]
   def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[StepRun]]
@@ -43,8 +43,8 @@ private[etlflow] object Service {
   def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[StepRun]] =
     ZIO.accessM[APIEnv with DBEnv](_.get.getDbStepRuns(args))
 
-  def getJobs: ZIO[APIEnv with DBEnv, Throwable, List[Job]] =
-    ZIO.accessM[APIEnv with DBEnv](_.get.getJobs)
+  def getJobs: ZIO[ServerEnv, Throwable, List[Job]] =
+    ZIO.accessM[ServerEnv](_.get.getJobs)
 
   def getCacheStats: ZIO[APIEnv with JsonEnv, Throwable, List[CacheDetails]] =
     ZIO.accessM[APIEnv with JsonEnv](_.get.getCacheStats)

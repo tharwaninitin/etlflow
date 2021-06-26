@@ -1,31 +1,33 @@
 package etlflow.utils
 
+import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.{EtlJobArgs, Props}
+import zio.ZIO
 import zio.test.Assertion.{containsString, equalTo}
 import zio.test.{DefaultRunnableSpec, _}
 
-object RequestValidatorTestSuite extends DefaultRunnableSpec {
+object RequestValidatorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("RequestValidator")(
-      test("should return parsed EtlJobArgs when provided correct params - 1") {
+      testM("should return parsed EtlJobArgs when provided correct params - 1") {
         val actualOutput1   = RequestValidator("Job2LocalJobGenericStep",Some("""("year":"2016","start_date":"2016-03-15")"""))
         val expectedOutput1 = EtlJobArgs("Job2LocalJobGenericStep",Some(List(Props("year","2016"), Props("start_date","2016-03-15"))))
-        assert(actualOutput1.right.get)(equalTo(expectedOutput1))
+        assertM(actualOutput1.foldM(ex => ZIO.fail(ex.getMessage), etlJobArgs => ZIO.succeed(etlJobArgs)))(equalTo(expectedOutput1))
       },
-      test("should return parsed EtlJobArgs when provided correct params - 2") {
+      testM("should return parsed EtlJobArgs when provided correct params - 2") {
         val actualOutput2   = RequestValidator("Job2LocalJobGenericStep",Some("""("refresh_dates":"'202010':'202010'")"""))
         val expectedOutput2 = EtlJobArgs("Job2LocalJobGenericStep",Some(List(Props("refresh_dates","'202010':'202010'"))))
-        assert(actualOutput2.right.get)(equalTo(expectedOutput2))
+        assertM(actualOutput2.foldM(ex => ZIO.fail(ex.getMessage), etlJobArgs => ZIO.succeed(etlJobArgs)))(equalTo(expectedOutput2))
       },
-      test("return parsed EtlJobArgs when provided props as empty") {
+      testM("return parsed EtlJobArgs when provided props as empty") {
         val actualOutput3   = RequestValidator("Job2LocalJobGenericStep",None)
         val expectedOutput3 = EtlJobArgs("Job2LocalJobGenericStep")
-        assert(actualOutput3.right.get)(equalTo(expectedOutput3))
+        assertM(actualOutput3.foldM(ex => ZIO.fail(ex.getMessage), etlJobArgs => ZIO.succeed(etlJobArgs)))(equalTo(expectedOutput3))
       },
-      test("should return error when provided incorrect props in params") {
+      testM("should return error when provided incorrect props in params") {
         val actualOutput3 = RequestValidator("Job2LocalJobGenericStep",Some("""("year";"2016")"""))
-        assert(actualOutput3.left.get)(containsString("expected"))
+        assertM(actualOutput3.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(containsString("expected"))
       },
-    )
+    ).provideCustomLayerShared(testJsonLayer.orDie)
 }

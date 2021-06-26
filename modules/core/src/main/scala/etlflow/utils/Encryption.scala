@@ -1,11 +1,11 @@
 package etlflow.utils
 
 import etlflow.json.CredentialImplicits._
-import etlflow.json.{Implementation, JsonApi}
+import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.log.ApplicationLogger
 import etlflow.schema.Credential.{AWS, JDBC}
 import io.circe.Json
-import zio.Task
+import zio.RIO
 import java.security.InvalidKeyException
 import java.util.Base64
 import javax.crypto.Cipher
@@ -46,20 +46,20 @@ private[etlflow] object Encryption extends ApplicationLogger  with Configuration
     }
   }
 
-  def getDecryptValues[T : TypeTag](result: String): Task[Json] = {
+  def getDecryptValues[T : TypeTag](result: String): RIO[JsonEnv,Json] = {
     typeOf[T] match {
       case t if t =:= typeOf[JDBC] =>{
         for {
           jdbc_obj <- JsonApi.convertToObject[JDBC](result)
           json    <- JsonApi.convertToJsonByRemovingKeys(JDBC(jdbc_obj.url, Encryption.decrypt(jdbc_obj.user), Encryption.decrypt(jdbc_obj.password), jdbc_obj.driver), List.empty)
         } yield json
-      }.provideLayer(Implementation.live)
+      }
       case t if t =:= typeOf[AWS] =>{
         for {
           aws_obj <- JsonApi.convertToObject[AWS](result)
           json    <- JsonApi.convertToJsonByRemovingKeys(AWS(Encryption.decrypt(aws_obj.access_key),Encryption.decrypt(aws_obj.secret_key)),List.empty)
         } yield json
-      }.provideLayer(Implementation.live)
+      }
     }
   }
 }

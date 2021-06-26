@@ -26,13 +26,13 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     authCache   = CacheHelper.createCache[String]
     _           = config.token.map(_.foreach(tkn => CacheHelper.putKey(authCache,tkn,tkn)))
     auth        = Authentication(authCache, config.webserver)
-    jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
+    jsonLayer   = json.Implementation.live
+    jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).provideCustomLayer(jsonLayer).toManaged_
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
     dbLayer     = liveDBWithTransactor(config.dbLog)
     supervisor  <- Supervisor.track(true).toManaged_
     apiLayer    = api.Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
-    jsonLayer   = json.Implementation.live
     finalLayer  = apiLayer ++ dbLayer ++ jsonLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer(auth, config.webserver)

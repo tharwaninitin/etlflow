@@ -32,7 +32,7 @@ class SparkStepTestSuite extends AnyFlatSpec
     name             = "LoadRatingsParquetToJdbc",
     input_location   = Seq(input_path_parquet),
     input_type       = PARQUET,
-    output_type      = RDB(JDBC(config.dbLog.url, config.dbLog.user, config.dbLog.password, "org.postgresql.Driver")),
+    output_type      = RDB(JDBC(config.db.url, config.db.user, config.db.password, "org.postgresql.Driver")),
     output_location  = "ratings",
     output_save_mode = SaveMode.Overwrite
   )
@@ -52,7 +52,7 @@ class SparkStepTestSuite extends AnyFlatSpec
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)
   val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
   val query: String = s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table"
-  val trans = transactor(config.dbLog.url, config.dbLog.user, config.dbLog.password)
+  val trans = transactor(config.db.url, config.db.user, config.db.password)
   val db_task: Task[RatingsMetrics] = Fragment.const(query).query[RatingsMetrics].unique.transact(trans)
   val db_metrics: RatingsMetrics = unsafeRun(db_task)
 

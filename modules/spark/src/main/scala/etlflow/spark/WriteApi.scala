@@ -70,6 +70,7 @@ object WriteApi {
       case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
       case TEXT => df_writer.format("text")
       case RDB(_, _) => df_writer
+      case a => throw EtlJobException(s"Unsupported output format $a")
     }
 
     partition_by match {

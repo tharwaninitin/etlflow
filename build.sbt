@@ -49,7 +49,7 @@ lazy val serverSettings = Seq(
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++=  dbLibs ++ coreTestLibs ++ dbTestLibs,
+  libraryDependencies ++=  dbLibs ++ coreTestLibs,
 )
 
 lazy val utilsSettings = Seq(

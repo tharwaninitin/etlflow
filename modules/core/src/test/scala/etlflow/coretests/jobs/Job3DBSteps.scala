@@ -11,27 +11,27 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
 
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 
-  val dbLog_user = Encryption.encrypt(config.dbLog.user)
-  val dbLog_password = Encryption.encrypt(config.dbLog.password)
+  val dbLog_user = Encryption.encrypt(config.db.user)
+  val dbLog_password = Encryption.encrypt(config.db.password)
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
-      '{"url" : "${config.dbLog.url}", "user" : "${dbLog_user}", "password" : "${dbLog_password}", "driver" : "org.postgresql.Driver" }'
+      '{"url" : "${config.db.url}", "user" : "${dbLog_user}", "password" : "${dbLog_password}", "driver" : "org.postgresql.Driver" }'
       )
       """
 
   private val deleteCredStep = DBQueryStep(
       name  = "DeleteCredential",
       query = delete_credential_script,
-      credentials = config.dbLog
+      credentials = config.db
     ).process()
 
   private val addCredStep =  DBQueryStep(
       name  = "AddCredential",
       query = insert_credential_script,
-      credentials = config.dbLog
+      credentials = config.db
     ).process()
 
   private val creds =  GetCredentialStep[JDBC](

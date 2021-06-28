@@ -4,13 +4,14 @@ import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.coretests.TestSuiteHelper
 import etlflow.db.RunDbMigration
 import etlflow.schema.Credential.JDBC
+import etlflow.utils.Configuration
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object JobsTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  val credentials: JDBC = config.dbLog
+  val credentials: JDBC = config.db
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
 
   def spec: ZSpec[environment.TestEnvironment, Any] =

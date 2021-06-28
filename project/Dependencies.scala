@@ -4,7 +4,7 @@ object Dependencies {
   val ZioVersion = "1.0.9"
   val ZioCatsInteropVersion = "3.1.1.0"
   val CalibanVersion ="1.0.1"
-
+  val zioConfig = "1.0.6"
   val CatsCoreVersion = "2.6.1"
   val CatsEffectVersion = "3.1.1"
   val Cron4sVersion = "0.6.1"
@@ -49,8 +49,10 @@ object Dependencies {
     "io.circe" %% "circe-generic" % CirceVersion,
     "io.circe" %% "circe-parser" % CirceVersion,
     "io.circe" %% "circe-optics" % CirceVersion,
-    "io.circe" %% "circe-config" % CirceConfigVersion,
     "io.circe" %% "circe-generic-extras" % CirceVersion,
+    "dev.zio" %% "zio-config" %  zioConfig,
+    "dev.zio" %% "zio-config-magnolia" %  zioConfig,
+    "dev.zio" %% "zio-config-typesafe" % zioConfig,
     "org.json4s" %% "json4s-jackson" % Json4sVersion,
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "org.slf4j" % "slf4j-api" % Sl4jVersion,

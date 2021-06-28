@@ -30,7 +30,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).provideCustomLayer(jsonLayer).toManaged_
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
-    dbLayer     = liveDBWithTransactor(config.dbLog)
+    dbLayer     = liveDBWithTransactor(config.db)
     supervisor  <- Supervisor.track(true).toManaged_
     apiLayer    = api.Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
     finalLayer  = apiLayer ++ dbLayer ++ jsonLayer

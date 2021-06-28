@@ -52,8 +52,8 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       case LOCAL =>
         LocalExecutor(ejpm_package).executeJob(args.name, actual_props)
       case dp @ DATAPROC(_, _, _, _, _) =>
-        val main_class = config.dataProc.map(_.mainClass).getOrElse("")
-        val dp_libs = config.dataProc.map(_.depLibs).getOrElse(List.empty)
+        val main_class = config.dataproc.map(_.mainclass).getOrElse("")
+        val dp_libs = config.dataproc.map(_.deplibs).getOrElse(List.empty)
         DPService.executeSparkJob(args.name, actual_props, main_class, dp_libs).provideLayer(DP.live(dp))
       case LIVY(_) =>
         Task.fail(ExecutionError("Deploy mode livy not yet supported"))

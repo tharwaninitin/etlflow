@@ -4,15 +4,15 @@ import etlflow.coretests.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.Encryption
+import etlflow.utils.EncryptionAPI
 import io.circe.generic.auto._, io.circe.syntax._
 
 case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] {
 
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 
-  val dbLog_user = Encryption.encrypt(config.db.user)
-  val dbLog_password = Encryption.encrypt(config.db.password)
+  val dbLog_user = EncryptionAPI.encrypt(config.db.user)
+  val dbLog_password = EncryptionAPI.encrypt(config.db.password)
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(

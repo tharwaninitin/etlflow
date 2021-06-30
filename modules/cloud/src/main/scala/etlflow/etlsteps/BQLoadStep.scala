@@ -2,8 +2,8 @@ package etlflow.etlsteps
 
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
 import etlflow.gcp._
-import etlflow.schema.Credential
-import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
+import etlflow.schema.{Credential, LoggingLevel}
+import etlflow.utils.{ ReflectAPI => RF}
 import zio.{Task, UIO}
 
 import java.util
@@ -27,8 +27,8 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
   var row_count: Map[String, Long] = Map.empty
 
   final def process(input: =>Unit): Task[Unit] = {
-    etl_logger.info("#"*50)
-    etl_logger.info(s"Starting BQ Data Load Step : $name")
+    logger.info("#"*50)
+    logger.info(s"Starting BQ Data Load Step : $name")
 
     def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
       case "String"         => LegacySQLTypeName.STRING
@@ -43,12 +43,12 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
 
     val schema: Option[Schema] = Try{
       val fields = new util.ArrayList[Field]
-      val ccFields = UF.getFields[T].reverse
+      val ccFields = RF.getFields[T].reverse
       if (ccFields.isEmpty)
         throw new RuntimeException("Schema not provided")
       ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))
       val s = Schema.of(fields)
-      etl_logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName,x.getType))}")
+      logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName,x.getType))}")
       s
     }.toOption
 
@@ -56,7 +56,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
 
     val program: Task[Unit] = input_file_system match {
       case FSType.LOCAL =>
-        etl_logger.info(s"FileSystem: $input_file_system")
+        logger.info(s"FileSystem: $input_file_system")
         BQService.loadIntoBQFromLocalFile(
           input_location, input_type, output_dataset, output_table,
           output_write_disposition, output_create_disposition
@@ -64,7 +64,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
       case FSType.GCS =>
         input_location match {
           case Left(value) =>
-            etl_logger.info(s"FileSystem: $input_file_system")
+            logger.info(s"FileSystem: $input_file_system")
             BQService.loadIntoBQTable(
               value, input_type, output_project, output_dataset, output_table, output_write_disposition,
               output_create_disposition, schema
@@ -72,7 +72,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
               row_count = x
             }
           case Right(value) =>
-            etl_logger.info(s"FileSystem: $input_file_system")
+            logger.info(s"FileSystem: $input_file_system")
             BQService.loadIntoPartitionedBQTable(
               value, input_type, output_project, output_dataset, output_table, output_write_disposition,
               output_create_disposition, schema, 10).provideLayer(env).map{x =>
@@ -80,7 +80,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
             }
         }
     }
-    program *> UIO(etl_logger.info("#"*50))
+    program *> UIO(logger.info("#"*50))
   }
 
   override def getExecutionMetrics: Map[String, Map[String, String]] = {
@@ -115,7 +115,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
           source_path => source_path,
           source_paths_partitions => source_paths_partitions.mkString(",")
         )
-        ,"input_class" -> Try(UF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+        ,"input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
         ,"output_dataset" -> output_dataset
         ,"output_table" -> output_table
         ,"output_table_write_disposition" -> output_write_disposition.toString

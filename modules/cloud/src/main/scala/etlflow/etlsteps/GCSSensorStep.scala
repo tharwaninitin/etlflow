@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.common.EtlflowError.EtlJobException
 import etlflow.gcp._
 import etlflow.schema.Credential.GCP
+import etlflow.utils.EtlflowError.EtlJobException
 import zio.Task
 import zio.clock.Clock
 
@@ -23,12 +23,12 @@ class GCSSensorStep private [etlsteps](
 
     val program: Task[Unit] = (for {
                                 out <- lookup
-                                _   <- if(out) Task.succeed(etl_logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
+                                _   <- if(out) Task.succeed(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
                                        else Task.fail(EtlJobException(s"key $key not found in GCS location gs://$bucket/$prefix/"))
                               } yield ()).retry(noThrowable && schedule(retry,spaced)).provideLayer(Clock.live)
 
     val runnable = for {
-                      _   <- Task.succeed(etl_logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix/$key"))
+                      _   <- Task.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix/$key"))
                       _   <- program
                     } yield ()
 

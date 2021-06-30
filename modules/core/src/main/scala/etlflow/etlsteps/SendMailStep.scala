@@ -1,7 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.schema.Credential.SMTP
-import etlflow.utils.{LoggingLevel, MailClientApi}
+import etlflow.schema.LoggingLevel
+import etlflow.utils.MailClientApi
 import zio.Task
 
 case class SendMailStep(
@@ -16,8 +17,8 @@ case class SendMailStep(
 
 
   final def process(in: =>Unit): Task[Unit] = Task {
-    etl_logger.info("#"*100)
-    etl_logger.info(s"Starting SendMailStep")
+    logger.info("#"*100)
+    logger.info(s"Starting SendMailStep")
     MailClientApi.sendMail(sender,recipient_list,body,subject,credentials)
   }
 

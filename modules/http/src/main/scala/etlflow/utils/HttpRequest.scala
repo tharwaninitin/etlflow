@@ -1,6 +1,5 @@
 package etlflow.utils
 
-import etlflow.log.ApplicationLogger
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}

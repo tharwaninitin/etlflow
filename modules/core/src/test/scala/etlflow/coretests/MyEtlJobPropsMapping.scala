@@ -3,8 +3,8 @@ package etlflow.coretests
 import etlflow.coretests.Schema._
 import etlflow.coretests.jobs._
 import etlflow.etljobs.EtlJob
-import etlflow.utils.Executor
-import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
+import etlflow.schema.Executor
+import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
@@ -54,6 +54,10 @@ object MyEtlJobPropsMapping {
     override val job_retries: Int = 3
     override val job_retry_delay_in_minutes: Int = 1
 
+  }
+
+  case object Job5 extends MyEtlJobPropsMapping[EtlJob1Props,Job5EtlflowJobSteps] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
   }
 }
 

@@ -7,12 +7,12 @@ import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.Storage.BlobListOption
 import com.google.cloud.storage.{Blob, BlobId, BlobInfo, Storage, StorageOptions}
 import etlflow.schema.Credential.GCP
-import etlflow.utils.Location
+import etlflow.utils.{ApplicationLogger, Location}
 import zio.{IO, Layer, Managed, Task, ZLayer}
 
 import scala.collection.JavaConverters._
 
-private[etlflow] object GCS {
+private[etlflow] object GCS extends ApplicationLogger{
 
   def getClient(location: Location.GCS): Storage = {
     val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
@@ -22,15 +22,15 @@ private[etlflow] object GCS {
     }
     location.credentials match {
       case Some(creds) =>
-        gcp_logger.info("Using GCP credentials from values passed in function")
+        logger.info("Using GCP credentials from values passed in function")
         getStorageClient(creds.service_account_key_path)
       case None =>
         if (env_path == "NOT_SET_IN_ENV") {
-          gcp_logger.info("Using GCP credentials from local sdk")
+          logger.info("Using GCP credentials from local sdk")
           StorageOptions.newBuilder().build().getService
         }
         else {
-          gcp_logger.info("Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS")
+          logger.info("Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS")
           getStorageClient(env_path)
         }
     }
@@ -53,8 +53,8 @@ private[etlflow] object GCS {
           listObjects(bucket, options)
             .map(_.iterateAll().asScala)
             .map { blobs =>
-              if (blobs.nonEmpty) gcp_logger.info("Objects \n"+blobs.mkString("\n"))
-              else gcp_logger.info(s"No Objects found under gs://$bucket/$prefix")
+              if (blobs.nonEmpty) logger.info("Objects \n"+blobs.mkString("\n"))
+              else logger.info(s"No Objects found under gs://$bucket/$prefix")
               blobs.toList
             }
         }
@@ -65,8 +65,8 @@ private[etlflow] object GCS {
           listObjects(bucket, options)
             .map(_.iterateAll().asScala)
             .map { blobs =>
-              if (blobs.nonEmpty) gcp_logger.info("Objects \n"+blobs.mkString("\n"))
-              else gcp_logger.info(s"No Objects found under gs://$bucket/$prefix")
+              if (blobs.nonEmpty) logger.info("Objects \n"+blobs.mkString("\n"))
+              else logger.info(s"No Objects found under gs://$bucket/$prefix")
               blobs.exists(_.getName == prefix+"/"+key)
             }
         }

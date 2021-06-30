@@ -4,11 +4,9 @@ import com.google.api.gax.paging.Page
 import com.google.cloud.bigquery.{FieldValueList, JobInfo, Schema}
 import com.google.cloud.storage.Blob
 import com.google.cloud.storage.Storage.BlobListOption
-import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, ZIO}
 
 package object gcp {
-  val gcp_logger: Logger = LoggerFactory.getLogger(getClass.getName)
 
   private[etlflow] type GCSService = Has[GCSService.Service]
   sealed trait BQInputType extends Serializable

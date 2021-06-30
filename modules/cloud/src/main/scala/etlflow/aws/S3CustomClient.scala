@@ -12,15 +12,15 @@ private[etlflow] object S3CustomClient {
 
     val initBuilder = Location.credentials match {
       case Some(creds) =>
-        aws_logger.info("Using AWS credentials from credentials passed in function")
+        logger.info("Using AWS credentials from credentials passed in function")
         val credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.access_key, creds.secret_key))
         S3AsyncClient.builder.region(Location.region).credentialsProvider(credentials)
       case None => (ACCESS_KEY, SECRET_KEY) match {
         case (access_key, secret_key) if access_key == "NOT_SET_IN_ENV" || secret_key == "NOT_SET_IN_ENV" =>
-          aws_logger.info("Using AWS credentials from local sdk")
+          logger.info("Using AWS credentials from local sdk")
           S3AsyncClient.builder.region(Location.region)
         case keys =>
-          aws_logger.info("Using AWS credentials from environment variables(ACCESS_KEY,SECRET_KEY)")
+          logger.info("Using AWS credentials from environment variables(ACCESS_KEY,SECRET_KEY)")
           val credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(keys._1, keys._2))
           S3AsyncClient.builder.region(Location.region).credentialsProvider(credentials)
       }

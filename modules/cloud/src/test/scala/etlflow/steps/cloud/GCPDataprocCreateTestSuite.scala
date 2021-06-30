@@ -2,7 +2,7 @@ package etlflow.steps.cloud
 
 import etlflow.etlsteps.DPCreateStep
 import etlflow.gcp.DataprocProperties
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._

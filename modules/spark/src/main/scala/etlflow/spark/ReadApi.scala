@@ -1,21 +1,21 @@
 package etlflow.spark
 
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
 import etlflow.spark.IOType._
+import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, split}
-import org.slf4j.LoggerFactory
+
 import scala.reflect.runtime.universe.TypeTag
 
-object ReadApi {
+object ReadApi extends  ApplicationLogger {
 
-  private val read_logger = LoggerFactory.getLogger(getClass.getName)
-  read_logger.info(s"Loaded ${getClass.getName}")
+  logger.info(s"Loaded ${getClass.getName}")
 
   def LoadDF(location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*"))(implicit spark: SparkSession): Dataset[Row] = {
     val df_reader = spark.read
 
-    read_logger.info("Input file paths: " + location.toList)
+    logger.info("Input file paths: " + location.toList)
 
     val df_reader_options = input_type match {
       case CSV(delimiter,header_present,_,quotechar) => df_reader.format("csv").option("delimiter", delimiter).option("quote",quotechar).option("header", header_present)
@@ -58,7 +58,7 @@ object ReadApi {
 
     val df_reader = spark.read
 
-    read_logger.info("Input location: " + location.toList)
+    logger.info("Input location: " + location.toList)
 
     val df_reader_options = input_type match {
       case CSV(delimiter,header_present,parse_mode,quotechar) => df_reader.format("csv").schema(mapping.schema)
@@ -95,9 +95,9 @@ object ReadApi {
       case _ => df_reader_options.load(location: _*).where(where_clause)
     }
 
-    read_logger.info("#"*20 + " Actual Input Schema " + "#"*20)
+    logger.info("#"*20 + " Actual Input Schema " + "#"*20)
     df.schema.printTreeString // df.schema.foreach(x => read_logger.info(x.toString))
-    read_logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
+    logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
     mapping.schema.printTreeString
 
     df.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping)

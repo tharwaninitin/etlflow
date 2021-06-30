@@ -20,8 +20,8 @@ case class GooglePubSubSourceStep[T: MessageDecoder](
   extends EtlStep[Unit,Unit] {
 
   final def process(input: => Unit): Task[Unit] = {
-        etl_logger.info("#"*50)
-        etl_logger.info(s"Starting Pub Sub Step: $name")
+        logger.info("#"*50)
+        logger.info(s"Starting Pub Sub Step: $name")
 
         val stream = PubsubGoogleConsumer.subscribe[Task, T](
           Model.ProjectId(project_id),
@@ -44,5 +44,5 @@ case class GooglePubSubSourceStep[T: MessageDecoder](
             .compile
             .drain
         )
-    } *> Task(etl_logger.info("#"*50))
+    } *> Task(logger.info("#"*50))
 }

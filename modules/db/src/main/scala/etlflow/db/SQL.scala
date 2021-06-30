@@ -4,15 +4,14 @@ import cats.data.NonEmptyList
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.meta.Meta
-import etlflow.common.DateTimeFunctions.getCurrentTimestamp
+import etlflow.utils.ApplicationLogger
+import etlflow.utils.DateTimeFunctions.getCurrentTimestamp
 import org.postgresql.util.PGobject
-import org.slf4j.{Logger, LoggerFactory}
+
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
-private[db] object SQL {
-
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+private[db] object SQL extends ApplicationLogger {
 
   implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
     val o = new PGobject

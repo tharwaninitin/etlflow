@@ -1,8 +1,6 @@
 package etlflow.coretests
 
 import etlflow.EtlJobProps
-import etlflow.utils.{Executor, LoggingLevel}
-import etlflow.utils.Executor.KUBERNETES
 import io.circe.generic.semiauto.deriveDecoder
 
 object Schema {

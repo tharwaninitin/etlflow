@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPService}
-import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.LoggingLevel
+import etlflow.schema.Executor.DATAPROC
+import etlflow.schema.LoggingLevel
 import zio.Task
 
 class DPDeleteStep (
@@ -12,9 +12,9 @@ class DPDeleteStep (
 
   final def process(in: =>Unit): Task[Unit] = {
     val env = DP.live(config)
-    etl_logger.info("#" * 100)
-    etl_logger.info(s"Starting Delete Cluster Step: $name")
-    etl_logger.info(s"Cluster Name: ${config.cluster_name} and Region: ${config.region}")
+    logger.info("#" * 100)
+    logger.info(s"Starting Delete Cluster Step: $name")
+    logger.info(s"Cluster Name: ${config.cluster_name} and Region: ${config.region}")
     DPService.deleteDataproc().provideLayer(env)
   }
 

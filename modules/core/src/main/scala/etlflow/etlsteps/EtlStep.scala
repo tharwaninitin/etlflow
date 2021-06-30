@@ -1,14 +1,13 @@
 package etlflow.etlsteps
 
-import etlflow.{JobEnv, StepEnv}
-import etlflow.utils.LoggingLevel
-import org.slf4j.{Logger, LoggerFactory}
-import zio.{Has, RIO, Task, ZIO, ZLayer}
-import etlflow.log.StepLogger.{LoggingSupport, StepLoggerImpl, StepLoggerResourceEnv, logError, logInit, logSuccess}
+import etlflow.log.StepLogger._
 import etlflow.log.StepReq
+import etlflow.schema.LoggingLevel
+import etlflow.utils.ApplicationLogger
+import etlflow.{JobEnv, StepEnv}
+import zio.{Has, RIO, Task, ZIO, ZLayer}
 
-trait EtlStep[IPSTATE,OPSTATE] { self =>
-  val etl_logger: Logger = LoggerFactory.getLogger(getClass.getName)
+trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 
   val name: String
   val step_type: String = this.getClass.getSimpleName

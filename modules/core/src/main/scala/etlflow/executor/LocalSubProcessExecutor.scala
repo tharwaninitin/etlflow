@@ -1,19 +1,20 @@
 package etlflow.executor
 
-import etlflow.log.ApplicationLogger
-import etlflow.utils.Executor.LOCAL_SUBPROCESS
+import etlflow.schema.Executor.LOCAL_SUBPROCESS
+import etlflow.utils.ApplicationLogger
 import zio.ZIO
 import zio.blocking.{Blocking, effectBlocking}
+
 import java.io.{BufferedReader, InputStreamReader}
 
 case class LocalSubProcessExecutor(config: LOCAL_SUBPROCESS) extends ApplicationLogger with Service {
   override def executeJob(name: String, properties: Map[String, String]): ZIO[Blocking, Throwable, Unit] = effectBlocking {
     logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
-     |job_name => $name
-     |script_path => ${config.script_path}
-     |min_heap_memory => ${config.heap_min_memory}
-     |max_heap_memory => ${config.heap_max_memory}
-     |properties => $properties""".stripMargin
+                   |job_name => $name
+                   |script_path => ${config.script_path}
+                   |min_heap_memory => ${config.heap_min_memory}
+                   |max_heap_memory => ${config.heap_max_memory}
+                   |properties => $properties""".stripMargin
     )
 
     val props = if(properties.isEmpty) "" else properties.map(x => s"${x._1}=${x._2}").mkString(",")

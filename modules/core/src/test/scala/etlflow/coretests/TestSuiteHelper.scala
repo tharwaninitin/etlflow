@@ -1,8 +1,7 @@
 package etlflow.coretests
 
 import etlflow.db.liveDBWithTransactor
-import etlflow.log.ApplicationLogger
-import etlflow.utils.Configuration
+import etlflow.utils.{ApplicationLogger, Configuration}
 
 trait TestSuiteHelper extends Configuration with ApplicationLogger {
   val canonical_path = new java.io.File(".").getCanonicalPath

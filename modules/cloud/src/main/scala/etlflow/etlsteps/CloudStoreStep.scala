@@ -29,8 +29,8 @@ case class CloudStoreStep[T] (
   def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
 
   final def process(input: => Unit): Task[Unit] = {
-    etl_logger.info("#"*50)
-    etl_logger.info(s"Starting Sync Step: $name")
+    logger.info("#"*50)
+    logger.info(s"Starting Sync Step: $name")
 
     val inputBucket: Authority = getBucketInfo(input_location.bucket)
     var inputStorePath  = Url("gs", inputBucket, Path(input_location.location))   //
@@ -69,5 +69,5 @@ case class CloudStoreStep[T] (
       }
       .parJoin(parallelism)
       .compile.drain
-  } *> Task(etl_logger.info("#"*50))
+  } *> Task(logger.info("#"*50))
 }

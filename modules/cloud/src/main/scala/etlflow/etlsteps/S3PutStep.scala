@@ -17,15 +17,15 @@ class S3PutStep private[etlsteps](
   override def process(input_state: => Unit): Task[Unit] = {
     val program   = S3Api.putObject(bucket,key,file)
     val runnable  = for {
-                      _   <- Task.succeed(etl_logger.info("#"*100))
-                      _   <- Task.succeed(etl_logger.info(s"Input local path $file"))
-                      _   <- Task.succeed(etl_logger.info(s"Output S3 path s3://$bucket/$key"))
+                      _   <- Task.succeed(logger.info("#"*100))
+                      _   <- Task.succeed(logger.info(s"Input local path $file"))
+                      _   <- Task.succeed(logger.info(s"Output S3 path s3://$bucket/$key"))
                       s3  <- S3Api.createClient(region, endpoint_override, credentials)
                       _   <- program.provide(s3).foldM(
-                              ex => Task.succeed(etl_logger.error(ex.getMessage)) *> Task.fail(ex),
-                              _  => Task.succeed(etl_logger.info(s"Successfully uploaded file $file in location s3://$bucket/$key"))
+                              ex => Task.succeed(logger.error(ex.getMessage)) *> Task.fail(ex),
+                              _  => Task.succeed(logger.info(s"Successfully uploaded file $file in location s3://$bucket/$key"))
                             )
-                      _   <- Task.succeed(etl_logger.info("#"*100))
+                      _   <- Task.succeed(logger.info("#"*100))
                     } yield ()
     runnable
   }

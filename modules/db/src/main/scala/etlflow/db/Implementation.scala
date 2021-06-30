@@ -3,15 +3,14 @@ package etlflow.db
 import doobie.implicits._
 import doobie.util.Read
 import doobie.util.fragment.Fragment
-import etlflow.common.DateTimeFunctions.getTimestampAsString
-import etlflow.common.EtlflowError.DBException
 import etlflow.db.DBApi.Service
-import org.slf4j.{Logger, LoggerFactory}
+import etlflow.utils.ApplicationLogger
+import etlflow.utils.DateTimeFunctions.getTimestampAsString
+import etlflow.utils.EtlflowError.DBException
 import zio.interop.catz._
 import zio.{IO, UIO, ZLayer}
 
-private[db] object Implementation {
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+private[db] object Implementation extends  ApplicationLogger {
 
   val liveDB: ZLayer[TransactorEnv, Throwable, DBEnv] = ZLayer.fromService { transactor =>
     new Service {

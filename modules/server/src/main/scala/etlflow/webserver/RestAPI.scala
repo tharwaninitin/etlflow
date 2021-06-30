@@ -33,8 +33,8 @@ object RestAPI {
       }
       for {
           etlJob   <- Service.runJob(EtlJobArgs(name,props),"New Rest API")
-          json     <- JsonApi.convertToJsonByRemovingKeys(etlJob,List.empty)
-          response = Response.jsonString(json.toString())
+          json     <- JsonApi.convertToString(etlJob,List.empty)
+          response = Response.jsonString(json)
         } yield response
 
     }

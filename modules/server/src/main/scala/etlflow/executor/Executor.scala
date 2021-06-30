@@ -2,19 +2,19 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
-import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.json.JsonApi
-import etlflow.log.ApplicationLogger
 import etlflow.schema.Config
-import etlflow.utils.Executor._
-import etlflow.utils.{CacheHelper, EtlFlowUtils, UtilityFunctions => UF}
+import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LIVY, LOCAL, LOCAL_SUBPROCESS}
+import etlflow.utils.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
+import etlflow.utils.{ApplicationLogger, CacheHelper, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.{EJPMType, JobEnv}
 import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
@@ -28,7 +28,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
       db_job         <- DBApi.getJob(args.name)
       final_props    =  mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
-      props_json     <- JsonApi.convertToJson(final_props.filter(x => x._2 != null && x._2.trim != ""))
+      props_json     <- JsonApi.convertToString(final_props.filter(x => x._2 != null && x._2.trim != ""), List.empty)
       retry          = mapping_props.getOrElse("job_retries","0").toInt
       spaced         = mapping_props.getOrElse("job_retry_delay_in_minutes","0").toInt
       _              <- if (db_job.is_active)
@@ -46,7 +46,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
   private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[JobEnv,Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
-    val jobRun: RIO[JobEnv,Unit] = UF.getEtlJobName[EJN](args.name,ejpm_package).job_deploy_mode match {
+    val jobRun: RIO[JobEnv,Unit] = RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
       case LOCAL =>

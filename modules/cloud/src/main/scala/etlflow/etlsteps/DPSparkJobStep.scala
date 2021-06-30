@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPService}
-import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.LoggingLevel
+import etlflow.schema.Executor.DATAPROC
+import etlflow.schema.LoggingLevel
 import zio.Task
 
 case class DPSparkJobStep(
@@ -18,8 +18,8 @@ case class DPSparkJobStep(
   val job_run_id = java.util.UUID.randomUUID.toString
   final def process(in: =>Unit): Task[Unit] = {
     val env = DP.live(config)
-    etl_logger.info("#" * 100)
-    etl_logger.info(s"Starting Job Submission for: $job_name ")
+    logger.info("#" * 100)
+    logger.info(s"Starting Job Submission for: $job_name ")
     DPService.executeSparkJob(job_name,props ++ Map("job_run_id" -> job_run_id,"is_master" -> "false"),main_class,libs).provideLayer(env)
 
   }

@@ -3,7 +3,7 @@ package etlflow.etlsteps
 import com.redis._
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
 import zio.Task
 
 class RedisStep (
@@ -14,10 +14,10 @@ class RedisStep (
   extends EtlStep[Unit,Unit] {
 
   final def process(in: =>Unit): Task[Unit] = {
-    etl_logger.info("#" * 100)
+    logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret=credentials.password)
-    etl_logger.info(s"Starting Redis Query Step: $name")
-    etl_logger.info(s"Query to perform: $command")
+    logger.info(s"Starting Redis Query Step: $name")
+    logger.info(s"Query to perform: $command")
     command match {
       case RedisCmd.SET(kv) => Task(setKeys(kv,redisClient))
       case RedisCmd.FLUSHALL => Task(redisClient.flushall)
@@ -26,14 +26,14 @@ class RedisStep (
   }
 
   private def getKeysFromPreFix(name:String, redisClient: RedisClient) : Option[List[Option[String]]] = {
-    etl_logger.info(s"Redis keys for prefix - $name are : " + redisClient.keys(name))
+    logger.info(s"Redis keys for prefix - $name are : " + redisClient.keys(name))
     redisClient.keys(name)
   }
 
   private def setKeys(prefix:Map[String,String], redisClient: RedisClient):Unit = {
     prefix.foreach {
       value =>
-        etl_logger.info(s"Redis key_value - ${value._1}_${value._2}")
+        logger.info(s"Redis key_value - ${value._1}_${value._2}")
         redisClient.set(value._1,value._2)
     }
   }
@@ -43,9 +43,9 @@ class RedisStep (
       value =>
         val keys = getKeysFromPreFix(value,redisClient)
         val enrichedKeys = enrichKeys(keys)
-        etl_logger.info(s"Redis enriched keys for prefix - $name are : " + enrichedKeys)
+        logger.info(s"Redis enriched keys for prefix - $name are : " + enrichedKeys)
         redisClient.del( enrichedKeys.head,enrichedKeys.tail:_*)
-        etl_logger.info(s"Redis keys are deleted for prefix - $name")
+        logger.info(s"Redis keys are deleted for prefix - $name")
     }
   }
 

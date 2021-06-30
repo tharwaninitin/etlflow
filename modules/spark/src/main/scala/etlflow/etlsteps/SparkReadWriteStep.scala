@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
+import etlflow.schema.LoggingLevel
 import etlflow.spark.{IOType, ReadApi, SparkRuntimeConf, WriteApi}
-import etlflow.utils.LoggingLevel
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import zio.Task
@@ -53,8 +53,8 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
         }
       }
     })
-    etl_logger.info("#################################################################################################")
-    etl_logger.info(s"Starting ETL Step : $name")
+    logger.info("#################################################################################################")
+    logger.info(s"Starting ETL Step : $name")
     val ds = ReadApi.LoadDS[I](input_location,input_type,input_filter)(spark)
 
     transform_function match {
@@ -64,17 +64,17 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
           output_type, output_location, output_partition_col, output_save_mode, output_filename,
           repartition=output_repartitioning, n= output_repartitioning_num
         )(output,spark)
-        etl_logger.info(s"recordsReadCount: $recordsReadCount")
-        etl_logger.info(s"recordsWrittenCount: $recordsWrittenCount")
-        etl_logger.info("#################################################################################################")
+        logger.info(s"recordsReadCount: $recordsReadCount")
+        logger.info(s"recordsWrittenCount: $recordsWrittenCount")
+        logger.info("#################################################################################################")
       case None =>
         WriteApi.WriteDS[I](
           output_type, output_location, output_partition_col, output_save_mode, output_filename,
           repartition=output_repartitioning, n= output_repartitioning_num
         )(ds,spark)
-        etl_logger.info(s"recordsReadCount: $recordsReadCount")
-        etl_logger.info(s"recordsWrittenCount: $recordsWrittenCount")
-        etl_logger.info("#################################################################################################")
+        logger.info(s"recordsReadCount: $recordsReadCount")
+        logger.info(s"recordsWrittenCount: $recordsWrittenCount")
+        logger.info("#################################################################################################")
     }
   }
 
@@ -100,7 +100,7 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
   }
 
   def showCorruptedData(): Unit = {
-    etl_logger.info(s"Corrupted data for job $name:")
+    logger.info(s"Corrupted data for job $name:")
     val ds = ReadApi.LoadDS[O](input_location,input_type)(spark)
     ds.filter("_corrupt_record is not null").show(100,truncate = false)
   }

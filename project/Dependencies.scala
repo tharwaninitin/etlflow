@@ -45,17 +45,10 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "io.circe" %% "circe-core" % CirceVersion,
-    "io.circe" %% "circe-generic" % CirceVersion,
-    "io.circe" %% "circe-parser" % CirceVersion,
-    "io.circe" %% "circe-optics" % CirceVersion,
-    "io.circe" %% "circe-generic-extras" % CirceVersion,
     "dev.zio" %% "zio-config" %  zioConfig,
     "dev.zio" %% "zio-config-magnolia" %  zioConfig,
     "dev.zio" %% "zio-config-typesafe" % zioConfig,
-    "org.json4s" %% "json4s-jackson" % Json4sVersion,
     "com.github.scopt" %% "scopt" % ScoptVersion,
-    "org.slf4j" % "slf4j-api" % Sl4jVersion,
     "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion,
     "javax.mail" % "javax.mail-api" % MailVersion,
     "com.sun.mail" % "javax.mail"   % MailVersion
@@ -110,6 +103,20 @@ object Dependencies {
 
   lazy val sparkLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion % Provided
+  )
+
+  lazy val utilsLibs = List(
+    "org.slf4j" % "slf4j-api" % Sl4jVersion,
+    "org.scala-lang" % "scala-reflect" % "2.13.6"
+  )
+
+  lazy val jsonLibs = List(
+    "dev.zio" %% "zio" % ZioVersion,
+    "io.circe" %% "circe-core" % CirceVersion,
+    "io.circe" %% "circe-generic" % CirceVersion,
+    "io.circe" %% "circe-parser" % CirceVersion,
+    "io.circe" %% "circe-optics" % CirceVersion,
+    "io.circe" %% "circe-generic-extras" % CirceVersion
   )
 
   lazy val coreTestLibs = List(

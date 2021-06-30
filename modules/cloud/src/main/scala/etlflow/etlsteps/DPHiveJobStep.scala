@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPService}
-import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.LoggingLevel
+import etlflow.schema.Executor.DATAPROC
+import etlflow.schema.LoggingLevel
 import zio.Task
 
 case class DPHiveJobStep(
@@ -14,8 +14,8 @@ case class DPHiveJobStep(
 
   final def process(in: =>Unit): Task[Unit] = {
     val env = DP.live(config)
-    etl_logger.info("#"*100)
-    etl_logger.info(s"Starting Hive Dataproc Job: $name")
+    logger.info("#"*100)
+    logger.info(s"Starting Hive Dataproc Job: $name")
     DPService.executeHiveJob(query).provideLayer(env)
   }
 

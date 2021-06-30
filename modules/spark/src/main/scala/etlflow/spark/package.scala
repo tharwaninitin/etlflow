@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import zio.{Has, Task, ZIO, ZLayer}
 

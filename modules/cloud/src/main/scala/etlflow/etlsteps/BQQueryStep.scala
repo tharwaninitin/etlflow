@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.gcp._
 import etlflow.schema.Credential.GCP
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
 import zio.Task
 
 class BQQueryStep private[etlflow](
@@ -13,10 +13,10 @@ class BQQueryStep private[etlflow](
   extends EtlStep[Unit, Unit] {
 
   final def process(input: =>Unit): Task[Unit] = {
-    etl_logger.info("#"*100)
+    logger.info("#"*100)
     val env = BQ.live(credentials)
-    etl_logger.info(s"Starting BQ Query Step: $name")
-    etl_logger.info(s"Query: $query")
+    logger.info(s"Starting BQ Query Step: $name")
+    logger.info(s"Query: $query")
     BQService.executeQuery(query).provideLayer(env)
   }
 

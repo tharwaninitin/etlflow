@@ -34,8 +34,8 @@ case class CloudStoreToPostgresStep[T](
       pg_session.use { s =>
         s.prepare(pg_command).use { pc =>
 
-          etl_logger.info("#" * 50)
-          etl_logger.info(s"Starting Sync Step: $name")
+          logger.info("#" * 50)
+          logger.info(s"Starting Sync Step: $name")
 
           val inputBucket: Authority = getBucketInfo(input_location.bucket)
           var inputStorePath  = Url("gs", inputBucket, Path(input_location.location)) //Default
@@ -77,6 +77,6 @@ case class CloudStoreToPostgresStep[T](
             .compile.drain
         }
 
-      } *> Task(etl_logger.info("#" * 50))
+      } *> Task(logger.info("#" * 50))
     }
 }

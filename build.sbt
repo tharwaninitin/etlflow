@@ -3,7 +3,7 @@ lazy val scala213 = "2.13.6"
 lazy val supportedScalaVersions = List(scala212)
 lazy val sparkSupportedScalaVersions = List(scala212)
 
-import Dependencies._
+import Dependencies.{dbLibs, _}
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
@@ -54,7 +54,8 @@ lazy val dbSettings = Seq(
 
 lazy val utilsSettings = Seq(
   name := "etlflow-utils",
-  crossScalaVersions := supportedScalaVersions
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++=  utilsLibs ++ coreTestLibs,
 )
 
 lazy val httpSettings = Seq(
@@ -68,6 +69,13 @@ lazy val redisSettings = Seq(
   crossScalaVersions := supportedScalaVersions,
   libraryDependencies ++= redisLibs
 )
+
+lazy val jsonSettings = Seq(
+  name := "etlflow-json",
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++= jsonLibs ++ coreTestLibs
+)
+
 
 lazy val root = (project in file("."))
   .settings(
@@ -98,7 +106,7 @@ lazy val core = (project in file("modules/core"))
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll
     ),
   )
-  .dependsOn(db, utils)
+  .dependsOn(db, utils, json)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)
@@ -133,6 +141,12 @@ lazy val redis = (project in file("modules/redis"))
   .settings(commonSettings)
   .settings(redisSettings)
   .dependsOn(core % "compile->compile;test->test", utils)
+
+
+lazy val json = (project in file("modules/json"))
+  .settings(commonSettings)
+  .settings(jsonSettings)
+  .dependsOn(utils)
 
 
 

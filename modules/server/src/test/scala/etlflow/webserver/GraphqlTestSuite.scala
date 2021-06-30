@@ -3,7 +3,7 @@ package etlflow.webserver
 import caliban.Macros.gqldoc
 import etlflow.ServerSuiteHelper
 import etlflow.db.RunDbMigration
-import etlflow.log.ApplicationLogger
+import etlflow.utils.ApplicationLogger
 import zio.test.Assertion.equalTo
 import zio.test._
 

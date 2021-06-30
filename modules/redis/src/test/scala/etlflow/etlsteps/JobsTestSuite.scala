@@ -16,7 +16,7 @@ object JobsTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
       testM("Execute Etl Job Redis") {
-        val job = RedisSteps(EtlJob3Props())
+        val job = RedisJob(EtlJob3Props())
         assertM(job.execute().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ).provideCustomLayerShared(fullLayer.orDie)

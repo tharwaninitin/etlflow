@@ -28,7 +28,7 @@ private[etlflow] object S3Impl {
 
       def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean] = for {
         list    <- listBucketObjects(bucket, prefix, Integer.MAX_VALUE)
-        _       = aws_logger.info{
+        _       = logger.info{
                     if (list.contents().asScala.nonEmpty)
                       s"Objects under bucket $bucket with prefix $prefix are \n" + list.contents().asScala.mkString("\n")
                     else s"No objects under bucket $bucket with prefix $prefix"

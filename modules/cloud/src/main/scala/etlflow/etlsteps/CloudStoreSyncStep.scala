@@ -29,9 +29,9 @@ case class CloudStoreSyncStep (
   def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
 
   final def process(input: => Unit): Task[Unit] = {
-    etl_logger.info("#" * 50)
+    logger.info("#" * 50)
 
-    etl_logger.info(s"Starting Sync Step: $name")
+    logger.info(s"Starting Sync Step: $name")
 
     val inputBucket: Authority = getBucketInfo(input_location.bucket)
     val outputBucket: Authority = getBucketInfo(output_location.bucket)
@@ -83,8 +83,8 @@ case class CloudStoreSyncStep (
             val transferStream = transformation.map(trans => inputStream.through(trans)).getOrElse(inputStream)
             val outputStream = transferStream.through(outputStore.put(output_path, output_overwrite))
               .handleErrorWith { ex =>
-                etl_logger.error(ex.getMessage)
-                etl_logger.error(ex.getStackTrace.mkString("\n"))
+                logger.error(ex.getMessage)
+                logger.error(ex.getStackTrace.mkString("\n"))
                 Stream.raiseError[Task](ex)
               }
             val doneMarkerStream = Stream.eval(Task(println(s"Done loading file $input_path")))
@@ -97,5 +97,5 @@ case class CloudStoreSyncStep (
       }
       .parJoin(maxOpen = parallelism)
       .compile.drain
-  } *> Task(etl_logger.info("#" * 50))
+  } *> Task(logger.info("#" * 50))
 }

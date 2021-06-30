@@ -3,9 +3,11 @@ package etlflow.etlsteps
 import etlflow.JobEnv
 import etlflow.db.DBApi
 import etlflow.json.JsonApi
-import etlflow.utils.{Encryption, LoggingLevel}
+import etlflow.schema.LoggingLevel
+import etlflow.utils.EncryptionAPI
 import io.circe.Decoder
 import zio.RIO
+
 import scala.reflect.runtime.universe.TypeTag
 
 case class GetCredentialStep[T : TypeTag : Decoder](name: String, credential_name: String) extends EtlStep[Unit,T] {
@@ -14,7 +16,7 @@ case class GetCredentialStep[T : TypeTag : Decoder](name: String, credential_nam
     val query = s"SELECT value FROM credential WHERE name='$credential_name' and valid_to is null;"
     for {
       result <- DBApi.executeQueryWithSingleResponse[String](query)
-      dValue <- Encryption.getDecryptValues[T](result)
+      dValue <- EncryptionAPI.getDecryptValues[T](result)
       op     <- JsonApi.convertToObject[T](dValue.toString())
     } yield op
   }

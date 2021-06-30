@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.schema.Credential
-import etlflow.utils.{LoggingLevel, UtilityFunctions => UF}
+import etlflow.schema.{Credential, LoggingLevel}
+import etlflow.utils.{ReflectAPI => RF}
 import zio.{Task, UIO}
 
 import scala.reflect.runtime.universe.TypeTag
@@ -23,8 +23,8 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
   var row_count: Map[String, Long] = Map.empty
 
   final def process(input: => Unit): Task[Unit] = {
-    etl_logger.info("#" * 50)
-    etl_logger.info(s"Starting BQ Data Export Step : $name")
+    logger.info("#" * 50)
+    logger.info(s"Starting BQ Data Export Step : $name")
 
     val env = BQ.live(credentials)
 
@@ -34,7 +34,7 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
         source_table,destination_path,destination_file_name,destination_format,destination_compression_type
       ).provideLayer(env)
     }
-    program *> UIO(etl_logger.info("#" * 50))
+    program *> UIO(logger.info("#" * 50))
   }
 
   override def getExecutionMetrics: Map[String, Map[String, String]] = {
@@ -61,7 +61,7 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
         , "input_table" -> source_table
         , "output_type" -> destination_format
         , "output_location" -> destination_path
-        , "input_class" -> Try(UF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+        , "input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
       )
     }
     Map.empty

@@ -3,9 +3,9 @@ package etlflow.scheduler
 import cron4s.{Cron, CronExpr}
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
-import etlflow.common.DateTimeFunctions.getCurrentTimestampAsString
 import etlflow.db.{DBApi, EtlJob}
-import etlflow.log.ApplicationLogger
+import etlflow.utils.ApplicationLogger
+import etlflow.utils.DateTimeFunctions.getCurrentTimestampAsString
 import zio._
 import zio.duration._
 

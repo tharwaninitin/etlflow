@@ -1,15 +1,14 @@
 package etlflow.log
 
-import etlflow.common.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 import etlflow.etlsteps.EtlStep
-import etlflow.utils.LoggingLevel
-import etlflow.utils.LoggingLevel.{DEBUG, INFO, JOB}
+import etlflow.schema.LoggingLevel
+import etlflow.schema.LoggingLevel.{DEBUG, INFO, JOB}
+import etlflow.utils.ApplicationLogger
+import etlflow.utils.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
-import zio.Runtime.global.unsafeRun
-import zio.Task
 
 private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel,host_url:String) extends ApplicationLogger {
   /** Slack message templates */

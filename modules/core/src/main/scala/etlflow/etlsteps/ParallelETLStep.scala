@@ -2,7 +2,8 @@ package etlflow.etlsteps
 
 import etlflow.JobEnv
 import etlflow.log.StepReq
-import etlflow.utils.{Configuration, LoggingLevel}
+import etlflow.schema.LoggingLevel
+import etlflow.utils.Configuration
 import zio.{RIO, ZIO, ZLayer}
 
 case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] with Configuration {
@@ -10,8 +11,8 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
   val job_run_id: String = java.util.UUID.randomUUID.toString
 
   final def process(in: => Unit): RIO[JobEnv, Unit] = {
-    etl_logger.info("#################################################################################################")
-    etl_logger.info(s"Starting steps => ${steps.map(_.name).mkString(",")} in parallel")
+    logger.info("#################################################################################################")
+    logger.info(s"Starting steps => ${steps.map(_.name).mkString(",")} in parallel")
     val stepLayer = ZLayer.succeed(StepReq(job_run_id))
     ZIO.foreachPar(steps)(x => x.execute()).provideSomeLayer[JobEnv](stepLayer).unit
   }

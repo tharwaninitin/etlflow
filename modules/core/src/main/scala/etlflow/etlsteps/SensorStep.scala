@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.common.EtlflowError.EtlJobException
+import etlflow.utils.EtlflowError.EtlJobException
 import org.slf4j.{Logger, LoggerFactory}
 import zio.Schedule.Decision
 import zio.clock.Clock

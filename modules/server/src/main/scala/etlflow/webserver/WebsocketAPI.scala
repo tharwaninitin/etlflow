@@ -1,6 +1,6 @@
 package etlflow.webserver
 
-import etlflow.log.ApplicationLogger
+import etlflow.utils.ApplicationLogger
 import zhttp.http._
 import zhttp.socket.{Socket, SocketApp, WebSocketFrame}
 import zio.clock.Clock

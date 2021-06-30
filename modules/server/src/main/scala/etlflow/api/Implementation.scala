@@ -4,20 +4,19 @@ import cron4s.Cron
 import cron4s.lib.javatime._
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
-import etlflow.common.DateTimeFunctions._
 import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.log.ApplicationLogger
-import etlflow.utils.{CacheHelper, EncryptCred, EtlFlowUtils}
+import etlflow.utils.DateTimeFunctions.{getCurrentTimestampAsString, getCurrentTimestampUsingLocalDateTime, getLocalDateTimeFromTimestamp, getTimeDifferenceAsString, getTimestampAsString, getTimestampFromLocalDateTime}
+import etlflow.utils.{ApplicationLogger, CacheHelper, EncryptCred, EtlFlowUtils}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
 import scalacache.caffeine.CaffeineCache
 import zio.Fiber.Status.{Running, Suspended}
-import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Task, UIO, ZIO, ZLayer, _}
+
 import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
 
@@ -102,33 +101,33 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
 
       override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
         for{
-          value <- JsonApi.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty)
+          value <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
           credentialDB = CredentialDB(
             args.name,
             args.`type` match {
               case JDBC => "jdbc"
               case AWS => "aws"
             },
-            JsonString(value.toString())
+            JsonString(value)
           )
           actualSerializerOutput <- EncryptCred(credentialDB.`type`,credentialDB.value)
-          addCredential <- DBApi.addCredential(credentialDB,JsonString(actualSerializerOutput.toString()))
+          addCredential <- DBApi.addCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield addCredential
       }
 
       override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
         for{
-          value <- JsonApi.convertToJsonByRemovingKeys(args.value.map(x => (x.key, x.value)).toMap, List.empty)
+          value <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
           credentialDB = CredentialDB(
             args.name,
             args.`type` match {
               case JDBC => "jdbc"
               case AWS => "aws"
             },
-            JsonString(value.toString())
+            JsonString(value)
           )
           actualSerializerOutput <- EncryptCred(credentialDB.`type`,credentialDB.value)
-          updateCredential <- DBApi.updateCredential(credentialDB,JsonString(actualSerializerOutput.toString()))
+          updateCredential <- DBApi.updateCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield updateCredential
       }
     })

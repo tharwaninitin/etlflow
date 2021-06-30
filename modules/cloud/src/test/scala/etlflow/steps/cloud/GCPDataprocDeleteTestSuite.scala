@@ -1,7 +1,7 @@
 package etlflow.steps.cloud
 
 import etlflow.etlsteps.DPDeleteStep
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._

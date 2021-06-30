@@ -14,24 +14,24 @@ private [etlflow]  object EncryptCred {
   implicit val JdbcEncoder = deriveEncoder[JDBC]
   implicit val AwsEncoder = deriveEncoder[AWS]
 
-  def apply(`type`: String,value:JsonString): RIO[JsonEnv,Json] = {
+  def apply(`type`: String,value:JsonString): RIO[JsonEnv,String] = {
     `type` match {
       case "jdbc" => {
         for {
           jdbc <- JsonApi.convertToObject[JDBC](value.str)
-          userName = Encryption.encrypt(jdbc.user)
-          password = Encryption.encrypt(jdbc.password)
+          userName = EncryptionAPI.encrypt(jdbc.user)
+          password = EncryptionAPI.encrypt(jdbc.password)
           jdbc_schema = JDBC(jdbc.url, userName, password, jdbc.driver)
-          jsonValue  <- JsonApi.convertToJsonByRemovingKeys(jdbc_schema, List.empty)
+          jsonValue  <- JsonApi.convertToString(jdbc_schema, List.empty)
         } yield jsonValue
       }
       case "aws" => {
         for {
           aws <- JsonApi.convertToObject[AWS](value.str)
-          accessKey = Encryption.encrypt(aws.access_key)
-          secretKey = Encryption.encrypt(aws.secret_key)
+          accessKey = EncryptionAPI.encrypt(aws.access_key)
+          secretKey = EncryptionAPI.encrypt(aws.secret_key)
           aws_schema = AWS(accessKey,secretKey)
-          jsonValue  <- JsonApi.convertToJsonByRemovingKeys(aws_schema, List.empty)
+          jsonValue  <- JsonApi.convertToString(aws_schema, List.empty)
         } yield jsonValue
       }
     }

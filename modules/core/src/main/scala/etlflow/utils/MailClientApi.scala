@@ -7,8 +7,7 @@ import javax.mail.internet.{InternetAddress, MimeMessage}
 import javax.mail.{Address, Message, Session}
 import org.slf4j.{Logger, LoggerFactory}
 
-private[etlflow] object MailClientApi {
-  val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+private[etlflow] object MailClientApi  extends ApplicationLogger  {
 
   def sendMail(sender:Option[String],recipient: List[String],content:String,subject:String,credentials: SMTP): Unit = {
     try {

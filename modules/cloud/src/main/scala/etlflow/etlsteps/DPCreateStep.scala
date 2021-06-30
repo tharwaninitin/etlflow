@@ -1,9 +1,9 @@
 package etlflow.etlsteps
 
-import etlflow.utils.LoggingLevel
-import zio.Task
 import etlflow.gcp.{DP, DPService, DataprocProperties}
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
+import etlflow.schema.LoggingLevel
+import zio.Task
 
 class DPCreateStep(
                      val name: String,
@@ -12,9 +12,9 @@ class DPCreateStep(
                    ) extends EtlStep[Unit,Unit] {
   final def process(in: =>Unit): Task[Unit] = {
     val env = DP.live(config)
-    etl_logger.info("#"*100)
-    etl_logger.info(s"Starting Create Cluster Step: $name")
-    etl_logger.info(s"Cluster Name: ${config.cluster_name} and Region: ${config.region}")
+    logger.info("#"*100)
+    logger.info(s"Starting Create Cluster Step: $name")
+    logger.info(s"Cluster Name: ${config.cluster_name} and Region: ${config.region}")
     DPService.createDataproc(props).provideLayer(env)
   }
 

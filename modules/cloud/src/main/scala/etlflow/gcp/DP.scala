@@ -1,34 +1,36 @@
 package etlflow.gcp
 
-import java.util.concurrent.TimeUnit
-import com.google.cloud.dataproc.v1.{Cluster, ClusterConfig, ClusterControllerClient, ClusterControllerSettings, DiskConfig, EndpointConfig, GceClusterConfig, HiveJob, InstanceGroupConfig, Job, JobControllerClient, JobControllerSettings, JobPlacement, LifecycleConfig, QueryList, SoftwareConfig, SparkJob}
+import com.google.cloud.dataproc.v1._
 import com.google.protobuf.Duration
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
+import etlflow.utils.ApplicationLogger
 import zio.{Layer, Task, ZIO, ZLayer}
+
+import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 
-private[etlflow] object DP {
+private[etlflow] object DP extends ApplicationLogger {
 
   private def submitAndWaitForJobCompletion(name: String, jobControllerClient: JobControllerClient, projectId: String,
                                             region: String, job: Job): Unit = {
     val request = jobControllerClient.submitJob(projectId, region, job)
     val jobId = request.getReference.getJobId
-    gcp_logger.info(s"Submitted job $name $jobId")
+    logger.info(s"Submitted job $name $jobId")
     var continue = true
     var jobInfo = jobControllerClient.getJob(projectId, region, jobId)
     var jobState = jobInfo.getStatus.getState.toString
     while (continue) {
       jobInfo = jobControllerClient.getJob(projectId, region, jobId)
       jobState = jobInfo.getStatus.getState.toString
-      gcp_logger.info(s"Job $name $jobId Status $jobState")
+      logger.info(s"Job $name $jobId Status $jobState")
       jobInfo.getStatus.getState.toString match {
         case "DONE" =>
-          gcp_logger.info(s"Job $name $jobId completed successfully with state $jobState")
+          logger.info(s"Job $name $jobId completed successfully with state $jobState")
           jobControllerClient.close()
           continue = false
         case "CANCELLED" | "ERROR" =>
           val error = jobInfo.getStatus.getDetails
-          gcp_logger.error(s"Job $name $jobId failed with error $error")
+          logger.error(s"Job $name $jobId failed with error $error")
           jobControllerClient.close()
           throw new RuntimeException(s"Job $name failed with error $error")
         case _ =>
@@ -43,7 +45,7 @@ private[etlflow] object DP {
         override def executeSparkJob(
              name: String, properties: Map[String, String],
               main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit] = Task {
-          gcp_logger.info(s"""Trying to submit spark job $name on Dataproc with Configurations:
+          logger.info(s"""Trying to submit spark job $name on Dataproc with Configurations:
                              |dp_region => ${config.region}
                              |dp_project => ${config.project}
                              |dp_endpoint => ${config.endpoint}
@@ -60,8 +62,8 @@ private[etlflow] object DP {
           else
             List("run_job", "--job_name", name)
 
-          gcp_logger.info("dp_libs")
-          libs.foreach(gcp_logger.info)
+          logger.info("dp_libs")
+          libs.foreach(logger.info)
           val spark_conf = config.sp.map(x => (x.key,x.value)).toMap
           val sparkJob = SparkJob.newBuilder()
             .addAllJarFileUris(libs.asJava)
@@ -74,7 +76,7 @@ private[etlflow] object DP {
         }
 
         override def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = Task {
-          gcp_logger.info(s"""Trying to submit hive job on Dataproc with Configurations:
+          logger.info(s"""Trying to submit hive job on Dataproc with Configurations:
                              |dp_region => ${config.region}
                              |dp_project => ${config.project}
                              |dp_endpoint => ${config.endpoint}
@@ -98,10 +100,10 @@ private[etlflow] object DP {
           try {
             val delete_cluster_async_request = cluster_controller_client.deleteClusterAsync(config.project, config.region, config.cluster_name)
             val response = delete_cluster_async_request.get
-            gcp_logger.info(s"Cluster ${config.cluster_name} successfully deleted. API response is ${response.toString}")
+            logger.info(s"Cluster ${config.cluster_name} successfully deleted. API response is ${response.toString}")
           } catch {
             case e: Throwable =>
-              gcp_logger.error(s"Error executing deleteCluster: ${e.getMessage} ")
+              logger.error(s"Error executing deleteCluster: ${e.getMessage} ")
               throw e
           } finally if (cluster_controller_client != null) cluster_controller_client.close()
         }
@@ -152,10 +154,10 @@ private[etlflow] object DP {
             val cluster = Cluster.newBuilder.setClusterName(config.cluster_name).setConfig(cluster_config).build
             val create_cluster_async_request = cluster_controller_client.createClusterAsync(config.project, config.region, cluster)
             val response = create_cluster_async_request.get
-            gcp_logger.info(s"Cluster created successfully: ${response.getClusterName}")
+            logger.info(s"Cluster created successfully: ${response.getClusterName}")
           } catch {
             case e: Throwable =>
-              gcp_logger.error(s"Error creating cluster: ${e.getMessage} ")
+              logger.error(s"Error creating cluster: ${e.getMessage} ")
               throw e
           } finally if (cluster_controller_client != null) cluster_controller_client.close()
         }

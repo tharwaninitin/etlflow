@@ -1,7 +1,7 @@
 package etlflow.etljobs
 
 import etlflow.etlsteps._
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
 import etlflow.{EtlJobProps, StepEnv}
 import zio.{Task, ZIO}
 

@@ -3,9 +3,9 @@ package etlflow
 import etlflow.db.{DBApi, RunDbMigration, liveDBWithTransactor}
 import etlflow.etljobs.EtlJob
 import etlflow.executor.LocalExecutor
-import etlflow.log.ApplicationLogger
-import etlflow.utils.EtlJobArgsParser.{EtlJobConfig, parser}
-import etlflow.utils.{Configuration, UtilityFunctions => UF}
+import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
+import etlflow.utils.EncryptionAPI.encryptKey
+import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
 
 import scala.reflect.runtime.universe.TypeTag
@@ -15,7 +15,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
     with ApplicationLogger
     with App {
 
-  val etl_job_props_mapping_package: String = UF.getJobNamePackage[EJN] + "$"
+  val etl_job_props_mapping_package: String = RF.getJobNamePackage[EJN] + "$"
 
   def cliRunner(args: List[String], app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
   : ZIO[ZEnv,Throwable,Unit] = {
@@ -29,7 +29,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           RunDbMigration(config.db, clean = true).unit
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
-          val encryptedPassword = UF.encryptKey(ec.password)
+          val encryptedPassword = encryptKey(ec.password)
           val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
           val dbLayer = liveDBWithTransactor(config.db)
           DBApi.executeQuery(query).provideCustomLayer(dbLayer)
@@ -40,7 +40,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.error(s"Need to provide args --password")
           ZIO.fail(new RuntimeException("Need to provide args --password"))
         case ec if ec.list_jobs =>
-          UIO(UF.printEtlJobs[EJN]())
+          UIO(RF.printEtlJobs[EJN]())
         case ec if ec.show_job_props && ec.job_name != "" =>
           logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
           LocalExecutor(etl_job_props_mapping_package).showJobProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package)

@@ -3,9 +3,8 @@ package etlflow.webserver
 import com.github.t3hnar.bcrypt._
 import etlflow.api.Schema.{UserArgs, UserAuth}
 import etlflow.db.{DBApi, DBEnv}
-import etlflow.log.ApplicationLogger
 import etlflow.schema.WebServer
-import etlflow.utils.CacheHelper
+import etlflow.utils.{ApplicationLogger, CacheHelper}
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import scalacache.caffeine.CaffeineCache
 import zhttp.http.{HttpApp, _}

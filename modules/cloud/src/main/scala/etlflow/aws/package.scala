@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.schema.Credential.AWS
-import org.slf4j.{Logger, LoggerFactory}
+import etlflow.utils.ApplicationLogger
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -10,8 +10,7 @@ import zio.{Has, Task, ZIO}
 
 import java.net.URI
 
-package object aws {
-  val aws_logger: Logger = LoggerFactory.getLogger(getClass.getName)
+package object aws extends ApplicationLogger {
 
   type S3Api = Has[Service]
   private[etlflow] trait Service {
@@ -30,15 +29,15 @@ package object aws {
 
       val initBuilder = credentials match {
         case Some(creds) =>
-          aws_logger.info("Using AWS credentials from credentials passed in function")
+          logger.info("Using AWS credentials from credentials passed in function")
           val credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.access_key, creds.secret_key))
           S3AsyncClient.builder.region(region).credentialsProvider(credentials)
         case None => (ACCESS_KEY, SECRET_KEY) match {
           case (access_key, secret_key) if access_key == "NOT_SET_IN_ENV" || secret_key == "NOT_SET_IN_ENV" =>
-            aws_logger.info("Using AWS credentials from local sdk")
+            logger.info("Using AWS credentials from local sdk")
             S3AsyncClient.builder.region(region)
           case keys =>
-            aws_logger.info("Using AWS credentials from environment variables(ACCESS_KEY,SECRET_KEY)")
+            logger.info("Using AWS credentials from environment variables(ACCESS_KEY,SECRET_KEY)")
             val credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(keys._1, keys._2))
             S3AsyncClient.builder.region(region).credentialsProvider(credentials)
         }

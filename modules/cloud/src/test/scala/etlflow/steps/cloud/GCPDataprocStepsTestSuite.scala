@@ -1,10 +1,10 @@
 package etlflow.steps.remote
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
-import zio.test._
 import zio.test.Assertion._
+import zio.test._
 
 object GCPDataprocStepsTestSuite extends DefaultRunnableSpec {
 

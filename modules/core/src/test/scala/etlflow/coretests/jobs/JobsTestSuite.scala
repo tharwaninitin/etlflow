@@ -15,7 +15,7 @@ object JobsTestSuite extends DefaultRunnableSpec {
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Jobs") (
       testM("Execute Job1HelloWorld") {
-        val args = List("run_job", "--job_name", "Job1")
+        val args = List("run_job", "--job_name", "Job5")
         assertM(job(args).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

@@ -3,7 +3,7 @@ package etlflow.coretests.utils
 import etlflow.json.CredentialImplicits._
 import etlflow.json.JsonApi
 import etlflow.schema.Credential.{AWS, JDBC}
-import etlflow.utils.Encryption
+import etlflow.utils.EncryptionAPI
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
 
@@ -31,21 +31,21 @@ object EncryptionTestSuite  extends DefaultRunnableSpec  {
       testM("Encryption should return correct decrypted JDBC value") {
         val actual_jdbc_encrypt = for {
           jdbc           <- JsonApi.convertToObject[JDBC](jdbc_value)
-          userName       = Encryption.encrypt(jdbc.user)
-          password       = Encryption.encrypt(jdbc.password)
+          userName       = EncryptionAPI.encrypt(jdbc.user)
+          password       = EncryptionAPI.encrypt(jdbc.password)
           jdbc_schema    = JDBC(jdbc.url,userName,password,jdbc.driver)
-          jdbc_encrypted <- JsonApi.convertToJsonByRemovingKeys(jdbc_schema, List.empty)
-        } yield jdbc_encrypted.toString().replaceAll("\\s", "")
+          jdbc_encrypted <- JsonApi.convertToString(jdbc_schema, List.empty)
+        } yield jdbc_encrypted.replaceAll("\\s", "")
         assertM(actual_jdbc_encrypt)(equalTo(expected_jdbc_encrypt.replaceAll("\\s", "") ))
       },
       testM("Encryption should return correct decrypted AWS value") {
         val actual_aws_encrypt = for {
           aws           <- JsonApi.convertToObject[AWS](aws_value)
-          access_key    = Encryption.encrypt(aws.access_key)
-          secret_key    = Encryption.encrypt(aws.secret_key)
+          access_key    = EncryptionAPI.encrypt(aws.access_key)
+          secret_key    = EncryptionAPI.encrypt(aws.secret_key)
           aws_schema    = AWS(access_key,secret_key)
-          aws_encrypted <- JsonApi.convertToJsonByRemovingKeys(aws_schema, List.empty)
-        } yield aws_encrypted.toString().replaceAll("\\s", "")
+          aws_encrypted <- JsonApi.convertToString(aws_schema, List.empty)
+        } yield aws_encrypted.replaceAll("\\s", "")
         assertM(actual_aws_encrypt)(equalTo(expected_aws_encrypt.replaceAll("\\s", "") ))
       }
     ).provideLayer(etlflow.json.Implementation.live) @@ TestAspect.flaky

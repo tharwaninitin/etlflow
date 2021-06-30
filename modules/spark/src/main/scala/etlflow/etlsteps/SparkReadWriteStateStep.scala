@@ -1,10 +1,11 @@
 package etlflow.etlsteps
 
+import etlflow.schema.LoggingLevel
 import etlflow.spark.{IOType, ReadApi, WriteApi}
-import etlflow.utils.LoggingLevel
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import zio.Task
+
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: TypeTag, OPSTATE] private[etlsteps] (
@@ -37,8 +38,8 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
         }
       }
     })
-    etl_logger.info("#################################################################################################")
-    etl_logger.info(s"Starting ETL Step : $name")
+    logger.info("#################################################################################################")
+    logger.info(s"Starting ETL Step : $name")
     val ds = ReadApi.LoadDS[T](input_location,input_type,input_filter)(sp)
 
     transform_function match {
@@ -47,11 +48,11 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
           case Some(transformFunc) =>
             val output = transformFunc(sp,DatasetWithState[T, IPSTATE](ds, input_state))
             WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output.ds,sp)
-            etl_logger.info("#################################################################################################")
+            logger.info("#################################################################################################")
             output.state
           case None =>
             WriteApi.WriteDS[T](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(ds,sp)
-            etl_logger.info("#################################################################################################")
+            logger.info("#################################################################################################")
             input_state.asInstanceOf[OPSTATE]
         }
       case Right(tf) =>
@@ -59,11 +60,11 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
           case Some(transformFunc) =>
             val output = transformFunc(sp,ds)
             WriteApi.WriteDS[O](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(output,sp)
-            etl_logger.info("#################################################################################################")
+            logger.info("#################################################################################################")
             input_state.asInstanceOf[OPSTATE]
           case None =>
             WriteApi.WriteDS[T](output_type, output_location, output_partition_col, output_save_mode, output_filename, repartition=output_repartitioning)(ds,sp)
-            etl_logger.info("#################################################################################################")
+            logger.info("#################################################################################################")
             input_state.asInstanceOf[OPSTATE]
         }
     }
@@ -82,7 +83,7 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
   }
 
   def showCorruptedData(): Unit = {
-    etl_logger.info(s"Corrupted data for job $name:")
+    logger.info(s"Corrupted data for job $name:")
     val ds = ReadApi.LoadDS[T](input_location,input_type)(spark.get)
     ds.filter("_corrupt_record is not null").show(100,truncate = false)
   }

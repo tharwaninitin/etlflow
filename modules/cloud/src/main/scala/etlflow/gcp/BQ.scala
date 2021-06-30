@@ -6,11 +6,12 @@ import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, ExtractJobConfiguration, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
 import etlflow.gcp.BQInputType.{CSV, JSON, ORC, PARQUET}
 import etlflow.schema.Credential
+import etlflow.utils.ApplicationLogger
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
 
 import scala.sys.process._
 
-private[etlflow] object BQ {
+private[etlflow] object BQ extends ApplicationLogger {
   case class BQLoadException(msg : String) extends RuntimeException(msg)
 
   private def getBQ(path: String): BigQuery = {
@@ -32,15 +33,15 @@ private[etlflow] object BQ {
       val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
       credentials match {
         case Some(creds) =>
-          gcp_logger.info("Using GCP credentials from values passed in function")
+          logger.info("Using GCP credentials from values passed in function")
           getBQ(creds.service_account_key_path)
         case None =>
           if (env_path == "NOT_SET_IN_ENV") {
-            gcp_logger.info("Using GCP credentials from local sdk")
+            logger.info("Using GCP credentials from local sdk")
             BigQueryOptions.getDefaultInstance.getService
           }
           else {
-            gcp_logger.info("Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS")
+            logger.info("Using GCP credentials from environment variable GOOGLE_APPLICATION_CREDENTIALS")
             getBQ(env_path)
           }
       }
@@ -66,11 +67,11 @@ private[etlflow] object BQ {
           if (queryJob == null)
             throw new RuntimeException("Job no longer exists")
           else if (queryJob.getStatus.getError != null) {
-            gcp_logger.error(queryJob.getStatus.getState.toString)
+            logger.error(queryJob.getStatus.getState.toString)
             throw new RuntimeException(s"Error ${queryJob.getStatus.getError.getMessage}")
           }
           else {
-            gcp_logger.info(s"Job State: ${queryJob.getStatus.getState}")
+            logger.info(s"Job State: ${queryJob.getStatus.getState}")
             // val stats = queryJob.getStatistics.asInstanceOf[QueryStatistics]
             // query_logger.info(s"Query Plan : ${stats.getQueryPlan}")
           }
@@ -97,28 +98,28 @@ private[etlflow] object BQ {
              destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
            ): Task[Unit] = Task {
           if (source_locations.isRight) {
-            gcp_logger.info(s"No of BQ partitions: ${source_locations.right.get.length}")
+            logger.info(s"No of BQ partitions: ${source_locations.right.get.length}")
             source_locations.right.get.foreach { case (src_path, partition) =>
               val table_partition = destination_table + "$" + partition
               val full_table_name = destination_dataset + "." + table_partition
               val bq_load_cmd =s"""bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format.toString} $full_table_name $src_path""".stripMargin
-              gcp_logger.info(s"Loading data from path: $src_path")
-              gcp_logger.info(s"Destination table: $full_table_name")
-              gcp_logger.info(s"BQ Load command is: $bq_load_cmd")
+              logger.info(s"Loading data from path: $src_path")
+              logger.info(s"Destination table: $full_table_name")
+              logger.info(s"BQ Load command is: $bq_load_cmd")
               val x = s"$bq_load_cmd".!
-              gcp_logger.info(s"Output exit code: $x")
+              logger.info(s"Output exit code: $x")
               if (x != 0) throw BQLoadException("Error executing BQ load command")
             }
           }
           else {
-            gcp_logger.info("BQ file path: " + source_locations.left.get)
+            logger.info("BQ file path: " + source_locations.left.get)
             val full_table_name = destination_dataset + "." + destination_table
             val bq_load_cmd =s"""bq load --replace --source_format=${source_format.toString} $full_table_name ${source_locations.left.get}""".stripMargin
-            gcp_logger.info(s"Loading data from path: ${source_locations.left.get}")
-            gcp_logger.info(s"Destination table: $full_table_name")
-            gcp_logger.info(s"BQ Load command is: $bq_load_cmd")
+            logger.info(s"Loading data from path: ${source_locations.left.get}")
+            logger.info(s"Destination table: $full_table_name")
+            logger.info(s"BQ Load command is: $bq_load_cmd")
             val x = s"$bq_load_cmd".!
-            gcp_logger.info(s"Output exit code: $x")
+            logger.info(s"Output exit code: $x")
             if (x != 0) throw BQLoadException("Error executing BQ load command")
           }
         }
@@ -127,7 +128,7 @@ private[etlflow] object BQ {
             destination_project: Option[String], destination_dataset: String, destination_table: String,
             write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
             schema: Option[Schema], parallelism: Int): Task[Map[String, Long]] = {
-          gcp_logger.info(s"No of BQ partitions: ${source_paths_partitions.length}")
+          logger.info(s"No of BQ partitions: ${source_paths_partitions.length}")
           ZIO.foreachParN(parallelism)(source_paths_partitions){ case (src_path, partition) =>
               val table_partition = destination_table + "$" + partition
               loadIntoBQTable(
@@ -181,11 +182,11 @@ private[etlflow] object BQ {
           val destinationTable = bq.getTable(tableId).getDefinition[StandardTableDefinition]
 
           if (completedJob.getStatus.getError == null) {
-            gcp_logger.info(s"Source path: $source_path")
-            gcp_logger.info(s"Destination table: $destination_dataset.$destination_table")
-            gcp_logger.info(s"Job State: ${completedJob.getStatus.getState}")
-            gcp_logger.info(s"Loaded rows: ${destinationTable.getNumRows}")
-            gcp_logger.info(s"Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB")
+            logger.info(s"Source path: $source_path")
+            logger.info(s"Destination table: $destination_dataset.$destination_table")
+            logger.info(s"Job State: ${completedJob.getStatus.getState}")
+            logger.info(s"Loaded rows: ${destinationTable.getNumRows}")
+            logger.info(s"Loaded rows size: ${destinationTable.getNumBytes / 1000000.0} MB")
           }
           else {
             throw BQLoadException(
@@ -232,11 +233,11 @@ private[etlflow] object BQ {
           val completedJob = job.waitFor()
 
           if (completedJob.getStatus.getError == null) {
-            gcp_logger.info(s"Source table: $source_dataset.$source_table")
-            gcp_logger.info(s"Destination path: $destination_path")
-            gcp_logger.info(s"Job State: ${completedJob.getStatus.getState}")
+            logger.info(s"Source table: $source_dataset.$source_table")
+            logger.info(s"Destination path: $destination_path")
+            logger.info(s"Job State: ${completedJob.getStatus.getState}")
           } else if (completedJob.getStatus().getError() != null) {
-            gcp_logger.error(s"BigQuery was unable to extract due to an error:" + job.getStatus().getError())
+            logger.error(s"BigQuery was unable to extract due to an error:" + job.getStatus().getError())
           } else {
             throw BQLoadException(
               s"""Could not load data from bq table ${source_dataset}.${source_table} to  location  ${destination_file_name} due to error ${completedJob.getStatus.getError.getMessage}""".stripMargin)

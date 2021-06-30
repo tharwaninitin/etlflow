@@ -6,7 +6,7 @@ import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
 
-case class RedisSteps(job_properties: EtlJob3Props) extends SequentialEtlJob[EtlJob3Props] {
+case class RedisJob(job_properties: EtlJob3Props) extends SequentialEtlJob[EtlJob3Props] {
 
   val redis_config: REDIS = REDIS("localhost")
 

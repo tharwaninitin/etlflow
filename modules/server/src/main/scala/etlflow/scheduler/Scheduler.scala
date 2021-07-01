@@ -5,7 +5,7 @@ import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.utils.ApplicationLogger
-import etlflow.utils.DateTimeFunctions.getCurrentTimestampAsString
+import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio._
 import zio.duration._
 

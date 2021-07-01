@@ -3,7 +3,7 @@ package etlflow.etljobs
 import etlflow._
 import etlflow.log.{JobLogger, SlackLogger, StepReq}
 import etlflow.schema.LoggingLevel
-import etlflow.utils.DateTimeFunctions.getCurrentTimestamp
+import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import zio.{Task, UIO, ZIO, ZLayer}
 
 trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {

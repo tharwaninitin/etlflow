@@ -3,7 +3,7 @@ package etlflow.log
 import etlflow.db.{DBApi, DBEnv}
 import etlflow.json.JsonEnv
 import etlflow.utils.ApplicationLogger
-import etlflow.utils.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString}
+import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString}
 import zio.{Task, ZIO}
 
 private[etlflow] class JobLogger(job_name: String, props: String, job_run_id: String, is_master:String, slack: Option[SlackLogger]) extends ApplicationLogger {

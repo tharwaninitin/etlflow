@@ -42,6 +42,7 @@ object Dependencies {
 
   val ZioHttpVersion = "1.0.0.0-RC17"
   val ScalaTestVersion = "3.2.9"
+  val scalaReflectVersion = "2.12.13"
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
@@ -107,7 +108,7 @@ object Dependencies {
 
   lazy val utilsLibs = List(
     "org.slf4j" % "slf4j-api" % Sl4jVersion,
-    "org.scala-lang" % "scala-reflect" % "2.13.6"
+    "org.scala-lang" % "scala-reflect" % scalaReflectVersion
   )
 
   lazy val jsonLibs = List(
@@ -121,7 +122,6 @@ object Dependencies {
 
   lazy val coreTestLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
-    "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
     "dev.zio" %% "zio-test" % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
@@ -140,7 +140,17 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val dbTestLibs = List(
-    "io.circe" %% "circe-config" % CirceConfigVersion,
-    "io.circe" %% "circe-generic" % CirceVersion
+    "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+  ).map(_ % Test)
+
+  lazy val jsonTestLibs = List(
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "dev.zio" %% "zio-test" % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion,
+  ).map(_ % Test)
+
+  lazy val utilsTestLibs = List(
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
   ).map(_ % Test)
 }

@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.utils.DateTimeFunctions.getTimeDifferenceAsString
+import etlflow.utils.DateTimeApi.getTimeDifferenceAsString
 import etlflow.utils.{ReflectAPI => RF}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

@@ -49,13 +49,13 @@ lazy val serverSettings = Seq(
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++=  dbLibs ++ coreTestLibs,
+  libraryDependencies ++=  dbLibs ++ dbTestLibs,
 )
 
 lazy val utilsSettings = Seq(
   name := "etlflow-utils",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++=  utilsLibs ++ coreTestLibs,
+  libraryDependencies ++=  utilsLibs ++ utilsTestLibs,
 )
 
 lazy val httpSettings = Seq(
@@ -73,7 +73,7 @@ lazy val redisSettings = Seq(
 lazy val jsonSettings = Seq(
   name := "etlflow-json",
   crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= jsonLibs ++ coreTestLibs
+  libraryDependencies ++= jsonLibs ++ jsonTestLibs
 )
 
 

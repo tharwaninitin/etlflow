@@ -7,7 +7,7 @@ import etlflow.gcp.{DP, DPService}
 import etlflow.json.JsonApi
 import etlflow.schema.Config
 import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LIVY, LOCAL, LOCAL_SUBPROCESS}
-import etlflow.utils.DateTimeFunctions.{getCurrentTimestamp, getCurrentTimestampAsString}
+import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.utils.{ApplicationLogger, CacheHelper, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.{EJPMType, JobEnv}
 import scalacache.caffeine.CaffeineCache

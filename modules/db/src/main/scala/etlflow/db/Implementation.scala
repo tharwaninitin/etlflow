@@ -5,7 +5,7 @@ import doobie.util.Read
 import doobie.util.fragment.Fragment
 import etlflow.db.DBApi.Service
 import etlflow.utils.ApplicationLogger
-import etlflow.utils.DateTimeFunctions.getTimestampAsString
+import etlflow.utils.DateTimeApi.getTimestampAsString
 import etlflow.utils.EtlflowError.DBException
 import zio.interop.catz._
 import zio.{IO, UIO, ZLayer}

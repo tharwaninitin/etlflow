@@ -7,7 +7,7 @@ import etlflow.api.Schema._
 import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.utils.DateTimeFunctions.{getCurrentTimestampAsString, getCurrentTimestampUsingLocalDateTime, getLocalDateTimeFromTimestamp, getTimeDifferenceAsString, getTimestampAsString, getTimestampFromLocalDateTime}
+import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getCurrentTimestampUsingLocalDateTime, getLocalDateTimeFromTimestamp, getTimeDifferenceAsString, getTimestampAsString, getTimestampFromLocalDateTime}
 import etlflow.utils.{ApplicationLogger, CacheHelper, EncryptCred, EtlFlowUtils}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}

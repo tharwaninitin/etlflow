@@ -4,7 +4,7 @@ import etlflow.etlsteps.EtlStep
 import etlflow.schema.LoggingLevel
 import etlflow.schema.LoggingLevel.{DEBUG, INFO, JOB}
 import etlflow.utils.ApplicationLogger
-import etlflow.utils.DateTimeFunctions.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
+import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}

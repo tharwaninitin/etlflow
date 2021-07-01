@@ -5,7 +5,7 @@ import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.meta.Meta
 import etlflow.utils.ApplicationLogger
-import etlflow.utils.DateTimeFunctions.getCurrentTimestamp
+import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import org.postgresql.util.PGobject
 
 import java.text.SimpleDateFormat

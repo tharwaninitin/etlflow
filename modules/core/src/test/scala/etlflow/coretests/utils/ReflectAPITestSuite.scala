@@ -1,4 +1,4 @@
-package etlflow.utils
+package etlflow.coretests.utils
 
 import etlflow.utils.DateTimeApi.getTimeDifferenceAsString
 import etlflow.utils.{ReflectAPI => RF}

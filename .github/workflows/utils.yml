@@ -11,4 +11,4 @@ jobs:
         with:
           java-version: 14
       - name: Compile Utils Module
-        run: sbt ";project utils; test"
+        run: sbt ";project utils; +test"

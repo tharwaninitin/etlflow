@@ -23,6 +23,10 @@ package object api {
     case class EtlJobStatus(id: String, name: String, start_time: String, `type`: String, status: String)
     case class Props(key: String, value: String)
     case class CredentialsArgs(name: String, `type`: Creds, value: List[Props])
+    case class Job(
+                    name: String, props: Map[String,String], schedule: Option[CronExpr], nextSchedule: String, schduleRemainingTime: String ,
+                    failed: Long, success: Long, is_active:Boolean, last_run_time: Long, last_run_description: String
+                  )
     sealed trait Creds
     object Creds {
       case object AWS extends Creds

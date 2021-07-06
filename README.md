@@ -142,6 +142,23 @@ Now run tests using below sbt command
  sbt "project cloud" test
  ```
 
+#### Modules Dependancies
+
+![Example](moduleDep.png)
+
+### Scala Versions
+
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3     | 
+| -------------------|:--------------------:| -----------:| -----------:|
+| Json               | ✅                   | ✅          | ✅          |
+| Utils              | ✅                   | ✅          | ✅          |
+| Core               | ✅                   | ✅          | ❌          |
+| Db                 | ✅                   | ✅          | ❌          |
+| Redis              | ✅                   | ✅          | ❌          |
+| Http               | ✅                   | ❌          | ❌          |
+| Cloud              | ✅                   | ❌          | ❌          |
+| Server             | ✅                   | ❌          | ❌          |
+| Spark              | ✅                   | ❌          | ❌          |
 
 
 #### Contributions

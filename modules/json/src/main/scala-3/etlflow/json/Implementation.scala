@@ -12,22 +12,22 @@ object Implementation {
   val live: ULayer[JsonEnv] = ZLayer.succeed(
     new JsonApi.Service {
 
-      override def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): Task[T] = Task.fromEither {
+      override def convertToObject[T](str: String)(using Decoder: Decoder[T]): Task[T] = Task.fromEither {
         parser.decode[T](str)
       }
 
-      override def convertToMap[T](entity: T, keys: List[String])(implicit encoder: Encoder[T]): Task[Map[String, Any]] = Task {
+      override def convertToMap[T](entity: T, keys: List[String])(using encoder: Encoder[T]): Task[Map[String, Any]] = Task {
         val parsedJsonString = parse(entity.asJson.noSpaces).toOption.get
-        removeField(parsedJsonString)(keys).asObject.get.toMap.mapValues(x => {
+        removeField(parsedJsonString)(keys).asObject.get.toMap.view.mapValues(x => {
           if ("true".equalsIgnoreCase(x.toString()) || "false".equalsIgnoreCase(x.toString())) {
             x.asBoolean.get
           } else {
             x.asString.get
           }
-        })
+        }).toMap
       }
 
-      override def convertToString[T](obj: T, keys: List[String] = List.empty)(implicit encoder: Encoder[T]): Task[String] = Task {
+      override def convertToString[T](obj: T, keys: List[String] = List.empty)(using encoder: Encoder[T]): Task[String] = Task {
         if (keys.isEmpty)
           obj.asJson.noSpaces
         else {
@@ -36,8 +36,6 @@ object Implementation {
         }
       }
 
-      override def convertMapToString[T](entity: Map[String, String])(implicit encoder: Encoder[T]): Task[String] =
-        Task{entity.asJson.noSpaces}
     }
   )
 }

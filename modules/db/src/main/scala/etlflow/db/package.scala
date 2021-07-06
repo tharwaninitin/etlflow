@@ -26,10 +26,6 @@ package object db {
   case class Credentials(name: String, `type`: String, value: String)
   case class JobRun(job_run_id: String,job_name: String,properties: String,state: String,start_time: String,elapsed_time: String,job_type: String,is_master:String)
   case class StepRun(job_run_id: String,step_name: String,properties: String,state: String,start_time: String,elapsed_time:String,step_type:String,step_run_id:String)
-  case class Job(
-                  name: String, props: Map[String,String], schedule: Option[CronExpr], nextSchedule: String, schduleRemainingTime: String ,
-                  failed: Long, success: Long, is_active:Boolean, last_run_time: Long, last_run_description: String
-                )
   case class EtlJob(name: String, props: Map[String,String])
   case class JsonString(str: String) extends AnyVal
   case class CredentialDB(name: String, `type`: String, value: JsonString)

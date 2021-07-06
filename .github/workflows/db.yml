@@ -28,7 +28,7 @@ jobs:
       with:
         java-version: 14
     - name: Run DB Tests
-      run: sbt ";project db; test"
+      run: sbt ";project db; +test"
       env:
         LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
         LOG_DB_USER: etlflow

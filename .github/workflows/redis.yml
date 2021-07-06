@@ -40,7 +40,7 @@ jobs:
       with:
         java-version: 14
     - name: Run Redis Tests
-      run: sbt ";project redis; test"
+      run: sbt ";project redis; +test"
       env:
         LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
         LOG_DB_USER: etlflow

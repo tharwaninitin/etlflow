@@ -1,7 +1,6 @@
 package etlflow
 
 import com.zaxxer.hikari.HikariConfig
-import cron4s.CronExpr
 import doobie.hikari.HikariTransactor
 import etlflow.schema.Credential.JDBC
 import zio.blocking.Blocking

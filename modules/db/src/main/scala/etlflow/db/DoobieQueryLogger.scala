@@ -2,7 +2,6 @@ package etlflow.db
 
 import doobie.util.log.{ExecFailure, LogHandler, ProcessingFailure, Success}
 import etlflow.utils.ApplicationLogger
-import org.slf4j.{Logger, LoggerFactory}
 
 private[db] object DoobieQueryLogger extends  ApplicationLogger {
 

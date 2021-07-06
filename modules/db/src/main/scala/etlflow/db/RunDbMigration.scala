@@ -3,10 +3,9 @@ package etlflow.db
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.ApplicationLogger
 import org.flywaydb.core.Flyway
-import org.slf4j.{Logger, LoggerFactory}
 import zio.Task
 
-private[etlflow] object RunDbMigration  extends ApplicationLogger{
+private[etlflow] object RunDbMigration extends ApplicationLogger{
   def apply(credentials: JDBC, clean: Boolean = false): Task[Unit] = Task {
     val configuration = Flyway
       .configure(this.getClass.getClassLoader)

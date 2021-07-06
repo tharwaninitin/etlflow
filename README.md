@@ -14,8 +14,26 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 
 [comment]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
 
+## Modules Dependency Graph
+
+![Example](moduleDep.png)
+
+## Scala Version Compatibility Matrix
+
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3     | 
+| -------------------|:--------------------:| -----------:| -----------:|
+| Utils              | ✅                   | ✅          | ✅          |
+| Json               | ✅                   | ✅          | ✅          |
+| Db                 | ✅                   | ✅          | ❌          |
+| Core               | ✅                   | ✅          | ❌          |
+| Redis              | ✅                   | ✅          | ❌          |
+| Http               | ✅                   | ❌          | ❌          |
+| Cloud              | ✅                   | ❌          | ❌          |
+| Server             | ✅                   | ❌          | ❌          |
+| Spark              | ✅                   | ❌          | ❌          |
+
 ## Requirements and Installation
-This project is compiled with scala version 2.12.10 and works with Apache Spark versions 2.4.x.
+This project is compiled with scala versions 2.12.13, 2.13.6, 3.0.0
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the latest release as a dependency to your project
 
@@ -27,6 +45,8 @@ libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-server" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "x.x.x"
 ```
 __Maven__
 ```
@@ -141,25 +161,6 @@ Now run tests using below sbt command
  ```shell
  sbt "project cloud" test
  ```
-
-#### Modules Dependancies
-
-![Example](moduleDep.png)
-
-### Scala Versions
-
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3     | 
-| -------------------|:--------------------:| -----------:| -----------:|
-| Json               | ✅                   | ✅          | ✅          |
-| Utils              | ✅                   | ✅          | ✅          |
-| Core               | ✅                   | ✅          | ❌          |
-| Db                 | ✅                   | ✅          | ❌          |
-| Redis              | ✅                   | ✅          | ❌          |
-| Http               | ✅                   | ❌          | ❌          |
-| Cloud              | ✅                   | ❌          | ❌          |
-| Server             | ✅                   | ❌          | ❌          |
-| Spark              | ✅                   | ❌          | ❌          |
-
 
 #### Contributions
 Please feel free to add issues to report any bugs or to propose new features.

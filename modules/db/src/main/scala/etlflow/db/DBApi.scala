@@ -1,13 +1,11 @@
 package etlflow.db
 
 import doobie.util.Read
-import org.slf4j.{Logger, LoggerFactory}
 import zio.{IO, ZIO}
 
 private[etlflow] object DBApi {
   // Uncomment this to see generated SQL queries in logs
-  // implicit val dbLogger = DBLogger()
-  lazy val logger: Logger = LoggerFactory.getLogger(getClass.getName)
+  // implicit val dbLogger = DoobieQueryLogger()
 
   trait Service {
     def getUser(user_name: String): IO[Throwable, UserDB]

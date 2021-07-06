@@ -14,7 +14,7 @@ private[db] object Implementation extends  ApplicationLogger {
 
   val liveDB: ZLayer[TransactorEnv, Throwable, DBEnv] = ZLayer.fromService { transactor =>
     new Service {
-      def getUser(name: String): IO[DBException, UserDB] = {
+      override def getUser(name: String): IO[DBException, UserDB] = {
         SQL.getUser(name)
           .unique
           .transact(transactor)
@@ -23,7 +23,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-      def getJob(name: String): IO[DBException, JobDB] = {
+      override def getJob(name: String): IO[DBException, JobDB] = {
         SQL.getJob(name)
           .unique
           .transact(transactor)
@@ -32,7 +32,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-      def getJobs: IO[DBException, List[JobDBAll]] = {
+      override def getJobs: IO[DBException, List[JobDBAll]] = {
         SQL.getJobs
           .to[List]
           .transact(transactor)
@@ -41,8 +41,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
-      def getStepRuns(args: DbStepRunArgs): IO[DBException, List[StepRun]] = {
+      override def getStepRuns(args: DbStepRunArgs): IO[DBException, List[StepRun]] = {
         SQL.getStepRuns(args)
           .to[List]
           .map(y => y.map { x => {
@@ -55,7 +54,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-      def getJobRuns(args: DbJobRunArgs): IO[DBException, List[JobRun]] = {
+      override def getJobRuns(args: DbJobRunArgs): IO[DBException, List[JobRun]] = {
         SQL.getJobRuns(args)
           .to[List]
           .map(y => y.map { x => {
@@ -68,7 +67,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-      def getJobLogs(args: JobLogsArgs): IO[DBException, List[JobLogs]] = {
+      override def getJobLogs(args: JobLogsArgs): IO[DBException, List[JobLogs]] = {
         SQL.getJobLogs(args)
           .to[List]
           .transact(transactor)
@@ -77,7 +76,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-      def getCredentials: IO[DBException, List[GetCredential]] = {
+      override def getCredentials: IO[DBException, List[GetCredential]] = {
         SQL.getCredentials
           .to[List]
           .transact(transactor)
@@ -86,7 +85,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-      def updateSuccessJob(job: String, ts: Long): IO[DBException, Long] = {
+      override def updateSuccessJob(job: String, ts: Long): IO[DBException, Long] = {
         SQL.updateSuccessJob(job, ts)
           .run
           .transact(transactor)
@@ -98,7 +97,7 @@ private[db] object Implementation extends  ApplicationLogger {
             _ => 1L
           )
       }
-      def updateFailedJob(job: String, ts: Long): IO[DBException, Long] = {
+      override def updateFailedJob(job: String, ts: Long): IO[DBException, Long] = {
         SQL.updateFailedJob(job, ts)
           .run
           .transact(transactor)
@@ -110,7 +109,7 @@ private[db] object Implementation extends  ApplicationLogger {
             _ => 1L
           )
       }
-      def updateJobState(args: EtlJobStateArgs): IO[DBException, Boolean] = {
+      override def updateJobState(args: EtlJobStateArgs): IO[DBException, Boolean] = {
         SQL.updateJobState(args)
           .run
           .transact(transactor)
@@ -122,7 +121,7 @@ private[db] object Implementation extends  ApplicationLogger {
             _ => args.state
           )
       }
-      def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
+      override def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
         SQL.addCredentials(credentialsDB, actualSerializerOutput)
           .run
           .transact(transactor)
@@ -134,7 +133,7 @@ private[db] object Implementation extends  ApplicationLogger {
             _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
           )
       }
-      def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[DBException, Credentials] = SQL.updateCredentialSingleTran(credentialsDB, actualSerializerOutput)
+      override def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[DBException, Credentials] = SQL.updateCredentialSingleTran(credentialsDB, actualSerializerOutput)
         .transact(transactor)
         .bimap({ e =>
             logger.error(e.getMessage)
@@ -142,7 +141,7 @@ private[db] object Implementation extends  ApplicationLogger {
           },
           _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
         )
-      def refreshJobs(jobs: List[EtlJob]): IO[DBException, List[JobDB]] = {
+      override def refreshJobs(jobs: List[EtlJob]): IO[DBException, List[JobDB]] = {
         val jobsDB = jobs.map{x =>
           JobDB(x.name, x.props.getOrElse("job_schedule",""), is_active = true)
         }
@@ -157,8 +156,7 @@ private[db] object Implementation extends  ApplicationLogger {
               DBException(e.getMessage)
             }
       }
-
-      def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[DBException, Unit] = {
+      override def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[DBException, Unit] = {
         SQL
           .updateStepRun(job_run_id, step_name, props, status, elapsed_time)
           .run
@@ -168,9 +166,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
-      def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long):
-      IO[DBException, Unit] = {
+      override def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[DBException, Unit] = {
         SQL
           .insertStepRun(job_run_id, step_name, props, step_type, step_run_id, start_time)
           .run
@@ -180,9 +176,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
-      def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long):
-      IO[DBException, Unit] = {
+      override def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[DBException, Unit] = {
         SQL
           .insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
           .run
@@ -192,8 +186,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
-      def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[DBException, Unit] = {
+      override def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[DBException, Unit] = {
         SQL
           .updateJobRun(job_run_id, status, elapsed_time)
           .run
@@ -203,8 +196,7 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
-      def executeQueryWithResponse[T <: Product : Read](query: String): IO[DBException, List[T]] = {
+      override def executeQueryWithResponse[T <: Product : Read](query: String): IO[DBException, List[T]] = {
         Fragment.const(query)
           .query[T]
           .to[List]
@@ -214,7 +206,6 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def executeQuery(query: String): IO[DBException, Unit] = {
         Fragment.const(query)
           .update
@@ -225,7 +216,6 @@ private[db] object Implementation extends  ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def executeQueryWithSingleResponse[T: Read](query: String): IO[DBException, T] = {
         Fragment.const(query)
           .query[T]

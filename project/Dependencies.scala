@@ -42,24 +42,24 @@ object Dependencies {
 
   val ZioHttpVersion = "1.0.0.0-RC17"
   val ScalaTestVersion = "3.2.9"
-  val scalaReflectVersion = "2.12.13"
+  val ScalaReflectVersion = "2.12.13"
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" %  zioConfig,
-    "dev.zio" %% "zio-config-magnolia" %  zioConfig,
+    "dev.zio" %% "zio-config" % zioConfig,
+    "dev.zio" %% "zio-config-magnolia" % zioConfig,
     "dev.zio" %% "zio-config-typesafe" % zioConfig,
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion,
     "javax.mail" % "javax.mail-api" % MailVersion,
-    "com.sun.mail" % "javax.mail"   % MailVersion,
-    "org.scala-lang" % "scala-reflect" % scalaReflectVersion
+    "com.sun.mail" % "javax.mail" % MailVersion,
+    "org.scala-lang" % "scala-reflect" % ScalaReflectVersion
   )
 
   lazy val cloudLibs = List(
     "org.tpolecat" %% "skunk-core" % SkunkVersion,
     "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
-    "co.fs2"        %% "fs2-reactive-streams"      % Fs2Version,
+    "co.fs2" %% "fs2-reactive-streams" % Fs2Version,
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
@@ -68,17 +68,16 @@ object Dependencies {
   )
 
   lazy val dbLibs = List(
-    "dev.zio"      %% "zio" % ZioVersion,
-    "dev.zio"      %% "zio-interop-cats" % ZioCatsInteropVersion,
-    "co.fs2"       %% "fs2-core"         % Fs2Version,
-    "co.fs2"       %% "fs2-io"           % Fs2Version,
-    "org.tpolecat" %% "doobie-core"     % DoobieVersion,
-    "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
-    "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
-    "org.flywaydb" % "flyway-core"      % FlywayVersion,
-    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
-    "org.typelevel" %% "cats-core" % CatsCoreVersion,
-    "org.typelevel" %% "cats-effect" % CatsEffectVersion,
+    "dev.zio"       %% "zio"                % ZioVersion,
+    "dev.zio"       %% "zio-interop-cats"   % ZioCatsInteropVersion,
+    "co.fs2"        %% "fs2-core"           % Fs2Version,
+    "co.fs2"        %% "fs2-io"             % Fs2Version,
+    "org.tpolecat"  %% "doobie-core"        % DoobieVersion,
+    "org.tpolecat"  %% "doobie-postgres"    % DoobieVersion,
+    "org.tpolecat"  %% "doobie-hikari"      % DoobieVersion,
+    "org.flywaydb"   % "flyway-core"          % FlywayVersion,
+    "org.typelevel" %% "cats-core"          % CatsCoreVersion,
+    "org.typelevel" %% "cats-effect"        % CatsEffectVersion,
     "org.typelevel" %% "cats-effect-kernel" % CatsEffectVersion,
     "org.typelevel" %% "cats-effect-std"    % CatsEffectVersion
   )
@@ -107,7 +106,7 @@ object Dependencies {
   )
 
   lazy val utilsLibs = List(
-    "org.slf4j" % "slf4j-api" % Sl4jVersion,
+    "org.slf4j" % "slf4j-api" % Sl4jVersion
   )
 
   lazy val jsonLibs = List(
@@ -115,8 +114,6 @@ object Dependencies {
     "io.circe" %% "circe-core" % CirceVersion,
     "io.circe" %% "circe-generic" % CirceVersion,
     "io.circe" %% "circe-parser" % CirceVersion
-    //    "io.circe" %% "circe-optics" % CirceVersion,
-    //    "io.circe" %% "circe-generic-extras" % CirceVersion
   )
 
   lazy val coreTestLibs = List(

@@ -7,7 +7,6 @@ import doobie.util.meta.Meta
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import org.postgresql.util.PGobject
-
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
@@ -352,7 +351,6 @@ private[db] object SQL extends ApplicationLogger {
   }
 
 //  def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
-//
 //  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
 
   def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): doobie.Update0 = {

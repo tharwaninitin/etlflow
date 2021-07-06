@@ -11,5 +11,5 @@ jobs:
         with:
           java-version: 14
       - name: Run Json Tests
-        run: sbt ";project json; test;"
+        run: sbt ";project json; +test;"
 

@@ -43,6 +43,6 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
   }.toSeq
 
-  def stringFormatter(value: String):String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
+  def stringFormatter(value: String): String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
 
 }

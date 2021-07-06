@@ -14,7 +14,7 @@ case class LocalExecutor(etl_job_name_package: String, job_run_id: Option[String
     job.job_enable_db_logging = ejpm.job_enable_db_logging
     job.job_send_slack_notification = ejpm.job_send_slack_notification
     job.job_notification_level = ejpm.job_notification_level
-    JsonApi.convertToString[Map[String,String]](ejpm.getProps.mapValues(x => x.toString),List.empty).flatMap(props =>
+    JsonApi.convertToString[Map[String,String]](ejpm.getProps.mapValues(x => x.toString).toMap,List.empty).flatMap(props =>
       job.execute(job_run_id, is_master, props)
     )
   }

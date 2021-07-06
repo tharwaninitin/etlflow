@@ -52,7 +52,8 @@ object Dependencies {
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion,
     "javax.mail" % "javax.mail-api" % MailVersion,
-    "com.sun.mail" % "javax.mail"   % MailVersion
+    "com.sun.mail" % "javax.mail"   % MailVersion,
+    "org.scala-lang" % "scala-reflect" % scalaReflectVersion
   )
 
   lazy val cloudLibs = List(
@@ -71,7 +72,6 @@ object Dependencies {
     "dev.zio"      %% "zio-interop-cats" % ZioCatsInteropVersion,
     "co.fs2"       %% "fs2-core"         % Fs2Version,
     "co.fs2"       %% "fs2-io"           % Fs2Version,
-    "com.chuusai"  %% "shapeless"        % ShapelessVersion,
     "org.tpolecat" %% "doobie-core"     % DoobieVersion,
     "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
     "org.tpolecat" %% "doobie-hikari"   % DoobieVersion,
@@ -108,16 +108,15 @@ object Dependencies {
 
   lazy val utilsLibs = List(
     "org.slf4j" % "slf4j-api" % Sl4jVersion,
-    "org.scala-lang" % "scala-reflect" % scalaReflectVersion
   )
 
   lazy val jsonLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
     "io.circe" %% "circe-core" % CirceVersion,
     "io.circe" %% "circe-generic" % CirceVersion,
-    "io.circe" %% "circe-parser" % CirceVersion,
-    "io.circe" %% "circe-optics" % CirceVersion,
-    "io.circe" %% "circe-generic-extras" % CirceVersion
+    "io.circe" %% "circe-parser" % CirceVersion
+    //    "io.circe" %% "circe-optics" % CirceVersion,
+    //    "io.circe" %% "circe-generic-extras" % CirceVersion
   )
 
   lazy val coreTestLibs = List(
@@ -141,16 +140,16 @@ object Dependencies {
 
   lazy val dbTestLibs = List(
     "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion
   ).map(_ % Test)
 
   lazy val jsonTestLibs = List(
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "dev.zio" %% "zio-test" % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion
   ).map(_ % Test)
 
   lazy val utilsTestLibs = List(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion
   ).map(_ % Test)
 }

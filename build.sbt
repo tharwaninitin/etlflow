@@ -1,23 +1,35 @@
 lazy val scala212 = "2.12.13"
 lazy val scala213 = "2.13.6"
-lazy val supportedScalaVersions = List(scala212)
+lazy val scala3   = "3.0.0"
+lazy val supportedScala2Versions = List(scala212 ,scala213)
 lazy val sparkSupportedScalaVersions = List(scala212)
+lazy val supportedScalaVersions = List(scala212, scala3, scala213)
 
 import Dependencies.{dbLibs, _}
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
-  excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12"),
-  scalacOptions ++= Seq("-Ypartial-unification"),
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 12)) => Seq("-Ypartial-unification")
+      case Some((2, 13)) => Seq()
+      case _ => Seq("-Ypartial-unification")
+    }
+  },
   Test / parallelExecution := false,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.0" cross CrossVersion.full),
-  addCompilerPlugin("org.scalamacros" % "paradise"  % "2.1.1" cross CrossVersion.full),
-  testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 12)) =>
+      Seq(compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
+        compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)))
+    case Some((3, _)) => Seq()
+    case _            => Seq()
+  }),
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
 
 lazy val coreSettings = Seq(
   name := "etlflow-core",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions := supportedScala2Versions,
   libraryDependencies ++= coreLibs ++ coreTestLibs,
   //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
   dependencyOverrides ++= {
@@ -36,19 +48,19 @@ lazy val sparkSettings = Seq(
 
 lazy val cloudSettings = Seq(
   name := "etlflow-cloud",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions := List(scala212),
   libraryDependencies ++= cloudLibs ++ coreTestLibs ++ cloudTestLibs,
 )
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions := List(scala212),
   libraryDependencies ++= serverLibs ++ coreTestLibs,
 )
 
 lazy val dbSettings = Seq(
   name := "etlflow-db",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions := supportedScala2Versions,
   libraryDependencies ++=  dbLibs ++ dbTestLibs,
 )
 
@@ -60,19 +72,19 @@ lazy val utilsSettings = Seq(
 
 lazy val httpSettings = Seq(
   name := "etlflow-http",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions := List(scala212),
   libraryDependencies ++= httpLibs
 )
 
 lazy val redisSettings = Seq(
   name := "etlflow-redis",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions := supportedScala2Versions,
   libraryDependencies ++= redisLibs
 )
 
 lazy val jsonSettings = Seq(
   name := "etlflow-json",
-  crossScalaVersions := supportedScalaVersions,
+  crossScalaVersions :=  supportedScalaVersions,
   libraryDependencies ++= jsonLibs ++ jsonTestLibs
 )
 

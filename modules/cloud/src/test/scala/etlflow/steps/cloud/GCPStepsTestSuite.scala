@@ -1,6 +1,6 @@
 package etlflow.steps.cloud
 
-import etlflow.etlsteps.{BQLoadStep, GCSPutStep, GCSSensorStep}
+import etlflow.etlsteps.{BQExportStep, BQLoadStep, GCSPutStep, GCSSensorStep}
 import etlflow.gcp.BQInputType
 import etlflow.gcp.BQInputType.{CSV, PARQUET}
 import zio.ZIO
@@ -72,30 +72,30 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with CloudTestHelper {
         )
         assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-//      testM("Execute BQ Export CSV step") {
-//        val step = BQExportStep(
-//          name           = "ExportRatingBQPARQUETCSV"
-//          , source_project = sys.env.get("GCP_PROJECT_ID")
-//          , source_dataset =  output_dataset
-//          , source_table = output_table
-//          , destination_path = bq_export_dest_path
-//          , destination_format = BQInputType.CSV(",")
-//        )
-//        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-//      },
-//      testM("Execute BQ Export PARQUET step") {
-//        val step = BQExportStep(
-//          name           = "ExportRatingBQPARQUET"
-//          , source_project = sys.env.get("GCP_PROJECT_ID")
-//          , source_dataset =  output_dataset
-//          , source_table = output_table
-//          , destination_path = bq_export_dest_path
-//          , destination_file_name = Some("sample.parquet")
-//          , destination_format = BQInputType.PARQUET
-//          , destination_compression_type = "snappy"
-//        )
-//        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-//      }
+      testM("Execute BQ Export CSV step") {
+        val step = BQExportStep(
+          name           = "ExportRatingBQPARQUETCSV"
+          , source_project = sys.env.get("GCP_PROJECT_ID")
+          , source_dataset =  output_dataset
+          , source_table = output_table
+          , destination_path = bq_export_dest_path
+          , destination_format = BQInputType.CSV(",")
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute BQ Export PARQUET step") {
+        val step = BQExportStep(
+          name           = "ExportRatingBQPARQUET"
+          , source_project = sys.env.get("GCP_PROJECT_ID")
+          , source_dataset =  output_dataset
+          , source_table = output_table
+          , destination_path = bq_export_dest_path
+          , destination_file_name = Some("sample.parquet")
+          , destination_format = BQInputType.PARQUET
+          , destination_compression_type = "snappy"
+        )
+        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      }
     ) @@ TestAspect.sequential
 
   // STEP 3: Verify Results

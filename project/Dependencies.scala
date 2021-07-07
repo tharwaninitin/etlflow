@@ -53,13 +53,11 @@ object Dependencies {
   )
 
   lazy val cloudLibs = List(
-    "co.fs2" %% "fs2-reactive-streams" % Fs2Version,
     "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
     "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion,
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
-    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
     "software.amazon.awssdk" % "s3" % AwsS3Version
   )
 

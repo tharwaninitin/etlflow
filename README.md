@@ -27,8 +27,8 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | Db                 | ✅                   | ✅          | ❌          |
 | Core               | ✅                   | ✅          | ❌          |
 | Redis              | ✅                   | ✅          | ❌          |
-| Http               | ✅                   | ❌          | ❌          |
-| Cloud              | ✅                   | ❌          | ❌          |
+| Http               | ✅                   | ✅          | ❌          |
+| Cloud              | ✅                   | ✅          | ❌          |
 | Server             | ✅                   | ❌          | ❌          |
 | Spark              | ✅                   | ❌          | ❌          |
 

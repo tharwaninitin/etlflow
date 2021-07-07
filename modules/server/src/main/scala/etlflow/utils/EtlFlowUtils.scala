@@ -19,7 +19,7 @@ private [etlflow] trait EtlFlowUtils {
   final def getJobPropsMapping[EJN <: EJPMType : TypeTag](job_name: String, ejpm_package: String): RIO[JsonEnv,Map[String, String]] =
     memoizeSync[RIO[JsonEnv,Map[String, String]]](None) {
       Task(RF.getEtlJobPropsMapping[EJN](job_name, ejpm_package)).map{props_mapping =>
-        props_mapping.getProps.mapValues(x => x.toString)
+        props_mapping.getProps.map(x => (x._1,x._2.toString))
       }
     }
 

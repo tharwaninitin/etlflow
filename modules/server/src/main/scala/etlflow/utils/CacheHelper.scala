@@ -53,7 +53,7 @@ private [etlflow] object CacheHelper {
 
     for {
       cacheJson <- JsonApi.convertToMap(cacheInfo,List("data"))
-      cacheDetails = CacheDetails(name,cacheJson.mapValues(x => x.toString))
+      cacheDetails = CacheDetails(name,cacheJson.map(x => (x._1, x._2.toString)))
     } yield cacheDetails
   }
 }

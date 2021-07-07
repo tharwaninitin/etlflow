@@ -18,8 +18,10 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) =>
       Seq(compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
-        compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)))
-    case _            => Seq()
+          compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
+          "org.scala-lang" % "scala-reflect" % scala212
+         )
+    case _            => Seq("org.scala-lang" % "scala-reflect" % scala213)
   }),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
@@ -38,7 +40,7 @@ lazy val sparkSettings = Seq(
 
 lazy val cloudSettings = Seq(
   name := "etlflow-cloud",
-  crossScalaVersions := List(scala212),
+  crossScalaVersions := scala2Versions,
   libraryDependencies ++= cloudLibs ++ coreTestLibs ++ cloudTestLibs,
 )
 
@@ -62,7 +64,7 @@ lazy val utilsSettings = Seq(
 
 lazy val httpSettings = Seq(
   name := "etlflow-http",
-  crossScalaVersions := List(scala212),
+  crossScalaVersions := scala2Versions,
   libraryDependencies ++= httpLibs
 )
 

@@ -9,14 +9,12 @@ object Dependencies {
   val CatsEffectVersion = "3.1.1"
   val Cron4sVersion = "0.6.1"
   val Fs2Version = "3.0.4"
-  val Fs2PubSubVersion = "0.18.0-M1"
+  val Fs2BlobStoreVersion = "0.9.3"
   val CirceVersion = "0.14.1"
-  val CirceConfigVersion = "0.8.0"
   val DoobieVersion = "1.0.0-M5"
   val ShapelessVersion = "2.3.7"
-  val SkunkVersion = "0.2.0"
   val ScalaCacheVersion = "0.28.0"
-  val SttpVersion = "3.3.7"
+  val SttpVersion = "3.3.9"
   val PrettyTimeVersion = "5.0.1.Final"
 
   val SparkVersion = "2.4.4"
@@ -42,7 +40,6 @@ object Dependencies {
 
   val ZioHttpVersion = "1.0.0.0-RC17"
   val ScalaTestVersion = "3.2.9"
-  val ScalaReflectVersion = "2.12.13"
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
@@ -52,18 +49,15 @@ object Dependencies {
     "com.github.scopt" %% "scopt" % ScoptVersion,
     "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion,
     "javax.mail" % "javax.mail-api" % MailVersion,
-    "com.sun.mail" % "javax.mail" % MailVersion,
-    "org.scala-lang" % "scala-reflect" % ScalaReflectVersion
+    "com.sun.mail" % "javax.mail" % MailVersion
   )
 
   lazy val cloudLibs = List(
-    "org.tpolecat" %% "skunk-core" % SkunkVersion,
-    "com.permutive" %% "fs2-google-pubsub-grpc" % Fs2PubSubVersion,
-    "co.fs2" %% "fs2-reactive-streams" % Fs2Version,
+    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
+    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion,
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion,
-    "com.google.cloud" % "google-cloud-pubsub" % GcpPubSubVersion,
     "software.amazon.awssdk" % "s3" % AwsS3Version
   )
 

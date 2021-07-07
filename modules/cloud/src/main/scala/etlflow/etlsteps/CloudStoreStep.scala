@@ -1,19 +1,19 @@
 package etlflow.etlsteps
 
-import etlflow.blobstore.Store
-import etlflow.blobstore.FileStore
-import etlflow.blobstore.GcsStore
-import etlflow.blobstore.S3Store
-import etlflow.blobstore.url.{Authority, FsObject, Path, Url}
+import blobstore.Store
+import blobstore.fs.FileStore
+import blobstore.gcs.GcsStore
+import blobstore.s3.S3Store
+import blobstore.url.{Authority, FsObject, Path, Url}
+import cats.syntax.all._
 import etlflow.aws.S3CustomClient
 import etlflow.gcp.GCS
 import etlflow.utils.Location
 import fs2.{Pipe, Stream}
 import zio.Runtime.default.unsafeRun
-import zio.{Task}
+import zio.Task
 import zio.interop.catz._
 import zio.interop.catz.implicits._
-import cats.syntax.all._
 
 case class CloudStoreStep[T] (
        name: String,
@@ -43,7 +43,7 @@ case class CloudStoreStep[T] (
       case location: Location.S3 =>
         val storage = S3CustomClient(location)
         inputStorePath = Url("s3", inputBucket, Path(input_location.location))
-        unsafeRun(S3Store[Task](storage))
+        S3Store[Task](storage)
       case _: Location.LOCAL =>
         inputStorePath = Url("file", getBucketInfo("localhost"), Path(input_location.location))
         FileStore[Task].lift((u: Url[String]) => u.path.valid)        }

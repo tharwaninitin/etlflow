@@ -18,13 +18,16 @@ object Implementation {
 
       override def convertToMap[T](entity: T, keys: List[String])(implicit encoder: Encoder[T]): Task[Map[String, Any]] = Task {
         val parsedJsonString = parse(entity.asJson.noSpaces).toOption.get
-        removeField(parsedJsonString)(keys).asObject.get.toMap.view.mapValues(x => {
-          if ("true".equalsIgnoreCase(x.toString()) || "false".equalsIgnoreCase(x.toString())) {
-            x.asBoolean.get
+        removeField(parsedJsonString)(keys).asObject.get.toMap.map(x => {
+          var value:Any = ""
+          if ("true".equalsIgnoreCase(x._2.toString()) || "false".equalsIgnoreCase(x._2.toString())) {
+            value = x._2.asBoolean.get
           } else {
-            x.asString.get
+            value = x._2.asString.get
           }
-        }).toMap
+          (x._1,value)
+        }
+        )
       }
 
       override def convertToString[T](obj: T, keys: List[String] = List.empty)(implicit encoder: Encoder[T]): Task[String] = Task {
@@ -40,18 +43,3 @@ object Implementation {
   )
 }
 
-
-//  def convertToObject[T](str: String)(implicit Decoder: JsonDecoder[T]): Task[Either[String,T]] = Task{
-//    str.fromJson[T]
-//  }
-//
-//  def convertToString[T](obj: T, keys: List[String])(implicit encoder: JsonEncoder[T]): Task[String] = Task{
-//    obj.toJson
-//  }
-//
-//  def convertToMap[T](entity: T, Keys:List[String]): Task[Map[String, Any]] = Task{
-//    entity.getClass.getDeclaredFields.foldLeft(Map.empty[String, Any]) { (a, f) =>
-//      f.setAccessible(true)
-//      a + (f.getName -> f.get(entity))
-//    }
-//  }

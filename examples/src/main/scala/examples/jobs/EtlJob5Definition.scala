@@ -19,7 +19,7 @@ case class EtlJob5Definition(job_properties: EtlJob5Props) extends SequentialEtl
     name             = "LoadRatingsParquetToJdbc",
     input_location   = job_properties.ratings_input_path,
     input_type       = IOType.PARQUET,
-    output_type      = RDB(JDBC(config.dbLog.url,config.dbLog.user,config.dbLog.password,config.dbLog.driver)),
+    output_type      = RDB(JDBC(config.db.url,config.db.user,config.db.password,config.db.driver)),
     output_location  = job_properties.ratings_output_table,
     output_save_mode = SaveMode.Overwrite
   )

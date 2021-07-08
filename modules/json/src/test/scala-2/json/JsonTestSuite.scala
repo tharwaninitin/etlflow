@@ -1,13 +1,29 @@
 package json
 
-import etlflow.json.{Implementation, JsonApi, JsonImplicits}
-import etlflow.schema.LoggingLevel
+import etlflow.json.{Implementation, JsonApi}
+import etlflow.schema.{Executor, LoggingLevel}
+import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
 import json.Schema.Student
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
+import scala.collection.immutable.ListMap
 
-object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
+object JsonTestSuite  extends DefaultRunnableSpec{
+
+  implicit val encodeLoggingLevel: Encoder[LoggingLevel] = Encoder[String].contramap {
+    case LoggingLevel.INFO => "info"
+    case LoggingLevel.JOB => "job"
+    case LoggingLevel.DEBUG => "debug"
+  }
+
+  implicit val encodeExecutor: Encoder[Executor] = Encoder[String].contramap {
+    case Executor.DATAPROC(_, _, _, _, _) => "dataproc"
+    case Executor.LOCAL => "local"
+    case Executor.LIVY(_) => "livy"
+    case Executor.KUBERNETES(_, _, _, _, _, _) => "kubernetes"
+    case Executor.LOCAL_SUBPROCESS(_, _, _) => "local-subprocess"
+  }
 
   val student1Json: String = """{
                                |"name":"John",
@@ -36,19 +52,19 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
   val inputJobInput         = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,true,LoggingLevel.JOB)
   val inputJobNegativeInput = EtlJob23Props("data/movies/ratings/*","test","ratings_par",true,true,LoggingLevel.JOB)
 
-  val expected_props_map_job3 = Map(
-        "job_send_slack_notification" -> "false",
-        "job_enable_db_logging" -> "true",
-        "job_notification_level" -> "info",
-        "job_max_active_runs" -> "10",
-        "job_name" -> "etlflow.coretests.jobs.Job3DBSteps",
-        "job_description" -> "",
-        "job_props_name" -> "etlflow.coretests.Schema$EtlJob4Props",
-        "job_deploy_mode" -> "dataproc",
-        "job_retry_delay_in_minutes" -> "0",
-        "job_schedule" -> "0 30 7 ? * *",
-        "job_retries" -> "0"
-      )
+  val expected_props_map_job3 = ListMap(Map(
+    "job_send_slack_notification" -> "false",
+    "job_enable_db_logging" -> "true",
+    "job_notification_level" -> "info",
+    "job_max_active_runs" -> "10",
+    "job_name" -> "etlflow.coretests.jobs.Job3DBSteps",
+    "job_description" -> "",
+    "job_props_name" -> "etlflow.coretests.Schema$EtlJob4Props",
+    "job_deploy_mode" -> "dataproc",
+    "job_retry_delay_in_minutes" -> "0",
+    "job_schedule" -> "0 30 7 ? * *",
+    "job_retries" -> "0"
+  ).toSeq.sortBy(_._2):_*)
 
   val outputDebugLevel = Map("job_send_slack_notification" -> true,
       "job_enable_db_logging" -> true,
@@ -83,9 +99,9 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
       "ratings_output_dataset" -> "test"
     )
 
-  val expectedserializerOutput = """{"ratings_input_path":"data/movies/ratings/*","ratings_output_dataset":"test","ratings_output_table_name":"ratings_par","job_send_slack_notification":true,"job_enable_db_logging":true,"job_notification_level":"debug"}""".stripMargin
+  val expectedserialzerOutput = """{"ratings_input_path":"data/movies/ratings/*","ratings_output_dataset":"test","ratings_output_table_name":"ratings_par","job_send_slack_notification":true,"job_enable_db_logging":true,"job_notification_level":"debug"}""".stripMargin
 
-  val expected_json = """{"job_send_slack_notification":"false","job_enable_db_logging":"true","job_notification_level":"info","job_max_active_runs":"10","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_description":"","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_deploy_mode":"dataproc","job_retry_delay_in_minutes":"0","job_schedule":"0 30 7 ? * *","job_retries":"0"}""".stripMargin
+  val expected_json = """{"job_description":"","job_retry_delay_in_minutes":"0","job_retries":"0","job_schedule":"0 30 7 ? * *","job_max_active_runs":"10","job_deploy_mode":"dataproc","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_send_slack_notification":"false","job_notification_level":"info","job_enable_db_logging":"true"}""".stripMargin
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Json Test")(
@@ -123,7 +139,7 @@ object JsonTestSuite  extends DefaultRunnableSpec  with JsonImplicits{
         val actualSerializerInput = for {
           actualSerializerInput <- JsonApi.convertToString(inputDebugLevel,List.empty)
         }  yield actualSerializerInput
-        assertM(actualSerializerInput)(equalTo(expectedserializerOutput))
+        assertM(actualSerializerInput)(equalTo(expectedserialzerOutput))
       },
       testM("Circe Json Serializer   : convertToString : Map to String") {
         val actualSerializerInput = for {

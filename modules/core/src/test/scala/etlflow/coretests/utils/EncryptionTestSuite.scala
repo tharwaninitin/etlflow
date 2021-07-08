@@ -1,11 +1,11 @@
 package etlflow.coretests.utils
 
-import etlflow.json.CredentialImplicits._
 import etlflow.json.JsonApi
 import etlflow.schema.Credential.{AWS, JDBC}
 import etlflow.utils.EncryptionAPI
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
+import etlflow.utils.CredentialImplicits._
 
 object EncryptionTestSuite  extends DefaultRunnableSpec  {
 

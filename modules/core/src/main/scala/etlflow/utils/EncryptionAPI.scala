@@ -1,10 +1,10 @@
 package etlflow.utils
 
 import com.github.t3hnar.bcrypt._
-import etlflow.json.CredentialImplicits._
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
 import zio.RIO
+import etlflow.utils.CredentialImplicits._
 
 import java.security.InvalidKeyException
 import java.util.Base64

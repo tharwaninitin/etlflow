@@ -1,17 +1,17 @@
-package etlflow.json
+package etlflow.utils
 
+import etlflow.schema.{Executor, LoggingLevel}
 import io.circe.Encoder
-import etlflow.schema._
 
-trait JsonImplicits {
+private[etlflow] trait JsonImplicits {
 
-  given encodeLoggingLevel: Encoder[LoggingLevel] = Encoder[String].contramap {
+  implicit val encodeLoggingLevel: Encoder[LoggingLevel] = Encoder[String].contramap {
     case LoggingLevel.INFO => "info"
     case LoggingLevel.JOB => "job"
     case LoggingLevel.DEBUG => "debug"
   }
 
-  given encodeExecutor: Encoder[Executor] = Encoder[String].contramap {
+  implicit val encodeExecutor: Encoder[Executor] = Encoder[String].contramap {
     case Executor.DATAPROC(_, _, _, _, _) => "dataproc"
     case Executor.LOCAL => "local"
     case Executor.LIVY(_) => "livy"

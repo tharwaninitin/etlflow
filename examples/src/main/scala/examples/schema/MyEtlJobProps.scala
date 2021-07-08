@@ -1,11 +1,12 @@
 package examples.schema
 
 import etlflow.EtlJobProps
-import etlflow.utils.{Executor, LoggingLevel}
-import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
+import etlflow.schema.{Executor, LoggingLevel}
+import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
+
 sealed trait MyEtlJobProps extends EtlJobProps
 
 object MyEtlJobProps {

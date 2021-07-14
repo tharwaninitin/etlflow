@@ -17,7 +17,7 @@ title: Redis Query
 ```scala mdoc
 import etlflow.EtlStepList
 import etlflow.etlsteps.{EtlStep, RedisStep}
-import etlflow.Credential.REDIS
+import etlflow.schema.Credential.REDIS
 import etlflow.etlsteps.RedisStep.RedisCmd
 
       

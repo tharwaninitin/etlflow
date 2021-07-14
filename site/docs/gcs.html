@@ -10,16 +10,17 @@
   <li><strong>file</strong> [String] - This is the full local path of the file which needs to be uploaded.</li>
 </ul>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.GCSPutStep</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.GCSPutStep</span>
 
-<span class="k">val</span> <span class="nv">step</span> <span class="k">=</span> <span class="nc">GCSPutStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">step</span> <span class="k">=</span> <span class="nc">GCSPutStep</span><span class="o">(</span>
         <span class="n">name</span>    <span class="k">=</span> <span class="s">"LoadRatingGCS"</span><span class="o">,</span>
         <span class="n">bucket</span>  <span class="k">=</span> <span class="s">"gcs_bucket"</span><span class="o">,</span>
         <span class="n">key</span>     <span class="k">=</span> <span class="s">"temp/ratings.parquet"</span><span class="o">,</span>
         <span class="n">file</span>    <span class="k">=</span> <span class="s">"local_file_path"</span>
 <span class="o">)</span>
-<span class="c1">// step: GCSPutStep = etlflow.etlsteps.GCSPutStep@2ae85fb9</span>
-</code></pre></div></div>
+<span class="c1">// step: GCSPutStep = etlflow.etlsteps.GCSPutStep@542a9e48
+</span></code></pre>
+</div>
 <h2 id="gcsdeletestep">GCSDeleteStep</h2>
 <p>[Documentation coming soon]</p>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>

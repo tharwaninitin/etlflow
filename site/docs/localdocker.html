@@ -11,7 +11,7 @@
   <li>
     <p>Update the file <strong>examples/src/main/resources/application.conf</strong> with below content :</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  db-log = {
+    <div class="highlighter-rouge"><pre class="highlight"><code>  db-log = {
             url = &lt;log_db_url&gt;,
             user = &lt;log_db_user&gt;,
             password = &lt;log_db_pwd&gt;,
@@ -21,7 +21,8 @@
             url = &lt;slack-url&gt;,
             env = &lt;running-env&gt;
           }
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Copy GCP service account json file at location <strong>examples/src/main/conf</strong> with name <strong>cred.json</strong></p>
@@ -29,10 +30,11 @@
   <li>
     <p>To build docker image we have to run below commands.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   &gt; sbt
+    <div class="highlighter-rouge"><pre class="highlight"><code>   &gt; sbt
    &gt; project examples
    &gt; docker:publishLocal
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
 </ul>
 
@@ -44,7 +46,7 @@
   <li>
     <p>webserver Service: Scheduler and webserver for running etljobs based on cron.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>version: '3.4'
+    <div class="highlighter-rouge"><pre class="highlight"><code>version: '3.4'
 services:
   postgres:
     image: 'postgres:9.6'
@@ -75,16 +77,18 @@ services:
         LOG_DB_DRIVER: org.postgresql.Driver
     ports:
     - '8080:8080'
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Use below commands to run/stop containers defined by docker-compose file:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker-compose --compatibility config (To check config)
+    <div class="highlighter-rouge"><pre class="highlight"><code>docker-compose --compatibility config (To check config)
 docker-compose --compatibility up -d (To start the service in background)
 docker-compose --compatibility down  (To stop the service)
 docker logs etlflow_webserver_1 (To check the deployed container logs)
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
 </ul>
 
@@ -93,13 +97,14 @@ docker logs etlflow_webserver_1 (To check the deployed container logs)
   <li>
     <p>Below are the settings for docker configuration in examples.sbt:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>packageName in Docker := "etlflow",
+    <div class="highlighter-rouge"><pre class="highlight"><code>packageName in Docker := "etlflow",
 mainClass in Compile := Some("examples.RunCustomServer"),
 dockerBaseImage := "openjdk:jre",
 dockerExposedPorts ++= Seq(8080),
 mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "loaddata.properties", "conf/loaddata.properties"),
 mappings.in(Universal) += (sourceDirectory.value / "main" / "conf" / "cred.json", "conf/cred.json")
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Here you can see we are copying the loaddata.properties file and cred.json file inside docker image.</p>

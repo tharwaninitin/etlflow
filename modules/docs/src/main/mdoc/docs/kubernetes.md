@@ -17,8 +17,8 @@ Below is the example to tell library about job should get executed on dataproc c
 
 ```scala mdoc
 
-import etlflow.utils.Executor.KUBERNETES
-import etlflow.utils.{Executor}
+import etlflow.schema.Executor.KUBERNETES
+import etlflow.schema.Executor
 
 val kubernetes = KUBERNETES(
            "etlflow:0.7.19",

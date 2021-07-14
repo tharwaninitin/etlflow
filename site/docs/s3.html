@@ -11,18 +11,19 @@
   <li><strong>region</strong> [Duration] - S3 region where bucket is present.</li>
 </ul>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
 <span class="k">import</span> <span class="nn">software.amazon.awssdk.regions.Region</span>
 
-<span class="k">val</span> <span class="nv">step</span><span class="k">:</span> <span class="kt">S3PutStep</span> <span class="o">=</span> <span class="nf">S3PutStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">step</span><span class="k">:</span> <span class="kt">S3PutStep</span> <span class="o">=</span> <span class="n">S3PutStep</span><span class="o">(</span>
         <span class="n">name</span>    <span class="k">=</span> <span class="s">"LoadRatingS3"</span><span class="o">,</span>
         <span class="n">bucket</span>  <span class="k">=</span> <span class="s">"s3_bucket"</span><span class="o">,</span>
         <span class="n">key</span>     <span class="k">=</span> <span class="s">"temp/ratings.parquet"</span><span class="o">,</span>
         <span class="n">file</span>    <span class="k">=</span> <span class="s">"local_file_path"</span><span class="o">,</span>
-        <span class="n">region</span>  <span class="k">=</span> <span class="nv">Region</span><span class="o">.</span><span class="py">AP_SOUTH_1</span>
+        <span class="n">region</span>  <span class="k">=</span> <span class="nc">Region</span><span class="o">.</span><span class="nc">AP_SOUTH_1</span>
 <span class="o">)</span>    
-<span class="c1">// step: S3PutStep = etlflow.etlsteps.S3PutStep@49fa2f60</span>
-</code></pre></div></div>
+<span class="c1">// step: S3PutStep = etlflow.etlsteps.S3PutStep@19b640fd
+</span></code></pre>
+</div>
 <h2 id="s3deletestep">S3DeleteStep</h2>
 <p>[Documentation coming soon]</p>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>

@@ -5,109 +5,116 @@
 <h3 id="cloudstoresyncstep--local-to-gcs">CloudStoreSyncStep : local to gcs</h3>
 <p>We can use below step when we want to store data from local storage to gcs bucket.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
 <span class="k">import</span> <span class="nn">etlflow.utils.Location</span>
 
-<span class="k">val</span> <span class="nv">gcs_output_location</span> <span class="k">=</span> <span class="s">"&lt;GCS PATH&gt;"</span>
-<span class="c1">// gcs_output_location: String = "&lt;GCS PATH&gt;"</span>
-
-<span class="k">val</span> <span class="nv">step</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">gcs_output_location</span> <span class="k">=</span> <span class="s">"&lt;GCS PATH&gt;"</span>
+<span class="c1">// gcs_output_location: String = "&lt;GCS PATH&gt;"
+</span><span class="k">val</span> <span class="n">gcs_bucket</span> <span class="k">=</span> <span class="s">"&lt;GCS BUCKET&gt;"</span>
+<span class="c1">// gcs_bucket: String = "&lt;GCS BUCKET&gt;"
+</span><span class="k">val</span> <span class="n">step</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
           <span class="n">name</span> <span class="k">=</span> <span class="s">"GCStoLOCALStep"</span>
-          <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/input/movies/ratings/"</span><span class="o">)</span>
-          <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">GCS</span><span class="o">(</span><span class="n">gcs_output_location</span><span class="o">)</span>
+          <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="nc">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/input/movies/ratings/"</span><span class="o">)</span>
+          <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="nc">GCS</span><span class="o">(</span><span class="n">gcs_bucket</span><span class="o">,</span><span class="n">gcs_output_location</span><span class="o">)</span>
           <span class="o">,</span> <span class="n">output_overwrite</span> <span class="k">=</span> <span class="kc">true</span>
           <span class="o">,</span> <span class="n">parallelism</span> <span class="k">=</span> <span class="mi">3</span>
           <span class="o">,</span> <span class="n">chunk_size</span> <span class="k">=</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mi">1024</span>
         <span class="o">)</span>
-<span class="c1">// step: CloudStoreSyncStep = CloudStoreSyncStep(</span>
-<span class="c1">//   "GCStoLOCALStep",</span>
-<span class="c1">//   LOCAL("modules/core/src/test/resources/input/movies/ratings/"),</span>
-<span class="c1">//   GCS("&lt;GCS PATH&gt;", None),</span>
-<span class="c1">//   None,</span>
-<span class="c1">//   true,</span>
-<span class="c1">//   3,</span>
-<span class="c1">//   1024000</span>
-<span class="c1">// )</span>
-</code></pre></div></div>
+<span class="c1">// step: CloudStoreSyncStep = CloudStoreSyncStep(
+//   "GCStoLOCALStep",
+//   LOCAL("modules/core/src/test/resources/input/movies/ratings/", "localhost"),
+//   GCS("&lt;GCS BUCKET&gt;", "&lt;GCS PATH&gt;", None),
+//   None,
+//   true,
+//   3,
+//   1024000
+// )
+</span></code></pre>
+</div>
 
 <h3 id="cloudstoresyncstep--local-to-aws">CloudStoreSyncStep : local to aws</h3>
 <p>We can use below step when we want to store data from local storage to aws bucket.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
 <span class="k">import</span> <span class="nn">etlflow.utils.Location</span>
 <span class="k">import</span> <span class="nn">software.amazon.awssdk.regions.Region</span>
 
-<span class="k">val</span> <span class="nv">s3_input_location</span> <span class="k">=</span> <span class="s">"&lt;AWS PATH&gt;"</span>
-<span class="c1">// s3_input_location: String = "&lt;AWS PATH&gt;"</span>
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">s3_region</span><span class="k">:</span> <span class="kt">Region</span> <span class="o">=</span> <span class="nv">Region</span><span class="o">.</span><span class="py">AP_SOUTH_1</span>
+<span class="k">val</span> <span class="n">s3_bucket</span> <span class="k">=</span> <span class="s">"&lt;AWS BUCKET&gt;"</span>
+<span class="c1">// s3_bucket: String = "&lt;AWS BUCKET&gt;"
+</span><span class="k">val</span> <span class="n">s3_input_location</span> <span class="k">=</span> <span class="s">"&lt;AWS PATH&gt;"</span>
+<span class="c1">// s3_input_location: String = "&lt;AWS PATH&gt;"
+</span><span class="k">lazy</span> <span class="k">val</span> <span class="n">s3_region</span><span class="k">:</span> <span class="kt">Region</span> <span class="o">=</span> <span class="nc">Region</span><span class="o">.</span><span class="nc">AP_SOUTH_1</span>
 
-<span class="k">val</span> <span class="nv">step1</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">step1</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
         <span class="n">name</span> <span class="k">=</span> <span class="s">"LOCALtoS3Step"</span>
-      <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/input/movies/ratings/"</span><span class="o">)</span>
-      <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">S3</span><span class="o">(</span><span class="n">s3_input_location</span><span class="o">,</span> <span class="n">s3_region</span><span class="o">)</span>
+      <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="nc">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/input/movies/ratings/"</span><span class="o">)</span>
+      <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="n">S3</span><span class="o">(</span><span class="n">s3_bucket</span><span class="o">,</span> <span class="n">s3_input_location</span><span class="o">,</span> <span class="n">s3_region</span><span class="o">)</span>
       <span class="o">,</span> <span class="n">output_overwrite</span> <span class="k">=</span> <span class="kc">true</span>
       <span class="o">,</span> <span class="n">chunk_size</span> <span class="k">=</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mi">1024</span>
         <span class="o">)</span>
-<span class="c1">// step1: CloudStoreSyncStep = CloudStoreSyncStep(</span>
-<span class="c1">//   "LOCALtoS3Step",</span>
-<span class="c1">//   LOCAL("modules/core/src/test/resources/input/movies/ratings/"),</span>
-<span class="c1">//   S3("&lt;AWS PATH&gt;", ap-south-1, None),</span>
-<span class="c1">//   None,</span>
-<span class="c1">//   true,</span>
-<span class="c1">//   1,</span>
-<span class="c1">//   1024000</span>
-<span class="c1">// )</span>
-</code></pre></div></div>
+<span class="c1">// step1: CloudStoreSyncStep = CloudStoreSyncStep(
+//   "LOCALtoS3Step",
+//   LOCAL("modules/core/src/test/resources/input/movies/ratings/", "localhost"),
+//   S3("&lt;AWS BUCKET&gt;", "&lt;AWS PATH&gt;", ap-south-1, None),
+//   None,
+//   true,
+//   1,
+//   1024000
+// )
+</span></code></pre>
+</div>
 
 <h3 id="cloudstoresyncstep--aws-to-local">CloudStoreSyncStep : aws to local</h3>
 <p>We can use below step when we want to store data from aws bucket to local storage.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
 <span class="k">import</span> <span class="nn">etlflow.utils.Location</span>
 
-<span class="k">val</span> <span class="nv">step2</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">step2</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
           <span class="n">name</span> <span class="k">=</span> <span class="s">"S3toLOCALStep"</span>
-          <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">S3</span><span class="o">(</span><span class="n">s3_input_location</span><span class="o">,</span> <span class="n">s3_region</span><span class="o">)</span>
-          <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/s3_output/"</span><span class="o">)</span>
+          <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="n">S3</span><span class="o">(</span><span class="n">s3_bucket</span><span class="o">,</span> <span class="n">s3_input_location</span><span class="o">,</span> <span class="n">s3_region</span><span class="o">)</span>
+          <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="nc">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/s3_output/"</span><span class="o">)</span>
           <span class="o">,</span> <span class="n">output_overwrite</span> <span class="k">=</span> <span class="kc">true</span>
         <span class="o">)</span>
-<span class="c1">// step2: CloudStoreSyncStep = CloudStoreSyncStep(</span>
-<span class="c1">//   "S3toLOCALStep",</span>
-<span class="c1">//   S3("&lt;AWS PATH&gt;", ap-south-1, None),</span>
-<span class="c1">//   LOCAL("modules/core/src/test/resources/s3_output/"),</span>
-<span class="c1">//   None,</span>
-<span class="c1">//   true,</span>
-<span class="c1">//   1,</span>
-<span class="c1">//   32768</span>
-<span class="c1">// )</span>
-</code></pre></div></div>
+<span class="c1">// step2: CloudStoreSyncStep = CloudStoreSyncStep(
+//   "S3toLOCALStep",
+//   S3("&lt;AWS BUCKET&gt;", "&lt;AWS PATH&gt;", ap-south-1, None),
+//   LOCAL("modules/core/src/test/resources/s3_output/", "localhost"),
+//   None,
+//   true,
+//   1,
+//   32768
+// )
+</span></code></pre>
+</div>
 
 <h3 id="cloudstoresyncstep--gcs-to-local">CloudStoreSyncStep : gcs to local</h3>
 <p>We can use below step when we want to store data from gcs bucket to local storage.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.CloudStoreSyncStep</span>
 <span class="k">import</span> <span class="nn">etlflow.utils.Location</span>
 
-<span class="k">val</span> <span class="nv">gcs_input_location</span> <span class="k">=</span> <span class="s">"&lt;GCS PATH&gt;"</span>
-<span class="c1">// gcs_input_location: String = "&lt;GCS PATH&gt;"</span>
-
-<span class="k">val</span> <span class="nv">step3</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">gcs_input_location</span> <span class="k">=</span> <span class="s">"&lt;GCS PATH&gt;"</span>
+<span class="c1">// gcs_input_location: String = "&lt;GCS PATH&gt;"
+</span>
+<span class="k">val</span> <span class="n">step3</span> <span class="k">=</span> <span class="nc">CloudStoreSyncStep</span><span class="o">(</span>
           <span class="n">name</span> <span class="k">=</span> <span class="s">"GCStoLOCALStep"</span>
-          <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">GCS</span><span class="o">(</span><span class="n">gcs_input_location</span><span class="o">)</span>
-          <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nv">Location</span><span class="o">.</span><span class="py">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/gcs_output/"</span><span class="o">)</span>
+          <span class="o">,</span> <span class="n">input_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="nc">GCS</span><span class="o">(</span><span class="n">gcs_bucket</span><span class="o">,</span> <span class="n">gcs_input_location</span><span class="o">)</span>
+          <span class="o">,</span> <span class="n">output_location</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">.</span><span class="nc">LOCAL</span><span class="o">(</span><span class="s">"modules/core/src/test/resources/gcs_output/"</span><span class="o">)</span>
           <span class="o">,</span> <span class="n">output_overwrite</span> <span class="k">=</span> <span class="kc">true</span>
           <span class="o">,</span> <span class="n">parallelism</span> <span class="k">=</span> <span class="mi">3</span>
 <span class="o">)</span>
-<span class="c1">// step3: CloudStoreSyncStep = CloudStoreSyncStep(</span>
-<span class="c1">//   "GCStoLOCALStep",</span>
-<span class="c1">//   GCS("&lt;GCS PATH&gt;", None),</span>
-<span class="c1">//   LOCAL("modules/core/src/test/resources/gcs_output/"),</span>
-<span class="c1">//   None,</span>
-<span class="c1">//   true,</span>
-<span class="c1">//   3,</span>
-<span class="c1">//   32768</span>
-<span class="c1">// )</span>
-</code></pre></div></div>
+<span class="c1">// step3: CloudStoreSyncStep = CloudStoreSyncStep(
+//   "GCStoLOCALStep",
+//   GCS("&lt;GCS BUCKET&gt;", "&lt;GCS PATH&gt;", None),
+//   LOCAL("modules/core/src/test/resources/gcs_output/", "localhost"),
+//   None,
+//   true,
+//   3,
+//   32768
+// )
+</span></code></pre>
+</div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)

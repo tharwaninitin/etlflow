@@ -50,7 +50,6 @@ import com.google.cloud.bigquery.JobInfo
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
 import zio.Task
-import etlflow.utils.Config
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
     
@@ -89,7 +88,6 @@ Below is the example of SequentialEtlJob which is much simpler way to run jobs w
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps._
-import etlflow.utils.Config
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
 import com.google.cloud.bigquery.JobInfo
 import etlflow.spark.IOType

@@ -16,8 +16,8 @@ Below is the example to tell library about job should get executed on local subp
 
 ```scala mdoc
 
-import etlflow.utils.{Executor}
-import etlflow.utils.Executor.LOCAL_SUBPROCESS
+import etlflow.schema.{Executor}
+import etlflow.schema.Executor.LOCAL_SUBPROCESS
 
 val local_subprocess = LOCAL_SUBPROCESS("examples/target/docker/stage/opt/docker/bin/load-data",heap_min_memory = "-Xms100m",heap_max_memory = "-Xms100m")
 

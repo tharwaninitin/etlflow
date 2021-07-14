@@ -18,8 +18,8 @@ Below is the example to tell library about job should get executed on dataproc c
 
 ```scala mdoc
 
-import etlflow.utils.Executor.DATAPROC
-import etlflow.utils.{Executor}
+import etlflow.schema.Executor.DATAPROC
+import etlflow.schema.Executor
 
 val dataproc   = DATAPROC("project-name","region","endpoint","cluster-name")
        

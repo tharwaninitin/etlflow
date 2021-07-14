@@ -11,36 +11,37 @@
 
 <h3 id="example-1">Example 1</h3>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.EtlStepList</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.EtlStepList</span>
 <span class="k">import</span> <span class="nn">etlflow.etlsteps.</span><span class="o">{</span><span class="nc">EtlStep</span><span class="o">,</span> <span class="nc">RedisStep</span><span class="o">}</span>
-<span class="k">import</span> <span class="nn">etlflow.Credential.REDIS</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Credential.REDIS</span>
 <span class="k">import</span> <span class="nn">etlflow.etlsteps.RedisStep.RedisCmd</span>
 
       
-<span class="k">val</span> <span class="nv">redis_config</span><span class="k">:</span> <span class="kt">REDIS</span> <span class="o">=</span> <span class="nc">REDIS</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">)</span>
-<span class="c1">// redis_config: REDIS = REDIS("localhost", None, 6379)</span>
-      
-<span class="k">val</span> <span class="nv">step1</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">redis_config</span><span class="k">:</span> <span class="kt">REDIS</span> <span class="o">=</span> <span class="nc">REDIS</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">)</span>
+<span class="c1">// redis_config: REDIS = REDIS("localhost", None, 6379)
+</span>      
+<span class="k">val</span> <span class="n">step1</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
     <span class="n">name</span>         <span class="k">=</span> <span class="s">"Set redis key and value"</span><span class="o">,</span>
-    <span class="n">command</span>      <span class="k">=</span> <span class="nv">RedisCmd</span><span class="o">.</span><span class="py">SET</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"key1"</span> <span class="o">-&gt;</span> <span class="s">"value1"</span><span class="o">,</span><span class="s">"key2"</span> <span class="o">-&gt;</span> <span class="s">"value3"</span><span class="o">,</span><span class="s">"key3"</span> <span class="o">-&gt;</span> <span class="s">"value3"</span><span class="o">)),</span>
+    <span class="n">command</span>      <span class="k">=</span> <span class="nc">RedisCmd</span><span class="o">.</span><span class="nc">SET</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"key1"</span> <span class="o">-&gt;</span> <span class="s">"value1"</span><span class="o">,</span><span class="s">"key2"</span> <span class="o">-&gt;</span> <span class="s">"value3"</span><span class="o">,</span><span class="s">"key3"</span> <span class="o">-&gt;</span> <span class="s">"value3"</span><span class="o">)),</span>
     <span class="n">credentials</span>  <span class="k">=</span> <span class="n">redis_config</span>
   <span class="o">)</span>
-<span class="c1">// step1: RedisStep = etlflow.etlsteps.RedisStep@5c0c60a8</span>
-
-  <span class="k">val</span> <span class="nv">step2</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
+<span class="c1">// step1: RedisStep = etlflow.etlsteps.RedisStep@54fdf29
+</span>
+  <span class="k">val</span> <span class="n">step2</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
     <span class="n">name</span>        <span class="k">=</span> <span class="s">"delete the keys from redis"</span><span class="o">,</span>
-    <span class="n">command</span>     <span class="k">=</span> <span class="nv">RedisCmd</span><span class="o">.</span><span class="py">DELETE</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="s">"*key1*"</span><span class="o">)),</span>
+    <span class="n">command</span>     <span class="k">=</span> <span class="nc">RedisCmd</span><span class="o">.</span><span class="nc">DELETE</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="s">"*key1*"</span><span class="o">)),</span>
     <span class="n">credentials</span> <span class="k">=</span> <span class="n">redis_config</span>
   <span class="o">)</span>
-<span class="c1">// step2: RedisStep = etlflow.etlsteps.RedisStep@42164011</span>
-
-  <span class="k">val</span> <span class="nv">step3</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
+<span class="c1">// step2: RedisStep = etlflow.etlsteps.RedisStep@6e0a3cc5
+</span>
+  <span class="k">val</span> <span class="n">step3</span> <span class="k">=</span> <span class="nc">RedisStep</span><span class="o">(</span>
     <span class="n">name</span>        <span class="k">=</span> <span class="s">"flushall the keys from redis"</span><span class="o">,</span>
-    <span class="n">command</span>     <span class="k">=</span> <span class="nv">RedisCmd</span><span class="o">.</span><span class="py">FLUSHALL</span><span class="o">,</span>
+    <span class="n">command</span>     <span class="k">=</span> <span class="nc">RedisCmd</span><span class="o">.</span><span class="nc">FLUSHALL</span><span class="o">,</span>
     <span class="n">credentials</span> <span class="k">=</span> <span class="n">redis_config</span>
   <span class="o">)</span>
-<span class="c1">// step3: RedisStep = etlflow.etlsteps.RedisStep@77cb835e</span>
-</code></pre></div></div>
+<span class="c1">// step3: RedisStep = etlflow.etlsteps.RedisStep@298d4657
+</span></code></pre>
+</div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)

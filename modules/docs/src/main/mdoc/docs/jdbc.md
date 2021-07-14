@@ -12,7 +12,7 @@ We can use below step when we want to trigger query/stored-procedure on JDBC dat
 
 ```scala mdoc
 import etlflow.etlsteps.DBQueryStep
-import etlflow.Credential.JDBC
+import etlflow.schema.Credential.JDBC
 
 
 val step1 = DBQueryStep(
@@ -29,7 +29,8 @@ We can use below step when we want to trigger query/stored-procedure on JDBC dat
 
 import etlflow.etlsteps.DBReadStep
 import etlflow.etljobs.GenericEtlJob
-import etlflow.Credential.JDBC
+import etlflow.schema.Credential.JDBC
+
 
 case class EtlJobRun(job_name: String,job_run_id: String, state: String)
      

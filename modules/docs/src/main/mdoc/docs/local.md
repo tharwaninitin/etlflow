@@ -16,7 +16,8 @@ Below is the example to tell library about job should get executed on dataproc c
 
 ```scala mdoc
 
-import etlflow.utils.{Executor}
+import etlflow.schema.Executor
+
       
 case class EtlJob5Props (
                      ratings_input_path: List[String] = List(""),

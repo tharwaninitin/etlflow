@@ -14,41 +14,43 @@
 <h3 id="example-1">Example 1</h3>
 <p>Below is the sample example for send mail step</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
-<span class="k">import</span> <span class="nn">etlflow.Credential.SMTP</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Credential.SMTP</span>
 <span class="k">import</span> <span class="nn">java.time.LocalDateTime</span>
 <span class="k">import</span> <span class="nn">java.time.format.DateTimeFormatter</span>
 
-<span class="k">val</span> <span class="nv">emailBody</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="o">{</span>
-         <span class="k">val</span> <span class="nv">exec_time</span> <span class="k">=</span> <span class="nv">DateTimeFormatter</span><span class="o">.</span><span class="py">ofPattern</span><span class="o">(</span><span class="s">"yyyy-MM-dd_HH:mm"</span><span class="o">).</span><span class="py">format</span><span class="o">(</span><span class="nv">LocalDateTime</span><span class="o">.</span><span class="py">now</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">emailBody</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="o">{</span>
+         <span class="k">val</span> <span class="n">exec_time</span> <span class="k">=</span> <span class="nc">DateTimeFormatter</span><span class="o">.</span><span class="n">ofPattern</span><span class="o">(</span><span class="s">"yyyy-MM-dd_HH:mm"</span><span class="o">).</span><span class="n">format</span><span class="o">(</span><span class="nc">LocalDateTime</span><span class="o">.</span><span class="n">now</span><span class="o">)</span>
          <span class="n">s</span><span class="s">"""
             | SMTP Email Test
             | Time of Execution: $exec_time
-            |"""</span><span class="o">.</span><span class="py">stripMargin</span>
+            |"""</span><span class="o">.</span><span class="n">stripMargin</span>
 <span class="o">}</span>
-<span class="c1">// emailBody: String = """</span>
-<span class="c1">//  SMTP Email Test</span>
-<span class="c1">//  Time of Execution: 2021-04-27_11:46</span>
-<span class="c1">// """</span>
-      
-<span class="k">val</span> <span class="nv">step</span> <span class="k">=</span> <span class="nc">SendMailStep</span><span class="o">(</span>
+<span class="c1">// emailBody: String = """
+//  SMTP Email Test
+//  Time of Execution: 2021-07-14_15:00
+// """
+</span>      
+<span class="k">val</span> <span class="n">step</span> <span class="k">=</span> <span class="nc">SendMailStep</span><span class="o">(</span>
         <span class="n">name</span>           <span class="k">=</span> <span class="s">"SendSMTPEmail"</span><span class="o">,</span>
         <span class="n">body</span>           <span class="k">=</span> <span class="n">emailBody</span><span class="o">,</span>
         <span class="n">subject</span>        <span class="k">=</span> <span class="s">"EtlFlow Ran Successfully"</span><span class="o">,</span>
         <span class="n">recipient_list</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"abc@&lt;domain&gt;.com"</span><span class="o">),</span>
         <span class="n">credentials</span>    <span class="k">=</span> <span class="nc">SMTP</span><span class="o">(</span><span class="s">"PORT"</span><span class="o">,</span> <span class="s">"HOST"</span><span class="o">,</span> <span class="s">"USER"</span><span class="o">,</span> <span class="s">"PWD"</span><span class="o">)</span>
 <span class="o">)</span>
-<span class="c1">// step: SendMailStep = SendMailStep(</span>
-<span class="c1">//   "SendSMTPEmail",</span>
-<span class="c1">//   """</span>
-<span class="c1">//  SMTP Email Test</span>
-<span class="c1">//  Time of Execution: 2021-04-27_11:46</span>
-<span class="c1">// """,</span>
-<span class="c1">//   "EtlFlow Ran Successfully",</span>
-<span class="c1">//   List("abc@&lt;domain&gt;.com"),</span>
-<span class="c1">//   SMTP("PORT", "HOST", "USER", "PWD", "smtp", "true", "true")</span>
-<span class="c1">// )</span>
-</code></pre></div></div>
+<span class="c1">// step: SendMailStep = SendMailStep(
+//   "SendSMTPEmail",
+//   """
+//  SMTP Email Test
+//  Time of Execution: 2021-07-14_15:00
+// """,
+//   "EtlFlow Ran Successfully",
+//   None,
+//   List("abc@&lt;domain&gt;.com"),
+//   SMTP("PORT", "HOST", "USER", "PWD", "smtp", "true", "true")
+// )
+</span></code></pre>
+</div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)

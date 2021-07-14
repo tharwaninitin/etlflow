@@ -45,12 +45,12 @@ case class EtlJob1Props (
 ```scala mdoc
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import etlflow.EtlJobProps
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.DBQueryStep
 import etlflow.utils._
-import etlflow.Credential.JDBC
+import etlflow.schema.Credential.JDBC
 
 case class EtlJob1(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
 

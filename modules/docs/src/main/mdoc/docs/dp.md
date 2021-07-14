@@ -11,7 +11,7 @@ title: Dataproc
 We can use below step when we want to trigger query on Hive Dataproc. Query should not return results for this step 
 
 ```scala mdoc
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 
 val dpConfig1 = DATAPROC(
@@ -33,7 +33,7 @@ val step1 = DPHiveJobStep(
 We can use below step when we want to trigger a job on Dataproc cluster from local server.
 
 ```scala mdoc
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 
 val libs = "@DP_LIBS@".split(",").toList
@@ -53,7 +53,7 @@ We can use below step when we want to create new dataproc cluster.
 ```scala mdoc
 import etlflow.etlsteps.DPCreateStep
 import etlflow.gcp.DataprocProperties
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 
 
    val dpConfig2 = DATAPROC(
@@ -83,7 +83,7 @@ We can use below step when we want to delete dataproc cluster.
 
 
 ```scala mdoc
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import etlflow.etlsteps.DPDeleteStep
 
   val dpConfig3 = DATAPROC(

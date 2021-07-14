@@ -38,6 +38,7 @@ import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.functions._
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
+import etlflow.schema.Credential.JDBC
 
 case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long)
 
@@ -45,7 +46,7 @@ lazy val step1 = SparkReadWriteStep[Rating](
         name             = "LoadRatingsParquetToJdbc",
         input_location   = Seq("gs://path/to/input/*"),
         input_type       = IOType.PARQUET,
-        output_type      = IOType.JDBC("jdbc_url", "jdbc_user", "jdbc_pwd", "jdbc_driver"),
+        output_type      = IOType.RDB(JDBC("jdbc_url", "jdbc_user", "jdbc_pwd", "jdbc_driver")),
         output_location  = "ratings",
         output_save_mode = SaveMode.Overwrite
 )

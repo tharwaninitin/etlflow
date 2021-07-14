@@ -11,23 +11,24 @@
 <h3 id="example-1">Example 1</h3>
 <p>Below is the example to tell library about job should get executed on local subprocess mode.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.utils.</span><span class="o">{</span><span class="nc">Executor</span><span class="o">}</span>
-<span class="k">import</span> <span class="nn">etlflow.utils.Executor.LOCAL_SUBPROCESS</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.schema.</span><span class="o">{</span><span class="nc">Executor</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Executor.LOCAL_SUBPROCESS</span>
 
-<span class="k">val</span> <span class="nv">local_subprocess</span> <span class="k">=</span> <span class="nc">LOCAL_SUBPROCESS</span><span class="o">(</span><span class="s">"examples/target/docker/stage/opt/docker/bin/load-data"</span><span class="o">,</span><span class="n">heap_min_memory</span> <span class="k">=</span> <span class="s">"-Xms100m"</span><span class="o">,</span><span class="n">heap_max_memory</span> <span class="k">=</span> <span class="s">"-Xms100m"</span><span class="o">)</span>
-<span class="c1">// local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS(</span>
-<span class="c1">//   "examples/target/docker/stage/opt/docker/bin/load-data",</span>
-<span class="c1">//   "-Xms100m",</span>
-<span class="c1">//   "-Xms100m"</span>
-<span class="c1">// )</span>
-
+<span class="k">val</span> <span class="n">local_subprocess</span> <span class="k">=</span> <span class="nc">LOCAL_SUBPROCESS</span><span class="o">(</span><span class="s">"examples/target/docker/stage/opt/docker/bin/load-data"</span><span class="o">,</span><span class="n">heap_min_memory</span> <span class="k">=</span> <span class="s">"-Xms100m"</span><span class="o">,</span><span class="n">heap_max_memory</span> <span class="k">=</span> <span class="s">"-Xms100m"</span><span class="o">)</span>
+<span class="c1">// local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS(
+//   "examples/target/docker/stage/opt/docker/bin/load-data",
+//   "-Xms100m",
+//   "-Xms100m"
+// )
+</span>
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob5Props</span> <span class="o">(</span>
                      <span class="n">ratings_input_path</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">""</span><span class="o">),</span>
                      <span class="n">job_schedule</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"0 0 5,6 ? * *"</span><span class="o">,</span>
                      <span class="n">ratings_output_table</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">""</span><span class="o">,</span>
                      <span class="n">job_deploy_mode</span><span class="k">:</span> <span class="kt">Executor</span> <span class="o">=</span> <span class="n">local_subprocess</span>
 <span class="o">)</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 <p>In above case class we define <strong>job_deploy_mode</strong> as local subprocess which tells library on how this particular jobs will gets executed.</p>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>

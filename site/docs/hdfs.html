@@ -19,10 +19,11 @@
   <li>
     <p>To build jar for an application perform below commands from project root folder:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; sbt
+    <div class="highlighter-rouge"><pre class="highlight"><code>&gt; sbt
 &gt; project examples
 &gt; package
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>From root folder run ‘sbt’ command</li>
   <li>Inside sbt, Run ‘project examples’ to set the current project as examples.</li>
@@ -32,10 +33,11 @@
 <h3 id="step-2-building-an-assembly-jar-for-etlflow-core">STEP 2) Building an assembly jar for etlflow core</h3>
 <p>To build an assembly jar for an etlflow core library we need to perform some steps. Clone this git repo and go inside repo root folder and perform below steps:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  &gt; sbt
+<div class="highlighter-rouge"><pre class="highlight"><code>  &gt; sbt
   &gt; project core
   &gt; assembly
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <ul>
   <li>Inside root folder run ‘sbt’ command</li>
@@ -45,21 +47,23 @@
 
 <h3 id="step-3-copy-the-etlflow-core-assembly-jar-to-hdfs-location--using-below-command">STEP 3) Copy the etlflow core assembly jar to hdfs location  using below command</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  hdfs dfs -copyFromLocal modules/core/target/scala-2.12/etlflow-core-assembly-x.x.x.jar hdfs://&lt;HDFS_destination&gt;/jars/etlflow
-</code></pre></div></div>
+<div class="highlighter-rouge"><pre class="highlight"><code>  hdfs dfs -copyFromLocal modules/core/target/scala-2.12/etlflow-core-assembly-x.x.x.jar hdfs://&lt;HDFS_destination&gt;/jars/etlflow
+</code></pre>
+</div>
 
 <p>Replace x.x.x with the latest version <a href="https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg" alt="Maven Central" /></a></p>
 
 <h3 id="step-4-copy-the-examples-jar-to-hdfs-location-using-below-command">STEP 4) Copy the examples jar to hdfs location using below command:</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  hdfs dfs -copyFromLocal  examples/target/scala-2.12/etlflow-examples_2.12-x.x.x.jar  hdfs://&lt;HDFS_destination&gt;/jars/etlflow
-</code></pre></div></div>
+<div class="highlighter-rouge"><pre class="highlight"><code>  hdfs dfs -copyFromLocal  examples/target/scala-2.12/etlflow-examples_2.12-x.x.x.jar  hdfs://&lt;HDFS_destination&gt;/jars/etlflow
+</code></pre>
+</div>
 
 <p>Replace x.x.x with the latest version <a href="https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg" alt="Maven Central" /></a></p>
 
 <h3 id="step-5-provide-below-detials-in-file-examplessrcmainresourcesapplicationconf">STEP 5) Provide below detials in file <strong>examples/src/main/resources/application.conf</strong>:</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    dbLog = {
+<div class="highlighter-rouge"><pre class="highlight"><code>    dbLog = {
       url = &lt;log_db_url&gt;,
       user = &lt;log_db_user&gt;,
       password = &lt;log_db_pwd&gt;,
@@ -69,26 +73,29 @@
       url = &lt;slack-url&gt;,
       env = &lt;running-env&gt;
     }
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <ul>
   <li>
     <p>Now Copy updated application.conf file at hdfs location using below command:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  hdfs dfs -copyFromLocal examples/src/main/resources/application.conf   hdfs://&lt;HDFS_destination&gt;/jars/etlflow
-</code></pre></div>    </div>
+    <div class="highlighter-rouge"><pre class="highlight"><code>  hdfs dfs -copyFromLocal examples/src/main/resources/application.conf   hdfs://&lt;HDFS_destination&gt;/jars/etlflow
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Copy the input file present at location examples/src/main/data/movies/ratings_parquet/ratings.parquet for running sample job using below command:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  hdfs dfs -copyFromLocal examples/src/main/data/movies/ratings_parquet/ratings.parquet   hdfs://&lt;HDFS_destination&gt;/jars/etlflow
-</code></pre></div>    </div>
+    <div class="highlighter-rouge"><pre class="highlight"><code>  hdfs dfs -copyFromLocal examples/src/main/data/movies/ratings_parquet/ratings.parquet   hdfs://&lt;HDFS_destination&gt;/jars/etlflow
+</code></pre>
+    </div>
   </li>
 </ul>
 
 <h3 id="step-6-now-finally-we-can-run-sample-job-on-hadoop-cluster-using-below-command">STEP 6) Now finally we can run sample job on Hadoop cluster using below command:</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    spark-submit \
+<div class="highlighter-rouge"><pre class="highlight"><code>    spark-submit \
      --master yarn \
      --deploy-mode cluster \
      --driver-memory 8g \
@@ -96,7 +103,8 @@
      --class examples.LoadData  \
       hdfs://&lt;HDFS_destination&gt;/jars/examples/etlflow-examples_2.12-0.7.19.jar,hdfs://&lt;HDFS_destination&gt;/jars/examples/etlflow-core-assembly-0.7.19.jar \
       run_job --job_name EtlJob1PARQUETtoORCtoBQLocalWith2Steps  --props ratings_input_path=hdfs://&lt;HDFS_destination&gt;/examples/input,ratings_output_table_name=ratings,ratings_output_dataset=test,ratings_output_file_name=ratings.orc
-</code></pre></div></div>
+</code></pre>
+</div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

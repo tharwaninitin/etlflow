@@ -16,9 +16,8 @@ import etlflow.etlsteps._
 import etlflow.etlsteps.ParallelETLStep
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.EtlJobProps
-import etlflow.utils.Config
 import etlflow.EtlStepList
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.HttpMethod
 
 case class EtlJob1Props (
         ratings_output_table_name: String = "ratings",

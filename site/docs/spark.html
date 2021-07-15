@@ -17,14 +17,15 @@
 
 <p><strong>Create spark session</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
 <span class="k">import</span> <span class="nn">org.slf4j.LoggerFactory</span>
 <span class="k">import</span> <span class="nn">ch.qos.logback.classic.</span><span class="o">{</span><span class="nc">Level</span><span class="o">,</span> <span class="nc">Logger</span><span class="o">}</span>
-<span class="nv">LoggerFactory</span><span class="o">.</span><span class="py">getLogger</span><span class="o">(</span><span class="s">"org"</span><span class="o">).</span><span class="py">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="py">setLevel</span><span class="o">(</span><span class="nv">Level</span><span class="o">.</span><span class="py">WARN</span><span class="o">)</span>
-<span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="nv">spark</span><span class="k">:</span> <span class="kt">SparkSession</span>  <span class="o">=</span> <span class="nv">SparkSession</span><span class="o">.</span><span class="py">builder</span><span class="o">().</span><span class="py">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="py">getOrCreate</span><span class="o">()</span>
-</code></pre></div></div>
+<span class="nc">LoggerFactory</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="s">"org"</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="n">setLevel</span><span class="o">(</span><span class="nc">Level</span><span class="o">.</span><span class="nc">WARN</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span>  <span class="o">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">().</span><span class="n">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="n">getOrCreate</span><span class="o">()</span>
+</code></pre>
+</div>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
 <span class="k">import</span> <span class="nn">etlflow.utils._</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.SaveMode</span>
@@ -33,18 +34,20 @@
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.functions._</span>
 <span class="k">import</span> <span class="nn">etlflow.spark.IOType</span>
 <span class="k">import</span> <span class="nn">etlflow.gcp.BQInputType</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Credential.JDBC</span>
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Rating</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span><span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span>
 
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">step1</span> <span class="k">=</span> <span class="nc">SparkReadWriteStep</span><span class="o">[</span><span class="kt">Rating</span><span class="o">](</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">step1</span> <span class="k">=</span> <span class="nc">SparkReadWriteStep</span><span class="o">[</span><span class="kt">Rating</span><span class="o">](</span>
         <span class="n">name</span>             <span class="k">=</span> <span class="s">"LoadRatingsParquetToJdbc"</span><span class="o">,</span>
         <span class="n">input_location</span>   <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="s">"gs://path/to/input/*"</span><span class="o">),</span>
-        <span class="n">input_type</span>       <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">PARQUET</span><span class="o">,</span>
-        <span class="n">output_type</span>      <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">JDBC</span><span class="o">(</span><span class="s">"jdbc_url"</span><span class="o">,</span> <span class="s">"jdbc_user"</span><span class="o">,</span> <span class="s">"jdbc_pwd"</span><span class="o">,</span> <span class="s">"jdbc_driver"</span><span class="o">),</span>
+        <span class="n">input_type</span>       <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">PARQUET</span><span class="o">,</span>
+        <span class="n">output_type</span>      <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">RDB</span><span class="o">(</span><span class="nc">JDBC</span><span class="o">(</span><span class="s">"jdbc_url"</span><span class="o">,</span> <span class="s">"jdbc_user"</span><span class="o">,</span> <span class="s">"jdbc_pwd"</span><span class="o">,</span> <span class="s">"jdbc_driver"</span><span class="o">)),</span>
         <span class="n">output_location</span>  <span class="k">=</span> <span class="s">"ratings"</span><span class="o">,</span>
-        <span class="n">output_save_mode</span> <span class="k">=</span> <span class="nv">SaveMode</span><span class="o">.</span><span class="py">Overwrite</span>
+        <span class="n">output_save_mode</span> <span class="k">=</span> <span class="nc">SaveMode</span><span class="o">.</span><span class="nc">Overwrite</span>
 <span class="o">)</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="sparkreadtransformwritestep">SparkReadTransformWriteStep</h3>
 <p>We can use below step when :</p>
@@ -53,33 +56,34 @@
   <li>When there is need of transformation function.</li>
 </ul>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">case</span> <span class="k">class</span> <span class="nc">RatingOutputCsv</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span> <span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">date</span><span class="k">:</span> <span class="kt">java.sql.Date</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">case</span> <span class="k">class</span> <span class="nc">RatingOutputCsv</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span> <span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">date</span><span class="k">:</span> <span class="kt">java.sql.Date</span><span class="o">)</span>
 
 
-<span class="k">def</span> <span class="nf">enrichRatingCsvData</span><span class="o">(</span><span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span><span class="o">,</span> <span class="n">in</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">Rating</span><span class="o">])</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">RatingOutputCsv</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-            <span class="k">val</span> <span class="nv">mapping</span> <span class="k">=</span> <span class="nv">Encoders</span><span class="o">.</span><span class="py">product</span><span class="o">[</span><span class="kt">RatingOutputCsv</span><span class="o">]</span>
+<span class="k">def</span> <span class="n">enrichRatingCsvData</span><span class="o">(</span><span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span><span class="o">,</span> <span class="n">in</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">Rating</span><span class="o">])</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">RatingOutputCsv</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+            <span class="k">val</span> <span class="n">mapping</span> <span class="k">=</span> <span class="nc">Encoders</span><span class="o">.</span><span class="n">product</span><span class="o">[</span><span class="kt">RatingOutputCsv</span><span class="o">]</span>
         
-            <span class="k">val</span> <span class="nv">ratings_df</span> <span class="k">=</span> <span class="n">in</span>
-                <span class="o">.</span><span class="py">withColumnRenamed</span><span class="o">(</span><span class="s">"user_id"</span><span class="o">,</span><span class="s">"User Id"</span><span class="o">)</span>
-                <span class="o">.</span><span class="py">withColumnRenamed</span><span class="o">(</span><span class="s">"movie_id"</span><span class="o">,</span><span class="s">"Movie Id"</span><span class="o">)</span>
-                <span class="o">.</span><span class="py">withColumnRenamed</span><span class="o">(</span><span class="s">"rating"</span><span class="o">,</span><span class="s">"Ratings"</span><span class="o">)</span>
-                <span class="o">.</span><span class="py">withColumn</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span> <span class="nf">from_unixtime</span><span class="o">(</span><span class="nf">col</span><span class="o">(</span><span class="s">"timestamp"</span><span class="o">),</span> <span class="s">"yyyy-MM-dd"</span><span class="o">).</span><span class="py">cast</span><span class="o">(</span><span class="nc">DateType</span><span class="o">))</span>
-                <span class="o">.</span><span class="py">withColumnRenamed</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span><span class="s">"Movie Date"</span><span class="o">)</span>
+            <span class="k">val</span> <span class="n">ratings_df</span> <span class="k">=</span> <span class="n">in</span>
+                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="o">(</span><span class="s">"user_id"</span><span class="o">,</span><span class="s">"User Id"</span><span class="o">)</span>
+                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="o">(</span><span class="s">"movie_id"</span><span class="o">,</span><span class="s">"Movie Id"</span><span class="o">)</span>
+                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="o">(</span><span class="s">"rating"</span><span class="o">,</span><span class="s">"Ratings"</span><span class="o">)</span>
+                <span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span> <span class="n">from_unixtime</span><span class="o">(</span><span class="n">col</span><span class="o">(</span><span class="s">"timestamp"</span><span class="o">),</span> <span class="s">"yyyy-MM-dd"</span><span class="o">).</span><span class="n">cast</span><span class="o">(</span><span class="nc">DateType</span><span class="o">))</span>
+                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span><span class="s">"Movie Date"</span><span class="o">)</span>
         
-            <span class="nv">ratings_df</span><span class="o">.</span><span class="py">as</span><span class="o">[</span><span class="kt">RatingOutputCsv</span><span class="o">](</span><span class="n">mapping</span><span class="o">)</span>
+            <span class="n">ratings_df</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">RatingOutputCsv</span><span class="o">](</span><span class="n">mapping</span><span class="o">)</span>
 <span class="o">}</span>
 
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">step3</span> <span class="k">=</span> <span class="nc">SparkReadTransformWriteStep</span><span class="o">[</span><span class="kt">Rating</span>, <span class="kt">RatingOutputCsv</span><span class="o">](</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">step3</span> <span class="k">=</span> <span class="nc">SparkReadTransformWriteStep</span><span class="o">[</span><span class="kt">Rating</span>, <span class="kt">RatingOutputCsv</span><span class="o">](</span>
           <span class="n">name</span>                  <span class="k">=</span> <span class="s">"LoadRatingsCsvToCsv"</span><span class="o">,</span>
           <span class="n">input_location</span>        <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="s">"gs://path/to/input/"</span><span class="o">),</span>
-          <span class="n">input_type</span>            <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">CSV</span><span class="o">(),</span>
+          <span class="n">input_type</span>            <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">CSV</span><span class="o">(),</span>
           <span class="n">transform_function</span>    <span class="k">=</span> <span class="n">enrichRatingCsvData</span><span class="o">,</span>
-          <span class="n">output_type</span>           <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">CSV</span><span class="o">(),</span>
+          <span class="n">output_type</span>           <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">CSV</span><span class="o">(),</span>
           <span class="n">output_location</span>       <span class="k">=</span> <span class="s">"gs://path/to/output/"</span><span class="o">,</span>
-          <span class="n">output_save_mode</span>      <span class="k">=</span> <span class="nv">SaveMode</span><span class="o">.</span><span class="py">Overwrite</span><span class="o">,</span>
+          <span class="n">output_save_mode</span>      <span class="k">=</span> <span class="nc">SaveMode</span><span class="o">.</span><span class="nc">Overwrite</span><span class="o">,</span>
           <span class="n">output_filename</span>       <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="s">"ratings.csv"</span><span class="o">)</span>
 <span class="o">)</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 <p><strong>Whenever we want to write the data using above mentioned steps into partitioned format then dont specify the output_filename as a parameter</strong></p>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

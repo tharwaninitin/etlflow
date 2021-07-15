@@ -12,10 +12,10 @@
 <h3 id="example-1">Example 1</h3>
 <p>Below is the example to tell library about job should get executed on dataproc cluster.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.utils.Executor.KUBERNETES</span>
-<span class="k">import</span> <span class="nn">etlflow.utils.</span><span class="o">{</span><span class="nc">Executor</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.schema.Executor.KUBERNETES</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Executor</span>
 
-<span class="k">val</span> <span class="nv">kubernetes</span> <span class="k">=</span> <span class="nc">KUBERNETES</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">kubernetes</span> <span class="k">=</span> <span class="nc">KUBERNETES</span><span class="o">(</span>
            <span class="s">"etlflow:0.7.19"</span><span class="o">,</span>
            <span class="s">"default"</span><span class="o">,</span>
            <span class="nc">Map</span><span class="o">(</span>
@@ -26,28 +26,29 @@
              <span class="s">"LOG_DB_DRIVER"</span><span class="o">-&gt;</span> <span class="nc">Option</span><span class="o">(</span><span class="s">"org.postgresql.Driver"</span><span class="o">)</span>
            <span class="o">)</span>
          <span class="o">)</span>
-<span class="c1">// kubernetes: KUBERNETES = KUBERNETES(</span>
-<span class="c1">//   "etlflow:0.7.19",</span>
-<span class="c1">//   "default",</span>
-<span class="c1">//   Map(</span>
-<span class="c1">//     "GOOGLE_APPLICATION_CREDENTIALS" -&gt; Some("&lt;cred_file&gt;"),</span>
-<span class="c1">//     "LOG_DB_DRIVER" -&gt; Some("org.postgresql.Driver"),</span>
-<span class="c1">//     "LOG_DB_USER" -&gt; Some("&lt;username&gt;"),</span>
-<span class="c1">//     "LOG_DB_URL" -&gt; Some("jdbc:postgresql://host.docker.internal:5432/postgres"),</span>
-<span class="c1">//     "LOG_DB_PWD" -&gt; Some("&lt;pwd&gt;")</span>
-<span class="c1">//   ),</span>
-<span class="c1">//   "etljob",</span>
-<span class="c1">//   Some("/opt/docker/bin/load-data"),</span>
-<span class="c1">//   Some("Never")</span>
-<span class="c1">// )</span>
-       
+<span class="c1">// kubernetes: KUBERNETES = KUBERNETES(
+//   "etlflow:0.7.19",
+//   "default",
+//   Map(
+//     "GOOGLE_APPLICATION_CREDENTIALS" -&gt; Some("&lt;cred_file&gt;"),
+//     "LOG_DB_DRIVER" -&gt; Some("org.postgresql.Driver"),
+//     "LOG_DB_USER" -&gt; Some("&lt;username&gt;"),
+//     "LOG_DB_URL" -&gt; Some("jdbc:postgresql://host.docker.internal:5432/postgres"),
+//     "LOG_DB_PWD" -&gt; Some("&lt;pwd&gt;")
+//   ),
+//   "etljob",
+//   Some("/opt/docker/bin/load-data"),
+//   Some("Never")
+// )
+</span>       
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob5Props</span> <span class="o">(</span>
                      <span class="n">ratings_input_path</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">""</span><span class="o">),</span>
                      <span class="n">job_schedule</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"0 0 5,6 ? * *"</span><span class="o">,</span>
                      <span class="n">ratings_output_table</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">""</span><span class="o">,</span>
                      <span class="n">job_deploy_mode</span><span class="k">:</span> <span class="kt">Executor</span> <span class="o">=</span> <span class="n">kubernetes</span>
 <span class="o">)</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 <p>In above case class we define <strong>job_deploy_mode</strong> as kubernetes which tells library on how this particular jobs will gets executed.</p>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>

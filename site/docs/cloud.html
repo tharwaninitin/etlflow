@@ -10,21 +10,23 @@
 
 <p>To use etlflow cloud library in project add below setting in build.sbt file :</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<div class="highlighter-rouge"><pre class="highlight"><code>
 lazy val docs = (project in file("modules/examples"))
         .settings(
          scalaVersion := "2.12.13",
          libraryDependencies ++= List("com.github.tharwaninitin" %% "etlflow-core" % "0.10.0"))
          
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="step-1-building-an-assembly-jar-for-etlflow-cloud">STEP 1) Building an assembly jar for etlflow cloud</h3>
 <p>To build an assembly jar for an etlflow cloud library we need to perform some steps. Clone this git repo and go inside repo root folder and perform below steps:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  &gt; sbt
+<div class="highlighter-rouge"><pre class="highlight"><code>  &gt; sbt
   &gt; project cloud
   &gt; assembly
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <ul>
   <li>Inside root folder run ‘sbt’ command</li>
@@ -34,8 +36,9 @@ lazy val docs = (project in file("modules/examples"))
 
 <h3 id="step-2-copy-the-etlflow-cloud-assembly-jar-to-gcs-bucket-using-below-command">STEP 2) Copy the etlflow cloud assembly jar to gcs bucket using below command</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gsutil cp modules/cloud/target/scala-2.12/etlflow-cloud-assembly-x.x.x.jar gs://&lt;BUCKET-NAME&gt;/jars/examples
-</code></pre></div></div>
+<div class="highlighter-rouge"><pre class="highlight"><code>  gsutil cp modules/cloud/target/scala-2.12/etlflow-cloud-assembly-x.x.x.jar gs://&lt;BUCKET-NAME&gt;/jars/examples
+</code></pre>
+</div>
 
 <p>Replace x.x.x with the latest version <a href="https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-cloud"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-cloud_2.12/badge.svg" alt="Maven Central" /></a></p>
 
@@ -43,8 +46,8 @@ lazy val docs = (project in file("modules/examples"))
 
 <p>Below is the step of cloud library using which we can run the query on hive cluster :</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.</span><span class="o">{</span><span class="nc">DPHiveJobStep</span><span class="o">,</span> <span class="nc">DPSparkJobStep</span><span class="o">}</span>
-<span class="k">import</span> <span class="nn">etlflow.utils.Executor.DATAPROC</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.</span><span class="o">{</span><span class="nc">DPHiveJobStep</span><span class="o">,</span> <span class="nc">DPSparkJobStep</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Executor.DATAPROC</span>
 <span class="k">import</span> <span class="nn">etlflow.etljobs.GenericEtlJob</span>
 <span class="k">import</span> <span class="nn">etlflow.EtlJobProps</span>
 
@@ -54,24 +57,25 @@ lazy val docs = (project in file("modules/examples"))
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob1</span><span class="o">(</span><span class="n">job_properties</span><span class="k">:</span> <span class="kt">EtlJob1Props</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">GenericEtlJob</span><span class="o">[</span><span class="kt">EtlJob1Props</span><span class="o">]</span> <span class="o">{</span>
 
-     <span class="k">val</span> <span class="nv">dpConfig</span> <span class="k">=</span> <span class="nc">DATAPROC</span><span class="o">(</span>
-          <span class="nv">sys</span><span class="o">.</span><span class="py">env</span><span class="o">(</span><span class="s">"DP_PROJECT_ID"</span><span class="o">),</span>
-          <span class="nv">sys</span><span class="o">.</span><span class="py">env</span><span class="o">(</span><span class="s">"DP_REGION"</span><span class="o">),</span>
-          <span class="nv">sys</span><span class="o">.</span><span class="py">env</span><span class="o">(</span><span class="s">"DP_ENDPOINT"</span><span class="o">),</span>
-          <span class="nv">sys</span><span class="o">.</span><span class="py">env</span><span class="o">(</span><span class="s">"DP_CLUSTER_NAME"</span><span class="o">)</span>
+     <span class="k">val</span> <span class="n">dpConfig</span> <span class="k">=</span> <span class="nc">DATAPROC</span><span class="o">(</span>
+          <span class="n">sys</span><span class="o">.</span><span class="n">env</span><span class="o">(</span><span class="s">"DP_PROJECT_ID"</span><span class="o">),</span>
+          <span class="n">sys</span><span class="o">.</span><span class="n">env</span><span class="o">(</span><span class="s">"DP_REGION"</span><span class="o">),</span>
+          <span class="n">sys</span><span class="o">.</span><span class="n">env</span><span class="o">(</span><span class="s">"DP_ENDPOINT"</span><span class="o">),</span>
+          <span class="n">sys</span><span class="o">.</span><span class="n">env</span><span class="o">(</span><span class="s">"DP_CLUSTER_NAME"</span><span class="o">)</span>
       <span class="o">)</span>
   
-      <span class="k">val</span> <span class="nv">step</span> <span class="k">=</span> <span class="nc">DPHiveJobStep</span><span class="o">(</span>
+      <span class="k">val</span> <span class="n">step</span> <span class="k">=</span> <span class="nc">DPHiveJobStep</span><span class="o">(</span>
           <span class="n">name</span>  <span class="k">=</span> <span class="s">"DPHiveJobStepExample"</span><span class="o">,</span>
           <span class="n">query</span> <span class="k">=</span> <span class="s">"SELECT 1 AS ONE"</span><span class="o">,</span>
           <span class="n">config</span> <span class="k">=</span> <span class="n">dpConfig</span><span class="o">,</span>
       <span class="o">)</span>
 
-      <span class="k">val</span> <span class="nv">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
-         <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step</span><span class="o">.</span><span class="py">execute</span><span class="o">()</span>
-      <span class="o">}</span> <span class="nf">yield</span> <span class="o">()</span>
+      <span class="k">val</span> <span class="n">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+         <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">step</span><span class="o">.</span><span class="n">execute</span><span class="o">()</span>
+      <span class="o">}</span> <span class="k">yield</span> <span class="o">()</span>
 <span class="o">}</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

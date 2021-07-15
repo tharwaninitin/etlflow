@@ -64,7 +64,8 @@ import etlflow.etljobs.GenericEtlJob
 import etlflow.EtlJobProps
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
-         
+import etlflow.schema.Credential.JDBC
+
 case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long) extends EtlJobProps
          
 case class EtlJob1(job_properties: Rating) extends GenericEtlJob[Rating] {
@@ -73,7 +74,7 @@ case class EtlJob1(job_properties: Rating) extends GenericEtlJob[Rating] {
         name             = "LoadRatingsParquetToJdbc",
         input_location   = Seq("gs://path/to/input/*"),
         input_type       = IOType.PARQUET,
-        output_type      = IOType.JDBC("jdbc_url", "jdbc_user", "jdbc_pwd", "jdbc_driver"),
+        output_type      = IOType.RDB(JDBC("jdbc_url", "jdbc_user", "jdbc_pwd", "jdbc_driver")),
         output_location  = "ratings",
         output_save_mode = SaveMode.Overwrite
    )

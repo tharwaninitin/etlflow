@@ -3,106 +3,114 @@
 <h3 id="step-1-define-buildsbt">STEP 1) Define build.sbt:</h3>
 <p>To use etlflow core library in project add below setting in build.sbt file</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<div class="highlighter-rouge"><pre class="highlight"><code>
 lazy val root = (project in file("."))
   .settings(
     scalaVersion := "2.12.13",
     libraryDependencies ++= List("com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"))
 
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="step-2-define-job-properties-etljobpropsscala">STEP 2) Define job properties EtlJobProps.scala:</h3>
 <p>Here we can have any kind of logic for creating static or dynamic input parameters for job.
 For e.g. intermediate path can be dynamically generated for every run based on current date.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.EtlJobProps</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.EtlJobProps</span>
 <span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
 <span class="k">import</span> <span class="nn">java.time.LocalDate</span>
       
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">canonical_path</span> <span class="k">=</span> <span class="k">new</span> <span class="nv">java</span><span class="o">.</span><span class="py">io</span><span class="o">.</span><span class="py">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="py">getCanonicalPath</span>
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">input_file_path</span> <span class="k">=</span> <span class="n">s</span><span class="s">"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"</span>
-<span class="k">val</span> <span class="nv">date_prefix</span> <span class="k">=</span> <span class="nv">LocalDate</span><span class="o">.</span><span class="py">now</span><span class="o">.</span><span class="py">toString</span><span class="o">.</span><span class="py">replace</span><span class="o">(</span><span class="s">"-"</span><span class="o">,</span><span class="s">""</span><span class="o">)</span>
-<span class="c1">// date_prefix: String = "20210427"</span>
-      
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">canonical_path</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="nc">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="n">getCanonicalPath</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">input_file_path</span> <span class="k">=</span> <span class="n">s</span><span class="s">"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"</span>
+<span class="k">val</span> <span class="n">date_prefix</span> <span class="k">=</span> <span class="nc">LocalDate</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">toString</span><span class="o">.</span><span class="n">replace</span><span class="o">(</span><span class="s">"-"</span><span class="o">,</span><span class="s">""</span><span class="o">)</span>
+<span class="c1">// date_prefix: String = "20210714"
+</span>      
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob1Props</span> <span class="o">(</span>
    <span class="n">ratings_input_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">input_file_path</span><span class="o">,</span>
-   <span class="n">ratings_intermediate_bucket</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="nv">sys</span><span class="o">.</span><span class="py">env</span><span class="o">(</span><span class="s">"GCS_BUCKET"</span><span class="o">),</span>
+   <span class="n">ratings_intermediate_bucket</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">env</span><span class="o">(</span><span class="s">"GCS_BUCKET"</span><span class="o">),</span>
    <span class="n">ratings_intermediate_file_key</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">s</span><span class="s">"temp/$date_prefix/ratings.parquet"</span><span class="o">,</span>
    <span class="n">ratings_output_dataset</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"test"</span><span class="o">,</span>
    <span class="n">ratings_output_table_name</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"ratings"</span><span class="o">,</span>
 <span class="o">)</span> <span class="k">extends</span> <span class="nc">EtlJobProps</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="step-3-define-job-etljob1scala">STEP 3) Define job EtlJob1.scala:</h3>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.</span><span class="o">{</span><span class="nc">DPHiveJobStep</span><span class="o">,</span> <span class="nc">DPSparkJobStep</span><span class="o">}</span>
-<span class="k">import</span> <span class="nn">etlflow.utils.Executor.DATAPROC</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps.</span><span class="o">{</span><span class="nc">DPHiveJobStep</span><span class="o">,</span> <span class="nc">DPSparkJobStep</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Executor.DATAPROC</span>
 <span class="k">import</span> <span class="nn">etlflow.EtlJobProps</span>
 <span class="k">import</span> <span class="nn">etlflow.etljobs.GenericEtlJob</span>
 <span class="k">import</span> <span class="nn">etlflow.etlsteps.DBQueryStep</span>
 <span class="k">import</span> <span class="nn">etlflow.utils._</span>
-<span class="k">import</span> <span class="nn">etlflow.Credential.JDBC</span>
+<span class="k">import</span> <span class="nn">etlflow.schema.Credential.JDBC</span>
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">EtlJob1</span><span class="o">(</span><span class="n">job_properties</span><span class="k">:</span> <span class="kt">EtlJob1Props</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">GenericEtlJob</span><span class="o">[</span><span class="kt">EtlJob1Props</span><span class="o">]</span> <span class="o">{</span>
 
-  <span class="k">val</span> <span class="nv">step</span> <span class="k">=</span> <span class="nc">DBQueryStep</span><span class="o">(</span>
+  <span class="k">val</span> <span class="n">step</span> <span class="k">=</span> <span class="nc">DBQueryStep</span><span class="o">(</span>
      <span class="n">name</span>  <span class="k">=</span> <span class="s">"UpdatePG"</span><span class="o">,</span>
      <span class="n">query</span> <span class="k">=</span> <span class="s">"BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;"</span><span class="o">,</span>
      <span class="n">credentials</span> <span class="k">=</span> <span class="nc">JDBC</span><span class="o">(</span><span class="s">"jdbc_url"</span><span class="o">,</span> <span class="s">"jdbc_user"</span><span class="o">,</span> <span class="s">"jdbc_pwd"</span><span class="o">,</span> <span class="s">"jdbc_driver"</span><span class="o">)</span>
   <span class="o">)</span>
    
-  <span class="k">val</span> <span class="nv">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
-      <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step</span><span class="o">.</span><span class="py">execute</span><span class="o">()</span>
-  <span class="o">}</span> <span class="nf">yield</span> <span class="o">()</span>
+  <span class="k">val</span> <span class="n">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+      <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">step</span><span class="o">.</span><span class="n">execute</span><span class="o">()</span>
+  <span class="o">}</span> <span class="k">yield</span> <span class="o">()</span>
 <span class="o">}</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="step-4-define-job-and-properties-mapping-using-etljobpropsmapping-myetljobpropsmappingscala">STEP 4) Define job and properties mapping using EtlJobPropsMapping MyEtlJobPropsMapping.scala:</h3>
 
 <p>Below is the example of defining EtlJobPropsMapping where we can define the mapping between job and its properties.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.</span><span class="o">{</span><span class="nc">EtlJobPropsMapping</span><span class="o">,</span> <span class="nc">EtlJobProps</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.</span><span class="o">{</span><span class="nc">EtlJobPropsMapping</span><span class="o">,</span> <span class="nc">EtlJobProps</span><span class="o">}</span>
 <span class="k">import</span> <span class="nn">etlflow.etljobs.EtlJob</span>
 
 <span class="k">sealed</span> <span class="k">trait</span> <span class="nc">MyEtlJobPropsMapping</span><span class="o">[</span><span class="kt">EJP</span> <span class="k">&lt;:</span> <span class="kt">EtlJobProps</span>, <span class="kt">EJ</span> <span class="k">&lt;:</span> <span class="kt">EtlJob</span><span class="o">[</span><span class="kt">EJP</span><span class="o">]]</span> <span class="nc">extends</span> <span class="nc">EtlJobPropsMapping</span><span class="o">[</span><span class="kt">EJP</span>,<span class="kt">EJ</span><span class="o">]</span>
 
 <span class="k">object</span> <span class="nc">MyEtlJobPropsMapping</span> <span class="o">{</span>
    <span class="k">case</span> <span class="k">object</span> <span class="nc">Job1</span> <span class="k">extends</span> <span class="nc">MyEtlJobPropsMapping</span><span class="o">[</span><span class="kt">EtlJob1Props</span>,<span class="kt">EtlJob1</span><span class="o">]</span> <span class="o">{</span>
-     <span class="k">override</span> <span class="k">def</span> <span class="nf">getActualProperties</span><span class="o">(</span><span class="n">job_properties</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">EtlJob1Props</span> <span class="o">=</span> <span class="nc">EtlJob1Props</span><span class="o">()</span>
+     <span class="k">override</span> <span class="k">def</span> <span class="n">getActualProperties</span><span class="o">(</span><span class="n">job_properties</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">EtlJob1Props</span> <span class="o">=</span> <span class="nc">EtlJob1Props</span><span class="o">()</span>
    <span class="o">}</span>
 <span class="o">}</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="step-5-define-main-runnable-app-loaddatascala">STEP 5) Define Main Runnable App LoadData.scala:</h3>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.</span><span class="o">{</span><span class="nc">EtlFlowApp</span><span class="o">,</span> <span class="nc">EtlJobProps</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.</span><span class="o">{</span><span class="nc">EtlFlowApp</span><span class="o">,</span> <span class="nc">EtlJobProps</span><span class="o">}</span>
    
 <span class="k">object</span> <span class="nc">LoadData</span> <span class="k">extends</span> <span class="nc">EtlFlowApp</span><span class="o">[</span><span class="kt">MyEtlJobPropsMapping</span><span class="o">[</span><span class="kt">EtlJobProps</span>,<span class="kt">EtlJob</span><span class="o">[</span><span class="kt">EtlJobProps</span><span class="o">]]]</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <h3 id="step-6-running-jobs">STEP 6) Running jobs:</h3>
 <p>To be able to use this core library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
+<div class="highlighter-rouge"><pre class="highlight"><code>export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
 export LOG_DB_USER=&lt;...&gt;
 export LOG_DB_PWD=&lt;..&gt;
 export LOG_DB_DRIVER=org.postgresql.Driver
 
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <p>Now to create database tables used in this library run below commands from repo root folder:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sbt
+<div class="highlighter-rouge"><pre class="highlight"><code>sbt
 runMain LoadData run_db_migration
 
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <p>Now to run sample job use below command:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sbt
+<div class="highlighter-rouge"><pre class="highlight"><code>sbt
 runMain LoadData run_job --job_name Job1
 
-</code></pre></div></div>
+</code></pre>
+</div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)

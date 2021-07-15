@@ -7,11 +7,13 @@
  This module contains core library which defines Scala internal <strong>dsl</strong> that assists with writing <strong>ETL Job</strong> which can be composed as multiple <strong>ETL steps</strong> in a concise manner which facilitates easier <strong>Testing</strong> and reasoning about the entire job. 
  This module also contains many <a href="https://github.com/tharwaninitin/etlflow/blob/master/modules/core/src/test/scala">test jobs</a> which contains multiple steps. This core library also contains tests and all jobs uses EtlJob API. 
  To run all test successfully some properties needs to be set in <a href="https://github.com/tharwaninitin/etlflow/blob/master/modules/core/src/test/resources/application.conf">application.conf</a> or set these properties as ENVIRONMENT variables.
-    <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nb">export </span><span class="nv">GOOGLE_APPLICATION_CREDENTIALS</span><span class="o">=</span>&lt;...&gt; <span class="c"># this should be full path to Service Account Key Json which should have GCS and Biguery Read/Write access</span>
-</code></pre></div>    </div>
+    <div class="language-shell highlighter-rouge"><pre class="highlight"><code> <span class="nb">export </span><span class="nv">GOOGLE_APPLICATION_CREDENTIALS</span><span class="o">=</span>&lt;...&gt; <span class="c"># this should be full path to Service Account Key Json which should have GCS and Biguery Read/Write access</span>
+</code></pre>
+    </div>
     <p>Now run tests using below sbt command</p>
-    <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code> sbt <span class="s2">"project etlflow"</span> <span class="nb">test</span>
-</code></pre></div>    </div>
+    <div class="language-shell highlighter-rouge"><pre class="highlight"><code> sbt <span class="s2">"project etlflow"</span> <span class="nb">test</span>
+</code></pre>
+    </div>
   </li>
   <li>
     <p><strong>modules/core/src/main/scala/etlflow/etlsteps</strong>:

@@ -78,7 +78,6 @@ import com.google.cloud.bigquery.JobInfo
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.{BQLoadStep, GCSPutStep}
 import zio.Task
-import etlflow.utils.Config
 import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
     

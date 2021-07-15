@@ -15,21 +15,22 @@
 <h3 id="example-1">Example 1</h3>
 <p>Below example waits for a file <strong>temp/ratings.parquet</strong> to be present in a S3 bucket named <strong>s3_bucket</strong>.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
 <span class="k">import</span> <span class="nn">software.amazon.awssdk.regions.Region</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 
-<span class="k">val</span> <span class="nv">step</span> <span class="k">=</span> <span class="nf">S3SensorStep</span><span class="o">(</span>
+<span class="k">val</span> <span class="n">step</span> <span class="k">=</span> <span class="n">S3SensorStep</span><span class="o">(</span>
          <span class="n">name</span>    <span class="k">=</span> <span class="s">"S3KeySensor"</span><span class="o">,</span>
          <span class="n">bucket</span>  <span class="k">=</span> <span class="s">"s3_bucket"</span><span class="o">,</span>
          <span class="n">prefix</span>  <span class="k">=</span> <span class="s">"temp"</span><span class="o">,</span>
          <span class="n">key</span>     <span class="k">=</span> <span class="s">"ratings.parquet"</span><span class="o">,</span>
          <span class="n">retry</span>   <span class="k">=</span> <span class="mi">10</span><span class="o">,</span>
          <span class="n">spaced</span>  <span class="k">=</span> <span class="mf">5.</span><span class="n">second</span><span class="o">,</span>
-         <span class="n">region</span>  <span class="k">=</span> <span class="nv">Region</span><span class="o">.</span><span class="py">AP_SOUTH_1</span>
+         <span class="n">region</span>  <span class="k">=</span> <span class="nc">Region</span><span class="o">.</span><span class="nc">AP_SOUTH_1</span>
 <span class="o">)</span>
-<span class="c1">// step: S3SensorStep = etlflow.etlsteps.S3SensorStep@6bd4c34a</span>
-</code></pre></div></div>
+<span class="c1">// step: S3SensorStep = etlflow.etlsteps.S3SensorStep@488bf6f9
+</span></code></pre>
+</div>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)

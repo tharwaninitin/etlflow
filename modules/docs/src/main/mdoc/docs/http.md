@@ -24,7 +24,7 @@ Below is the sample Http Step GET example.
 
 ```scala mdoc
 import etlflow.etlsteps._
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.HttpMethod
 
 val step1 = HttpRequestStep[Unit](
     name    = "HttpGetSimple",
@@ -39,7 +39,7 @@ We can use below http GET step when we want return response from the step.
 
 ```scala mdoc
 import etlflow.etlsteps._
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.HttpMethod
 
 val step2 = HttpRequestStep[String](
     name         = "HttpGetParams",
@@ -55,7 +55,7 @@ Below is the simple Http POST json  example.
 
 ```scala mdoc
 import etlflow.etlsteps._
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.HttpMethod
 
 val step3 = HttpRequestStep[Unit](
     name         = "HttpPostJson",
@@ -72,7 +72,7 @@ We can use below http POST step when we want return response from the step.
 
 ```scala mdoc
 import etlflow.etlsteps._
-import etlflow.utils.HttpRequest.HttpMethod
+import etlflow.utils.HttpMethod
 
 val step4 = HttpRequestStep[String](
     name         = "HttpPostForm",

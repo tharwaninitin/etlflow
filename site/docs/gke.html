@@ -11,7 +11,7 @@
   <li>
     <p>Update the file <strong>examples/src/main/resources/application.conf</strong> with below content :</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  db-log = {
+    <div class="highlighter-rouge"><pre class="highlight"><code>  db-log = {
             url = &lt;log_db_url&gt;,
             user = &lt;log_db_user&gt;,
             password = &lt;log_db_pwd&gt;,
@@ -21,7 +21,8 @@
             url = &lt;slack-url&gt;,
             env = &lt;running-env&gt;
           }
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Copy GCP service account json file at location <strong>examples/src/main/conf</strong> with name <strong>cred.json</strong></p>
@@ -29,10 +30,11 @@
   <li>
     <p>To build docker image we have to run below commands.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   &gt; sbt
+    <div class="highlighter-rouge"><pre class="highlight"><code>   &gt; sbt
    &gt; project examples
    &gt; docker:publishLocal
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
 </ul>
 
@@ -43,7 +45,7 @@
   <li>deployment.yaml: Provide a configuration to run the docker image.</li>
 </ul>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>       apiVersion: apps/v1
+<div class="highlighter-rouge"><pre class="highlight"><code>       apiVersion: apps/v1
        kind: Deployment
        metadata:
          name: etlflow-gke
@@ -68,13 +70,14 @@
                env:
                  - name: PORT
                    value: "8080"
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <ul>
   <li>
     <p>service.yaml: Provide a configuration to access the deployed application from front-end.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apiVersion: v1
+    <div class="highlighter-rouge"><pre class="highlight"><code>apiVersion: v1
 kind: Service
 metadata:
   name: etlflow-gke
@@ -85,17 +88,19 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Use below commands to run/stop deployed the etlflow on GKE  using above two configuration files :</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply -f deployment.yaml ( Deploy the resource to the cluster )
+    <div class="highlighter-rouge"><pre class="highlight"><code>kubectl apply -f deployment.yaml ( Deploy the resource to the cluster )
 kubectl get deployments ( Track the status of the Deployment )    
 kubectl get pods ( To check the pods that the Deployment created)
 kubectl apply -f service.yaml ( To Create the service )
 kubectl get services ( Get the Service's external IP address )  
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
 </ul>
 

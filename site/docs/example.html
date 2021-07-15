@@ -2,75 +2,82 @@
 
 <p>Clone this git repo and go inside repo root folder and enter below command (make sure you have sbt and scala installed)</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project examples" console
-</code></pre></div></div>
+<div class="highlighter-rouge"><pre class="highlight"><code>SBT_OPTS="-Xms512M -Xmx1024M -Xss2M -XX:MaxMetaspaceSize=1024M" sbt -v "project examples" console
+</code></pre>
+</div>
 
 <p><strong>Import core packages</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.etlsteps._</span>
 <span class="k">import</span> <span class="nn">etlflow.utils._</span>
 <span class="k">import</span> <span class="nn">etlflow.spark.IOType</span>
 <span class="k">import</span> <span class="nn">etlflow.gcp.BQInputType</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <p><strong>Define Job input and ouput locations</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="nv">canonical_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">new</span> <span class="nv">java</span><span class="o">.</span><span class="py">io</span><span class="o">.</span><span class="py">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="py">getCanonicalPath</span>
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">job_properties</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="n">canonical_path</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="nc">File</span><span class="o">(</span><span class="s">"."</span><span class="o">).</span><span class="n">getCanonicalPath</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">job_properties</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
         <span class="s">"ratings_input_path"</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="s">"$canonical_path/examples/src/main/data/movies/ratings/*"</span><span class="o">,</span>
         <span class="s">"ratings_output_path"</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="s">"$canonical_path/examples/src/main/data/movies/output/ratings"</span><span class="o">,</span>
         <span class="s">"ratings_output_file_name"</span> <span class="o">-&gt;</span> <span class="s">"ratings.orc"</span>
 <span class="o">)</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <p><strong>Create spark session</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
 <span class="k">import</span> <span class="nn">org.slf4j.LoggerFactory</span>
 <span class="k">import</span> <span class="nn">ch.qos.logback.classic.</span><span class="o">{</span><span class="nc">Level</span><span class="o">,</span> <span class="nc">Logger</span><span class="o">}</span>
-<span class="nv">LoggerFactory</span><span class="o">.</span><span class="py">getLogger</span><span class="o">(</span><span class="s">"org"</span><span class="o">).</span><span class="py">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="py">setLevel</span><span class="o">(</span><span class="nv">Level</span><span class="o">.</span><span class="py">WARN</span><span class="o">)</span>
-<span class="nv">LoggerFactory</span><span class="o">.</span><span class="py">getLogger</span><span class="o">(</span><span class="s">"io"</span><span class="o">).</span><span class="py">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="py">setLevel</span><span class="o">(</span><span class="nv">Level</span><span class="o">.</span><span class="py">INFO</span><span class="o">)</span>
-<span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="nv">spark</span><span class="k">:</span> <span class="kt">SparkSession</span> <span class="o">=</span> <span class="nv">SparkSession</span><span class="o">.</span><span class="py">builder</span><span class="o">().</span><span class="py">config</span><span class="o">(</span><span class="s">"spark.driver.bindAddress"</span><span class="o">,</span> <span class="s">"127.0.0.1"</span><span class="o">).</span><span class="py">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="py">getOrCreate</span><span class="o">()</span>
-</code></pre></div></div>
+<span class="nc">LoggerFactory</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="s">"org"</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="n">setLevel</span><span class="o">(</span><span class="nc">Level</span><span class="o">.</span><span class="nc">WARN</span><span class="o">)</span>
+<span class="nc">LoggerFactory</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="s">"io"</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Logger</span><span class="o">].</span><span class="n">setLevel</span><span class="o">(</span><span class="nc">Level</span><span class="o">.</span><span class="nc">INFO</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">lazy</span> <span class="k">val</span> <span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span> <span class="o">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">().</span><span class="n">config</span><span class="o">(</span><span class="s">"spark.driver.bindAddress"</span><span class="o">,</span> <span class="s">"127.0.0.1"</span><span class="o">).</span><span class="n">master</span><span class="o">(</span><span class="s">"local[*]"</span><span class="o">).</span><span class="n">getOrCreate</span><span class="o">()</span>
+</code></pre>
+</div>
 
 <p><strong>Define ETL Step which will load ratings data with below schema as specified from CSV to ORC</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SaveMode</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.SaveMode</span>
 <span class="k">import</span> <span class="nn">etlflow.etlsteps.SparkReadWriteStep</span>
 <span class="k">import</span> <span class="nn">etlflow.spark.IOType</span>
 <span class="k">import</span> <span class="nn">etlflow.gcp.BQInputType</span>
     
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Rating</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span> <span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span>
         
-<span class="k">lazy</span> <span class="k">val</span> <span class="nv">step1</span> <span class="k">=</span> <span class="nc">SparkReadWriteStep</span><span class="o">[</span><span class="kt">Rating</span><span class="o">](</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">step1</span> <span class="k">=</span> <span class="nc">SparkReadWriteStep</span><span class="o">[</span><span class="kt">Rating</span><span class="o">](</span>
         <span class="n">name</span>                       <span class="k">=</span> <span class="s">"ConvertRatingsCSVtoORC"</span><span class="o">,</span>
-        <span class="n">input_location</span>             <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="nf">job_properties</span><span class="o">(</span><span class="s">"ratings_input_path"</span><span class="o">)),</span>
-        <span class="n">input_type</span>                 <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">CSV</span><span class="o">(),</span>
-        <span class="n">output_location</span>            <span class="k">=</span> <span class="nf">job_properties</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">),</span>
-        <span class="n">output_type</span>                <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">ORC</span><span class="o">,</span>
-        <span class="n">output_save_mode</span>           <span class="k">=</span> <span class="nv">SaveMode</span><span class="o">.</span><span class="py">Overwrite</span><span class="o">,</span>
+        <span class="n">input_location</span>             <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_input_path"</span><span class="o">)),</span>
+        <span class="n">input_type</span>                 <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">CSV</span><span class="o">(),</span>
+        <span class="n">output_location</span>            <span class="k">=</span> <span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">),</span>
+        <span class="n">output_type</span>                <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">ORC</span><span class="o">,</span>
+        <span class="n">output_save_mode</span>           <span class="k">=</span> <span class="nc">SaveMode</span><span class="o">.</span><span class="nc">Overwrite</span><span class="o">,</span>
         <span class="n">output_repartitioning_num</span>  <span class="k">=</span> <span class="mi">1</span><span class="o">,</span>
         <span class="n">output_repartitioning</span>      <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
-        <span class="n">output_filename</span>            <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="nf">job_properties</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">))</span>
+        <span class="n">output_filename</span>            <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">))</span>
 <span class="o">)</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <p><strong>Since all these steps return Task from ZIO library, we need to import Zio Default Runtime to run these steps</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">zio.</span><span class="o">{</span><span class="nc">Runtime</span><span class="o">,</span><span class="nc">ZEnv</span><span class="o">}</span>
-</code></pre></div></div>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">zio.</span><span class="o">{</span><span class="nc">Runtime</span><span class="o">,</span><span class="nc">ZEnv</span><span class="o">}</span>
+</code></pre>
+</div>
 
 <p><strong>Run this step as below</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">task</span> <span class="k">=</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@25772b79</span>
-</code></pre></div></div>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">task</span> <span class="k">=</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
+<span class="c1">// task: zio.package.Task[Unit] = zio.ZIO$EffectPartial@2935d3e4
+</span></code></pre>
+</div>
 
 <p><strong>Now executing above step has added data in ORC format in path defined in above properties upon completion.</strong></p>
 
 <p><strong>This is very basic example for flat load from CSV to ORC but lets say you need to transform csv data in some way for e.g. new column need to be added then we need to create function with below signature:</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.</span><span class="o">{</span><span class="nc">Encoders</span><span class="o">,</span> <span class="nc">Dataset</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.sql.</span><span class="o">{</span><span class="nc">Encoders</span><span class="o">,</span> <span class="nc">Dataset</span><span class="o">}</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.types.DateType</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.functions._</span>
 <span class="k">import</span> <span class="nn">etlflow.spark.IOType</span>
@@ -78,41 +85,43 @@
      
 <span class="k">case</span> <span class="k">class</span> <span class="nc">RatingOutput</span><span class="o">(</span><span class="n">user_id</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="n">movie_id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">rating</span><span class="k">:</span> <span class="kt">Double</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">date</span><span class="k">:</span> <span class="kt">java.sql.Date</span><span class="o">)</span>
      
-<span class="k">def</span> <span class="nf">enrichRatingData</span><span class="o">(</span><span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span><span class="o">,</span> <span class="n">in</span> <span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">Rating</span><span class="o">])</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-         <span class="k">val</span> <span class="nv">mapping</span> <span class="k">=</span> <span class="nv">Encoders</span><span class="o">.</span><span class="py">product</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">]</span>
+<span class="k">def</span> <span class="n">enrichRatingData</span><span class="o">(</span><span class="n">spark</span><span class="k">:</span> <span class="kt">SparkSession</span><span class="o">,</span> <span class="n">in</span> <span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">Rating</span><span class="o">])</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+         <span class="k">val</span> <span class="n">mapping</span> <span class="k">=</span> <span class="nc">Encoders</span><span class="o">.</span><span class="n">product</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">]</span>
      
-         <span class="k">val</span> <span class="nv">ratings_df</span> <span class="k">=</span> <span class="n">in</span>
-             <span class="o">.</span><span class="py">withColumn</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span> <span class="nf">from_unixtime</span><span class="o">(</span><span class="nf">col</span><span class="o">(</span><span class="s">"timestamp"</span><span class="o">),</span> <span class="s">"yyyy-MM-dd"</span><span class="o">).</span><span class="py">cast</span><span class="o">(</span><span class="nc">DateType</span><span class="o">))</span>
+         <span class="k">val</span> <span class="n">ratings_df</span> <span class="k">=</span> <span class="n">in</span>
+             <span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">"date"</span><span class="o">,</span> <span class="n">from_unixtime</span><span class="o">(</span><span class="n">col</span><span class="o">(</span><span class="s">"timestamp"</span><span class="o">),</span> <span class="s">"yyyy-MM-dd"</span><span class="o">).</span><span class="n">cast</span><span class="o">(</span><span class="nc">DateType</span><span class="o">))</span>
          
-         <span class="nv">ratings_df</span><span class="o">.</span><span class="py">as</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">](</span><span class="n">mapping</span><span class="o">)</span>
+         <span class="n">ratings_df</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">RatingOutput</span><span class="o">](</span><span class="n">mapping</span><span class="o">)</span>
 <span class="o">}</span>
-</code></pre></div></div>
+</code></pre>
+</div>
 <p><strong>Now our step would change to something like this</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="nv">step2</span> <span class="k">=</span> <span class="nc">SparkReadTransformWriteStep</span><span class="o">[</span><span class="kt">Rating</span>, <span class="kt">RatingOutput</span><span class="o">](</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="n">step2</span> <span class="k">=</span> <span class="nc">SparkReadTransformWriteStep</span><span class="o">[</span><span class="kt">Rating</span>, <span class="kt">RatingOutput</span><span class="o">](</span>
          <span class="n">name</span>                       <span class="k">=</span> <span class="s">"ConvertRatingsCSVtoORC"</span><span class="o">,</span>
-         <span class="n">input_location</span>             <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="nf">job_properties</span><span class="o">(</span><span class="s">"ratings_input_path"</span><span class="o">)),</span>
-         <span class="n">input_type</span>                 <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">CSV</span><span class="o">(),</span>
+         <span class="n">input_location</span>             <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_input_path"</span><span class="o">)),</span>
+         <span class="n">input_type</span>                 <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">CSV</span><span class="o">(),</span>
          <span class="n">transform_function</span>         <span class="k">=</span> <span class="n">enrichRatingData</span><span class="o">,</span>
-         <span class="n">output_type</span>                <span class="k">=</span> <span class="nv">IOType</span><span class="o">.</span><span class="py">ORC</span><span class="o">,</span>
-         <span class="n">output_save_mode</span>           <span class="k">=</span> <span class="nv">SaveMode</span><span class="o">.</span><span class="py">Overwrite</span><span class="o">,</span>
-         <span class="n">output_location</span>            <span class="k">=</span> <span class="nf">job_properties</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">),</span>
+         <span class="n">output_type</span>                <span class="k">=</span> <span class="nc">IOType</span><span class="o">.</span><span class="nc">ORC</span><span class="o">,</span>
+         <span class="n">output_save_mode</span>           <span class="k">=</span> <span class="nc">SaveMode</span><span class="o">.</span><span class="nc">Overwrite</span><span class="o">,</span>
+         <span class="n">output_location</span>            <span class="k">=</span> <span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">),</span>
          <span class="n">output_repartitioning_num</span>  <span class="k">=</span> <span class="mi">1</span><span class="o">,</span>
          <span class="n">output_repartitioning</span>      <span class="k">=</span> <span class="kc">true</span><span class="o">,</span>
-         <span class="n">output_filename</span>            <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="nf">job_properties</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">))</span>
+         <span class="n">output_filename</span>            <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="n">job_properties</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">))</span>
 <span class="o">)</span>
      
-<span class="k">val</span> <span class="nv">task1</span> <span class="k">=</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@5ec8c10</span>
-</code></pre></div></div>
+<span class="k">val</span> <span class="n">task1</span> <span class="k">=</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
+<span class="c1">// task1: zio.package.Task[Unit] = zio.ZIO$EffectPartial@28bba891
+</span></code></pre>
+</div>
 <p><strong>Lets add another step which will copy this transformed ORC data in BigQuery table. 
 For this step to work correctly <a href="https://cloud.google.com/sdk/install">Google Cloud SDK</a> needs to be installed and configured, 
 as in this library upload from local file to BigQuery uses <a href="https://cloud.google.com/bigquery/docs/bq-command-line-tool">bq command</a> which is only recommended to be used in testing environments as in production files should be present on Google Cloud Storage when uploading to BigQuery</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.spark.IOType</span>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">etlflow.spark.IOType</span>
 <span class="k">import</span> <span class="nn">etlflow.gcp.BQInputType</span>
-<span class="c1">// Adding two new properties for Bigquery table and Dataset</span>
-       <span class="k">lazy</span> <span class="k">val</span> <span class="nv">job_properties1</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
+<span class="c1">// Adding two new properties for Bigquery table and Dataset
+</span>       <span class="k">lazy</span> <span class="k">val</span> <span class="n">job_properties1</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
         <span class="s">"ratings_input_path"</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="s">"$canonical_path/examples/src/main/data/movies/ratings/*"</span><span class="o">,</span>
         <span class="s">"ratings_output_path"</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="s">"$canonical_path/examples/src/main/data/movies/output/ratings"</span><span class="o">,</span>
         <span class="s">"ratings_output_file_name"</span> <span class="o">-&gt;</span> <span class="s">"ratings.orc"</span><span class="o">,</span>
@@ -120,25 +129,27 @@ as in this library upload from local file to BigQuery uses <a href="https://clou
         <span class="s">"ratings_output_table_name"</span> <span class="o">-&gt;</span> <span class="s">"ratings"</span>
 <span class="o">)</span>
     
-<span class="k">lazy</span>  <span class="k">val</span> <span class="nv">step3</span> <span class="k">=</span> <span class="nc">BQLoadStep</span><span class="o">(</span>
+<span class="k">lazy</span>  <span class="k">val</span> <span class="n">step3</span> <span class="k">=</span> <span class="nc">BQLoadStep</span><span class="o">(</span>
         <span class="n">name</span>                <span class="k">=</span> <span class="s">"LoadRatingBQ"</span><span class="o">,</span>
-        <span class="n">input_location</span>      <span class="k">=</span> <span class="nc">Left</span><span class="o">(</span><span class="nf">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">)</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">+</span> <span class="nf">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">)),</span>
-        <span class="n">input_type</span>          <span class="k">=</span> <span class="nv">BQInputType</span><span class="o">.</span><span class="py">ORC</span><span class="o">,</span>
-        <span class="n">output_dataset</span>      <span class="k">=</span> <span class="nf">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_dataset"</span><span class="o">),</span>
-        <span class="n">output_table</span>        <span class="k">=</span> <span class="nf">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_table_name"</span><span class="o">)</span>
+        <span class="n">input_location</span>      <span class="k">=</span> <span class="nc">Left</span><span class="o">(</span><span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_path"</span><span class="o">)</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">+</span> <span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_file_name"</span><span class="o">)),</span>
+        <span class="n">input_type</span>          <span class="k">=</span> <span class="nc">BQInputType</span><span class="o">.</span><span class="nc">ORC</span><span class="o">,</span>
+        <span class="n">output_dataset</span>      <span class="k">=</span> <span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_dataset"</span><span class="o">),</span>
+        <span class="n">output_table</span>        <span class="k">=</span> <span class="n">job_properties1</span><span class="o">(</span><span class="s">"ratings_output_table_name"</span><span class="o">)</span>
 <span class="o">)</span>
     
-<span class="k">val</span> <span class="nv">task2</span> <span class="k">=</span> <span class="nv">step2</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@726bd837</span>
-</code></pre></div></div>
+<span class="k">val</span> <span class="n">task2</span> <span class="k">=</span> <span class="n">step2</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
+<span class="c1">// task2: zio.package.Task[Unit] = zio.ZIO$EffectPartial@661b4aca
+</span></code></pre>
+</div>
 <p><strong>Now we can run also chain multiple steps together and run as single job as shown below.</strong></p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
-        <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step1</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-        <span class="k">_</span> <span class="k">&lt;-</span> <span class="nv">step2</span><span class="o">.</span><span class="py">process</span><span class="o">()</span>
-<span class="o">}</span> <span class="nf">yield</span> <span class="o">()</span>
-<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@6d66ff70</span>
-</code></pre></div></div>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">val</span> <span class="n">job</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+        <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">step1</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
+        <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">step2</span><span class="o">.</span><span class="n">process</span><span class="o">()</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="o">()</span>
+<span class="c1">// job: zio.ZIO[Any, Throwable, Unit] = zio.ZIO$FlatMap@22284b9a
+</span></code></pre>
+</div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

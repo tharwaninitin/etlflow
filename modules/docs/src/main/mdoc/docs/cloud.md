@@ -48,7 +48,7 @@ Below is the step of cloud library using which we can run the query on hive clus
 ```scala mdoc
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.utils.Executor.DATAPROC
+import etlflow.schema.Executor.DATAPROC
 import etlflow.etljobs.GenericEtlJob
 import etlflow.EtlJobProps
 

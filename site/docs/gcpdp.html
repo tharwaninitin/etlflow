@@ -13,10 +13,11 @@
   <li>
     <p>To build jar for an application perform below commands from project root folder:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; sbt
+    <div class="highlighter-rouge"><pre class="highlight"><code>&gt; sbt
 &gt; project examples
 &gt; package
-</code></pre></div>    </div>
+</code></pre>
+    </div>
   </li>
   <li>From root folder run ‘sbt’ command</li>
   <li>Inside sbt, Run ‘project examples’ to set the current project as examples.</li>
@@ -26,10 +27,11 @@
 <h3 id="step-2-building-an-assembly-jar-for-etlflow-core">STEP 2) Building an assembly jar for etlflow core</h3>
 <p>To build an assembly jar for an etlflow core library we need to perform some steps. Clone this git repo and go inside repo root folder and perform below steps:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  &gt; sbt
+<div class="highlighter-rouge"><pre class="highlight"><code>  &gt; sbt
   &gt; project core
   &gt; assembly
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <ul>
   <li>Inside root folder run ‘sbt’ command</li>
@@ -39,8 +41,9 @@
 
 <h3 id="step-3-copy-the-etlflow-core-assembly-jar-to-gcs-bucket-using-below-command">STEP 3) Copy the etlflow core assembly jar to gcs bucket using below command</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gsutil cp modules/core/target/scala-2.12/etlflow-core-assembly-x.x.x.jar gs://&lt;BUCKET-NAME&gt;/jars/examples
-</code></pre></div></div>
+<div class="highlighter-rouge"><pre class="highlight"><code>  gsutil cp modules/core/target/scala-2.12/etlflow-core-assembly-x.x.x.jar gs://&lt;BUCKET-NAME&gt;/jars/examples
+</code></pre>
+</div>
 
 <p>Replace x.x.x with the latest version <a href="https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg" alt="Maven Central" /></a></p>
 
@@ -49,27 +52,29 @@
 
 <p>One such library is Guava, which is the Google core library for Java that is used by many libraries and frameworks, including Hadoop. A dependency conflict can occur if a job or its dependencies require a version of Guava that is newer than the one used by Hadoop. To resolve such errors we can define below settings in build.sbt for assembly jar</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  assemblyMergeStrategy in assembly := {
+<div class="highlighter-rouge"><pre class="highlight"><code>  assemblyMergeStrategy in assembly := {
        case PathList("META-INF", xs @ _*) =&gt; MergeStrategy.discard
        case x =&gt; MergeStrategy.first
   },
   assemblyShadeRules in assembly := Seq(
        ShadeRule.rename("com.google.common.**" -&gt; "repackaged.com.google.common.@1").inAll
   ),
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <p>For reference: <a href="https://cloud.google.com/dataproc/docs/guides/manage-spark-dependencies">manage-spark-dependencies</a></p>
 
 <h3 id="step-4-copy-the-examples-jar-to-gcs-bucket-using-below-command">STEP 4) Copy the examples jar to gcs bucket using below command:</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gsutil cp examples/target/scala-2.12/etlflow-examples_2.12-x.x.x.jar  gs://&lt;BUCKET-NAME&gt;/jars/examples
-</code></pre></div></div>
+<div class="highlighter-rouge"><pre class="highlight"><code>  gsutil cp examples/target/scala-2.12/etlflow-examples_2.12-x.x.x.jar  gs://&lt;BUCKET-NAME&gt;/jars/examples
+</code></pre>
+</div>
 
 <p>Replace x.x.x with the latest version <a href="https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg" alt="Maven Central" /></a></p>
 
 <h3 id="step-5-provide-below-detials-in-file-examplessrcmainresourcesapplicationconf">STEP 5) Provide below detials in file <strong>examples/src/main/resources/application.conf</strong>:</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    dbLog = {
+<div class="highlighter-rouge"><pre class="highlight"><code>    dbLog = {
       url = &lt;log_db_url&gt;,
       user = &lt;log_db_user&gt;,
       password = &lt;log_db_pwd&gt;,
@@ -79,33 +84,37 @@
       url = &lt;slack-url&gt;,
       env = &lt;running-env&gt;
     }
-</code></pre></div></div>
+</code></pre>
+</div>
 
 <ul>
   <li>
     <p>Now Copy updated application.conf file at gcs bucket using below command:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gsutil cp examples/src/main/resources/application.conf  gs://&lt;BUCKET-NAME&gt;/jars/examples
-</code></pre></div>    </div>
+    <div class="highlighter-rouge"><pre class="highlight"><code>  gsutil cp examples/src/main/resources/application.conf  gs://&lt;BUCKET-NAME&gt;/jars/examples
+</code></pre>
+    </div>
   </li>
   <li>
     <p>Copy the input file present at location examples/src/main/data/movies/ratings_parquet/ratings.parquet for running sample job using below command:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gsutil cp examples/src/main/data/movies/ratings_parquet/ratings.parquet  gs://&lt;BUCKET-NAME&gt;/examples/input
-</code></pre></div>    </div>
+    <div class="highlighter-rouge"><pre class="highlight"><code>  gsutil cp examples/src/main/data/movies/ratings_parquet/ratings.parquet  gs://&lt;BUCKET-NAME&gt;/examples/input
+</code></pre>
+    </div>
   </li>
 </ul>
 
 <h3 id="step-6-now-finally-we-can-run-sample-job-on-dataproc-using-below-command">STEP 6) Now finally we can run sample job on Dataproc using below command:</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  gcloud dataproc jobs submit spark \
+<div class="highlighter-rouge"><pre class="highlight"><code>  gcloud dataproc jobs submit spark \
      --project &lt;project-name&gt; \
      --region &lt;region-name&gt; \
      --cluster &lt;cluster-name&gt; \
      --class examples.LoadData \
      --jars gs://&lt;BUCKET-NAME&gt;/jars/examples/etlflow-examples_2.12-0.7.19.jar,gs://&lt;BUCKET-NAME&gt;/jars/examples/etlflow-core-assembly-0.7.19.jar \
      -- run_job --job_name EtlJob1PARQUETtoORCtoBQLocalWith2Steps  --props ratings_input_path=gs://&lt;BUCKET-NAME&gt;/examples/input,ratings_output_table_name=ratings,ratings_output_dataset=test,ratings_output_file_name=ratings.orc
-</code></pre></div></div>
+</code></pre>
+</div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/etlflow/site/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

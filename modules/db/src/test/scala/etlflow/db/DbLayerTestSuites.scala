@@ -9,16 +9,17 @@ object DbLayerTestSuites extends DefaultRunnableSpec  with DbSuiteHelper{
 
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials))
   val jobDbAll = List(JobDBAll("Job1","","",0,0,true,None), JobDBAll("Job2","","",0,0,false,None), JobDBAll("Job3","","",0,0,true,None))
-  val stepRun  = List(StepRun("a27a7415-57b2-4b53-8f9b-5254e847a301","download_spr","{}","pass","1970-01-01 00:20:34 GMT","1.6 mins","GenericEtlStep","123"))
+  val stepRun  = List(StepRun("a27a7415-57b2-4b53-8f9b-5254e847a301","download_spr","{}","pass","1970-01-01 00:20:34 UTC","1.6 mins","GenericEtlStep","123"))
   val jobRun   =
     List(
-      JobRun("a27a7415-57b2-4b53-8f9b-5254e847a301","EtlJobDownload","{}","pass","1970-01-01 00:20:34 GMT","","GenericEtlJob","true"),
-      JobRun("a27a7415-57b2-4b53-8f9b-5254e847a302","EtlJobSpr","{}","pass","1970-01-01 00:20:34 GMT","","GenericEtlJob","true")
+      JobRun("a27a7415-57b2-4b53-8f9b-5254e847a301","EtlJobDownload","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true"),
+      JobRun("a27a7415-57b2-4b53-8f9b-5254e847a302","EtlJobSpr","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true")
     )
 
   case class getDb(name:String)
 
-  val jobLogs = List(JobLogs("EtlJobSpr","1","0"), JobLogs("EtlJobDownload","1","0"))
+  val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
+
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

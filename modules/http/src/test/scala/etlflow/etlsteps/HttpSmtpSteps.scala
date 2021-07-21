@@ -9,15 +9,6 @@ import etlflow.utils.HttpMethod
 
 case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 
-
-  val getStep1 = HttpRequestStep(
-    name = "HttpGetSimple",
-    url = "https://httpbin.org/get",
-    method = HttpMethod.GET,
-    log = true,
-    connection_timeout = 1200000
-  )
-
   val getStep1 = HttpRequestStep[Unit](
     name = "HttpGetSimple",
     url = "https://httpbin.org/get",

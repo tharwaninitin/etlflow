@@ -37,7 +37,7 @@ lazy val docs = (project in file("modules/docs"))
     micrositeGithubRepo := "etlflow",
     micrositeGitterChannel := false,
     micrositeDocumentationLabelDescription := "Documentation",
-    micrositeCompilingDocsTool := WithMdoc,
+//    micrositeCompilingDocsTool := WithMdoc,
     mdocIn := (sourceDirectory in Compile).value / "mdoc"
   )
   .settings(

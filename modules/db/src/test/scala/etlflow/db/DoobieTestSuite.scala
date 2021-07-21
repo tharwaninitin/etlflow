@@ -175,4 +175,5 @@ class DoobieTestSuite extends funsuite.AnyFunSuite with matchers.should.Matchers
   val query23:doobie.Query0[JobLogs]  = SQL.getJobLogs(jobLogsArgs4)
   test("getJobLogs_case_default") { check(query23)}
 
+
 }

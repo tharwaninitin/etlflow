@@ -45,7 +45,7 @@ private[db] object SQL extends ApplicationLogger {
           ORDER BY inserted_at DESC"""
       .query[StepRunDB]
 
-  private def getStartTime(startTime:Option[java.time.LocalDate]): Long = {
+  def getStartTime(startTime:Option[java.time.LocalDate]): Long = {
     val sdf = new SimpleDateFormat("yyyy-MM-dd")
     if (startTime.isDefined)
       startTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()

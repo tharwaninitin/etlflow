@@ -103,6 +103,20 @@ object JsonTestSuite  extends DefaultRunnableSpec{
 
   val expected_json = """{"job_description":"","job_retry_delay_in_minutes":"0","job_retries":"0","job_schedule":"0 30 7 ? * *","job_max_active_runs":"10","job_deploy_mode":"dataproc","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_send_slack_notification":"false","job_notification_level":"info","job_enable_db_logging":"true"}""".stripMargin
 
+  val expected_json1 = """{
+                         |  "job_description" : "",
+                         |  "job_retry_delay_in_minutes" : "0",
+                         |  "job_schedule" : "0 30 7 ? * *",
+                         |  "job_max_active_runs" : "10",
+                         |  "job_deploy_mode" : "dataproc",
+                         |  "job_props_name" : "etlflow.coretests.Schema$EtlJob4Props",
+                         |  "job_name" : "etlflow.coretests.jobs.Job3DBSteps",
+                         |  "job_send_slack_notification" : "false",
+                         |  "job_notification_level" : "info",
+                         |  "job_enable_db_logging" : "true"
+                         |}""".stripMargin
+
+
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Json Test")(
       testM("Circe Json Deserializer : ConvertToObject  Student1") {
@@ -144,9 +158,15 @@ object JsonTestSuite  extends DefaultRunnableSpec{
       testM("Circe Json Serializer   : convertToString : Map to String") {
         val actualSerializerInput = for {
           actualSerializerInput <- JsonApi.convertToString[Map[String,String]](expected_props_map_job3,List.empty)
-          _ = println("actualSerializerInput :" + actualSerializerInput)
         }  yield actualSerializerInput
         assertM(actualSerializerInput)(equalTo(expected_json))
+      },
+      testM("Circe Json Serializer   : convertToString : Map to String with exclude keys") {
+        val actualSerializerInput = for {
+          actualSerializerInput <- JsonApi.convertToString[Map[String,String]](expected_props_map_job3,List("job_retries"))
+          _ = println("actualSerializerInput :" + actualSerializerInput)
+        }  yield actualSerializerInput
+        assertM(actualSerializerInput)(equalTo(expected_json1))
       }
     ).provideLayer(Implementation.live)
 }

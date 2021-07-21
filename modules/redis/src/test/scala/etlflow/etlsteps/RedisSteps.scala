@@ -30,12 +30,19 @@ case class RedisJob(job_properties: EtlJob3Props) extends SequentialEtlJob[EtlJo
     credentials = redis_config
   )
 
+
   val step4 = RedisStep(
     name        = "flushall_keys_from_redis",
     command     = RedisCmd.FLUSHALL,
     credentials = redis_config
   )
 
-  override def etlStepList: List[EtlStep[Unit, Unit]] = EtlStepList(step12,step3,step4)
+  val step5 = RedisStep(
+    name        = "delete_none_from_redis",
+    command     = RedisCmd.DELETE(List("*key1*")),
+    credentials = redis_config
+  )
+
+  override def etlStepList: List[EtlStep[Unit, Unit]] = EtlStepList(step12,step3,step4, step5)
 }
 

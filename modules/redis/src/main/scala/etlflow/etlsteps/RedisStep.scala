@@ -52,7 +52,6 @@ class RedisStep (
   private def enrichKeys(keys:Option[List[Option[String]]]) = {
     keys match {
       case Some(key) => if(key.isEmpty) List(None,None) else key.map(value => value.get)
-      case None => List(None,None)
     }
   }
 

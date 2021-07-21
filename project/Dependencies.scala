@@ -131,7 +131,9 @@ object Dependencies {
 
   lazy val dbTestLibs = List(
     "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "dev.zio" %% "zio-test" % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion
   ).map(_ % Test)
 
   lazy val jsonTestLibs = List(

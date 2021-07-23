@@ -15,3 +15,6 @@ VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a302','EtlJobSpr','{}','pass','','Gener
 
 INSERT INTO steprun (job_run_id,step_name,properties,state,elapsed_time,step_type,step_run_id,inserted_at)
 VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','download_spr','{}','pass','1.6 mins','GenericEtlStep','123',1234567);
+
+INSERT INTO credential(name, type, value, valid_from)
+VALUES('AWS','JDBC','{}','2021-07-21 12:37:19.298812');

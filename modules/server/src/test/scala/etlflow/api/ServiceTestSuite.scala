@@ -11,7 +11,7 @@ import zio.test._
 object ServiceTestSuite extends DefaultRunnableSpec  {
 
   val cacheDetailsList = List(CacheDetails("login",Map("x1" -> "x2")))
-  val jobLogs = List(JobLogs("EtlJobSpr","1","0"), JobLogs("EtlJobDownload","1","0"))
+  val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

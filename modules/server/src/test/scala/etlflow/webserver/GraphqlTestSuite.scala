@@ -212,7 +212,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
                   type
                 }
               }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"credential":[{"name":"testing","type":"jdbc"}]}""".stripMargin)
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"credential":[{"name":"AWS","type":"JDBC"},{"name":"testing","type":"jdbc"}]}""".stripMargin)
         )
       }
     ) @@ TestAspect.sequential).provideCustomLayerShared(env)

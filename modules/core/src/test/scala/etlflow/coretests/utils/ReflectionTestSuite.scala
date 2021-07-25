@@ -1,13 +1,15 @@
 package etlflow.coretests.utils
 
 import etlflow.coretests.Schema.RatingOutput
-import etlflow.utils.{ ReflectAPI => RF}
+import etlflow.coretests.TestSuiteHelper
+import etlflow.utils.{ReflectAPI => RF}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.reflect.runtime.universe.TypeTag
 import scala.reflect.runtime.{universe => ru}
 
-class ReflectionTestSuite extends AnyFlatSpec with should.Matchers {
+class ReflectionTestSuite extends AnyFlatSpec with should.Matchers with TestSuiteHelper {
 
   sealed trait EtlJob
   sealed trait EtlJobName
@@ -48,5 +50,4 @@ class ReflectionTestSuite extends AnyFlatSpec with should.Matchers {
       ("timestamp","Long"), ("rating","Double"), ("movie_id","Int"), ("user_id","Int"))
     )
   }
-
 }

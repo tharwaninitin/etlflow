@@ -1,12 +1,11 @@
 package etlflow.coretests.log
 
-import etlflow.log.StepLogger._
 import etlflow.log.{JobLogger, SlackLogger, StepReq}
 import etlflow.schema.LoggingLevel
 import etlflow.utils.Configuration
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import etlflow.{JobEnv, _}
-import zio.{Has, Task, UIO, ZIO, ZLayer}
+import zio.{UIO, ZIO, ZLayer}
 
 object JobExecutor extends Configuration  {
 

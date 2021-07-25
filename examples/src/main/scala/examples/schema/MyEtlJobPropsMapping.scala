@@ -2,6 +2,7 @@ package examples.schema
 
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import etlflow.etljobs.EtlJob
+import etlflow.schema.Executor
 import examples.jobs._
 import examples.schema.MyEtlJobProps._
 
@@ -74,5 +75,11 @@ object MyEtlJobPropsMapping {
     override val job_max_active_runs = 1
     override val job_retries = 3
     override val job_retry_delay_in_minutes = 1
+  }
+
+  case object Job8 extends MyEtlJobPropsMapping[LocalSampleProps,EtlJob8DefinitionLocal] {
+    def getActualProperties(job_properties: Map[String, String]): LocalSampleProps = LocalSampleProps()
+    override val job_schedule = "0 */15 * * * ?"
+    override val job_deploy_mode: Executor = local_subprocess
   }
 }

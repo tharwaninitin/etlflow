@@ -1,4 +1,4 @@
-package etlflow.coretests.steps.master
+package etlflow.coretests.steps.steps.master
 
 import etlflow.coretests.Schema.EtlJob1Props
 import etlflow.coretests.TestSuiteHelper

@@ -1,4 +1,4 @@
-package etlflow.coretests.steps.db
+package etlflow.coretests.steps.steps.db
 
 import etlflow.coretests.Schema.EtlJobRun
 import etlflow.coretests.TestSuiteHelper

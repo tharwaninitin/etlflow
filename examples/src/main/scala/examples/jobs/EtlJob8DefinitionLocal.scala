@@ -1,13 +1,11 @@
-package etlflow.coretests.jobs
+package examples.jobs
 
 import etlflow.EtlStepList
-import etlflow.coretests.Schema.EtlJob1Props
-import etlflow.coretests.TestSuiteHelper
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{EtlStep, GenericETLStep}
-import etlflow.utils.{ReflectAPI => RF}
+import examples.schema.MyEtlJobProps.LocalSampleProps
 
-case class Job1HelloWorld(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props]  with TestSuiteHelper{
+case class EtlJob8DefinitionLocal(job_properties: LocalSampleProps) extends SequentialEtlJob[LocalSampleProps] {
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")
@@ -19,7 +17,6 @@ case class Job1HelloWorld(job_properties: EtlJob1Props) extends SequentialEtlJob
   )
 
   printJobInfo()
-  RF.printEtlJobs[MEJP]
 
   val jobInfo = getJobInfo()
 

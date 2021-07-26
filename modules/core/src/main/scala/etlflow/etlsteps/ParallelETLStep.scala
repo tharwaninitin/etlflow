@@ -8,7 +8,7 @@ import zio.{RIO, ZIO, ZLayer}
 
 case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] with Configuration {
 
-  val job_run_id: String = java.util.UUID.randomUUID.toString
+  var job_run_id: String = java.util.UUID.randomUUID.toString
 
   final def process(in: => Unit): RIO[JobEnv, Unit] = {
     logger.info("#################################################################################################")

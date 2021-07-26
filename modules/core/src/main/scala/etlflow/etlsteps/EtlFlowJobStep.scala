@@ -8,7 +8,7 @@ import zio.RIO
 class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJob[EJP]) extends EtlStep[Unit,Unit] {
 
   lazy val job_instance = job
-  val job_run_id = java.util.UUID.randomUUID.toString
+  var job_run_id = java.util.UUID.randomUUID.toString
 
   final def process(in: =>Unit): RIO[JobEnv, Unit] = {
     logger.info("#"*100)

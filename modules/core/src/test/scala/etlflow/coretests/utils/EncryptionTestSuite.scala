@@ -1,13 +1,16 @@
 package etlflow.coretests.utils
 
+import etlflow.coretests.TestSuiteHelper
 import etlflow.json.JsonApi
 import etlflow.schema.Credential.{AWS, JDBC}
-import etlflow.utils.EncryptionAPI
-import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
 import etlflow.utils.CredentialImplicits._
+import etlflow.utils.{EncryptionAPI, ReflectAPI => RF}
+import zio.test.Assertion.equalTo
+import zio.test._
+import zio.{Task, ZIO}
 
-object EncryptionTestSuite  extends DefaultRunnableSpec  {
+
+object EncryptionTestSuite  extends DefaultRunnableSpec  with TestSuiteHelper {
 
   val jdbc_value = """{"url": "localhost123","user": "AKIA4FADZ4","password": "ZiLo6CsbF6twGR","driver": "org.postgresql.Driver"}""".stripMargin
   val aws_value = {
@@ -47,6 +50,13 @@ object EncryptionTestSuite  extends DefaultRunnableSpec  {
           aws_encrypted <- JsonApi.convertToString(aws_schema, List.empty)
         } yield aws_encrypted.replaceAll("\\s", "")
         assertM(actual_aws_encrypt)(equalTo(expected_aws_encrypt.replaceAll("\\s", "") ))
-      }
+      },
+      testM("Decryption should return correct  AWS value") {
+        assertM(EncryptionAPI.getDecryptValues[AWS](expected_aws_encrypt))(equalTo("""{"access_key":"AKIA4FADZ4","secret_key":"ZiLo6CsbF6twGR"}"""))
+      },
+      testM("GetEtlJobPropsMapping should return correct  error message") {
+        val x = Task(RF.getEtlJobPropsMapping[MEJP]("Job1","")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok"))
+        assertM(x)(equalTo("Job1 not present"))
+      },
     ).provideLayer(etlflow.json.Implementation.live) @@ TestAspect.flaky
 }

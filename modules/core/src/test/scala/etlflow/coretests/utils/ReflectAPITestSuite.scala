@@ -77,12 +77,4 @@ class ReflectAPITestSuite extends AnyFlatSpec with should.Matchers {
     assert(RF.stringFormatter(actualStepName5) == expectedStepName5)
   }
 
-//  "EncryptKey" should "run successfully for same password" in {
-//    assert("password".isBcryptedBounded(actualPassword) == true)
-//  }
-//
-//  "EncryptKey " should " return false if wrong password provided" in {
-//    assert("password123".isBcryptedBounded(actualPassword) == false)
-//  }
-
 }

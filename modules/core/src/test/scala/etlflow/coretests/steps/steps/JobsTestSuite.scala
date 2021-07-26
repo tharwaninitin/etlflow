@@ -1,4 +1,4 @@
-package etlflow.coretests.jobs
+package etlflow.coretests.steps.steps
 
 import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.etljobs.EtlJob

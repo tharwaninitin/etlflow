@@ -22,28 +22,16 @@ private[etlflow] object EncryptionAPI extends ApplicationLogger  with Configurat
 
   //encrypt the provided key
   def encrypt(text: String): String = {
-    try {
-      cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv)
-      val encrypted = cipher.doFinal(text.getBytes())
-      Base64.getEncoder().encodeToString(encrypted)
-    } catch {
-      case ex : InvalidKeyException  =>
-        logger.error(s"Provided key is Invalid , ${ex.getMessage}")
-        throw ex
-    }
+    cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv)
+    val encrypted = cipher.doFinal(text.getBytes())
+    Base64.getEncoder().encodeToString(encrypted)
   }
 
   //decrypt the provided key
   def decrypt(text:String): String={
-    try {
-      cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv)
-      val decrypted = cipher.doFinal(Base64.getDecoder.decode(text))
-      new String(decrypted)
-    } catch {
-      case ex : InvalidKeyException  =>
-        logger.error(s"Provided key is Invalid , ${ex.getMessage}")
-        throw ex
-    }
+    cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv)
+    val decrypted = cipher.doFinal(Base64.getDecoder.decode(text))
+    new String(decrypted)
   }
 
   def getDecryptValues[T : TypeTag](result: String): RIO[JsonEnv,String] = {

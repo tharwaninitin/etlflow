@@ -20,7 +20,7 @@ object LocalExecutorTestSuite  extends DefaultRunnableSpec with TestSuiteHelper 
       testM("showJobStepProps") {
         assertM(jobStepProps.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },
-      testM("showJobStepProps") {
+      testM("showJobProps") {
         assertM(jobProps.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },
       testM("executeJob") {

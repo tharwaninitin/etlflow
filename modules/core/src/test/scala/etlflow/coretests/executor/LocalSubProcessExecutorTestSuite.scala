@@ -21,10 +21,10 @@ object LocalSubProcessExecutorTestSuite  extends DefaultRunnableSpec  {
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite(" Local Sub Process Executor Spec")(
-      testM("local_subprocess") {
+      testM("local_subprocess Job1 ") {
         assertM(localJob1.foldM(ex => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))
       },
-      testM("local_subprocess") {
+      testM("local_subprocess Job2") {
         assertM(localJob2.foldM(ex => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))
       }
     )@@ TestAspect.sequential).provideCustomLayer(fullLayer.orDie)

@@ -14,7 +14,7 @@ class CredentialPropsTestSuite extends AnyFlatSpec with should.Matchers {
   )
 
   val props = step2.getStepProperties()
-  "GetTimeDifferenceAsString should  " should "run successfully for days" in {
+  "getStepProperties " should "return correct properties for the step" in {
     assert(props ==  Map("credential_name" -> "etlflow"))
   }
 

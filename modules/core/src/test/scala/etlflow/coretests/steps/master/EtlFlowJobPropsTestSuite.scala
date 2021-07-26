@@ -16,7 +16,7 @@ class EtlFlowJobPropsTestSuite extends AnyFlatSpec with should.Matchers {
   step.job_run_id = "123"
   val props = step.getStepProperties()
 
-  "getStepProperties should  " should "run successfully correct props" in {
+  "getStepProperties  " should "return correct properties for the step" in {
     assert(props ==  Map("step_run_id" -> "123"))
   }
 

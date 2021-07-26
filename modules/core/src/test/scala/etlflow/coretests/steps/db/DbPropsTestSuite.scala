@@ -15,7 +15,7 @@ class DbPropsTestSuite extends AnyFlatSpec with should.Matchers {
   )
   val props = step2.getStepProperties()
 
-  "getStepProperties should  " should "run successfully correct props" in {
+  "getStepProperties " should "return correct properties for the step" in {
     assert(props ==  Map("query" -> "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;"))
   }
 

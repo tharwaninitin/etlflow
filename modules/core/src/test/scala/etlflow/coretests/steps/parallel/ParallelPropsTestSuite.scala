@@ -26,7 +26,7 @@ class ParallelPropsTestSuite extends AnyFlatSpec with should.Matchers {
 
   val props = parstep.getStepProperties()
 
-  "getStepProperties should  " should "run successfully correct props" in {
+  "getStepProperties  " should "return correct properties for the step" in {
     assert(props ==  Map("parallel_steps" -> "ProcessData,ProcessData", "step_run_id" -> "123"))
   }
 

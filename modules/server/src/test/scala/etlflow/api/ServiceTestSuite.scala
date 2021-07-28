@@ -1,7 +1,7 @@
 package etlflow.api
 
-import etlflow.api.Schema.{CacheDetails, CurrentTime}
-import etlflow.db.{GetCredential, JobLogs, JobLogsArgs}
+import etlflow.api.Schema.{CredentialsArgs, Creds, CurrentTime, Props}
+import etlflow.db.{Credentials, GetCredential, JobLogs, JobLogsArgs}
 import etlflow.executor.ExecutorTestSuite.{testAPILayer, testDBLayer, testJsonLayer}
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo
@@ -9,7 +9,7 @@ import zio.test._
 
 object ServiceTestSuite extends DefaultRunnableSpec  {
 
-  val cacheDetailsList = List(CacheDetails("login",Map("x1" -> "x2")))
+
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0")).sortBy(_.job_name)
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
@@ -32,6 +32,15 @@ object ServiceTestSuite extends DefaultRunnableSpec  {
       ),
       testM("getJobStats Test")(
         assertM(Service.getJobStats.map(x => x))(equalTo(List.empty))
-      )
+      ),
+      testM("getCacheStats Test")(
+        assertM(Service.getCacheStats.map(x => x.map(y => y.name)))(equalTo(List("Login", "JobProps")))
+      ),
+      testM("addCredential Test")(
+        assertM(Service.addCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231242"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credentials("AWS1","aws","""{"access_key":"1231242","secret_key":"1231242"}""")))
+      ),
+      testM("updateCredential Test")(
+        assertM(Service.updateCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231243"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credentials("AWS1","aws","""{"access_key":"1231243","secret_key":"1231242"}""")))
+      ),
     )@@ TestAspect.sequential).provideCustomLayer((testAPILayer ++ testJsonLayer ++ testDBLayer).orDie)
 }

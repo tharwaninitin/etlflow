@@ -23,7 +23,7 @@ object Implementation {
           if ("true".equalsIgnoreCase(x._2.toString()) || "false".equalsIgnoreCase(x._2.toString())) {
             value = x._2.asBoolean.get
           } else {
-            value = x._2.asString.get
+            value = x._2.asString.getOrElse("")
           }
           (x._1,value)
         }

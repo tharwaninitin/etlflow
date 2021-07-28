@@ -14,9 +14,6 @@ case class Authentication(cache: CaffeineCache[String], config: Option[WebServer
   final val secret = config.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey")
   private [etlflow] def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
 
-  private [etlflow] def jwtDecode(token: String): Option[JwtClaim] = {
-    Jwt.decode(token, secret, Seq(JwtAlgorithm.HS512)).toOption
-  }
   private [etlflow] def isCached(token: String): Option[String] = CacheHelper.getKey(cache, token)
 
   private [etlflow] def middleware[R, E](app: HttpApp[R, E]): HttpApp[R, E] =  Http.flatten {

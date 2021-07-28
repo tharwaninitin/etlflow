@@ -1,14 +1,12 @@
 package etlflow.api
 
-import cron4s.Cron
-import cron4s.lib.javatime._
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
 import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getCurrentTimestampUsingLocalDateTime, getLocalDateTimeFromTimestamp, getTimeDifferenceAsString, getTimestampAsString, getTimestampFromLocalDateTime}
-import etlflow.utils.{ApplicationLogger, CacheHelper, EncryptCred, EtlFlowUtils}
+import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeFromTimestamp, getTimestampAsString}
+import etlflow.utils._
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
@@ -17,7 +15,6 @@ import zio.Fiber.Status.{Running, Suspended}
 import zio.blocking.Blocking
 import zio.{Task, UIO, ZIO, ZLayer, _}
 
-import java.time.LocalDateTime
 import scala.reflect.runtime.universe.TypeTag
 
 private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
@@ -45,17 +42,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
           etljobs  <- ZIO.foreach(jobs)(x =>
             getJobPropsMapping[EJN](x.job_name,ejpm_package).map{props =>
               val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-              if (Cron(x.schedule).toOption.isDefined) {
-                val cron = Cron(x.schedule).toOption
-                val startTimeMillis: Long = getCurrentTimestampUsingLocalDateTime
-                val endTimeMillis: Option[Long] = cron.get.next(LocalDateTime.now()).map(dt => getTimestampFromLocalDateTime(dt))
-                val remTime1 = endTimeMillis.map(ts => getTimeDifferenceAsString(startTimeMillis, ts)).getOrElse("")
-                val remTime2 = endTimeMillis.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-                val nextScheduleTime = cron.get.next(LocalDateTime.now()).getOrElse("").toString
-                Job(x.job_name, props, cron, nextScheduleTime, s"$remTime2 ($remTime1)", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
-              } else {
-                Job(x.job_name, props, None, "", "", x.failed, x.success, x.is_active, x.last_run_time.getOrElse(0), s"$lastRunTime")
-              }
+              GetCronJob(x.schedule, x, lastRunTime, props)
             }
           )
         } yield etljobs

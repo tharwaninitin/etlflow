@@ -1,11 +1,11 @@
 package etlflow.executor
 
-import etlflow.{JobEnv, ServerSuiteHelper}
 import etlflow.api.Schema.EtlJobArgs
 import etlflow.db.{EtlJob, RunDbMigration}
-import zio.{RIO, ZIO}
+import etlflow.{JobEnv, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.{RIO, ZIO}
 
 object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
@@ -23,6 +23,18 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
       testM("Test runActiveEtlJob with incorrect JobName") {
         assertM(job(EtlJobArgs("InvalidEtlJob")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present"))
       },
+      testM("Test runActiveEtlJob with deploy mode is kubernetes") {
+        assertM(job(EtlJobArgs("Job6")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Deploy mode KUBERNETES not yet supported"))
+      },
+      testM("Test runActiveEtlJob with deploy mode is livy") {
+        assertM(job(EtlJobArgs("Job7")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Deploy mode livy not yet supported"))
+      },
+      testM("Test runActiveEtlJob with deploy mode is local sub process") {
+        assertM(job(EtlJobArgs("Job8")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("LOCAL SUB PROCESS JOB Job8 failed with error"))
+      },
+      testM("Test runActiveEtlJob with deploy mode is dataproc") {
+        assertM(job(EtlJobArgs("Job9")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
+      }
     ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer).orDie)
 
 }

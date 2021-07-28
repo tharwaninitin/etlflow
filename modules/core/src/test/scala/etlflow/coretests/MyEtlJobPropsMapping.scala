@@ -59,5 +59,29 @@ object MyEtlJobPropsMapping {
   case object Job5 extends MyEtlJobPropsMapping[EtlJob1Props,Job5EtlflowJobSteps] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
   }
+
+  case object Job6 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = kubernetes
+  }
+
+  case object Job7 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = Executor.LIVY("")
+  }
+
+  case object Job8 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = local_subprocess
+  }
+
+  case object Job9 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = dataproc
+  }
 }
 

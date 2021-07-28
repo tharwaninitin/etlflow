@@ -29,7 +29,7 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
           gqlResponse <- etlFlowInterpreter.flatMap(_.execute(query))
           _           = logger.info(gqlResponse.toString)
         } yield gqlResponse.data.toString
-        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","is_active":true},{"name":"Job2","is_active":false},{"name":"Job3","is_active":true}]}""")
+        assertM(result)(equalTo("""{"jobs":[{"name":"Job1","is_active":true},{"name":"Job2","is_active":false},{"name":"Job3","is_active":true},{"name":"Job6","is_active":true},{"name":"Job7","is_active":true},{"name":"Job8","is_active":true},{"name":"Job9","is_active":true}]}""")
         )
       },
       testM("Test query jobruns end point") {
@@ -213,6 +213,30 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
                 }
               }""")
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"credential":[{"name":"AWS","type":"JDBC"},{"name":"testing","type":"jdbc"}]}""".stripMargin)
+        )
+      },
+      testM("Test query getJobLogs end point") {
+        val query = gqldoc(
+          """
+              query{
+                jobLogs(limit: 2){
+                  job_name
+                  success
+                  failed
+                }
+              }""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"jobLogs":[{"job_name":"EtlJobDownload","success":"1","failed":"0"},{"job_name":"EtlJobSpr","success":"1","failed":"0"}]}""".stripMargin)
+        )
+      },
+      testM("Test query run_job end point") {
+        val query = gqldoc(
+          """
+              mutation{
+                run_job(name: "Job1"){
+                  name
+                }
+              }""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"run_job":{"name":"Job1"}}""".stripMargin)
         )
       }
     ) @@ TestAspect.sequential).provideCustomLayerShared(env)

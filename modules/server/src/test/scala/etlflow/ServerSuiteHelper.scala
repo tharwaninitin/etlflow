@@ -22,7 +22,14 @@ trait ServerSuiteHelper extends EtlFlowUtils with Configuration {
   val jobStatsCache: CaffeineCache[QueueDetails] = CacheHelper.createCache[QueueDetails]
   val credentials: JDBC = config.db
   val ejpm_package: String = RF.getJobNamePackage[MEJP] + "$"
-  val sem: Map[String, Semaphore] = Map("Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)))
+  val sem: Map[String, Semaphore] =
+    Map(
+      "Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)),
+      "Job6" -> Runtime.default.unsafeRun(Semaphore.make(1)),
+      "Job7" -> Runtime.default.unsafeRun(Semaphore.make(1)),
+      "Job8" -> Runtime.default.unsafeRun(Semaphore.make(1)),
+      "Job9" -> Runtime.default.unsafeRun(Semaphore.make(1)))
+
   val auth: Authentication = Authentication(authCache, config.webserver)
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))

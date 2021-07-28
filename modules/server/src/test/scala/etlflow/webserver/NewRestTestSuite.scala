@@ -18,19 +18,19 @@ object NewRestTestSuite extends HttpRunnableSpec(8080) {
       .as(
         List(
           testM("200 response when Job Run Successfully.") {
-            val actual = statusPost(Root / "restapi" / "runjob" / "Job1")
+            val actual = statusPost(Root / "restapi" / "runjob" / "Job1",None)
             assertM(actual)(equalTo(Status.OK))
           },
           testM("500 response When incorrect job name is provided") {
-            val actual = statusPost(Root / "restapi" / "runjob" / "Job")
+            val actual = statusPost(Root / "restapi" / "runjob" / "Job",None)
             assertM(actual)(equalTo(Status.INTERNAL_SERVER_ERROR))
           },
           testM("500 response When job throws an exception") {
-            val actual = statusPost(Root / "restapi" / "runjob" / "Job5" )
+            val actual = statusPost(Root / "restapi" / "runjob" / "Job5",None )
             assertM(actual)(equalTo(Status.INTERNAL_SERVER_ERROR))
           },
           testM("404 response when incorrect path is provided") {
-            val actual = statusPost(Root / "restapi" / "runjob123" )
+            val actual = statusPost(Root / "restapi" / "runjob123",None )
             assertM(actual)(equalTo(Status.NOT_FOUND))
           },
 //          testM("post request with nonempty content") {

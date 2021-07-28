@@ -22,6 +22,6 @@ object WebSocketApiTestSuite extends DefaultRunnableSpec with ServerSuiteHelper 
       ),
       testM("WebSocketApi Test: Valid Login")(
         testStream(token).as(assertCompletes)
-    )
+      )
     )@@ TestAspect.sequential)
 }

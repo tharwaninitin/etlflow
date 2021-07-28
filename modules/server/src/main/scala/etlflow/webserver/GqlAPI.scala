@@ -2,28 +2,24 @@ package etlflow.webserver
 
 import caliban.CalibanError.ExecutionError
 import caliban.GraphQL.graphQL
-import caliban.Value.StringValue
-import caliban.schema.{ArgBuilder, GenericSchema, Schema}
+import caliban.schema.{GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
-import cron4s.{Cron, CronExpr}
+import cron4s.CronExpr
 import etlflow.api.Schema._
 import etlflow.api.Service._
 import etlflow.api.{APIEnv, ServerEnv}
 import etlflow.db._
 import etlflow.json.JsonEnv
 import zio.ZIO
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 
   implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
-  implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
-    case StringValue(value) =>
-      Cron(value).fold(ex => Left(ExecutionError(s"Can't parse $value into a Cron, error ${ex.getMessage}", innerThrowable = Some(ex))), Right(_))
-    case other => Left(ExecutionError(s"Can't build a Cron from input $other"))
-  }
-
+//  implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
+//    case StringValue(value) =>
+//      Cron(value).fold(ex => Left(ExecutionError(s"Can't parse $value into a Cron, error ${ex.getMessage}", innerThrowable = Some(ex))), Right(_))
+//    case other => Left(ExecutionError(s"Can't build a Cron from input $other"))
+//  }
 
   case class Queries(
                       jobs: ZIO[ServerEnv, Throwable, List[Job]],
@@ -45,12 +41,12 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
                         update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
                       )
 
-  implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
-
-  implicit val localDateExprArgBuilder: ArgBuilder[java.time.LocalDate] = {
-    case StringValue(value) => Right(LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-    case other => Left(ExecutionError(s"Can't build a date from input $other"))
-  }
+//  implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
+//
+//  implicit val localDateExprArgBuilder: ArgBuilder[java.time.LocalDate] = {
+//    case StringValue(value) => Right(LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+//    case other => Left(ExecutionError(s"Can't build a date from input $other"))
+//  }
 
   val api: GraphQL[ServerEnv] =
     graphQL(

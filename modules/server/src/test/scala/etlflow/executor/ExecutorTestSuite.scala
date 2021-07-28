@@ -1,6 +1,6 @@
 package etlflow.executor
 
-import etlflow.api.Schema.EtlJobArgs
+import etlflow.api.Schema.{EtlJobArgs, Props}
 import etlflow.db.{EtlJob, RunDbMigration}
 import etlflow.{JobEnv, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
@@ -33,7 +33,7 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
         assertM(job(EtlJobArgs("Job8")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("LOCAL SUB PROCESS JOB Job8 failed with error"))
       },
       testM("Test runActiveEtlJob with deploy mode is dataproc") {
-        assertM(job(EtlJobArgs("Job9")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
+        assertM(job(EtlJobArgs("Job9",Some(List(Props("x1","x2"))))).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
       }
     ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer).orDie)
 

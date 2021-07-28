@@ -12,12 +12,12 @@ case class WebsocketAPI(auth: Authentication)  extends ApplicationLogger {
   private val mb: Int = 1024 * 1024
   private val runtime: Runtime = Runtime.getRuntime
 
-  private val stream = {
+  val memoryInfo = s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}"""
+
+  private[etlflow] val stream = {
     ZStream
-      .fromEffect(
-        UIO(
-        s"""{"memory": {"used": ${(runtime.totalMemory - runtime.freeMemory) / mb}, "free": ${runtime.freeMemory / mb}, "total": ${runtime.totalMemory / mb},"max": ${runtime.maxMemory / mb}}}"""
-      )).repeat(Schedule.forever && Schedule.spaced(1.seconds))
+      .fromEffect(UIO(memoryInfo))
+      .repeat(Schedule.forever && Schedule.spaced(1.seconds))
   }
 
   def websocketStream(token: String): ZStream[Any with Clock, Nothing, WebSocketFrame] = {
@@ -35,13 +35,12 @@ case class WebsocketAPI(auth: Authentication)  extends ApplicationLogger {
     }
   }
 
-  private def openConnection(token: String): Socket[Any with Clock, Nothing, Any, WebSocketFrame] =
-    Socket.collect[Any] {
-      case _ => websocketStream(token)
-    }
-
-  private def socketApp(token: String): SocketApp[Any with Clock, Nothing] =
-    SocketApp.open(openConnection(token))
+  private[etlflow] def socketApp(token: String): SocketApp[Any with Clock, Nothing] =
+    SocketApp.open(
+      Socket.collect[Any] {
+        case _ => websocketStream(token)
+      }
+    )
 
   val webSocketApp =
     HttpApp.collect {

@@ -31,6 +31,7 @@ trait ServerSuiteHelper extends EtlFlowUtils with Configuration {
       "Job9" -> Runtime.default.unsafeRun(Semaphore.make(1)))
 
   val auth: Authentication = Authentication(authCache, config.webserver)
+
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
   val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor, jobStatsCache)

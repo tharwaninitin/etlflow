@@ -4,6 +4,7 @@ import caliban.Macros.gqldoc
 import etlflow.ServerSuiteHelper
 import etlflow.db.RunDbMigration
 import etlflow.utils.ApplicationLogger
+import etlflow.webserver.GraphqlTestSuite.testM
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -237,6 +238,17 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
                 }
               }""")
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"run_job":{"name":"Job1"}}""".stripMargin)
+        )
+      },
+      testM("Test query run_job end point with failed status") {
+        val query = gqldoc(
+          """
+              mutation{
+                run_job(name: "Job2"){
+                  name
+                }
+              }""")
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"run_job":null}""".stripMargin)
         )
       }
     ) @@ TestAspect.sequential).provideCustomLayerShared(env)

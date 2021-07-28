@@ -32,9 +32,9 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
       testM("Test runActiveEtlJob with deploy mode is local sub process") {
         assertM(job(EtlJobArgs("Job8")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("LOCAL SUB PROCESS JOB Job8 failed with error"))
       },
-      testM("Test runActiveEtlJob with deploy mode is dataproc") {
-        assertM(job(EtlJobArgs("Job9",Some(List(Props("x1","x2"))))).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
-      }
+//      testM("Test runActiveEtlJob with deploy mode is dataproc") {
+//        assertM(job(EtlJobArgs("Job9",Some(List(Props("x1","x2"))))).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
+//      }
     ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer).orDie)
 
 }

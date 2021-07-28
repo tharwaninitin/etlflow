@@ -2,6 +2,8 @@ package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.UserArgs
+import etlflow.db.RunDbMigration
+import etlflow.executor.ExecutorTestSuite.credentials
 import etlflow.utils.CacheHelper
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http.Status.FORBIDDEN
@@ -13,6 +15,8 @@ import zio.test.{ZSpec, assertM, environment, _}
 
 
 object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHelper  {
+
+  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
 
   val valid_login = auth.login(UserArgs("admin","admin"))
   val invalid_login = auth.login(UserArgs("admin","admin1"))

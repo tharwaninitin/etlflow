@@ -1,15 +1,16 @@
 package etlflow.scheduler
 
 import etlflow.ServerSuiteHelper
-import etlflow.db.EtlJob
+import etlflow.db.{EtlJob, RunDbMigration}
+import zio.duration.{Duration => ZDuration}
 import zio.test._
 import zio.test.environment.TestClock
-import zio.duration.{Duration => ZDuration}
 
 import scala.concurrent.duration.{Duration, MINUTES}
 
 object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Scheduler {
 
+  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Rest Scheduler Suite")(
       testM("Test scheduler with Job1")(

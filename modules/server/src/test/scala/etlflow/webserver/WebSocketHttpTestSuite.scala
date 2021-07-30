@@ -1,15 +1,16 @@
 package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
-import etlflow.webserver.NewRestTestSuite.{serve, statusGet}
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http.{Status, _}
 import zhttp.service.server.ServerChannelFactory
+import zio.test.assertCompletes
+import zhttp.http._
 import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.test.Assertion.equalTo
-import zio.test.{ZSpec, assertM, environment, _}
+import zio.test.{ZSpec, assertM, environment}
 
-object WebSocketHttpTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
+object WebSocketHttpTestSuite extends HttpRunnableSpec(8081) with ServerSuiteHelper {
 
   val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
 
@@ -24,9 +25,12 @@ object WebSocketHttpTestSuite extends DefaultRunnableSpec with ServerSuiteHelper
             testM("NOT_FOUND response when Incorrect URL provided.") {
               val actual = statusGet(Root  / "ws" / "etlflow" )
               assertM(actual)(equalTo(Status.NOT_FOUND))
+            },
+            testM("200 response when valid URL provided.") {
+              val actual = statusGet(Root  / "ws" / "etlflow" / token)
+              actual.as(assertCompletes)
             }
           )
-        )
-        .useNow,
+        ).useNow,
     ).provideCustomLayer(env)
 }

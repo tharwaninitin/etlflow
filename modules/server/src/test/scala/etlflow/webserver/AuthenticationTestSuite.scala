@@ -43,20 +43,32 @@ object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHe
             testM("Authentication Test: Invalid Login")(
                assertM(invalid_login.map(x=> x.message))(equalTo("Invalid User/Password"))
              ),
-            testM("FORBIDDEN response when invalid header provided.") {
+            testM("FORBIDDEN response when invalid Authorization header provided.") {
               val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("Authorization","12112112"))))
+              assertM(actual)(equalTo(FORBIDDEN))
+            },
+            testM("FORBIDDEN response when invalid X-Auth-Token header provided.") {
+              val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("X-Auth-Token","12112112"))))
               assertM(actual)(equalTo(FORBIDDEN))
             },
             testM("FORBIDDEN response when no header provided.") {
               val actual = statusPost(Root / "restapi" / "runjob" / "Job1", None)
               assertM(actual)(equalTo(FORBIDDEN))
             },
-            testM("Expired Token response when no header provided.") {
+            testM("Expired Token response when X-Auth-Token header provided.") {
               val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("X-Auth-Token",token))))
               assertM(actual)(equalTo(FORBIDDEN))
             },
-            testM("200 response when valid header provided.") {
+            testM("Expired Token response when Authorization header provided.") {
+              val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("Authorization",token))))
+              assertM(actual)(equalTo(FORBIDDEN))
+            },
+            testM("200 response when valid  X-Auth-Token header provided.") {
               val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("X-Auth-Token",cachedToken))))
+              assertM(actual)(equalTo(Status.OK))
+            },
+            testM("200 response when valid Authorization  header provided.") {
+              val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("Authorization",cachedToken))))
               assertM(actual)(equalTo(Status.OK))
             }
           )

@@ -4,9 +4,8 @@ import com.google.cloud.bigquery.JobInfo
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.BQLoadStep
-import examples.schema.MyEtlJobProps.EtlJob6Props
-import etlflow.spark.IOType
 import etlflow.gcp.BQInputType
+import examples.schema.MyEtlJobProps.EtlJob6Props
 case class EtlJob4Definition(job_properties: EtlJob6Props) extends SequentialEtlJob[EtlJob6Props]  {
 
   private val select_query: String = """

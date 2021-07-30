@@ -21,7 +21,7 @@ object Implementation {
         removeField(parsedJsonString)(keys).asObject.get.toMap.map(x => {
           var value:Any = ""
           if ("true".equalsIgnoreCase(x._2.toString()) || "false".equalsIgnoreCase(x._2.toString())) {
-            value = x._2.asBoolean.get
+            value = x._2.asBoolean.getOrElse(false)
           } else {
             value = x._2.asString.getOrElse("")
           }

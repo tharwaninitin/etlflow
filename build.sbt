@@ -32,11 +32,11 @@ lazy val coreSettings = Seq(
   libraryDependencies ++= coreLibs ++ coreTestLibs
 )
 
-lazy val sparkSettings = Seq(
-  name := "etlflow-spark",
-  crossScalaVersions := List(scala212),
-  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs,
-)
+//lazy val sparkSettings = Seq(
+//  name := "etlflow-spark",
+//  crossScalaVersions := List(scala212),
+//  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs,
+//)
 
 lazy val cloudSettings = Seq(
   name := "etlflow-cloud",
@@ -46,8 +46,8 @@ lazy val cloudSettings = Seq(
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  crossScalaVersions := List(scala212),
-  coverageExcludedPackages := ".*package;.*ServerApp;.*HttpServer",
+  crossScalaVersions := scala2Versions,
+  coverageExcludedPackages := ".*ServerApp;.*HttpServer",
   libraryDependencies ++= serverLibs ++ coreTestLibs,
 )
 
@@ -86,7 +86,7 @@ lazy val root = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(utils,db,json,core,spark,cloud,server,http,redis)
+  .aggregate(utils,db,json,core,cloud,server,http,redis)
 
 lazy val utils = (project in file("modules/utils"))
   .settings(commonSettings)
@@ -127,10 +127,10 @@ lazy val server = (project in file("modules/server"))
   .settings(serverSettings)
   .dependsOn(core % "compile->compile;test->test", cloud)
 
-lazy val spark = (project in file("modules/spark"))
-  .settings(commonSettings)
-  .settings(sparkSettings)
-  .dependsOn(core % "compile->compile;test->test")
+//lazy val spark = (project in file("modules/spark"))
+//  .settings(commonSettings)
+//  .settings(sparkSettings)
+//  .dependsOn(core % "compile->compile;test->test")
 
 lazy val http = (project in file("modules/http"))
   .settings(commonSettings)

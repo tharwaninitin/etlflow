@@ -26,7 +26,7 @@ lazy val examples = (project in file("examples"))
       "org.apache.hadoop" % "hadoop-aws" % HadoopS3Version,
       "org.apache.hadoop" % "hadoop-common" % HadoopS3Version,
       "ch.qos.logback" % "logback-classic" % LogbackVersion,
-      "org.postgresql" % "postgresql" % PgVersion,
+      "org.postgresql" % "postgresql" % PgVersion
     ),
     loggerTask := {
       val logger = org.slf4j.LoggerFactory.getLogger("sbt")

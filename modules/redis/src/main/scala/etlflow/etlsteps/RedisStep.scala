@@ -44,14 +44,15 @@ class RedisStep (
         val keys = getKeysFromPreFix(value,redisClient)
         val enrichedKeys = enrichKeys(keys)
         logger.info(s"Redis enriched keys for prefix - $name are : " + enrichedKeys)
-        redisClient.del( enrichedKeys.head,enrichedKeys.tail:_*)
+        redisClient.del(enrichedKeys.head,enrichedKeys.tail:_*)
         logger.info(s"Redis keys are deleted for prefix - $name")
     }
   }
 
   private def enrichKeys(keys:Option[List[Option[String]]]) = {
     keys match {
-      case Some(key) => if(key.isEmpty) List(None,None) else key.map(value => value.get)
+      case Some(key) => if(key.isEmpty) List.empty else key.map(value => value.get)
+      case None => List.empty
     }
   }
 

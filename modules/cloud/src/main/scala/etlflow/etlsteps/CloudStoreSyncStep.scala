@@ -10,7 +10,6 @@ import etlflow.aws.S3CustomClient
 import etlflow.gcp.GCS
 import etlflow.utils.Location
 import fs2.{Pipe, Stream}
-import zio.Runtime.default.unsafeRun
 import zio.Task
 import zio.interop.catz._
 import zio.interop.catz.implicits._

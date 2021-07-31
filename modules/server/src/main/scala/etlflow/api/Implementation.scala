@@ -31,6 +31,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
           val status = x.status match {
             case Running(_) => "Running"
             case Suspended(previous, interruptible, epoch, blockingOn, asyncTrace) => s"Suspended($asyncTrace)"
+            case _ => "Other State"
           }
           EtlJobStatus(x.fiberId.seqNumber.toString, x.fiberName.getOrElse(""), getTimestampAsString(x.fiberId.startTimeMillis), "Scheduled", status)
         }

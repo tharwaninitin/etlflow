@@ -209,6 +209,7 @@ private[etlflow] object BQ extends ApplicationLogger {
           val destinationFormat = destination_format match {
             case CSV(_,_,_,_) => "CSV"
             case PARQUET => "PARQUET"
+            case fmt => throw BQLoadException(s"Unsupported destination format $fmt")
           }
 
           val destinationUri = destination_path + "/" + destination_file_name.getOrElse(s"part-*.${destinationFormat.toLowerCase}")

@@ -3,10 +3,9 @@ package etlflow.etlsteps
 import etlflow.JobEnv
 import etlflow.log.StepReq
 import etlflow.schema.LoggingLevel
-import etlflow.utils.Configuration
 import zio.{RIO, ZIO, ZLayer}
 
-case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] with Configuration {
+case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] {
 
   var job_run_id: String = java.util.UUID.randomUUID.toString
 

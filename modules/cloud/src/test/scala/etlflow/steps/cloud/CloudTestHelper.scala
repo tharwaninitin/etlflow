@@ -1,11 +1,10 @@
 package etlflow.steps.cloud
 
 import ch.qos.logback.classic.{Level, Logger => LBLogger}
-import etlflow.utils.Configuration
 import org.slf4j.{Logger, LoggerFactory}
 import software.amazon.awssdk.regions.Region
 
-trait CloudTestHelper extends Configuration {
+trait CloudTestHelper {
   lazy val logger: Logger               = LoggerFactory.getLogger(getClass.getName)
   lazy val spark_logger: LBLogger       = LoggerFactory.getLogger("org.apache.spark").asInstanceOf[LBLogger]
   lazy val spark_jetty_logger: LBLogger = LoggerFactory.getLogger("org.spark_project.jetty").asInstanceOf[LBLogger]

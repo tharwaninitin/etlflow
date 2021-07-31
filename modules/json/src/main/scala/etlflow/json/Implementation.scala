@@ -9,7 +9,7 @@ object Implementation {
 
   private def removeField(json:Json)(keys:List[String]): Json = json.withObject(obj=>keys.foldLeft(obj)((acc, s)=>acc.remove(s)).asJson)
 
-  val live: ULayer[JsonEnv] = ZLayer.succeed(
+  lazy val live: ULayer[JsonEnv] = ZLayer.succeed(
     new JsonApi.Service {
 
       override def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): Task[T] = Task.fromEither {

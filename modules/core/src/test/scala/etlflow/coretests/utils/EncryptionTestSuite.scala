@@ -9,10 +9,10 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{Task, ZIO}
 
-
-object EncryptionTestSuite  extends DefaultRunnableSpec  with TestSuiteHelper {
+object EncryptionTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
   val jdbc_value = """{"url": "localhost123","user": "AKIA4FADZ4","password": "ZiLo6CsbF6twGR","driver": "org.postgresql.Driver"}""".stripMargin
+
   val aws_value = {
     """{
       |"access_key": "AKIA4FADZ4",
@@ -34,8 +34,8 @@ object EncryptionTestSuite  extends DefaultRunnableSpec  with TestSuiteHelper {
       testM("Encryption should return correct decrypted JDBC value") {
         val actual_jdbc_encrypt = for {
           jdbc           <- JsonApi.convertToObject[JDBC](jdbc_value)
-          userName       = EncryptionAPI.encrypt(jdbc.user)
-          password       = EncryptionAPI.encrypt(jdbc.password)
+          userName       = enc.encrypt(jdbc.user)
+          password       = enc.encrypt(jdbc.password)
           jdbc_schema    = JDBC(jdbc.url,userName,password,jdbc.driver)
           jdbc_encrypted <- JsonApi.convertToString(jdbc_schema, List.empty)
         } yield jdbc_encrypted.replaceAll("\\s", "")
@@ -44,19 +44,22 @@ object EncryptionTestSuite  extends DefaultRunnableSpec  with TestSuiteHelper {
       testM("Encryption should return correct decrypted AWS value") {
         val actual_aws_encrypt = for {
           aws           <- JsonApi.convertToObject[AWS](aws_value)
-          access_key    = EncryptionAPI.encrypt(aws.access_key)
-          secret_key    = EncryptionAPI.encrypt(aws.secret_key)
+          access_key    = enc.encrypt(aws.access_key)
+          secret_key    = enc.encrypt(aws.secret_key)
           aws_schema    = AWS(access_key,secret_key)
           aws_encrypted <- JsonApi.convertToString(aws_schema, List.empty)
         } yield aws_encrypted.replaceAll("\\s", "")
         assertM(actual_aws_encrypt)(equalTo(expected_aws_encrypt.replaceAll("\\s", "") ))
       },
-      testM("Decryption should return correct  AWS value") {
-        assertM(EncryptionAPI.getDecryptValues[AWS](expected_aws_encrypt))(equalTo("""{"access_key":"AKIA4FADZ4","secret_key":"ZiLo6CsbF6twGR"}"""))
+      testM("decryptCredential should decrypt AWS credential correctly") {
+        assertM(enc.decryptCredential[AWS](expected_aws_encrypt))(equalTo("""{"access_key":"AKIA4FADZ4","secret_key":"ZiLo6CsbF6twGR"}"""))
+      },
+      testM("encryptCredential should encrypt AWS credential correctly") {
+        assertM(enc.encryptCredential("aws",aws_value))(equalTo("""{"access_key":"XRhxQfeHwehR/kvJGFbviw==","secret_key":"B67uKTvOC2B5GQEMAjnfPQ=="}"""))
       },
       testM("GetEtlJobPropsMapping should return correct  error message") {
         val x = Task(RF.getEtlJobPropsMapping[MEJP]("Job1","")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok"))
         assertM(x)(equalTo("Job1 not present"))
-      },
+      }
     ).provideLayer(etlflow.json.Implementation.live) @@ TestAspect.flaky
 }

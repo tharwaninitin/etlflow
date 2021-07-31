@@ -13,7 +13,7 @@ object LocalExecutorTestSuite  extends DefaultRunnableSpec with TestSuiteHelper 
 
   val jobProps = LocalExecutor(ejpm_package).showJobProps("Job1", Map.empty,ejpm_package)
 
-  val executeJob = LocalExecutor(ejpm_package,Some("123"),Some("true")).executeJob("Job1", Map.empty)
+  val executeJob = LocalExecutor(ejpm_package).executeJob("Job1", Map.empty)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Executor Spec")(

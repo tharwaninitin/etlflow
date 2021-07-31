@@ -3,56 +3,70 @@ package etlflow.utils
 import com.github.t3hnar.bcrypt._
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
-import zio.RIO
 import etlflow.utils.CredentialImplicits._
-
-import java.security.InvalidKeyException
+import zio.RIO
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 //https://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
-private[etlflow] object EncryptionAPI extends ApplicationLogger  with Configuration {
+private[etlflow] case class EncryptionAPI(key: Option[String] = None) {
 
-  final val secretKey = config.webserver.map(_.secretKey.getOrElse("enIntVecTest2020")).getOrElse("enIntVecTest2020")
-  val iv = new IvParameterSpec(secretKey.getBytes("UTF-8"))
-  val skeySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES")
-  val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+  final val secretKey = key.getOrElse("enIntVecTest2020")
+  final val iv = new IvParameterSpec(secretKey.getBytes("UTF-8"))
+  final val skeySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES")
+  final val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
 
-  //encrypt the provided key
+  // encrypt the provided string
   def encrypt(text: String): String = {
     cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv)
     val encrypted = cipher.doFinal(text.getBytes())
-    Base64.getEncoder().encodeToString(encrypted)
+    Base64.getEncoder.encodeToString(encrypted)
   }
 
-  //decrypt the provided key
-  def decrypt(text:String): String={
+  // decrypt the provided string
+  def decrypt(text: String): String={
     cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv)
     val decrypted = cipher.doFinal(Base64.getDecoder.decode(text))
     new String(decrypted)
   }
 
-  def getDecryptValues[T : TypeTag](result: String): RIO[JsonEnv,String] = {
+  // decrypt the provided credential string
+  def decryptCredential[T : TypeTag](text: String): RIO[JsonEnv,String] = {
     typeOf[T] match {
-      case t if t =:= typeOf[JDBC] =>{
+      case t if t =:= typeOf[JDBC] =>
         for {
-          jdbc_obj <- JsonApi.convertToObject[JDBC](result)
-          json    <- JsonApi.convertToString(JDBC(jdbc_obj.url, EncryptionAPI.decrypt(jdbc_obj.user), EncryptionAPI.decrypt(jdbc_obj.password), jdbc_obj.driver), List.empty)
+          jdbc <- JsonApi.convertToObject[JDBC](text)
+          json <- JsonApi.convertToString(JDBC(jdbc.url, decrypt(jdbc.user), decrypt(jdbc.password), jdbc.driver), List.empty)
         } yield json
-      }
-      case t if t =:= typeOf[AWS] =>{
+      case t if t =:= typeOf[AWS] =>
         for {
-          aws_obj <- JsonApi.convertToObject[AWS](result)
-          json    <- JsonApi.convertToString(AWS(EncryptionAPI.decrypt(aws_obj.access_key),EncryptionAPI.decrypt(aws_obj.secret_key)),List.empty)
+          aws  <- JsonApi.convertToObject[AWS](text)
+          json <- JsonApi.convertToString(AWS(decrypt(aws.access_key), decrypt(aws.secret_key)), List.empty)
         } yield json
-      }
     }
   }
 
-  def encryptKey(key:String) =  {
+  // encrypt the provided credential string
+  def encryptCredential(`type`: String, value: String): RIO[JsonEnv, String] = {
+    `type` match {
+      case "jdbc" =>
+        for {
+          jdbc <- JsonApi.convertToObject[JDBC](value)
+          json <- JsonApi.convertToString(JDBC(jdbc.url, encrypt(jdbc.user), encrypt(jdbc.password), jdbc.driver), List.empty)
+        } yield json
+      case "aws" =>
+        for {
+          aws  <- JsonApi.convertToObject[AWS](value)
+          json <- JsonApi.convertToString(AWS(encrypt(aws.access_key), encrypt(aws.secret_key)), List.empty)
+        } yield json
+    }
+  }
+
+  // One way encrypt the provided string
+  def oneWayEncrypt(text: String): String =  {
     val salt = BCrypt.gensalt()
-    key.bcryptBounded(salt)
+    text.bcryptBounded(salt)
   }
 }

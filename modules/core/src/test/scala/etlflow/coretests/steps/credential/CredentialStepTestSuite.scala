@@ -4,16 +4,14 @@ import etlflow.coretests.TestSuiteHelper
 import etlflow.etlsteps.{DBQueryStep, GetCredentialStep}
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.CredentialImplicits._
-import etlflow.utils.EncryptionAPI
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
 object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-
-  val dbLog_user = EncryptionAPI.encrypt(config.db.user)
-  val dbLog_password = EncryptionAPI.encrypt(config.db.password)
+  val dbLog_user = enc.encrypt(config.db.user)
+  val dbLog_password = enc.encrypt(config.db.password)
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(

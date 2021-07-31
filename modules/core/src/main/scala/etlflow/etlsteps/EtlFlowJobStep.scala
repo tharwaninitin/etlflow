@@ -2,6 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.etljobs.EtlJob
 import etlflow.schema.LoggingLevel
+import etlflow.utils.Configuration
 import etlflow.{EtlJobProps, JobEnv}
 import zio.RIO
 
@@ -13,7 +14,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
   final def process(in: =>Unit): RIO[JobEnv, Unit] = {
     logger.info("#"*100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
-    job_instance.execute(Some(job_run_id),Some("false"), "{}")
+    Configuration.config.flatMap(cfg => job_instance.execute(Some(cfg),Some(job_run_id),Some("false"), "{}"))
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

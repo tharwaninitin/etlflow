@@ -4,7 +4,6 @@ import etlflow.coretests.Schema.EtlJob3Props
 import etlflow.coretests.TestSuiteHelper
 import etlflow.db.RunDbMigration
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.Configuration
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

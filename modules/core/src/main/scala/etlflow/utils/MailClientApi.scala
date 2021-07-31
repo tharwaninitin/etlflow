@@ -1,11 +1,10 @@
 package etlflow.utils
 
-import java.util.Properties
 import etlflow.schema.Credential.SMTP
 
+import java.util.Properties
 import javax.mail.internet.{InternetAddress, MimeMessage}
 import javax.mail.{Address, Message, Session}
-import org.slf4j.{Logger, LoggerFactory}
 
 private[etlflow] object MailClientApi  extends ApplicationLogger  {
 

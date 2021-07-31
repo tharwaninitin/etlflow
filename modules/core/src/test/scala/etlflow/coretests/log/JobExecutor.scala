@@ -2,12 +2,11 @@ package etlflow.coretests.log
 
 import etlflow.log.{JobLogger, SlackLogger, StepReq}
 import etlflow.schema.LoggingLevel
-import etlflow.utils.Configuration
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import etlflow.{JobEnv, _}
 import zio.{UIO, ZIO, ZLayer}
 
-object JobExecutor extends Configuration  {
+object JobExecutor {
 
   val job_type = "GenericEtlJob"
   def apply(job_name: String, slack_env: String, slack_url: String, job: ZIO[StepEnv, Throwable, Unit], job_notification_level:LoggingLevel, job_send_slack_notification:Boolean, host_url:String)

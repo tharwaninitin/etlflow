@@ -4,20 +4,20 @@ import etlflow.JobEnv
 import etlflow.db.DBApi
 import etlflow.json.JsonApi
 import etlflow.schema.LoggingLevel
-import etlflow.utils.EncryptionAPI
+import etlflow.utils.{Configuration, EncryptionAPI}
 import io.circe.Decoder
 import zio.RIO
-
 import scala.reflect.runtime.universe.TypeTag
 
 case class GetCredentialStep[T : TypeTag : Decoder](name: String, credential_name: String) extends EtlStep[Unit,T] {
 
-  override def process(input_state: => Unit): RIO[JobEnv,T] = {
+  override def process(input_state: => Unit): RIO[JobEnv, T] = {
     val query = s"SELECT value FROM credential WHERE name='$credential_name' and valid_to is null;"
     for {
+      key    <- Configuration.config.map(_.webserver.flatMap(_.secretKey))
       result <- DBApi.executeQueryWithSingleResponse[String](query)
-      dValue <- EncryptionAPI.getDecryptValues[T](result)
-      op     <- JsonApi.convertToObject[T](dValue.toString())
+      value  <- EncryptionAPI(key).decryptCredential[T](result)
+      op     <- JsonApi.convertToObject[T](value)
     } yield op
   }
 

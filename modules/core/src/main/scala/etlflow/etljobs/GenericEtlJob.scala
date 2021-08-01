@@ -2,7 +2,7 @@ package etlflow.etljobs
 
 import etlflow._
 import etlflow.log.{JobLogger, SlackLogger, StepReq}
-import etlflow.schema.{Config, LoggingLevel}
+import etlflow.schema.{LoggingLevel, Slack}
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import zio.{Task, UIO, ZIO, ZLayer}
 
@@ -13,17 +13,17 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
   val job_type = "GenericEtlJob"
 
-  final def execute(config: Option[Config] = None, job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[JobEnv, Throwable, Unit] = {
+  final def execute(slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[JobEnv, Throwable, Unit] = {
     for {
       job_start_time  <- UIO(getCurrentTimestamp)
       jri             = job_run_id.getOrElse(java.util.UUID.randomUUID.toString)
       master_job      = is_master.getOrElse("true")
-      slack_env       = config.map(_.slack.map(_.env).getOrElse("")).getOrElse("")
-      slack_url       = config.map(_.slack.map(_.url).getOrElse("")).getOrElse("")
-      host_url        = config.map(_.host.getOrElse("http://localhost:8080/#")).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/" + jri
-      slack           = SlackLogger(job_name, slack_env, slack_url, job_notification_level, job_send_slack_notification, host_url)
-      dbJob           = new JobLogger(job_name, props, jri, master_job, slack)
-      step_layer      = ZLayer.succeed(StepReq(jri, slack))
+      slack_env       = slack.map(_.env).getOrElse("")
+      slack_url       = slack.map(_.url).getOrElse("")
+      host_url        = slack.map(_.host).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/" + jri
+      slack_logger    = SlackLogger(job_name, slack_env, slack_url, job_notification_level, job_send_slack_notification, host_url)
+      dbJob           = new JobLogger(job_name, props, jri, master_job, slack_logger)
+      step_layer      = ZLayer.succeed(StepReq(jri, slack_logger))
       _               <- dbJob.logStart(job_start_time, job_type)
       _               <- job.provideSomeLayer[JobEnv](step_layer).foldM(
                             ex => dbJob.logEnd(job_start_time, Some(ex.getMessage)).unit *> Task.fail(ex),

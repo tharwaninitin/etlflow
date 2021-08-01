@@ -14,7 +14,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
   final def process(in: =>Unit): RIO[JobEnv, Unit] = {
     logger.info("#"*100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
-    Configuration.config.flatMap(cfg => job_instance.execute(Some(cfg),Some(job_run_id),Some("false"), "{}"))
+    Configuration.config.flatMap(cfg => job_instance.execute(cfg.slack, Some(job_run_id), Some("false"), "{}"))
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

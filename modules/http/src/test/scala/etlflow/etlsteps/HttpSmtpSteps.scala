@@ -94,20 +94,6 @@ case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[Etl
     log = true,
   )
 
-  val step10 = SendMailStep(
-    name = "SendSMTPEmail",
-    body = emailBody,
-    subject = "EtlFlow Test Ran Successfully",
-    sender  = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
-    recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
-    credentials = SMTP(
-      sys.env.getOrElse("SMTP_PORT", "587"),
-      sys.env.getOrElse("SMTP_HOST", "..."),
-      sys.env.getOrElse("SMTP_USER", "..."),
-      sys.env.getOrElse("SMTP_PASS", "..."),
-    )
-  )
-
   val job = for {
     _ <- getStep1.execute()
     op2 <- getStep2.execute()

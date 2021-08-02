@@ -35,6 +35,6 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 //      testM("Test runActiveEtlJob with deploy mode is dataproc") {
 //        assertM(job(EtlJobArgs("Job9",Some(List(Props("x1","x2"))))).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
 //      }
-    ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer).orDie)
+    ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer ++ testCryptoLayer).orDie)
 
 }

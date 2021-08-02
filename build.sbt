@@ -60,7 +60,7 @@ lazy val dbSettings = Seq(
 lazy val utilsSettings = Seq(
   name := "etlflow-utils",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  utilsLibs ++ utilsTestLibs,
+  libraryDependencies ++=  utilsLibs,
 )
 
 lazy val httpSettings = Seq(
@@ -81,12 +81,31 @@ lazy val jsonSettings = Seq(
   libraryDependencies ++= jsonLibs ++ jsonTestLibs
 )
 
+lazy val cryptoSettings = Seq(
+  name := "etlflow.crypto",
+  crossScalaVersions :=  scala2Versions,
+  libraryDependencies ++= cryptoLibs ++ cryptoTestLibs
+)
+
+lazy val emailSettings = Seq(
+  name := "etlflow-email",
+  crossScalaVersions :=  scala2Versions,
+  libraryDependencies ++= emailLibs
+)
+
+lazy val cacheSettings = Seq(
+  name := "etlflow-cache",
+  crossScalaVersions :=  scala2Versions,
+  libraryDependencies ++= cacheLibs
+)
+
+
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(utils,db,json,core,spark,cloud,server,http,redis)
+  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email)
 
 lazy val utils = (project in file("modules/utils"))
   .settings(commonSettings)
@@ -102,6 +121,11 @@ lazy val db = (project in file("modules/db"))
   .settings(dbSettings)
   .dependsOn(utils)
 
+lazy val crypto = (project in file("modules/crypto"))
+  .settings(commonSettings)
+  .settings(cryptoSettings)
+  .dependsOn(utils, json)
+
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
@@ -115,7 +139,7 @@ lazy val core = (project in file("modules/core"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(db, utils, json)
+  .dependsOn(db, utils, json, crypto)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
@@ -142,5 +166,12 @@ lazy val redis = (project in file("modules/redis"))
   .settings(redisSettings)
   .dependsOn(core % "compile->compile;test->test")
 
+lazy val email = (project in file("modules/email"))
+  .settings(commonSettings)
+  .settings(emailSettings)
+  .dependsOn(core % "compile->compile;test->test")
 
-
+lazy val cache = (project in file("modules/cache"))
+  .settings(commonSettings)
+  .settings(cacheSettings)
+  .dependsOn(json)

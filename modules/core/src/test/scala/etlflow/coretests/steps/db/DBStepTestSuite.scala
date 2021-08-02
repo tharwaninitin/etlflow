@@ -6,9 +6,16 @@ import etlflow.etlsteps.{DBQueryStep, DBReadStep}
 import etlflow.schema.Credential.JDBC
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, _}
+
 
 object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+
+  val step2 = DBQueryStep(
+    name  = "UpdatePG",
+    query = "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;",
+    credentials = JDBC(config.db.url, config.db.user, config.db.password, "org.postgresql.Driver")
+  )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow")(
@@ -44,6 +51,10 @@ object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
             _ <- step3.process().provideCustomLayer(fullLayer)
           } yield ()
           assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        },
+        test("Execute getStepProperties") {
+          val props = step2.getStepProperties()
+          assert(props)(equalTo(Map("query" -> "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;")))
         }
       )
     )

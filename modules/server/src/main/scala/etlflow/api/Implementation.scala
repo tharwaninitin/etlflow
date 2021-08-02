@@ -2,6 +2,7 @@ package etlflow.api
 
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
+import etlflow.crypto.CryptoApi
 import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.json.{JsonApi, JsonEnv}
@@ -19,7 +20,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
 
-  def live[EJN <: EJPMType : TypeTag](auth: Authentication, enc: EncryptionAPI, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: CaffeineCache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: CaffeineCache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
 
       val pt = new PrettyTime()
@@ -98,7 +99,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
             },
             JsonString(value)
           )
-          actualSerializerOutput <- enc.encryptCredential(credentialDB.`type`,credentialDB.value.str)
+          actualSerializerOutput <- CryptoApi.encryptCredential(credentialDB.`type`,credentialDB.value.str)
           addCredential <- DBApi.addCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield addCredential
       }
@@ -114,7 +115,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
             },
             JsonString(value)
           )
-          actualSerializerOutput <- enc.encryptCredential(credentialDB.`type`,credentialDB.value.str)
+          actualSerializerOutput <- CryptoApi.encryptCredential(credentialDB.`type`,credentialDB.value.str)
           updateCredential <- DBApi.updateCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield updateCredential
       }

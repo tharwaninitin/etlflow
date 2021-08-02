@@ -2,23 +2,30 @@ package etlflow.coretests.jobs
 
 import etlflow.coretests.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.coretests.TestSuiteHelper
+import etlflow.coretests.steps.credential.CredentialStepTestSuite.config
+import etlflow.crypto.CryptoApi
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.JsonImplicits
 import io.circe.generic.auto._
+import zio.Runtime.default.unsafeRun
 
 case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] with JsonImplicits with TestSuiteHelper {
 
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
-  val dbLog_user = enc.encrypt(config.db.user)
-  val dbLog_password = enc.encrypt(config.db.password)
+
+  val dbLog = unsafeRun((for{
+    dbLog_user     <- CryptoApi.encrypt(config.db.user)
+    dbLog_password <- CryptoApi.encrypt(config.db.password)
+  } yield (dbLog_user, dbLog_password)).provideCustomLayer(etlflow.crypto.Implementation.live))
+
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
-      '{"url" : "${config.db.url}", "user" : "${dbLog_user}", "password" : "${dbLog_password}", "driver" : "org.postgresql.Driver" }'
+      '{"url" : "${config.db.url}", "user" : "${dbLog._1}", "password" : "${dbLog._2}", "driver" : "org.postgresql.Driver" }'
       )
       """
 

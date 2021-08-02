@@ -3,7 +3,6 @@ package etlflow.utils
 import etlflow.EJPMType
 import etlflow.db.EtlJob
 import etlflow.json.JsonEnv
-import etlflow.utils.MailClientApi.logger
 import etlflow.utils.{ReflectAPI => RF}
 import scalacache.caffeine.CaffeineCache
 import scalacache.memoization.memoizeSync
@@ -12,7 +11,7 @@ import zio.{RIO, Task, UIO, ZIO}
 
 import scala.reflect.runtime.universe.TypeTag
 
-private [etlflow] trait EtlFlowUtils {
+private [etlflow] trait EtlFlowUtils extends ApplicationLogger{
 
   implicit val jobPropsMappingCache: CaffeineCache[RIO[JsonEnv,Map[String, String]]] = CacheHelper.createCache[RIO[JsonEnv,Map[String, String]]]
 

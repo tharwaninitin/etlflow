@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
+import etlflow.email.MailClientApi
 import etlflow.schema.Credential.SMTP
 import etlflow.schema.LoggingLevel
-import etlflow.utils.MailClientApi
 import zio.Task
 
 case class SendMailStep(

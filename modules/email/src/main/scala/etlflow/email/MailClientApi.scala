@@ -1,6 +1,7 @@
-package etlflow.utils
+package etlflow.email
 
 import etlflow.schema.Credential.SMTP
+import etlflow.utils.ApplicationLogger
 
 import java.util.Properties
 import javax.mail.internet.{InternetAddress, MimeMessage}

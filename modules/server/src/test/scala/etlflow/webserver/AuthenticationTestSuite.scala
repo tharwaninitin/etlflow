@@ -21,7 +21,7 @@ object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHe
   val valid_login = auth.login(UserArgs("admin","admin"))
   val invalid_login = auth.login(UserArgs("admin","admin1"))
 
-  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
+  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (fullLayer).orDie
 
   val newRestApi = serve {
     auth.middleware(RestAPI.newRestApi)

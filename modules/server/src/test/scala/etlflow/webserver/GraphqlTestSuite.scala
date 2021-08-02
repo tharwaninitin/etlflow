@@ -10,7 +10,7 @@ import zio.test._
 
 object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with ApplicationLogger {
 
-  val env = (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
+  val env = (fullLayer).orDie
   val etlFlowInterpreter = GqlAPI.api.interpreter
   val loginInterpreter = GqlLoginAPI.api.interpreter
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))

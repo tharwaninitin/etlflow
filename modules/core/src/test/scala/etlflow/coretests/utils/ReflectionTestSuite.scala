@@ -3,13 +3,14 @@ package etlflow.coretests.utils
 import etlflow.coretests.Schema.RatingOutput
 import etlflow.coretests.TestSuiteHelper
 import etlflow.utils.{ReflectAPI => RF}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, _}
+import zio.{Task, ZIO}
 
 import scala.reflect.runtime.universe.TypeTag
 import scala.reflect.runtime.{universe => ru}
 
-class ReflectionTestSuite extends AnyFlatSpec with should.Matchers with TestSuiteHelper {
+object ReflectionTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
   sealed trait EtlJob
   sealed trait EtlJobName
@@ -32,22 +33,24 @@ class ReflectionTestSuite extends AnyFlatSpec with should.Matchers with TestSuit
     val allJobNames = tpe.baseClasses
     allJobNames.map(x => x.name.toString)
   }
-   println(getSubClasses1[EtlJobName])
-   println(getSubClasses2[EtlJobName])
-   println(getSubClasses2[Job4])
 
-  "getEtlJobs(EtlJobName) should " should "retrieve Set successfully" in {
-    assert(RF.getEtlJobs[EtlJobName] == Set("Job1", "Job2", "Job3", "Job4", "Job5"))
-  }
-
-  "getEtlJobs(EtlJob) should " should "retrieve Set successfully" in {
-    assert(RF.getEtlJobs[EtlJob] == Set("Job3", "Job4"))
-  }
-
-  "getFields[RatingOutput] should " should "run successfully" in {
-    assert(
-      RF.getFields[RatingOutput] == Seq(("date_int","Int"), ("date","java.sql.Date"),
-      ("timestamp","Long"), ("rating","Double"), ("movie_id","Int"), ("user_id","Int"))
+  def spec: ZSpec[environment.TestEnvironment, Any] = {
+    suite("EtlFlow")(
+      suite("Reflect Api Test Cases")(
+        test("getEtlJobs(EtlJobName) should should retrieve Set successfully") {
+          assert(RF.getEtlJobs[EtlJobName])(equalTo(Set("Job1", "Job2", "Job3", "Job4", "Job5")))
+        },
+        test("getEtlJobs(EtlJob) should  should retrieve Set successfully") {
+           assert(RF.getEtlJobs[EtlJob])(equalTo(Set("Job3", "Job4")))
+        },
+        test("getFields[RatingOutput] should  should run successfully") {
+          assert(RF.getFields[RatingOutput])(equalTo(Seq(("date_int","Int"), ("date","java.sql.Date"), ("timestamp","Long"), ("rating","Double"), ("movie_id","Int"), ("user_id","Int"))))
+        },
+        testM("GetEtlJobPropsMapping should return correct  error message") {
+          val x = Task(RF.getEtlJobPropsMapping[MEJP]("Job1","")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok"))
+          assertM(x)(equalTo("Job1 not present"))
+        }
+      )
     )
   }
 }

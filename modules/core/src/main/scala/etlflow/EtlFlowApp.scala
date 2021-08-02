@@ -1,12 +1,11 @@
 package etlflow
 
+import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration, liveDBWithTransactor}
 import etlflow.etljobs.EtlJob
 import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
-import etlflow.schema.Credential.JDBC
 import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
-import etlflow.utils.EncryptionAPI
 import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
 import scala.reflect.runtime.universe.TypeTag
@@ -30,8 +29,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val key = config.webserver.flatMap(_.secretKey)
-          val encryptedPassword = EncryptionAPI(key).oneWayEncrypt(ec.password)
-          val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${encryptedPassword}\',\'true\',\'${"admin"}\');"
+          val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live)
+          val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
           val dbLayer = liveDBWithTransactor(config.db)
           DBApi.executeQuery(query).provideCustomLayer(dbLayer)
         case ec if ec.add_user && ec.user == "" =>
@@ -62,9 +61,10 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
           val dbLayer = liveDBWithTransactor(config.db,"Job-" + ec.job_name + "-Pool",2)
           val jsonLayer = json.Implementation.live
+          val cryptoLayer = crypto.Implementation.live
           LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
-            .provideCustomLayer(dbLayer ++ jsonLayer)
+            .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer)
         case ec if ec.run_server =>
             logger.info("Starting server")
             app

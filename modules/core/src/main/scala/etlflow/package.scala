@@ -1,4 +1,5 @@
 
+import etlflow.crypto.CryptoEnv
 import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
@@ -14,7 +15,7 @@ import scala.reflect.ClassTag
 
 package object etlflow {
 
-  type JobEnv = DBEnv with JsonEnv with Blocking with Clock
+  type JobEnv = DBEnv with JsonEnv with CryptoEnv with Blocking with Clock
   type StepEnv = Has[StepReq] with JobEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 

@@ -3,12 +3,13 @@ package etlflow
 import etlflow.api.Schema.QueueDetails
 import etlflow.api.{APIEnv, Implementation}
 import etlflow.coretests.MyEtlJobPropsMapping
+import etlflow.crypto.CryptoEnv
 import etlflow.db.{DBEnv, liveDBWithTransactor}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
 import etlflow.json.JsonEnv
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.{CacheHelper, Configuration, EncryptionAPI, EtlFlowUtils, ReflectAPI => RF}
+import etlflow.utils.{CacheHelper, Configuration, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.webserver.Authentication
 import scalacache.caffeine.CaffeineCache
 import zio.blocking.Blocking
@@ -17,7 +18,6 @@ import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
 trait ServerSuiteHelper extends EtlFlowUtils {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
   val skey = config.webserver.flatMap(_.secretKey)
-  val enc = EncryptionAPI(skey)
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
   val authCache: CaffeineCache[String] = CacheHelper.createCache[String]
@@ -36,7 +36,9 @@ trait ServerSuiteHelper extends EtlFlowUtils {
 
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
-  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, enc, executor, List.empty, ejpm_package, supervisor, jobStatsCache)
+  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor, jobStatsCache)
   val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.db)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
+  val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live
+  val fullLayer  = testAPILayer ++  testDBLayer ++ testJsonLayer ++ testCryptoLayer
 }

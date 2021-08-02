@@ -48,9 +48,6 @@ object Dependencies {
     "dev.zio" %% "zio-config-magnolia" % ZioConfig,
     "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "com.github.scopt" %% "scopt" % ScoptVersion,
-    "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion,
-    "javax.mail" % "javax.mail-api" % MailVersion,
-    "com.sun.mail" % "javax.mail" % MailVersion
   )
 
   lazy val cloudLibs = List(
@@ -120,8 +117,21 @@ object Dependencies {
     "org.typelevel" %% "cats-core" % CatsCoreVersion
   )
 
+  lazy val cryptoLibs = List(
+    "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion
+  )
+
+  lazy val emailLibs = List(
+    "javax.mail" % "javax.mail-api" % MailVersion,
+    "com.sun.mail" % "javax.mail" % MailVersion
+  )
+
+  lazy val cacheLibs = List(
+    "dev.zio"       %% "zio"                % ZioVersion,
+    "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion
+  )
+
   lazy val coreTestLibs = List(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "dev.zio" %% "zio-test" % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion,
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
@@ -136,6 +146,7 @@ object Dependencies {
 
   lazy val sparkTestLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 
@@ -147,12 +158,12 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val jsonTestLibs = List(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "dev.zio" %% "zio-test" % ZioVersion,
     "dev.zio" %% "zio-test-sbt" % ZioVersion
   ).map(_ % Test)
 
-  lazy val utilsTestLibs = List(
-    "org.scalatest" %% "scalatest" % ScalaTestVersion
+  lazy val cryptoTestLibs = List(
+    "dev.zio" %% "zio-test" % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion
   ).map(_ % Test)
 }

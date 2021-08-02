@@ -8,7 +8,7 @@ import zio.test.{ZSpec, assertM, environment}
 
 object NewRestTestSuite extends HttpRunnableSpec(8080) {
 
-  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
+  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (fullLayer).orDie
 
   val newRestApi = serve {RestAPI.newRestApi}
 

@@ -12,16 +12,14 @@ import zio.test._
 
 object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  val dbLog = unsafeRun((for{
-    dbLog_user     <- CryptoApi.encrypt(config.db.user)
-    dbLog_password <- CryptoApi.encrypt(config.db.password)
-  } yield (dbLog_user, dbLog_password)).provideCustomLayer(etlflow.crypto.Implementation.live))
+  val dbLog_user     = CryptoApi.encrypt(config.db.user).provideCustomLayer(etlflow.crypto.Implementation.live)
+  val dbLog_password = CryptoApi.encrypt(config.db.password).provideCustomLayer(etlflow.crypto.Implementation.live)
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
-      '{"url" : "${config.db.url}", "user" : "${dbLog._1}", "password" : "${dbLog._2}", "driver" : "org.postgresql.Driver" }'
+      '{"url" : "${config.db.url}", "user" : "${unsafeRun(dbLog_user)}", "password" : "${unsafeRun(dbLog_password)}", "driver" : "org.postgresql.Driver" }'
       )
       """
 

@@ -35,7 +35,7 @@ lazy val coreSettings = Seq(
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
   crossScalaVersions := List(scala212),
-  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs,
+  libraryDependencies ++= sparkLibs ++ sparkTestLibs,
 )
 
 lazy val cloudSettings = Seq(

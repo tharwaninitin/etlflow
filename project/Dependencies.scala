@@ -146,6 +146,7 @@ object Dependencies {
 
   lazy val sparkTestLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion,
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 

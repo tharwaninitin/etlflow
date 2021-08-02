@@ -182,6 +182,6 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec {
         val slack_message = unsafeRun(slackDebugLevelExecutor.provideCustomLayer(fullLayer))
         assertM(slackDebugLevelExecutor.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed(slack_message)))(equalTo(debugFailureMessage))
 
-      },
+      }
     ) @@ TestAspect.sequential).provideCustomLayerShared((fullLayer).orDie)
 }

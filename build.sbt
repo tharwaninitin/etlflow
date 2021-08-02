@@ -4,6 +4,15 @@ lazy val scala3   = "3.0.1"
 lazy val scala2Versions = List(scala212 ,scala213)
 lazy val allScalaVersions = List(scala212, scala213, scala3)
 
+ThisBuild / scalacOptions ++=
+  Seq(
+    //"-unchecked"
+    //, "-Ywarn-unused-import"
+    //, "-Ywarn-unused"
+    //, "-feature"
+    //, "-deprecation"
+  )
+
 import Dependencies._
 
 lazy val commonSettings = Seq(
@@ -21,82 +30,83 @@ lazy val commonSettings = Seq(
           compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
           "org.scala-lang" % "scala-reflect" % scala212
          )
-    case _            => Seq("org.scala-lang" % "scala-reflect" % scala213)
+    case Some((2, 13)) => Seq("org.scala-lang" % "scala-reflect" % scala213)
+    case _ => Seq()
   }),
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+  testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
 
 lazy val coreSettings = Seq(
   name := "etlflow-core",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= coreLibs ++ coreTestLibs
+  libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
 )
 
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
   crossScalaVersions := List(scala212),
-  libraryDependencies ++= sparkLibs ++ sparkTestLibs,
+  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs,
 )
 
 lazy val cloudSettings = Seq(
   name := "etlflow-cloud",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= cloudLibs ++ coreTestLibs ++ cloudTestLibs,
+  libraryDependencies ++= cloudLibs ++ zioTestLibs ++ cloudTestLibs,
 )
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
   crossScalaVersions := scala2Versions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
-  libraryDependencies ++= serverLibs ++ coreTestLibs,
+  libraryDependencies ++= serverLibs ++ zioTestLibs,
 )
 
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++=  dbLibs ++ dbTestLibs,
+  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ dbTestLibs,
 )
 
 lazy val utilsSettings = Seq(
   name := "etlflow-utils",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  utilsLibs,
+  libraryDependencies ++=  utilsLibs ++ zioTestLibs,
 )
 
 lazy val httpSettings = Seq(
   name := "etlflow-http",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= httpLibs
+  libraryDependencies ++= httpLibs ++ zioTestLibs
 )
 
 lazy val redisSettings = Seq(
   name := "etlflow-redis",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= redisLibs
+  libraryDependencies ++= redisLibs ++ zioTestLibs
 )
 
 lazy val jsonSettings = Seq(
   name := "etlflow-json",
   crossScalaVersions :=  allScalaVersions,
-  libraryDependencies ++= jsonLibs ++ jsonTestLibs
+  libraryDependencies ++= jsonLibs ++ zioTestLibs
 )
 
 lazy val cryptoSettings = Seq(
-  name := "etlflow.crypto",
+  name := "etlflow-crypto",
   crossScalaVersions :=  scala2Versions,
-  libraryDependencies ++= cryptoLibs ++ cryptoTestLibs
+  libraryDependencies ++= cryptoLibs ++ zioTestLibs
 )
 
 lazy val emailSettings = Seq(
   name := "etlflow-email",
   crossScalaVersions :=  scala2Versions,
-  libraryDependencies ++= emailLibs
+  libraryDependencies ++= emailLibs ++ zioTestLibs
 )
 
 lazy val cacheSettings = Seq(
   name := "etlflow-cache",
   crossScalaVersions :=  scala2Versions,
-  libraryDependencies ++= cacheLibs
+  libraryDependencies ++= cacheLibs ++ zioTestLibs
 )
 
 

@@ -89,7 +89,7 @@ private[db] object Implementation extends  ApplicationLogger {
         SQL.updateSuccessJob(job, ts)
           .run
           .transact(transactor)
-          .bimap({
+          .mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
@@ -101,7 +101,7 @@ private[db] object Implementation extends  ApplicationLogger {
         SQL.updateFailedJob(job, ts)
           .run
           .transact(transactor)
-          .bimap({
+          .mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
@@ -113,7 +113,7 @@ private[db] object Implementation extends  ApplicationLogger {
         SQL.updateJobState(args)
           .run
           .transact(transactor)
-          .bimap({
+          .mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
@@ -125,7 +125,7 @@ private[db] object Implementation extends  ApplicationLogger {
         SQL.addCredentials(credentialsDB, actualSerializerOutput)
           .run
           .transact(transactor)
-          .bimap({
+          .mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
@@ -135,7 +135,7 @@ private[db] object Implementation extends  ApplicationLogger {
       }
       override def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[DBException, Credentials] = SQL.updateCredentialSingleTran(credentialsDB, actualSerializerOutput)
         .transact(transactor)
-        .bimap({ e =>
+        .mapBoth({ e =>
             logger.error(e.getMessage)
             DBException(e.getMessage)
           },

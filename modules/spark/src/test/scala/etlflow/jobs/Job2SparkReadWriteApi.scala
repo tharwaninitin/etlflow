@@ -2,6 +2,7 @@ package etlflow.jobs
 
 import etlflow.TestSparkSession
 import etlflow.coretests.Schema.{EtlJob2Props, EtlJobRun, Rating}
+import etlflow.coretests.TestSuiteHelper
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
@@ -13,8 +14,8 @@ import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
 case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
-  extends GenericEtlJob[EtlJob2Props] with TestSparkSession with SparkUDF {
-  val config = zio.Runtime.default.unsafeRun(Configuration.config)
+  extends GenericEtlJob[EtlJob2Props] with TestSparkSession with TestSuiteHelper with SparkUDF {
+
   val job_props: EtlJob2Props = job_properties
   val jdbc = RDB(JDBC(config.db.url,config.db.user,config.db.password,config.db.driver))
 

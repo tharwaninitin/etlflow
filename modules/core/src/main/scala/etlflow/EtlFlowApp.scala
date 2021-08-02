@@ -29,7 +29,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
           val key = config.webserver.flatMap(_.secretKey)
-          val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live)
+          val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live(key))
           val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
           val dbLayer = liveDBWithTransactor(config.db)
           DBApi.executeQuery(query).provideCustomLayer(dbLayer)
@@ -61,7 +61,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
           val dbLayer = liveDBWithTransactor(config.db,"Job-" + ec.job_name + "-Pool",2)
           val jsonLayer = json.Implementation.live
-          val cryptoLayer = crypto.Implementation.live
+          val key = config.webserver.flatMap(_.secretKey)
+          val cryptoLayer = crypto.Implementation.live(key)
           LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
             .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer)

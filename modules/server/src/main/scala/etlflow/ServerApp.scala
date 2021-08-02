@@ -1,7 +1,6 @@
 package etlflow
 
 import etlflow.api.Schema.QueueDetails
-import etlflow.crypto.Implementation
 import etlflow.db.{EtlJob, liveDBWithTransactor}
 import etlflow.executor.Executor
 import etlflow.scheduler.Scheduler
@@ -29,7 +28,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     _           = config.token.map(_.foreach(tkn => CacheHelper.putKey(authCache,tkn,tkn)))
     auth        = Authentication(authCache, config.webserver)
     jsonLayer   = json.Implementation.live
-    cryptoLayer = Implementation.live
+    cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
     jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).provideCustomLayer(jsonLayer).toManaged_
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)

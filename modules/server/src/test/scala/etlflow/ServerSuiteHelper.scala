@@ -39,6 +39,6 @@ trait ServerSuiteHelper extends EtlFlowUtils {
   val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor, jobStatsCache)
   val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.db)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
-  val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live
+  val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live(skey)
   val fullLayer  = testAPILayer ++  testDBLayer ++ testJsonLayer ++ testCryptoLayer
 }

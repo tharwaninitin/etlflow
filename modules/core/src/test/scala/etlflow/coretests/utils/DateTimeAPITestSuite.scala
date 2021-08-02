@@ -45,33 +45,31 @@ object DateTimeAPITestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   val expectedStepName5 = "etljobspotratingsorctobq_year_2020_week_43_step"
 
   def spec: ZSpec[environment.TestEnvironment, Any] = {
-    suite("EtlFlow")(
-      suite("DateTime Api Test Cases")(
-        test("GetTimeDifferenceAsString should  should run successfully for days") {
-          assert(actualDaysOutput)(equalTo(expectedDaysOutput))
-        },
-        test("GetTimeDifferenceAsString1 should  should run successfully for mins") {
-          assert(actualOutputMins)(equalTo(expectedOutputMins))
-        },
-        test("GetTimeDifferenceAsString2 should should run successfully for hrs") {
-          assert(actualOutputHrs)(equalTo(expectedOutputHrs))
-        },
-        test("StringFormatter should should return formatted string when given string with single space") {
-          assert(RF.stringFormatter(actualStepName1) )(equalTo(expectedStepName1))
-        },
-        test("StringFormatter should should return formatted string when given string with multiple consecutive spaces") {
-          assert(RF.stringFormatter(actualStepName2))(equalTo(expectedStepName2))
-        },
-        test("StringFormatter should should return formatted string when given string with more than 50 characters") {
-          assert(RF.stringFormatter(actualStepName3))(equalTo(expectedStepName3))
-        },
-        test("StringFormatter should should return formatted string when given string with multiple consecutive underscores") {
-          assert(RF.stringFormatter(actualStepName4))(equalTo(expectedStepName4))
-        },
-        test("StringFormatter should should return formatted string when given string with special characters") {
-          assert(RF.stringFormatter(actualStepName5))(equalTo(expectedStepName5))
-        }
-      )
+    suite("DateTime Api Test Cases")(
+      test("GetTimeDifferenceAsString should  should run successfully for days") {
+        assert(actualDaysOutput)(equalTo(expectedDaysOutput))
+      },
+      test("GetTimeDifferenceAsString1 should  should run successfully for mins") {
+        assert(actualOutputMins)(equalTo(expectedOutputMins))
+      },
+      test("GetTimeDifferenceAsString2 should should run successfully for hrs") {
+        assert(actualOutputHrs)(equalTo(expectedOutputHrs))
+      },
+      test("StringFormatter should should return formatted string when given string with single space") {
+        assert(RF.stringFormatter(actualStepName1) )(equalTo(expectedStepName1))
+      },
+      test("StringFormatter should should return formatted string when given string with multiple consecutive spaces") {
+        assert(RF.stringFormatter(actualStepName2))(equalTo(expectedStepName2))
+      },
+      test("StringFormatter should should return formatted string when given string with more than 50 characters") {
+        assert(RF.stringFormatter(actualStepName3))(equalTo(expectedStepName3))
+      },
+      test("StringFormatter should should return formatted string when given string with multiple consecutive underscores") {
+        assert(RF.stringFormatter(actualStepName4))(equalTo(expectedStepName4))
+      },
+      test("StringFormatter should should return formatted string when given string with special characters") {
+        assert(RF.stringFormatter(actualStepName5))(equalTo(expectedStepName5))
+      }
     )
   }
 }

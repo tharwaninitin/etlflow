@@ -47,7 +47,7 @@ object Dependencies {
     "dev.zio" %% "zio-config" % ZioConfig,
     "dev.zio" %% "zio-config-magnolia" % ZioConfig,
     "dev.zio" %% "zio-config-typesafe" % ZioConfig,
-    "com.github.scopt" %% "scopt" % ScoptVersion,
+    "com.github.scopt" %% "scopt" % ScoptVersion
   )
 
   lazy val cloudLibs = List(
@@ -131,9 +131,12 @@ object Dependencies {
     "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion
   )
 
-  lazy val coreTestLibs = List(
+  lazy val zioTestLibs = List(
     "dev.zio" %% "zio-test" % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion,
+    "dev.zio" %% "zio-test-sbt" % ZioVersion
+  ).map(_ % Test)
+
+  lazy val coreTestLibs = List(
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
@@ -152,18 +155,7 @@ object Dependencies {
 
   lazy val dbTestLibs = List(
     "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion,
-    "dev.zio" %% "zio-test" % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion
+    "org.scalatest" %% "scalatest" % ScalaTestVersion
   ).map(_ % Test)
 
-  lazy val jsonTestLibs = List(
-    "dev.zio" %% "zio-test" % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion
-  ).map(_ % Test)
-
-  lazy val cryptoTestLibs = List(
-    "dev.zio" %% "zio-test" % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion
-  ).map(_ % Test)
 }

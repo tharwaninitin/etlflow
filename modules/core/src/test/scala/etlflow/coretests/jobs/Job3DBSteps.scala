@@ -18,7 +18,7 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
   val dbLog = unsafeRun((for{
     dbLog_user     <- CryptoApi.encrypt(config.db.user)
     dbLog_password <- CryptoApi.encrypt(config.db.password)
-  } yield (dbLog_user, dbLog_password)).provideCustomLayer(etlflow.crypto.Implementation.live))
+  } yield (dbLog_user, dbLog_password)).provideCustomLayer(cryptoLayer))
 
 
   val insert_credential_script = s"""

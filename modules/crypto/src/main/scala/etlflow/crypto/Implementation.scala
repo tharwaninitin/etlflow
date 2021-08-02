@@ -1,20 +1,25 @@
 package etlflow.crypto
 
-import com.github.t3hnar.bcrypt.BCrypt
+import com.github.t3hnar.bcrypt._
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
-import zio.{RIO, Task, ULayer, ZLayer}
 import etlflow.utils.CredentialImplicits._
-
+import zio.{RIO, Task, ULayer, ZLayer}
 import java.util.Base64
 import javax.crypto.Cipher
-import com.github.t3hnar.bcrypt._
-import scala.reflect.runtime.universe.{typeOf, TypeTag}
+import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
+import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 object Implementation {
 
-  lazy val live: ULayer[CryptoEnv] = ZLayer.succeed(
+  def live(key: Option[String]): ULayer[CryptoEnv] = ZLayer.succeed(
     new CryptoApi.Service {
+
+      final val secretKey = key.getOrElse("enIntVecTest2020")
+      final val iv = new IvParameterSpec(secretKey.getBytes("UTF-8"))
+      final val skeySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES")
+      final val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+
       override def encrypt(text: String): Task[String] = Task{
         cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv)
         val encrypted = cipher.doFinal(text.getBytes())

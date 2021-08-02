@@ -12,8 +12,8 @@ import zio.test._
 
 object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  val dbLog_user     = CryptoApi.encrypt(config.db.user).provideCustomLayer(etlflow.crypto.Implementation.live)
-  val dbLog_password = CryptoApi.encrypt(config.db.password).provideCustomLayer(etlflow.crypto.Implementation.live)
+  val dbLog_user     = CryptoApi.encrypt(config.db.user).provideCustomLayer(cryptoLayer)
+  val dbLog_password = CryptoApi.encrypt(config.db.password).provideCustomLayer(cryptoLayer)
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(
@@ -29,31 +29,29 @@ object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper 
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow")(
-      suite("GetCredential Step")(
-        testM("Execute GetCredential step") {
-          val step1 =  DBQueryStep(
-            name  = "AddCredential",
-            query = insert_credential_script,
-            credentials = config.db
-          )
-          val step2 =  GetCredentialStep[JDBC](
-            name  = "GetCredential",
-            credential_name = "etlflow",
-          )
+    suite("GetCredential Step")(
+      testM("Execute GetCredential step") {
+        val step1 =  DBQueryStep(
+          name  = "AddCredential",
+          query = insert_credential_script,
+          credentials = config.db
+        )
+        val step2 =  GetCredentialStep[JDBC](
+          name  = "GetCredential",
+          credential_name = "etlflow",
+        )
 
-          val job = for {
-            _ <- step1.process().provideCustomLayer(fullLayer)
-            _ <- step2.process().provideCustomLayer(fullLayer)
-          } yield ()
+        val job = for {
+          _ <- step1.process().provideCustomLayer(fullLayer)
+          _ <- step2.process().provideCustomLayer(fullLayer)
+        } yield ()
 
-          assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-        },
-        test("Execute getStepProperties") {
-          val props = step2.getStepProperties()
-          assert(props)(equalTo(Map("credential_name" -> "etlflow")))
-        }
-      )
+        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Execute getStepProperties") {
+        val props = step2.getStepProperties()
+        assert(props)(equalTo(Map("credential_name" -> "etlflow")))
+      }
     )
 }
 

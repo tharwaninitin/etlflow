@@ -35,22 +35,20 @@ object ReflectionTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   }
 
   def spec: ZSpec[environment.TestEnvironment, Any] = {
-    suite("EtlFlow")(
-      suite("Reflect Api Test Cases")(
-        test("getEtlJobs(EtlJobName) should should retrieve Set successfully") {
-          assert(RF.getEtlJobs[EtlJobName])(equalTo(Set("Job1", "Job2", "Job3", "Job4", "Job5")))
-        },
-        test("getEtlJobs(EtlJob) should  should retrieve Set successfully") {
-           assert(RF.getEtlJobs[EtlJob])(equalTo(Set("Job3", "Job4")))
-        },
-        test("getFields[RatingOutput] should  should run successfully") {
-          assert(RF.getFields[RatingOutput])(equalTo(Seq(("date_int","Int"), ("date","java.sql.Date"), ("timestamp","Long"), ("rating","Double"), ("movie_id","Int"), ("user_id","Int"))))
-        },
-        testM("GetEtlJobPropsMapping should return correct  error message") {
-          val x = Task(RF.getEtlJobPropsMapping[MEJP]("Job1","")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok"))
-          assertM(x)(equalTo("Job1 not present"))
-        }
-      )
+    suite("Reflect Api Test Cases")(
+      test("getEtlJobs(EtlJobName) should should retrieve Set successfully") {
+        assert(RF.getEtlJobs[EtlJobName])(equalTo(Set("Job1", "Job2", "Job3", "Job4", "Job5")))
+      },
+      test("getEtlJobs(EtlJob) should  should retrieve Set successfully") {
+         assert(RF.getEtlJobs[EtlJob])(equalTo(Set("Job3", "Job4")))
+      },
+      test("getFields[RatingOutput] should  should run successfully") {
+        assert(RF.getFields[RatingOutput])(equalTo(Seq(("date_int","Int"), ("date","java.sql.Date"), ("timestamp","Long"), ("rating","Double"), ("movie_id","Int"), ("user_id","Int"))))
+      },
+      testM("GetEtlJobPropsMapping should return correct  error message") {
+        val x = Task(RF.getEtlJobPropsMapping[MEJP]("Job1","")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok"))
+        assertM(x)(equalTo("Job1 not present"))
+      }
     )
   }
 }

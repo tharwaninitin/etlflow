@@ -4,14 +4,13 @@ import etlflow.json.JsonEnv
 import scalacache.caffeine.CaffeineCache
 import scalacache.{Cache, Id}
 import zio.{RIO, Task, ZIO}
-
 import scala.concurrent.duration.Duration
 import scala.reflect.runtime.universe.TypeTag
 
 object CacheApi {
 
   trait Service {
-    def createCache[T]:Task[CaffeineCache[T]]
+    def createCache[T]: Task[CaffeineCache[T]]
     def getKey[T](cache: Cache[T], key: String): Task[Id[Option[T]]]
     def removeKey[T](cache: Cache[T], key: String): Task[Id[Any]]
     def putKey[T](cache: Cache[T], key: String, value: T, ttl: Option[Duration] = None): Task[Unit]
@@ -32,6 +31,6 @@ object CacheApi {
     ZIO.accessM(_.get.toMap[T](cache))
   def getValues[T: TypeTag](cache: CaffeineCache[T]): ZIO[CacheEnv, Throwable, List[T]] =
     ZIO.accessM(_.get.getValues[T](cache))
-  def getCacheStats[T](cache: CaffeineCache[T], name: String): RIO[CacheEnv with JsonEnv,CacheDetails] =
+  def getCacheStats[T](cache: CaffeineCache[T], name: String): RIO[CacheEnv with JsonEnv, CacheDetails] =
     ZIO.accessM(_.get.getCacheStats[T](cache,name))
 }

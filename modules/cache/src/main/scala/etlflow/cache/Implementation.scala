@@ -7,7 +7,6 @@ import scalacache.caffeine.CaffeineCache
 import scalacache.modes.sync._
 import scalacache.{Cache, Entry, Id}
 import zio.{RIO, Task, ULayer, ZLayer}
-
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 
@@ -21,7 +20,6 @@ object Implementation {
             .recordStats()
             .maximumSize(1000L)
             .build[String, Entry[T]]
-
         CaffeineCache(caffeineCache)
       }
 

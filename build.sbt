@@ -149,7 +149,7 @@ lazy val core = (project in file("modules/core"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(db, utils, json, crypto, cache)
+  .dependsOn(db, utils, json, crypto)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
@@ -159,7 +159,7 @@ lazy val cloud = (project in file("modules/cloud"))
 lazy val server = (project in file("modules/server"))
   .settings(commonSettings)
   .settings(serverSettings)
-  .dependsOn(core % "compile->compile;test->test", cloud,cache)
+  .dependsOn(core % "compile->compile;test->test", cloud, cache)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)

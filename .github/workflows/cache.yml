@@ -1,4 +1,4 @@
-name: Crypto Workflow
+name: Cache Workflow
 on: [push]
 jobs:
   test:

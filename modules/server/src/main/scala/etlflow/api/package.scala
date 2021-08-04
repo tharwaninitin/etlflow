@@ -1,12 +1,13 @@
 package etlflow
 
 import cron4s.CronExpr
+import etlflow.cache.CacheEnv
 import zio.{Has, RIO}
 
 package object api {
 
   private[etlflow] type APIEnv = Has[Service]
-  private[etlflow] type ServerEnv = APIEnv with JobEnv
+  private[etlflow] type ServerEnv = APIEnv with JobEnv with CacheEnv
   private[etlflow] type ServerTask[A] = RIO[ServerEnv, A]
 
   private[etlflow] object Schema {

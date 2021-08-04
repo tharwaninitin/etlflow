@@ -28,7 +28,8 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
     statsCache  <- CacheApi.createCache[QueueDetails].toManaged_
     authCache   <- CacheApi.createCache[String].toManaged_
-    _           = config.token.map(_.foreach(tkn => unsafeRun(CacheApi.putKey(authCache,tkn,tkn).provideCustomLayer(cacheLayer))))
+    listTkn     = config.token.getOrElse(List.empty)
+    _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.putKey(authCache, tkn, tkn)).toManaged_
     auth        = Authentication(authCache, config.webserver)
     jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).provideCustomLayer(jsonLayer).toManaged_
     sem         <- createSemaphores(jobs).toManaged_

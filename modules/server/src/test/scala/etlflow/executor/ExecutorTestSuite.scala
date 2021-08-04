@@ -1,6 +1,7 @@
 package etlflow.executor
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
+import etlflow.cache.CacheEnv
 import etlflow.db.{EtlJob, RunDbMigration}
 import etlflow.{JobEnv, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
@@ -10,7 +11,7 @@ import zio.{RIO, ZIO}
 object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
-  def job(args: EtlJobArgs): RIO[JobEnv,EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
+  def job(args: EtlJobArgs): RIO[JobEnv with CacheEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Executor Spec")(

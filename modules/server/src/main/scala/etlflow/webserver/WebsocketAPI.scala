@@ -3,6 +3,7 @@ package etlflow.webserver
 import etlflow.utils.ApplicationLogger
 import zhttp.http._
 import zhttp.socket.{Socket, SocketApp, WebSocketFrame}
+import zio.Runtime.default.unsafeRun
 import zio.clock.Clock
 import zio.duration._
 import zio.stream.ZStream
@@ -22,7 +23,7 @@ case class WebsocketAPI(auth: Authentication)  extends ApplicationLogger {
 
   def websocketStream(token: String): ZStream[Any with Clock, Nothing, WebSocketFrame] = {
     if(auth.validateJwt(token)){
-      auth.isCached(token) match {
+      unsafeRun(auth.isCached(token)) match {
         case Some(_) => stream.map(s => WebSocketFrame.text(s))
 
         case None =>

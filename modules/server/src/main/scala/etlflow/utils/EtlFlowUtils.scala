@@ -1,19 +1,22 @@
 package etlflow.utils
 
 import etlflow.EJPMType
+import etlflow.cache.CacheApi
 import etlflow.db.EtlJob
 import etlflow.json.JsonEnv
 import etlflow.utils.{ReflectAPI => RF}
 import scalacache.caffeine.CaffeineCache
 import scalacache.memoization.memoizeSync
 import scalacache.modes.sync._
+import zio.Runtime.default.unsafeRun
 import zio.{RIO, Task, UIO, ZIO}
 
 import scala.reflect.runtime.universe.TypeTag
 
 private [etlflow] trait EtlFlowUtils extends ApplicationLogger{
 
-  implicit val jobPropsMappingCache: CaffeineCache[RIO[JsonEnv,Map[String, String]]] = CacheHelper.createCache[RIO[JsonEnv,Map[String, String]]]
+  implicit val jobPropsMappingCache: CaffeineCache[RIO[JsonEnv,Map[String, String]]] =
+    unsafeRun(CacheApi.createCache[RIO[JsonEnv,Map[String, String]]].provideCustomLayer(etlflow.cache.Implementation.live))
 
   final def getJobPropsMapping[EJN <: EJPMType : TypeTag](job_name: String, ejpm_package: String): RIO[JsonEnv,Map[String, String]] =
     memoizeSync[RIO[JsonEnv,Map[String, String]]](None) {

@@ -17,8 +17,6 @@ package object api {
     case class EtlFlowMetrics(active_jobs: Int, active_subscribers: Int, etl_jobs: Int, cron_jobs: Int, build_time: String)
     case class CurrentTime(current_time:String)
     case class UserAuth(message: String, token: String)
-    case class CacheInfo(name:String,hitCount:Long,hitRate:Double,size:Long,missCount:Long,missRate:Double,requestCount:Long,data: Map[String,String])
-    case class CacheDetails(name:String,details:Map[String,String])
     case class QueueDetails(name:String,details:String,submitted_from:String,execution_time:String)
     case class EtlJobStatus(id: String, name: String, start_time: String, `type`: String, status: String)
     case class Props(key: String, value: String)

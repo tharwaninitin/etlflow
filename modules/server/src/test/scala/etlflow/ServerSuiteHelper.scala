@@ -2,6 +2,7 @@ package etlflow
 
 import etlflow.api.Schema.QueueDetails
 import etlflow.api.{APIEnv, Implementation}
+import etlflow.cache.{CacheApi, CacheEnv}
 import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.crypto.CryptoEnv
 import etlflow.db.{DBEnv, liveDBWithTransactor}
@@ -9,9 +10,10 @@ import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
 import etlflow.json.JsonEnv
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.{CacheHelper, Configuration, EtlFlowUtils, ReflectAPI => RF}
+import etlflow.utils.{Configuration, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.webserver.Authentication
 import scalacache.caffeine.CaffeineCache
+import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
 
@@ -20,8 +22,10 @@ trait ServerSuiteHelper extends EtlFlowUtils {
   val skey = config.webserver.flatMap(_.secretKey)
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
-  val authCache: CaffeineCache[String] = CacheHelper.createCache[String]
-  val jobStatsCache: CaffeineCache[QueueDetails] = CacheHelper.createCache[QueueDetails]
+
+  val authCache: CaffeineCache[String] = unsafeRun(CacheApi.createCache[String].provideCustomLayer(cache.Implementation.live))
+  val jobStatsCache: CaffeineCache[QueueDetails] = unsafeRun(CacheApi.createCache[QueueDetails].provideCustomLayer(cache.Implementation.live))
+
   val credentials: JDBC = config.db
   val ejpm_package: String = RF.getJobNamePackage[MEJP] + "$"
   val sem: Map[String, Semaphore] =
@@ -40,5 +44,6 @@ trait ServerSuiteHelper extends EtlFlowUtils {
   val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.db)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
   val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live(skey)
-  val fullLayer  = testAPILayer ++  testDBLayer ++ testJsonLayer ++ testCryptoLayer
+  val testCacheLayer: ZLayer[Blocking, Throwable, CacheEnv] = cache.Implementation.live
+  val fullLayer  = testAPILayer ++  testDBLayer ++ testJsonLayer ++ testCryptoLayer ++ testCacheLayer
 }

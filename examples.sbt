@@ -5,7 +5,7 @@ lazy val scala212 = "2.12.13"
 lazy val scala213 = "2.13.6"
 lazy val scala2Versions = List(scala212 ,scala213)
 
-val EtlFlowVersion = "0.10.0"
+val EtlFlowVersion = "0.11.0"
 
 lazy val loggerTask = TaskKey[Unit]("loggerTask")
 

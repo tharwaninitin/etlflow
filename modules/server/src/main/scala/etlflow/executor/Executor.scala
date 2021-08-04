@@ -2,15 +2,17 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
+import etlflow.cache.CacheApi
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.json.JsonApi
 import etlflow.schema.Config
 import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LIVY, LOCAL, LOCAL_SUBPROCESS}
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
-import etlflow.utils.{ApplicationLogger, CacheHelper, EtlFlowUtils, ReflectAPI => RF}
+import etlflow.utils.{ApplicationLogger, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.{EJPMType, JobEnv}
 import scalacache.caffeine.CaffeineCache
+import zio.Runtime.default.unsafeRun
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
@@ -36,7 +38,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
                           _     <- UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${getCurrentTimestampAsString()}"))
                           key   = s"${args.name} ${getCurrentTimestamp}"
                           value = QueueDetails(args.name, props_json, submitted_from, getCurrentTimestampAsString())
-                          _     = CacheHelper.putKey(cache, key, value)
+                          _     <- CacheApi.putKey(cache, key, value)
                           _ <- runEtlJob(args, key, retry, spaced, fork)
                         } yield ()
                         else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
@@ -62,7 +64,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
     }
 
     val loggedJobRun: RIO[JobEnv, Long] = jobRun
-      .ensuring(UIO(CacheHelper.removeKey(cache, cache_key)))
+      .ensuring(UIO(unsafeRun(CacheApi.removeKey(cache, cache_key).provideLayer(etlflow.cache.Implementation.live))))
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
         UIO(logger.error(ex.getMessage)) *> DBApi.updateFailedJob(args.name, getCurrentTimestamp)

@@ -8,6 +8,7 @@ import cron4s.CronExpr
 import etlflow.api.Schema._
 import etlflow.api.Service._
 import etlflow.api.{APIEnv, ServerEnv}
+import etlflow.cache.{CacheDetails, CacheEnv}
 import etlflow.db._
 import etlflow.json.JsonEnv
 import zio.ZIO
@@ -27,8 +28,8 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
                       stepruns: DbStepRunArgs => ZIO[APIEnv with DBEnv, Throwable, List[StepRun]],
                       metrics: ZIO[APIEnv, Throwable, EtlFlowMetrics],
                       currentime: ZIO[APIEnv, Throwable, CurrentTime],
-                      cacheStats:ZIO[APIEnv with JsonEnv, Throwable, List[CacheDetails]],
-                      queueStats:ZIO[APIEnv, Throwable, List[QueueDetails]],
+                      cacheStats:ZIO[APIEnv with JsonEnv with CacheEnv, Throwable, List[CacheDetails]],
+                      queueStats:ZIO[APIEnv with CacheEnv, Throwable, List[QueueDetails]],
                       jobLogs: JobLogsArgs => ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]],
                       credential: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]],
                       jobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]

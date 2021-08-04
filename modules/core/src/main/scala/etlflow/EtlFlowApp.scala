@@ -63,9 +63,10 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val jsonLayer = json.Implementation.live
           val key = config.webserver.flatMap(_.secretKey)
           val cryptoLayer = crypto.Implementation.live(key)
+          val cacheLayer = cache.Implementation.live
           LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
-            .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer)
+            .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ cacheLayer)
         case ec if ec.run_server =>
             logger.info("Starting server")
             app

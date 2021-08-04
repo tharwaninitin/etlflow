@@ -2,14 +2,14 @@ package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.UserArgs
+import etlflow.cache.{CacheApi, default_ttl}
 import etlflow.db.RunDbMigration
-import etlflow.executor.ExecutorTestSuite.credentials
-import etlflow.utils.CacheHelper
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http.Status.FORBIDDEN
 import zhttp.http._
 import zhttp.service.server.ServerChannelFactory
 import zhttp.service.{ChannelFactory, EventLoopGroup}
+import zio.Runtime.default.unsafeRun
 import zio.test.Assertion.equalTo
 import zio.test.{ZSpec, assertM, environment, _}
 
@@ -30,7 +30,7 @@ object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHe
   val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
   val cachedToken: String = Jwt.encode("""{"user":"test1"}""", auth.secret, JwtAlgorithm.HS256)
 
-  CacheHelper.putKey(authCache, cachedToken, cachedToken, Some(CacheHelper.default_ttl))
+  unsafeRun(CacheApi.putKey(authCache, cachedToken, cachedToken, Some(default_ttl)).provideCustomLayer(testCacheLayer))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suiteM("Authentication Test Suite")(

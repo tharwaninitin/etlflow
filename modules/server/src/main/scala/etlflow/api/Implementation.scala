@@ -2,7 +2,7 @@ package etlflow.api
 
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
-import etlflow.cache.{CacheApi, CacheEnv}
+import etlflow.cache._
 import etlflow.crypto.CryptoApi
 import etlflow.db._
 import etlflow.executor.Executor
@@ -12,17 +12,14 @@ import etlflow.utils._
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
-import scalacache.caffeine.CaffeineCache
 import zio.Fiber.Status.{Running, Suspended}
 import zio.blocking.Blocking
 import zio.{Task, UIO, ZIO, ZLayer, _}
-
 import scala.reflect.runtime.universe.TypeTag
-import etlflow.cache._
 
 private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
 
-  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: CaffeineCache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
 
       val pt = new PrettyTime()
@@ -54,9 +51,9 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
 
       override def getCacheStats: ZIO[APIEnv with CacheEnv with JsonEnv, Throwable, List[CacheDetails]] = {
         for {
-          job_props <- CacheApi.getCacheStats(jobPropsMappingCache, "JobProps")
-          login     <- CacheApi.getCacheStats(auth.cache, "Login")
-        } yield (List(login,job_props))
+          //job_props <- CacheApi.getCacheStats(jobPropsMappingCache, "JobProps")
+          login     <- CacheApi.getStats(auth.cache, "Login")
+        } yield (List(login))
       }
 
       override def getQueueStats: ZIO[APIEnv with CacheEnv, Throwable, List[QueueDetails]] = {

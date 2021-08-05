@@ -30,7 +30,7 @@ object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHe
   val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
   val cachedToken: String = Jwt.encode("""{"user":"test1"}""", auth.secret, JwtAlgorithm.HS256)
 
-  unsafeRun(CacheApi.putKey(authCache, cachedToken, cachedToken, Some(default_ttl)).provideCustomLayer(testCacheLayer))
+  unsafeRun(CacheApi.put(authCache, cachedToken, cachedToken, Some(default_ttl)).provideCustomLayer(testCacheLayer))
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suiteM("Authentication Test Suite")(

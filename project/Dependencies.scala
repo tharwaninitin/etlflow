@@ -15,7 +15,6 @@ object Dependencies {
   val CirceVersion = "0.14.1"
   val DoobieVersion = "1.0.0-M5"
   val ShapelessVersion = "2.3.7"
-  val ScalaCacheVersion = "0.28.0"
 
   val SttpVersion = "3.3.12"
   val PrettyTimeVersion = "5.0.1.Final"
@@ -39,7 +38,7 @@ object Dependencies {
   val JwtCoreVersion = "8.0.3"
   val Sl4jVersion = "1.7.32"
   val BcryptVersion = "4.3.0"
-
+  val CaffeineCacheVersion = "2.9.0"
   val ScalaTestVersion = "3.2.9"
 
   lazy val coreLibs = List(
@@ -97,7 +96,6 @@ object Dependencies {
     "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
-    "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
   )
 
@@ -127,8 +125,8 @@ object Dependencies {
   )
 
   lazy val cacheLibs = List(
-    "dev.zio"       %% "zio"                % ZioVersion,
-    "com.github.cb372" %% "scalacache-caffeine" % ScalaCacheVersion
+    "dev.zio" %% "zio" % ZioVersion,
+    "com.github.ben-manes.caffeine" % "caffeine" % CaffeineCacheVersion
   )
 
   lazy val zioTestLibs = List(

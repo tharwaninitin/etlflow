@@ -8,9 +8,9 @@ import etlflow.schema.Config
 import etlflow.utils.{Configuration, EtlFlowUtils, SetTimeZone}
 import etlflow.webserver.{Authentication, HttpServer}
 import zio._
-
 import scala.reflect.runtime.universe.TypeTag
 import etlflow.cache.CacheApi
+
 abstract class ServerApp[EJN <: EJPMType : TypeTag]
   extends EtlFlowApp[EJN] with HttpServer with Scheduler with EtlFlowUtils  {
 
@@ -29,7 +29,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     statsCache  <- CacheApi.createCache[QueueDetails].toManaged_
     authCache   <- CacheApi.createCache[String].toManaged_
     listTkn     = config.token.getOrElse(List.empty)
-    _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.putKey(authCache, tkn, tkn)).toManaged_
+    _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.put(authCache, tkn, tkn)).toManaged_
     auth        = Authentication(authCache, config.webserver)
     jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).provideCustomLayer(jsonLayer).toManaged_
     sem         <- createSemaphores(jobs).toManaged_

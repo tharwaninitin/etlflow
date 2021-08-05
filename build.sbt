@@ -105,7 +105,7 @@ lazy val emailSettings = Seq(
 
 lazy val cacheSettings = Seq(
   name := "etlflow-cache",
-  crossScalaVersions :=  scala2Versions,
+  crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= cacheLibs ++ zioTestLibs
 )
 
@@ -184,4 +184,3 @@ lazy val email = (project in file("modules/email"))
 lazy val cache = (project in file("modules/cache"))
   .settings(commonSettings)
   .settings(cacheSettings)
-  .dependsOn(json)

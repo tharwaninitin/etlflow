@@ -12,7 +12,6 @@ import etlflow.json.JsonEnv
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.{Configuration, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.webserver.Authentication
-import scalacache.caffeine.CaffeineCache
 import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
@@ -23,8 +22,8 @@ trait ServerSuiteHelper extends EtlFlowUtils {
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
 
-  val authCache: CaffeineCache[String] = unsafeRun(CacheApi.createCache[String].provideCustomLayer(cache.Implementation.live))
-  val jobStatsCache: CaffeineCache[QueueDetails] = unsafeRun(CacheApi.createCache[QueueDetails].provideCustomLayer(cache.Implementation.live))
+  val authCache: cache.Cache[String] = unsafeRun(CacheApi.createCache[String].provideCustomLayer(cache.Implementation.live))
+  val jobStatsCache: cache.Cache[QueueDetails] = unsafeRun(CacheApi.createCache[QueueDetails].provideCustomLayer(cache.Implementation.live))
 
   val credentials: JDBC = config.db
   val ejpm_package: String = RF.getJobNamePackage[MEJP] + "$"

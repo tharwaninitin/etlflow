@@ -2,7 +2,7 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
-import etlflow.cache.{CacheApi, CacheEnv}
+import etlflow.cache.{CacheApi, CacheEnv, Cache}
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.json.JsonApi
@@ -11,14 +11,13 @@ import etlflow.schema.Executor._
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.utils.{ApplicationLogger, EtlFlowUtils, ReflectAPI => RF}
 import etlflow.{EJPMType, JobEnv}
-import scalacache.caffeine.CaffeineCache
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
-case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: CaffeineCache[QueueDetails])
+case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: Cache[QueueDetails])
   extends EtlFlowUtils with ApplicationLogger {
 
   final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[JobEnv with CacheEnv, EtlJob] = {
@@ -36,7 +35,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
                           _     <- UIO(logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${getCurrentTimestampAsString()}"))
                           key   = s"${args.name} ${getCurrentTimestamp}"
                           value = QueueDetails(args.name, props_json, submitted_from, getCurrentTimestampAsString())
-                          _     <- CacheApi.putKey(cache, key, value)
+                          _     <- CacheApi.put(cache, key, value)
                           _     <- runEtlJob(args, key, retry, spaced, fork)
                         } yield ()
                         else UIO(logger.info(s"Skipping inactive job ${db_job.job_name} submitted from $submitted_from at ${getCurrentTimestampAsString()}")) *> ZIO.fail(ExecutionError(s"Job ${db_job.job_name} is disabled"))
@@ -62,7 +61,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
     }
 
     val loggedJobRun: RIO[JobEnv with CacheEnv, Long] = jobRun
-      .ensuring(CacheApi.removeKey(cache, cache_key).orDie)
+      .ensuring(CacheApi.remove(cache, cache_key).orDie)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>
         UIO(logger.error(ex.getMessage)) *> DBApi.updateFailedJob(args.name, getCurrentTimestamp)

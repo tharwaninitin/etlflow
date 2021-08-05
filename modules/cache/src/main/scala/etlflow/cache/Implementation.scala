@@ -1,57 +1,62 @@
 package etlflow.cache
 
-import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
-import etlflow.json.{JsonApi, JsonEnv}
-import io.circe.generic.auto._
-import scalacache.caffeine.CaffeineCache
-import scalacache.modes.sync._
-import scalacache.{Cache, Entry, Id}
-import zio.{RIO, Task, ULayer, ZLayer}
+import com.github.benmanes.caffeine.cache.{Caffeine, Expiry, Cache => CCache}
+import zio.{Task, UIO, ULayer, ZLayer}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 object Implementation {
 
   lazy val live: ULayer[CacheEnv] = ZLayer.succeed(
+
     new CacheApi.Service {
-      override def createCache[T]: Task[CaffeineCache[T]] = Task{
-        val caffeineCache: CCache[String, Entry[T]] =
+
+      override def createCache[T]: Task[Cache[T]] = Task{
+
+        val expirationPolicy: Expiry[String, Entry[T]] = new Expiry[String, Entry[T]]() {
+          override def expireAfterCreate(key: String, value: Entry[T], currentTime: Long): Long = value.ttl.map(_.toNanos).getOrElse(Long.MaxValue)
+          override def expireAfterUpdate(key: String, value: Entry[T], currentTime: Long, currentDuration: Long): Long = currentDuration
+          override def expireAfterRead(key: String, value: Entry[T], currentTime: Long, currentDuration: Long): Long = currentDuration
+        }
+
+        val cache: CCache[String, Entry[T]] =
           Caffeine.newBuilder()
+            .asInstanceOf[Caffeine[String, Entry[T]]]
             .recordStats()
+            .expireAfter(expirationPolicy)
             .maximumSize(1000L)
-            .build[String, Entry[T]]
-        CaffeineCache(caffeineCache)
+            .build[String, Entry[T]]()
+        Cache[T](cache)
       }
 
-      override def getKey[T](cache: Cache[T], key: String): Task[Id[Option[T]]] = Task{cache.get(key)}
+      override def get[T](cache: Cache[T], key: String): UIO[Option[T]] = UIO(Try(cache.underlying.getIfPresent(key).value).toOption)
 
-      override def removeKey[T](cache: Cache[T], key: String): Task[Id[Any]] = Task{cache.remove(key)}
+      override def remove[T](cache: Cache[T], key: String): Task[Unit] = Task{cache.underlying.invalidate(key)}
 
-      override def putKey[T](cache: Cache[T], key: String, value: T, ttl: Option[Duration]): Task[Unit] =
-        Task{cache.put(key)(value, ttl)}
+      override def put[T](cache: Cache[T], key: String, value: T, ttl: Option[Duration]): Task[Unit] =
+        Task{cache.underlying.put(key, Entry(value, ttl))}
 
-      override def toMap[T](cache: CaffeineCache[T]): Task[Map[String, String]] = Task{
-        cache.underlying.asMap().asScala.map(x => (x._1,x._2.toString)).toMap
+      override def toMap[T](cache: Cache[T]): Task[Map[String, String]] = Task{
+        cache.underlying.asMap().asScala.map(x => (x._1,x._2.value.toString)).toMap
       }
 
-      override def getValues[T](cache: CaffeineCache[T]): Task[List[T]] = Task{
-        cache.underlying.asMap().asScala.values.map(_.value).toList
+      override def getValues[T](cache: Cache[T]): Task[List[T]] = Task{
+        cache.underlying.asMap().values.asScala.map(_.value).toList
       }
 
-      override def getCacheStats[T](cache: CaffeineCache[T], name: String): RIO[CacheEnv with JsonEnv, CacheDetails] = {
+      override def getStats[T](cache: Cache[T], name: String): Task[CacheDetails] = {
         for {
           data <- toMap(cache)
-          cacheInfo = CacheInfo(name,
-            cache.underlying.stats.hitCount(),
-            cache.underlying.stats.hitRate(),
-            cache.underlying.asMap().size(),
-            cache.underlying.stats.missCount(),
-            cache.underlying.stats.missRate(),
-            cache.underlying.stats.requestCount(),
-            data
+          cacheMap = Map(
+            "hitCount" -> cache.underlying.stats.hitCount().toString,
+            "hitRate" -> cache.underlying.stats.hitRate().toString,
+            "size" -> cache.underlying.asMap().size.toString,
+            "missCount" -> cache.underlying.stats.missCount().toString,
+            "missRate" -> cache.underlying.stats.missRate().toString,
+            "requestCount" -> cache.underlying.stats.requestCount().toString,
           )
-          cacheJson <- JsonApi.convertToMap(cacheInfo,List("data"))
-          cacheDetails = CacheDetails(name,cacheJson.map(x => (x._1, x._2.toString)))
+          cacheDetails = CacheDetails(name,cacheMap)
         } yield cacheDetails
       }
     }

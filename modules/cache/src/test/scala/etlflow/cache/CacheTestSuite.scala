@@ -1,27 +1,30 @@
 package etlflow.cache
 
+import zio.ZLayer
+import zio.blocking.Blocking
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, _}
-
 import scala.concurrent.duration._
 
-object CacheHelperTestSuite extends DefaultRunnableSpec with CacheSuiteHelper {
+object CacheTestSuite extends DefaultRunnableSpec {
+
+  val testCacheLayer: ZLayer[Blocking, Throwable, CacheEnv] = Implementation.live
 
   val cache = for {
    cache  <-  CacheApi.createCache[String]
    cache1 <-  CacheApi.createCache[String]
-   _      <-  CacheApi.putKey(cache,"key1","123")
-   _      <-  CacheApi.putKey(cache,"key3","123",ttl = Some(2.second))
-   _      <-  CacheApi.putKey(cache1,"key1","123")
-   _      <-  CacheApi.putKey(cache1,"key2","123")
-   _      <-  CacheApi.putKey(cache1,"key3","123")
-   _      <-  CacheApi.putKey(cache1,"key4","123")
+   _      <-  CacheApi.put(cache,"key1","123")
+   _      <-  CacheApi.put(cache,"key3","123", ttl = Some(2.second))
+   _      <-  CacheApi.put(cache1,"key1","123")
+   _      <-  CacheApi.put(cache1,"key2","123")
+   _      <-  CacheApi.put(cache1,"key3","123")
+   _      <-  CacheApi.put(cache1,"key4","123")
   } yield(cache,cache1)
 
 
   val cacheStats = for {
     cache    <-  cache
-    login     <- CacheApi.getCacheStats(cache._2, "Login")
+    login     <- CacheApi.getStats(cache._2, "Login")
   } yield List(login)
 
   val cacheStatsOp = List(CacheDetails("Login",Map("name" -> "Login", "size" -> "4", "missCount" -> "0", "hitCount" -> "0", "requestCount" -> "0", "missRate" -> "0.0", "hitRate" -> "1.0")))
@@ -31,14 +34,14 @@ object CacheHelperTestSuite extends DefaultRunnableSpec with CacheSuiteHelper {
     testM("The value stored in the underlying cache should return correctly - case 1 ") {
       val op = for{
         cache <-  cache
-        op    <- CacheApi.getKey(cache._1,"key1").map(x => x.getOrElse("NA"))
+        op    <- CacheApi.get(cache._1,"key1").map(x => x.getOrElse("NA"))
       } yield op
       assertM(op)(equalTo("123"))
     },
     testM("The value stored in the underlying cache should return correctly  - case 2") {
       val op = for{
         cache <-  cache
-        op    <- CacheApi.getKey(cache._1,"key2")
+        op    <- CacheApi.get(cache._1,"key2")
       } yield op
       assertM(op)(equalTo(None))
     },
@@ -46,7 +49,7 @@ object CacheHelperTestSuite extends DefaultRunnableSpec with CacheSuiteHelper {
       val op = for{
         cache <-  cache
         _     = Thread.sleep(5000)
-        op    <- CacheApi.getKey(cache._1,"key3")
+        op    <- CacheApi.get(cache._1,"key3")
       } yield op
       assertM(op)(equalTo(None))
     },
@@ -61,5 +64,5 @@ object CacheHelperTestSuite extends DefaultRunnableSpec with CacheSuiteHelper {
     testM("Should execute the getCacheStats method  - case 5") {
       assertM(cacheStats.map(x => x.map(y => y.name)))(equalTo(List("Login")))
     }
-  ).provideCustomLayerShared((testJsonLayer ++ testCacheLayer).orDie)
+  ).provideCustomLayerShared((testCacheLayer).orDie)
 }

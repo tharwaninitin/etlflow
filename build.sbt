@@ -200,10 +200,10 @@ lazy val cache = (project in file("modules/cache"))
 lazy val aws = (project in file("modules/aws"))
   .settings(commonSettings)
   .settings(awsSettings)
-  .dependsOn(core % "compile->compile;test->test", utils)
+  .dependsOn(core % "compile->compile;test->test")
 
 lazy val gcp = (project in file("modules/gcp"))
   .settings(commonSettings)
   .settings(gcpSettings)
-  .dependsOn(core % "compile->compile;test->test", utils)
+  .dependsOn(core % "compile->compile;test->test")
 

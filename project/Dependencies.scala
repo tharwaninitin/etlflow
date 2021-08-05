@@ -58,17 +58,17 @@ object Dependencies {
     "org.typelevel" %% "cats-effect" % CatsEffectVersion,
     "org.typelevel" %% "cats-effect-kernel" % CatsEffectVersion,
     "org.typelevel" %% "cats-effect-std" % CatsEffectVersion,
-    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion
+    "com.github.fs2-blobstore" %% "s3" % Fs2BlobStoreVersion,
+    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion
   )
 
   lazy val awsLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-interop-cats" % ZioCatsInteropVersion,
     "software.amazon.awssdk" % "s3" % AwsS3Version
   )
 
   lazy val gcpLibs = List(
-    "com.github.fs2-blobstore" %% "gcs" % Fs2BlobStoreVersion,
+    "dev.zio" %% "zio" % ZioVersion,
     "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
     "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
     "com.google.cloud" % "google-cloud-storage" % GcpGcsVersion

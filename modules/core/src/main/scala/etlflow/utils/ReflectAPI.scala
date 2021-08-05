@@ -3,6 +3,9 @@ package etlflow.utils
 import EtlflowError.EtlJobNotFoundException
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
+import etlflow.EJPMType
+import etlflow.db.EtlJob
+import zio.{Task, UIO, ZIO}
 
 private[etlflow] object ReflectAPI extends ApplicationLogger {
 
@@ -43,6 +46,19 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
   }.toSeq
 
-  def stringFormatter(value: String): String = value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
+  // Memoize this function by creating cache and if key exists return from cache or else call below function
+  def getJobPropsMapping[EJN <: EJPMType : TypeTag](job_name: String, ejpm_package: String): Task[Map[String, String]] =
+    Task(getEtlJobPropsMapping[EJN](job_name, ejpm_package)).map{props_mapping =>
+      props_mapping.getProps.map(x => (x._1,x._2.toString))
+    }
 
+  def getEtlJobs[EJN <: EJPMType : TypeTag](ejpm_package: String): Task[List[EtlJob]] = {
+    val jobs = for {
+      jobs     <- Task(getEtlJobs[EJN])
+      etljobs  <- ZIO.foreach(jobs)(job => getJobPropsMapping[EJN](job,ejpm_package).map(kv => EtlJob(job,kv)))
+    } yield etljobs.toList
+    jobs.tapError{ e =>
+      UIO(logger.error(e.getMessage))
+    }
+  }
 }

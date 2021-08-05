@@ -11,13 +11,13 @@ import etlflow.executor.Executor
 import etlflow.json.JsonEnv
 import etlflow.log.LoggerEnv
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.{Configuration, EtlFlowUtils, ReflectAPI => RF}
+import etlflow.utils.{Configuration, ReflectAPI => RF}
 import etlflow.webserver.Authentication
 import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
 
-trait ServerSuiteHelper extends EtlFlowUtils {
+trait ServerSuiteHelper {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
   val skey = config.webserver.flatMap(_.secretKey)
 

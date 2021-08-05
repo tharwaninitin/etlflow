@@ -9,21 +9,20 @@ import etlflow.json.JsonApi
 import etlflow.schema.Config
 import etlflow.schema.Executor._
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
-import etlflow.utils.{ApplicationLogger, EtlFlowUtils, ReflectAPI => RF}
+import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
 import etlflow.{CoreEnv, EJPMType}
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
-
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: Cache[QueueDetails])
-  extends EtlFlowUtils with ApplicationLogger {
+  extends ApplicationLogger {
 
   final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[CoreEnv with CacheEnv, EtlJob] = {
     for {
-      mapping_props  <- getJobPropsMapping[EJN](args.name,ejpm_package).mapError(e => ExecutionError(e.getMessage))
+      mapping_props  <- RF.getJobPropsMapping[EJN](args.name,ejpm_package).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
       _              <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
       db_job         <- DBApi.getJob(args.name)

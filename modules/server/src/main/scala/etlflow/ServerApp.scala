@@ -1,22 +1,21 @@
 package etlflow
 
 import etlflow.api.Schema.QueueDetails
+import etlflow.cache.{CacheApi, CacheEnv}
 import etlflow.db.EtlJob
 import etlflow.executor.Executor
+import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
-import etlflow.schema.{Config, LoggingLevel}
-import etlflow.utils.{Configuration, EtlFlowUtils, SetTimeZone}
+import etlflow.schema.Config
+import etlflow.utils.{Configuration, SetTimeZone, ReflectAPI => RF}
 import etlflow.webserver.{Authentication, HttpServer}
 import zio._
-import scala.reflect.runtime.universe.TypeTag
-import etlflow.cache.{CacheApi, CacheEnv}
-import etlflow.json.JsonEnv
-import etlflow.log.SlackLogger
 import zio.blocking.Blocking
 import zio.clock.Clock
+import scala.reflect.runtime.universe.TypeTag
 
 abstract class ServerApp[EJN <: EJPMType : TypeTag]
-  extends EtlFlowApp[EJN] with HttpServer with Scheduler with EtlFlowUtils  {
+  extends EtlFlowApp[EJN] with HttpServer with Scheduler {
 
   final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
     for {
@@ -32,7 +31,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     listTkn     = config.token.getOrElse(List.empty)
     _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.put(authCache, tkn, tkn)).toManaged_
     auth        = Authentication(authCache, config.webserver)
-    jobs        <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
+    jobs        <- RF.getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_

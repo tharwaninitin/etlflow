@@ -8,7 +8,7 @@ import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeFromTimestamp, getTimestampAsString}
-import etlflow.utils._
+import etlflow.utils.{ReflectAPI => RF, _}
 import etlflow.webserver.Authentication
 import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
@@ -17,7 +17,7 @@ import zio.blocking.Blocking
 import zio.{Task, UIO, ZIO, ZLayer, _}
 import scala.reflect.runtime.universe.TypeTag
 
-private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogger {
+private[etlflow] object Implementation extends ApplicationLogger {
 
   def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
@@ -41,7 +41,7 @@ private[etlflow] object Implementation extends EtlFlowUtils with ApplicationLogg
         for {
           jobs     <- DBApi.getJobs
           etljobs  <- ZIO.foreach(jobs)(x =>
-            getJobPropsMapping[EJN](x.job_name,ejpm_package).map{props =>
+            RF.getJobPropsMapping[EJN](x.job_name,ejpm_package).map{props =>
               val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
               GetCronJob(x.schedule, x, lastRunTime, props)
             }

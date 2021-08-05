@@ -15,6 +15,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
     with App {
 
   val etl_job_props_mapping_package: String = RF.getJobNamePackage[EJN] + "$"
+  val localExecutor: LocalExecutor = LocalExecutor(etl_job_props_mapping_package)
 
   def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
   : ZIO[ZEnv,Throwable,Unit] = {
@@ -43,13 +44,13 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           UIO(RF.printEtlJobs[EJN]())
         case ec if ec.show_job_props && ec.job_name != "" =>
           logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
-          LocalExecutor(etl_job_props_mapping_package)
+          localExecutor
             .showJobProps(ec.job_name)
             .provideCustomLayer(json.Implementation.live)
         case ec if ec.show_step_props && ec.job_name != "" =>
           logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
           logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
-          LocalExecutor(etl_job_props_mapping_package)
+          localExecutor
             .showJobStepProps(ec.job_name, ec.job_properties)
             .provideCustomLayer(json.Implementation.live)
         case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
@@ -63,7 +64,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val jsonLayer = json.Implementation.live
           val cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
           val logLayer = log.Implementation.live(config.slack)
-          LocalExecutor(etl_job_props_mapping_package)
+          localExecutor
             .executeJob(ec.job_name, ec.job_properties, jri, is_master)
             .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)
         case ec if ec.run_server =>

@@ -2,7 +2,6 @@ package etlflow.executor
 
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.schema.Slack
 import etlflow.utils.{ReflectAPI => RF}
 import etlflow.{EJPMType, CoreEnv}
 import zio.{Task, UIO, ZIO}

@@ -5,7 +5,7 @@ import etlflow.db.{EtlJob, RunDbMigration}
 import zio.duration.{Duration => ZDuration}
 import zio.test._
 import zio.test.environment.TestClock
-
+import etlflow.utils.{ReflectAPI => RF}
 import scala.concurrent.duration.{Duration, MINUTES}
 
 object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Scheduler {
@@ -15,7 +15,7 @@ object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper wit
     (suite("Rest Scheduler Suite")(
       testM("Test scheduler with Job1")(
         for {
-          jobs     <- getEtlJobs[MEJP](ejpm_package).map(jl => jl.filter(_.name == "Job1"))
+          jobs     <- RF.getEtlJobs[MEJP](ejpm_package).map(jl => jl.filter(_.name == "Job1"))
           fiber    <- etlFlowScheduler(jobs).fork
           _        <- TestClock.adjust(ZDuration.fromScala(Duration(3,MINUTES)))
           _        <- fiber.interrupt

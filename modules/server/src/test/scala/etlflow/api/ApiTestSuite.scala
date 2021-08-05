@@ -2,8 +2,8 @@ package etlflow.api
 
 import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.{CredentialsArgs, Creds, CurrentTime, Props}
-import etlflow.db.{Credentials, GetCredential, JobLogs, JobLogsArgs}
-import etlflow.executor.ExecutorTestSuite.{testAPILayer, testDBLayer, testJsonLayer}
+import etlflow.db.{Credentials, GetCredential, JobLogs, JobLogsArgs, RunDbMigration}
+import etlflow.executor.ExecutorTestSuite.{credentials, testAPILayer, testDBLayer, testJsonLayer}
 import etlflow.utils.CorsConfigTestSuite.testCryptoLayer
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo
@@ -11,6 +11,7 @@ import zio.test._
 
 object ApiTestSuite extends DefaultRunnableSpec with ServerSuiteHelper  {
 
+  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0")).sortBy(_.job_name)
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 

@@ -4,7 +4,8 @@ import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration, liveDBWithTransactor}
 import etlflow.etljobs.EtlJob
 import etlflow.executor.LocalExecutor
-import etlflow.schema.Config
+import etlflow.log.SlackLogger
+import etlflow.schema.{Config, LoggingLevel}
 import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
 import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
@@ -63,12 +64,17 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val jsonLayer = json.Implementation.live
           val key = config.webserver.flatMap(_.secretKey)
           val cryptoLayer = crypto.Implementation.live(key)
+          val slack_env  = config.slack.map(_.env).getOrElse("")
+          val slack_url  = config.slack.map(_.url).getOrElse("")
+          val host_url   = config.slack.map(_.host).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/" + jri
+          val slack_logger = SlackLogger(ec.job_name, slack_env, slack_url, LoggingLevel.INFO, true, host_url)
+          val logLayer = log.Implementation.live(slack_logger)
           LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
-            .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer)
+            .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)
         case ec if ec.run_server =>
-            logger.info("Starting server")
-            app
+          logger.info("Starting server")
+          app
         case _ =>
           logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
           ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))

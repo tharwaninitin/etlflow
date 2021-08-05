@@ -1,4 +1,5 @@
-package etlflow.coretests.steps.credential
+package etlflow.coretests.steps
+
 
 import etlflow.coretests.TestSuiteHelper
 import etlflow.crypto.CryptoApi
@@ -12,10 +13,11 @@ import zio.test._
 
 object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  val dbLog_user     = CryptoApi.encrypt(config.db.user).provideCustomLayer(cryptoLayer)
+  val dbLog_user = CryptoApi.encrypt(config.db.user).provideCustomLayer(cryptoLayer)
   val dbLog_password = CryptoApi.encrypt(config.db.password).provideCustomLayer(cryptoLayer)
 
-  val insert_credential_script = s"""
+  val insert_credential_script =
+    s"""
       INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
@@ -23,21 +25,21 @@ object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper 
       )
       """
 
-  val step2 =  GetCredentialStep[JDBC](
-    name  = "GetCredential",
+  val step2 = GetCredentialStep[JDBC](
+    name = "GetCredential",
     credential_name = "etlflow",
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("GetCredential Step")(
       testM("Execute GetCredential step") {
-        val step1 =  DBQueryStep(
-          name  = "AddCredential",
+        val step1 = DBQueryStep(
+          name = "AddCredential",
           query = insert_credential_script,
           credentials = config.db
         )
-        val step2 =  GetCredentialStep[JDBC](
-          name  = "GetCredential",
+        val step2 = GetCredentialStep[JDBC](
+          name = "GetCredential",
           credential_name = "etlflow",
         )
 
@@ -54,5 +56,3 @@ object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper 
       }
     )
 }
-
-

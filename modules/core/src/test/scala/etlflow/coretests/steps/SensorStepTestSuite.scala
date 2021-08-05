@@ -1,4 +1,4 @@
-package etlflow.coretests.steps.sensor
+package etlflow.coretests.steps
 
 import etlflow.coretests.TestSuiteHelper
 import etlflow.etlsteps.{GenericETLStep, SensorStep}
@@ -8,10 +8,9 @@ import zio.test._
 
 import scala.concurrent.duration._
 
-
-object SensorStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper  with SensorStep {
+object SensorStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with SensorStep {
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlowJobStepTestSuite") (
+    suite("EtlFlowJobStepTestSuite")(
       testM("Execute EtlFlowJobStep") {
 
         def processDataFail(ip: Unit): Unit = {
@@ -20,11 +19,11 @@ object SensorStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper  wit
         }
 
         val step = GenericETLStep(
-          name               = "ProcessData",
+          name = "ProcessData",
           transform_function = processDataFail,
-        ).process().retry(noThrowable && schedule(1,5.second)).provideCustomLayer(fullLayer)
+        ).process().retry(noThrowable && schedule(1, 5.second)).provideCustomLayer(fullLayer)
 
         assertM(step.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed in processing data"))
       }
-  )
+    )
 }

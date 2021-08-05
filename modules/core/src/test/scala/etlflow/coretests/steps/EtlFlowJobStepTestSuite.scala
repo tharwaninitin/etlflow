@@ -1,4 +1,4 @@
-package etlflow.coretests.steps.master
+package etlflow.coretests.steps
 
 import etlflow.coretests.Schema.EtlJob1Props
 import etlflow.coretests.TestSuiteHelper
@@ -10,21 +10,20 @@ import zio.test._
 
 import scala.concurrent.duration._
 
-
-object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper  with SensorStep {
+object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with SensorStep {
 
   val step = EtlFlowJobStep[EtlJob1Props](
     name = "Test",
-    job  = Job1HelloWorld(EtlJob1Props()),
+    job = Job1HelloWorld(EtlJob1Props()),
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlowJobStepTestSuite") (
+    suite("EtlFlowJobStepTestSuite")(
       testM("Execute EtlFlowJobStep") {
         val step = EtlFlowJobStep[EtlJob1Props](
           name = "Test",
-          job  = Job1HelloWorld(EtlJob1Props()),
-        ).process().retry(noThrowable && schedule(10,5.second)).provideCustomLayer(fullLayer)
+          job = Job1HelloWorld(EtlJob1Props()),
+        ).process().retry(noThrowable && schedule(10, 5.second)).provideCustomLayer(fullLayer)
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
@@ -32,5 +31,5 @@ object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper 
         val props = step.getStepProperties()
         assert(props)(equalTo(Map("step_run_id" -> "123")))
       }
-  )
+    )
 }

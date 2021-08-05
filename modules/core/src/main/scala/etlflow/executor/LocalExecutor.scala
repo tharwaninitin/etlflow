@@ -4,11 +4,11 @@ import etlflow.etljobs.SequentialEtlJob
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Slack
 import etlflow.utils.{ReflectAPI => RF}
-import etlflow.{EJPMType, JobEnv}
+import etlflow.{EJPMType, CoreEnv}
 import zio.{Task, UIO, ZIO}
 
 case class LocalExecutor(etl_job_name_package: String, slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None) extends Service {
-  override def executeJob(name: String, properties: Map[String, String]): ZIO[JobEnv, Throwable, Unit] = {
+  override def executeJob(name: String, properties: Map[String, String]): ZIO[CoreEnv, Throwable, Unit] = {
     val ejpm = RF.getEtlJobPropsMapping[EJPMType](name, etl_job_name_package)
     val job = ejpm.etlJob(properties)
     job.job_name = ejpm.toString
@@ -16,7 +16,7 @@ case class LocalExecutor(etl_job_name_package: String, slack: Option[Slack] = No
     job.job_send_slack_notification = ejpm.job_send_slack_notification
     job.job_notification_level = ejpm.job_notification_level
     JsonApi.convertToString[Map[String,String]](ejpm.getProps.mapValues(x => x.toString).toMap,List.empty).flatMap(props =>
-      job.execute(slack, job_run_id, is_master, props)
+      job.execute(job_run_id, is_master, props)
     )
   }
   private[etlflow] def showJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[JsonEnv, Throwable, Unit] = {

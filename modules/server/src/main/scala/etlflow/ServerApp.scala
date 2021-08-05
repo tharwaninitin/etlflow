@@ -25,6 +25,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     _           <- SetTimeZone(config).toManaged_
     cacheLayer  = cache.Implementation.live
     jsonLayer   = json.Implementation.live
+    logLayer   = etlflow.log.Implementation.live()
     cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
     statsCache  <- CacheApi.createCache[QueueDetails].toManaged_
     authCache   <- CacheApi.createCache[String].toManaged_
@@ -37,7 +38,7 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     dbLayer     = liveDBWithTransactor(config.db)
     supervisor  <- Supervisor.track(true).toManaged_
     apiLayer    = api.Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
-    finalLayer  = apiLayer ++ dbLayer ++ jsonLayer ++ cryptoLayer ++ cacheLayer
+    finalLayer  = apiLayer ++ dbLayer ++ jsonLayer ++ cryptoLayer ++ cacheLayer ++ logLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer(auth, config.webserver)
     _           <- scheduler.zipPar(webserver).provideCustomLayer(finalLayer).toManaged_

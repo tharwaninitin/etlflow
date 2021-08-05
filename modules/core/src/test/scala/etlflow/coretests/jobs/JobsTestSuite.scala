@@ -1,14 +1,13 @@
 package etlflow.coretests.jobs
 
-import etlflow.coretests.{MyEtlJobPropsMapping, TestSuiteHelper}
 import etlflow.coretests.Schema.EtlJob1Props
-import etlflow.coretests.steps.db.DBStepTestSuite.MEJP
+import etlflow.coretests.{MyEtlJobPropsMapping, TestSuiteHelper}
 import etlflow.etljobs.EtlJob
+import etlflow.utils.{ReflectAPI => RF}
 import etlflow.{EtlFlowApp, EtlJobProps}
-import zio.{ZEnv, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
-import etlflow.utils.{ReflectAPI => RF}
+import zio.{ZEnv, ZIO}
 
 object JobsTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 

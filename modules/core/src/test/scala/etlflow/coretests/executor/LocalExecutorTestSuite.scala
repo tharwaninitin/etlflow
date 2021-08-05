@@ -1,7 +1,7 @@
 package etlflow.coretests.executor
 
 import etlflow.coretests.TestSuiteHelper
-import etlflow.coretests.steps.db.DBStepTestSuite.fullLayer
+import etlflow.coretests.steps.DBStepTestSuite.fullLayer
 import etlflow.executor.LocalExecutor
 import zio.ZIO
 import zio.test.Assertion.equalTo

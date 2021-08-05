@@ -8,7 +8,7 @@ import blobstore.url.{Authority, FsObject, Path, Url}
 import cats.syntax.all._
 import etlflow.aws.S3CustomClient
 import etlflow.gcp.GCS
-import etlflow.utils.Location
+import etlflow.schema.Location
 import fs2.{Pipe, Stream}
 import zio.Task
 import zio.interop.catz._

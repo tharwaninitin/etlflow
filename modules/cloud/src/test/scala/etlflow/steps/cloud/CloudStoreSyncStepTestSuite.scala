@@ -1,7 +1,7 @@
 package etlflow.steps.cloud
 
 import etlflow.etlsteps.CloudStoreSyncStep
-import etlflow.utils.Location
+import etlflow.schema.Location
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
@@ -27,7 +27,7 @@ object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHel
         val step = CloudStoreSyncStep(
           name = "LOCALtoS3Step"
           , input_location = Location.LOCAL("modules/core/src/test/resources/input/movies/ratings/")
-          , output_location = Location.S3(s3_bucket,s3_input_location, s3_region)
+          , output_location = Location.S3(s3_bucket,s3_input_location, s3_region.toString)
           , output_overwrite = true
           , chunk_size = 1000 * 1024
         ).process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))

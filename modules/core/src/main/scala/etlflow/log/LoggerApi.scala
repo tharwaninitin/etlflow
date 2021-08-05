@@ -8,7 +8,7 @@ import zio.{RIO, Task, UIO, URIO, ZIO}
 object LoggerApi {
 
   trait Service {
-    def setJobRunId(jri: => String): UIO[Unit]
+    def setJobRunId(jri: String): UIO[Unit]
     def getSlackLogger: UIO[Option[SlackLogger]]
     def jobLogStart(start_time: Long, job_type: String, job_name: String, props: String, is_master: String): RIO[DBEnv,Unit]
     def jobLogSuccess(start_time: Long, job_run_id: String, job_name: String): RIO[DBEnv, Unit]

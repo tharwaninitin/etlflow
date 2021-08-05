@@ -7,9 +7,9 @@ import zio.test._
 
 object LocalExecutorTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  val jobStepProps = LocalExecutor(ejpm_package).showJobStepProps("Job1", Map.empty, ejpm_package)
+  val jobStepProps = LocalExecutor(ejpm_package).showJobStepProps("Job1", Map.empty)
 
-  val jobProps = LocalExecutor(ejpm_package).showJobProps("Job1", Map.empty, ejpm_package)
+  val jobProps = LocalExecutor(ejpm_package).showJobProps("Job1")
 
   val executeJob = LocalExecutor(ejpm_package).executeJob("Job1", Map.empty)
 

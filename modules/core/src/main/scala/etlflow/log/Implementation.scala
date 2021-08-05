@@ -17,7 +17,7 @@ object Implementation extends ApplicationLogger{
       var job_run_id: String = null
       val slackLogger: Option[SlackLogger] = slack.map(s => SlackLogger(Some(s)))
 
-      override def setJobRunId(jri: => String): UIO[Unit] = UIO{job_run_id = jri}
+      override def setJobRunId(jri: String): UIO[Unit] = UIO{job_run_id = jri}
 
       override def getSlackLogger: UIO[Option[SlackLogger]] = UIO{slackLogger}
 

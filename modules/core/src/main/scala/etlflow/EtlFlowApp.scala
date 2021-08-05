@@ -43,14 +43,14 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           UIO(RF.printEtlJobs[EJN]())
         case ec if ec.show_job_props && ec.job_name != "" =>
           logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
-          LocalExecutor(etl_job_props_mapping_package, config.slack)
-            .showJobProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package)
+          LocalExecutor(etl_job_props_mapping_package)
+            .showJobProps(ec.job_name)
             .provideCustomLayer(json.Implementation.live)
         case ec if ec.show_step_props && ec.job_name != "" =>
           logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
           logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
-          LocalExecutor(etl_job_props_mapping_package, config.slack)
-            .showJobStepProps(ec.job_name, ec.job_properties ,etl_job_props_mapping_package)
+          LocalExecutor(etl_job_props_mapping_package)
+            .showJobStepProps(ec.job_name, ec.job_properties)
             .provideCustomLayer(json.Implementation.live)
         case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
           logger.error(s"Need to provide args --job_name")
@@ -63,8 +63,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val jsonLayer = json.Implementation.live
           val cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
           val logLayer = log.Implementation.live(config.slack)
-          LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
-            .executeJob(ec.job_name, ec.job_properties)
+          LocalExecutor(etl_job_props_mapping_package)
+            .executeJob(ec.job_name, ec.job_properties, jri, is_master)
             .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)
         case ec if ec.run_server =>
           logger.info("Starting server")

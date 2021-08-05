@@ -7,8 +7,9 @@ import etlflow.utils.{ReflectAPI => RF}
 import etlflow.{EJPMType, CoreEnv}
 import zio.{Task, UIO, ZIO}
 
-case class LocalExecutor(etl_job_name_package: String, slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None) extends Service {
-  override def executeJob(name: String, properties: Map[String, String]): ZIO[CoreEnv, Throwable, Unit] = {
+case class LocalExecutor(etl_job_name_package: String) {
+
+  def executeJob(name: String, properties: Map[String, String], job_run_id: Option[String] = None, is_master: Option[String] = None): ZIO[CoreEnv, Throwable, Unit] = {
     val ejpm = RF.getEtlJobPropsMapping[EJPMType](name, etl_job_name_package)
     val job = ejpm.etlJob(properties)
     job.job_name = ejpm.toString
@@ -19,7 +20,8 @@ case class LocalExecutor(etl_job_name_package: String, slack: Option[Slack] = No
       job.execute(job_run_id, is_master, props)
     )
   }
-  private[etlflow] def showJobProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[JsonEnv, Throwable, Unit] = {
+
+  private[etlflow] def showJobProps(name: String): ZIO[JsonEnv, Throwable, Unit] = {
     val job_name = RF.getEtlJobPropsMapping[EJPMType](name,etl_job_name_package)
     val exclude_keys = List("job_run_id","job_description","job_properties")
     for{
@@ -27,7 +29,8 @@ case class LocalExecutor(etl_job_name_package: String, slack: Option[Slack] = No
       _          = UIO(println(job_props))
     } yield ()
   }
-  private[etlflow] def showJobStepProps(name: String, properties: Map[String, String], etl_job_name_package: String): ZIO[JsonEnv, Throwable, Unit] = {
+
+  private[etlflow] def showJobStepProps(name: String, properties: Map[String, String]): ZIO[JsonEnv, Throwable, Unit] = {
     val job_name = RF.getEtlJobPropsMapping[EJPMType](name,etl_job_name_package)
     val etl_job = job_name.etlJob(properties)
     if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {

@@ -7,8 +7,8 @@ import zio.blocking.{Blocking, effectBlocking}
 
 import java.io.{BufferedReader, InputStreamReader}
 
-case class LocalSubProcessExecutor(config: LOCAL_SUBPROCESS) extends ApplicationLogger with Service {
-  override def executeJob(name: String, properties: Map[String, String]): ZIO[Blocking, Throwable, Unit] = effectBlocking {
+case class LocalSubProcessExecutor(config: LOCAL_SUBPROCESS) extends ApplicationLogger {
+  def executeJob(name: String, properties: Map[String, String]): ZIO[Blocking, Throwable, Unit] = effectBlocking {
     logger.info(s"""Trying to submit job $name on local sub-process with Configurations:
                    |job_name => $name
                    |script_path => ${config.script_path}

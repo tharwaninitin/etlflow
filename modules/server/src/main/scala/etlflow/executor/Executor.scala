@@ -50,7 +50,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
       case LOCAL =>
-        LocalExecutor(ejpm_package, config.slack).executeJob(args.name, actual_props)
+        LocalExecutor(ejpm_package).executeJob(args.name, actual_props)
       case dp @ DATAPROC(_, _, _, _, _) =>
         val main_class = config.dataproc.map(_.mainclass).getOrElse("")
         val dp_libs = config.dataproc.map(_.deplibs).getOrElse(List.empty)

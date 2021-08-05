@@ -27,9 +27,9 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) =>
       Seq(compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
-          compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
-          "org.scala-lang" % "scala-reflect" % scala212
-         )
+        compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
+        "org.scala-lang" % "scala-reflect" % scala212
+      )
     case Some((2, 13)) => Seq("org.scala-lang" % "scala-reflect" % scala213)
     case _ => Seq()
   }),
@@ -110,12 +110,24 @@ lazy val cacheSettings = Seq(
 )
 
 
+lazy val awsSettings = Seq(
+  name := "etlflow-aws",
+  crossScalaVersions :=  scala2Versions,
+  libraryDependencies ++= awsLibs ++ zioTestLibs ++ cloudTestLibs
+)
+
+lazy val gcpSettings = Seq(
+  name := "etlflow-gcp",
+  crossScalaVersions :=  scala2Versions,
+  libraryDependencies ++= gcpLibs ++ zioTestLibs ++ cloudTestLibs
+)
+
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email,cache)
+  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
 
 lazy val utils = (project in file("modules/utils"))
   .settings(commonSettings)
@@ -154,7 +166,7 @@ lazy val core = (project in file("modules/core"))
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
   .settings(cloudSettings)
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test",gcp,aws)
 
 lazy val server = (project in file("modules/server"))
   .settings(commonSettings)
@@ -184,3 +196,14 @@ lazy val email = (project in file("modules/email"))
 lazy val cache = (project in file("modules/cache"))
   .settings(commonSettings)
   .settings(cacheSettings)
+
+lazy val aws = (project in file("modules/aws"))
+  .settings(commonSettings)
+  .settings(awsSettings)
+  .dependsOn(core % "compile->compile;test->test", utils)
+
+lazy val gcp = (project in file("modules/gcp"))
+  .settings(commonSettings)
+  .settings(gcpSettings)
+  .dependsOn(core % "compile->compile;test->test", utils)
+

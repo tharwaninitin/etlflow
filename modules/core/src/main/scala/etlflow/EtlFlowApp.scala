@@ -4,8 +4,7 @@ import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration, liveDBWithTransactor}
 import etlflow.etljobs.EtlJob
 import etlflow.executor.LocalExecutor
-import etlflow.log.SlackLogger
-import etlflow.schema.{Config, LoggingLevel}
+import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
 import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
@@ -62,10 +61,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
           val dbLayer = liveDBWithTransactor(config.db,"Job-" + ec.job_name + "-Pool",2)
           val jsonLayer = json.Implementation.live
-          val key = config.webserver.flatMap(_.secretKey)
-          val cryptoLayer = crypto.Implementation.live(key)
-          val slack_logger = SlackLogger(config.slack)
-          val logLayer = log.Implementation.live(Some(slack_logger))
+          val cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
+          val logLayer = log.Implementation.live(config.slack)
           LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
             .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)

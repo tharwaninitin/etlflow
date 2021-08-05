@@ -20,7 +20,7 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
     (for{
       _   <- LoggerApi.setJobRunId(job_run_id)
       _   <- ZIO.foreachPar_(steps)(x => x.execute())
-    } yield ()).provideSomeLayer[DBEnv with JsonEnv with CryptoEnv  with  Blocking with Clock](etlflow.log.Implementation.live(None))
+    } yield ()).provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](etlflow.log.Implementation.live(None))
   }
 
   final override def getStepProperties(level: LoggingLevel): Map[String, String] =

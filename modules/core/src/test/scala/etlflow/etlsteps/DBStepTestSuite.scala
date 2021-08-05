@@ -1,12 +1,11 @@
-package etlflow.coretests.steps
+package etlflow.etlsteps
 
 import etlflow.coretests.Schema.EtlJobRun
 import etlflow.coretests.TestSuiteHelper
-import etlflow.etlsteps.{DBQueryStep, DBReadStep}
 import etlflow.schema.Credential.JDBC
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment, _}
+import zio.test._
 
 object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 

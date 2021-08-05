@@ -1,4 +1,4 @@
-package etlflow.coretests.utils
+package etlflow.utils
 
 import etlflow.coretests.TestSuiteHelper
 import etlflow.utils.DateTimeApi.getTimeDifferenceAsString
@@ -14,20 +14,20 @@ object DateTimeAPITestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   val endTimeDays = sdf.parse("2020-08-21T23:15").getTime
   val startTimeDays = sdf.parse("2020-08-18T23:15").getTime
 
-  val actualDaysOutput = getTimeDifferenceAsString(startTimeDays,endTimeDays)
+  val actualDaysOutput = getTimeDifferenceAsString(startTimeDays, endTimeDays)
   val expectedDaysOutput = "3 days 0.0 hrs"
 
   val endTimeMins = sdf.parse("2020-08-19T00:30").getTime
   val startTimeMins = sdf.parse("2020-08-19T00:16").getTime
 
-  val actualOutputMins = getTimeDifferenceAsString(startTimeMins,endTimeMins)
+  val actualOutputMins = getTimeDifferenceAsString(startTimeMins, endTimeMins)
   val expectedOutputMins = "14.0 mins"
 
   val endTimeHrs = sdf.parse("2020-08-19T05:00").getTime
   val startTimeHrs = sdf.parse("2020-08-19T00:34").getTime
 
-  val actualOutputHrs = getTimeDifferenceAsString(startTimeHrs,endTimeHrs)
-  val expectedOutputHrs  = "4.43 hrs"
+  val actualOutputHrs = getTimeDifferenceAsString(startTimeHrs, endTimeHrs)
+  val expectedOutputHrs = "4.43 hrs"
 
   val actualStepName1 = "DataTransfer For EtlJobPricing Raw Data"
   val expectedStepName1 = "datatransfer_for_etljobpricing_raw_data"
@@ -56,7 +56,7 @@ object DateTimeAPITestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         assert(actualOutputHrs)(equalTo(expectedOutputHrs))
       },
       test("StringFormatter should should return formatted string when given string with single space") {
-        assert(RF.stringFormatter(actualStepName1) )(equalTo(expectedStepName1))
+        assert(RF.stringFormatter(actualStepName1))(equalTo(expectedStepName1))
       },
       test("StringFormatter should should return formatted string when given string with multiple consecutive spaces") {
         assert(RF.stringFormatter(actualStepName2))(equalTo(expectedStepName2))

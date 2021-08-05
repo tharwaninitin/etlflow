@@ -1,15 +1,13 @@
-package etlflow.coretests.steps
-
+package etlflow.etlsteps
 
 import etlflow.coretests.TestSuiteHelper
 import etlflow.crypto.CryptoApi
-import etlflow.etlsteps.{DBQueryStep, GetCredentialStep}
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.CredentialImplicits._
-import zio.Runtime.default.unsafeRun
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.Runtime.default.unsafeRun
+import etlflow.utils.CredentialImplicits._
 
 object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 

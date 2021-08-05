@@ -1,7 +1,6 @@
-package etlflow.coretests.steps
+package etlflow.etlsteps
 
 import etlflow.coretests.TestSuiteHelper
-import etlflow.etlsteps.{GenericETLStep, ParallelETLStep}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

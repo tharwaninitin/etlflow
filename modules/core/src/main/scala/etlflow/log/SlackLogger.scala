@@ -9,15 +9,16 @@ import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
 
-private[etlflow] case class SlackLogger(slack: Option[Slack]) extends ApplicationLogger {
+private[log] case class SlackLogger(slack: Option[Slack]) extends ApplicationLogger {
 
   var final_step_message: String = ""
   var final_message: String = ""
+
   val slack_env: String = slack.map(_.env).getOrElse("")
   val slack_url: String = slack.map(_.url).getOrElse("")
-  var host_url: String = slack.map(_.host).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/"
+  val host_url: String = slack.map(_.host).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/"
 
-  private def finalMessageTemplate(job_name: String, job_notification_level: LoggingLevel, exec_date: String, message: String, error_message: Option[String]): String = {
+  private def finalMessageTemplate(job_name: String, job_notification_level: LoggingLevel, exec_date: String, message: String, url: String, error_message: Option[String]): String = {
     if (error_message.isEmpty) {
       /** Template for slack success message */
       job_notification_level match {
@@ -26,7 +27,7 @@ private[etlflow] case class SlackLogger(slack: Option[Slack]) extends Applicatio
             f"""
           :large_blue_circle: $slack_env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
-          *Details Available at*: $host_url
+          *Details Available at*: $url
           """)
           final_message
         case INFO | DEBUG =>
@@ -34,7 +35,7 @@ private[etlflow] case class SlackLogger(slack: Option[Slack]) extends Applicatio
             f"""
           :large_blue_circle: $slack_env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
-          *Details Available at*: $host_url
+          *Details Available at*: $url
           *Steps (Task - Duration)*: $message
           """)
           final_message
@@ -46,7 +47,7 @@ private[etlflow] case class SlackLogger(slack: Option[Slack]) extends Applicatio
         f"""
           :red_circle: $slack_env - $job_name Process *Failed!*
           *Time of Execution*: $exec_date
-          *Details Available at*: $host_url
+          *Details Available at*: $url
           *Steps (Task - Duration)*: $message
           """)
       final_message
@@ -98,13 +99,12 @@ private[etlflow] case class SlackLogger(slack: Option[Slack]) extends Applicatio
   def logJobEnd(job_name: String, job_run_id: String, job_notification_level: LoggingLevel, start_time: Long, error_message: Option[String] = None): Unit = {
     val execution_date_time = getTimestampAsString(start_time) // Add time difference in this expression
 
-    host_url = host_url + job_run_id
-
     val data = finalMessageTemplate(
       job_name,
       job_notification_level,
       execution_date_time,
       final_step_message,
+      host_url + job_run_id,
       error_message
     )
 

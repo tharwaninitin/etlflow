@@ -1,11 +1,9 @@
-package etlflow.coretests.steps
+package etlflow.etlsteps
 
 import etlflow.coretests.TestSuiteHelper
-import etlflow.etlsteps.{GenericETLStep, SensorStep}
 import zio.ZIO
-import zio.test.Assertion._
-import zio.test._
-
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 import scala.concurrent.duration._
 
 object SensorStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with SensorStep {

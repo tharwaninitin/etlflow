@@ -2,7 +2,7 @@ package etlflow.coretests.executor
 
 import etlflow.EtlJobProps
 import etlflow.coretests.MyEtlJobPropsMapping
-import etlflow.coretests.steps.db.DBStepTestSuite.fullLayer
+import etlflow.coretests.steps.DBStepTestSuite.fullLayer
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.{LocalExecutor, LocalSubProcessExecutor}
 import etlflow.schema.Executor.LOCAL_SUBPROCESS

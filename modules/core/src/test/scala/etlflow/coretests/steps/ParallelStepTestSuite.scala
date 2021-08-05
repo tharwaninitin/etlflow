@@ -1,4 +1,4 @@
-package etlflow.coretests.steps.parallel
+package etlflow.coretests.steps
 
 import etlflow.coretests.TestSuiteHelper
 import etlflow.etlsteps.{GenericETLStep, ParallelETLStep}
@@ -13,12 +13,12 @@ object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   }
 
   val step1 = GenericETLStep(
-    name               = "ProcessData",
+    name = "ProcessData",
     transform_function = processData,
   )
 
   val step2 = GenericETLStep(
-    name               = "ProcessData",
+    name = "ProcessData",
     transform_function = processData,
   )
 
@@ -30,16 +30,16 @@ object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         }
 
         val step1 = GenericETLStep(
-          name               = "ProcessData",
+          name = "ProcessData",
           transform_function = processData,
         )
 
         val step2 = GenericETLStep(
-          name               = "ProcessData",
+          name = "ProcessData",
           transform_function = processData,
         )
 
-        val parstep = ParallelETLStep("ParallelStep")(step1,step2)
+        val parstep = ParallelETLStep("ParallelStep")(step1, step2)
 
         val job = for {
           _ <- parstep.process().provideCustomLayer(fullLayer)
@@ -47,12 +47,10 @@ object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
-        val parstep = ParallelETLStep("ParallelStep")(step1,step2)
+        val parstep = ParallelETLStep("ParallelStep")(step1, step2)
         parstep.job_run_id = "123"
         val props = parstep.getStepProperties()
-        assert(props)(equalTo(Map("parallel_steps" -> "ProcessData,ProcessData","step_run_id" -> "123")))
+        assert(props)(equalTo(Map("parallel_steps" -> "ProcessData,ProcessData", "step_run_id" -> "123")))
       }
     )
 }
-
-

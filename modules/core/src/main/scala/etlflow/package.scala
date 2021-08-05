@@ -4,10 +4,9 @@ import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.json.JsonEnv
-import etlflow.log.StepReq
+import etlflow.log.LoggerEnv
 import etlflow.schema.{Executor, LoggingLevel}
 import etlflow.utils.EtlflowError.EtlJobException
-import zio.Has
 import zio.blocking.Blocking
 import zio.clock.Clock
 
@@ -15,8 +14,7 @@ import scala.reflect.ClassTag
 
 package object etlflow {
 
-  type JobEnv = DBEnv with JsonEnv with CryptoEnv with Blocking with Clock
-  type StepEnv = Has[StepReq] with JobEnv
+  type CoreEnv = DBEnv with JsonEnv with CryptoEnv  with LoggerEnv with  Blocking with Clock
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   trait EtlJobSchema extends Product
@@ -45,18 +43,18 @@ package object etlflow {
     }
 
     final def getProps: Map[String,Any] = Map(
-        "job_name" -> job_name,
-        "job_props_name" -> job_props_name,
-        "job_description" -> job_description,
-        "job_schedule" -> job_schedule,
-        "job_deploy_mode" -> job_deploy_mode,
-        "job_max_active_runs" -> job_max_active_runs,
-        "job_retries" -> job_retries,
-        "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes,
-        "job_enable_db_logging" -> job_enable_db_logging,
-        "job_send_slack_notification" -> job_send_slack_notification,
-        "job_notification_level" -> job_notification_level
-      )
+      "job_name" -> job_name,
+      "job_props_name" -> job_props_name,
+      "job_description" -> job_description,
+      "job_schedule" -> job_schedule,
+      "job_deploy_mode" -> job_deploy_mode,
+      "job_max_active_runs" -> job_max_active_runs,
+      "job_retries" -> job_retries,
+      "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes,
+      "job_enable_db_logging" -> job_enable_db_logging,
+      "job_send_slack_notification" -> job_send_slack_notification,
+      "job_notification_level" -> job_notification_level
+    )
   }
 
   object EtlStepList {

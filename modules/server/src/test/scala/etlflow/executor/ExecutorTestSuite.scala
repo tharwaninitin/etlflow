@@ -1,9 +1,9 @@
 package etlflow.executor
 
-import etlflow.api.Schema.{EtlJobArgs, Props}
+import etlflow.api.Schema.EtlJobArgs
 import etlflow.cache.CacheEnv
 import etlflow.db.{EtlJob, RunDbMigration}
-import etlflow.{JobEnv, ServerSuiteHelper}
+import etlflow.{CoreEnv, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, ZIO}
@@ -11,7 +11,7 @@ import zio.{RIO, ZIO}
 object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
-  def job(args: EtlJobArgs): RIO[JobEnv with CacheEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
+  def job(args: EtlJobArgs): RIO[CoreEnv with CacheEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Executor Spec")(
@@ -36,6 +36,6 @@ object ExecutorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
 //      testM("Test runActiveEtlJob with deploy mode is dataproc") {
 //        assertM(job(EtlJobArgs("Job9",Some(List(Props("x1","x2"))))).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
 //      }
-    ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer ++ testCryptoLayer ++ testCacheLayer).orDie)
+    ) @@ TestAspect.sequential).provideCustomLayerShared((testDBLayer ++ testJsonLayer ++ testCryptoLayer ++ testCacheLayer ++ testLogLayer).orDie)
 
 }

@@ -7,7 +7,7 @@ import zio.{Has, RIO}
 package object api {
 
   private[etlflow] type APIEnv = Has[Service]
-  private[etlflow] type ServerEnv = APIEnv with JobEnv with CacheEnv
+  private[etlflow] type ServerEnv = APIEnv with CoreEnv with CacheEnv
   private[etlflow] type ServerTask[A] = RIO[ServerEnv, A]
 
   private[etlflow] object Schema {

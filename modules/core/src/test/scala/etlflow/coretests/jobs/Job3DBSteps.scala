@@ -2,7 +2,6 @@ package etlflow.coretests.jobs
 
 import etlflow.coretests.Schema.{EtlJob4Props, EtlJobRun}
 import etlflow.coretests.TestSuiteHelper
-import etlflow.coretests.steps.credential.CredentialStepTestSuite.config
 import etlflow.crypto.CryptoApi
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._

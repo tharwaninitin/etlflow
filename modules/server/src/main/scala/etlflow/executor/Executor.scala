@@ -2,7 +2,7 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
-import etlflow.cache.{CacheApi, CacheEnv, Cache}
+import etlflow.cache.{Cache, CacheApi, CacheEnv}
 import etlflow.db.{DBApi, EtlJob}
 import etlflow.gcp.{DP, DPService}
 import etlflow.json.JsonApi
@@ -10,17 +10,18 @@ import etlflow.schema.Config
 import etlflow.schema.Executor._
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.utils.{ApplicationLogger, EtlFlowUtils, ReflectAPI => RF}
-import etlflow.{EJPMType, JobEnv}
+import etlflow.{CoreEnv, EJPMType}
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
 
 case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: Cache[QueueDetails])
   extends EtlFlowUtils with ApplicationLogger {
 
-  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[JobEnv with CacheEnv, EtlJob] = {
+  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[CoreEnv with CacheEnv, EtlJob] = {
     for {
       mapping_props  <- getJobPropsMapping[EJN](args.name,ejpm_package).mapError(e => ExecutionError(e.getMessage))
       job_props      =  args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
@@ -42,10 +43,10 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
     } yield EtlJob(args.name,final_props)
   }
 
-  private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[JobEnv with CacheEnv, Unit] = {
+  private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[CoreEnv with CacheEnv, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
-    val jobRun: RIO[JobEnv,Unit] = RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package).job_deploy_mode match {
+    val jobRun: RIO[CoreEnv,Unit] = RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
       case LOCAL =>
@@ -60,7 +61,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
         Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
     }
 
-    val loggedJobRun: RIO[JobEnv with CacheEnv, Long] = jobRun
+    val loggedJobRun: RIO[CoreEnv with CacheEnv, Long] = jobRun
       .ensuring(CacheApi.remove(cache, cache_key).orDie)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>

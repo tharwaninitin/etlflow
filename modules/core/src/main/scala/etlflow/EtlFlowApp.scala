@@ -64,11 +64,8 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           val jsonLayer = json.Implementation.live
           val key = config.webserver.flatMap(_.secretKey)
           val cryptoLayer = crypto.Implementation.live(key)
-          val slack_env  = config.slack.map(_.env).getOrElse("")
-          val slack_url  = config.slack.map(_.url).getOrElse("")
-          val host_url   = config.slack.map(_.host).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/" + jri
-          val slack_logger = SlackLogger(ec.job_name, slack_env, slack_url, LoggingLevel.INFO, true, host_url)
-          val logLayer = log.Implementation.live(slack_logger)
+          val slack_logger = SlackLogger(config.slack)
+          val logLayer = log.Implementation.live(Some(slack_logger))
           LocalExecutor(etl_job_props_mapping_package, config.slack, jri, is_master)
             .executeJob(ec.job_name, ec.job_properties)
             .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)

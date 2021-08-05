@@ -4,12 +4,13 @@ import etlflow.api.Schema.QueueDetails
 import etlflow.db.{EtlJob, liveDBWithTransactor}
 import etlflow.executor.Executor
 import etlflow.scheduler.Scheduler
-import etlflow.schema.Config
+import etlflow.schema.{Config, LoggingLevel}
 import etlflow.utils.{Configuration, EtlFlowUtils, SetTimeZone}
 import etlflow.webserver.{Authentication, HttpServer}
 import zio._
 import scala.reflect.runtime.universe.TypeTag
 import etlflow.cache.CacheApi
+import etlflow.log.SlackLogger
 
 abstract class ServerApp[EJN <: EJPMType : TypeTag]
   extends EtlFlowApp[EJN] with HttpServer with Scheduler with EtlFlowUtils  {
@@ -25,7 +26,8 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     _           <- SetTimeZone(config).toManaged_
     cacheLayer  = cache.Implementation.live
     jsonLayer   = json.Implementation.live
-    logLayer   = etlflow.log.Implementation.live()
+    slack_logger = SlackLogger(config.slack)
+    logLayer    = etlflow.log.Implementation.live(Some(slack_logger))
     cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
     statsCache  <- CacheApi.createCache[QueueDetails].toManaged_
     authCache   <- CacheApi.createCache[String].toManaged_

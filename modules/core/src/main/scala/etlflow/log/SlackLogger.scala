@@ -1,28 +1,30 @@
 package etlflow.log
 
 import etlflow.etlsteps.EtlStep
-import etlflow.schema.LoggingLevel
+import etlflow.schema.{LoggingLevel, Slack}
 import etlflow.schema.LoggingLevel.{DEBUG, INFO, JOB}
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
-
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
 
-private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url: String = "", env: String = "",job_notification_level:LoggingLevel,host_url:String) extends ApplicationLogger {
-  /** Slack message templates */
+private[etlflow] case class SlackLogger(slack: Option[Slack]) extends ApplicationLogger {
+
   var final_step_message: String = ""
   var final_message: String = ""
+  val slack_env: String = slack.map(_.env).getOrElse("")
+  val slack_url: String = slack.map(_.url).getOrElse("")
+  var host_url: String = slack.map(_.host).getOrElse("http://localhost:8080/#")  + "/JobRunDetails/"
 
-  private def finalMessageTemplate(exec_date: String, message: String, error_message: Option[String]): String = {
+  private def finalMessageTemplate(job_name: String, job_notification_level: LoggingLevel, exec_date: String, message: String, error_message: Option[String]): String = {
     if (error_message.isEmpty) {
       /** Template for slack success message */
       job_notification_level match {
         case JOB =>
           final_message = final_message.concat(
             f"""
-          :large_blue_circle: $env - $job_name Process *Success!*
+          :large_blue_circle: $slack_env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
           *Details Available at*: $host_url
           """)
@@ -30,7 +32,7 @@ private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url:
         case INFO | DEBUG =>
           final_message = final_message.concat(
             f"""
-          :large_blue_circle: $env - $job_name Process *Success!*
+          :large_blue_circle: $slack_env - $job_name Process *Success!*
           *Time of Execution*: $exec_date
           *Details Available at*: $host_url
           *Steps (Task - Duration)*: $message
@@ -42,7 +44,7 @@ private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url:
       /** Template for slack failure message * */
       final_message = final_message.concat(
         f"""
-          :red_circle: $env - $job_name Process *Failed!*
+          :red_circle: $slack_env - $job_name Process *Failed!*
           *Time of Execution*: $exec_date
           *Details Available at*: $host_url
           *Steps (Task - Duration)*: $message
@@ -51,7 +53,25 @@ private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url:
     }
   }
 
-  def logStepEnd(start_time: Long, etlstep: EtlStep[_, _], error_message: Option[String] = None): Unit = {
+  private def sendSlackNotification(data:String): Unit =  {
+    Try {
+      val conn = new URL(slack_url)
+        .openConnection()
+        .asInstanceOf[HttpURLConnection]
+      conn.setRequestMethod("POST");
+      conn.setRequestProperty("Content-Type", "application/json");
+      conn.setDoOutput(true)
+
+      val out = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream, "UTF-8"));
+      out.write(s"""{ "text" : "$data" }""")
+      out.flush();
+      out.close();
+      conn.connect();
+      logger.info("Sent slack notification. Status code :" + conn.getResponseCode )
+    }
+  }
+
+  def logStepEnd(start_time: Long, job_notification_level: LoggingLevel, etlstep: EtlStep[_, _], error_message: Option[String] = None): Unit = {
     var slackMessageForSteps = ""
     val elapsedTime = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
     val step_icon = if (error_message.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
@@ -75,11 +95,14 @@ private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url:
     final_step_message = final_step_message.concat(slackMessageForSteps)
   }
 
-  def logJobEnd(start_time: Long, error_message: Option[String] = None): Unit = {
-    val execution_date_time = getTimestampAsString(start_time)
-    // Add time difference in above expression
+  def logJobEnd(job_name: String, job_run_id: String, job_notification_level: LoggingLevel, start_time: Long, error_message: Option[String] = None): Unit = {
+    val execution_date_time = getTimestampAsString(start_time) // Add time difference in this expression
+
+    host_url = host_url + job_run_id
 
     val data = finalMessageTemplate(
+      job_name,
+      job_notification_level,
       execution_date_time,
       final_step_message,
       error_message
@@ -88,30 +111,4 @@ private[etlflow] class SlackLogger private[log] (job_name: String, web_hook_url:
     sendSlackNotification(data)
   }
 
-  def sendSlackNotification(data:String): Unit =  {
-    Try {
-      val conn = new URL(web_hook_url)
-        .openConnection()
-        .asInstanceOf[HttpURLConnection]
-      conn.setRequestMethod("POST");
-      conn.setRequestProperty("Content-Type", "application/json");
-      conn.setDoOutput(true)
-
-      val out = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream, "UTF-8"));
-      out.write(s"""{ "text" : "$data" }""")
-      out.flush();
-      out.close();
-      conn.connect();
-      logger.info("Sent slack notification. Status code :" + conn.getResponseCode )
-    }
-  }
-}
-
-object SlackLogger {
-  def apply(job_name: String, env: String, slack_url: String,job_notification_level:LoggingLevel,job_send_slack_notification:Boolean, host_url:String): Option[SlackLogger] = {
-    if (job_send_slack_notification)
-      Some(new SlackLogger(job_name,slack_url, env,job_notification_level,host_url))
-    else
-      None
-  }
 }

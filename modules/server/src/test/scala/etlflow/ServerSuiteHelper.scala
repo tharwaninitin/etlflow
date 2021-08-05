@@ -45,6 +45,6 @@ trait ServerSuiteHelper extends EtlFlowUtils {
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
   val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live(skey)
   val testCacheLayer: ZLayer[Blocking, Throwable, CacheEnv] = cache.Implementation.live
-  val testLogLayer: ZLayer[Blocking, Throwable, LoggerEnv] = etlflow.log.Implementation.live()
+  val testLogLayer: ZLayer[Blocking, Throwable, LoggerEnv] = etlflow.log.Implementation.live(None)
   val fullLayer  = testAPILayer ++  testDBLayer ++ testJsonLayer ++ testCryptoLayer ++ testCacheLayer ++ testLogLayer
 }

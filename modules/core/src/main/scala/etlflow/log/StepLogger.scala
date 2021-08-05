@@ -10,7 +10,9 @@ import zio.{Has, Task, ZIO, ZLayer}
 import etlflow.utils.{ReflectAPI => RF}
 
 private[etlflow]  class StepLogger(etlStep: EtlStep[_,_], job_run_id: String, job_notification_level: LoggingLevel = LoggingLevel.INFO) extends ApplicationLogger {
+
   val remoteStep = List("EtlFlowJobStep", "DPSparkJobStep", "ParallelETLStep")
+
   def update(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBEnv with JsonEnv, Throwable, Unit] =
   {
     val step_name = RF.stringFormatter(etlStep.name)

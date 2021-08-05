@@ -5,7 +5,6 @@ import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.json.JsonEnv
 import etlflow.schema.LoggingLevel
-import etlflow.utils.Configuration
 import etlflow.{CoreEnv, EtlJobProps}
 import zio.RIO
 import zio.blocking.Blocking
@@ -19,8 +18,8 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
   final def process(in: =>Unit): RIO[CoreEnv, Unit] = {
     logger.info("#"*100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
-    Configuration.config.flatMap(cfg => job_instance.execute(Some(job_run_id), Some("false")))
-      .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv  with  Blocking with Clock](etlflow.log.Implementation.live())
+    job_instance.execute(Some(job_run_id), Some("false"))
+      .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv  with  Blocking with Clock](etlflow.log.Implementation.live(None))
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

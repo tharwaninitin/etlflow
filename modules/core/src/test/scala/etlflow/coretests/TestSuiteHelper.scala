@@ -13,13 +13,13 @@ trait TestSuiteHelper extends ApplicationLogger {
   val cryptoLayer = etlflow.crypto.Implementation.live(skey)
   val jsonLayer  = etlflow.json.Implementation.live
 
-
   val canonical_path = new java.io.File(".").getCanonicalPath
   val file = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
 
-  val loggerLayer  = etlflow.log.Implementation.live()
+  val slack_logger = SlackLogger(config.slack)
+  val loggerLayer = etlflow.log.Implementation.live(Some(slack_logger))
 
-  val fullLayer = liveDBWithTransactor(config.db) ++ jsonLayer ++ cryptoLayer  ++ loggerLayer
+  val fullLayer = liveDBWithTransactor(config.db) ++ jsonLayer ++ cryptoLayer ++ loggerLayer
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
   val ejpm_package: String = RF.getJobNamePackage[MEJP] + "$"

@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
 
 package object etlflow {
 
-  type CoreEnv = DBEnv with JsonEnv with CryptoEnv  with LoggerEnv with  Blocking with Clock
+  type CoreEnv = DBEnv with JsonEnv with CryptoEnv  with LoggerEnv with Blocking with Clock
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   trait EtlJobSchema extends Product

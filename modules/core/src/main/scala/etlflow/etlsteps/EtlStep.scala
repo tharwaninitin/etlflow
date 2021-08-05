@@ -20,9 +20,9 @@ trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
       step_start_time <- Task.succeed(System.currentTimeMillis())
       _   <- LoggerApi.stepLogInit(step_start_time, self)
       op  <- process(input_state).tapError{ex =>
-        LoggerApi.stepLogError(step_start_time, ex, self)
+        LoggerApi.stepLogError(step_start_time,self,ex)
       }
-      _   <- LoggerApi.StepLogSuccess(step_start_time,self)
+      _   <- LoggerApi.stepLogSuccess(step_start_time,self)
     } yield op
     step
   }

@@ -29,7 +29,7 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | Redis              | ✅                   | ✅          | ❌          |
 | Http               | ✅                   | ✅          | ❌          |
 | Cloud              | ✅                   | ✅          | ❌          |
-| Server             | ✅                   | ❌          | ❌          |
+| Server             | ✅                   | ✅          | ❌          |
 | Spark              | ✅                   | ❌          | ❌          |
 
 ## Requirements and Installation

@@ -24,7 +24,6 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | -------------------|:--------------------:| -----------:| ----------:|
 | Utils              | ✅                   | ✅          | ✅          |
 | Json               | ✅                   | ✅          | ✅          |
-| crypto             | ✅                   | ✅          | ✅          |
 | cache              | ✅                   | ✅          | ✅          |
 | Db                 | ✅                   | ✅          | ❌          |
 | Core               | ✅                   | ✅          | ❌          |
@@ -35,6 +34,7 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | email              | ✅                   | ✅          | ❌          |
 | aws                | ✅                   | ✅          | ❌          |
 | gcp                | ✅                   | ✅          | ❌          |
+| crypto             | ✅                   | ✅          | ❌          |
 | Spark              | ✅                   | ❌          | ❌          |
 
 

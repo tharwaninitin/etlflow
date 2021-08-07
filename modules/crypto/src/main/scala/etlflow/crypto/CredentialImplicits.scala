@@ -1,4 +1,4 @@
-package etlflow.utils
+package etlflow.crypto
 
 import etlflow.schema.Credential.{AWS, JDBC}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}

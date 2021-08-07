@@ -2,13 +2,13 @@ package etlflow.crypto
 
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
-import etlflow.utils.CredentialImplicits._
 import org.mindrot.jbcrypt.BCrypt
 import zio.{RIO, Task, ULayer, ZLayer}
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
+import etlflow.crypto.CredentialImplicits._
 
 object Implementation {
 

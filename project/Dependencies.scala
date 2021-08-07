@@ -37,7 +37,7 @@ object Dependencies {
   val MailVersion = "1.6.2"
   val JwtCoreVersion = "8.0.3"
   val Sl4jVersion = "1.7.32"
-  val BcryptVersion = "4.3.0"
+  val BcryptVersion = "0.4.3"
   val CaffeineCacheVersion = "2.9.0"
   val ScalaTestVersion = "3.2.9"
 
@@ -124,7 +124,7 @@ object Dependencies {
   )
 
   lazy val cryptoLibs = List(
-    "com.github.t3hnar" %% "scala-bcrypt" % BcryptVersion
+    "de.svenkubiak" % "jBCrypt" % BcryptVersion
   )
 
   lazy val emailLibs = List(

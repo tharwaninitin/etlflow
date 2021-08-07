@@ -1,11 +1,11 @@
 package etlflow.webserver
 
-import com.github.t3hnar.bcrypt._
 import etlflow.api.Schema.{UserArgs, UserAuth}
-import etlflow.cache.{CacheApi, CacheEnv, Cache, default_ttl}
+import etlflow.cache.{Cache, CacheApi, CacheEnv, default_ttl}
 import etlflow.db.{DBApi, DBEnv}
 import etlflow.schema.WebServer
 import etlflow.utils.ApplicationLogger
+import org.mindrot.jbcrypt.BCrypt
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http.{HttpApp, _}
 import zio.Runtime.default.unsafeRun
@@ -52,7 +52,7 @@ case class Authentication(cache: Cache[String], config: Option[WebServer]) exten
       logger.error("Error in fetching user from db => " + ex.getMessage)
       Task(UserAuth("Invalid User/Password", ""))
     }, user => {
-      if (args.password.isBcryptedBounded(user.password)) {
+      if (BCrypt.checkpw(args.password, user.password)) {
         val user_data = s"""{"user":"${user.user_name}", "role":"${user.user_role}"}""".stripMargin
         val token = Jwt.encode(user_data, secret, JwtAlgorithm.HS256)
         logger.info(s"New token generated for user ${user.user_name}")

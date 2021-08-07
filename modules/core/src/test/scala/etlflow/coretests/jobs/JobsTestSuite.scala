@@ -30,9 +30,8 @@ object JobsTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         job1.printJobInfo()
         assert("Ok")(equalTo("Ok"))
       },
-      test("Execute printEtlJobs") {
-        RF.printEtlJobs[MEJP]()
-        assert("Ok")(equalTo("Ok"))
+      testM("Execute printEtlJobs") {
+        assertM(RF.printEtlJobs[MEJP]().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
       }
     ) @@ TestAspect.sequential
 }

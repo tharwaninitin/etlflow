@@ -16,6 +16,7 @@ import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
+import zio.Runtime.default.unsafeRun
 
 case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: Cache[QueueDetails])
   extends ApplicationLogger {
@@ -45,7 +46,7 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
   private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[CoreEnv with CacheEnv, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
-    val jobRun: RIO[CoreEnv,Unit] = RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package).job_deploy_mode match {
+    val jobRun: RIO[CoreEnv,Unit] = unsafeRun(RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package)).job_deploy_mode match {
       case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
         LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
       case LOCAL =>

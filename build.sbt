@@ -161,7 +161,7 @@ lazy val core = (project in file("modules/core"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(db, utils, json, crypto)
+  .dependsOn(db, utils, json, crypto, cache)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)

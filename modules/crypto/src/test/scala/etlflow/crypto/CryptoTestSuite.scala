@@ -1,12 +1,10 @@
 package etlflow.crypto
 
 import etlflow.json
-import etlflow.json.JsonApi
-import etlflow.schema.Credential.{AWS, JDBC}
-import etlflow.utils.CredentialImplicits._
+import etlflow.schema.Credential.AWS
+import org.mindrot.jbcrypt.BCrypt
 import zio.test.Assertion.equalTo
 import zio.test._
-import com.github.t3hnar.bcrypt._
 
 object CryptoTestSuite extends DefaultRunnableSpec {
 
@@ -42,8 +40,14 @@ object CryptoTestSuite extends DefaultRunnableSpec {
       testM("Encrypt should encrypt string correctly") {
         assertM(CryptoApi.encrypt("admin"))(equalTo("twV4rChhxs76Z+gY868NSw=="))
       },
-      testM("Asymmetric Encrypted should not be Bcrypt Bounded") {
-        assertM(CryptoApi.oneWayEncrypt("abc").map(p => p.isBcryptedBounded(p)))(equalTo(false))
+      testM("Asymmetric Encrypted should not be Bcrypt Bounded without salt") {
+        assertM(CryptoApi.oneWayEncrypt("abc").map(p => BCrypt.checkpw("abc", p)))(equalTo(true))
+      },
+      testM("Asymmetric Encrypted should not be Bcrypt Bounded with salt") {
+        assertM(CryptoApi.oneWayEncrypt("abc",Some(10)).map(p => BCrypt.checkpw("abc", p)))(equalTo(true))
+      },
+      testM("Asymmetric Encrypted should not be Bcrypt Bounded with negative case") {
+        assertM(CryptoApi.oneWayEncrypt("abc",Some(10)).map(p => BCrypt.checkpw("abc1", p)))(equalTo(false))
       }
     ).provideLayer(Implementation.live(None) ++ json.Implementation.live) @@ TestAspect.flaky
 }

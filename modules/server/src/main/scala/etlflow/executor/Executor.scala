@@ -16,7 +16,6 @@ import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe.TypeTag
-import zio.Runtime.default.unsafeRun
 
 case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, ejpm_package: String, cache: Cache[QueueDetails])
   extends ApplicationLogger {
@@ -46,20 +45,25 @@ case class Executor[EJN <: EJPMType : TypeTag](sem: Map[String, Semaphore], conf
   private def runEtlJob(args: EtlJobArgs, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[CoreEnv with CacheEnv, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
-    val jobRun: RIO[CoreEnv,Unit] = unsafeRun(RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package)).job_deploy_mode match {
-      case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
-        LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
-      case LOCAL =>
-        LocalExecutor(ejpm_package).executeJob(args.name, actual_props)
-      case dp @ DATAPROC(_, _, _, _, _) =>
-        val main_class = config.dataproc.map(_.mainclass).getOrElse("")
-        val dp_libs = config.dataproc.map(_.deplibs).getOrElse(List.empty)
-        DPService.executeSparkJob(args.name, actual_props, main_class, dp_libs).provideLayer(DP.live(dp))
-      case LIVY(_) =>
-        Task.fail(ExecutionError("Deploy mode livy not yet supported"))
-      case KUBERNETES(_, _, _, _, _, _) =>
-        Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
-    }
+    val jobRun: RIO[CoreEnv,Unit] =
+      for {
+        jpm <- RF.getEtlJobPropsMapping[EJN](args.name,ejpm_package)
+        _   <- jpm.job_deploy_mode
+                 match {
+                  case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
+                    LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
+                  case LOCAL =>
+                    LocalExecutor(ejpm_package).executeJob(args.name, actual_props)
+                  case dp @ DATAPROC(_, _, _, _, _) =>
+                    val main_class = config.dataproc.map(_.mainclass).getOrElse("")
+                    val dp_libs = config.dataproc.map(_.deplibs).getOrElse(List.empty)
+                    DPService.executeSparkJob(args.name, actual_props, main_class, dp_libs).provideLayer(DP.live(dp))
+                  case LIVY(_) =>
+                    Task.fail(ExecutionError("Deploy mode livy not yet supported"))
+                  case KUBERNETES(_, _, _, _, _, _) =>
+                    Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
+                }
+      } yield ()
 
     val loggedJobRun: RIO[CoreEnv with CacheEnv, Long] = jobRun
       .ensuring(CacheApi.remove(cache, cache_key).orDie)

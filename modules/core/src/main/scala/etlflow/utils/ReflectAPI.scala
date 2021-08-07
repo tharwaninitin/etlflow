@@ -1,14 +1,11 @@
 package etlflow.utils
 
-import EtlflowError.EtlJobNotFoundException
-
+import etlflow.EJPMType
+import etlflow.db.EtlJob
+import etlflow.utils.EtlflowError.EtlJobNotFoundException
+import zio.{Task, UIO, ZIO}
 import scala.reflect.runtime.universe.{TypeTag, _}
 import scala.reflect.runtime.{universe => ru}
-import etlflow.EJPMType
-import etlflow.cache.CacheApi
-import etlflow.db.EtlJob
-import zio.{Task, UIO, ZEnv, ZIO}
-import zio.Runtime.default.unsafeRun
 
 private[etlflow] object ReflectAPI extends ApplicationLogger {
 
@@ -24,7 +21,7 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     tpe.typeSymbol.asClass.fullName
   }
 
-  def getEtlJobs[T: TypeTag]: Task[Set[String]] = Task{
+  private[utils] def getEtlJobs[T: TypeTag]: Task[Set[String]] = Task{
     val tpe = ru.typeOf[T]
     val clazz = tpe.typeSymbol.asClass
     val allJobNames = clazz.knownDirectSubclasses

@@ -41,7 +41,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.error(s"Need to provide args --password")
           ZIO.fail(new RuntimeException("Need to provide args --password"))
         case ec if ec.list_jobs =>
-          UIO(RF.printEtlJobs[EJN]())
+          RF.printEtlJobs[EJN]()
         case ec if ec.show_job_props && ec.job_name != "" =>
           logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
           localExecutor

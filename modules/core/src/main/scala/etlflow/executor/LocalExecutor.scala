@@ -1,12 +1,10 @@
 package etlflow.executor
 
-import etlflow.cache.Cache
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.utils.{ReflectAPI => RF}
 import etlflow.{CoreEnv, EJPMType}
 import zio.{Task, UIO, ZIO}
-import zio.Runtime.default.unsafeRun
 
 case class LocalExecutor(etl_job_name_package: String) {
 
@@ -27,23 +25,25 @@ case class LocalExecutor(etl_job_name_package: String) {
   }
 
   private[etlflow] def showJobProps(name: String): ZIO[JsonEnv, Throwable, Unit] = {
-    val job_name = unsafeRun(RF.getEtlJobPropsMapping[EJPMType](name,etl_job_name_package))
     val exclude_keys = List("job_run_id","job_description","job_properties")
-    for{
+    for {
+      job_name  <- RF.getEtlJobPropsMapping[EJPMType](name,etl_job_name_package)
       job_props <- Task(job_name.getProps.mapValues(x => x.toString) -- exclude_keys )
-      _          = UIO(println(job_props))
+      _         <- UIO(println(job_props))
     } yield ()
   }
 
   private[etlflow] def showJobStepProps(name: String, properties: Map[String, String]): ZIO[JsonEnv, Throwable, Unit] = {
-    val job_name = unsafeRun(RF.getEtlJobPropsMapping[EJPMType](name,etl_job_name_package))
-    val etl_job = job_name.etlJob(properties)
-    if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {
-      etl_job.job_name = job_name.toString
-      JsonApi.convertToString(etl_job.getJobInfo(job_name.job_notification_level), List.empty).map(println(_))
-    }
-    else {
-      UIO(println("Step Props info not available for generic jobs"))
-    }
+    for {
+      job_name <- RF.getEtlJobPropsMapping[EJPMType](name,etl_job_name_package)
+      etl_job  = job_name.etlJob(properties)
+      _        <- if (etl_job.isInstanceOf[SequentialEtlJob[_]]) {
+                    etl_job.job_name = job_name.toString
+                    JsonApi.convertToString(etl_job.getJobInfo(job_name.job_notification_level), List.empty).map(println(_))
+                  }
+                  else {
+                    UIO(println("Step Props info not available for generic jobs"))
+                  }
+    } yield ()
   }
 }

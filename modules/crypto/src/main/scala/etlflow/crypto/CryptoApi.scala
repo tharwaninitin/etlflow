@@ -18,7 +18,7 @@ object CryptoApi {
     ZIO.accessM(_.get.encrypt(str))
   def decrypt(str: String): ZIO[CryptoEnv, Throwable, String] =
     ZIO.accessM(_.get.decrypt(str))
-  def decryptCredential[T:TypeTag](str: String): RIO[CryptoEnv with JsonEnv,String] =
+  def decryptCredential[T: TypeTag](str: String): RIO[CryptoEnv with JsonEnv,String] =
     ZIO.accessM[CryptoEnv with JsonEnv](_.get.decryptCredential[T](str))
   def encryptCredential(`type`: String, value: String): RIO[CryptoEnv with JsonEnv,String] =
     ZIO.accessM[CryptoEnv with JsonEnv](_.get.encryptCredential(`type`, value))

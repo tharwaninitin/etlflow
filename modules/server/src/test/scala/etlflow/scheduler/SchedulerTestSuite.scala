@@ -15,7 +15,7 @@ object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper wit
     (suite("Rest Scheduler Suite")(
       testM("Test scheduler with Job1")(
         for {
-          jobs     <- RF.getEtlJobs[MEJP](ejpm_package).map(jl => jl.filter(_.name == "Job1"))
+          jobs     <- RF.getJobs[MEJP].map(jl => jl.filter(_.name == "Job1"))
           fiber    <- etlFlowScheduler(jobs).fork
           _        <- TestClock.adjust(ZDuration.fromScala(Duration(3,MINUTES)))
           _        <- fiber.interrupt

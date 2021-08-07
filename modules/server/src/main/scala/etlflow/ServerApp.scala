@@ -14,8 +14,8 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class ServerApp[EJN <: EJPMType : TypeTag]
-  extends EtlFlowApp[EJN] with HttpServer with Scheduler {
+abstract class ServerApp[T <: EJPMType : TypeTag]
+  extends EtlFlowApp[T] with HttpServer with Scheduler {
 
   final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
     for {
@@ -31,14 +31,14 @@ abstract class ServerApp[EJN <: EJPMType : TypeTag]
     listTkn     = config.token.getOrElse(List.empty)
     _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.put(authCache, tkn, tkn)).toManaged_
     auth        = Authentication(authCache, config.webserver)
-    jobs        <- RF.getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
+    jobs        <- RF.getJobs[T].toManaged_
     sem         <- createSemaphores(jobs).toManaged_
-    executor    = Executor[EJN](sem, config, etl_job_props_mapping_package, statsCache)
+    executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
     dbLayer     = db.liveDBWithTransactor(config.db)
     logLayer    = log.Implementation.live(config.slack)
     cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
-    apiLayer    = api.Implementation.live[EJN](auth,executor,jobs,etl_job_props_mapping_package,supervisor,statsCache)
+    apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)
     finalLayer   = apiLayer ++ dbLayer ++ cryptoLayer ++ logLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer(auth, config.webserver)

@@ -19,7 +19,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 private[etlflow] object Implementation extends ApplicationLogger {
 
-  def live[EJN <: EJPMType : TypeTag](auth: Authentication, executor: Executor[EJN], jobs: List[EtlJob], ejpm_package: String, supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[T <: EJPMType : TypeTag](auth: Authentication, executor: Executor[T], jobs: List[EtlJob], supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
 
       val pt = new PrettyTime()
@@ -41,9 +41,9 @@ private[etlflow] object Implementation extends ApplicationLogger {
         for {
           jobs     <- DBApi.getJobs
           etljobs  <- ZIO.foreach(jobs)(x =>
-            RF.getJobPropsMapping[EJN](x.job_name,ejpm_package).map{props =>
+            RF.getJob[T](x.job_name).map{ejpm =>
               val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-              GetCronJob(x.schedule, x, lastRunTime, props)
+              GetCronJob(x.schedule, x, lastRunTime, ejpm.getProps)
             }
           )
         } yield etljobs

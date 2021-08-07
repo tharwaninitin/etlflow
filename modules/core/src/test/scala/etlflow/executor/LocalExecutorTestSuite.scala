@@ -7,11 +7,11 @@ import zio.test._
 
 object LocalExecutorTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
-  val jobStepProps = LocalExecutor(ejpm_package).showJobStepProps("Job1", Map.empty)
+  val jobStepProps = LocalExecutor[MEJP].showJobStepProps("Job1", Map.empty)
 
-  val jobProps = LocalExecutor(ejpm_package).showJobProps("Job1")
+  val jobProps = LocalExecutor[MEJP].showJobProps("Job1")
 
-  val executeJob = LocalExecutor(ejpm_package).executeJob("Job1", Map.empty)
+  val executeJob = LocalExecutor[MEJP].executeJob("Job1", Map.empty)
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Executor Spec")(

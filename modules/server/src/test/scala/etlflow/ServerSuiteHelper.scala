@@ -27,7 +27,6 @@ trait ServerSuiteHelper {
   val jobStatsCache: cache.Cache[QueueDetails] = unsafeRun(CacheApi.createCache[QueueDetails].provideCustomLayer(cache.Implementation.live))
 
   val credentials: JDBC = config.db
-  val ejpm_package: String = unsafeRun(RF.getJobNamePackage[MEJP]) + "$"
   val sem: Map[String, Semaphore] =
     Map(
       "Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)),
@@ -38,9 +37,9 @@ trait ServerSuiteHelper {
 
   val auth: Authentication = Authentication(authCache, config.webserver)
 
-  val executor: Executor[MEJP] = Executor[MEJP](sem, config, ejpm_package, jobStatsCache)
+  val executor: Executor[MEJP] = Executor[MEJP](sem, config, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
-  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, ejpm_package, supervisor, jobStatsCache)
+  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, supervisor, jobStatsCache)
   val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.db)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
   val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live(skey)

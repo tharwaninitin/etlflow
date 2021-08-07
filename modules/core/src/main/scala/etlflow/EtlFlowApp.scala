@@ -2,7 +2,6 @@ package etlflow
 
 import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration, liveDBWithTransactor}
-import etlflow.etljobs.EtlJob
 import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
@@ -10,15 +9,13 @@ import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
 import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
 import scala.reflect.runtime.universe.TypeTag
 
-abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]] : TypeTag]
+abstract class EtlFlowApp[T <: EJPMType : TypeTag]
   extends ApplicationLogger
     with App {
 
-  val etl_job_props_mapping_package: String = unsafeRun(RF.getJobNamePackage[EJN]) + "$"
-  val localExecutor: LocalExecutor = LocalExecutor(etl_job_props_mapping_package)
-
   def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
   : ZIO[ZEnv,Throwable,Unit] = {
+    val localExecutor = LocalExecutor[T]
     parser.parse(args, EtlJobConfig()) match {
       case Some(serverConfig) => serverConfig match {
         case ec if ec.init_db =>
@@ -41,7 +38,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
           logger.error(s"Need to provide args --password")
           ZIO.fail(new RuntimeException("Need to provide args --password"))
         case ec if ec.list_jobs =>
-          RF.printEtlJobs[EJN]()
+          RF.getSubClasses[T].map(_.foreach(logger.info))
         case ec if ec.show_job_props && ec.job_name != "" =>
           logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
           localExecutor

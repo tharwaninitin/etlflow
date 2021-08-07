@@ -51,24 +51,8 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     }.toSeq
   }
 
-  val propCache = CacheApi.createCache[Map[String, String]].provideCustomLayer(etlflow.cache.Implementation.live)
-
-  private [etlflow] def isCached(job_name: String): ZIO[ZEnv, Throwable, Option[Map[String, String]]] =
-    CacheApi.get[Map[String, String]](unsafeRun(propCache), job_name).provideCustomLayer(etlflow.cache.Implementation.live)
-
   // Memoize this function by creating cache and if key exists return from cache or else call below function
   def getJobPropsMapping[EJN <: EJPMType : TypeTag](job_name: String, ejpm_package: String): Task[Map[String, String]] = {
-//    unsafeRun(isCached(job_name)) match {
-//      case Some(value) => Task(value)
-//      case None =>
-//        logger.info(s"$job_name Not Present in Cache")
-//        getEtlJobPropsMapping[EJN](job_name, ejpm_package).map { props_mapping =>
-//          props_mapping.getProps.map(x => {
-//            CacheApi.put[Map[String, String]](unsafeRun(propCache), job_name, (x._1, x._2.toString))
-//            (x._1, x._2.toString)
-//          })
-//        }
-//    }
     getEtlJobPropsMapping[EJN](job_name, ejpm_package).map { props_mapping =>
       props_mapping.getProps.map(x => {
         (x._1, x._2.toString)

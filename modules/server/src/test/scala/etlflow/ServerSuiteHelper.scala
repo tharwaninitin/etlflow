@@ -13,9 +13,9 @@ import etlflow.log.LoggerEnv
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.{Configuration, ReflectAPI => RF}
 import etlflow.webserver.Authentication
-import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
+import zio.Runtime.default.unsafeRun
 
 trait ServerSuiteHelper {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
@@ -27,7 +27,7 @@ trait ServerSuiteHelper {
   val jobStatsCache: cache.Cache[QueueDetails] = unsafeRun(CacheApi.createCache[QueueDetails].provideCustomLayer(cache.Implementation.live))
 
   val credentials: JDBC = config.db
-  val ejpm_package: String = RF.getJobNamePackage[MEJP] + "$"
+  val ejpm_package: String = unsafeRun(RF.getJobNamePackage[MEJP]) + "$"
   val sem: Map[String, Semaphore] =
     Map(
       "Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)),

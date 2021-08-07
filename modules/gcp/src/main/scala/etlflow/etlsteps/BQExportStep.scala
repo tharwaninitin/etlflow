@@ -6,6 +6,7 @@ import etlflow.utils.{ReflectAPI => RF}
 import zio.{Task, UIO}
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
+import zio.Runtime.default.unsafeRun
 
 class BQExportStep[T <: Product : TypeTag] private[etlflow](
      val name: String
@@ -60,7 +61,7 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
         , "input_table" -> source_table
         , "output_type" -> destination_format
         , "output_location" -> destination_path
-        , "input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+        , "input_class" -> Try(unsafeRun(RF.getFields[T]).mkString(", ")).toOption.getOrElse("No Class Provided")
       )
     }
     Map.empty

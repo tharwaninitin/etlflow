@@ -4,6 +4,7 @@ import etlflow.EtlJobProps
 import etlflow.db.{RunDbMigration, liveDBWithTransactor}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
+import zio.Runtime.default.unsafeRun
 
 trait TestSuiteHelper extends ApplicationLogger {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
@@ -19,7 +20,7 @@ trait TestSuiteHelper extends ApplicationLogger {
   val fullLayer = liveDBWithTransactor(config.db) ++ jsonLayer ++ cryptoLayer ++ loggerLayer
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
-  val ejpm_package: String = RF.getJobNamePackage[MEJP] + "$"
+  val ejpm_package: String = unsafeRun(RF.getJobNamePackage[MEJP]) + "$"
 
   zio.Runtime.default.unsafeRun(RunDbMigration(config.db,clean = true))
 }

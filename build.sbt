@@ -93,7 +93,7 @@ lazy val jsonSettings = Seq(
 
 lazy val cryptoSettings = Seq(
   name := "etlflow-crypto",
-  crossScalaVersions :=  scala2Versions,
+  crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= cryptoLibs ++ zioTestLibs
 )
 
@@ -161,7 +161,7 @@ lazy val core = (project in file("modules/core"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(db, utils, json, crypto)
+  .dependsOn(db, utils, json, crypto, cache)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)

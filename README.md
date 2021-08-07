@@ -20,17 +20,23 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 
 ## Scala Version Compatibility Matrix
 
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3     | 
-| -------------------|:--------------------:| -----------:| -----------:|
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3    | 
+| -------------------|:--------------------:| -----------:| ----------:|
 | Utils              | ✅                   | ✅          | ✅          |
 | Json               | ✅                   | ✅          | ✅          |
+| crypto             | ✅                   | ✅          | ✅          |
+| cache              | ✅                   | ✅          | ✅          |
 | Db                 | ✅                   | ✅          | ❌          |
 | Core               | ✅                   | ✅          | ❌          |
 | Redis              | ✅                   | ✅          | ❌          |
 | Http               | ✅                   | ✅          | ❌          |
 | Cloud              | ✅                   | ✅          | ❌          |
 | Server             | ✅                   | ✅          | ❌          |
+| email              | ✅                   | ✅          | ❌          |
+| aws                | ✅                   | ✅          | ❌          |
+| gcp                | ✅                   | ✅          | ❌          |
 | Spark              | ✅                   | ❌          | ❌          |
+
 
 ## Requirements and Installation
 This project is compiled with scala versions 2.12.13, 2.13.6, 3.0.0
@@ -47,6 +53,10 @@ libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "x.x.x"
+
 ```
 __Maven__
 ```

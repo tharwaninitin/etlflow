@@ -1,9 +1,9 @@
 package etlflow.crypto
 
-import com.github.t3hnar.bcrypt._
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
 import etlflow.utils.CredentialImplicits._
+import org.mindrot.jbcrypt.BCrypt
 import zio.{RIO, Task, ULayer, ZLayer}
 import java.util.Base64
 import javax.crypto.Cipher
@@ -70,9 +70,9 @@ object Implementation {
         }
       }
 
-      override def oneWayEncrypt(text: String): Task[String] = Task{
-        val salt = BCrypt.gensalt()
-        text.bcryptBounded(salt)
+      override def oneWayEncrypt(text: String, salt: Option[Int] = None): Task[String] = Task{
+        val log_rounds = BCrypt.gensalt(salt.getOrElse(10))
+        BCrypt.hashpw(text, log_rounds)
       }
     }
   )

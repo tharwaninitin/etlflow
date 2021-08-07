@@ -10,6 +10,7 @@ import java.util
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
+import zio.Runtime.default.unsafeRun
 
 class BQLoadStep[T <: Product : TypeTag] private[etlflow](
        val name: String
@@ -43,7 +44,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
 
     val schema: Option[Schema] = Try{
       val fields = new util.ArrayList[Field]
-      val ccFields = RF.getFields[T].reverse
+      val ccFields = unsafeRun(RF.getFields[T]).reverse
       if (ccFields.isEmpty)
         throw new RuntimeException("Schema not provided")
       ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))
@@ -115,7 +116,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
           source_path => source_path,
           source_paths_partitions => source_paths_partitions.mkString(",")
         )
-        ,"input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+        ,"input_class" -> Try(unsafeRun(RF.getFields[T]).mkString(", ")).toOption.getOrElse("No Class Provided")
         ,"output_dataset" -> output_dataset
         ,"output_table" -> output_table
         ,"output_table_write_disposition" -> output_write_disposition.toString

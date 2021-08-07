@@ -14,7 +14,7 @@ abstract class EtlFlowApp[EJN <: EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobPro
   extends ApplicationLogger
     with App {
 
-  val etl_job_props_mapping_package: String = RF.getJobNamePackage[EJN] + "$"
+  val etl_job_props_mapping_package: String = unsafeRun(RF.getJobNamePackage[EJN]) + "$"
   val localExecutor: LocalExecutor = LocalExecutor(etl_job_props_mapping_package)
 
   def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))

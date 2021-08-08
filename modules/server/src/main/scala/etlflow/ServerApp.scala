@@ -12,9 +12,8 @@ import etlflow.webserver.{Authentication, HttpServer}
 import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
-import scala.reflect.runtime.universe.TypeTag
 
-abstract class ServerApp[T <: EJPMType : TypeTag]
+abstract class ServerApp[T <: EJPMType : Tag]
   extends EtlFlowApp[T] with HttpServer with Scheduler {
 
   final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {

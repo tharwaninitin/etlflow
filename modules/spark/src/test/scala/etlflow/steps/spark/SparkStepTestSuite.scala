@@ -2,8 +2,8 @@ package etlflow.steps.spark
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import etlflow.TestSparkSession
-import etlflow.coretests.{DoobieHelper, TestSuiteHelper}
+import etlflow.{DoobieHelper, TestSparkSession}
+import etlflow.coretests.TestSuiteHelper
 import etlflow.coretests.Schema._
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
 import etlflow.schema.Credential.JDBC

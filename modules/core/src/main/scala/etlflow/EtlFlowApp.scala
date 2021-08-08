@@ -6,10 +6,9 @@ import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
 import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
-import zio.{App, ExitCode, UIO, URIO, ZEnv, ZIO}
-import scala.reflect.runtime.universe.TypeTag
+import zio._
 
-abstract class EtlFlowApp[T <: EJPMType : TypeTag]
+abstract class EtlFlowApp[T <: EJPMType : Tag]
   extends ApplicationLogger
     with App {
 

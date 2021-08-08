@@ -15,9 +15,8 @@ import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
 import scala.concurrent.duration._
-import scala.reflect.runtime.universe.TypeTag
 
-case class Executor[T <: EJPMType : TypeTag](sem: Map[String, Semaphore], config: Config, cache: Cache[QueueDetails])
+case class Executor[T <: EJPMType : Tag](sem: Map[String, Semaphore], config: Config, cache: Cache[QueueDetails])
   extends ApplicationLogger {
 
   final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[CoreEnv with CacheEnv, EtlJob] = {

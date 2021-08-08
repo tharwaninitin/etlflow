@@ -3,9 +3,8 @@ package etlflow.etlsteps
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
 import etlflow.gcp._
 import etlflow.schema.{Credential, LoggingLevel}
-import etlflow.utils.{ ReflectAPI => RF}
+import etlflow.gcp.{ ReflectAPI => RF}
 import zio.{Task, UIO}
-
 import java.util
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.TypeTag

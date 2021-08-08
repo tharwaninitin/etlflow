@@ -3,12 +3,11 @@ package etlflow.crypto
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
 import org.mindrot.jbcrypt.BCrypt
-import zio.{RIO, Task, ULayer, ZLayer}
+import zio.{RIO, Tag, Task, ULayer, ZLayer}
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
-import scala.reflect.runtime.universe.{TypeTag, typeOf}
-import etlflow.crypto.CredentialImplicits._
+import io.circe.generic.auto._
 
 object Implementation {
 
@@ -32,16 +31,16 @@ object Implementation {
         new String(decrypted)
       }
 
-      override def decryptCredential[T: TypeTag](text: String): RIO[CryptoEnv with JsonEnv,String] = {
-        typeOf[T] match {
-          case t if t =:= typeOf[JDBC] =>
+      override def decryptCredential[T: Tag](text: String): RIO[CryptoEnv with JsonEnv,String] = {
+        implicitly[Tag[T]].tag match {
+          case t if t =:= Tag[JDBC].tag =>
             for {
               jdbc                <- JsonApi.convertToObject[JDBC](text)
               decrypt_user        <- decrypt(jdbc.user)
               decrypt_password    <- decrypt(jdbc.password)
               json                <- JsonApi.convertToString(JDBC(jdbc.url, decrypt_user, decrypt_password, jdbc.driver), List.empty)
             } yield json
-          case t if t =:= typeOf[AWS] =>
+          case t if t =:= Tag[AWS].tag =>
             for {
               aws        <- JsonApi.convertToObject[AWS](text)
               decrypt_access_key <- decrypt(aws.access_key)

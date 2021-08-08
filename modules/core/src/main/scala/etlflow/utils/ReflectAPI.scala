@@ -3,25 +3,24 @@ package etlflow.utils
 import etlflow.EJPMType
 import etlflow.db.EtlJob
 import etlflow.utils.EtlflowError.EtlJobNotFoundException
-import zio.{Task, UIO, ZIO}
-import scala.reflect.runtime.universe._
-import scala.reflect.runtime.{universe => ru}
+import zio.{Tag, Task, UIO, ZIO}
 
 private[etlflow] object ReflectAPI extends ApplicationLogger {
 
-  private[utils] def getTypeFullName[T: TypeTag]: String = {
-    val tpe = ru.typeOf[T]
-    tpe.typeSymbol.asClass.fullName
+  private[utils] def getTypeFullName[T: Tag]: String = {
+    implicitly[Tag[T]].tag.longName
   }
 
-  def getSubClasses[T: TypeTag]: Task[Set[String]] = Task {
-    val tpe = ru.typeOf[T]
-    val clazz = tpe.typeSymbol.asClass
-    val allJobNames = clazz.knownDirectSubclasses
-    allJobNames.map(x => x.name.toString)
+  def getSubClasses[T: Tag]: Task[Set[String]] = Task {
+    val tag: Tag[T]               = implicitly[Tag[T]]
+    val clazz: Class[_]           = tag.closestClass
+    val subClazz: Array[Class[_]] = clazz.getClasses
+    subClazz
+      .map(x => x.getSimpleName.replace("$",""))
+      .toSet
   }
 
-  def getJob[T: TypeTag](job_name: String): Task[T] = Task {
+  def getJob[T: Tag](job_name: String): Task[T] = Task {
     val fullClassName = getTypeFullName[T] + "$" + job_name + "$"
     try {
       val classVal = Class.forName(fullClassName)
@@ -35,7 +34,7 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     }
   }
 
-  def getJobs[T <: EJPMType : TypeTag]: Task[List[EtlJob]] = {
+  def getJobs[T <: EJPMType : Tag]: Task[List[EtlJob]] = {
     val jobs = for {
       jobs     <- getSubClasses[T]
       etljobs  <- ZIO.foreach(jobs)(job => getJob[T](job).map(ejpm => EtlJob(job,ejpm.getProps)))
@@ -43,11 +42,5 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     jobs.tapError{ e =>
       UIO(logger.error(e.getMessage))
     }
-  }
-
-  def getFields[T: TypeTag]: Task[Seq[(String, String)]] = Task {
-    typeOf[T].members.collect {
-      case m: MethodSymbol if m.isCaseAccessor => (m.name.toString, m.returnType.toString)
-    }.toSeq
   }
 }

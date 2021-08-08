@@ -4,10 +4,9 @@ import etlflow.etljobs.SequentialEtlJob
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.utils.{ReflectAPI => RF}
 import etlflow.{CoreEnv, EJPMType}
-import zio.{Task, UIO, ZIO}
-import scala.reflect.runtime.universe.TypeTag
+import zio._
 
-case class LocalExecutor[T <: EJPMType : TypeTag]() {
+case class LocalExecutor[T <: EJPMType : Tag]() {
 
   def executeJob(name: String, properties: Map[String, String], job_run_id: Option[String] = None, is_master: Option[String] = None): ZIO[CoreEnv, Throwable, Unit] = {
     for{

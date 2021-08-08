@@ -93,7 +93,7 @@ lazy val jsonSettings = Seq(
 
 lazy val cryptoSettings = Seq(
   name := "etlflow-crypto",
-  crossScalaVersions :=  scala2Versions,
+  crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= cryptoLibs ++ zioTestLibs
 )
 

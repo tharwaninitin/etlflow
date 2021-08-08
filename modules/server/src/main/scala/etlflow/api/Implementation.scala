@@ -14,12 +14,11 @@ import etlflow.{EJPMType, BuildInfo => BI}
 import org.ocpsoft.prettytime.PrettyTime
 import zio.Fiber.Status.{Running, Suspended}
 import zio.blocking.Blocking
-import zio.{Task, UIO, ZIO, ZLayer, _}
-import scala.reflect.runtime.universe.TypeTag
+import zio._
 
 private[etlflow] object Implementation extends ApplicationLogger {
 
-  def live[T <: EJPMType : TypeTag](auth: Authentication, executor: Executor[T], jobs: List[EtlJob], supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[T <: EJPMType : Tag](auth: Authentication, executor: Executor[T], jobs: List[EtlJob], supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
 
       val pt = new PrettyTime()

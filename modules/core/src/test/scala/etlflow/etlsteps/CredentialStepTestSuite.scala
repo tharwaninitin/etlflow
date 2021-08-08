@@ -7,7 +7,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.Runtime.default.unsafeRun
-import etlflow.crypto.CredentialImplicits._
+import io.circe.generic.auto._
 
 object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 

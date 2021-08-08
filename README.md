@@ -20,18 +20,18 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 
 ## Scala Version Compatibility Matrix
 
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3    | 
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | Utils              | ✅                   | ✅          | ✅          |
 | Json               | ✅                   | ✅          | ✅          |
 | Cache              | ✅                   | ✅          | ✅          |
-| Crypto             | ✅                   | ✅          | ❌          |
+| Crypto             | ✅                   | ✅          | ✅          |
 | Db                 | ✅                   | ✅          | ❌          |
 | Core               | ✅                   | ✅          | ❌          |
+| Server             | ✅                   | ✅          | ❌          |
 | Redis              | ✅                   | ✅          | ❌          |
 | Http               | ✅                   | ✅          | ❌          |
 | Cloud              | ✅                   | ✅          | ❌          |
-| Server             | ✅                   | ✅          | ❌          |
 | Email              | ✅                   | ✅          | ❌          |
 | Aws                | ✅                   | ✅          | ❌          |
 | Gcp                | ✅                   | ✅          | ❌          |

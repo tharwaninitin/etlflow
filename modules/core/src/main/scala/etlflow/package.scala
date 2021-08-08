@@ -7,9 +7,9 @@ import etlflow.json.JsonEnv
 import etlflow.log.LoggerEnv
 import etlflow.schema.{Executor, LoggingLevel}
 import etlflow.utils.EtlflowError.EtlJobException
+import zio.Tag
 import zio.blocking.Blocking
 import zio.clock.Clock
-import scala.reflect.ClassTag
 
 package object etlflow {
 
@@ -19,7 +19,7 @@ package object etlflow {
   trait EtlJobSchema extends Product
   trait EtlJobProps
 
-  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {
+  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: Tag[EJ], tag_EJP: Tag[EJP]) {
     val job_description: String               = ""
     val job_schedule: String                  = ""
     val job_max_active_runs: Int              = 10
@@ -30,15 +30,14 @@ package object etlflow {
     val job_send_slack_notification: Boolean  = false
     val job_notification_level: LoggingLevel  = LoggingLevel.INFO
 
-    final val job_name: String                = tag_EJ.toString
-    final val job_props_name: String          = tag_EJP.toString
+    final val job_name: String                = tag_EJ.tag.longName
+    final val job_props_name: String          = tag_EJP.tag.longName
 
     def getActualProperties(job_properties: Map[String, String]): EJP
 
-    // https://stackoverflow.com/questions/46798242/scala-create-instance-by-type-parameter
     final def etlJob(job_properties: Map[String, String]): EJ = {
       val props = getActualProperties(job_properties)
-      tag_EJ.runtimeClass.getConstructor(tag_EJP.runtimeClass).newInstance(props).asInstanceOf[EJ]
+      tag_EJ.closestClass.getConstructor(tag_EJP.closestClass).newInstance(props).asInstanceOf[EJ]
     }
 
     final def getProps: Map[String,String] = Map(

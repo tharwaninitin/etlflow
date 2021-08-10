@@ -1,11 +1,11 @@
 package etlflow.db
 
 import etlflow.DbSuiteHelper
-import zio.ZIO
+import zio.{ZIO, ZLayer}
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
+object ScalaLikeImplTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
 
   val jobDbAll = List(JobDBAll("Job1","","",0,0,true,None), JobDBAll("Job2","","",0,0,false,None), JobDBAll("Job3","","",0,0,true,None))
   val stepRuns = List(
@@ -19,10 +19,10 @@ object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
   
-  val layer = (ScalaLikeImplementation.createConnectionPoolLayer(credentials) >>> ScalaLikeImplementation.liveDB).orDie
+  val layer: ZLayer[Any, Nothing, DBEnv] = (ScalaLikeImplementation.cpLayer(credentials,"TestPool") >>> ScalaLikeImplementation.liveDB).orDie
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    (suite("DBApi Suite")(
+    (suite("Implementation Suite")(
       testM("getUser Test")(
         assertM(DBApi.getUser("admin").map(x => x.user_name))(equalTo("admin"))
       ),
@@ -72,7 +72,7 @@ object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
         assertM(DBApi.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a3011", "pass", "").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       ),
       testM("refreshJobs Test")(
-        assertM(DBApi.refreshJobs(List(EtlJob("Job1",Map.empty))).map(x => x))(equalTo(List(JobDB("Job1","",true))))
+        assertM(DBApi.refreshJobs(List(EtlJob("Job1",Map.empty),EtlJob("Job2",Map.empty))).map(x => x))(equalTo(List(JobDB("Job1","",true),JobDB("Job2","",false))))
       ),
       testM("executeQuery Test")(
         assertM(DBApi.executeQuery("""INSERT INTO userinfo(user_name,password,user_active,user_role) values ('admin1','admin',true,'admin')""").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))

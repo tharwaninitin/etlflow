@@ -293,8 +293,7 @@ private[db] object ScalaLikeSQL extends ApplicationLogger {
           WHERE job_run_id = $job_run_id AND step_name = $step_name"""
   }
 
-  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long)
-  : SQL[Nothing, NoExtractor] = {
+  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): SQL[Nothing, NoExtractor] = {
     sql"""INSERT INTO StepRun (
            job_run_id,
            step_name,
@@ -308,8 +307,7 @@ private[db] object ScalaLikeSQL extends ApplicationLogger {
          VALUES ($job_run_id, $step_name, ${JsonConverter(props)}, 'started', '...', $step_type, $step_run_id, $start_time)"""
   }
 
-  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long)
-  : SQL[Nothing, NoExtractor]  = {
+  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): SQL[Nothing, NoExtractor]  = {
     sql"""INSERT INTO JobRun(
             job_run_id,
             job_name,
@@ -335,16 +333,10 @@ private[db] object ScalaLikeSQL extends ApplicationLogger {
     sql"""DELETE FROM job WHERE job_name not in ($list)"""
   }
 
-  def insertData(data: JobDBAll): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
-    val column = JobDBAll.column
-    insert.into(JobDBAll).namedValues(
-      column.job_name -> data.job_name,
-      column.job_description -> data.job_description,
-      column.schedule -> data.schedule,
-      column.failed -> data.failed,
-      column.success -> data.success,
-      column.is_active -> data.is_active
-    ).append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
+  def insertJobs(data: Seq[Seq[Any]]): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
+    insert.into(JobDBAll)
+    .multipleValues(data:_*)
+    .append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
   }
 
   val selectJobs: SQL[Nothing, NoExtractor] = sql"""SELECT job_name, schedule, is_active FROM job"""

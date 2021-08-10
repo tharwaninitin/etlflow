@@ -86,7 +86,8 @@ object Dependencies {
     "org.tpolecat"  %% "doobie-core"        % DoobieVersion,
     "org.tpolecat"  %% "doobie-postgres"    % DoobieVersion,
     "org.tpolecat"  %% "doobie-hikari"      % DoobieVersion,
-    "org.flywaydb"   % "flyway-core"          % FlywayVersion
+    "org.flywaydb"   % "flyway-core"        % FlywayVersion,
+    "org.scalikejdbc" %% "scalikejdbc"      % "3.5.0"
   )
 
   lazy val httpLibs = List(
@@ -161,7 +162,8 @@ object Dependencies {
 
   lazy val dbTestLibs = List(
     "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
-    "org.scalatest" %% "scalatest" % ScalaTestVersion
+    "org.scalatest" %% "scalatest" % ScalaTestVersion,
+    "ch.qos.logback" % "logback-classic" % LogbackVersion,
   ).map(_ % Test)
 
 }

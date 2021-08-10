@@ -5,18 +5,19 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object ScalaLikeJdbcTestSuites extends DefaultRunnableSpec with DbSuiteHelper {
+object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
 
   val jobDbAll = List(JobDBAll("Job1","","",0,0,true,None), JobDBAll("Job2","","",0,0,false,None), JobDBAll("Job3","","",0,0,true,None))
-  val stepRun  = List(StepRun("a27a7415-57b2-4b53-8f9b-5254e847a301","download_spr","{}","pass","1970-01-01 00:20:34 UTC","1.6 mins","GenericEtlStep","123"))
-  val jobRun   =
-    List(
+  val stepRun = List(StepRun("a27a7415-57b2-4b53-8f9b-5254e847a301","download_spr","{}","pass","1970-01-01 00:20:34 UTC","1.6 mins","GenericEtlStep","123"))
+  val jobRun = List(
       JobRun("a27a7415-57b2-4b53-8f9b-5254e847a301","EtlJobDownload","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true"),
       JobRun("a27a7415-57b2-4b53-8f9b-5254e847a302","EtlJobSpr","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true")
     )
   case class getDb(name:String)
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
+  
+  val layer = (ScalaLikeImplementation.createConnectionPoolLayer(credentials) >>> ScalaLikeImplementation.liveDB).orDie
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("DBApi Suite")(
@@ -74,5 +75,5 @@ object ScalaLikeJdbcTestSuites extends DefaultRunnableSpec with DbSuiteHelper {
 //      testM("executeQuery Test")(
 //        assertM(DBApi.executeQuery("""INSERT INTO userinfo(user_name,password,user_active,user_role) values ('admin1','admin',true,'admin')""").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
 //      ),
-    ) @@ TestAspect.sequential).provideCustomLayer(etlflow.db.ScalaLikeImplementation.liveDB(credentials).orDie)
+    ) @@ TestAspect.sequential).provideCustomLayerShared(layer)
 }

@@ -7,16 +7,28 @@ import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getTimestampAsString
 import etlflow.utils.EtlflowError.DBException
 import scalikejdbc._
-import zio.{IO, Task, UIO, ZLayer}
+import zio._
 
 private[db] object ScalaLikeImplementation extends  ApplicationLogger {
-  def liveDB(db: JDBC, pool_size: Int = 2): ZLayer[Any, Throwable, DBEnv] = ZLayer.succeed(
-    new Service {
 
-      // initialize JDBC driver & connection pool
+  type CPEnv = Has[Unit]
+
+  def createConnectionPool(db: JDBC, pool_size: Int = 2): Managed[Throwable, Unit] = 
+    Managed.make(Task{
+      logger.info("Creating connection pool")
       Class.forName(db.driver)
       ConnectionPool.singleton(db.url, db.user, db.password, ConnectionPoolSettings(maxSize = pool_size))
+    })(cp => UIO{
+      logger.info("Closing connection pool")
+      ConnectionPool.close()
+    })
 
+  def createConnectionPoolLayer(db: JDBC, pool_size: Int = 2): Layer[Throwable,CPEnv] = 
+    ZLayer.fromManaged(createConnectionPool(db, pool_size))
+
+  val liveDB: ZLayer[CPEnv, Throwable, DBEnv] = ZLayer.fromService { _ =>
+    new Service {
+      
       // ad-hoc session provider on the REPL
       implicit val session: DBSession = AutoSession
 
@@ -243,5 +255,5 @@ private[db] object ScalaLikeImplementation extends  ApplicationLogger {
       override def executeQuery(query: String): IO[DBException, Unit] = ???
       override def executeQueryWithSingleResponse[T: Read](credential_name: String): IO[DBException, T] = ???
     }
-  )
+  }
 }

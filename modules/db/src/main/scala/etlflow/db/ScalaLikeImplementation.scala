@@ -250,10 +250,34 @@ private[db] object ScalaLikeImplementation extends  ApplicationLogger {
               DBException(e.getMessage)
           }).unit
       }
-
+      
+      override def executeQueryWithSingleResponse[T : Read](query: String): IO[Throwable, T] = ???
+      
       override def executeQueryWithResponse[T <: Product : Read](query: String): IO[DBException, List[T]] = ???
-      override def executeQuery(query: String): IO[DBException, Unit] = ???
-      override def executeQueryWithSingleResponse[T: Read](credential_name: String): IO[DBException, T] = ???
+      
+      override def executeQuery(query: String): IO[DBException, Unit] = 
+        Task(DB readOnly { _ =>
+          scalikejdbc.SQL(query)
+          .update()
+          .apply()
+        }).mapError({
+            e =>
+              logger.error(e.getMessage)
+              DBException(e.getMessage)
+          }).unit
+          
+      override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, T] = 
+        Task(DB readOnly { _ =>
+          scalikejdbc.SQL(query)
+          .map(fn)
+          .single()
+          .apply()
+          .get
+        }).mapError({
+            e =>
+              logger.error(e.getMessage)
+              DBException(e.getMessage)
+          })
     }
   }
 }

@@ -8,8 +8,10 @@ import zio.test._
 object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
 
   val jobDbAll = List(JobDBAll("Job1","","",0,0,true,None), JobDBAll("Job2","","",0,0,false,None), JobDBAll("Job3","","",0,0,true,None))
-  val stepRun = List(StepRun("a27a7415-57b2-4b53-8f9b-5254e847a301","download_spr","{}","pass","1970-01-01 00:20:34 UTC","1.6 mins","GenericEtlStep","123"))
-  val jobRun = List(
+  val stepRuns = List(
+      StepRun("a27a7415-57b2-4b53-8f9b-5254e847a301","download_spr","{}","pass","1970-01-01 00:20:34 UTC","1.6 mins","GenericEtlStep","123")
+    )
+  val jobRuns = List(
       JobRun("a27a7415-57b2-4b53-8f9b-5254e847a301","EtlJobDownload","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true"),
       JobRun("a27a7415-57b2-4b53-8f9b-5254e847a302","EtlJobSpr","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true")
     )
@@ -31,13 +33,13 @@ object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
         assertM(DBApi.getJobs.map(x => x))(equalTo(jobDbAll))
       ),
       testM("getStepRuns Test")(
-        assertM(DBApi.getStepRuns(DbStepRunArgs("a27a7415-57b2-4b53-8f9b-5254e847a301")).map(x => x))(equalTo(stepRun))
+        assertM(DBApi.getStepRuns(DbStepRunArgs("a27a7415-57b2-4b53-8f9b-5254e847a301")).map(x => x.sortBy(_.job_run_id)))(equalTo(stepRuns.sortBy(_.job_run_id)))
       ),
       testM("getJobRuns Test")(
-        assertM(DBApi.getJobRuns(DbJobRunArgs(None, None,None,None,None,10L,0L)).map(x => x))(equalTo(jobRun))
+        assertM(DBApi.getJobRuns(DbJobRunArgs(None, None,None,None,None,10L,0L)).map(x => x.sortBy(_.job_name)))(equalTo(jobRuns.sortBy(_.job_name)))
       ),
       testM("getJobLogs Test")(
-        assertM(DBApi.getJobLogs(JobLogsArgs(None,Some(10L))).map(x => x))(equalTo(jobLogs))
+        assertM(DBApi.getJobLogs(JobLogsArgs(None,Some(10L))).map(x => x.sortBy(_.job_name)))(equalTo(jobLogs.sortBy(_.job_name)))
       ),
       testM("getCredentials Test")(
         assertM(DBApi.getCredentials.map(x => x))(equalTo(getCredential))
@@ -72,8 +74,11 @@ object ScalaLikeJdbcTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
       testM("refreshJobs Test")(
         assertM(DBApi.refreshJobs(List(EtlJob("Job1",Map.empty))).map(x => x))(equalTo(List(JobDB("Job1","",true))))
       ),
-//      testM("executeQuery Test")(
-//        assertM(DBApi.executeQuery("""INSERT INTO userinfo(user_name,password,user_active,user_role) values ('admin1','admin',true,'admin')""").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
-//      ),
+      testM("executeQuery Test")(
+        assertM(DBApi.executeQuery("""INSERT INTO userinfo(user_name,password,user_active,user_role) values ('admin1','admin',true,'admin')""").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      ),
+      testM("executeQuerySingleOutput Test")(
+        assertM(DBApi.executeQuerySingleOutput("""SELECT user_name FROM userinfo LIMIT 1""")(rs => rs.string("user_name")).foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo("admin"))
+      ),
     ) @@ TestAspect.sequential).provideCustomLayerShared(layer)
 }

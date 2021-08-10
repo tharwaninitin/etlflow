@@ -1,6 +1,7 @@
 package etlflow.db
 
 import doobie.util.Read
+import scalikejdbc.WrappedResultSet
 import zio.{IO, ZIO}
 
 private[etlflow] object DBApi {
@@ -28,6 +29,7 @@ private[etlflow] object DBApi {
     def executeQueryWithResponse[T <: Product : Read](query: String): IO[Throwable, List[T]]
     def executeQuery(query: String): IO[Throwable, Unit]
     def executeQueryWithSingleResponse[T : Read](query: String): IO[Throwable, T]
+    def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, T] = ???
   }
 
   def getUser(user_name: String): ZIO[DBEnv, Throwable, UserDB] = ZIO.accessM(_.get.getUser(user_name))
@@ -50,4 +52,5 @@ private[etlflow] object DBApi {
   def executeQueryWithResponse[T <: Product : Read](query: String): ZIO[DBEnv, Throwable, List[T]] = ZIO.accessM(_.get.executeQueryWithResponse(query))
   def executeQuery(query: String): ZIO[DBEnv, Throwable, Unit] = ZIO.accessM(_.get.executeQuery(query))
   def executeQueryWithSingleResponse[T : Read](query: String):ZIO[DBEnv, Throwable, T] = ZIO.accessM(_.get.executeQueryWithSingleResponse(query))
+  def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T):ZIO[DBEnv, Throwable, T] = ZIO.accessM(_.get.executeQuerySingleOutput(query)(fn))
 }

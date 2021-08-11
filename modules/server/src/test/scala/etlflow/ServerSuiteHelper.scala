@@ -5,17 +5,17 @@ import etlflow.api.{APIEnv, Implementation}
 import etlflow.cache.{CacheApi, CacheEnv}
 import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.crypto.CryptoEnv
-import etlflow.db.{DBEnv, liveDBWithTransactor}
+import etlflow.db.{DBEnv, liveDB}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
 import etlflow.json.JsonEnv
 import etlflow.log.LoggerEnv
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.{Configuration, ReflectAPI => RF}
+import etlflow.utils.Configuration
 import etlflow.webserver.Authentication
+import zio.Runtime.default.unsafeRun
 import zio.blocking.Blocking
 import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
-import zio.Runtime.default.unsafeRun
 
 trait ServerSuiteHelper {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
@@ -40,7 +40,7 @@ trait ServerSuiteHelper {
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
   val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] = Implementation.live[MEJP](auth, executor, List.empty, supervisor, jobStatsCache)
-  val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDBWithTransactor(config.db)
+  val testDBLayer: ZLayer[Blocking, Throwable, DBEnv] = liveDB(config.db)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
   val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live(skey)
   val testCacheLayer: ZLayer[Blocking, Throwable, CacheEnv] = cache.Implementation.live

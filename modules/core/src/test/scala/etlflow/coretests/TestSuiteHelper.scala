@@ -1,7 +1,7 @@
 package etlflow.coretests
 
 import etlflow.EtlJobProps
-import etlflow.db.{RunDbMigration, liveDBWithTransactor}
+import etlflow.db.{RunDbMigration, liveDB}
 import etlflow.etljobs.EtlJob
 import etlflow.utils.{ApplicationLogger, Configuration}
 
@@ -16,7 +16,7 @@ trait TestSuiteHelper extends ApplicationLogger {
 
   val loggerLayer = etlflow.log.Implementation.live(config.slack)
 
-  val fullLayer = liveDBWithTransactor(config.db) ++ jsonLayer ++ cryptoLayer ++ loggerLayer
+  val fullLayer = liveDB(config.db) ++ jsonLayer ++ cryptoLayer ++ loggerLayer
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 

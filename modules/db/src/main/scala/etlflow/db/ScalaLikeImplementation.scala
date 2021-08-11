@@ -1,6 +1,5 @@
 package etlflow.db
 
-import doobie.util.Read
 import etlflow.db.DBApi.Service
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.ApplicationLogger
@@ -13,7 +12,7 @@ private[db] object ScalaLikeImplementation extends ApplicationLogger {
 
   private def createConnectionPool(db: JDBC, pool_name: String = "EtlFlowPool", pool_size: Int = 2): Managed[Throwable, String] = 
     Managed.make(Task{
-      logger.info(s"Creating connection pool $pool_name")
+      logger.info(s"Creating connection pool $pool_name with driver ${db.driver} with pool size $pool_size")
       Class.forName(db.driver)
       ConnectionPool.add(pool_name, db.url, db.user, db.password, ConnectionPoolSettings(maxSize = pool_size))
       pool_name
@@ -22,10 +21,10 @@ private[db] object ScalaLikeImplementation extends ApplicationLogger {
       ConnectionPool.close(pool_name)
     }.orDie)
 
-  def cpLayer(db: JDBC, pool_name: String = "EtlFlowPool", pool_size: Int = 2): Layer[Throwable, Has[String]] = 
+  def cpLayer(db: JDBC, pool_name: String, pool_size: Int): Layer[Throwable, Has[String]] =
     ZLayer.fromManaged(createConnectionPool(db, pool_name, pool_size))
 
-  val liveDB: ZLayer[Has[String], Throwable, DBEnv] = ZLayer.fromService { pool_name =>
+  val dbLayer: ZLayer[Has[String], Throwable, DBEnv] = ZLayer.fromService { pool_name =>
     new Service {
     
       override def getUser(name: String): IO[DBException, UserDB] = {
@@ -277,11 +276,7 @@ private[db] object ScalaLikeImplementation extends ApplicationLogger {
               DBException(e.getMessage)
           }).unit
       }
-      
-      override def executeQueryWithSingleResponse[T : Read](query: String): IO[Throwable, T] = ???
-      
-      override def executeQueryWithResponse[T <: Product : Read](query: String): IO[DBException, List[T]] = ???
-      
+
       override def executeQuery(query: String): IO[DBException, Unit] = 
         Task(
           NamedDB(pool_name) localTx { implicit s =>
@@ -307,6 +302,19 @@ private[db] object ScalaLikeImplementation extends ApplicationLogger {
               logger.error(e.getMessage)
               DBException(e.getMessage)
           })
+
+      override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, List[T]] =
+        Task(
+          NamedDB(pool_name) localTx { implicit s =>
+            scalikejdbc.SQL(query)
+              .map(fn)
+              .list()
+              .apply()
+          }).mapError({
+          e =>
+            logger.error(e.getMessage)
+            DBException(e.getMessage)
+        })
     }
   }
 }

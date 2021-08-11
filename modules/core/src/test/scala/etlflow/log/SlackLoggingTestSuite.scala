@@ -1,12 +1,13 @@
 package etlflow.log
 
 import etlflow.coretests.TestSuiteHelper
-import etlflow.db.liveDBWithTransactor
+import etlflow.db.liveDB
 import etlflow.etlsteps.GenericETLStep
 import etlflow.schema.{LoggingLevel, Slack}
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{UIO, ZIO}
+
 import java.util.TimeZone
 
 object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
@@ -37,7 +38,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
     transform_function = processData,
   )
 
-  val env = liveDBWithTransactor(config.db) ++ jsonLayer ++ cryptoLayer
+  val env = liveDB(config.db) ++ jsonLayer ++ cryptoLayer
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("EtlFlow Slack Log Suite")(

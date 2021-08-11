@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.db.{DBApi, liveDBWithTransactor}
+import etlflow.db.{DBApi, liveDB}
 import etlflow.schema.Credential.JDBC
 import etlflow.schema.LoggingLevel
 import zio.RIO
@@ -13,7 +13,7 @@ class DBQueryStep private(val name: String, query: => String, credentials: JDBC,
     logger.info("#"*100)
     logger.info(s"Starting DB Query Step: $name")
     logger.info(s"Query: $query")
-    DBApi.executeQuery(query).provideLayer(liveDBWithTransactor(credentials, name + "-Pool", pool_size))
+    DBApi.executeQuery(query).provideLayer(liveDB(credentials, name + "-Pool", pool_size))
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)

@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.crypto.CryptoApi
-import etlflow.db.{DBApi, RunDbMigration, liveDBWithTransactor}
+import etlflow.db.{DBApi, RunDbMigration, liveDB}
 import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
@@ -28,7 +28,7 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
           val key = config.webserver.flatMap(_.secretKey)
           val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live(key))
           val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
-          val dbLayer = liveDBWithTransactor(config.db)
+          val dbLayer = liveDB(config.db)
           DBApi.executeQuery(query).provideCustomLayer(dbLayer)
         case ec if ec.add_user && ec.user == "" =>
           logger.error(s"Need to provide args --user")
@@ -56,7 +56,7 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
           logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
           val jri = if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
-          val dbLayer = liveDBWithTransactor(config.db,"Job-" + ec.job_name + "-Pool",2)
+          val dbLayer = liveDB(config.db,"Job-" + ec.job_name + "-Pool",2)
           val jsonLayer = json.Implementation.live
           val cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
           val logLayer = log.Implementation.live(config.slack)

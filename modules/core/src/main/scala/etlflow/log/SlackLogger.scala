@@ -59,18 +59,22 @@ private[log] case class SlackLogger(slack: Option[Slack]) extends ApplicationLog
       val conn = new URL(slack_url)
         .openConnection()
         .asInstanceOf[HttpURLConnection]
-      conn.setRequestMethod("POST");
-      conn.setRequestProperty("Content-Type", "application/json");
+      conn.setRequestMethod("POST")
+      conn.setRequestProperty("Content-Type", "application/json")
       conn.setDoOutput(true)
 
-      val out = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream, "UTF-8"));
+      val out = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream, "UTF-8"))
       out.write(s"""{ "text" : "$data" }""")
-      out.flush();
-      out.close();
-      conn.connect();
+      out.flush()
+      out.close()
+      conn.connect()
       logger.info("Sent slack notification. Status code :" + conn.getResponseCode )
     }
   }
+
+  def logStepStart(): Unit = final_step_message = ""
+
+  def logJobStart(): Unit = final_message = ""
 
   def logStepEnd(start_time: Long, job_notification_level: LoggingLevel, etlstep: EtlStep[_, _], error_message: Option[String] = None): Unit = {
     var slackMessageForSteps = ""

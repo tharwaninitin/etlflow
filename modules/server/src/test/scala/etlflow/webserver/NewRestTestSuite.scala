@@ -42,5 +42,5 @@ object NewRestTestSuite extends HttpRunnableSpec(8080) {
         )
       )
       .useNow,
-  ).provideCustomLayer(env)
+  ).provideCustomLayerShared(env)
 }

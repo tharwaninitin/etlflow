@@ -26,10 +26,11 @@ private[etlflow] object DBApi {
     def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[Throwable, Unit]
     def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[Throwable, Unit]
     def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[Throwable, Unit]
-    def executeQueryWithResponse[T <: Product : Read](query: String): IO[Throwable, List[T]]
     def executeQuery(query: String): IO[Throwable, Unit]
-    def executeQueryWithSingleResponse[T : Read](query: String): IO[Throwable, T]
     def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, T] = ???
+    def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, List[T]] = ???
+    def executeQueryWithResponse[T <: Product : Read](query: String): IO[Throwable, List[T]] = ???
+    def executeQueryWithSingleResponse[T : Read](query: String): IO[Throwable, T] = ???
   }
 
   def getUser(user_name: String): ZIO[DBEnv, Throwable, UserDB] = ZIO.accessM(_.get.getUser(user_name))
@@ -49,8 +50,9 @@ private[etlflow] object DBApi {
   def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): ZIO[DBEnv, Throwable, Unit] = ZIO.accessM(_.get.insertStepRun(job_run_id, step_name, props, step_type, step_run_id, start_time))
   def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): ZIO[DBEnv, Throwable, Unit] = ZIO.accessM(_.get.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time))
   def updateJobRun(job_run_id: String, status: String, elapsed_time: String): ZIO[DBEnv, Throwable, Unit] = ZIO.accessM(_.get.updateJobRun(job_run_id, status, elapsed_time))
-  def executeQueryWithResponse[T <: Product : Read](query: String): ZIO[DBEnv, Throwable, List[T]] = ZIO.accessM(_.get.executeQueryWithResponse(query))
   def executeQuery(query: String): ZIO[DBEnv, Throwable, Unit] = ZIO.accessM(_.get.executeQuery(query))
-  def executeQueryWithSingleResponse[T : Read](query: String):ZIO[DBEnv, Throwable, T] = ZIO.accessM(_.get.executeQueryWithSingleResponse(query))
   def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T):ZIO[DBEnv, Throwable, T] = ZIO.accessM(_.get.executeQuerySingleOutput(query)(fn))
+  def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T):ZIO[DBEnv, Throwable, List[T]] = ZIO.accessM(_.get.executeQueryListOutput(query)(fn))
+  def executeQueryWithResponse[T <: Product : Read](query: String): ZIO[DBEnv, Throwable, List[T]] = ZIO.accessM(_.get.executeQueryWithResponse(query))
+  def executeQueryWithSingleResponse[T : Read](query: String):ZIO[DBEnv, Throwable, T] = ZIO.accessM(_.get.executeQueryWithSingleResponse(query))
 }

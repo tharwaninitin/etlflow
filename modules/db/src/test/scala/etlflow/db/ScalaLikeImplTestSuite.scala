@@ -1,7 +1,7 @@
 package etlflow.db
 
 import etlflow.DbSuiteHelper
-import zio.{ZIO, ZLayer}
+import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -15,11 +15,9 @@ object ScalaLikeImplTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
       JobRun("a27a7415-57b2-4b53-8f9b-5254e847a301","EtlJobDownload","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true"),
       JobRun("a27a7415-57b2-4b53-8f9b-5254e847a302","EtlJobSpr","{}","pass","1970-01-01 00:20:34 UTC","","GenericEtlJob","true")
     )
-  case class getDb(name:String)
+  case class TestDb(name:String)
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
-  
-  val layer: ZLayer[Any, Nothing, DBEnv] = (ScalaLikeImplementation.cpLayer(credentials,"TestPool") >>> ScalaLikeImplementation.liveDB).orDie
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("Implementation Suite")(
@@ -80,5 +78,19 @@ object ScalaLikeImplTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
       testM("executeQuerySingleOutput Test")(
         assertM(DBApi.executeQuerySingleOutput("""SELECT user_name FROM userinfo LIMIT 1""")(rs => rs.string("user_name")).foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo("admin"))
       ),
-    ) @@ TestAspect.sequential).provideCustomLayerShared(layer)
+      testM("executeQueryListOutput Test with pg syntax")({
+        val query =
+          """BEGIN;
+               CREATE TABLE jobrun1 as SELECT * FROM jobrun;
+               DELETE FROM jobrun;
+               INSERT INTO jobrun SELECT * FROM jobrun1 LIMIT 1;
+             COMMIT;
+          """.stripMargin
+        assertM(DBApi.executeQuery(query).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      }),
+      testM("executeQueryListOutput Test")({
+        val res: ZIO[DBEnv, Throwable, List[TestDb]] = DBApi.executeQueryListOutput[TestDb]("SELECT job_name FROM job")(rs => TestDb(rs.string("job_name")))
+        assertM(res)(equalTo(List(TestDb("Job1"),TestDb("Job2"))))
+      })
+    ) @@ TestAspect.sequential).provideCustomLayerShared(liveDB(credentials).orDie)
 }

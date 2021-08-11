@@ -2,7 +2,7 @@ package etlflow
 
 import etlflow.api.Schema.QueueDetails
 import etlflow.cache.{CacheApi, CacheEnv}
-import etlflow.db.EtlJob
+import etlflow.db.{EtlJob, liveDB}
 import etlflow.executor.Executor
 import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
@@ -34,7 +34,7 @@ abstract class ServerApp[T <: EJPMType : Tag]
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
-    dbLayer     = db.liveDBWithTransactor(config.db)
+    dbLayer     = liveDB(config.db)
     logLayer    = log.Implementation.live(config.slack)
     cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)

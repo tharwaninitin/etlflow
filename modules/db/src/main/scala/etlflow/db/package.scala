@@ -97,4 +97,6 @@ package object db {
   private[etlflow] def liveDBWithTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
     createTransactor(db, pool_name, pool_size) >>> Implementation.liveDB
 
+  private[etlflow] def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
+    ScalaLikeImplementation.cpLayer(db, pool_name, pool_size) >>> ScalaLikeImplementation.dbLayer
 }

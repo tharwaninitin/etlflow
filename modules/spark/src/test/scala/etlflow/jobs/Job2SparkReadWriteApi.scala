@@ -58,7 +58,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
     credentials = config.db
-  )
+  )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
   def processData2(ip: List[EtlJobRun]): Unit = {
     logger.info("Processing Data")

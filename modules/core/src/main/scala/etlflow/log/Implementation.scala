@@ -24,7 +24,7 @@ object Implementation extends ApplicationLogger{
       override def jobLogStart(start_time: Long, job_type: String, job_name: String, props: String, is_master: String): RIO[DBEnv, Unit] = {
         for{
           _  <- Task(logger.info("Logging job start in db"))
-          _  =  slackLogger.foreach(_.logJobStart())
+//          _  =  slackLogger.foreach(_.logJobStart())
           _  <- DBApi.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
         } yield ()
       }
@@ -46,7 +46,7 @@ object Implementation extends ApplicationLogger{
 
       override def stepLogInit(start_time: Long, etlStep: EtlStep[_,_]): RIO[DBEnv with JsonEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
-        slackLogger.foreach(_.logStepStart())
+//        slackLogger.foreach(_.logStepStart())
         stepLogger.update(start_time, "started", mode = "insert")
       }
 

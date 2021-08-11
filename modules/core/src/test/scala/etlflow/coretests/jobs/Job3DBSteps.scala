@@ -55,7 +55,7 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
     ip.foreach(jr => logger.info(jr.toString))
   }
 
-  private def step2 = GenericETLStep(
+  private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
     name               = "ProcessData",
     transform_function = processData,
   )

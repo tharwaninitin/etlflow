@@ -45,7 +45,6 @@ object Dependencies {
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
     "dev.zio" %% "zio-config" % ZioConfig,
-    "dev.zio" %% "zio-config-magnolia" % ZioConfig,
     "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "com.github.scopt" %% "scopt" % ScoptVersion
   )

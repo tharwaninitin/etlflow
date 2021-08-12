@@ -4,7 +4,7 @@ import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.json.JsonEnv
-import etlflow.log.LoggerEnv
+import etlflow.log.{LoggerEnv, SlackEnv}
 import etlflow.schema.{Executor, LoggingLevel}
 import etlflow.utils.EtlflowError.EtlJobException
 import zio.Tag
@@ -13,7 +13,8 @@ import zio.clock.Clock
 
 package object etlflow {
 
-  type CoreEnv = DBEnv with JsonEnv with CryptoEnv  with LoggerEnv with Blocking with Clock
+  type CoreEnv = DBEnv with JsonEnv with CryptoEnv with LoggerEnv with Blocking with Clock
+  type JobEnv = CoreEnv with SlackEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   trait EtlJobSchema extends Product

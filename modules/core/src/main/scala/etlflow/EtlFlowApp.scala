@@ -59,9 +59,9 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
           val dbLayer = liveDB(config.db,"Job-" + ec.job_name + "-Pool",2)
           val jsonLayer = json.Implementation.live
           val cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
-          val logLayer = log.Implementation.live(config.slack)
+          val logLayer = log.Implementation.live
           localExecutor
-            .executeJob(ec.job_name, ec.job_properties, jri, is_master)
+            .executeJob(ec.job_name, ec.job_properties, config.slack, jri, is_master)
             .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)
         case ec if ec.run_server =>
           logger.info("Starting server")

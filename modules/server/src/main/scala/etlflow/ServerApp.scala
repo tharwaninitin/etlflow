@@ -35,7 +35,7 @@ abstract class ServerApp[T <: EJPMType : Tag]
     executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
     dbLayer     = liveDB(config.db)
-    logLayer    = log.Implementation.live(config.slack)
+    logLayer    = log.Implementation.live
     cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)
     finalLayer   = apiLayer ++ dbLayer ++ cryptoLayer ++ logLayer

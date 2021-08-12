@@ -2,7 +2,7 @@ package etlflow.etljobs
 
 import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
-import etlflow.{CoreEnv, EtlJobProps}
+import etlflow.{EtlJobProps, JobEnv}
 import zio._
 
 trait EtlJob[EJP <: EtlJobProps] extends ApplicationLogger {
@@ -16,5 +16,5 @@ trait EtlJob[EJP <: EtlJobProps] extends ApplicationLogger {
 
   def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit
   def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])]
-  def execute(job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[CoreEnv, Throwable, Unit]
+  def execute(job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[JobEnv, Throwable, Unit]
 }

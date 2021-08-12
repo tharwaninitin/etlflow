@@ -19,7 +19,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
     logger.info("#"*100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
     job_instance.execute(Some(job_run_id), Some("false"))
-      .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv  with  Blocking with Clock](etlflow.log.Implementation.live(None))
+      .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](etlflow.log.Implementation.live ++ etlflow.log.SlackApi.nolog)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

@@ -1,13 +1,17 @@
 package etlflow.log
 
 import etlflow.coretests.TestSuiteHelper
-import etlflow.db.liveDB
+import etlflow.crypto.CryptoEnv
+import etlflow.db.DBEnv
 import etlflow.etlsteps.GenericETLStep
+import etlflow.json.JsonEnv
+import etlflow.log
 import etlflow.schema.{LoggingLevel, Slack}
+import zio.blocking.Blocking
+import zio.clock.Clock
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{UIO, ZIO}
-
 import java.util.TimeZone
 
 object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
@@ -38,7 +42,8 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
     transform_function = processData,
   )
 
-  val env = liveDB(config.db) ++ jsonLayer ++ cryptoLayer
+  def slackLayer = SlackApi.live(Some(Slack(slack_url,slack_env,host_url)))
+  val env = dbLayer ++ jsonLayer ++ cryptoLayer
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("EtlFlow Slack Log Suite")(
@@ -63,11 +68,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
                   :small_blue_diamond:*ProcessData* - (x.xx secs)
               """.stripMargin)
 
-        val slackInfoLevelExecutor =
-          for {
-            slack <- JobExecutor(job_name, jri, Some(Slack(slack_url,slack_env,host_url)), job, LoggingLevel.INFO, true).tapError(ex => UIO(logger.error(ex.getMessage)))
-            _     = logger.info("slack :" + slack.final_message)
-          } yield cleanSlackMessage(slack.final_message)
+        val slackInfoLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.INFO)
+          .tapError(ex => UIO(logger.error(ex.getMessage)))
+          .flatMap(_ => log.SlackApi.getSlackNotification)
+          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .map(cleanSlackMessage)
 
         assertM(slackInfoLevelExecutor)(equalTo(message))
       },
@@ -92,10 +97,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 			                  error -> Failed in processing data
                     """.stripMargin)
 
-        val slackInfoLevelExecutor =
-          for {
-            slack <- JobExecutor(job_name, jri, Some(Slack(slack_url,slack_env,host_url)), job, LoggingLevel.INFO, true).tapError(ex => UIO(logger.error(ex.getMessage)))
-          } yield cleanSlackMessage(slack.final_message)
+        val slackInfoLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.INFO)
+          .tapError(ex => UIO(logger.error(ex.getMessage)))
+          .flatMap(_ => log.SlackApi.getSlackNotification)
+          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .map(cleanSlackMessage)
 
         assertM(slackInfoLevelExecutor)(equalTo(message))
       },
@@ -124,10 +130,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
                                                 | :small_blue_diamond:*ProcessData* - (x.xx secs)
                                                 |""".stripMargin)
 
-        val slackMessageResult =
-          for {
-            slack <- JobExecutor(job_name, jri, Some(Slack(slack_url,slack_env,host_url)), job, LoggingLevel.DEBUG, true).tapError(ex => UIO(logger.error(ex.getMessage)))
-          } yield cleanSlackMessage(slack.final_message)
+        val slackMessageResult = JobExecutor(job_name, jri, job, LoggingLevel.DEBUG)
+          .tapError(ex => UIO(logger.error(ex.getMessage)))
+          .flatMap(_ => log.SlackApi.getSlackNotification)
+          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .map(cleanSlackMessage)
 
         assertM(slackMessageResult)(equalTo(debugMessage))
       },
@@ -155,10 +162,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
                                                        | :small_orange_diamond:*ProcessData* - (x.xx secs)
                                                        |			  error -> Failed in processing data""".stripMargin)
 
-        val slackDebugLevelExecutor =
-          for {
-            slack <- JobExecutor(job_name, jri, Some(Slack(slack_url,slack_env,host_url)), job, LoggingLevel.DEBUG, true).tapError(ex => UIO(logger.error(ex.getMessage)))
-          } yield cleanSlackMessage(slack.final_message)
+        val slackDebugLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.DEBUG)
+          .tapError(ex => UIO(logger.error(ex.getMessage)))
+          .flatMap(_ => log.SlackApi.getSlackNotification)
+          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .map(cleanSlackMessage)
 
         assertM(slackDebugLevelExecutor)(equalTo(debugFailureMessage))
       },
@@ -181,10 +189,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
                                            | :small_blue_diamond:*ProcessData* - (x.xx secs)""".stripMargin)
 
 
-        val slackJobLevelExecutor =
-          for {
-            slack <- JobExecutor(job_name, jri, Some(Slack(slack_url,slack_env,host_url)), job, LoggingLevel.JOB, true).tapError(ex => UIO(logger.error(ex.getMessage)))
-          } yield cleanSlackMessage(slack.final_message)
+        val slackJobLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.JOB)
+          .tapError(ex => UIO(logger.error(ex.getMessage)))
+          .flatMap(_ => log.SlackApi.getSlackNotification)
+          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .map(cleanSlackMessage)
 
         assertM(slackJobLevelExecutor)(equalTo(message))
       },
@@ -207,10 +216,11 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
                                            |                      :small_orange_diamond:*ProcessData* - (x.xx secs)
                                            |			                  error -> Failed in processing data""".stripMargin)
 
-        val slackJobLevelExecutor =
-          for {
-            slack <- JobExecutor(job_name, jri, Some(Slack(slack_url,slack_env,host_url)), job, LoggingLevel.JOB, true).tapError(ex => UIO(logger.error(ex.getMessage)))
-          } yield cleanSlackMessage(slack.final_message)
+        val slackJobLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.JOB)
+          .tapError(ex => UIO(logger.error(ex.getMessage)))
+          .flatMap(_ => log.SlackApi.getSlackNotification)
+          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .map(cleanSlackMessage)
 
         assertM(slackJobLevelExecutor)(equalTo(message))
       }

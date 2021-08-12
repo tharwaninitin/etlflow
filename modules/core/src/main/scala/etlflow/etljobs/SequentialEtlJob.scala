@@ -2,7 +2,7 @@ package etlflow.etljobs
 
 import etlflow.etlsteps._
 import etlflow.schema.LoggingLevel
-import etlflow.{CoreEnv, EtlJobProps}
+import etlflow.{EtlJobProps, JobEnv}
 import zio.{Task, ZIO}
 
 trait SequentialEtlJob[EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
@@ -10,7 +10,7 @@ trait SequentialEtlJob[EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
   def etlStepList: List[EtlStep[Unit,Unit]]
   override val job_type: String =  "SequentialEtlJob"
 
-  final override val job: ZIO[CoreEnv , Throwable, Unit] = for {
+  final override val job: ZIO[JobEnv, Throwable, Unit] = for {
     step_list <- Task.succeed(etlStepList.map(_.execute()))
     job       <- ZIO.collectAll(step_list).unit
   } yield job

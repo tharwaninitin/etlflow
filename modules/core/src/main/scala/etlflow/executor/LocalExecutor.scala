@@ -2,24 +2,26 @@ package etlflow.executor
 
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.json.{JsonApi, JsonEnv}
+import etlflow.log.SlackApi
+import etlflow.schema.Slack
 import etlflow.utils.{ReflectAPI => RF}
 import etlflow.{CoreEnv, EJPMType}
 import zio._
 
 case class LocalExecutor[T <: EJPMType : Tag]() {
 
-  def executeJob(name: String, properties: Map[String, String], job_run_id: Option[String] = None, is_master: Option[String] = None): ZIO[CoreEnv, Throwable, Unit] = {
-    for{
+  def executeJob(name: String, properties: Map[String, String], slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None): ZIO[CoreEnv, Throwable, Unit] = {
+    for {
       ejpm <- RF.getJob[T](name)
       job  = ejpm.etlJob(properties)
-      _    <- Task(
-          job.job_name = ejpm.toString,
-          job.job_enable_db_logging = ejpm.job_enable_db_logging,
-          job.job_send_slack_notification = ejpm.job_send_slack_notification,
-          job.job_notification_level = ejpm.job_notification_level
-      )
+      _    = {
+                job.job_name = ejpm.toString
+                job.job_enable_db_logging = ejpm.job_enable_db_logging
+                job.job_send_slack_notification = ejpm.job_send_slack_notification
+                job.job_notification_level = ejpm.job_notification_level
+            }
       execute <- JsonApi.convertToString[Map[String,String]](ejpm.getProps,List.empty).flatMap(props =>
-        job.execute(job_run_id, is_master, props)
+        job.execute(job_run_id, is_master, props).provideSomeLayer[CoreEnv](SlackApi.live(slack))
       )
     } yield execute
   }

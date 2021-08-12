@@ -8,58 +8,51 @@ import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString}
 import zio.{RIO, Task, UIO, ULayer, ZIO, ZLayer}
 
-object Implementation extends ApplicationLogger{
+object Implementation extends ApplicationLogger {
 
-  def live(slack: Option[Slack]): ULayer[LoggerEnv] = ZLayer.succeed(
+  val live: ULayer[LoggerEnv] = ZLayer.succeed(
 
     new LoggerApi.Service {
 
       var job_run_id: String = null
-      val slackLogger: Option[SlackLogger] = slack.map(s => SlackLogger(Some(s)))
 
       override def setJobRunId(jri: String): UIO[Unit] = UIO{job_run_id = jri}
 
-      override def getSlackLogger: UIO[Option[SlackLogger]] = UIO{slackLogger}
-
       override def jobLogStart(start_time: Long, job_type: String, job_name: String, props: String, is_master: String): RIO[DBEnv, Unit] = {
-        for{
-          _  <- Task(logger.info("Logging job start in db"))
-//          _  =  slackLogger.foreach(_.logJobStart())
-          _  <- DBApi.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
-        } yield ()
+        logger.info("Logging job start in db")
+        DBApi.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
       }
 
-      override def jobLogSuccess(start_time: Long, job_run_id: String, job_name: String): RIO[DBEnv, Unit] = {
-        slackLogger.foreach(_.logJobEnd(job_name, job_run_id, LoggingLevel.INFO, start_time))
+      override def jobLogSuccess(start_time: Long, job_run_id: String, job_name: String): RIO[DBEnv with SlackEnv, Unit] = {
         logger.info(s"Logging job completion in db with status pass")
         val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
+        SlackApi.logJobEnd(job_name, job_run_id, LoggingLevel.INFO, start_time) *>
         DBApi.updateJobRun(job_run_id, "pass", elapsed_time)
       }
 
-      override def jobLogError(start_time: Long, job_run_id: String, job_name: String, ex: Throwable): RIO[DBEnv, Unit] = {
-        slackLogger.foreach(_.logJobEnd(job_name, job_run_id, LoggingLevel.INFO, start_time, Some(ex.getMessage)))
+      override def jobLogError(start_time: Long, job_run_id: String, job_name: String, ex: Throwable): RIO[DBEnv with SlackEnv, Unit] = {
         val job_status = "failed with error: " + ex.getMessage
         logger.info(s"Logging job completion in db with status $job_status")
         val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
+        SlackApi.logJobEnd(job_name, job_run_id, LoggingLevel.INFO, start_time, Some(ex.getMessage)) *>
         DBApi.updateJobRun(job_run_id, job_status, elapsed_time)
       }
 
-      override def stepLogInit(start_time: Long, etlStep: EtlStep[_,_]): RIO[DBEnv with JsonEnv, Unit] = {
+      override def stepLogInit(start_time: Long, etlStep: EtlStep[_,_]): RIO[DBEnv with SlackEnv with JsonEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
-//        slackLogger.foreach(_.logStepStart())
         stepLogger.update(start_time, "started", mode = "insert")
       }
 
-      override def stepLogSuccess(start_time: Long, etlStep: EtlStep[_,_]): RIO[DBEnv with JsonEnv, Unit] = {
+      override def stepLogSuccess(start_time: Long, etlStep: EtlStep[_,_]): RIO[DBEnv with SlackEnv with JsonEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
-        slackLogger.foreach(_.logStepEnd(start_time, LoggingLevel.INFO, etlStep))
+        SlackApi.logStepEnd(start_time, LoggingLevel.INFO, etlStep) *>
         stepLogger.update(start_time, "pass")
       }
 
-      override def stepLogError(start_time: Long, etlStep: EtlStep[_,_], ex: Throwable): RIO[DBEnv with JsonEnv, Unit]= {
+      override def stepLogError(start_time: Long, etlStep: EtlStep[_,_], ex: Throwable): RIO[DBEnv with SlackEnv with JsonEnv, Unit]= {
         val stepLogger = new StepLogger(etlStep, job_run_id)
         logger.error("Step Error StackTrace:"+"\n"+ex.getStackTrace.mkString("\n"))
-        slackLogger.foreach(_.logStepEnd(start_time, LoggingLevel.INFO, etlStep, Some(ex.getMessage)))
+        SlackApi.logStepEnd(start_time, LoggingLevel.INFO, etlStep, Some(ex.getMessage)) *>
         stepLogger.update(start_time, "failed", Some(ex.getMessage)) *> Task.fail(new RuntimeException(ex.getMessage))
       }
     }

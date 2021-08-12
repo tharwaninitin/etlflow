@@ -26,7 +26,7 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | Json               | ✅                   | ✅          | ✅          |
 | Cache              | ✅                   | ✅          | ✅          |
 | Crypto             | ✅                   | ✅          | ✅          |
-| Db                 | ✅                   | ✅          | ❌          |
+| Db                 | ✅                   | ✅          | ✅          |
 | Core               | ✅                   | ✅          | ❌          |
 | Server             | ✅                   | ✅          | ❌          |
 | Redis              | ✅                   | ✅          | ❌          |

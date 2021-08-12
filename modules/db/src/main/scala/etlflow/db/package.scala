@@ -1,13 +1,9 @@
 package etlflow
 
-import com.zaxxer.hikari.HikariConfig
-import doobie.hikari.HikariTransactor
 import etlflow.schema.Credential.JDBC
-import zio.blocking.Blocking
-import zio.interop.catz._
-import zio.interop.catz.implicits._
-import zio.{Has, Task, ZLayer}
 import scalikejdbc.{SQLSyntaxSupport, WrappedResultSet}
+import zio.blocking.Blocking
+import zio.{Has, ZLayer}
 
 package object db {
 
@@ -78,25 +74,7 @@ package object db {
       rs.string("state"), rs.string("elapsed_time"),
       rs.string("step_type"), rs.string("step_run_id") ,rs.long("inserted_at"))
   }
-  private[db] type TransactorEnv = Has[HikariTransactor[Task]]
-
-  private def createTransactor(db: JDBC, pool_name: String , pool_size: Int): ZLayer[Blocking, Throwable, TransactorEnv] = ZLayer.fromManaged {
-      val config = new HikariConfig()
-      config.setDriverClassName(db.driver)
-      config.setJdbcUrl(db.url)
-      config.setUsername(db.user)
-      config.setPassword(db.password)
-      config.setMaximumPoolSize(pool_size)
-      config.setPoolName(pool_name)
-      for {
-        rt <- Task.runtime.toManaged_
-        transactor <- HikariTransactor.fromHikariConfig[Task](config, rt.platform.executor.asEC).toManagedZIO
-      } yield transactor
-    }
-
-  private[etlflow] def liveDBWithTransactor(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
-    createTransactor(db, pool_name, pool_size) >>> Implementation.liveDB
 
   private[etlflow] def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
-    ScalaLikeImplementation.cpLayer(db, pool_name, pool_size) >>> ScalaLikeImplementation.dbLayer
+    Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLayer
 }

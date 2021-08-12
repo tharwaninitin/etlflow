@@ -1,10 +1,9 @@
 package etlflow.db
 
-import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object ScalaLikeSqlTestSuite extends DefaultRunnableSpec {
+object SqlTestSuite extends DefaultRunnableSpec {
     override def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("SQL Suite")(
         test("insertJobs Sql")({
@@ -12,7 +11,7 @@ object ScalaLikeSqlTestSuite extends DefaultRunnableSpec {
                 Seq("Job1", "", "", 0, 0, true),
                 Seq("Job2", "", "", 0, 0, true),
             )
-            val ip = ScalaLikeSQL.insertJobs(seq).statement
+            val ip = Sql.insertJobs(seq).statement
             val op = """insert into Job values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?) ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule"""
             assert(ip)(equalTo(op))
         }),
@@ -21,7 +20,7 @@ object ScalaLikeSqlTestSuite extends DefaultRunnableSpec {
                 Seq("Job1", "", "", 0, 0, true),
                 Seq("Job2", "", "", 0, 0, true),
             )
-            val ip = ScalaLikeSQL.insertJobs(seq).parameters
+            val ip = Sql.insertJobs(seq).parameters
             val op = Seq("Job1", "", "", 0, 0, true,"Job2", "", "", 0, 0, true)
             assert(ip)(equalTo(op))
         })

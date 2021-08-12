@@ -1,24 +1,21 @@
 package etlflow.steps.spark
 
-import doobie.implicits._
-import doobie.util.fragment.Fragment
-import etlflow.{DoobieHelper, TestSparkSession}
-import etlflow.coretests.TestSuiteHelper
+import etlflow.TestSparkSession
 import etlflow.coretests.Schema._
+import etlflow.coretests.TestSuiteHelper
+import etlflow.db.DBApi
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
 import etlflow.schema.Credential.JDBC
-import etlflow.spark.{ReadApi, SparkUDF}
 import etlflow.spark.IOType.{PARQUET, RDB}
+import etlflow.spark.{ReadApi, SparkUDF}
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import zio.Runtime.default.unsafeRun
-import zio.Task
-import zio.interop.catz._
+import zio.ZIO
 
 class SparkStepTestSuite extends AnyFlatSpec
   with should.Matchers
-  with DoobieHelper
   with TestSparkSession
   with SparkUDF
   with TestSuiteHelper {
@@ -52,9 +49,8 @@ class SparkStepTestSuite extends AnyFlatSpec
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)
   val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
   val query: String = s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table"
-  val trans = transactor(config.db.url, config.db.user, config.db.password)
-  val db_task: Task[RatingsMetrics] = Fragment.const(query).query[RatingsMetrics].unique.transact(trans)
-  val db_metrics: RatingsMetrics = unsafeRun(db_task)
+  val db_task: ZIO[zio.ZEnv, Throwable, List[RatingsMetrics]] = DBApi.executeQueryListOutput[RatingsMetrics](s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table")(rs => RatingsMetrics(rs.double("sum_ratings"),rs.long("count_ratings"))).provideCustomLayer(etlflow.db.liveDB(config.db))
+  val db_metrics: RatingsMetrics = unsafeRun(db_task)(0)
 
   "Record counts" should "be matching in transformed DF and DB table " in {
     assert(count_ratings == db_metrics.count_ratings)

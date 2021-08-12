@@ -1,49 +1,14 @@
 package etlflow.db
 
-import cats.data.NonEmptyList
-import doobie.free.connection.ConnectionIO
-import doobie.implicits._
-import doobie.util.meta.Meta
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import org.postgresql.util.PGobject
+import scalikejdbc._
+
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
-private[db] object SQL extends ApplicationLogger {
-
-  implicit val jsonMeta: Meta[JsonString] = Meta.Advanced.other[PGobject]("jsonb").timap[JsonString](o => JsonString(o.getValue))(a => {
-    val o = new PGobject
-    o.setType("jsonb")
-    o.setValue(a.str)
-    o
-  })
-
-  def getUser(name: String): doobie.Query0[UserDB] =
-    sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
-      .query[UserDB]
-
-  def getJob(name: String): doobie.Query0[JobDB] =
-    sql"SELECT job_name, schedule, is_active FROM job WHERE job_name = $name"
-      .query[JobDB]
-
-  def getJobs: doobie.Query0[JobDBAll] =
-    sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
-      .query[JobDBAll]
-
-  def getStepRuns(args: DbStepRunArgs): doobie.Query0[StepRunDB] =
-    sql"""SELECT job_run_id,
-            step_name,
-            properties::TEXT,
-            state,
-            elapsed_time,
-            step_type,
-            step_run_id,
-            inserted_at
-            FROM StepRun
-          WHERE job_run_id = ${args.job_run_id}
-          ORDER BY inserted_at DESC"""
-      .query[StepRunDB]
+private[db] object Sql extends ApplicationLogger {
 
   def getStartTime(startTime:Option[java.time.LocalDate]): Long = {
     val sdf = new SimpleDateFormat("yyyy-MM-dd")
@@ -53,16 +18,48 @@ private[db] object SQL extends ApplicationLogger {
       sdf.parse(LocalDate.now().toString).getTime
   }
 
-  def getJobRuns(args: DbJobRunArgs): doobie.Query0[JobRunDB] = {
+  def JsonConverter(rs: String): PGobject = {
+    val jsonObject = new PGobject()
+    jsonObject.setType("json")
+    jsonObject.setValue(rs)
+    jsonObject
+  }
 
-    var q: doobie.Query0[JobRunDB] = null
+  def getUser(name: String): SQL[Nothing, NoExtractor] =
+    sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
+
+  def getCredentialsWithFilter(credential_name: String):  SQL[Nothing, NoExtractor] =
+    sql"""SELECT value FROM credential WHERE name='$credential_name' and valid_to is null"""
+
+  def getJob(name: String):  SQL[Nothing, NoExtractor] =
+    sql"SELECT job_name, schedule, is_active FROM job WHERE job_name = $name"
+
+  def getJobs: SQL[Nothing, NoExtractor] = sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
+
+  def getStepRuns(job_run_id: String):  SQL[Nothing, NoExtractor] =
+    sql"""SELECT job_run_id,
+            step_name,
+            properties::TEXT,
+            state,
+            elapsed_time,
+            step_type,
+            step_run_id,
+            inserted_at
+            FROM StepRun
+          WHERE job_run_id = $job_run_id
+          ORDER BY inserted_at DESC"""
+
+  def getJobRuns(args: DbJobRunArgs): SQL[Nothing, NoExtractor] = {
+
+    var q: SQL[Nothing, NoExtractor] = null
 
     if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
       val startTime = getStartTime(args.startTime)
-      val endTime =  args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+      val endTime = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       args.filter.get match {
         case "IN" => {
-          q = sql"""
+          q =
+            sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -79,10 +76,10 @@ private[db] object SQL extends ApplicationLogger {
                  AND inserted_at < $endTime
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRunDB]
         }
         case "NOT IN" => {
-          q = sql"""
+          q =
+            sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -99,15 +96,14 @@ private[db] object SQL extends ApplicationLogger {
                  AND inserted_at < ${endTime}
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRunDB]
         }
       }
-      // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
     }
     else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
       args.filter.get match {
         case "IN" => {
-          q = sql"""
+          q =
+            sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -122,10 +118,10 @@ private[db] object SQL extends ApplicationLogger {
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRunDB]
         }
         case "NOT IN" => {
-          q = sql"""
+          q =
+            sql"""
                  SELECT
                    job_run_id,
                      job_name,
@@ -140,14 +136,14 @@ private[db] object SQL extends ApplicationLogger {
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-            .query[JobRunDB]
         }
       }
     }
     else if (args.endTime.isDefined) {
       val startTime = getStartTime(args.startTime)
-      val endTime =  args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-      q = sql"""
+      val endTime = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+      q =
+        sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -163,11 +159,10 @@ private[db] object SQL extends ApplicationLogger {
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        .query[JobRunDB]
-      // logger.info(s"Query Fragment Generated for arguments $args is " + q.toString)
     }
     else {
-      q = sql"""
+      q =
+        sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -181,20 +176,19 @@ private[db] object SQL extends ApplicationLogger {
                  WHERE is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        .query[JobRunDB]
     }
     q
   }
 
-  def getJobLogs(args: JobLogsArgs):  doobie.Query0[JobLogs]  = {
-
-    var q: doobie.Query0[JobLogs] = null
+  def getJobLogs(args: JobLogsArgs): SQL[Nothing, NoExtractor] = {
+    var q: SQL[Nothing, NoExtractor] = null
 
     if (args.filter.isDefined && args.limit.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
       val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
       val end_time2 = getCurrentTimestamp
-      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+      q =
+        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
                             WHEN state = 'pass'
@@ -210,13 +204,13 @@ private[db] object SQL extends ApplicationLogger {
                     GROUP by job_name,state limit ${args.limit}) t
                     GROUP by job_name,state
                   ) t1 GROUP by job_name;""".stripMargin
-        .query[JobLogs] // Query0[String]
     }
     else if (args.filter.isDefined) {
       val sdf = new SimpleDateFormat("yyyy-MM-dd")
       val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
       val end_time2 = getCurrentTimestamp
-      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+      q =
+        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
                           WHEN state = 'pass'
@@ -234,10 +228,10 @@ private[db] object SQL extends ApplicationLogger {
                   GROUP by job_name,state limit 50) t
                   GROUP by job_name,state
                ) t1 GROUP by job_name;""".stripMargin
-        .query[JobLogs] // Query0[String]
     }
     else if (args.limit.isDefined) {
-      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+      q =
+        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                SELECT job_name,
                       CASE
                           WHEN state = 'pass'
@@ -253,10 +247,10 @@ private[db] object SQL extends ApplicationLogger {
                   GROUP by job_name,state limit ${args.limit}) t
                   GROUP by job_name,state
                ) t1 GROUP by job_name;""".stripMargin
-        .query[JobLogs] // Query0[String]
     }
     else {
-      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+      q =
+        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                  SELECT job_name,
                         CASE
                             WHEN state = 'pass'
@@ -272,88 +266,56 @@ private[db] object SQL extends ApplicationLogger {
                     GROUP by job_name,state limit 20) t
                     GROUP by job_name,state
                  ) t1 GROUP by job_name;""".stripMargin
-        .query[JobLogs] // Query0[String]
     }
     q
   }
 
-  def getCredentials: doobie.Query0[GetCredential] =
+  def getCredentials:  SQL[Nothing, NoExtractor] =
     sql"SELECT name, type::TEXT ,valid_from::TEXT FROM credential WHERE valid_to is null;"
-      .query[GetCredential]
 
-  def updateSuccessJob(job: String, ts: Long): doobie.Update0 =
+  def updateSuccessJob(job: String, ts: Long):  SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET success = (success + 1), last_run_time = $ts WHERE job_name = $job"
-      .update
 
-  def updateFailedJob(job: String, ts: Long): doobie.Update0 =
+  def updateFailedJob(job: String, ts: Long) :  SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET failed = (failed + 1), last_run_time = $ts WHERE job_name = $job"
-      .update
 
-  def updateJobState(args: EtlJobStateArgs): doobie.Update0 =
+  def updateJobState(args: EtlJobStateArgs) :  SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
-      .update
 
-  def addCredentials(args: CredentialDB, actualSerializerOutput: JsonString): doobie.Update0 = {
-    sql"INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${actualSerializerOutput})".update
-  }
+  def addCredentials(args: CredentialDB, actualSerializerOutput: JsonString): SQL[Nothing, NoExtractor] =
+    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${JsonConverter(actualSerializerOutput.str)})"""
 
-  def updateCredentials(args: CredentialDB): doobie.Update0 = {
+  def updateCredentials(args: CredentialDB):SQL[Nothing, NoExtractor] =
     sql"""
     UPDATE credential
     SET valid_to = NOW() - INTERVAL '00:00:01'
     WHERE credential.name = ${args.name}
        AND credential.valid_to IS NULL
-    """.stripMargin.update
+    """.stripMargin
+
+  def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor] = {
+    sql"""UPDATE StepRun
+            SET state = $status,
+                properties = ${JsonConverter(props)},
+                elapsed_time = $elapsed_time
+          WHERE job_run_id = $job_run_id AND step_name = $step_name"""
   }
 
-  def updateCredentialSingleTran(args: CredentialDB, actualSerializerOutput: JsonString): ConnectionIO[Unit]  = {
-
-    val singleTran = for {
-      _ <- updateCredentials(args).run
-      _ <- addCredentials(args, actualSerializerOutput).run
-    } yield ()
-
-    singleTran
+  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): SQL[Nothing, NoExtractor] = {
+    sql"""INSERT INTO StepRun (
+           job_run_id,
+           step_name,
+           properties,
+           state,
+           elapsed_time,
+           step_type,
+           step_run_id,
+           inserted_at
+           )
+         VALUES ($job_run_id, $step_name, ${JsonConverter(props)}, 'started', '...', $step_type, $step_run_id, $start_time)"""
   }
 
-  def deleteJobs(jobs: List[JobDB]): doobie.Update0 = {
-    val list = NonEmptyList(jobs.head,jobs.tail).map(x => x.job_name)
-    val query = fr"DELETE FROM job WHERE " ++ doobie.util.fragments.notIn(fr"job_name", list)
-    query.update
-  }
-
-  val insertJobs: doobie.Update[JobDB] = {
-    val sql = """
-       INSERT INTO job AS t (job_name,job_description,schedule,failed,success,is_active)
-       VALUES (?, '', ?, 0, 0, ?)
-       ON CONFLICT (job_name)
-       DO UPDATE SET schedule = EXCLUDED.schedule
-    """
-    doobie.Update[JobDB](sql)
-  }
-
-  val selectJobs: doobie.Query0[JobDB] = {
-    sql"""
-       SELECT job_name, schedule, is_active
-       FROM job
-       """
-      .query[JobDB]
-  }
-
-  def refreshJobsSingleTran(args: List[JobDB]): ConnectionIO[List[JobDB]] = {
-    for {
-      deleted  <- deleteJobs(args).run
-      _        = logger.info(s"Deleted jobs => $deleted")
-      inserted <- insertJobs.updateMany(args)
-      _        = logger.info(s"Inserted/Updated jobs => $inserted")
-      dbjobs   <- selectJobs.to[List]
-    } yield dbjobs
-  }
-
-//  def logGeneral[F[_]: Async](print: Any): F[Unit] = Async[F].pure(logger.info(print.toString))
-//  def logCIO(print: Any): ConnectionIO[Unit] = logGeneral[ConnectionIO](print)
-
-  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): doobie.Update0 = {
+  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): SQL[Nothing, NoExtractor]  = {
     sql"""INSERT INTO JobRun(
             job_run_id,
             job_name,
@@ -364,39 +326,26 @@ private[db] object SQL extends ApplicationLogger {
             is_master,
             inserted_at
             )
-         VALUES ($job_run_id, $job_name, ${JsonString(props)}, 'started', '...', $job_type, $is_master, $start_time)"""
-      .update
+         VALUES ($job_run_id, $job_name,  ${JsonConverter(props)}, 'started', '...', $job_type, $is_master, $start_time)"""
   }
 
-  def updateJobRun(job_run_id: String, status: String, elapsed_time: String): doobie.Update0 = {
+  def updateJobRun(job_run_id: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor]  = {
     sql""" UPDATE JobRun
               SET state = $status,
                   elapsed_time = $elapsed_time
            WHERE job_run_id = $job_run_id"""
-      .update
   }
 
-  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): doobie.Update0 = {
-    sql"""INSERT INTO StepRun (
-            job_run_id,
-            step_name,
-            properties,
-            state,
-            elapsed_time,
-            step_type,
-            step_run_id,
-            inserted_at
-            )
-          VALUES ($job_run_id, $step_name, ${JsonString(props)}, 'started', '...', $step_type, $step_run_id, $start_time)"""
-    .update
+  def deleteJobs(jobs: List[JobDB]): SQL[Nothing, NoExtractor]  = {
+    val list = jobs.map(x => x.job_name)
+    sql"""DELETE FROM job WHERE job_name not in ($list)"""
   }
 
-  def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): doobie.Update0 = {
-    sql"""UPDATE StepRun
-            SET state = $status,
-                properties = ${JsonString(props)},
-                elapsed_time = $elapsed_time
-          WHERE job_run_id = $job_run_id AND step_name = $step_name"""
-      .update
+  def insertJobs(data: Seq[Seq[Any]]): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
+    insert.into(JobDBAll)
+    .multipleValues(data:_*)
+    .append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
   }
+
+  val selectJobs: SQL[Nothing, NoExtractor] = sql"""SELECT job_name, schedule, is_active FROM job"""
 }

@@ -58,12 +58,12 @@ lazy val serverSettings = Seq(
   name := "etlflow-server",
   crossScalaVersions := scala2Versions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
-  libraryDependencies ++= serverLibs ++ zioTestLibs,
+  libraryDependencies ++= serverLibs ++ zioTestLibs
 )
 
 lazy val dbSettings = Seq(
   name := "etlflow-db",
-  crossScalaVersions := scala2Versions,
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++=  dbLibs ++ zioTestLibs ++ dbTestLibs,
 )
 

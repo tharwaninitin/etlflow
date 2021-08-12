@@ -40,6 +40,7 @@ object Dependencies {
   val BcryptVersion = "0.4.3"
   val CaffeineCacheVersion = "2.9.0"
   val ScalaTestVersion = "3.2.9"
+  val ScalaLikeJdbcVersion = "4.0.0-RC2"
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
@@ -76,18 +77,9 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio"       %% "zio"                % ZioVersion,
-    "dev.zio"       %% "zio-interop-cats"   % ZioCatsInteropVersion,
-    "co.fs2"        %% "fs2-core"           % Fs2Version,
-    "co.fs2"        %% "fs2-io"             % Fs2Version,
-    "org.typelevel" %% "cats-core"          % CatsCoreVersion,
-    "org.typelevel" %% "cats-effect"        % CatsEffectVersion,
-    "org.typelevel" %% "cats-effect-kernel" % CatsEffectVersion,
-    "org.typelevel" %% "cats-effect-std"    % CatsEffectVersion,
-    "org.tpolecat"  %% "doobie-core"        % DoobieVersion,
-    "org.tpolecat"  %% "doobie-postgres"    % DoobieVersion,
-    "org.tpolecat"  %% "doobie-hikari"      % DoobieVersion,
+    "org.scalikejdbc" %% "scalikejdbc"      % ScalaLikeJdbcVersion,
+    "org.postgresql" % "postgresql" % PgVersion,
     "org.flywaydb"   % "flyway-core"        % FlywayVersion,
-    "org.scalikejdbc" %% "scalikejdbc"      % "3.5.0"
   )
 
   lazy val httpLibs = List(
@@ -104,7 +96,8 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
     "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
-    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion excludeAll(
+      ExclusionRule(organization = "org.scala-lang.modules")),
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
   )
 
@@ -161,7 +154,6 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val dbTestLibs = List(
-    "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
     "org.scalatest" %% "scalatest" % ScalaTestVersion,
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
   ).map(_ % Test)

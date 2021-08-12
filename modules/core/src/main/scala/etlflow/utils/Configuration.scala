@@ -17,7 +17,7 @@ object Configuration {
     |@| set("allowedOrigins")(string).optional )(WebServer.apply, WebServer.unapply)
 
 
-  val nonAutomatic =
+  val applicationConf =
     (nested("db")(db) |@|
       string("timezone").optional |@|
       nested("slack")(slack).optional |@|
@@ -28,5 +28,5 @@ object Configuration {
 
   lazy val config: IO[ReadError[String], Config] =
     TypesafeConfigSource.fromDefaultLoader
-      .flatMap(source => ZIO.fromEither(read(nonAutomatic from source)))
+      .flatMap(source => ZIO.fromEither(read(applicationConf from source)))
 }

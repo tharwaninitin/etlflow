@@ -21,16 +21,6 @@ object Schema {
 
   case class Student(id: String, name: String, `class`: Option[String])
 
-  // circe decoder for HttpBinResponse
-  object HttpBinResponse {
-    implicit val httpBinResponseDecoder = deriveDecoder[HttpBinResponse]
-  }
-
-  // circe decoder for Student
-  object Student {
-    implicit val studentDecoder = deriveDecoder[Student]
-  }
-
   private val canonical_path = new java.io.File(".").getCanonicalPath
 
   case class EtlJob1Props() extends EtlJobProps

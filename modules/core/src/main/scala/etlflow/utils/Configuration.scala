@@ -1,30 +1,47 @@
 package etlflow.utils
 
-import etlflow.schema.Config
+import etlflow.schema.{Config, WebServer, _}
 import zio.{IO, ZIO}
 import zio.config.typesafe.TypesafeConfigSource
+import etlflow.schema.Credential.JDBC
 import zio.config._
 import ConfigDescriptor._
-import etlflow.schema.Credential.JDBC
-import etlflow.schema._
 
 object Configuration {
 
-  val db: ConfigDescriptor[JDBC] = (string("url") |@| string("user") |@| string("password") |@| string("driver"))(JDBC.apply, JDBC.unapply)
-  val dataprocSpark = (string("mainclass") |@| list("deplibs")(string))(DataprocSpark.apply, DataprocSpark.unapply)
-  val slack = (string("url") |@| string("env") |@| string("host"))(Slack.apply, Slack.unapply)
-  val webServer = (string("ip_address").optional |@| int("port").optional |@| string("secretKey").optional
-    |@| set("allowedOrigins")(string).optional )(WebServer.apply, WebServer.unapply)
+  val db: ConfigDescriptor[JDBC] = (
+    string("url") |@|
+      string("user") |@|
+      string("password") |@|
+      string("driver")
+    )(JDBC.apply, b => Some(b.url, b.user, b.password, b.driver))
 
+  val dataprocSpark: ConfigDescriptor[DataprocSpark] = (
+    string("mainclass") |@|
+      list("deplibs")(string)
+    )(DataprocSpark.apply, b => Some(b.mainclass, b.deplibs))
 
-  val applicationConf =
-    (nested("db")(db) |@|
+  val slack: ConfigDescriptor[Slack] = (
+    string("url") |@|
+      string("env") |@|
+      string("host")
+    )(Slack.apply, b => Some(b.url, b.env, b.host))
+
+  val webServer: ConfigDescriptor[WebServer] = (
+    string("ip_address").optional |@|
+      int("port").optional |@|
+      string("secretKey").optional |@|
+      set("allowedOrigins")(string).optional
+    )(WebServer.apply, b => Some(b.ip_address, b.port, b.secretKey, b.allowedOrigins))
+
+  val applicationConf: ConfigDescriptor[Config]  = (
+    nested("db")(db) |@|
       string("timezone").optional |@|
       nested("slack")(slack).optional |@|
       nested("dataproc")(dataprocSpark).optional |@|
       list("token")(string).optional |@|
       nested("webserver")(webServer).optional
-      )(Config.apply, Config.unapply)
+    )(Config.apply, b => Some(b.db, b.timezone, b.slack, b.dataproc, b.token, b.webserver))
 
   lazy val config: IO[ReadError[String], Config] =
     TypesafeConfigSource.fromDefaultLoader

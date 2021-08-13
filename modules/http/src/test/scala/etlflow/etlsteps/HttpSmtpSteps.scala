@@ -6,6 +6,7 @@ import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
 import etlflow.schema.Credential.SMTP
 import etlflow.utils.HttpMethod
+import io.circe.generic.auto._
 
 case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 

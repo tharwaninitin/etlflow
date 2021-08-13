@@ -17,6 +17,6 @@ case class Job5EtlflowJobSteps(job_properties: EtlJob1Props) extends GenericEtlJ
   )
 
   override val job = for {
-    -       <- step1.execute()
+    -       <- step1.execute(())
   } yield ()
 }

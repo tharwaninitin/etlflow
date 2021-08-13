@@ -28,10 +28,23 @@ jobs:
       with:
         java-version: 14
     - name: Run Core Tests
-      run: sbt ";project core; test:runMain etlflow.coretests.LoadData initdb; +test;"
+      run: sbt ";project core; +Test/compile;"
       env:
         LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
         LOG_DB_USER: etlflow
         LOG_DB_PWD: etlflow
         LOG_DB_DRIVER: org.postgresql.Driver
-
+    - name: Run Core Tests
+      run: sbt ";project core; test:runMain etlflow.coretests.LoadData initdb; ++2.12.14 test;"
+      env:
+        LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
+        LOG_DB_USER: etlflow
+        LOG_DB_PWD: etlflow
+        LOG_DB_DRIVER: org.postgresql.Driver
+    - name: Run Core Tests
+      run: sbt ";project core; test:runMain etlflow.coretests.LoadData initdb; ++2.13.6 test;"
+      env:
+        LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
+        LOG_DB_USER: etlflow
+        LOG_DB_PWD: etlflow
+        LOG_DB_DRIVER: org.postgresql.Driver

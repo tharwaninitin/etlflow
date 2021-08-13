@@ -44,7 +44,8 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" % ZioConfig,
+    "dev.zio" %% "zio-config" % ZioConfig excludeAll(
+      ExclusionRule(organization = "org.scala-lang.modules")),
     "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "com.github.scopt" %% "scopt" % ScoptVersion
   )
@@ -95,8 +96,7 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
     "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
-    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion excludeAll(
-      ExclusionRule(organization = "org.scala-lang.modules")),
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
   )
 

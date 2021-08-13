@@ -38,7 +38,7 @@ lazy val commonSettings = Seq(
 
 lazy val coreSettings = Seq(
   name := "etlflow-core",
-  crossScalaVersions := scala2Versions,
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
 )
 

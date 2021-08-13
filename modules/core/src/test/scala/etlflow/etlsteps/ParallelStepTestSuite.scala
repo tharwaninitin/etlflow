@@ -41,7 +41,7 @@ object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         val parstep = ParallelETLStep("ParallelStep")(step1, step2)
 
         val job = for {
-          _ <- parstep.process().provideCustomLayer(fullLayer)
+          _ <- parstep.process(()).provideCustomLayer(fullLayer)
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

@@ -42,8 +42,8 @@ object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper 
         )
 
         val job = for {
-          _ <- step1.process().provideCustomLayer(fullLayer)
-          _ <- step2.process().provideCustomLayer(fullLayer)
+          _ <- step1.process(()).provideCustomLayer(fullLayer)
+          _ <- step2.process(()).provideCustomLayer(fullLayer)
         } yield ()
 
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

@@ -46,7 +46,9 @@ object Dependencies {
     "dev.zio" %% "zio" % ZioVersion,
     "dev.zio" %% "zio-config" % ZioConfig,
     "dev.zio" %% "zio-config-typesafe" % ZioConfig,
-    "com.github.scopt" %% "scopt" % ScoptVersion
+    "com.github.scopt" %% "scopt" % ScoptVersion,
+  ).map(x => x.excludeAll(
+    ExclusionRule(organization = "org.scala-lang.modules"))
   )
 
   lazy val cloudLibs = List(
@@ -76,7 +78,8 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio"       %% "zio"                % ZioVersion,
-    "org.scalikejdbc" %% "scalikejdbc"      % ScalaLikeJdbcVersion,
+    "org.scalikejdbc" %% "scalikejdbc"      % ScalaLikeJdbcVersion excludeAll(
+      ExclusionRule(organization = "org.scala-lang.modules")),
     "org.postgresql" % "postgresql" % PgVersion,
     "org.flywaydb"   % "flyway-core"        % FlywayVersion,
   )
@@ -95,8 +98,7 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
     "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
-    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion excludeAll(
-      ExclusionRule(organization = "org.scala-lang.modules")),
+    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
   )
 

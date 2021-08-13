@@ -11,7 +11,7 @@ trait SequentialEtlJob[EJP <: EtlJobProps] extends GenericEtlJob[EJP] {
   override val job_type: String =  "SequentialEtlJob"
 
   final override val job: ZIO[JobEnv, Throwable, Unit] = for {
-    step_list <- Task.succeed(etlStepList.map(_.execute()))
+    step_list <- Task.succeed(etlStepList.map(_.execute(())))
     job       <- ZIO.collectAll(step_list).unit
   } yield job
 

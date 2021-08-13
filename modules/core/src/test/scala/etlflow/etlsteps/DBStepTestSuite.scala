@@ -45,9 +45,9 @@ object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
         val job = for {
-          _ <- step1.process().provideCustomLayer(fullLayer)
-          _ <- step2.process().provideCustomLayer(fullLayer)
-          _ <- step3.process().provideCustomLayer(fullLayer)
+          _ <- step1.process(()).provideCustomLayer(fullLayer)
+          _ <- step2.process(()).provideCustomLayer(fullLayer)
+          _ <- step3.process(()).provideCustomLayer(fullLayer)
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

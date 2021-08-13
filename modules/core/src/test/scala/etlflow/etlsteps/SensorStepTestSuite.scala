@@ -19,7 +19,7 @@ object SensorStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with
         val step = GenericETLStep(
           name = "ProcessData",
           transform_function = processDataFail,
-        ).process().retry(noThrowable && schedule(1, 5.second)).provideCustomLayer(fullLayer)
+        ).process(()).retry(noThrowable && schedule(1, 5.second)).provideCustomLayer(fullLayer)
 
         assertM(step.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed in processing data"))
       }

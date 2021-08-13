@@ -14,7 +14,7 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
 
   def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
   : ZIO[ZEnv,Throwable,Unit] = {
-    val localExecutor = LocalExecutor[T]
+    val localExecutor = LocalExecutor[T]()
     parser.parse(args, EtlJobConfig()) match {
       case Some(serverConfig) => serverConfig match {
         case ec if ec.init_db =>

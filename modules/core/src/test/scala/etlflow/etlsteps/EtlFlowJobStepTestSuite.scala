@@ -21,7 +21,7 @@ object EtlFlowJobStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper 
         val step = EtlFlowJobStep[EtlJob1Props](
           name = "Test",
           job = Job1HelloWorld(EtlJob1Props()),
-        ).process().retry(noThrowable && schedule(10, 5.second)).provideCustomLayer(fullLayer)
+        ).process(()).retry(noThrowable && schedule(10, 5.second)).provideCustomLayer(fullLayer)
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {

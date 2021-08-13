@@ -31,13 +31,13 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
       name  = "DeleteCredential",
       query = delete_credential_script,
       credentials = config.db
-    ).process()
+    ).process(())
 
   private val addCredStep =  DBQueryStep(
       name  = "AddCredential",
       query = insert_credential_script,
       credentials = config.db
-    ).process()
+    ).process(())
 
   private val creds =  GetCredentialStep[JDBC](
     name  = "GetCredential",
@@ -64,8 +64,8 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
     for {
       _     <- deleteCredStep
       _     <- addCredStep
-      cred  <- creds.execute()
-      op2   <- step1(cred).execute()
+      cred  <- creds.execute(())
+      op2   <- step1(cred).execute(())
       _     <- step2.execute(op2)
     } yield ()
 }

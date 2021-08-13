@@ -57,7 +57,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         val jri = java.util.UUID.randomUUID.toString
         val output_host_url = s"localhost:8080/JobRunDetails/$jri"
 
-        val job = step1.execute()
+        val job = step1.execute(())
 
         val message = cleanSlackMessage(
           f"""
@@ -86,7 +86,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
           transform_function = processDataFail,
         )
 
-        val job = step1.execute()
+        val job = step1.execute(())
 
         val message = cleanSlackMessage(f"""
                     :red_circle: dev-testing - EtlSlackJob Process *Failed!*
@@ -117,8 +117,8 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
         val job =
           for {
-            _   <- step1.execute()
-            _   <- step2.execute()
+            _   <- step1.execute(())
+            _   <- step2.execute(())
           } yield ()
 
         val debugMessage = cleanSlackMessage(s""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
@@ -150,8 +150,8 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
         val job =
           for {
-            _   <- step1.execute()
-            _   <- step2.execute()
+            _   <- step1.execute(())
+            _   <- step2.execute(())
           } yield ()
 
 
@@ -180,7 +180,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
           transform_function = processData,
         )
 
-        val job = step1.execute()
+        val job = step1.execute(())
 
         val message = cleanSlackMessage(s""":large_blue_circle: dev-testing - EtlSlackJob Process *Success!*
                                            |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz
@@ -207,7 +207,7 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
           transform_function = processDataFail,
         )
 
-        val job = step1.execute()
+        val job = step1.execute(())
 
         val message = cleanSlackMessage(s""":red_circle: dev-testing - EtlSlackJob Process *Failed!*
                                            |          *Time of Execution*: xxxx-xx-xx xx:xx:xx$tz

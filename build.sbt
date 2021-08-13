@@ -15,6 +15,8 @@ ThisBuild / scalacOptions ++=
 
 import Dependencies._
 
+val scala_lang_compat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0"
+
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
   scalacOptions ++= {
@@ -28,10 +30,11 @@ lazy val commonSettings = Seq(
     case Some((2, 12)) =>
       Seq(compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
         compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
-        "org.scala-lang" % "scala-reflect" % scala212
-      )
-    case Some((2, 13)) => Seq("org.scala-lang" % "scala-reflect" % scala213)
-    case _ => Seq()
+        "org.scala-lang" % "scala-reflect" % scala212,
+        scala_lang_compat)
+    case Some((2, 13)) => Seq("org.scala-lang" % "scala-reflect" % scala213,
+      scala_lang_compat)
+    case _ => Seq(scala_lang_compat)
   }),
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )

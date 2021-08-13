@@ -44,10 +44,11 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" % ZioConfig excludeAll(
-      ExclusionRule(organization = "org.scala-lang.modules")),
+    "dev.zio" %% "zio-config" % ZioConfig,
     "dev.zio" %% "zio-config-typesafe" % ZioConfig,
-    "com.github.scopt" %% "scopt" % ScoptVersion
+    "com.github.scopt" %% "scopt" % ScoptVersion,
+  ).map(x => x.excludeAll(
+    ExclusionRule(organization = "org.scala-lang.modules"))
   )
 
   lazy val cloudLibs = List(
@@ -77,7 +78,8 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio"       %% "zio"                % ZioVersion,
-    "org.scalikejdbc" %% "scalikejdbc"      % ScalaLikeJdbcVersion,
+    "org.scalikejdbc" %% "scalikejdbc"      % ScalaLikeJdbcVersion excludeAll(
+      ExclusionRule(organization = "org.scala-lang.modules")),
     "org.postgresql" % "postgresql" % PgVersion,
     "org.flywaydb"   % "flyway-core"        % FlywayVersion,
   )

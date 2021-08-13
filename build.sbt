@@ -1,9 +1,7 @@
-lazy val scala212 = "2.12.14"
-lazy val scala213 = "2.13.6"
-lazy val scala3   = "3.0.1"
-lazy val scala2Versions = List(scala212 ,scala213)
-lazy val allScalaVersions = List(scala212, scala213, scala3)
+import Dependencies._
+import Versions._
 
+ThisBuild / version := EtlFlowVersion
 ThisBuild / scalacOptions ++=
   Seq(
     //"-unchecked"
@@ -12,10 +10,6 @@ ThisBuild / scalacOptions ++=
     //, "-feature"
     //, "-deprecation"
   )
-
-import Dependencies._
-
-val scala_lang_compat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0"
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
@@ -28,13 +22,13 @@ lazy val commonSettings = Seq(
   Test / parallelExecution := false,
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) =>
-      Seq(compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
+      Seq(
+        compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
         compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
-        "org.scala-lang" % "scala-reflect" % scala212,
-        scala_lang_compat)
-    case Some((2, 13)) => Seq("org.scala-lang" % "scala-reflect" % scala213,
-      scala_lang_compat)
-    case _ => Seq(scala_lang_compat)
+      )
+    case Some((2, 13)) => Seq()
+    case Some((3, 0)) => Seq()
+    case _ => Seq()
   }),
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
@@ -111,7 +105,6 @@ lazy val cacheSettings = Seq(
   crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= cacheLibs ++ zioTestLibs
 )
-
 
 lazy val awsSettings = Seq(
   name := "etlflow-aws",

@@ -73,30 +73,30 @@ object JsonTestSuite  extends DefaultRunnableSpec {
   val outputDebugLevel = Map("ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
       "ratings_output_dataset" -> "test",
-      "job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+      "job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "debug"
     )
 
   val outputInfoLevel = Map(
-      "job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+      "job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "info",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
       "ratings_output_dataset" -> "test"
     )
 
-  val outputJobLevel = Map("job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+  val outputJobLevel = Map("job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "job",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
       "ratings_output_dataset" -> "test"
     )
 
-  val outputJobLevelNegative = Map("job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+  val outputJobLevelNegative = Map("job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "info",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",

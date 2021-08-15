@@ -20,10 +20,9 @@ case class LocalExecutor[T <: EJPMType : Tag]() {
                 job.job_send_slack_notification = ejpm.job_send_slack_notification
                 job.job_notification_level = ejpm.job_notification_level
             }
-      execute <- JsonApi.convertToString[Map[String,String]](ejpm.getProps,List.empty).flatMap(props =>
-        job.execute(job_run_id, is_master, props).provideSomeLayer[CoreEnv](SlackApi.live(slack))
-      )
-    } yield execute
+      props <- ejpm.getActualPropertiesAsJson(properties)
+      _     <- job.execute(job_run_id, is_master, props).provideSomeLayer[CoreEnv](SlackApi.live(slack))
+    } yield ()
   }
 
   private[etlflow] def showJobProps(name: String): ZIO[JsonEnv, Throwable, Unit] = {
@@ -33,6 +32,13 @@ case class LocalExecutor[T <: EJPMType : Tag]() {
       job_props = ejpm.getProps -- exclude_keys
       _         = println(job_props)
     } yield ()
+  }
+
+  private[etlflow] def getActualJobProps(name: String, properties: Map[String, String]): ZIO[JsonEnv, Throwable, String] = {
+    for {
+      ejpm      <- RF.getJob[T](name)
+      job_props <- ejpm.getActualPropertiesAsJson(properties)
+    } yield (job_props)
   }
 
   private[etlflow] def showJobStepProps(name: String, properties: Map[String, String]): ZIO[JsonEnv, Throwable, Unit] = {

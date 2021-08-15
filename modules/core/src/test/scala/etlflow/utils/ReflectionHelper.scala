@@ -18,7 +18,7 @@ object ReflectionHelper {
   sealed trait EtlJobName
 
   object EtlJobName {
-    case class Job1() extends EtlJobName
+    case class Job1(prop1: String, prop2: Int) extends EtlJobName
     case class Job2() extends EtlJobName
     case class Job3() extends EtlJobName
     case class Job4() extends EtlJobName

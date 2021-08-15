@@ -3,13 +3,14 @@ import etlflow.crypto.CryptoEnv
 import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
-import etlflow.json.JsonEnv
+import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.log.{LoggerEnv, SlackEnv}
 import etlflow.schema.{Executor, LoggingLevel}
 import etlflow.utils.EtlflowError.EtlJobException
-import zio.Tag
+import io.circe.Encoder
 import zio.blocking.Blocking
 import zio.clock.Clock
+import zio.{Tag, ZIO}
 
 package object etlflow {
 
@@ -17,10 +18,9 @@ package object etlflow {
   type JobEnv = CoreEnv with SlackEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
-  trait EtlJobSchema extends Product
-  trait EtlJobProps
+  trait EtlJobProps extends Product
 
-  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: Tag[EJ], tag_EJP: Tag[EJP]) {
+  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: Tag[EJ], tag_EJP: Tag[EJP], encoder: Encoder[EJP]) {
     val job_description: String               = ""
     val job_schedule: String                  = ""
     val job_max_active_runs: Int              = 10
@@ -39,6 +39,10 @@ package object etlflow {
     final def etlJob(job_properties: Map[String, String]): EJ = {
       val props = getActualProperties(job_properties)
       tag_EJ.closestClass.getConstructor(tag_EJP.closestClass).newInstance(props).asInstanceOf[EJ]
+    }
+
+    final def getActualPropertiesAsJson(job_properties: Map[String, String]): ZIO[JsonEnv, Throwable, String] = {
+      JsonApi.convertToString(getActualProperties(job_properties), List.empty)
     }
 
     final def getProps: Map[String,String] = Map(

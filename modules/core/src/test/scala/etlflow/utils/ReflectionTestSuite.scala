@@ -10,8 +10,13 @@ object ReflectionTestSuite {
 
   val spec: ZSpec[environment.TestEnvironment, Any] = {
     suite("Reflect Api")(
-      test("getTypeFullName[MEJP] should should return etlflow.coretests.MyEtlJobPropsMapping") {
+      test("getTypeFullName[MEJP] should return etlflow.coretests.MyEtlJobPropsMapping") {
         assert(RF.getTypeFullName[MEJP])(equalTo("etlflow.coretests.MyEtlJobPropsMapping"))
+      },
+      test("getFields[EtlJobName.Job1] should return map of field names and field types") {
+        val props = RF.getFields[EtlJobName.Job1]
+        val op = Map("prop1" -> "java.lang.String", "prop2" -> "int")
+        assert(props)(equalTo(op))
       },
 //      testM("getSubClasses[EtlJobName] should should retrieve Set successfully") {
 //        assertM(RF.getSubClasses[EtlJobName])(equalTo(Set("Job1", "Job2", "Job3", "Job4", "Job5")))

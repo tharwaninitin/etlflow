@@ -66,8 +66,8 @@ object JsonTestSuite  extends DefaultRunnableSpec{
     "job_retries" -> "0"
   ).toSeq.sortBy(_._2):_*)
 
-  val outputDebugLevel = Map("job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+  val outputDebugLevel = Map("job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "debug",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
@@ -75,24 +75,24 @@ object JsonTestSuite  extends DefaultRunnableSpec{
     )
 
   val outputInfoLevel = Map(
-      "job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+      "job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "info",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
       "ratings_output_dataset" -> "test"
     )
 
-  val outputJobLevel = Map("job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+  val outputJobLevel = Map("job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "job",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
       "ratings_output_dataset" -> "test"
     )
 
-  val outputJobLevelNegative = Map("job_send_slack_notification" -> true,
-      "job_enable_db_logging" -> true,
+  val outputJobLevelNegative = Map("job_send_slack_notification" -> "true",
+      "job_enable_db_logging" -> "true",
       "job_notification_level" -> "info",
       "ratings_output_table_name" -> "ratings_par",
       "ratings_input_path" -> "data/movies/ratings/*",
@@ -102,20 +102,7 @@ object JsonTestSuite  extends DefaultRunnableSpec{
   val expectedserialzerOutput = """{"ratings_input_path":"data/movies/ratings/*","ratings_output_dataset":"test","ratings_output_table_name":"ratings_par","job_send_slack_notification":true,"job_enable_db_logging":true,"job_notification_level":"debug"}""".stripMargin
 
   val expected_json = """{"job_description":"","job_retry_delay_in_minutes":"0","job_retries":"0","job_schedule":"0 30 7 ? * *","job_max_active_runs":"10","job_deploy_mode":"dataproc","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_send_slack_notification":"false","job_notification_level":"info","job_enable_db_logging":"true"}""".stripMargin
-
-  val expected_json1 = """{
-                         |  "job_description" : "",
-                         |  "job_retry_delay_in_minutes" : "0",
-                         |  "job_schedule" : "0 30 7 ? * *",
-                         |  "job_max_active_runs" : "10",
-                         |  "job_deploy_mode" : "dataproc",
-                         |  "job_props_name" : "etlflow.coretests.Schema$EtlJob4Props",
-                         |  "job_name" : "etlflow.coretests.jobs.Job3DBSteps",
-                         |  "job_send_slack_notification" : "false",
-                         |  "job_notification_level" : "info",
-                         |  "job_enable_db_logging" : "true"
-                         |}""".stripMargin
-
+  val expected_json1 = """{"job_description":"","job_retry_delay_in_minutes":"0","job_schedule":"0 30 7 ? * *","job_max_active_runs":"10","job_deploy_mode":"dataproc","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_send_slack_notification":"false","job_notification_level":"info","job_enable_db_logging":"true"}""".stripMargin
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Json Test")(

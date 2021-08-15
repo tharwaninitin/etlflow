@@ -21,8 +21,8 @@ trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
       _               <- LoggerApi.setJobRunId(jri)
       _               <- LoggerApi.jobLogStart(job_start_time, job_type, job_name, props, master_job)
       _               <- job.foldM(
-                            ex => LoggerApi.jobLogError(job_start_time,jri,job_name,ex),
-                            _  => LoggerApi.jobLogSuccess(job_start_time,jri,job_name)
+                            ex => LoggerApi.jobLogError(job_start_time, jri, job_name, ex),
+                            _  => LoggerApi.jobLogSuccess(job_start_time, jri, job_name)
                           )
     } yield ()
   }

@@ -6,6 +6,7 @@ import etlflow.etljobs.EtlJob
 import etlflow.schema.Executor
 import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import io.circe.generic.auto._
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
 

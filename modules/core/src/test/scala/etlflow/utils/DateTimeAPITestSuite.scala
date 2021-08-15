@@ -1,12 +1,11 @@
 package etlflow.utils
 
-import etlflow.coretests.TestSuiteHelper
 import etlflow.utils.DateTimeApi.getTimeDifferenceAsString
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, environment, _}
+import zio.test._
 import java.text.SimpleDateFormat
 
-object DateTimeAPITestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object DateTimeAPITestSuite {
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
   val endTimeDays = sdf.parse("2020-08-21T23:15").getTime
@@ -27,8 +26,8 @@ object DateTimeAPITestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   val actualOutputHrs = getTimeDifferenceAsString(startTimeHrs, endTimeHrs)
   val expectedOutputHrs = "4.43 hrs"
 
-  def spec: ZSpec[environment.TestEnvironment, Any] = {
-    suite("DateTime Api Test Cases")(
+  val spec: ZSpec[environment.TestEnvironment, Any] = {
+    suite("DateTime Api")(
       test("GetTimeDifferenceAsString should  should run successfully for days") {
         assert(actualDaysOutput)(equalTo(expectedDaysOutput))
       },

@@ -6,10 +6,10 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object ReflectionTestSuite extends DefaultRunnableSpec {
+object ReflectionTestSuite {
 
-  def spec: ZSpec[environment.TestEnvironment, Any] = {
-    suite("Reflect Api Test Cases")(
+  val spec: ZSpec[environment.TestEnvironment, Any] = {
+    suite("Reflect Api")(
       test("getTypeFullName[MEJP] should should return etlflow.coretests.MyEtlJobPropsMapping") {
         assert(RF.getTypeFullName[MEJP])(equalTo("etlflow.coretests.MyEtlJobPropsMapping"))
       },

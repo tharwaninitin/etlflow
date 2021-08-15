@@ -1,55 +1,48 @@
 package etlflow.etlsteps
 
-import etlflow.coretests.TestSuiteHelper
+import etlflow.CoreEnv
 import etlflow.crypto.CryptoApi
+import etlflow.schema.Config
 import etlflow.schema.Credential.JDBC
+import io.circe.generic.auto._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.Runtime.default.unsafeRun
-import io.circe.generic.auto._
 
-object CredentialStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+case class CredentialStepTestSuite(config: Config) {
 
-  val dbLog_user = CryptoApi.encrypt(config.db.user).provideCustomLayer(cryptoLayer)
-  val dbLog_password = CryptoApi.encrypt(config.db.password).provideCustomLayer(cryptoLayer)
+  val db_user_password = CryptoApi.encrypt(config.db.user)zip(CryptoApi.encrypt(config.db.password))
 
-  val insert_credential_script =
-    s"""
-      INSERT INTO credential (name,type,value) VALUES(
+  val insert_credential_script = db_user_password.map(tp => s"""
+      INSERT INTO credential (name,type,value) VALUES (
       'etlflow',
       'jdbc',
-      '{"url" : "${config.db.url}", "user" : "${unsafeRun(dbLog_user)}", "password" : "${unsafeRun(dbLog_password)}", "driver" : "org.postgresql.Driver" }'
+      '{"url": "${config.db.url}", "user": "${tp._1}", "password": "${tp._2}", "driver": "org.postgresql.Driver" }'
       )
-      """
+      """)
 
-  val step2 = GetCredentialStep[JDBC](
+  val cred_step = GetCredentialStep[JDBC](
     name = "GetCredential",
     credential_name = "etlflow",
   )
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
     suite("GetCredential Step")(
-      testM("Execute GetCredential step") {
-        val step1 = DBQueryStep(
+      testM("Execute GetCredentialStep") {
+        def step1(script: String) = DBQueryStep(
           name = "AddCredential",
-          query = insert_credential_script,
+          query = script,
           credentials = config.db
         )
-        val step2 = GetCredentialStep[JDBC](
-          name = "GetCredential",
-          credential_name = "etlflow",
-        )
-
         val job = for {
-          _ <- step1.process(()).provideCustomLayer(fullLayer)
-          _ <- step2.process(()).provideCustomLayer(fullLayer)
+          script  <- insert_credential_script
+          _       <- step1(script).process(())
+          _       <- cred_step.process(())
         } yield ()
-
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
-        val props = step2.getStepProperties()
+        val props = cred_step.getStepProperties()
         assert(props)(equalTo(Map("credential_name" -> "etlflow")))
       }
     )

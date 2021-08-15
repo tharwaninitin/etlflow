@@ -1,11 +1,13 @@
 package etlflow.etlsteps
 
-import etlflow.coretests.TestSuiteHelper
+import etlflow.CoreEnv
+import etlflow.schema.Config
+import etlflow.utils.ApplicationLogger
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+case class ParallelStepTestSuite(config: Config) extends ApplicationLogger {
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")
@@ -21,9 +23,9 @@ object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
     transform_function = processData,
   )
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
     suite("Parallel Step")(
-      testM("Execute Parallel step") {
+      testM("Execute ParallelETLStep") {
         def processData(ip: Unit): Unit = {
           logger.info("Hello World")
         }
@@ -41,7 +43,7 @@ object ParallelStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         val parstep = ParallelETLStep("ParallelStep")(step1, step2)
 
         val job = for {
-          _ <- parstep.process(()).provideCustomLayer(fullLayer)
+          _ <- parstep.process(())
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

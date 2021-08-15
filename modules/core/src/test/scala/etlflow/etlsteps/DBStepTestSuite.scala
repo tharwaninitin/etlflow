@@ -1,13 +1,13 @@
 package etlflow.etlsteps
 
 import etlflow.coretests.Schema.EtlJobRun
-import etlflow.coretests.TestSuiteHelper
+import etlflow.schema.Config
 import etlflow.schema.Credential.JDBC
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+case class DBStepTestSuite(config: Config) {
 
   val step2 = DBQueryStep(
     name = "UpdatePG",
@@ -15,9 +15,9 @@ object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
     credentials = JDBC(config.db.url, config.db.user, config.db.password, "org.postgresql.Driver")
   )
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment, Any] =
     suite("DB Steps")(
-      testM("Execute DB step") {
+      testM("Execute DB steps") {
         val create_table_script =
           """
             CREATE TABLE IF NOT EXISTS ratings_par (
@@ -45,9 +45,9 @@ object DBStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
         )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
         val job = for {
-          _ <- step1.process(()).provideCustomLayer(fullLayer)
-          _ <- step2.process(()).provideCustomLayer(fullLayer)
-          _ <- step3.process(()).provideCustomLayer(fullLayer)
+          _ <- step1.process(())
+          _ <- step2.process(())
+          _ <- step3.process(())
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

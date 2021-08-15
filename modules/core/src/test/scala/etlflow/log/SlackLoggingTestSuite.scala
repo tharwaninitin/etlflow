@@ -1,20 +1,20 @@
 package etlflow.log
 
-import etlflow.coretests.TestSuiteHelper
 import etlflow.crypto.CryptoEnv
 import etlflow.db.DBEnv
 import etlflow.etlsteps.GenericETLStep
 import etlflow.json.JsonEnv
-import etlflow.log
+import etlflow.{CoreEnv, log}
 import etlflow.schema.{LoggingLevel, Slack}
+import etlflow.utils.ApplicationLogger
+import zio.UIO
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{UIO, ZIO}
 import java.util.TimeZone
 
-object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object SlackLoggingTestSuite extends ApplicationLogger {
 
   private val tz = TimeZone.getDefault.getDisplayName(false, TimeZone.SHORT)
 
@@ -43,10 +43,9 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
   )
 
   def slackLayer = SlackApi.live(Some(Slack(slack_url,slack_env,host_url)))
-  val env = dbLayer ++ jsonLayer ++ cryptoLayer
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
-    (suite("EtlFlow Slack Log Suite")(
+  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
+    suite("EtlFlow Slack Logger")(
       testM("Execute job with log level INFO - Success Case") {
 
         val step1 = GenericETLStep(
@@ -224,5 +223,5 @@ object SlackLoggingTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
         assertM(slackJobLevelExecutor)(equalTo(message))
       }
-    ) @@ TestAspect.sequential).provideCustomLayerShared((env).orDie)
+    ) @@ TestAspect.sequential
 }

@@ -5,13 +5,12 @@ import etlflow.db.JobDBAll
 import etlflow.scheduler.{parseCron, zoneId}
 import etlflow.utils.DateTimeApi.{getLocalDateTimeFromTimestamp, getTimeDifferenceAsString}
 import org.ocpsoft.prettytime.PrettyTime
-
 import java.time.LocalDateTime
 
 object GetCronJob {
   def apply(schedule: String, jdb: JobDBAll, lastRunTime: String, props: Map[String, String]): Job = {
     val pt = new PrettyTime()
-    val cron = parseCron(schedule)
+    val cron = parseCron(schedule).toOption
     if (cron.isDefined) {
       val startTimeMillis: Long = LocalDateTime.now().atZone(zoneId).toInstant.toEpochMilli
       val endTimeMillis: Option[Long] = Some(cron.get.nextExecution(LocalDateTime.now().atZone(zoneId)).get.toInstant.toEpochMilli)

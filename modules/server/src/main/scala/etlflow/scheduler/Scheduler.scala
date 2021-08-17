@@ -10,9 +10,7 @@ import zio._
 import zio.duration._
 
 private [etlflow] trait Scheduler extends ApplicationLogger {
-  case class EtlFlowCron(name:String, cron: Option[ExecutionTime])
-  case class CronJob(job_name: String, schedule: EtlFlowCron)
-
+  
   final def scheduleJobs(dbCronJobs: List[CronJob]): ServerTask[Unit] = {
     if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
@@ -41,7 +39,7 @@ private [etlflow] trait Scheduler extends ApplicationLogger {
   }
   final def etlFlowScheduler(jobs: List[EtlJob]): ServerTask[Unit] = for {
     dbJobs      <- DBApi.refreshJobs(jobs)
-    cronJobs    =  dbJobs.map(x => CronJob(x.job_name, EtlFlowCron(x.schedule, parseCron(x.schedule)))).filter(_.schedule.cron.isDefined)
+    cronJobs    =  dbJobs.map(x => CronJob(x.job_name, Cron(x.schedule))).filter(_.schedule.cron.isDefined)
     _           <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))
     _           <- UIO(logger.info("Starting scheduler"))
     _           <- scheduleJobs(cronJobs)

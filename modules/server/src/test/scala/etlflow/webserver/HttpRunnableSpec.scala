@@ -7,8 +7,18 @@ import zhttp.http._
 import zhttp.service._
 import zio.test.DefaultRunnableSpec
 import zio.{Chunk, Has, ZIO, ZManaged}
+import etlflow.api.APIEnv
+import etlflow.cache.CacheEnv
+import etlflow.crypto.CryptoEnv
+import etlflow.db.DBEnv
+import etlflow.json.JsonEnv
+import etlflow.log.LoggerEnv
+import zio.ZLayer
+import zio.blocking.Blocking
 
-abstract class HttpRunnableSpec(port: Int) extends DefaultRunnableSpec with ServerSuiteHelper {
+abstract class HttpRunnableSpec(port: Int) {
+
+  type TestAuthEnv = EventLoopGroup with ChannelFactory with zhttp.service.ServerChannelFactory with APIEnv with DBEnv with JsonEnv with CryptoEnv with CacheEnv with LoggerEnv 
 
   def serve[R <: Has[_]](app: RHttpApp[R]): ZManaged[R with EventLoopGroup with ServerChannelFactory, Nothing, Unit] =
     Server.make(Server.app(app) ++ Server.port(port)).orDie

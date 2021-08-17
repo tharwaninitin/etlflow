@@ -12,14 +12,9 @@ import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.Runtime.default.unsafeRun
 import zio.test.Assertion.equalTo
 import zio.test._
+import etlflow.ServerSuiteHelper
 
-
-case class AuthenticationTestSuite(credential: JDBC) extends HttpRunnableSpec(8081) {
-
-  val valid_login = auth.login(UserArgs("admin","admin"))
-  val invalid_login = auth.login(UserArgs("admin","admin1"))
-
-  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (fullLayer).orDie
+case class AuthenticationTestSuite(credential: JDBC, port: Int) extends HttpRunnableSpec(port) with ServerSuiteHelper {
 
   val newRestApi = serve {
     auth.middleware(RestAPI.newRestApi)
@@ -30,17 +25,19 @@ case class AuthenticationTestSuite(credential: JDBC) extends HttpRunnableSpec(80
 
   unsafeRun(CacheApi.put(authCache, cachedToken, cachedToken, Some(default_ttl)).provideCustomLayer(testCacheLayer))
 
-  val spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any] =
     (suiteM("Authentication Test Suite")(
       newRestApi
         .as(
           List(
-            testM("Authentication Test: Valid Login")(
-               assertM(valid_login.map(x=> x.message))(equalTo("Valid User"))
-             ),
-            testM("Authentication Test: Invalid Login")(
-               assertM(invalid_login.map(x=> x.message))(equalTo("Invalid User/Password"))
-             ),
+            testM("Authentication Test: Valid Login"){
+              val valid_login = auth.login(UserArgs("admin","admin"))
+              assertM(valid_login.map(x=> x.message))(equalTo("Valid User"))
+            },
+            testM("Authentication Test: Invalid Login"){
+              val invalid_login = auth.login(UserArgs("admin","admin1"))
+              assertM(invalid_login.map(x=> x.message))(equalTo("Invalid User/Password"))
+            },
             testM("FORBIDDEN response when invalid Authorization header provided.") {
               val actual = statusPost(Root / "restapi" / "runjob" / "Job1", header = Some(List(Header("Authorization","12112112"))))
               assertM(actual)(equalTo(FORBIDDEN))
@@ -72,5 +69,5 @@ case class AuthenticationTestSuite(credential: JDBC) extends HttpRunnableSpec(80
           )
         )
         .useNow
-    )@@ TestAspect.sequential).provideCustomLayer(env)
+    )@@ TestAspect.sequential)
 }

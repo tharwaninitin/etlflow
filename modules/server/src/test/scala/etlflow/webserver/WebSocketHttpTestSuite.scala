@@ -8,16 +8,14 @@ import zio.test.assertCompletes
 import zhttp.http._
 import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.test.Assertion.equalTo
-import zio.test.{ZSpec, assertM, environment}
+import zio.test._
 
-object WebSocketHttpTestSuite extends HttpRunnableSpec(8082) {
-
-  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
+case class WebSocketHttpTestSuite(port: Int) extends HttpRunnableSpec(port) with ServerSuiteHelper {
 
   val wsApi = serve {WebsocketAPI(auth).webSocketApp}
   val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
 
-  override def spec: ZSpec[environment.TestEnvironment, Any]  =
+  val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any]  =
     suiteM("WebSocket Api")(
       wsApi
         .as(
@@ -32,5 +30,5 @@ object WebSocketHttpTestSuite extends HttpRunnableSpec(8082) {
             }
           )
         ).useNow,
-    ).provideCustomLayer(env)
+    )
 }

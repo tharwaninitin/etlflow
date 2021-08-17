@@ -4,15 +4,14 @@ import zhttp.http._
 import zhttp.service.server._
 import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.test.Assertion.equalTo
+import zio.test._
 import zio.test.{ZSpec, assertM, environment}
 
-object NewRestTestSuite extends HttpRunnableSpec(8080) {
-
-  val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (fullLayer).orDie
+case class NewRestTestSuite(port: Int) extends HttpRunnableSpec(port) {
 
   val newRestApi = serve {RestAPI.newRestApi}
 
-  val spec: ZSpec[environment.TestEnvironment, Any]  =
+  val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any]  =
     suiteM("New Rest Api")(
       newRestApi
       .as(
@@ -36,5 +35,5 @@ object NewRestTestSuite extends HttpRunnableSpec(8080) {
         )
       )
       .useNow,
-  ).provideCustomLayerShared(env)
+  )
 }

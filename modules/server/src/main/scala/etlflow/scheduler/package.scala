@@ -6,17 +6,19 @@ import com.cronutils.parser.CronParser
 import zio.clock.{Clock, sleep}
 import zio.duration.Duration
 import zio.{RIO, Schedule, Task, UIO, URIO, ZIO}
-
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.time.temporal.ChronoUnit
 import java.util.TimeZone
 import scala.util.Try
 
 package object scheduler {
+  class Cron(val name: String, val cron: Option[ExecutionTime])
+  object Cron {
+    def apply(cron: String) = new Cron(cron, parseCron(cron).toOption)
+  }
+  case class CronJob(job_name: String, schedule: Cron)
 
-
- /* Our cron definition uses cron expressions that go from seconds to day of week in the following order:
-
+ /* Our cron definition uses below cron expressions that go from seconds to day of week in the following order:
     Seconds	0-59	                    - * /
     Minutes	0-59	                    - * /
     Hours	0-23	                      - * /
@@ -26,8 +28,7 @@ package object scheduler {
     Year (optional)	empty, 1970-2099	- * /
   */
 
-  val  initiateCron =
-    CronDefinitionBuilder.defineCron()
+  val initiateCron = CronDefinitionBuilder.defineCron()
       .withSeconds().withValidRange(0, 59).and()
       .withMinutes().withValidRange(0, 59).and()
       .withHours().withValidRange(0, 23).and()
@@ -40,13 +41,8 @@ package object scheduler {
 
   val zoneId: ZoneId = TimeZone.getDefault.toZoneId
 
-  def parseCron(cron: String): Option[ExecutionTime] = {
-    parseCronTry(cron).toOption
-  }
-
-  def parseCronTry(cron: String): Try[ExecutionTime] = {
-    Try(ExecutionTime.forCron(new CronParser(initiateCron)
-      .parse(cron)))
+  def parseCron(cron: String): Try[ExecutionTime] = {
+    Try(ExecutionTime.forCron(new CronParser(initiateCron).parse(cron)))
   }
 
   def sleepForCron(cronExpr: ExecutionTime): RIO[Clock, Unit] =
@@ -75,7 +71,7 @@ package object scheduler {
   }
 
   def repeatEffectsForCronWithName[R,A](tasks: List[(String,ExecutionTime,URIO[R,A])]): RIO[R with Clock, Unit] = {
-    val scheduled = tasks.map { case (name,cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name) }
+    val scheduled = tasks.map { case (name, cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name) }
     ZIO.collectAllPar_(scheduled)
   }
 }

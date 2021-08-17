@@ -59,8 +59,8 @@ object Dependencies {
     "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
     "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
-    "com.github.alonsodomin.cron4s" %% "cron4s-core" % Cron4sVersion excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
-    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion
+    "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
+    "com.cronutils" % "cron-utils" % CronUtilsVersion,
   )
 
   lazy val sparkLibs = List(

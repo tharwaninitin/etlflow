@@ -1,17 +1,18 @@
 package etlflow.scheduler
 
 import etlflow.ServerSuiteHelper
-import etlflow.db.{EtlJob, RunDbMigration}
+import etlflow.api.ServerEnv
+import etlflow.db.EtlJob
+import etlflow.utils.{ReflectAPI => RF}
 import zio.duration.{Duration => ZDuration}
 import zio.test._
 import zio.test.environment.TestClock
-import etlflow.utils.{ReflectAPI => RF}
+
 import scala.concurrent.duration.{Duration, MINUTES}
 
-object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with Scheduler {
+object SchedulerTestSuite extends ServerSuiteHelper with Scheduler {
 
-  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with TestClock with ServerEnv, Any] =
     (suite("Rest Scheduler Suite")(
       testM("Test scheduler with Job1")(
         for {
@@ -27,6 +28,6 @@ object SchedulerTestSuite extends DefaultRunnableSpec with ServerSuiteHelper wit
       testM("Test scheduler with  jobs")(
         etlFlowScheduler(List(EtlJob("Job1", Map.empty))).as(assertCompletes)
       )
-    ) @@ TestAspect.sequential).provideCustomLayerShared((fullLayer).orDie)
+    ) @@ TestAspect.sequential)
 }
 

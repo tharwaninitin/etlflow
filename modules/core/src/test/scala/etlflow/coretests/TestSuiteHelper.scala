@@ -1,7 +1,5 @@
 package etlflow.coretests
 
-import etlflow.EtlJobProps
-import etlflow.etljobs.EtlJob
 import etlflow.utils.{ApplicationLogger, Configuration}
 
 trait TestSuiteHelper extends ApplicationLogger {

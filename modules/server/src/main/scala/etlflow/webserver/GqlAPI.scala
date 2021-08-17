@@ -4,7 +4,7 @@ import caliban.CalibanError.ExecutionError
 import caliban.GraphQL.graphQL
 import caliban.schema.{GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
-import cron4s.CronExpr
+import com.cronutils.model.time.ExecutionTime
 import etlflow.api.Schema._
 import etlflow.api.Service._
 import etlflow.api.{APIEnv, ServerEnv}
@@ -15,7 +15,7 @@ import zio.ZIO
 
 private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 
-  implicit val cronExprStringSchema: Schema[Any, CronExpr] = Schema.stringSchema.contramap(_.toString)
+  implicit val cronExprStringSchema: Schema[Any, ExecutionTime] = Schema.stringSchema.contramap(_.toString)
 //  implicit val cronExprArgBuilder: ArgBuilder[CronExpr] = {
 //    case StringValue(value) =>
 //      Cron(value).fold(ex => Left(ExecutionError(s"Can't parse $value into a Cron, error ${ex.getMessage}", innerThrowable = Some(ex))), Right(_))

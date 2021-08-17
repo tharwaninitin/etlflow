@@ -2,20 +2,17 @@ package etlflow.webserver
 
 import caliban.Macros.gqldoc
 import etlflow.ServerSuiteHelper
+import etlflow.api.ServerEnv
 import etlflow.db.RunDbMigration
 import etlflow.utils.ApplicationLogger
-import etlflow.webserver.GraphqlTestSuite.testM
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with ApplicationLogger {
+object GraphqlTestSuite extends ServerSuiteHelper with ApplicationLogger {
 
-  val env = (fullLayer).orDie
   val etlFlowInterpreter = GqlAPI.api.interpreter
   val loginInterpreter = GqlLoginAPI.api.interpreter
-  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
-
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
     (suite("GraphQL Test Suite")(
       testM("Test query jobs end point") {
         val query = gqldoc(
@@ -251,5 +248,5 @@ object GraphqlTestSuite extends DefaultRunnableSpec with ServerSuiteHelper with 
         assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.data.toString))(equalTo("""{"run_job":null}""".stripMargin)
         )
       }
-    ) @@ TestAspect.sequential).provideCustomLayerShared(env)
+    ) @@ TestAspect.sequential)
 }

@@ -1,16 +1,19 @@
 package etlflow.db
 
 import etlflow.db.Sql.getStartTime
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import zio.test.Assertion.equalTo
+import zio.test._
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 
-class UtilsTestSuite extends AnyFlatSpec with should.Matchers {
-
+object UtilsTestSuite{
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
-  "Provided Exception" should "return" in {
-    assert(getStartTime(None) == sdf.parse(LocalDate.now().toString).getTime)
+  val spec: ZSpec[environment.TestEnvironment, Any] = {
+    suite("UtilsTestSuite Api")(
+      test("Provided Exception should return") {
+        assert(getStartTime(None))(equalTo(sdf.parse(LocalDate.now().toString).getTime))
+      }
+    )
   }
 }

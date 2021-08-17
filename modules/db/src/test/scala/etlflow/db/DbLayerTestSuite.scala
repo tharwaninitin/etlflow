@@ -1,11 +1,10 @@
 package etlflow.db
 
-import etlflow.DbSuiteHelper
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object DbLayerTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
+object DbLayerTestSuite {
 
   val jobDbAll = List(JobDBAll("Job1","","",0,0,true,None), JobDBAll("Job2","","",0,0,false,None), JobDBAll("Job3","","",0,0,true,None))
   val stepRuns = List(
@@ -19,7 +18,7 @@ object DbLayerTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
     (suite("Implementation Suite")(
       testM("getUser Test")(
         assertM(DBApi.getUser("admin").map(x => x.user_name))(equalTo("admin"))
@@ -92,5 +91,5 @@ object DbLayerTestSuite extends DefaultRunnableSpec with DbSuiteHelper {
         val res: ZIO[DBEnv, Throwable, List[TestDb]] = DBApi.executeQueryListOutput[TestDb]("SELECT job_name FROM job")(rs => TestDb(rs.string("job_name")))
         assertM(res)(equalTo(List(TestDb("Job1"),TestDb("Job2"))))
       })
-    ) @@ TestAspect.sequential).provideCustomLayerShared(liveDB(credentials).orDie)
+    ) @@ TestAspect.sequential)
 }

@@ -10,6 +10,4 @@ trait DbSuiteHelper {
     sys.env.getOrElse("LOG_DB_PWD","root"),
     sys.env.getOrElse("LOG_DB_DRIVER","org.postgresql.Driver")
   )
-
-  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
 }

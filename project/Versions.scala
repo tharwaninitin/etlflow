@@ -46,4 +46,5 @@ object Versions {
   val CaffeineCacheVersion = "2.9.0"
   val ScalaTestVersion = "3.2.9"
   val ScalaLikeJdbcVersion = "4.0.0-RC2"
+  val CronUtilsVersion = "9.1.5"
 }

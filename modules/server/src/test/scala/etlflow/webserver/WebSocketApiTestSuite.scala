@@ -1,12 +1,11 @@
 package etlflow.webserver
 
-import etlflow.ServerSuiteHelper
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zio.clock.Clock
 import zio.test._
 import zio.{UIO, ZIO}
 
-object WebSocketApiTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
+case class WebSocketApiTestSuite(auth: Authentication) {
 
   val ws: WebsocketAPI = WebsocketAPI(auth)
   val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
@@ -15,7 +14,7 @@ object WebSocketApiTestSuite extends DefaultRunnableSpec with ServerSuiteHelper 
     .mapM { producerRecord => UIO(println(producerRecord))}
     .runDrain
 
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("WebSocketApi Test Suite")(
       testM("WebSocketApi Test: InValid Login")(
         testStream("").as(assertCompletes)

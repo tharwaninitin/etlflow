@@ -10,7 +10,7 @@ import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.test.Assertion.equalTo
 import zio.test.{ZSpec, assertM, environment}
 
-object WebSocketHttpTestSuite extends HttpRunnableSpec(8081) with ServerSuiteHelper {
+object WebSocketHttpTestSuite extends HttpRunnableSpec(8082) {
 
   val env = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto ++ (testAPILayer ++ testDBLayer ++ testJsonLayer).orDie
 

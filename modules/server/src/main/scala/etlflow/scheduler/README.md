@@ -1,15 +1,3 @@
-Cron Expression
-====
-
-Our cron definition uses cron expressions that go from seconds to day of week in the following order
-
-* Seconds	0-59	                    - * /
-* Minutes	0-59	                    - * /
-* Hours	0-23	                        - * /
-* Day (of month)	1-31	            * ? / L W
-* Month	1-12 or JAN-DEC	                - * /
-* Day (of week)	1-7 or SUN-SAT	        - * ? / L #
-* Year (optional)	empty, 1970-2099	- * /
 
 ## Cron Reference
 

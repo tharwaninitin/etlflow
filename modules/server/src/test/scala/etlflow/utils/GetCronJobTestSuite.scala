@@ -15,11 +15,11 @@ object GetCronJobTestSuite {
   val job2 = Job("Job1",Map.empty,"0 0 11 ? * *", "", "2 hours from now (2.36 hrs)", 0,0,true,0, "")
 
   val spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("GetCronJob Test Suite")(
-      test("GetCronJob Should return correct Job name time when schedule is provided") {
+    suite("GetCronJob")(
+      test("GetCronJob should return correct Job name time when schedule is provided") {
         assert(getCronJob1.name)(equalTo(job1.name))
       },
-      test("GetCronJob Should return correct Job when schedule is not provided") {
+      test("GetCronJob should return correct Job when schedule is not provided") {
         assert(getCronJob2.nextSchedule)(equalTo(job2.nextSchedule))
       }
     )

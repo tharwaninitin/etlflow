@@ -15,7 +15,7 @@ case class WebSocketApiTestSuite(auth: Authentication) {
     .runDrain
 
   val spec: ZSpec[environment.TestEnvironment, Any] =
-    (suite("WebSocketApi Test Suite")(
+    (suite("WebSocket Api")(
       testM("WebSocketApi Test: InValid Login")(
         testStream("").as(assertCompletes)
       ),

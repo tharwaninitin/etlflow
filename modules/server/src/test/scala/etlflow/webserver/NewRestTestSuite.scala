@@ -12,7 +12,7 @@ case class NewRestTestSuite(port: Int) extends HttpRunnableSpec(port) {
   val newRestApi = serve {RestAPI.newRestApi}
 
   val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any]  =
-    suiteM("New Rest Api")(
+    suiteM("Rest Api")(
       newRestApi
       .as(
         List(

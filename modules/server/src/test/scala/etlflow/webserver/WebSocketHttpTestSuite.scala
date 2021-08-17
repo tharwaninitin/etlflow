@@ -16,7 +16,7 @@ case class WebSocketHttpTestSuite(port: Int) extends HttpRunnableSpec(port) with
   val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
 
   val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any]  =
-    suiteM("WebSocket Api")(
+    suiteM("WebSocket Http Routes")(
       wsApi
         .as(
           List(

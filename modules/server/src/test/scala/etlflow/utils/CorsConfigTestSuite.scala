@@ -12,7 +12,7 @@ object CorsConfigTestSuite {
   val corsConfig3 = CorsConfig(None)
 
   val spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("CorsConfig Test Suite")(
+    suite("CorsConfig")(
       test("CorsConfig should return any origin as false when None is provided") {
         assert(corsConfig1)(equalTo(CORSConfig(anyOrigin = false, allowCredentials = false)))
       },

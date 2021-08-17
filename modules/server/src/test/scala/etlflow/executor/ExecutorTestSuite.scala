@@ -2,7 +2,7 @@ package etlflow.executor
 
 import etlflow.api.Schema.EtlJobArgs
 import etlflow.cache.CacheEnv
-import etlflow.db.EtlJob
+import etlflow.db.{EtlJob, RunDbMigration}
 import etlflow.{CoreEnv, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -13,7 +13,10 @@ object ExecutorTestSuite extends ServerSuiteHelper {
   def job(args: EtlJobArgs): RIO[CoreEnv with CacheEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
   val spec: ZSpec[environment.TestEnvironment with CoreEnv with CacheEnv, Any] =
-    (suite("Executor Spec")(
+    (suite("Executor")(
+      testM("RunDbMigration") {
+        assertM(RunDbMigration(credentials,clean = true).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      },
       testM("Test runActiveEtlJob with correct JobName") {
         assertM(job(EtlJobArgs("Job1")).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },

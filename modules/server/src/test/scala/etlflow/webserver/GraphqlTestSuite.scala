@@ -5,6 +5,7 @@ import etlflow.ServerSuiteHelper
 import etlflow.api.ServerEnv
 import etlflow.db.RunDbMigration
 import etlflow.utils.ApplicationLogger
+import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -12,8 +13,12 @@ object GraphqlTestSuite extends ServerSuiteHelper with ApplicationLogger {
 
   val etlFlowInterpreter = GqlAPI.api.interpreter
   val loginInterpreter = GqlLoginAPI.api.interpreter
+
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
-    (suite("GraphQL Test Suite")(
+    (suite("GraphQL")(
+      testM("RunDbMigration") {
+        assertM(RunDbMigration(credentials,clean = true).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      },
       testM("Test query jobs end point") {
         val query = gqldoc(
           """

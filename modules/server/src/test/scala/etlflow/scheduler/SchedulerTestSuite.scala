@@ -13,7 +13,7 @@ import scala.concurrent.duration.{Duration, MINUTES}
 
 object SchedulerTestSuite extends ServerSuiteHelper with Scheduler {
   val spec: ZSpec[environment.TestEnvironment with TestClock with ServerEnv, Any] =
-    (suite("Rest Scheduler Suite")(
+    (suite("Scheduler")(
       testM("Test scheduler with Job1")(
         for {
           jobs     <- RF.getJobs[MEJP].map(jl => jl.filter(_.name == "Job1"))

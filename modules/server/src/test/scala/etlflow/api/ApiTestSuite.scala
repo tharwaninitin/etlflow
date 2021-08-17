@@ -13,7 +13,7 @@ case class ApiTestSuite(credential: JDBC) {
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
-    suite("DBApi Suite")(
+    suite("Server Api")(
       testM("getInfo Test")(
         assertM(Service.getInfo.map(x => x.cron_jobs))(equalTo(0))
       ),

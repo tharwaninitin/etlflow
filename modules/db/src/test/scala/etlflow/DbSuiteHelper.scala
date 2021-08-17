@@ -1,6 +1,5 @@
 package etlflow
 
-import etlflow.db.RunDbMigration
 import etlflow.schema.Credential.JDBC
 
 trait DbSuiteHelper {

@@ -1,6 +1,5 @@
 package etlflow
 
-import cron4s.CronExpr
 import etlflow.cache.CacheEnv
 import zio.{Has, RIO}
 
@@ -14,7 +13,6 @@ package object api {
 
     // case class Props(key: String, value: String)
     case class EtlJobArgs(name: String, props: Option[List[Props]] = None)
-    case class CronJobArgs(job_name: String, schedule: CronExpr)
     case class EtlFlowMetrics(active_jobs: Int, active_subscribers: Int, etl_jobs: Int, cron_jobs: Int, build_time: String)
     case class CurrentTime(current_time:String)
     case class UserAuth(message: String, token: String)
@@ -23,7 +21,7 @@ package object api {
     case class Props(key: String, value: String)
     case class CredentialsArgs(name: String, `type`: Creds, value: List[Props])
     case class Job(
-                    name: String, props: Map[String,String], schedule: Option[CronExpr], nextSchedule: String, schduleRemainingTime: String ,
+                    name: String, props: Map[String,String], schedule: String, nextSchedule: String, schduleRemainingTime: String ,
                     failed: Long, success: Long, is_active:Boolean, last_run_time: Long, last_run_description: String
                   )
     sealed trait Creds

@@ -12,7 +12,7 @@ object NewRestTestSuite extends HttpRunnableSpec(8080) {
 
   val newRestApi = serve {RestAPI.newRestApi}
 
-  override def spec: ZSpec[environment.TestEnvironment, Any]  =
+  val spec: ZSpec[environment.TestEnvironment, Any]  =
     suiteM("New Rest Api")(
       newRestApi
       .as(
@@ -32,13 +32,7 @@ object NewRestTestSuite extends HttpRunnableSpec(8080) {
           testM("404 response when incorrect path is provided") {
             val actual = statusPost(Root / "restapi" / "runjob123",None )
             assertM(actual)(equalTo(Status.NOT_FOUND))
-          },
-//          testM("post request with nonempty content") {
-//            val path    = "postWithNonemptyContent"
-//            val content = "content"
-//            val actual  = request(Root / "restapi" / "runjob" / "Job1" , Method.POST, content)
-//            assertM(actual)(equalTo(Response.ok))
-//          },
+          }
         )
       )
       .useNow,

@@ -1,22 +1,19 @@
 package etlflow.api
 
-import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.{CredentialsArgs, Creds, CurrentTime, Props}
-import etlflow.db.{Credentials, GetCredential, JobLogs, JobLogsArgs, RunDbMigration}
-import etlflow.executor.ExecutorTestSuite.{credentials, testAPILayer, testDBLayer, testJsonLayer}
-import etlflow.utils.CorsConfigTestSuite.testCryptoLayer
+import etlflow.db._
+import etlflow.schema.Credential.JDBC
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object ApiTestSuite extends DefaultRunnableSpec with ServerSuiteHelper  {
+case class ApiTestSuite(credential: JDBC) {
 
-  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0")).sortBy(_.job_name)
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
-    (suite("DBApi Suite")(
+  val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
+    suite("DBApi Suite")(
       testM("getInfo Test")(
         assertM(Service.getInfo.map(x => x.cron_jobs))(equalTo(0))
       ),
@@ -44,5 +41,5 @@ object ApiTestSuite extends DefaultRunnableSpec with ServerSuiteHelper  {
       testM("updateCredential Test")(
         assertM(Service.updateCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231243"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credentials("AWS1","aws","""{"access_key":"1231243","secret_key":"1231242"}""")))
       ),
-    )@@ TestAspect.sequential).provideCustomLayer((fullLayer).orDie)
+    )@@ TestAspect.sequential
 }

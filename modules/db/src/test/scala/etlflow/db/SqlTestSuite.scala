@@ -3,8 +3,8 @@ package etlflow.db
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object SqlTestSuite extends DefaultRunnableSpec {
-    override def spec: ZSpec[environment.TestEnvironment, Any] =
+object SqlTestSuite  {
+    val spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("SQL Suite")(
         test("insertJobs Sql")({
             val seq = Seq(

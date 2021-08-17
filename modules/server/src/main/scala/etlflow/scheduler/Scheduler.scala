@@ -1,6 +1,6 @@
 package etlflow.scheduler
 
-import cron4s.{Cron, CronExpr}
+import com.cronutils.model.time.ExecutionTime
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
 import etlflow.db.{DBApi, EtlJob}
@@ -10,15 +10,17 @@ import zio._
 import zio.duration._
 
 private [etlflow] trait Scheduler extends ApplicationLogger {
-  case class CronJob(job_name: String, schedule: Option[CronExpr])
+  case class EtlFlowCron(name:String, cron: Option[ExecutionTime])
+  case class CronJob(job_name: String, schedule: EtlFlowCron)
+
   final def scheduleJobs(dbCronJobs: List[CronJob]): ServerTask[Unit] = {
     if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
       ZIO.unit
     }
     else {
-      val listOfCron: List[(String, CronExpr, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.job_name,cj.schedule.get, {
-        logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${getCurrentTimestampAsString()}")
+      val listOfCron: List[(String, ExecutionTime, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.job_name,cj.schedule.cron.get, {
+        logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.name} at ${getCurrentTimestampAsString()}")
         Service
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
           .map(Some(_))
@@ -39,7 +41,7 @@ private [etlflow] trait Scheduler extends ApplicationLogger {
   }
   final def etlFlowScheduler(jobs: List[EtlJob]): ServerTask[Unit] = for {
     dbJobs      <- DBApi.refreshJobs(jobs)
-    cronJobs    = dbJobs.map(x => CronJob(x.job_name, Cron(x.schedule).toOption)).filter(_.schedule.isDefined)
+    cronJobs    =  dbJobs.map(x => CronJob(x.job_name, EtlFlowCron(x.schedule, parseCron(x.schedule)))).filter(_.schedule.cron.isDefined)
     _           <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))
     _           <- UIO(logger.info("Starting scheduler"))
     _           <- scheduleJobs(cronJobs)

@@ -1,14 +1,14 @@
 package etlflow.utils
 
-import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.{EtlJobArgs, Props}
+import etlflow.json.JsonEnv
 import zio.ZIO
 import zio.test.Assertion.{containsString, equalTo}
-import zio.test.{DefaultRunnableSpec, _}
+import zio.test._
 
-object RequestValidatorTestSuite extends DefaultRunnableSpec with ServerSuiteHelper {
+object RequestValidatorTestSuite {
 
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with JsonEnv, Any] =
     suite("RequestValidator")(
       testM("should return parsed EtlJobArgs when provided correct params - 1") {
         val actualOutput1   = RequestValidator("Job2LocalJobGenericStep",Some("""("year":"2016","start_date":"2016-03-15")"""))
@@ -29,5 +29,5 @@ object RequestValidatorTestSuite extends DefaultRunnableSpec with ServerSuiteHel
         val actualOutput3 = RequestValidator("Job2LocalJobGenericStep",Some("""("year";"2016")"""))
         assertM(actualOutput3.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(containsString("expected"))
       },
-    ).provideCustomLayerShared(testJsonLayer.orDie)
+    )
 }

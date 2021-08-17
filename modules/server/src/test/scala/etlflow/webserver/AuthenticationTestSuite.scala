@@ -1,9 +1,9 @@
 package etlflow.webserver
 
-import etlflow.ServerSuiteHelper
 import etlflow.api.Schema.UserArgs
 import etlflow.cache.{CacheApi, default_ttl}
 import etlflow.db.RunDbMigration
+import etlflow.schema.Credential.JDBC
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http.Status.FORBIDDEN
 import zhttp.http._
@@ -11,12 +11,10 @@ import zhttp.service.server.ServerChannelFactory
 import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.Runtime.default.unsafeRun
 import zio.test.Assertion.equalTo
-import zio.test.{ZSpec, assertM, environment, _}
+import zio.test._
 
 
-object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHelper  {
-
-  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
+case class AuthenticationTestSuite(credential: JDBC) extends HttpRunnableSpec(8081) {
 
   val valid_login = auth.login(UserArgs("admin","admin"))
   val invalid_login = auth.login(UserArgs("admin","admin1"))
@@ -32,7 +30,7 @@ object AuthenticationTestSuite extends HttpRunnableSpec(8080) with ServerSuiteHe
 
   unsafeRun(CacheApi.put(authCache, cachedToken, cachedToken, Some(default_ttl)).provideCustomLayer(testCacheLayer))
 
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment, Any] =
     (suiteM("Authentication Test Suite")(
       newRestApi
         .as(

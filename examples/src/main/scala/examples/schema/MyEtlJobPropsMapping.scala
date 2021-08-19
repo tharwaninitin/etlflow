@@ -5,6 +5,7 @@ import etlflow.etljobs.EtlJob
 import etlflow.schema.Executor
 import examples.jobs._
 import examples.schema.MyEtlJobProps._
+import io.circe.generic.auto._
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
 

@@ -1,8 +1,6 @@
 package examples.schema
 
-import etlflow.EtlJobSchema
-
-sealed trait MyEtlJobSchema extends EtlJobSchema
+sealed trait MyEtlJobSchema
 
 object MyEtlJobSchema {
   case class Rating(user_id: Int, movie_id: Int, rating: Double, timestamp: Long) extends MyEtlJobSchema

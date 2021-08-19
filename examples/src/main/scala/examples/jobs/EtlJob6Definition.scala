@@ -3,9 +3,12 @@ package examples.jobs
 import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
+import etlflow.utils.Configuration
 import examples.schema.MyEtlJobProps.EtlJob4Props
 
-case class EtlJob6Definition(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props] {
+case class EtlJob6Definition(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props]{
+
+  val config = zio.Runtime.default.unsafeRun(Configuration.config)
 
   private val query1 = """CREATE OR REPLACE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
                          |BEGIN

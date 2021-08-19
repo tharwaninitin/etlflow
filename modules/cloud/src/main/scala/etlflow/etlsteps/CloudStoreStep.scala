@@ -56,7 +56,7 @@ case class CloudStoreStep[T] (
             val startMarkerStream = Stream.eval(Task(println(s"Starting to load file from $input_path with size ${input_path.path.size.getOrElse(0L)/1024.0} KB")))
             val inputStream       = inputStore.get(input_path, chunk_size)
             val outputStream      = inputStream.through(transformation).flatMap {
-              case Left(ex) => Stream.eval_(error_handler(ex))
+              case Left(ex) => Stream.eval(error_handler(ex))
               case Right(value) => Stream.eval(success_handler(value))
             }
             val doneMarkerStream  = Stream.eval(Task(println(s"Done loading file $input_path")))

@@ -4,9 +4,7 @@ import etlflow.EtlStepList
 import etlflow.etljobs.SequentialEtlJob
 import etlflow.etlsteps.BQLoadStep
 import etlflow.gcp.BQInputType
-import etlflow.schema.Credential.JDBC
 import examples.schema.MyEtlJobProps.EtlJob5Props
-import examples.schema.MyEtlJobSchema.Rating
 
 case class EtlJob5Definition(job_properties: EtlJob5Props) extends SequentialEtlJob[EtlJob5Props] {
 

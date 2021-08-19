@@ -1,12 +1,12 @@
 package etlflow.etlsteps
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
-import etlflow.schema.Credential.SMTP
 import etlflow.utils.HttpMethod
 import io.circe.generic.auto._
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[EtlJob3Props] {
 
@@ -96,14 +96,14 @@ case class HttpSmtpSteps(job_properties: EtlJob3Props) extends GenericEtlJob[Etl
   )
 
   val job = for {
-    _ <- getStep1.execute()
-    op2 <- getStep2.execute()
-    op3 <- getStep3.execute()
-    _ <- postStep1.execute()
-    op2 <- postStep2.execute()
-    _ <- postStep3.execute()
+    _ <- getStep1.execute(())
+    op2 <- getStep2.execute(())
+    op3 <- getStep3.execute(())
+    _ <- postStep1.execute(())
+    op2 <- postStep2.execute(())
+    _ <- postStep3.execute(())
     _ <- genericStep.execute(op3)
-    _ <- putStep1.execute()
-    _ <- putStep2.execute()
+    _ <- putStep1.execute(())
+    _ <- putStep2.execute(())
   } yield ()
 }

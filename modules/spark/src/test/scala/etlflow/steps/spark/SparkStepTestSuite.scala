@@ -7,18 +7,14 @@ import etlflow.db.DBApi
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
 import etlflow.schema.Credential.JDBC
 import etlflow.spark.IOType.{PARQUET, RDB}
-import etlflow.spark.{ReadApi, SparkUDF}
+import etlflow.spark.ReadApi
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
 import zio.Runtime.default.unsafeRun
 import zio.ZIO
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assert}
 
-class SparkStepTestSuite extends AnyFlatSpec
-  with should.Matchers
-  with TestSparkSession
-  with SparkUDF
-  with TestSuiteHelper {
+object SparkStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSparkSession {
 
   // STEP 1: Define step
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
@@ -41,8 +37,8 @@ class SparkStepTestSuite extends AnyFlatSpec
   )
 
   // STEP 2: Run Step
-  unsafeRun(step1.process())
-  val op: Dataset[Rating] = unsafeRun(step2.process())
+  unsafeRun(step1.process(()))
+  val op: Dataset[Rating] = unsafeRun(step2.process(()))
   op.show(10)
 
   // STEP 3: Run Test
@@ -52,12 +48,15 @@ class SparkStepTestSuite extends AnyFlatSpec
   val db_task: ZIO[zio.ZEnv, Throwable, List[RatingsMetrics]] = DBApi.executeQueryListOutput[RatingsMetrics](s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table")(rs => RatingsMetrics(rs.double("sum_ratings"),rs.long("count_ratings"))).provideCustomLayer(etlflow.db.liveDB(config.db))
   val db_metrics: RatingsMetrics = unsafeRun(db_task)(0)
 
-  "Record counts" should "be matching in transformed DF and DB table " in {
-    assert(count_ratings == db_metrics.count_ratings)
-  }
-
-  "Sum of ratings" should "be matching in transformed DF and DB table " in {
-    assert(sum_ratings == db_metrics.sum_ratings)
+  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = {
+    suite("Spark Step Test Suite")(
+      test("Record counts should be matching in transformed DF and DB table") {
+        assert(count_ratings)(equalTo(db_metrics.count_ratings))
+      },
+      test("Sum of ratings should be matching in transformed DF and DB table ") {
+        assert(sum_ratings)(equalTo(db_metrics.sum_ratings))
+      }
+    )
   }
 }
 

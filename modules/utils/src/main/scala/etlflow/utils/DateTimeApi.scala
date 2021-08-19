@@ -32,7 +32,7 @@ private[etlflow] object DateTimeApi {
       else s"${roundAt(2)(value)} secs"
     } match {
       case Success(value) => value
-      case Failure(e) => (end_ts - start_ts).toString
+      case Failure(_) => (end_ts - start_ts).toString
     }
   }
 

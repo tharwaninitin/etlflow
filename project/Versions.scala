@@ -40,7 +40,7 @@ object Versions {
   val PgVersion = "42.2.23"
   val RedisVersion = "3.30"
   val MailVersion = "1.6.2"
-  val JwtCoreVersion = "8.0.3"
+  val JwtCoreVersion = "9.0.0"
   val Sl4jVersion = "1.7.32"
   val BcryptVersion = "0.4.3"
   val CaffeineCacheVersion = "2.9.0"

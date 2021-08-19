@@ -1,6 +1,7 @@
 package etlflow.cache
 
-import zio.{RIO, Task, UIO, URIO, ZIO}
+import zio.{Task, UIO, URIO, ZIO}
+
 import scala.concurrent.duration.Duration
 
 object CacheApi {

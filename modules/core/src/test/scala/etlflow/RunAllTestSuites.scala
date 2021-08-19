@@ -23,7 +23,6 @@ object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper {
     LocalExecutorTestSuite.spec,
     LocalSubProcessExecutorTestSuite.spec,
     SlackLoggingTestSuite.spec,
-    DateTimeAPITestSuite.spec,
     ReflectionTestSuite.spec,
   ).provideCustomLayerShared(fullLayer.orDie)
 }

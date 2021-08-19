@@ -19,7 +19,7 @@ object AWSStepsTestSuite extends DefaultRunnableSpec with AwsTestHelper {
             file    = file,
             region  = s3_region
           )
-          assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+          assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
         },
         testM("Execute S3Sensor step") {
           val step: S3SensorStep = S3SensorStep(
@@ -31,7 +31,7 @@ object AWSStepsTestSuite extends DefaultRunnableSpec with AwsTestHelper {
             spaced  = 5.second,
             region  = s3_region
           )
-          assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+          assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
         }
       ) @@ TestAspect.sequential
     )

@@ -4,7 +4,7 @@ import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.BQLoadStep
 import etlflow.gcp.BQInputType
 import examples.schema.MyEtlJobProps.EtlJob23Props
-import examples.schema.MyEtlJobSchema.{Rating, RatingOutput}
+import examples.schema.MyEtlJobSchema.RatingOutput
 
 case class EtlJob3Definition(job_properties: EtlJob23Props) extends GenericEtlJob[EtlJob23Props] {
 //  private val gcs_output_path = f"gs://${global_properties.get.gcs_output_bucket}/output/ratings"
@@ -56,6 +56,6 @@ case class EtlJob3Definition(job_properties: EtlJob23Props) extends GenericEtlJo
 
   val job = for {
 //    - <- step1.execute()
-    _ <- step2.execute()
+    _ <- step2.execute(())
    } yield ()
 }

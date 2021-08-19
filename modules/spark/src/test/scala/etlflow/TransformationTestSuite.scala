@@ -1,25 +1,45 @@
 package etlflow
 
 import etlflow.spark.SparkUDF
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import zio.test.Assertion.{contains, equalTo}
+import zio.test.{DefaultRunnableSpec, ZSpec, assert}
 
-class TransformationTestSuite extends AnyFlatSpec with should.Matchers with SparkUDF {
-
-  "get_24hr_formatted_from_12hr function" should "convert 12 hr format to 24 hr format" in {
-    assert(get_24hr_formatted_from_12hr("01:39:40 PM").contains("13:39:40"))
-    assert(get_24hr_formatted_from_12hr("11:39:40 AM").contains("11:39:40"))
-    assert(get_24hr_formatted_from_12hr("12:12:12 AM")==Some("00:12:12"))
-    assert(get_24hr_formatted_from_12hr("12:12:12 PM")==Some("12:12:12"))
-    assert(get_24hr_formatted_from_12hr("12:12:12 PM")!=Some("10:12:12"))
-    assert(get_24hr_formatted_from_12hr(null)==None)
-  }
-
-  "get_24hr_formatted function" should "format 24 hr time properly" in {
-    assert(get_24hr_formatted("111214").contains("11:12:14"))
-    assert(get_24hr_formatted("181920").contains("18:19:20"))
-    assert(get_24hr_formatted("121111")==Some("12:11:11"))
-    assert(get_24hr_formatted("121111")!=Some("10:11:11"))
-    assert(get_24hr_formatted(null)==None)
+object TransformationTestSuite extends DefaultRunnableSpec with SparkUDF {
+  override def spec: ZSpec[zio.test.environment.TestEnvironment, Any] = {
+    suite("Transformation Test Suite")(
+      test("Case 1 : get_24hr_formatted_from_12hr ") {
+        assert(get_24hr_formatted_from_12hr("01:39:40 PM").toList)(contains("13:39:40"))
+      },
+      test("Case 2 : get_24hr_formatted_from_12hr ") {
+        assert(get_24hr_formatted_from_12hr("11:39:40 AM").toList)(contains("11:39:40"))
+      },
+      test("Case 3 : get_24hr_formatted_from_12hr ") {
+        assert(get_24hr_formatted_from_12hr("12:12:12 AM").toList)(contains("00:12:12"))
+      },
+      test("Case 4 : get_24hr_formatted_from_12hr ") {
+        assert(get_24hr_formatted_from_12hr("12:12:12 PM").toList)(contains("12:12:12"))
+      },
+      test("Case 5 : get_24hr_formatted_from_12hr ") {
+        assert(get_24hr_formatted_from_12hr("12:12:12 PM").toList)(contains("10:12:12"))
+      },
+      test("Case 6 : get_24hr_formatted_from_12hr ") {
+        assert(get_24hr_formatted_from_12hr(null))(equalTo(None))
+      },
+      test("Case 1 : get_24hr_formatted ") {
+        assert(get_24hr_formatted("111214").toList)(contains("11:12:14"))
+      },
+      test("Case 2 : get_24hr_formatted ") {
+        assert(get_24hr_formatted("181920").toList)(contains("18:19:20"))
+      },
+      test("Case 3 : get_24hr_formatted ") {
+        assert(get_24hr_formatted("121111").toList)(contains("12:11:11"))
+      },
+      test("Case 4 : get_24hr_formatted ") {
+        assert(get_24hr_formatted("121111").toList)(contains("10:11:11"))
+      },
+      test("Case 5 : get_24hr_formatted ") {
+        assert(get_24hr_formatted(null))(equalTo(None))
+      }
+    )
   }
 }

@@ -20,7 +20,7 @@ object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHel
           , chunk_size = 1000 * 1024
         )
 
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute CloudSyncLOCALtoS3 step") {
 
@@ -30,7 +30,7 @@ object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHel
           , output_location = Location.S3(s3_bucket,s3_input_location, s3_region.toString)
           , output_overwrite = true
           , chunk_size = 1000 * 1024
-        ).process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
+        ).process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
 
         assertM(step)(equalTo("ok"))
       },
@@ -41,7 +41,7 @@ object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHel
           , input_location = Location.S3(s3_bucket,s3_input_location, s3_region)
           , output_location = Location.LOCAL("modules/core/src/test/resources/s3_output/")
           , output_overwrite = true
-        ).process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
+        ).process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
 
         assertM(step)(equalTo("ok"))
       },
@@ -54,7 +54,7 @@ object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHel
           , parallelism = 3
         )
 
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute CloudSyncS3toGCS step") {
         val step = CloudStoreSyncStep(
@@ -62,7 +62,7 @@ object CloudStoreSyncStepTestSuite extends DefaultRunnableSpec with CloudTestHel
           , input_location = Location.S3(s3_bucket,s3_input_location, s3_region)
           , output_location = Location.GCS(gcs_bucket, gcs_output_location)
           , output_overwrite = true
-        ).process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
+        ).process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
 
         assertM(step)(equalTo("ok"))
       },

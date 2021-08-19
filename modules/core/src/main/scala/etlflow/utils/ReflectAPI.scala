@@ -34,7 +34,7 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
       constructor.newInstance().asInstanceOf[T]
     }
     catch {
-      case e: ClassNotFoundException =>
+      case _: ClassNotFoundException =>
         logger.error(s"Tried creating object with path $fullClassName, but failed with error")
         throw EtlJobNotFoundException(s"$job_name not present")
     }

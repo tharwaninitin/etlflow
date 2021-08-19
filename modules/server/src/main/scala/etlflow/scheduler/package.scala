@@ -6,8 +6,9 @@ import com.cronutils.parser.CronParser
 import zio.clock.{Clock, sleep}
 import zio.duration.Duration
 import zio.{RIO, Schedule, Task, UIO, URIO, ZIO}
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+
 import java.time.temporal.ChronoUnit
+import java.time.{LocalDateTime, ZoneId}
 import java.util.TimeZone
 import scala.util.Try
 

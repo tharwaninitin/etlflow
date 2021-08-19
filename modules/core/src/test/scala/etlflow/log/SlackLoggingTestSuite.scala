@@ -29,7 +29,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
   }
 
   def processDataFail(ip: Unit): Unit = {
-    logger.info("Hello World")
+    logger.info("Hello World :" + ip)
     throw new RuntimeException("Failed in processing data")
   }
 

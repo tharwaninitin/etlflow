@@ -8,7 +8,7 @@ import etlflow.log.LoggerApi
 import etlflow.schema.LoggingLevel
 import zio.blocking.Blocking
 import zio.clock.Clock
-import zio.{RIO, ZIO, ZLayer}
+import zio.{RIO, ZIO}
 
 case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] {
 

@@ -28,7 +28,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           key     = "temp/ratings.parquet",
           file    = file
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSPut CSV step") {
         val step = GCSPutStep(
@@ -37,7 +37,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           key     = "temp/ratings.csv",
           file    = file_csv
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSSensor step") {
         val step = GCSSensorStep(
@@ -48,7 +48,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           retry   = 10,
           spaced  = 5.second
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQLoad PARQUET step") {
         val step = BQLoadStep(
@@ -59,7 +59,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           output_dataset = output_dataset,
           output_table   = output_table
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQLoad CSV step") {
         val step = BQLoadStep[RatingCSV](
@@ -70,7 +70,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           output_dataset = output_dataset,
           output_table   = output_table
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQ Export CSV step") {
         val step = BQExportStep(
@@ -81,7 +81,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           , destination_path = bq_export_dest_path
           , destination_format = BQInputType.CSV(",")
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQ Export PARQUET step") {
         val step = BQExportStep(
@@ -94,7 +94,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           , destination_format = BQInputType.PARQUET
           , destination_compression_type = "snappy"
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 

@@ -1,7 +1,6 @@
 package etlflow.coretests
 
 import etlflow.EtlJobProps
-import io.circe.generic.semiauto.deriveDecoder
 
 object Schema {
 

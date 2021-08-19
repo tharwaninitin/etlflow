@@ -1,9 +1,8 @@
 package etlflow.spark
 
-import org.apache.spark.sql.SparkSession
-import org.slf4j.LoggerFactory
-import Environment._
+import etlflow.spark.Environment._
 import etlflow.utils.ApplicationLogger
+import org.apache.spark.sql.SparkSession
 
 object SparkManager  extends  ApplicationLogger {
   private def showSparkProperties(spark: SparkSession): Unit = {

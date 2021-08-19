@@ -27,7 +27,7 @@ private [etlflow] trait Scheduler extends ApplicationLogger {
 
       val scheduledJobs = repeatEffectsForCronWithName(listOfCron)
 
-      val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${getCurrentTimestampAsString()} " + "*"*30))
+      UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${getCurrentTimestampAsString()} " + "*"*30))
         .repeat(Schedule.forever && Schedule.spaced(60.minute))
 
       //scheduledJobs.zipPar(scheduledLogger).unit

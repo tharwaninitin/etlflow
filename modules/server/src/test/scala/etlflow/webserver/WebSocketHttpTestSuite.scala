@@ -2,11 +2,7 @@ package etlflow.webserver
 
 import etlflow.ServerSuiteHelper
 import pdi.jwt.{Jwt, JwtAlgorithm}
-import zhttp.http.{Status, _}
-import zhttp.service.server.ServerChannelFactory
-import zio.test.assertCompletes
 import zhttp.http._
-import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.test.Assertion.equalTo
 import zio.test._
 

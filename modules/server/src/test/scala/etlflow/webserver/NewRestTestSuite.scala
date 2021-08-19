@@ -1,11 +1,8 @@
 package etlflow.webserver
 
 import zhttp.http._
-import zhttp.service.server._
-import zhttp.service.{ChannelFactory, EventLoopGroup}
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.test.{ZSpec, assertM, environment}
 
 case class NewRestTestSuite(port: Int) extends HttpRunnableSpec(port) {
 

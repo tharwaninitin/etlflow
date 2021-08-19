@@ -98,8 +98,8 @@ private[etlflow] object BQ extends ApplicationLogger {
              destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
            ): Task[Unit] = Task {
           if (source_locations.isRight) {
-            logger.info(s"No of BQ partitions: ${source_locations.right.get.length}")
-            source_locations.right.get.foreach { case (src_path, partition) =>
+            logger.info(s"No of BQ partitions: ${source_locations.getOrElse(Seq.empty).length}")
+            source_locations.getOrElse(Seq.empty).foreach { case (src_path, partition) =>
               val table_partition = destination_table + "$" + partition
               val full_table_name = destination_dataset + "." + table_partition
               val bq_load_cmd =s"""bq load --replace  --time_partitioning_field date --require_partition_filter=false --source_format=${source_format.toString} $full_table_name $src_path""".stripMargin
@@ -112,10 +112,10 @@ private[etlflow] object BQ extends ApplicationLogger {
             }
           }
           else {
-            logger.info("BQ file path: " + source_locations.left.get)
+            logger.info("BQ file path: " + source_locations.left.getOrElse(""))
             val full_table_name = destination_dataset + "." + destination_table
-            val bq_load_cmd =s"""bq load --replace --source_format=${source_format.toString} $full_table_name ${source_locations.left.get}""".stripMargin
-            logger.info(s"Loading data from path: ${source_locations.left.get}")
+            val bq_load_cmd =s"""bq load --replace --source_format=${source_format.toString} $full_table_name ${source_locations.left.getOrElse("")}""".stripMargin
+            logger.info(s"Loading data from path: ${source_locations.left.getOrElse("")}")
             logger.info(s"Destination table: $full_table_name")
             logger.info(s"BQ Load command is: $bq_load_cmd")
             val x = s"$bq_load_cmd".!

@@ -9,6 +9,7 @@ import etlflow.api.Service.login
 import etlflow.cache.CacheEnv
 import etlflow.db.DBEnv
 import zio.{Task, UIO, ZIO}
+import scala.language.higherKinds
 
 private[etlflow] object GqlLoginAPI extends GenericSchema[APIEnv with DBEnv with CacheEnv] {
 

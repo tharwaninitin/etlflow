@@ -12,5 +12,5 @@ case class EtlJob7DefinitionLocal(job_properties: LocalSampleProps) extends Gene
   )
 
 
-  override val job =  step1.execute()
+  override val job =  step1.execute(())
 }

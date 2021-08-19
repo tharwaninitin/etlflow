@@ -3,8 +3,6 @@ package examples.jobs
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.GenericETLStep
 import examples.schema.MyEtlJobProps.LocalSampleProps
-import zio.Schedule
-import zio.duration._
 
 case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
 
@@ -40,9 +38,9 @@ case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends Gene
 //        -  <- step2.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
 //        -  <- step3.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
 
-    -  <- step1.execute()
-    -  <- step2.execute()
-    -  <- step3.execute()
+    -  <- step1.execute(())
+    -  <- step2.execute(())
+    -  <- step3.execute(())
 
   } yield ()
 }

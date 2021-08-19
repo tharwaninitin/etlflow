@@ -3,7 +3,7 @@ package etlflow.log
 import etlflow.db.DBEnv
 import etlflow.etlsteps.EtlStep
 import etlflow.json.JsonEnv
-import zio.{RIO, Task, UIO, URIO, ZIO}
+import zio.{RIO, UIO, URIO, ZIO}
 
 object LoggerApi {
 

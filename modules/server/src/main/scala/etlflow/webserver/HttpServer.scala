@@ -34,9 +34,9 @@ trait HttpServer {
             Http.route {
               case _ -> Root / "api" / "etlflow" => CORS(auth.middleware(ZHttpAdapter.makeHttpService(etlFlowInterpreter)))
               case _ -> Root / "api" / "login" => CORS(ZHttpAdapter.makeHttpService(loginInterpreter))
-              case _ -> Root / "ws" / "etlflow" / token => CORS(WebsocketAPI(auth).webSocketApp)
+              case _ -> Root / "ws" / "etlflow" / _ => CORS(WebsocketAPI(auth).webSocketApp)
               case GET  -> Root / "api" / "runjob" => CORS(auth.middleware(RestAPI.oldRestApi))
-              case POST  -> Root /  "restapi" / "runjob" / name =>  CORS(auth.middleware(RestAPI.newRestApi), corsConfig)
+              case POST  -> Root /  "restapi" / "runjob" / _ =>  CORS(auth.middleware(RestAPI.newRestApi), corsConfig)
             }
         ).forever
     } yield ()).forever

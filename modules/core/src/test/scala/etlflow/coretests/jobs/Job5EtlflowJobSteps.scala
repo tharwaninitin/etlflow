@@ -3,7 +3,6 @@ package etlflow.coretests.jobs
 import etlflow.coretests.Schema.EtlJob1Props
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.EtlFlowJobStep
-import io.circe.generic.auto._
 
 case class Job5EtlflowJobSteps(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
 

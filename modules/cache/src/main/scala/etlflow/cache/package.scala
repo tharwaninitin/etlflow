@@ -1,6 +1,6 @@
 package etlflow
 
-import com.github.benmanes.caffeine.cache.{Cache => CCache, Caffeine}
+import com.github.benmanes.caffeine.cache.{Cache => CCache}
 import zio.Has
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 

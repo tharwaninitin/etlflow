@@ -23,7 +23,7 @@ object GCPDataprocDeleteTestSuite extends DefaultRunnableSpec {
           name     = "DPDeleteStepExample",
           config   = dpConfig,
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     )
 

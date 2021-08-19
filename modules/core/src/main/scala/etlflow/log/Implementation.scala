@@ -3,10 +3,10 @@ package etlflow.log
 import etlflow.db.{DBApi, DBEnv}
 import etlflow.etlsteps.EtlStep
 import etlflow.json.JsonEnv
-import etlflow.schema.{LoggingLevel, Slack}
+import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString}
-import zio.{RIO, Task, UIO, ULayer, ZIO, ZLayer}
+import zio.{RIO, Task, UIO, ULayer, ZLayer}
 
 object Implementation extends ApplicationLogger {
 

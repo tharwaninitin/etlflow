@@ -4,7 +4,7 @@ import etlflow.log.LoggerApi
 import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
 import etlflow.{CoreEnv, JobEnv}
-import zio.{Has, RIO, Task, ZIO}
+import zio.{RIO, Task, ZIO}
 
 trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 

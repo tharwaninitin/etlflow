@@ -6,7 +6,7 @@ import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString}
-import zio.{Has, Task, ZIO, ZLayer}
+import zio.ZIO
 
 private[etlflow] class StepLogger(etlStep: EtlStep[_,_], job_run_id: String, job_notification_level: LoggingLevel = LoggingLevel.INFO) extends ApplicationLogger {
 

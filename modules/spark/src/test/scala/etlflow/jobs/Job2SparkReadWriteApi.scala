@@ -72,10 +72,10 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
 
   val job =
     for {
-       _   <- step1.execute()
-       op1 <- step2.execute()
+       _   <- step1.execute(())
+       op1 <- step2.execute(())
        _   <- step3.execute(op1)
-       op2 <- step4.execute()
+       op2 <- step4.execute(())
        _   <- step5.execute(op2)
     } yield ()
 }

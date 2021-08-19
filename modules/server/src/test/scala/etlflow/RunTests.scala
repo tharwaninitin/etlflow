@@ -5,11 +5,10 @@ import etlflow.db.RunDbMigration
 import etlflow.executor.ExecutorTestSuite
 import etlflow.scheduler.{ParseCronTestSuite, SchedulerTestSuite}
 import etlflow.utils.{CorsConfigTestSuite, GetCronJobTestSuite, RequestValidatorTestSuite, SetTimeZoneTestSuite}
-import etlflow.webserver.{AuthenticationTestSuite, GraphqlTestSuite, NewRestTestSuite, OldRestTestSuite, WebSocketApiTestSuite, WebSocketHttpTestSuite}
-import zio.test._
+import etlflow.webserver._
 import zhttp.service.server.ServerChannelFactory
 import zhttp.service.{ChannelFactory, EventLoopGroup}
-import zio.ZLayer
+import zio.test._
 
 object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
   zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))

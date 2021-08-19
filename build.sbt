@@ -4,12 +4,14 @@ import Versions._
 ThisBuild / version := EtlFlowVersion
 ThisBuild / scalacOptions ++=
   Seq(
-    //"-unchecked"
-    //, "-Ywarn-unused-import"
-    //, "-Ywarn-unused"
-    //, "-feature"
-    //, "-deprecation"
-  )
+      "-unchecked"
+    , "-feature"
+    , "-deprecation"
+    , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
+    , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
+    , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
+//    , "-Xfatal-warnings"
+)
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",

@@ -22,7 +22,7 @@ object GCPDataprocStepsTestSuite extends DefaultRunnableSpec {
           query = "SELECT 1 AS ONE",
           config = dpConfig,
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
         val dpConfig = DATAPROC(
@@ -40,7 +40,7 @@ object GCPDataprocStepsTestSuite extends DefaultRunnableSpec {
           main_class  = sys.env("DP_MAIN_CLASS"),
           libs        = libs
         )
-        assertM(step.process().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     )
 }

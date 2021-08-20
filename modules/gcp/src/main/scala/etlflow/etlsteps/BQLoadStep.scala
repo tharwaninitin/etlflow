@@ -3,25 +3,26 @@ package etlflow.etlsteps
 import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
 import etlflow.gcp._
 import etlflow.schema.{Credential, LoggingLevel}
-import etlflow.utils.{ReflectAPI => RF}
-import zio.{Tag, Task, UIO}
-
+import etlflow.gcp.{ ReflectAPI => RF}
+import zio.{Task, UIO}
 import java.util
 import scala.collection.JavaConverters._
+import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
+import zio.Runtime.default.unsafeRun
 
-class BQLoadStep[T <: Product : Tag] private[etlflow](
-                                                       val name: String
-                                                       , input_location: => Either[String, Seq[(String, String)]]
-                                                       , input_type: BQInputType
-                                                       , input_file_system: FSType = FSType.GCS
-                                                       , output_project: Option[String] = None
-                                                       , output_dataset: String
-                                                       , output_table: String
-                                                       , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
-                                                       , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
-                                                       , credentials: Option[Credential.GCP] = None
-                                                     )
+class BQLoadStep[T <: Product : TypeTag] private[etlflow](
+    val name: String
+    , input_location: => Either[String, Seq[(String, String)]]
+    , input_type: BQInputType
+    , input_file_system: FSType = FSType.GCS
+    , output_project: Option[String] = None
+    , output_dataset: String
+    , output_table: String
+    , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
+    , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
+    , credentials: Option[Credential.GCP] = None
+   )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
@@ -42,7 +43,7 @@ class BQLoadStep[T <: Product : Tag] private[etlflow](
 
     val schema: Option[Schema] = Try{
       val fields = new util.ArrayList[Field]
-      val ccFields = RF.getFields[T].toSeq.reverse
+      val ccFields = unsafeRun(RF.getFields[T]).reverse
       if (ccFields.isEmpty)
         throw new RuntimeException("Schema not provided")
       ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))
@@ -114,7 +115,7 @@ class BQLoadStep[T <: Product : Tag] private[etlflow](
           source_path => source_path,
           source_paths_partitions => source_paths_partitions.mkString(",")
         )
-        //        ,"input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+        ,"input_class" -> Try(unsafeRun(RF.getFields[T]).mkString(", ")).toOption.getOrElse("No Class Provided")
         ,"output_dataset" -> output_dataset
         ,"output_table" -> output_table
         ,"output_table_write_disposition" -> output_write_disposition.toString
@@ -126,7 +127,7 @@ class BQLoadStep[T <: Product : Tag] private[etlflow](
 }
 
 object BQLoadStep {
-  def apply[T <: Product : Tag]
+  def apply[T <: Product : TypeTag]
   (name: String
    , input_location: => Either[String, Seq[(String, String)]]
    , input_type: BQInputType

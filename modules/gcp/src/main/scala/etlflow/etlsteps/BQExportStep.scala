@@ -2,22 +2,23 @@ package etlflow.etlsteps
 
 import etlflow.gcp._
 import etlflow.schema.{Credential, LoggingLevel}
-import etlflow.utils.{ReflectAPI => RF}
-import zio.{Tag, Task, UIO}
-
+import etlflow.gcp.{ReflectAPI => RF}
+import zio.{Task, UIO}
+import scala.reflect.runtime.universe.TypeTag
 import scala.util.Try
+import zio.Runtime.default.unsafeRun
 
-class BQExportStep[T <: Product : Tag] private[etlflow](
-                                                         val name: String
-                                                         , source_project: Option[String] = None
-                                                         , source_dataset: String
-                                                         , source_table: String
-                                                         , destination_path: String
-                                                         , destination_file_name:Option[String] = None
-                                                         , destination_format:BQInputType
-                                                         , destination_compression_type:String = "gzip"
-                                                         , credentials: Option[Credential.GCP] = None
-                                                       )
+class BQExportStep[T <: Product : TypeTag] private[etlflow](
+     val name: String
+     , source_project: Option[String] = None
+     , source_dataset: String
+     , source_table: String
+     , destination_path: String
+     , destination_file_name:Option[String] = None
+     , destination_format:BQInputType
+     , destination_compression_type:String = "gzip"
+     , credentials: Option[Credential.GCP] = None
+   )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
@@ -60,7 +61,7 @@ class BQExportStep[T <: Product : Tag] private[etlflow](
         , "input_table" -> source_table
         , "output_type" -> destination_format
         , "output_location" -> destination_path
-        , "input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
+        , "input_class" -> Try(unsafeRun(RF.getFields[T]).mkString(", ")).toOption.getOrElse("No Class Provided")
       )
     }
     Map.empty
@@ -68,7 +69,7 @@ class BQExportStep[T <: Product : Tag] private[etlflow](
 }
 
 object BQExportStep {
-  def apply[T <: Product : Tag]
+  def apply[T <: Product : TypeTag]
   (name: String
    , source_project: Option[String] = None
    , source_dataset: String

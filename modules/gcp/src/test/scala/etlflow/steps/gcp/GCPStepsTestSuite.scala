@@ -51,7 +51,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQLoad PARQUET step") {
-        val step = BQLoadStep[RatingCSV](
+        val step = BQLoadStep(
           name           = "LoadRatingBQ",
           input_location = Left(input_path),
           input_type     = PARQUET,

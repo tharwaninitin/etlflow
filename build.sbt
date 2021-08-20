@@ -66,7 +66,7 @@ lazy val cloudSettings = Seq(
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  crossScalaVersions := allScalaVersions,
+  crossScalaVersions := scala2Versions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
   libraryDependencies ++= serverLibs ++ zioTestLibs
 )
@@ -127,7 +127,7 @@ lazy val awsSettings = Seq(
 
 lazy val gcpSettings = Seq(
   name := "etlflow-gcp",
-  crossScalaVersions :=  allScalaVersions,
+  crossScalaVersions :=  scala2Versions,
   libraryDependencies ++= gcpLibs ++ zioTestLibs ++ cloudTestLibs
 )
 

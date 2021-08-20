@@ -6,9 +6,8 @@ import etlflow.coretests.TestSuiteHelper
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
-import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
 import etlflow.spark.IOType.{PARQUET, RDB}
-import etlflow.utils.Configuration
+import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}

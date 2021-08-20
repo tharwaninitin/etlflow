@@ -2,22 +2,33 @@ import Dependencies._
 import Versions._
 
 ThisBuild / version := EtlFlowVersion
-ThisBuild / scalacOptions ++=
-  Seq(
-      "-unchecked"
-    , "-feature"
-    , "-deprecation"
-    , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
-    , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
-    , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
-//    , "-Xfatal-warnings"
-)
 
 lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 12)) => Seq("-Ypartial-unification")
+      case Some((2, 12)) => Seq("-Ypartial-unification",
+        "-unchecked"
+        , "-feature"
+        , "-deprecation"
+        , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
+        , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
+        , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
+        , "-Xfatal-warnings"
+      )
+      case Some((2, 13)) => Seq(
+        "-unchecked"
+        , "-feature"
+        , "-deprecation"
+        , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
+        , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
+        , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
+        //        , "-Xfatal-warnings"
+      )
+      case Some((3, 0)) => Seq(
+        "-unchecked"
+        , "-feature"
+        , "-deprecation")
       case _ => Seq()
     }
   },
@@ -98,7 +109,7 @@ lazy val cryptoSettings = Seq(
 
 lazy val emailSettings = Seq(
   name := "etlflow-email",
-  crossScalaVersions :=  scala2Versions,
+  crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= emailLibs ++ zioTestLibs
 )
 

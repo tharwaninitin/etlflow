@@ -40,14 +40,17 @@ object CryptoTestSuite extends DefaultRunnableSpec {
       testM("Encrypt should encrypt string correctly") {
         assertM(CryptoApi.encrypt("admin"))(equalTo("twV4rChhxs76Z+gY868NSw=="))
       },
-      testM("Asymmetric Encrypted should not be Bcrypt Bounded without salt") {
+      testM("Asymmetric encryption should work without salt") {
         assertM(CryptoApi.oneWayEncrypt("abc").map(p => BCrypt.checkpw("abc", p)))(equalTo(true))
       },
-      testM("Asymmetric Encrypted should not be Bcrypt Bounded with salt") {
+      testM("Asymmetric encryption should work with salt default value 10") {
         assertM(CryptoApi.oneWayEncrypt("abc",Some(10)).map(p => BCrypt.checkpw("abc", p)))(equalTo(true))
       },
-      testM("Asymmetric Encrypted should not be Bcrypt Bounded with negative case") {
-        assertM(CryptoApi.oneWayEncrypt("abc",Some(10)).map(p => BCrypt.checkpw("abc1", p)))(equalTo(false))
+      testM("Asymmetric encryption should not work with salt 5 and different values ") {
+        assertM(CryptoApi.oneWayEncrypt("abc",Some(5)).map(p => BCrypt.checkpw("abc123", p)))(equalTo(false))
+      },
+      testM("Asymmetric encryption should not work with different values") {
+        assertM(CryptoApi.oneWayEncrypt("abc").map(p => BCrypt.checkpw("abc1", p)))(equalTo(false))
       }
     ).provideLayer(Implementation.live(None) ++ json.Implementation.live) @@ TestAspect.flaky
 }

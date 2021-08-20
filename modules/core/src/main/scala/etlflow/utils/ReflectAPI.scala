@@ -11,10 +11,10 @@ private[etlflow] object ReflectAPI extends ApplicationLogger {
     implicitly[Tag[T]].tag.longName
   }
 
-  def getFields[T: Tag]: Map[String,String] = {
+  def getFields[T: Tag]: Array[(String, String)] = {
     implicitly[Tag[T]].closestClass.getDeclaredFields.map(f => {
       (f.getName,f.getType.getName)
-    }).toMap
+    })
   }
 
   def getSubClasses[T: Tag]: Task[Set[String]] = Task {

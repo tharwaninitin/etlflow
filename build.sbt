@@ -7,42 +7,36 @@ lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 12)) => Seq("-Ypartial-unification",
+      case Some((2, _)) => Seq(
         "-unchecked"
         , "-feature"
         , "-deprecation"
+        , "-language:higherKinds"
         , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
         , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
         , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
         , "-Xfatal-warnings"
       )
-      case Some((2, 13)) => Seq(
+      case Some((3, _)) => Seq(
         "-unchecked"
         , "-feature"
         , "-deprecation"
-        , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
-        , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
-        , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
-        //        , "-Xfatal-warnings"
       )
-      case Some((3, 0)) => Seq(
-        "-unchecked"
-        , "-feature"
-        , "-deprecation")
       case _ => Seq()
     }
   },
   Test / parallelExecution := false,
-  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 12)) =>
-      Seq(
-        compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
-        compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
-      )
-    case Some((2, 13)) => Seq()
-    case Some((3, 0)) => Seq()
-    case _ => Seq()
-  }),
+  libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0") ++
+    (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 12)) =>
+        Seq(
+          compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
+          compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
+        )
+      case Some((2, 13)) => Seq()
+      case Some((3, 0)) => Seq()
+      case _ => Seq()
+    }),
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
 

@@ -6,7 +6,6 @@ import etlflow.gcp.BQInputType.{CSV, PARQUET}
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test.{DefaultRunnableSpec, _}
-
 import scala.concurrent.duration._
 
 object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
@@ -79,6 +78,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           , source_dataset =  output_dataset
           , source_table = output_table
           , destination_path = bq_export_dest_path
+          , destination_file_name = Some("sample.csv")
           , destination_format = BQInputType.CSV(",")
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
@@ -97,25 +97,6 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
-
-  // STEP 3: Verify Results
-  //  private implicit val spark: SparkSession = SparkManager.createSparkSession()
-  //
-  //  val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path), PARQUET)(spark)
-  //  val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
-  //  val query: String = s"SELECT count(*) as count_ratings ,sum(rating) sum_ratings FROM $output_dataset.$output_table"
-  //  val env = BQ.live()
-  //  val result: Iterable[FieldValueList] = runtime.unsafeRun(BQService.getDataFromBQ(query).provideLayer(env))
-  //  val count_records_bq: Long = result.head.get("count_ratings").getLongValue
-  //  val sum_ratings_bq: Double = result.head.get("sum_ratings").getDoubleValue
-  //
-  //  "Record counts" should "be matching between PARQUET and BQ table " in {
-  //    assert(count_ratings==count_records_bq)
-  //  }
-  //
-  //  "Sum of ratings" should "be matching between PARQUET and BQ table " in {
-  //    assert(sum_ratings==sum_ratings_bq)
-  //  }
 }
 
 

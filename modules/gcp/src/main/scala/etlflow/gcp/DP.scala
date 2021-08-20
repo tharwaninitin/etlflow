@@ -5,9 +5,8 @@ import com.google.protobuf.Duration
 import etlflow.schema.Executor.DATAPROC
 import etlflow.utils.ApplicationLogger
 import zio.{Layer, Task, ZIO, ZLayer}
-
 import java.util.concurrent.TimeUnit
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[etlflow] object DP extends ApplicationLogger {
 

@@ -9,8 +9,8 @@ object ReflectionTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] = {
     suite("Reflect Api Test Cases")(
-      testM("getFields[RatingOutput] should run successfully") {
-        assertM(RF.getFields[RatingOutput])(equalTo(Seq(("date_int", "Int"), ("date", "java.sql.Date"), ("timestamp", "Long"), ("rating", "Double"), ("movie_id", "Int"), ("user_id", "Int"))))
+      test("getFields[RatingOutput] should run successfully") {
+        assert(RF.getFields[RatingOutput])(equalTo(Seq(("date_int", "Int"), ("date", "java.sql.Date"), ("timestamp", "Long"), ("rating", "Double"), ("movie_id", "Int"), ("user_id", "Int"))))
       }
     ) @@ TestAspect.sequential
   }

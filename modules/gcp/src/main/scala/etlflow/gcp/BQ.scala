@@ -8,8 +8,8 @@ import etlflow.gcp.BQInputType.{CSV, JSON, ORC, PARQUET}
 import etlflow.schema.Credential
 import etlflow.utils.ApplicationLogger
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
-
 import scala.sys.process._
+import scala.jdk.CollectionConverters._
 
 private[etlflow] object BQ extends ApplicationLogger {
   case class BQLoadException(msg : String) extends RuntimeException(msg)
@@ -88,7 +88,6 @@ private[etlflow] object BQ extends ApplicationLogger {
           // Wait for the query to complete.
           queryJob.waitFor()
 
-          import scala.collection.JavaConverters._
           val result: TableResult = queryJob.getQueryResults()
           result.iterateAll().asScala
         }

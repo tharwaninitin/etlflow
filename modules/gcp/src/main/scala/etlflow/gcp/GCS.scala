@@ -10,8 +10,7 @@ import etlflow.schema.Credential.GCP
 import etlflow.schema.Location
 import etlflow.utils.ApplicationLogger
 import zio.{IO, Layer, Managed, Task, ZLayer}
-
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[etlflow] object GCS extends ApplicationLogger{
 

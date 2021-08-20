@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
 import zio.{Task, ZLayer}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[etlflow] object S3Impl {
   val live: ZLayer[S3AsyncClient, Throwable, S3Api] = ZLayer.fromFunction{s3: S3AsyncClient =>

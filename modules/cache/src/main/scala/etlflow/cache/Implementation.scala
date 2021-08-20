@@ -2,7 +2,7 @@ package etlflow.cache
 
 import com.github.benmanes.caffeine.cache.{Caffeine, Expiry, Cache => CCache}
 import zio.{Task, UIO, ULayer, ZLayer}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.util.Try
 

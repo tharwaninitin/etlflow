@@ -15,7 +15,7 @@ object ReflectionTestSuite {
       },
       test("getFields[EtlJobName.Job1] should return map of field names and field types") {
         val props = RF.getFields[EtlJobName.Job1]
-        val op = Map("prop1" -> "java.lang.String", "prop2" -> "int")
+        val op = Array(("prop1", "java.lang.String"), ("prop2" , "int"))
         assert(props)(equalTo(op))
       },
 //      testM("getSubClasses[EtlJobName] should should retrieve Set successfully") {

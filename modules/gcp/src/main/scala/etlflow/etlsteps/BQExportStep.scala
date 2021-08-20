@@ -2,13 +2,9 @@ package etlflow.etlsteps
 
 import etlflow.gcp._
 import etlflow.schema.{Credential, LoggingLevel}
-import etlflow.gcp.{ReflectAPI => RF}
 import zio.{Task, UIO}
-import scala.reflect.runtime.universe.TypeTag
-import scala.util.Try
-import zio.Runtime.default.unsafeRun
 
-class BQExportStep[T <: Product : TypeTag] private[etlflow](
+class BQExportStep private[etlflow](
      val name: String
      , source_project: Option[String] = None
      , source_dataset: String
@@ -48,29 +44,26 @@ class BQExportStep[T <: Product : TypeTag] private[etlflow](
   override def getStepProperties(level: LoggingLevel): Map[String, String] = {
     if (level == LoggingLevel.INFO) {
       Map(
-         "input_project" -> source_project
+         "input_project" -> source_project.getOrElse("")
         , "input_dataset" -> source_dataset
         , "input_table" -> source_table
-        , "output_type" -> destination_format
+        , "output_type" -> destination_format.toString()
         , "output_location" -> destination_path
       )
     } else {
       Map(
-         "input_project" -> source_project
+         "input_project" -> source_project.getOrElse("")
         , "input_dataset" -> source_dataset
         , "input_table" -> source_table
-        , "output_type" -> destination_format
+        , "output_type" -> destination_format.toString()
         , "output_location" -> destination_path
-        , "input_class" -> Try(unsafeRun(RF.getFields[T]).mkString(", ")).toOption.getOrElse("No Class Provided")
       )
     }
-    Map.empty
   }
 }
 
 object BQExportStep {
-  def apply[T <: Product : TypeTag]
-  (name: String
+  def apply(name: String
    , source_project: Option[String] = None
    , source_dataset: String
    , source_table: String
@@ -79,8 +72,8 @@ object BQExportStep {
    , destination_format:BQInputType
    , destination_compression_type:String = "gzip"
    , credentials: Option[Credential.GCP] = None
-  ): BQExportStep[T] = {
-    new BQExportStep[T](name, source_project, source_dataset, source_table, destination_path,destination_file_name
+  ): BQExportStep = {
+    new BQExportStep(name, source_project, source_dataset, source_table, destination_path,destination_file_name
       ,destination_format,destination_compression_type, credentials)
   }
 }

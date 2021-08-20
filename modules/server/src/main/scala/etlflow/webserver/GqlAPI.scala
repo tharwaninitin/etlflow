@@ -12,7 +12,6 @@ import etlflow.cache.{CacheDetails, CacheEnv}
 import etlflow.db._
 import etlflow.json.JsonEnv
 import zio.ZIO
-import scala.language.higherKinds
 
 private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 

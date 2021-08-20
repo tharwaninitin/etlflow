@@ -11,15 +11,15 @@ package object gcp {
   private[etlflow] type GCSService = Has[GCSService.Service]
   sealed trait BQInputType extends Serializable
   object BQInputType {
-    final case class CSV(delimiter: String = ",", header_present: Boolean = true, parse_mode: String = "FAILFAST", quotechar: String = "\"") extends BQInputType {
+    case class CSV(delimiter: String = ",", header_present: Boolean = true, parse_mode: String = "FAILFAST", quotechar: String = "\"") extends BQInputType {
       override def toString: String = s"CSV with delimiter => $delimiter header_present => $header_present parse_mode => $parse_mode"
     }
-    final case class JSON(multi_line: Boolean = false) extends BQInputType {
+    case class JSON(multi_line: Boolean = false) extends BQInputType {
       override def toString: String = s"Json with multiline  => $multi_line"
     }
-    final case object BQ extends BQInputType
-    final case object PARQUET extends BQInputType
-    final case object ORC extends BQInputType
+    case object BQ extends BQInputType
+    case object PARQUET extends BQInputType
+    case object ORC extends BQInputType
   }
 
   sealed trait FSType

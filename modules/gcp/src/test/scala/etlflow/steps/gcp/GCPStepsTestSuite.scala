@@ -51,7 +51,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQLoad PARQUET step") {
-        val step = BQLoadStep(
+        val step = BQLoadStep[RatingCSV](
           name           = "LoadRatingBQ",
           input_location = Left(input_path),
           input_type     = PARQUET,
@@ -73,7 +73,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQ Export CSV step") {
-        val step = BQExportStep(
+        val step = BQExportStep[RatingCSV](
           name           = "ExportRatingBQPARQUETCSV"
           , source_project = sys.env.get("GCP_PROJECT_ID")
           , source_dataset =  output_dataset
@@ -84,7 +84,7 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQ Export PARQUET step") {
-        val step = BQExportStep(
+        val step = BQExportStep[RatingCSV](
           name           = "ExportRatingBQPARQUET"
           , source_project = sys.env.get("GCP_PROJECT_ID")
           , source_dataset =  output_dataset

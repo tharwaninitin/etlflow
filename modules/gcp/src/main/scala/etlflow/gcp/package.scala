@@ -17,9 +17,9 @@ package object gcp {
     final case class JSON(multi_line: Boolean = false) extends BQInputType {
       override def toString: String = s"Json with multiline  => $multi_line"
     }
-    final case object BQ extends BQInputType
-    final case object PARQUET extends BQInputType
-    final case object ORC extends BQInputType
+    case object BQ extends BQInputType
+    case object PARQUET extends BQInputType
+    case object ORC extends BQInputType
   }
 
   sealed trait FSType
@@ -48,23 +48,23 @@ package object gcp {
       def executeQuery(query: String): ZIO[BQService, Throwable, Unit]
       def getDataFromBQ(query: String): ZIO[BQService, Throwable, Iterable[FieldValueList]]
       def loadIntoBQFromLocalFile(
-         source_locations: Either[String, Seq[(String, String)]], source_format: BQInputType, destination_dataset: String,
-         destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
-         ): ZIO[BQService, Throwable, Unit]
+                                   source_locations: Either[String, Seq[(String, String)]], source_format: BQInputType, destination_dataset: String,
+                                   destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
+                                 ): ZIO[BQService, Throwable, Unit]
       def loadIntoBQTable(
-          source_path: String, source_format: BQInputType, destination_project: Option[String], destination_dataset: String,
-          destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
-          schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]]
+                           source_path: String, source_format: BQInputType, destination_project: Option[String], destination_dataset: String,
+                           destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
+                           schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]]
       def loadIntoPartitionedBQTable(
-          source_paths_partitions: Seq[(String, String)], source_format: BQInputType, destination_project: Option[String],
-          destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
-          create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
-        ): ZIO[BQService, Throwable, Map[String, Long]]
+                                      source_paths_partitions: Seq[(String, String)], source_format: BQInputType, destination_project: Option[String],
+                                      destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
+                                      create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
+                                    ): ZIO[BQService, Throwable, Map[String, Long]]
       def exportFromBQTable(
-          source_project: Option[String], source_dataset: String,
-          source_table: String, destination_path: String, destination_file_name:Option[String] ,
-          destination_format: BQInputType, destination_compression_type:String = "gzip"
-        ): ZIO[BQService, Throwable, Unit]
+                             source_project: Option[String], source_dataset: String,
+                             source_table: String, destination_path: String, destination_file_name:Option[String] ,
+                             destination_format: BQInputType, destination_compression_type:String = "gzip"
+                           ): ZIO[BQService, Throwable, Unit]
 
     }
     def getDataFromBQ(query: String): ZIO[BQService, Throwable, Iterable[FieldValueList]] =
@@ -72,32 +72,32 @@ package object gcp {
     def executeQuery(query: String): ZIO[BQService, Throwable, Unit] =
       ZIO.accessM(_.get.executeQuery(query))
     def loadIntoBQFromLocalFile(
-       source_locations: Either[String, Seq[(String, String)]], source_format: BQInputType, destination_dataset: String,
-       destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
-     ): ZIO[BQService, Throwable, Unit] =
+                                 source_locations: Either[String, Seq[(String, String)]], source_format: BQInputType, destination_dataset: String,
+                                 destination_table: String, write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition
+                               ): ZIO[BQService, Throwable, Unit] =
       ZIO.accessM(_.get.loadIntoBQFromLocalFile(source_locations,source_format,destination_dataset,
         destination_table, write_disposition, create_disposition)
       )
     def loadIntoBQTable(
-       source_path: String, source_format: BQInputType, destination_project: Option[String], destination_dataset: String, destination_table: String,
-       write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
-       schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]] =
+                         source_path: String, source_format: BQInputType, destination_project: Option[String], destination_dataset: String, destination_table: String,
+                         write_disposition: JobInfo.WriteDisposition, create_disposition: JobInfo.CreateDisposition,
+                         schema: Option[Schema] = None): ZIO[BQService, Throwable, Map[String, Long]] =
       ZIO.accessM(_.get.loadIntoBQTable(source_path,source_format,destination_project,destination_dataset,
         destination_table,write_disposition,create_disposition,schema)
       )
     def loadIntoPartitionedBQTable(
-        source_paths_partitions: Seq[(String, String)], source_format: BQInputType, destination_project: Option[String],
-        destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
-        create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
-      ): ZIO[BQService, Throwable, Map[String, Long]] =
+                                    source_paths_partitions: Seq[(String, String)], source_format: BQInputType, destination_project: Option[String],
+                                    destination_dataset: String, destination_table: String, write_disposition: JobInfo.WriteDisposition,
+                                    create_disposition: JobInfo.CreateDisposition, schema: Option[Schema], parallelism: Int
+                                  ): ZIO[BQService, Throwable, Map[String, Long]] =
       ZIO.accessM(_.get.loadIntoPartitionedBQTable(source_paths_partitions,source_format,destination_project,destination_dataset,
         destination_table,write_disposition,create_disposition,schema,parallelism)
       )
     def exportFromBQTable(
-        source_project: Option[String], source_dataset: String,
-        source_table: String, destination_path: String,destination_file_name:Option[String], destination_format: BQInputType,
-        destination_compression_type:String = "gzip"
-      ): ZIO[BQService, Throwable, Unit] =
+                           source_project: Option[String], source_dataset: String,
+                           source_table: String, destination_path: String,destination_file_name:Option[String], destination_format: BQInputType,
+                           destination_compression_type:String = "gzip"
+                         ): ZIO[BQService, Throwable, Unit] =
       ZIO.accessM(_.get.exportFromBQTable(source_project,source_dataset,
         source_table,destination_path,destination_file_name,destination_format,destination_compression_type)
       )
@@ -106,20 +106,20 @@ package object gcp {
   private[etlflow] type DPService = Has[DPService.Service]
 
   case class DataprocProperties (
-    bucket_name: String,
-    subnet_uri: Option[String] = None,
-    network_tags: List[String] = List.empty,
-    service_account: Option[String] = None,
-    idle_deletion_duration_sec: Option[Long] = Some(1800L),
-    master_machine_type_uri: String = "n1-standard-4",
-    worker_machine_type_uri: String = "n1-standard-4",
-    image_version: String = "1.5.4-debian10",
-    boot_disk_type: String = "pd-ssd",
-    master_boot_disk_size_gb: Int = 400,
-    worker_boot_disk_size_gb: Int = 200,
-    master_num_instance: Int = 1,
-    worker_num_instance: Int = 3
-  )
+                                  bucket_name: String,
+                                  subnet_uri: Option[String] = None,
+                                  network_tags: List[String] = List.empty,
+                                  service_account: Option[String] = None,
+                                  idle_deletion_duration_sec: Option[Long] = Some(1800L),
+                                  master_machine_type_uri: String = "n1-standard-4",
+                                  worker_machine_type_uri: String = "n1-standard-4",
+                                  image_version: String = "1.5.4-debian10",
+                                  boot_disk_type: String = "pd-ssd",
+                                  master_boot_disk_size_gb: Int = 400,
+                                  worker_boot_disk_size_gb: Int = 200,
+                                  master_num_instance: Int = 1,
+                                  worker_num_instance: Int = 3
+                                )
 
   private[etlflow] object DPService {
     trait Service {

@@ -1,8 +1,9 @@
 package examples.jobs
 
+import com.google.cloud.bigquery.Schema
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.BQLoadStep
-import etlflow.gcp.BQInputType
+import etlflow.gcp.{BQInputType, getBqSchema}
 import examples.schema.MyEtlJobProps.EtlJob23Props
 import examples.schema.MyEtlJobSchema.RatingOutput
 
@@ -46,12 +47,14 @@ case class EtlJob3Definition(job_properties: EtlJob23Props) extends GenericEtlJo
 //    output_save_mode      = SaveMode.Overwrite
 //  )
 
-  private val step2 = BQLoadStep[RatingOutput](
+  val schema: Option[Schema] = getBqSchema[RatingOutput]
+  private val step2 = BQLoadStep(
     name           = "LoadRatingBQ",
     input_location = Right(output_date_paths),
     input_type     = BQInputType.CSV(),
     output_dataset = job_props.ratings_output_dataset,
-    output_table   = job_props.ratings_output_table_name
+    output_table   = job_props.ratings_output_table_name,
+    schema = schema
   )
 
   val job = for {

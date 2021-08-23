@@ -1,16 +1,11 @@
 package etlflow.etlsteps
 
-import com.google.cloud.bigquery.{Field, JobInfo, LegacySQLTypeName, Schema}
+import com.google.cloud.bigquery.{JobInfo, Schema}
 import etlflow.gcp._
 import etlflow.schema.{Credential, LoggingLevel}
-import etlflow.gcp.{ ReflectAPI => RF}
 import zio.{Task, UIO}
-import java.util
-import scala.jdk.CollectionConverters._
-import scala.reflect.runtime.universe.TypeTag
-import scala.util.Try
 
-class BQLoadStep[T <: Product : TypeTag] private[etlflow](
+class BQLoadStep private[etlflow](
        val name: String
        , input_location: => Either[String, Seq[(String, String)]]
        , input_type: BQInputType
@@ -21,6 +16,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
        , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
        , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
        , credentials: Option[Credential.GCP] = None
+       , schema: Option[Schema] = None
      )
   extends EtlStep[Unit, Unit] {
   var row_count: Map[String, Long] = Map.empty
@@ -28,28 +24,6 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
   final def process(input: =>Unit): Task[Unit] = {
     logger.info("#"*50)
     logger.info(s"Starting BQ Data Load Step : $name")
-
-    def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
-      case "String"         => LegacySQLTypeName.STRING
-      case "Int"            => LegacySQLTypeName.INTEGER
-      case "Long"           => LegacySQLTypeName.INTEGER
-      case "Double"         => LegacySQLTypeName.FLOAT
-      case "java.sql.Date"  => LegacySQLTypeName.DATE
-      case "java.util.Date" => LegacySQLTypeName.DATE
-      case "Boolean"        => LegacySQLTypeName.BOOLEAN
-      case _                => LegacySQLTypeName.STRING
-    }
-
-    val schema: Option[Schema] = Try{
-      val fields = new util.ArrayList[Field]
-      val ccFields = RF.getFields[T].reverse
-      if (ccFields.isEmpty)
-        throw new RuntimeException("Schema not provided")
-      ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))
-      val s = Schema.of(fields)
-      logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName,x.getType))}")
-      s
-    }.toOption
 
     val env = BQ.live(credentials)
 
@@ -114,7 +88,6 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
           source_path => source_path,
           source_paths_partitions => source_paths_partitions.mkString(",")
         )
-        ,"input_class" -> Try(RF.getFields[T].mkString(", ")).toOption.getOrElse("No Class Provided")
         ,"output_dataset" -> output_dataset
         ,"output_table" -> output_table
         ,"output_table_write_disposition" -> output_write_disposition.toString
@@ -126,7 +99,7 @@ class BQLoadStep[T <: Product : TypeTag] private[etlflow](
 }
 
 object BQLoadStep {
-  def apply[T <: Product : TypeTag]
+  def apply
   (name: String
    , input_location: => Either[String, Seq[(String, String)]]
    , input_type: BQInputType
@@ -137,8 +110,9 @@ object BQLoadStep {
    , output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE
    , output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER
    , credentials: Option[Credential.GCP] = None
-  ): BQLoadStep[T] = {
-    new BQLoadStep[T](name, input_location, input_type, input_file_system, output_project
-      , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials)
+   , schema: Option[Schema] = None
+  ): BQLoadStep = {
+    new BQLoadStep(name, input_location, input_type, input_file_system, output_project
+      , output_dataset, output_table, output_write_disposition, output_create_disposition, credentials, schema)
   }
 }

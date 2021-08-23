@@ -1,12 +1,17 @@
 package etlflow
 
 import com.google.api.gax.paging.Page
-import com.google.cloud.bigquery.{FieldValueList, JobInfo, Schema}
+import com.google.cloud.bigquery.{Field, FieldValueList, JobInfo, LegacySQLTypeName, Schema}
 import com.google.cloud.storage.Blob
 import com.google.cloud.storage.Storage.BlobListOption
-import zio.{Has, ZIO}
+import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
+import zio.{Has, Tag, ZIO}
 
-package object gcp {
+import java.util
+import scala.jdk.CollectionConverters._
+import scala.util.Try
+
+package object gcp extends ApplicationLogger{
 
   private[etlflow] type GCSService = Has[GCSService.Service]
   sealed trait BQInputType extends Serializable
@@ -133,5 +138,30 @@ package object gcp {
     def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = ZIO.accessM(_.get.executeHiveJob(query))
     def createDataproc(props: DataprocProperties): ZIO[DPService, Throwable, Unit] = ZIO.accessM(_.get.createDataproc(props))
     def deleteDataproc(): ZIO[DPService, Throwable, Unit] = ZIO.accessM(_.get.deleteDataproc())
+  }
+
+  def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
+    case "string"         => LegacySQLTypeName.STRING
+    case "int"            => LegacySQLTypeName.INTEGER
+    case "long"           => LegacySQLTypeName.INTEGER
+    case "double"         => LegacySQLTypeName.FLOAT
+    case "java.sql.Date"  => LegacySQLTypeName.DATE
+    case "java.util.Date" => LegacySQLTypeName.DATE
+    case "boolean"        => LegacySQLTypeName.BOOLEAN
+    case _                => LegacySQLTypeName.STRING
+
+  }
+
+  def getBqSchema[T: Tag]: Option[Schema] = {
+    Try {
+      val fields = new util.ArrayList[Field]
+      val ccFields = RF.getFields[T]
+      if (ccFields.isEmpty)
+        throw new RuntimeException("Schema not provided")
+      ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))
+      val s = Schema.of(fields)
+      logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName, x.getType))}")
+      s
+    }.toOption
   }
 }

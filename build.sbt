@@ -121,7 +121,7 @@ lazy val awsSettings = Seq(
 
 lazy val gcpSettings = Seq(
   name := "etlflow-gcp",
-  crossScalaVersions :=  scala2Versions,
+  crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= gcpLibs ++ zioTestLibs ++ cloudTestLibs
 )
 

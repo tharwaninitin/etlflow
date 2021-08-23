@@ -1,11 +1,12 @@
 package etlflow.steps.gcp
 
+import com.google.cloud.bigquery.Schema
 import etlflow.etlsteps.{BQExportStep, BQLoadStep, GCSPutStep, GCSSensorStep}
-import etlflow.gcp.BQInputType
 import etlflow.gcp.BQInputType.{CSV, PARQUET}
+import etlflow.gcp.{BQInputType, getBqSchema}
 import zio.ZIO
 import zio.test.Assertion._
-import zio.test.{DefaultRunnableSpec, _}
+import zio.test._
 import scala.concurrent.duration._
 
 object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
@@ -61,13 +62,15 @@ object GCPStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute BQLoad CSV step") {
-        val step = BQLoadStep[RatingCSV](
+        val schema:Option[Schema] = getBqSchema[RatingCSV]
+        val step = BQLoadStep(
           name           = "LoadRatingCSV",
           input_location = Left(input_path_csv),
           input_type     = CSV(),
           output_project = sys.env.get("GCP_PROJECT_ID"),
           output_dataset = output_dataset,
-          output_table   = output_table
+          output_table   = output_table,
+          schema         = schema
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

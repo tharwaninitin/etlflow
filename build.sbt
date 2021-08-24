@@ -60,7 +60,7 @@ lazy val cloudSettings = Seq(
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  crossScalaVersions := scala2Versions,
+  crossScalaVersions := allScalaVersions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
   libraryDependencies ++= serverLibs ++ zioTestLibs
 )
@@ -79,7 +79,7 @@ lazy val utilsSettings = Seq(
 
 lazy val httpSettings = Seq(
   name := "etlflow-http",
-  crossScalaVersions := scala2Versions,
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++= httpLibs ++ zioTestLibs
 )
 
@@ -115,7 +115,7 @@ lazy val cacheSettings = Seq(
 
 lazy val awsSettings = Seq(
   name := "etlflow-aws",
-  crossScalaVersions :=  scala2Versions,
+  crossScalaVersions :=  allScalaVersions,
   libraryDependencies ++= awsLibs ++ zioTestLibs ++ cloudTestLibs
 )
 

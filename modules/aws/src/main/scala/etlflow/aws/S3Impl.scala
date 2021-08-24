@@ -8,7 +8,7 @@ import zio.{Task, ZLayer}
 import scala.jdk.CollectionConverters._
 
 private[etlflow] object S3Impl {
-  val live: ZLayer[S3AsyncClient, Throwable, S3Api] = ZLayer.fromFunction{s3: S3AsyncClient =>
+  val live: ZLayer[S3AsyncClient, Throwable, S3Api] = ZLayer.fromFunction{(s3: S3AsyncClient) =>
     new Service {
       def listBuckets: Task[ListBucketsResponse] =
         Task.effectAsync[ListBucketsResponse](callback => processResponse(s3.listBuckets, callback))

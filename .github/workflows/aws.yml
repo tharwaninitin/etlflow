@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile Aws Module
-        run: sbt ";project aws; Test/compile"
+        run: sbt ";project aws; +Test/compile"

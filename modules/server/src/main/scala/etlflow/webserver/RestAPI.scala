@@ -2,16 +2,13 @@ package etlflow.webserver
 
 import etlflow.api.Schema.{EtlJobArgs, Props}
 import etlflow.api.{ServerEnv, Service}
-import etlflow.db.EtlJob
 import etlflow.json.JsonApi
 import etlflow.utils.RequestValidator
-import io.circe.generic.semiauto.deriveEncoder
+import io.circe.generic.auto._
 import zhttp.http.Method._
 import zhttp.http._
 
 object RestAPI {
-
-  implicit val caseDecoder = deriveEncoder[EtlJob]
 
   def oldRestApi: HttpApp[ServerEnv, Throwable] =
     HttpApp.collectM {

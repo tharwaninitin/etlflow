@@ -9,7 +9,7 @@ lazy val examples = (project in file("examples"))
   .settings(
     name := "examples",
     organization := "com.github.tharwaninitin",
-    crossScalaVersions := List(scala212, scala213),
+    crossScalaVersions := List(scala212, scala213,scala3),
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
       "com.github.tharwaninitin" %% "etlflow-server" % EtlFlowVersion,

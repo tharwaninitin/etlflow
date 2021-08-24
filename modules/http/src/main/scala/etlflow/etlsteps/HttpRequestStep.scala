@@ -7,9 +7,7 @@ import io.circe.Decoder
 import sttp.client3.Response
 import zio._
 
-import scala.reflect.runtime.universe.{TypeTag, typeOf}
-
-case class HttpRequestStep[A: TypeTag : Decoder](
+case class HttpRequestStep[A: Tag : Decoder](
      name: String,
      url: String,
      method: HttpMethod,
@@ -31,12 +29,12 @@ case class HttpRequestStep[A: TypeTag : Decoder](
 
     val output: Task[Response[String]] = HttpRequest.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
 
-    typeOf[A] match {
-      case t if t =:= typeOf[Unit] =>
+    Tag[A] match {
+      case t if t == Tag[Unit] =>
         output.unit.asInstanceOf[Task[A]]
-      case t if t =:= typeOf[String] =>
+      case t if t == Tag[String] =>
         output.map(_.body).asInstanceOf[Task[A]]
-      case t if t =:= typeOf[Nothing] =>
+      case t if t == Tag[Nothing] =>
         Task.fail(new RuntimeException("Need type parameter in HttpStep, if no output is required use HttpStep[Unit]"))
       case _ =>
         for {

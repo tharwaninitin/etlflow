@@ -3,17 +3,16 @@ package etlflow.webserver
 import etlflow.api.Schema.{UserArgs, UserAuth}
 import etlflow.cache.{Cache, CacheApi, CacheEnv, default_ttl}
 import etlflow.db.{DBApi, DBEnv}
-import etlflow.schema.WebServer
 import etlflow.utils.ApplicationLogger
 import org.mindrot.jbcrypt.BCrypt
 import pdi.jwt.{Jwt, JwtAlgorithm}
-import zhttp.http.{HttpApp, _}
+import zhttp.http._
 import zio.Runtime.default.unsafeRun
 import zio.{RIO, Task, ZEnv, ZIO}
 
-case class Authentication(cache: Cache[String], config: Option[WebServer]) extends  ApplicationLogger {
-  final val secret = config.map(_.secretKey.getOrElse("secretKey")).getOrElse("secretKey")
+case class Authentication(cache: Cache[String], secretkey: Option[String]) extends  ApplicationLogger {
 
+  final val secret = secretkey.getOrElse(etlflow.utils.Defaults.secretkey)
   private [etlflow] def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
 
   private [etlflow] def isCached(token: String): ZIO[ZEnv, Throwable, Option[String]] =

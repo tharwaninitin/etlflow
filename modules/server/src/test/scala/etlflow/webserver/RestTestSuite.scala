@@ -4,9 +4,9 @@ import zhttp.http._
 import zio.test.Assertion.equalTo
 import zio.test._
 
-case class NewRestTestSuite(port: Int) extends HttpRunnableSpec(port) {
+case class RestTestSuite(port: Int) extends HttpRunnableSpec(port) {
 
-  val newRestApi = serve {RestAPI.newRestApi}
+  val newRestApi = serve {RestAPI()}
 
   val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any]  =
     suiteM("Rest Api")(

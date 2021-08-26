@@ -14,7 +14,7 @@ object Implementation {
   def live(key: Option[String]): ULayer[CryptoEnv] = ZLayer.succeed(
     new CryptoApi.Service {
 
-      final val secretKey = key.getOrElse("EtlFlowCrypt2020")
+      final val secretKey = key.getOrElse(etlflow.utils.Defaults.secretkey)
       final val iv = new IvParameterSpec(secretKey.getBytes("UTF-8"))
       final val skeySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES")
       final val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")

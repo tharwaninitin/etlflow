@@ -3,25 +3,12 @@ package etlflow.webserver
 import etlflow.api.Schema.{EtlJobArgs, Props}
 import etlflow.api.{ServerEnv, Service}
 import etlflow.json.JsonApi
-import etlflow.utils.RequestValidator
 import io.circe.generic.auto._
 import zhttp.http.Method._
 import zhttp.http._
 
 object RestAPI {
-
-  def oldRestApi: HttpApp[ServerEnv, Throwable] =
-    HttpApp.collectM {
-    case req@GET -> Root / "api" /"runjob" =>
-      val job_name = req.url.queryParams.getOrElse("job_name",List("Job"))
-      val props = req.url.queryParams.getOrElse("props",List.empty)
-      RequestValidator(job_name.head, if(props.isEmpty) None else Some(props.mkString(","))).flatMap{output =>
-        Service.runJob(output,"Rest API")
-            .map(x =>  Response.jsonString(s"""{"message" -> "Job ${x.name} submitted successfully"}"""))
-      }
-  }
-
-  def newRestApi: HttpApp[ServerEnv, Throwable] =
+  def apply(): HttpApp[ServerEnv, Throwable] =
     HttpApp.collectM {
     case req@POST  -> Root /  "restapi" / "runjob" / name =>
       val props = io.circe.parser.decode[Map[String, String]](req.getBodyAsString.getOrElse("")) match {

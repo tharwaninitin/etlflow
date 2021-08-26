@@ -19,7 +19,7 @@ import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
 
 trait ServerSuiteHelper {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
-  val skey = config.webserver.flatMap(_.secretKey)
+  val skey = config.secretkey
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]]
 
@@ -35,7 +35,7 @@ trait ServerSuiteHelper {
       "Job8" -> Runtime.default.unsafeRun(Semaphore.make(1)),
       "Job9" -> Runtime.default.unsafeRun(Semaphore.make(1)))
 
-  val auth: Authentication = Authentication(authCache, config.webserver)
+  val auth: Authentication = Authentication(authCache, config.secretkey)
 
   val executor: Executor[MEJP] = Executor[MEJP](sem, config, jobStatsCache)
   val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))

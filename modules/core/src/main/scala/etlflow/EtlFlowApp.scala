@@ -25,7 +25,7 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
           RunDbMigration(config.db, clean = true).unit
         case ec if ec.add_user && ec.user != "" && ec.password != "" =>
           logger.info("Inserting user into database")
-          val key = config.webserver.flatMap(_.secretKey)
+          val key = config.secretkey
           val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live(key))
           val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
           val dbLayer = liveDB(config.db)
@@ -58,7 +58,7 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
           val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
           val dbLayer = liveDB(config.db,"Job-" + ec.job_name + "-Pool",2)
           val jsonLayer = json.Implementation.live
-          val cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
+          val cryptoLayer = crypto.Implementation.live(config.secretkey)
           val logLayer = log.Implementation.live
           localExecutor
             .executeJob(ec.job_name, ec.job_properties, config.slack, jri, is_master)

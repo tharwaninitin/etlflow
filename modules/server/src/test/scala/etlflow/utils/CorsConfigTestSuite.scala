@@ -7,8 +7,8 @@ import zio.test._
 
 object CorsConfigTestSuite {
 
-  val corsConfig1 = CorsConfig(Some(WebServer(None, None, None, None)))
-  val corsConfig2 = CorsConfig(Some(WebServer(None, None, None, Some(Set("google.com")))))
+  val corsConfig1 = CorsConfig(Some(WebServer(None, None, None)))
+  val corsConfig2 = CorsConfig(Some(WebServer(None, None, Some(Set("google.com")))))
   val corsConfig3 = CorsConfig(None)
 
   val spec: ZSpec[environment.TestEnvironment, Any] =

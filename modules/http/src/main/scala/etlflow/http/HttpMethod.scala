@@ -1,4 +1,4 @@
-package etlflow.utils
+package etlflow.http
 
 sealed trait HttpMethod
 object HttpMethod {

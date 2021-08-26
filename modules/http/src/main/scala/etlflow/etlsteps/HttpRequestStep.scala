@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
+import etlflow.http.{HttpMethod, HttpApi}
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.LoggingLevel
-import etlflow.utils.{HttpMethod, HttpRequest}
 import io.circe.Decoder
 import sttp.client3.Response
 import zio._
@@ -27,7 +27,7 @@ case class HttpRequestStep[A: Tag : Decoder](
     logger.info(s"ConnectionTimeOut: $connection_timeout")
     logger.info(s"ReadTimeOut: $read_timeout")
 
-    val output: Task[Response[String]] = HttpRequest.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
+    val output: Task[Response[String]] = HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
 
     Tag[A] match {
       case t if t == Tag[Unit] =>

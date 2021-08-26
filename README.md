@@ -27,14 +27,14 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | Cache              | ✅                   | ✅          | ✅          |
 | Crypto             | ✅                   | ✅          | ✅          |
 | Db                 | ✅                   | ✅          | ✅          |
-| Core               | ✅                   | ✅          | ❌          |
-| Server             | ✅                   | ✅          | ❌          |
+| Core               | ✅                   | ✅          | ✅          |
+| Server             | ✅                   | ✅          | ✅          |
+| Http               | ✅                   | ✅          | ✅          |
+| Cloud              | ✅                   | ✅          | ✅          |
+| Email              | ✅                   | ✅          | ✅          |
+| Aws                | ✅                   | ✅          | ✅          |
+| Gcp                | ✅                   | ✅          | ✅          |
 | Redis              | ✅                   | ✅          | ❌          |
-| Http               | ✅                   | ✅          | ❌          |
-| Cloud              | ✅                   | ✅          | ❌          |
-| Email              | ✅                   | ✅          | ❌          |
-| Aws                | ✅                   | ✅          | ❌          |
-| Gcp                | ✅                   | ✅          | ❌          |
 | Spark              | ✅                   | ❌          | ❌          |
 
 

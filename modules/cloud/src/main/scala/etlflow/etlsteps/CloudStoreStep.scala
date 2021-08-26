@@ -68,5 +68,7 @@ case class CloudStoreStep[T] (
       }
       .parJoin(parallelism)
       .compile.drain
+
+    Task(logger.info("#"*50))
   } *> Task(logger.info("#"*50))
 }

@@ -1,5 +1,6 @@
-package etlflow.utils
+package etlflow.http
 
+import etlflow.utils.ApplicationLogger
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}
@@ -14,7 +15,7 @@ import zio.{Task, TaskManaged}
 
 import scala.concurrent.duration.{Duration, _}
 
-private[etlflow] object HttpRequest extends ApplicationLogger {
+private[etlflow] object HttpApi extends ApplicationLogger {
 
   private def options(ms: Int) = SttpBackendOptions.connectionTimeout(ms.millisecond)
 
@@ -57,12 +58,13 @@ private[etlflow] object HttpRequest extends ApplicationLogger {
       }
   }
 
-  implicit private val stringAsJson: BodySerializer[String] = { p =>
+  implicit private val stringAsJson: BodySerializer[String] = { (p: String) =>
     StringBody(p, "UTF-8", MediaType.ApplicationJson)
   }
 
   def execute(method: HttpMethod, url: String, params: Either[String, Map[String,String]], headers: Map[String, String], log: Boolean, connection_timeout: Int, read_timeout: Int, allow_unsafe_ssl: Boolean = false): Task[Response[String]] = {
-    val hdrs = headers.view.filterKeys(key => key.toLowerCase != "content-type").view.toMap
+
+    val hdrs = headers -- List("content-type")
 
     val request: RequestT[Empty, String, Any] = method match {
       case HttpMethod.GET =>

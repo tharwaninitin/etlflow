@@ -96,5 +96,7 @@ case class CloudStoreSyncStep (
       }
       .parJoin(maxOpen = parallelism)
       .compile.drain
+
+    Task(logger.info("#" * 50))
   } *> Task(logger.info("#" * 50))
 }

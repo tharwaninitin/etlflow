@@ -19,12 +19,12 @@ object CryptoTestSuite extends DefaultRunnableSpec {
 
   val expected_jdbc_encrypt = """{
                                 | "url" : "localhost123",
-                                | "user" : "XRhxQfeHwehR/kvJGFbviw==",
-                                | "password" : "B67uKTvOC2B5GQEMAjnfPQ==",
+                                | "user" : "O5+xIlCV3CZljknheZvbgQ==",
+                                | "password" : "kQdnuCG+QMz/oTsnP/Ywww==",
                                 | "driver" : "org.postgresql.Driver"
                                 |}""".stripMargin
 
-  val expected_aws_encrypt = """{"access_key":"XRhxQfeHwehR/kvJGFbviw==","secret_key":"B67uKTvOC2B5GQEMAjnfPQ=="}"""
+  val expected_aws_encrypt = """{"access_key":"O5+xIlCV3CZljknheZvbgQ==","secret_key":"kQdnuCG+QMz/oTsnP/Ywww=="}"""
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Encryption Test")(
@@ -35,10 +35,10 @@ object CryptoTestSuite extends DefaultRunnableSpec {
         assertM(CryptoApi.decryptCredential[AWS](expected_aws_encrypt))(equalTo("""{"access_key":"AKIA4FADZ4","secret_key":"ZiLo6CsbF6twGR"}"""))
       },
       testM("EncryptCredential should encrypt AWS credential correctly") {
-        assertM(CryptoApi.encryptCredential("aws",aws_value))(equalTo("""{"access_key":"XRhxQfeHwehR/kvJGFbviw==","secret_key":"B67uKTvOC2B5GQEMAjnfPQ=="}"""))
+        assertM(CryptoApi.encryptCredential("aws",aws_value))(equalTo("""{"access_key":"O5+xIlCV3CZljknheZvbgQ==","secret_key":"kQdnuCG+QMz/oTsnP/Ywww=="}"""))
       },
       testM("Encrypt should encrypt string correctly") {
-        assertM(CryptoApi.encrypt("admin"))(equalTo("twV4rChhxs76Z+gY868NSw=="))
+        assertM(CryptoApi.encrypt("admin"))(equalTo("Y/dbd/p8awKCNv1YwDVuBA=="))
       },
       testM("Asymmetric encryption should work without salt") {
         assertM(CryptoApi.oneWayEncrypt("abc").map(p => BCrypt.checkpw("abc", p)))(equalTo(true))

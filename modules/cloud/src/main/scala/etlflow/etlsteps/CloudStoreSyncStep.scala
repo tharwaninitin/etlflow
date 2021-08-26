@@ -10,7 +10,9 @@ import etlflow.aws.S3CustomClient
 import etlflow.gcp.GCS
 import etlflow.schema.Location
 import fs2.{Pipe, Stream}
-import zio.Task
+import zio.blocking.Blocking
+import zio.clock.Clock
+import zio.{RIO, Task}
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 
@@ -27,7 +29,7 @@ case class CloudStoreSyncStep (
 
   def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
 
-  final def process(input: => Unit): Task[Unit] = {
+  final def process(input: => Unit): RIO[Clock with Blocking, Unit] = {
     logger.info("#" * 50)
 
     logger.info(s"Starting Sync Step: $name")

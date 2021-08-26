@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile Cloud Module
-        run: sbt ";project cloud; Test/compile"
+        run: sbt ";project cloud; +Test/compile"

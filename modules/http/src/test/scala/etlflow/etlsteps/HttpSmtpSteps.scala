@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.coretests.Schema.{EtlJob3Props, HttpBinResponse}
 import etlflow.etljobs.GenericEtlJob
-import etlflow.utils.HttpMethod
+import etlflow.http.HttpMethod
 import io.circe.generic.auto._
 
 import java.time.LocalDateTime

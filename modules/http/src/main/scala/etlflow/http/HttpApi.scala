@@ -64,7 +64,8 @@ private[etlflow] object HttpApi extends ApplicationLogger {
 
   def execute(method: HttpMethod, url: String, params: Either[String, Map[String,String]], headers: Map[String, String], log: Boolean, connection_timeout: Int, read_timeout: Int, allow_unsafe_ssl: Boolean = false): Task[Response[String]] = {
 
-    val hdrs = headers -- List("content-type")
+//    val transform_header_keys = headers.map { case (key, value) => key.toLowerCase -> value }
+    val hdrs = headers -- List("content-type","Content-Type")
 
     val request: RequestT[Empty, String, Any] = method match {
       case HttpMethod.GET =>

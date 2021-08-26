@@ -29,14 +29,14 @@ abstract class ServerApp[T <: EJPMType : Tag]
     authCache   <- CacheApi.createCache[String].toManaged_
     listTkn     = config.token.getOrElse(List.empty)
     _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.put(authCache, tkn, tkn)).toManaged_
-    auth        = Authentication(authCache, config.webserver)
+    auth        = Authentication(authCache, config.secretkey)
     jobs        <- RF.getJobs[T].toManaged_
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
     dbLayer     = liveDB(config.db)
     logLayer    = log.Implementation.live
-    cryptoLayer = crypto.Implementation.live(config.webserver.flatMap(_.secretKey))
+    cryptoLayer = crypto.Implementation.live(config.secretkey)
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)
     finalLayer   = apiLayer ++ dbLayer ++ cryptoLayer ++ logLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)

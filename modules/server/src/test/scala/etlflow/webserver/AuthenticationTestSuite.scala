@@ -14,7 +14,7 @@ import zio.test._
 case class AuthenticationTestSuite(credential: JDBC, port: Int) extends HttpRunnableSpec(port) with ServerSuiteHelper {
 
   val newRestApi = serve {
-    auth.middleware(RestAPI.newRestApi)
+    auth.middleware(RestAPI())
   }
 
   val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)

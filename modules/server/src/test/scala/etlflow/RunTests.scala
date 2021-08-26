@@ -4,7 +4,7 @@ import etlflow.api.ApiTestSuite
 import etlflow.db.RunDbMigration
 import etlflow.executor.ExecutorTestSuite
 import etlflow.scheduler.{ParseCronTestSuite, SchedulerTestSuite}
-import etlflow.utils.{CorsConfigTestSuite, GetCronJobTestSuite, RequestValidatorTestSuite, SetTimeZoneTestSuite}
+import etlflow.utils.{CorsConfigTestSuite, GetCronJobTestSuite, SetTimeZoneTestSuite}
 import etlflow.webserver._
 import zhttp.service.server.ServerChannelFactory
 import zhttp.service.{ChannelFactory, EventLoopGroup}
@@ -20,13 +20,11 @@ object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
     ApiTestSuite(config.db).spec,
     CorsConfigTestSuite.spec,
     GetCronJobTestSuite.spec,
-    RequestValidatorTestSuite.spec,
     SetTimeZoneTestSuite(config).spec,
     WebSocketApiTestSuite(auth).spec,
     ParseCronTestSuite.spec,
     AuthenticationTestSuite(config.db, 8080).spec,
-    NewRestTestSuite(8081).spec,
-    OldRestTestSuite(8082).spec,
+    RestTestSuite(8081).spec,
     WebSocketHttpTestSuite(8083).spec,
     ExecutorTestSuite.spec,
     GraphqlTestSuite.spec,

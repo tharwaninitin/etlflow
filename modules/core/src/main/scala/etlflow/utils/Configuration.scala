@@ -30,9 +30,8 @@ object Configuration {
   val webServer: ConfigDescriptor[WebServer] = (
     string("ip_address").optional |@|
       int("port").optional |@|
-      string("secretKey").optional |@|
       set("allowedOrigins")(string).optional
-    )(WebServer.apply, b => Some(b.ip_address, b.port, b.secretKey, b.allowedOrigins))
+    )(WebServer.apply, b => Some(b.ip_address, b.port, b.allowedOrigins))
 
   val applicationConf: ConfigDescriptor[Config]  = (
     nested("db")(db) |@|
@@ -40,8 +39,9 @@ object Configuration {
       nested("slack")(slack).optional |@|
       nested("dataproc")(dataprocSpark).optional |@|
       list("token")(string).optional |@|
-      nested("webserver")(webServer).optional
-    )(Config.apply, b => Some(b.db, b.timezone, b.slack, b.dataproc, b.token, b.webserver))
+      nested("webserver")(webServer).optional |@|
+      string("secretkey").optional
+    )(Config.apply, b => Some(b.db, b.timezone, b.slack, b.dataproc, b.token, b.webserver, b.secretkey))
 
   lazy val config: IO[ReadError[String], Config] =
     TypesafeConfigSource.fromDefaultLoader

@@ -5,7 +5,7 @@ import etlflow.api.ServerTask
 import etlflow.schema.WebServer
 import etlflow.utils.CorsConfig
 import etlflow.{BuildInfo => BI}
-import zhttp.http.Method.{GET, POST}
+import zhttp.http.Method.POST
 import zhttp.http._
 import zhttp.service.Server
 import zio.stream._
@@ -35,8 +35,7 @@ trait HttpServer {
               case _ -> Root / "api" / "etlflow" => CORS(auth.middleware(ZHttpAdapter.makeHttpService(etlFlowInterpreter)))
               case _ -> Root / "api" / "login" => CORS(ZHttpAdapter.makeHttpService(loginInterpreter))
               case _ -> Root / "ws" / "etlflow" / _ => CORS(WebsocketAPI(auth).webSocketApp)
-              case GET  -> Root / "api" / "runjob" => CORS(auth.middleware(RestAPI.oldRestApi))
-              case POST  -> Root /  "restapi" / "runjob" / _ =>  CORS(auth.middleware(RestAPI.newRestApi), corsConfig)
+              case POST  -> Root /  "restapi" / "runjob" / _ =>  CORS(auth.middleware(RestAPI()), corsConfig)
             }
         ).forever
     } yield ()).forever

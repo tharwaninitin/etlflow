@@ -14,8 +14,8 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 
   val dbLog = unsafeRun((for{
-    dbLog_user     <- CryptoApi.encrypt(config.db.user)
-    dbLog_password <- CryptoApi.encrypt(config.db.password)
+    dbLog_user     <- CryptoApi.encrypt(config.db.get.user)
+    dbLog_password <- CryptoApi.encrypt(config.db.get.password)
   } yield (dbLog_user, dbLog_password)).provideCustomLayer(cryptoLayer))
 
 
@@ -23,20 +23,20 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJo
       INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
-      '{"url" : "${config.db.url}", "user" : "${dbLog._1}", "password" : "${dbLog._2}", "driver" : "org.postgresql.Driver" }'
+      '{"url" : "${config.db.get.url}", "user" : "${dbLog._1}", "password" : "${dbLog._2}", "driver" : "org.postgresql.Driver" }'
       )
       """
 
   private val deleteCredStep = DBQueryStep(
       name  = "DeleteCredential",
       query = delete_credential_script,
-      credentials = config.db
+      credentials = config.db.get
     ).process(())
 
   private val addCredStep =  DBQueryStep(
       name  = "AddCredential",
       query = insert_credential_script,
-      credentials = config.db
+      credentials = config.db.get
     ).process(())
 
   private val creds =  GetCredentialStep[JDBC](

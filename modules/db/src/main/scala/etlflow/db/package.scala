@@ -3,7 +3,7 @@ package etlflow
 import etlflow.schema.Credential.JDBC
 import scalikejdbc.{SQLSyntaxSupport, WrappedResultSet}
 import zio.blocking.Blocking
-import zio.{Has, ZLayer}
+import zio.{Has, Layer, ZLayer}
 
 package object db {
 
@@ -77,4 +77,7 @@ package object db {
 
   private[etlflow] def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
     Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLayer
+
+  private[etlflow] val noLog: Layer[Nothing, DBEnv] = Implementation.noLog
+
 }

@@ -83,4 +83,7 @@ object MyEtlJobPropsMapping {
     override val job_schedule = "0 */15 * * * ?"
     override val job_deploy_mode: Executor = local_subprocess
   }
+  case object JobDBSteps extends MyEtlJobPropsMapping[EtlJob1Props,JobDBSteps] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+  }
 }

@@ -24,6 +24,32 @@ private[db] object Implementation extends ApplicationLogger {
   def cpLayer(db: JDBC, pool_name: String, pool_size: Int): Layer[Throwable, Has[String]] =
     ZLayer.fromManaged(createConnectionPool(db, pool_name, pool_size))
 
+  val noLog: Layer[Nothing, DBEnv] = ZLayer.succeed(
+    new Service {
+      override def getUser(user_name: String): IO[Throwable, UserDB] = ???
+      override def getJob(name: String): IO[Throwable, JobDB] = ???
+      override def getJobs: IO[Throwable, List[JobDBAll]] = ???
+      override def getStepRuns(args: DbStepRunArgs): IO[Throwable, List[StepRun]] = ???
+      override def getJobRuns(args: DbJobRunArgs): IO[Throwable, List[JobRun]] = ???
+      override def getJobLogs(args: JobLogsArgs): IO[Throwable, List[JobLogs]] = ???
+      override def getCredentials: IO[Throwable, List[GetCredential]] = ???
+      override def updateSuccessJob(job: String, ts: Long): IO[Throwable, Long] = ???
+      override def updateFailedJob(job: String, ts: Long): IO[Throwable, Long] = ???
+      override def updateJobState(args: EtlJobStateArgs): IO[Throwable, Boolean] = ???
+      override def addCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[Throwable, Credentials] = ???
+      override def updateCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[Throwable, Credentials] = ???
+      override def refreshJobs(jobs: List[EtlJob]): IO[Throwable, List[JobDB]] = ???
+      override def executeQuery(query: String): IO[Throwable, Unit] = ???
+      override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, T] = ???
+      override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, List[T]] = ???
+
+      override def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[Throwable, Unit] = Task.unit
+      override def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[Throwable, Unit] = Task.unit
+      override def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[Throwable, Unit] = Task.unit
+      override def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[Throwable, Unit] = Task.unit
+    }
+  )
+
   val dbLayer: ZLayer[Has[String], Throwable, DBEnv] = ZLayer.fromService { pool_name =>
     new Service {
     

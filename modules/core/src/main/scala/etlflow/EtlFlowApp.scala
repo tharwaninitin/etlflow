@@ -1,11 +1,11 @@
 package etlflow
 
 import etlflow.crypto.CryptoApi
-import etlflow.db.{DBApi, RunDbMigration, liveDB}
-import etlflow.executor.LocalExecutor
+import etlflow.db.{DBApi, RunDbMigration}
 import etlflow.schema.Config
-import etlflow.utils.CliArgsParserAPI.{EtlJobConfig, parser}
-import etlflow.utils.{ApplicationLogger, Configuration, ReflectAPI => RF}
+import etlflow.utils.CliArgsCoreParserAPI.EtlJobCoreConfig
+import etlflow.utils.CliArgsServerParserAPI.EtlJobServerConfig
+import etlflow.utils.{ApplicationLogger, CliParserAPI, Configuration}
 import zio._
 
 abstract class EtlFlowApp[T <: EJPMType : Tag]
@@ -14,63 +14,78 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
 
   def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
   : ZIO[ZEnv,Throwable,Unit] = {
-    val localExecutor = LocalExecutor[T]()
-    parser.parse(args, EtlJobConfig()) match {
-      case Some(serverConfig) => serverConfig match {
-        case ec if ec.init_db =>
-          logger.info("Initializing etlflow database")
-          RunDbMigration(config.db).unit
-        case ec if ec.reset_db =>
-          logger.info("Resetting etlflow database")
-          RunDbMigration(config.db, clean = true).unit
-        case ec if ec.add_user && ec.user != "" && ec.password != "" =>
-          logger.info("Inserting user into database")
-          val key = config.secretkey
-          val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live(key))
-          val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
-          val dbLayer = liveDB(config.db)
-          DBApi.executeQuery(query).provideCustomLayer(dbLayer)
-        case ec if ec.add_user && ec.user == "" =>
-          logger.error(s"Need to provide args --user")
-          ZIO.fail(new RuntimeException("Need to provide args --user"))
-        case ec if ec.add_user && ec.password == "" =>
-          logger.error(s"Need to provide args --password")
-          ZIO.fail(new RuntimeException("Need to provide args --password"))
-        case ec if ec.list_jobs =>
-          RF.getSubClasses[T].map(_.foreach(logger.info))
-        case ec if ec.show_job_props && ec.job_name != "" =>
-          logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
-          localExecutor
-            .showJobProps(ec.job_name)
-            .provideCustomLayer(json.Implementation.live)
-        case ec if ec.show_step_props && ec.job_name != "" =>
-          logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
-          logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
-          localExecutor
-            .showJobStepProps(ec.job_name, ec.job_properties)
-            .provideCustomLayer(json.Implementation.live)
-        case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
-          logger.error(s"Need to provide args --job_name")
-          ZIO.fail(new RuntimeException("Need to provide args --job_name"))
-        case ec if ec.run_job && ec.job_name != "" =>
-          logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
-          val jri = if(ec.job_properties.keySet.contains("job_run_id")) Some(ec.job_properties("job_run_id")) else None
-          val is_master = if(ec.job_properties.keySet.contains("is_master")) Some(ec.job_properties("is_master")) else None
-          val dbLayer = liveDB(config.db,"Job-" + ec.job_name + "-Pool",2)
-          val jsonLayer = json.Implementation.live
-          val cryptoLayer = crypto.Implementation.live(config.secretkey)
-          val logLayer = log.Implementation.live
-          localExecutor
-            .executeJob(ec.job_name, ec.job_properties, config.slack, jri, is_master)
-            .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)
-        case ec if ec.run_server =>
-          logger.info("Starting server")
-          app
-        case _ =>
-          logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
-          ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
+    val cliParser = new CliParserAPI[T]
+    if(config.db.isEmpty) {
+      etlflow.utils.CliArgsCoreParserAPI.parser.parse(args, EtlJobCoreConfig()) match {
+        case Some(serverConfig) => serverConfig match {
+          case ec if ec.list_jobs =>
+            cliParser.list_jobs
+          case ec if ec.show_job_props && ec.job_name != "" =>
+            logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
+            cliParser.show_job_props(ec.job_name)
+          case ec if ec.show_step_props && ec.job_name != "" =>
+            logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
+            logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
+            cliParser.show_step_props(ec.job_name, ec.job_properties)
+          case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
+            logger.error(s"Need to provide args --job_name")
+            ZIO.fail(new RuntimeException("Need to provide args --job_name"))
+          case ec if ec.run_job && ec.job_name != "" =>
+            logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
+            cliParser.run_job(ec.job_name, ec.job_properties, config)
+          case _ =>
+            logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
+            ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
+        }
+        case None => ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
       }
-      case None => ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
+    }
+    else {
+      etlflow.utils.CliArgsServerParserAPI.parser.parse(args, EtlJobServerConfig()) match {
+        case Some(serverConfig) => serverConfig match {
+          case ec if ec.init_db =>
+            logger.info("Initializing etlflow database")
+            RunDbMigration(config.db.get).unit
+          case ec if ec.reset_db =>
+            logger.info("Resetting etlflow database")
+            RunDbMigration(config.db.get, clean = true).unit
+          case ec if ec.add_user && ec.user != "" && ec.password != "" =>
+            logger.info("Inserting user into database")
+            val key = config.secretkey
+            val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live(key))
+            val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
+            val dbLayer = db.liveDB(config.db.get)
+            DBApi.executeQuery(query).provideCustomLayer(dbLayer)
+          case ec if ec.add_user && ec.user == "" =>
+            logger.error(s"Need to provide args --user")
+            ZIO.fail(new RuntimeException("Need to provide args --user"))
+          case ec if ec.add_user && ec.password == "" =>
+            logger.error(s"Need to provide args --password")
+            ZIO.fail(new RuntimeException("Need to provide args --password"))
+          case ec if ec.list_jobs =>
+            cliParser.list_jobs
+          case ec if ec.show_job_props && ec.job_name != "" =>
+            logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
+            cliParser.show_job_props(ec.job_name)
+          case ec if ec.show_step_props && ec.job_name != "" =>
+            logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
+            logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
+            cliParser.show_step_props(ec.job_name, ec.job_properties)
+          case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
+            logger.error(s"Need to provide args --job_name")
+            ZIO.fail(new RuntimeException("Need to provide args --job_name"))
+          case ec if ec.run_job && ec.job_name != "" =>
+            logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
+            cliParser.run_job(ec.job_name, ec.job_properties, config)
+          case ec if ec.run_server =>
+            logger.info("Starting server")
+            app
+          case _ =>
+            logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
+            ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
+        }
+        case None => ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
+      }
     }
   }
 

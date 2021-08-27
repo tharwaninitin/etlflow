@@ -40,7 +40,7 @@ case class EtlJob6Definition(job_properties: EtlJob4Props) extends SequentialEtl
   private val step4 = DBQueryStep(
     name  = "UpdatePG",
     query = "BEGIN; DELETE FROM ratings WHERE 1 =1; INSERT INTO ratings SELECT * FROM ratings_temp; COMMIT;",
-    credentials = config.db
+    credentials = config.db.get
   )
 
   val etlStepList = EtlStepList(step1,step2,step3,step4)

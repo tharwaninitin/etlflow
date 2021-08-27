@@ -26,8 +26,8 @@ private[etlflow] object DBApi {
     def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[Throwable, Unit]
     def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[Throwable, Unit]
     def executeQuery(query: String): IO[Throwable, Unit]
-    def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, T] = ???
-    def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, List[T]] = ???
+    def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, T]
+    def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, List[T]]
   }
 
   def getUser(user_name: String): ZIO[DBEnv, Throwable, UserDB] = ZIO.accessM(_.get.getUser(user_name))

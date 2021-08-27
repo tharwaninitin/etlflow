@@ -1,32 +1,20 @@
 package etlflow.utils
 
-import scopt.OptionParser
 import etlflow.{BuildInfo => BI}
+import scopt.OptionParser
 
-private[etlflow] object CliArgsParserAPI {
-  case class EtlJobConfig(
-       init_db: Boolean = false,
-       reset_db: Boolean = false,
+private[etlflow] object CliArgsCoreParserAPI {
+  case class EtlJobCoreConfig(
        list_jobs: Boolean = false,
        show_job_props: Boolean = false,
        show_step_props: Boolean = false,
        run_job: Boolean = false,
-       run_server: Boolean = false,
        job_name: String = "",
        job_properties: Map[String,String] = Map.empty,
-       add_user: Boolean = false,
-       user: String = "",
-       password: String = "",
      )
-  val parser: OptionParser[EtlJobConfig] = new OptionParser[EtlJobConfig]("etlflow") {
+  val parser: OptionParser[EtlJobCoreConfig] = new OptionParser[EtlJobCoreConfig]("etlflow") {
     head("EtlFlow", BI.version, s"Build with scala version ${BI.scalaVersion}")
     help("help")
-    cmd("initdb")
-      .action((_, c) => c.copy(init_db = true))
-      .text("Initialize Database")
-    cmd("resetdb")
-      .action((_, c) => c.copy(reset_db = true))
-      .text("Initialize Database")
     cmd("list_jobs")
       .action((_, c) => c.copy(list_jobs = true))
       .text("List all jobs")
@@ -41,20 +29,6 @@ private[etlflow] object CliArgsParserAPI {
           .valueName("k1=v1,k2=v2...")
           .action((x, c) => c.copy(job_properties = x))
           .text("other arguments")
-      )
-    cmd("run_server")
-      .action((_, c) => c.copy(run_server = true))
-      .text("Start Server")
-    cmd("add_user")
-      .action((_, c) => c.copy(add_user = true))
-      .text("Add user into database")
-      .children(
-        opt[String]("user")
-          .action((x, c) => c.copy(user = x))
-          .text("user"),
-        opt[String]("password")
-          .action((x, c) => c.copy(password = x))
-          .text("password"),
       )
       cmd("show_job_props")
         .action((_, c) => c.copy(show_job_props = true))

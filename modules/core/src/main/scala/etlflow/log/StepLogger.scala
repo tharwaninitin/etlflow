@@ -22,7 +22,6 @@ private[etlflow] class StepLogger(etlStep: EtlStep[_,_], job_run_id: String, job
       val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties(job_notification_level)("step_run_id") else ""
       for{
         properties <- JsonApi.convertToString(etlStep.getStepProperties(job_notification_level),List.empty)
-        _          = logger.info(s"Inserting step info for $step_name in db with status => ${state_status.toLowerCase()}")
         _          <- DBApi.insertStepRun(job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
       } yield ()
     }
@@ -31,7 +30,6 @@ private[etlflow] class StepLogger(etlStep: EtlStep[_,_], job_run_id: String, job
       val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
       for{
         properties <- JsonApi.convertToString(etlStep.getStepProperties(job_notification_level),List.empty)
-        _          = logger.info(s"Updating step info for $step_name in db with status => $status")
         _          <- DBApi.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
       } yield ()
     }

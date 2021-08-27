@@ -34,7 +34,7 @@ object Configuration {
     )(WebServer.apply, b => Some(b.ip_address, b.port, b.allowedOrigins))
 
   val applicationConf: ConfigDescriptor[Config]  = (
-    nested("db")(db) |@|
+    nested("db")(db).optional |@|
       string("timezone").optional |@|
       nested("slack")(slack).optional |@|
       nested("dataproc")(dataprocSpark).optional |@|

@@ -11,13 +11,13 @@ import zio.test._
 
 case class CredentialStepTestSuite(config: Config) {
 
-  val db_user_password = CryptoApi.encrypt(config.db.user)zip(CryptoApi.encrypt(config.db.password))
+  val db_user_password = CryptoApi.encrypt(config.db.get.user)zip(CryptoApi.encrypt(config.db.get.password))
 
   val insert_credential_script = db_user_password.map(tp => s"""
       INSERT INTO credential (name,type,value) VALUES (
       'etlflow',
       'jdbc',
-      '{"url": "${config.db.url}", "user": "${tp._1}", "password": "${tp._2}", "driver": "org.postgresql.Driver" }'
+      '{"url": "${config.db.get.url}", "user": "${tp._1}", "password": "${tp._2}", "driver": "org.postgresql.Driver" }'
       )
       """)
 
@@ -32,7 +32,7 @@ case class CredentialStepTestSuite(config: Config) {
         def step1(script: String) = DBQueryStep(
           name = "AddCredential",
           query = script,
-          credentials = config.db
+          credentials = config.db.get
         )
         val job = for {
           script  <- insert_credential_script

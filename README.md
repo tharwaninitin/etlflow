@@ -67,57 +67,6 @@ __Maven__
 </dependency>
 ```
 
-## QuickStart
-STEP 1) To be able to use this library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
- ```shell
- export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
- export LOG_DB_USER=<...>
- export LOG_DB_PWD=<..>
- export LOG_DB_DRIVER=org.postgresql.Driver
-```
-
-STEP 2) Now to create database tables used in this library run below commands from repo root folder:
-```shell
-sbt
-project examples
-runMain examples.LoadData run_db_migration
-```
-
-STEP 3) To list commands available to run use below:
-```shell
-sbt
-project examples
-runMain examples.LoadData --help
-```
-
-STEP 4) To list available jobs:
-```shell
-sbt
-project examples
-runMain examples.LoadData -l
-```
-
-STEP 5) Now to run sample job use below command:
-```shell
-sbt
-project examples
-runMain examples.LoadData run_job --job_name PARQUETtoJDBC
-```
-
-STEP 6) Add user in database for using UI:
-```shell
-sbt
-project examples
-runMain examples.LoadData add_user --user admin --password admin
-```
-
-STEP 7) Now run below command to run server http://localhost:8080:
-```shell
-sbt
-project examples
-runMain examples.RunServer 
-```
-
 ## Running Tests
 There are multiple modules and all contains tests. To be able to use test this library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
  ```shell
@@ -126,21 +75,6 @@ There are multiple modules and all contains tests. To be able to use test this l
  export LOG_DB_PWD=<..>
  export LOG_DB_DRIVER=org.postgresql.Driver
 ```
-### Core Module
-To test core module run below command:
-```shell
-sbt
-project core
-test
-```
-### Server Module
-To test core module run below command:
-```shell
-sbt
-project server
-test
-```
-
 
 ## Contributions
 Please feel free to add issues to report any bugs or to propose new features.

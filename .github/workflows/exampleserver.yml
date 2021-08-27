@@ -1,4 +1,4 @@
-name: Exampales Workflow
+name: ExampaleServer Workflow
 on: [push]
 jobs:
   test:
@@ -13,5 +13,5 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Compile Exampales Module
-        run: sbt ";project root; + publishLocal ;project examples; Test/compile"
+      - name: Compile ExampaleServer Module
+        run: sbt ";project root; + publishLocal ;project exampleserver; Test/compile"

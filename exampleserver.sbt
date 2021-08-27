@@ -3,11 +3,11 @@ import Versions._
 
 lazy val loggerTask = TaskKey[Unit]("loggerTask")
 
-lazy val examples = (project in file("examples"))
+lazy val exampleserver = (project in file("exampleserver"))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
   .settings(
-    name := "examples",
+    name := "exampleserver",
     organization := "com.github.tharwaninitin",
     crossScalaVersions := List(scala212, scala213,scala3),
     libraryDependencies ++= List(
@@ -37,7 +37,7 @@ lazy val examples = (project in file("examples"))
       //"log4j" % "log4j"
     ),
     Docker / packageName  := "etlflow",
-    Compile / mainClass := Some("examples.RunServer"),
+    Compile / mainClass := Some("server_examples.RunServer"),
     dockerBaseImage := "openjdk:jre",
     dockerExposedPorts ++= Seq(8080),
     maintainer := "tharwaninitin182@gmail.com",

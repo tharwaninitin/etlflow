@@ -34,7 +34,7 @@ abstract class ServerApp[T <: EJPMType : Tag]
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
-    dbLayer     = liveDB(config.db)
+    dbLayer     = liveDB(config.db.get, pool_size = 10)
     logLayer    = log.Implementation.live
     cryptoLayer = crypto.Implementation.live(config.secretkey)
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)

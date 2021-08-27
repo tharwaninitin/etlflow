@@ -25,7 +25,7 @@ object SparkStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with 
     name             = "LoadRatingsParquetToJdbc",
     input_location   = Seq(input_path_parquet),
     input_type       = PARQUET,
-    output_type      = RDB(JDBC(config.db.url, config.db.user, config.db.password, "org.postgresql.Driver")),
+    output_type      = RDB(JDBC(config.db.get.url, config.db.get.user, config.db.get.password, "org.postgresql.Driver")),
     output_location  = "ratings",
     output_save_mode = SaveMode.Overwrite
   )
@@ -45,7 +45,7 @@ object SparkStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with 
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)
   val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
   val query: String = s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table"
-  val db_task: ZIO[zio.ZEnv, Throwable, List[RatingsMetrics]] = DBApi.executeQueryListOutput[RatingsMetrics](s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table")(rs => RatingsMetrics(rs.double("sum_ratings"),rs.long("count_ratings"))).provideCustomLayer(etlflow.db.liveDB(config.db))
+  val db_task: ZIO[zio.ZEnv, Throwable, List[RatingsMetrics]] = DBApi.executeQueryListOutput[RatingsMetrics](s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table")(rs => RatingsMetrics(rs.double("sum_ratings"),rs.long("count_ratings"))).provideCustomLayer(etlflow.db.liveDB(config.db.get))
   val db_metrics: RatingsMetrics = unsafeRun(db_task)(0)
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = {

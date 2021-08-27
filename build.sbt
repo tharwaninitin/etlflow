@@ -139,7 +139,7 @@ lazy val utils = (project in file("modules/utils"))
 lazy val json = (project in file("modules/json"))
   .settings(commonSettings)
   .settings(jsonSettings)
-  .dependsOn(utils)
+  .dependsOn(utils % "test")
 
 lazy val db = (project in file("modules/db"))
   .settings(commonSettings)

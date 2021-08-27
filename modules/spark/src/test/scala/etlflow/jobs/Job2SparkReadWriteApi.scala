@@ -16,7 +16,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   extends GenericEtlJob[EtlJob2Props] with TestSparkSession with TestSuiteHelper with SparkUDF {
 
   val job_props: EtlJob2Props = job_properties
-  val jdbc = RDB(JDBC(config.db.url,config.db.user,config.db.password,config.db.driver))
+  val jdbc = RDB(JDBC(config.db.get.url,config.db.get.user,config.db.get.password,config.db.get.driver))
 
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
@@ -56,7 +56,7 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   val step4 = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
-    credentials = config.db
+    credentials = config.db.get
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
   def processData2(ip: List[EtlJobRun]): Unit = {

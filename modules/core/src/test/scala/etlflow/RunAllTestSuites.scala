@@ -11,7 +11,7 @@ import zio.test._
 
 object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper {
 
-  zio.Runtime.default.unsafeRun(RunDbMigration(config.db,clean = true))
+  zio.Runtime.default.unsafeRun(RunDbMigration(config.db.get,clean = true))
 
   def spec: ZSpec[environment.TestEnvironment, Any] = suite("Core Test Suites") (
     JobsTestSuite(config).spec,

@@ -67,14 +67,5 @@ __Maven__
 </dependency>
 ```
 
-## Running Tests
-There are multiple modules and all contains tests. To be able to use test this library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
- ```shell
- export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
- export LOG_DB_USER=<...>
- export LOG_DB_PWD=<..>
- export LOG_DB_DRIVER=org.postgresql.Driver
-```
-
 ## Contributions
 Please feel free to add issues to report any bugs or to propose new features.

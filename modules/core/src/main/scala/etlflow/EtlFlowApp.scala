@@ -3,9 +3,11 @@ package etlflow
 import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration}
 import etlflow.schema.Config
-import etlflow.utils.CliArgsCoreParserAPI.EtlJobCoreConfig
-import etlflow.utils.CliArgsServerParserAPI.EtlJobServerConfig
-import etlflow.utils.{ApplicationLogger, CliParserAPI, Configuration}
+import etlflow.utils.CliArgsParserAPI
+import etlflow.utils.CliArgsParserAPI.EtlJobConfig
+import etlflow.utils.CliArgsDBParserAPI
+import etlflow.utils.CliArgsDBParserAPI.EtlJobDBConfig
+import etlflow.utils.{ApplicationLogger, EtlFlowJobExecutor, Configuration}
 import zio._
 
 abstract class EtlFlowApp[T <: EJPMType : Tag]
@@ -14,25 +16,27 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
 
   def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
   : ZIO[ZEnv,Throwable,Unit] = {
-    val cliParser = new CliParserAPI[T]
+    
+    val executor = new EtlFlowJobExecutor[T]
+    
     if(config.db.isEmpty) {
-      etlflow.utils.CliArgsCoreParserAPI.parser.parse(args, EtlJobCoreConfig()) match {
+      CliArgsParserAPI.parser.parse(args, EtlJobConfig()) match {
         case Some(serverConfig) => serverConfig match {
           case ec if ec.list_jobs =>
-            cliParser.list_jobs
+            executor.list_jobs
           case ec if ec.show_job_props && ec.job_name != "" =>
-            logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
-            cliParser.show_job_props(ec.job_name)
+            logger.info(s"Executing show_job_props with params: job_name => ${ec.job_name}".stripMargin)
+            executor.show_job_props(ec.job_name)
           case ec if ec.show_step_props && ec.job_name != "" =>
-            logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
-            logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
-            cliParser.show_step_props(ec.job_name, ec.job_properties)
+            logger.info(s"Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}")
+            logger.warn(s"This command will actually instantiate EtlJob for ${ec.job_name}")
+            executor.show_step_props(ec.job_name, ec.job_properties)
           case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
             logger.error(s"Need to provide args --job_name")
             ZIO.fail(new RuntimeException("Need to provide args --job_name"))
           case ec if ec.run_job && ec.job_name != "" =>
-            logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
-            cliParser.run_job(ec.job_name, ec.job_properties, config)
+            logger.info(s"Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}".stripMargin)
+            executor.run_job(ec.job_name, ec.job_properties, config)
           case _ =>
             logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
             ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
@@ -41,7 +45,7 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
       }
     }
     else {
-      etlflow.utils.CliArgsServerParserAPI.parser.parse(args, EtlJobServerConfig()) match {
+      CliArgsDBParserAPI.parser.parse(args, EtlJobDBConfig()) match {
         case Some(serverConfig) => serverConfig match {
           case ec if ec.init_db =>
             logger.info("Initializing etlflow database")
@@ -63,20 +67,20 @@ abstract class EtlFlowApp[T <: EJPMType : Tag]
             logger.error(s"Need to provide args --password")
             ZIO.fail(new RuntimeException("Need to provide args --password"))
           case ec if ec.list_jobs =>
-            cliParser.list_jobs
+            executor.list_jobs
           case ec if ec.show_job_props && ec.job_name != "" =>
-            logger.info(s"""Executing show_job_props with params: job_name => ${ec.job_name}""".stripMargin)
-            cliParser.show_job_props(ec.job_name)
+            logger.info(s"Executing show_job_props with params: job_name => ${ec.job_name}".stripMargin)
+            executor.show_job_props(ec.job_name)
           case ec if ec.show_step_props && ec.job_name != "" =>
-            logger.info(s"""Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""")
-            logger.warn(s"""This command will actually instantiate EtlJob for ${ec.job_name}""")
-            cliParser.show_step_props(ec.job_name, ec.job_properties)
+            logger.info(s"Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}")
+            logger.warn(s"This command will actually instantiate EtlJob for ${ec.job_name}")
+            executor.show_step_props(ec.job_name, ec.job_properties)
           case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
             logger.error(s"Need to provide args --job_name")
             ZIO.fail(new RuntimeException("Need to provide args --job_name"))
           case ec if ec.run_job && ec.job_name != "" =>
-            logger.info(s"""Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}""".stripMargin)
-            cliParser.run_job(ec.job_name, ec.job_properties, config)
+            logger.info(s"Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}".stripMargin)
+            executor.run_job(ec.job_name, ec.job_properties, config)
           case ec if ec.run_server =>
             logger.info("Starting server")
             app

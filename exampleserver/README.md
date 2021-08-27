@@ -1,6 +1,21 @@
 ## QuickStart
+To be able to use this library with database logging of job and steps you need postgres instance up and running, then create new database in pg (for e.g. etlflow)
 
-STEP 1) To be able to use this library, first you need postgres instance up and running, then create new database in pg (for e.g. etlflow), then set below environment variables.
+STEP 1) Create the application.conf file at location examplecore/src/main/resources and set the below variables:
+```shell
+  db.url      = ${LOG_DB_URL},
+  db.user     = ${LOG_DB_USER},
+  db.password = ${LOG_DB_PWD},
+  db.driver   = ${LOG_DB_DRIVER}
+
+  timezone    = "Asia/Kolkata"
+
+  slack.url   = "http://slackwebhookurl",
+  slack.env   = "dev"
+  slack.host  = "http://localhost:8080/#"
+```
+
+STEP 2) set below environment variables in your shell.
 ```shell
  export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
  export LOG_DB_USER=<...>
@@ -8,61 +23,44 @@ STEP 1) To be able to use this library, first you need postgres instance up and 
  export LOG_DB_DRIVER=org.postgresql.Driver
 ```
 
-STEP 2) Create the application.conf file at location exampleserver/src/main/resources and set the below variables:
-```shell
-  db.url      = ${LOG_DB_URL},
-  db.user     = ${LOG_DB_USER},
-  db.password = ${LOG_DB_PWD},
-  db.driver   = ${LOG_DB_DRIVER}
-
-  timezone = "Asia/Kolkata"
-
-  slack.url = "",
-  slack.env = "dev"
-  slack.host = ""
-
-  dataproc.mainclass = "examples.LoadData"
-  dataproc.deplibs = []
-```
-
-STEP 2) Now to create database tables used in this library run below commands from repo root folder:
+STEP 3) Now to create database tables used in this library run below commands from repo root folder:
 ```shell
 sbt
-project examples
-runMain examples.LoadData run_db_migration
+project exampleserver
+runMain examples.RunApp initdb
 ```
 
-STEP 3) To list commands available to run use below:
+STEP 4) To list commands available to run use below:
 ```shell
 sbt
-project examples
-runMain examples.LoadData --help
+project exampleserver
+runMain examples.RunApp --help
 ```
 
-STEP 4) To list available jobs:
+STEP 5) To list available jobs:
 ```shell
 sbt
-project examples
-runMain examples.LoadData list_jobs
+project exampleserver
+runMain examples.RunApp list_jobs
 ```
 
-STEP 5) Now to run sample job use below command:
+STEP 6) Now to run sample job use below command:
 ```shell
 sbt
-project examples
-runMain examples.LoadData run_job --job_name PARQUETtoJDBC
+project exampleserver
+runMain examples.RunApp run_job --job_name JobDBSteps
 ```
 
-STEP 6) Add user in database for using UI:
+STEP 7) Add user in database for using UI:
 ```shell
 sbt
-project examples
-runMain examples.LoadData add_user --user admin --password admin
+project exampleserver
+runMain examples.RunApp add_user --user admin --password admin
 ```
 
-STEP 7) Now run below command to run server http://localhost:8080:
+STEP 8) Now run below command to run server http://localhost:8080:
 ```shell
 sbt
-project examples
-runMain examples.RunServer 
+project exampleserver
+runMain examples.RunApp run_server
 ```

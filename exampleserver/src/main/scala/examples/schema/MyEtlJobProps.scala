@@ -26,7 +26,7 @@ object MyEtlJobProps {
   case class SampleProps() extends MyEtlJobProps
   case class LocalSampleProps() extends MyEtlJobProps
   case class EtlJob1Props (
-                            ratings_input_path: List[String] = List(""),
+                            ratings_input_path: String = "",
                             ratings_output_dataset: String = "",
                             ratings_output_table_name: String = "",
                             ratings_output_file_name: Option[String] = Some("ratings.orc"),

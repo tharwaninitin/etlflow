@@ -16,7 +16,7 @@ object MyEtlJobPropsMapping {
 
   case object EtlJobBqLoadStep extends MyEtlJobPropsMapping[EtlJob1Props,EtlJobBqLoadStep] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props(
-      ratings_input_path = List(job_properties.getOrElse("ratings_input_path", sys.env("GCS_INPUT_LOCATION"))),
+      ratings_input_path = job_properties.getOrElse("ratings_input_path", sys.env("GCS_INPUT_LOCATION")),
       ratings_output_dataset = job_properties.getOrElse("ratings_output_dataset", default_output_dataset),
       ratings_output_table_name = job_properties.getOrElse("ratings_output_table_name", "ratings"),
       ratings_output_file_name = Some(job_properties.getOrElse("ratings_output_file_name", "ratings.parquet"))

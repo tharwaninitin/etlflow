@@ -9,7 +9,7 @@ import io.circe.generic.auto._
 
 case class JobDBSteps(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
 
-  val cred = JDBC("jdbc:postgresql://localhost:5432/test_db","root","root","org.postgresql.Driver")
+  val cred = JDBC(sys.env("DB_URL"),sys.env("DB_USER"),sys.env("DB_PWD"),"org.postgresql.Driver")
 
   private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",

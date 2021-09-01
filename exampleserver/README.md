@@ -21,6 +21,14 @@ STEP 2) set below environment variables in your shell.
  export LOG_DB_USER=<...>
  export LOG_DB_PWD=<..>
  export LOG_DB_DRIVER=org.postgresql.Driver
+ export GCS_INPUT_LOCATION=<..>
+ export DP_PROJECT_ID=<..>
+ export DP_REGION=asia-<..>
+ export DP_ENDPOINT=<..>
+ export DP_CLUSTER_NAME=test
+ export DP_DP_LIBS=<..>
+ export DP_MAIN_CLASS=<..>
+ export DP_JOB_NAME=<..>
 ```
 
 STEP 3) Now to create database tables used in this library run below commands from repo root folder:
@@ -48,7 +56,7 @@ STEP 6) Now to run sample job use below command:
 ```shell
 sbt
 project exampleserver
-runMain examples.RunApp run_job --job_name JobDBSteps
+runMain examples.RunApp run_job --job_name EtlJobBqLoadStepWithQuery
 ```
 
 STEP 7) Add user in database for using UI:
@@ -64,3 +72,11 @@ sbt
 project exampleserver
 runMain examples.RunApp run_server
 ```
+
+### Using Docker Image
+ Run below command to start the server mode using docker:
+```shell
+sh exampleserver/run_exampleserver.sh
+```
+
+Once server starts then go to [http://localhost:8080](http://localhost:8080) to access webserver.

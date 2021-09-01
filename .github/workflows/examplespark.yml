@@ -1,4 +1,4 @@
-name: ExampaleCore Workflow
+name: ExampaleSpark Workflow
 on: [push]
 jobs:
   test:
@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile ExampalesCore Module
-        run: sbt ";project root; +publishLocal ;project examplecore; +Test/compile"
+        run: sbt ";project root; +publishLocal ;project examplespark; Test/compile"

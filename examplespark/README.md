@@ -1,23 +1,35 @@
 ## Without database logging
-STEP 1) To list commands available to run use below:
+
+STEP 1) set below environment variables in your shell.
+```shell
+ export DB_URL=jdbc:postgresql://localhost:5432/etlflow
+ export DB_USER=<...>
+ export DB_PWD=<..>
+ export DB_DRIVER=org.postgresql.Driver
+ export GCS_BUCKET=<..>
+ export GOOGLE_APPLICATION_CREDENTIALS=<..>
+ export GCP_PROJECT_ID=<..>
+```
+
+STEP 2) To list commands available to run use below:
 ```shell
 sbt
-project examplecore
+project examplespark
 runMain examples.LoadData --help
 ```
 
-STEP 2) To list available jobs:
+STEP 3) To list available jobs:
 ```shell
 sbt
-project examplecore
+project examplespark
 runMain examples.LoadData list_jobs
 ```
 
-STEP 3) Now to run sample job use below command:
+STEP 4) Now to run sample job use below command:
 ```shell
 sbt
-project examplecore
-runMain examples.LoadData run_job --job_name JobDBSteps
+project examplespark
+runMain examples.LoadData run_job --job_name PARQUETtoJDBCJob
 ```
 
 ## With database logging
@@ -37,6 +49,13 @@ STEP 2) set below environment variables in your shell.
  export LOG_DB_USER=<...>
  export LOG_DB_PWD=<..>
  export LOG_DB_DRIVER=org.postgresql.Driver
+ export DB_URL=jdbc:postgresql://localhost:5432/etlflow
+ export DB_USER=<...>
+ export DB_PWD=<..>
+ export DB_DRIVER=org.postgresql.Driver
+ export GCS_BUCKET=<..>
+ export GOOGLE_APPLICATION_CREDENTIALS=<..>
+ export GCP_PROJECT_ID=<..>
 ```
 
 STEP 3) Now to create database tables used in this library run below commands from repo root folder:
@@ -64,7 +83,7 @@ STEP 6) Now to run sample job use below command:
 ```shell
 sbt
 project examplecore
-runMain examples.LoadData run_job --job_name JobDBSteps
+runMain examples.LoadData run_job --job_name PARQUETtoJDBCJob
 ```
 
 ## With additional slack logging
@@ -78,10 +97,4 @@ Add slack properties in application.conf
   slack.url   = "http://slackwebhookurl",
   slack.env   = "dev"
   slack.host  = "http://localhost:8080/#"
-```
-
-## Using Docker Image
-Run below command to run the core mode using docker:
-```shell
-sh examplecore/run_examplecore.sh
 ```

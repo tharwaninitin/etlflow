@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile ExampaleServer Module
-        run: sbt ";project root; + publishLocal ;project exampleserver; Test/compile"
+        run: sbt ";project root; + publishLocal ;project exampleserver; +Test/compile"

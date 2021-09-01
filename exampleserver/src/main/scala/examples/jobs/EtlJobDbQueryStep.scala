@@ -6,15 +6,15 @@ import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
 import etlflow.utils.Configuration
 import examples.schema.MyEtlJobProps.EtlJob4Props
 
-case class EtlJob6Definition(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props]{
+case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props]{
 
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
 
-  private val query1 = """CREATE OR REPLACE PROCEDURE test_reports.sp_temp_delete(start_date DATE)
+  private val query1 = """CREATE OR REPLACE PROCEDURE dev_reports.sp_temp_delete(user_id INT64)
                          |BEGIN
-                         |  DECLARE count_dt INT64 DEFAULT 0;
-                         |  SET count_dt =(SELECT COUNT(*) FROM test.ratings WHERE date = start_date);
-                         |  SELECT count_dt;
+                         |  DECLARE count_user INT64 DEFAULT 0;
+                         |  SET count_user =(SELECT COUNT(*) FROM dev.ratings WHERE userId = user_id);
+                         |  SELECT count_user ;
                          |END""".stripMargin
 
 
@@ -25,15 +25,15 @@ case class EtlJob6Definition(job_properties: EtlJob4Props) extends SequentialEtl
 
   private val step2 = BQQueryStep(
     name = "RunStoredProcedure2BQ",
-    query = "CALL test_reports.sp_temp_delete('2016-01-01')"
+    query = "CALL dev_reports.sp_temp_delete(361)"
   )
 
   private val step3 = BQQueryStep(
     name  = "CreateTableBQ",
-    query = s"""CREATE OR REPLACE TABLE test.ratings_grouped as
-            SELECT movie_id, COUNT(1) cnt
-            FROM test.ratings
-            GROUP BY movie_id
+    query = s"""CREATE OR REPLACE TABLE dev.ratings_grouped as
+            SELECT movieId, COUNT(1) cnt
+            FROM dev.ratings
+            GROUP BY movieId
             ORDER BY cnt DESC;""".stripMargin
   )
 

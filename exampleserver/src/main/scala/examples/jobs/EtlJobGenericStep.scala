@@ -4,12 +4,11 @@ import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps.GenericETLStep
 import examples.schema.MyEtlJobProps.LocalSampleProps
 
-case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
+case class EtlJobGenericStep(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")
     throw  new RuntimeException("Error123")
-    Thread.sleep(10000)
   }
 
   val step1 = {
@@ -34,10 +33,6 @@ case class EtlJob2DefinitionLocal(job_properties: LocalSampleProps) extends Gene
   }
 
   override val job = for {
-//        -  <- step1.execute().retry(Schedule.spaced(10.second) && Schedule.recurs(2))
-//        -  <- step2.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
-//        -  <- step3.execute().retry(Schedule.spaced(1.second) && Schedule.recurs(2))
-
     -  <- step1.execute(())
     -  <- step2.execute(())
     -  <- step3.execute(())

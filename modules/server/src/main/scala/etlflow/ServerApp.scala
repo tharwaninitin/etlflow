@@ -1,41 +1,48 @@
 package etlflow
 
-import etlflow.etljobs.{EtlJob => CoreEtlJob}
+import etlflow.api.Schema.QueueDetails
+import etlflow.cache.{CacheApi, CacheEnv}
+import etlflow.db.{EtlJob, liveDB}
+import etlflow.executor.Executor
+import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
-import etlflow.utils.EtlFlowHelper.CronJob
-import etlflow.utils.{CacheHelper, SetTimeZone}
-import etlflow.webserver.Http4sServer
-import etlflow.webserver.api.ApiImplementation
-import etlflow.jdbc.liveDBWithTransactor
+import etlflow.schema.Config
+import etlflow.utils.{Configuration, SetTimeZone, ReflectAPI => RF}
+import etlflow.webserver.{Authentication, HttpServer}
 import zio._
-import scala.reflect.runtime.universe.TypeTag
+import zio.blocking.Blocking
+import zio.clock.Clock
 
-abstract class ServerApp[EJN <: EtlJobPropsMapping[EtlJobProps,CoreEtlJob[EtlJobProps]] : TypeTag]
-  extends EtlFlowApp[EJN] with Http4sServer with Scheduler  {
+abstract class ServerApp[T <: EJPMType : Tag]
+  extends EtlFlowApp[T] with HttpServer with Scheduler {
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    val serverRunner: ZIO[ZEnv, Throwable, Unit] = (for {
-      _               <- SetTimeZone(config).toManaged_
-      queue           <- Queue.sliding[(String,String,String,String)](10).toManaged_
-      cache           =  CacheHelper.createCache[String]
-      _               =  config.token.map( _.foreach( tkn => CacheHelper.putKey(cache,tkn,tkn)))
-      cronJobs        <- Ref.make(List.empty[CronJob]).toManaged_
-      jobs            <- getEtlJobs[EJN](etl_job_props_mapping_package).toManaged_
-      jobSemaphores   <- createSemaphores(jobs).toManaged_
-      dbLayer         = liveDBWithTransactor(config.dbLog)
-      apiLayer        = ApiImplementation.live[EJN](cache,cronJobs,jobSemaphores,jobs,queue,config)
-      finalLayer      = apiLayer ++ dbLayer
-      _               <- etlFlowScheduler(cronJobs,jobs).provideCustomLayer(finalLayer).fork.toManaged_
-      _               <- etlFlowWebServer[EJN](cache,jobSemaphores,etl_job_props_mapping_package,queue,config).provideCustomLayer(finalLayer).toManaged_
-    } yield ()).use_(ZIO.unit)
-
-    val finalRunner = if (args.isEmpty) serverRunner else cliRunner(args)
-
-    finalRunner.catchAll{err =>
-      UIO {
-        logger.error(err.getMessage)
-        err.getStackTrace.foreach(x => logger.error(x.toString))
-      }
-    }.exitCode
+  final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
+    for {
+      rt          <- Task.runtime
+      semaphores  = jobs.map(job => (job.name, rt.unsafeRun(Semaphore.make(permits = job.props("job_max_active_runs").toLong)))).toMap
+    } yield semaphores
   }
+
+  def serverRunner(config: Config): ZIO[ZEnv, Throwable, Unit] = (for {
+    _           <- SetTimeZone(config).toManaged_
+    statsCache  <- CacheApi.createCache[QueueDetails].toManaged_
+    authCache   <- CacheApi.createCache[String].toManaged_
+    listTkn     = config.token.getOrElse(List.empty)
+    _           <- ZIO.foreach_(listTkn)(tkn => CacheApi.put(authCache, tkn, tkn)).toManaged_
+    auth        = Authentication(authCache, config.secretkey)
+    jobs        <- RF.getJobs[T].toManaged_
+    sem         <- createSemaphores(jobs).toManaged_
+    executor    = Executor[T](sem, config, statsCache)
+    supervisor  <- Supervisor.track(true).toManaged_
+    dbLayer     = liveDB(config.db.get, pool_size = 10)
+    logLayer    = log.Implementation.live
+    cryptoLayer = crypto.Implementation.live(config.secretkey)
+    apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)
+    finalLayer   = apiLayer ++ dbLayer ++ cryptoLayer ++ logLayer
+    scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
+    webserver   = etlFlowWebServer(auth, config.webserver)
+    _           <- scheduler.zipPar(webserver).provideSomeLayer[CacheEnv with JsonEnv with Blocking with Clock](finalLayer).toManaged_
+  } yield ()).useNow.provideCustomLayer(cache.Implementation.live ++ json.Implementation.live)
+
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = Configuration.config.flatMap(cfg => cliRunner(args,cfg,serverRunner(cfg))).exitCode
 }

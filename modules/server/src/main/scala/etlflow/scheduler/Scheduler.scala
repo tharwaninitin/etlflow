@@ -1,47 +1,47 @@
 package etlflow.scheduler
 
-import cron4s.CronExpr
-import etlflow.jdbc.{DB, DBEnv}
-import etlflow.utils.EtlFlowHelper._
-import etlflow.utils.{EtlFlowUtils, UtilityFunctions => UF}
-import etlflow.webserver.api.ApiService
+import com.cronutils.model.time.ExecutionTime
+import etlflow.api.Schema._
+import etlflow.api.{ServerEnv, ServerTask, Service}
+import etlflow.db.{DBApi, EtlJob}
+import etlflow.utils.ApplicationLogger
+import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio._
-import zio.blocking.Blocking
-import zio.clock.Clock
 import zio.duration._
 
-trait Scheduler extends EtlFlowUtils {
-  final def scheduleJobs(dbCronJobs: List[CronJob]): RIO[GQLEnv with DBEnv with Blocking with Clock,Unit] = {
+private [etlflow] trait Scheduler extends ApplicationLogger {
+  
+  final def scheduleJobs(dbCronJobs: List[CronJob]): ServerTask[Unit] = {
     if (dbCronJobs.isEmpty) {
       logger.warn("No scheduled jobs found")
       ZIO.unit
     }
     else {
-      val listOfCron: List[(CronExpr, URIO[GQLEnv with DBEnv with Blocking with Clock, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.get, {
-        logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.get.toString} at ${UF.getCurrentTimestampAsString()}")
-        ApiService
+      val listOfCron: List[(String, ExecutionTime, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.job_name,cj.schedule.cron.get, {
+        logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.name} at ${getCurrentTimestampAsString()}")
+        Service
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
           .map(Some(_))
-          .catchAll(_ => UIO.succeed(None))
+          .catchAll(_ => UIO.none)
       }))
 
-      val scheduledJobs = repeatEffectsForCron(listOfCron)
+      val scheduledJobs = repeatEffectsForCronWithName(listOfCron)
 
-      val scheduledLogger = UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${UF.getCurrentTimestampAsString()} " + "*"*30))
+      UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${getCurrentTimestampAsString()} " + "*"*30))
         .repeat(Schedule.forever && Schedule.spaced(60.minute))
 
-      scheduledJobs.zipPar(scheduledLogger).as(())
+      //scheduledJobs.zipPar(scheduledLogger).unit
+      scheduledJobs
         .tapError{e =>
           UIO(logger.error("*"*30 + s" Scheduler crashed due to error ${e.getMessage} stacktrace ${e.printStackTrace()}" + "*"*30))
         }
     }
   }
-  final def etlFlowScheduler(cronJobs: Ref[List[CronJob]], jobs: List[EtlJob]): RIO[GQLEnv with DBEnv with Blocking with Clock, Unit] = for {
-    dbJobs     <- DB.refreshJobs(jobs)
-    _          <- cronJobs.update{_ => dbJobs.filter(_.schedule.isDefined)}
-    cronJobs   <- cronJobs.get
-    _          <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))
-    _          <- UIO(logger.info("Starting scheduler"))
-    _          <- scheduleJobs(cronJobs)
+  final def etlFlowScheduler(jobs: List[EtlJob]): ServerTask[Unit] = for {
+    dbJobs      <- DBApi.refreshJobs(jobs)
+    cronJobs    =  dbJobs.map(x => CronJob(x.job_name, Cron(x.schedule))).filter(_.schedule.cron.isDefined)
+    _           <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))
+    _           <- UIO(logger.info("Starting scheduler"))
+    _           <- scheduleJobs(cronJobs)
   } yield ()
 }

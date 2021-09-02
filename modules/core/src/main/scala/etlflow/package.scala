@@ -1,78 +1,63 @@
+
+import etlflow.crypto.CryptoEnv
+import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
-import etlflow.log.{DbJobLogger, DbStepLogger, SlackLogger}
-import etlflow.utils.{Executor, LoggingLevel}
-import zio.{Has,ZEnv}
-import scala.reflect.ClassTag
+import etlflow.json.{JsonApi, JsonEnv}
+import etlflow.log.{LoggerEnv, SlackEnv}
+import etlflow.schema.{Executor, LoggingLevel}
+import etlflow.utils.EtlflowError.EtlJobException
+import io.circe.Encoder
+import zio.blocking.Blocking
+import zio.clock.Clock
+import zio.{Tag, ZIO}
 
 package object etlflow {
 
-  sealed trait Credential
-  object Credential {
-    final case class GCP(service_account_key_path: String, project_id: String = "") extends Credential {
-      override def toString: String = "****service_account_key_path****"
-    }
-    final case class AWS(access_key: String, secret_key: String) extends Credential {
-      override def toString: String = "****access_key****secret_key****"
-    }
-    final case class JDBC(url: String, user: String, password: String, driver: String) extends Credential {
-      override def toString: String = s"JDBC with url => $url"
-    }
-    final case class REDIS(host_name: String, password: Option[String] = None, port: Int = 6379) extends Credential {
-      override def toString: String = s"REDIS with url $host_name and port $port"
-    }
-    final case class SMTP(port: String, host: String, user:String, password:String, transport_protocol:String = "smtp", starttls_enable:String = "true", smtp_auth:String = "true") extends Credential {
-      override def toString: String = s"SMTP with host  => $host and user => $user"
-    }
-  }
+  type CoreEnv = DBEnv with JsonEnv with CryptoEnv with LoggerEnv with Blocking with Clock
+  type JobEnv = CoreEnv with SlackEnv
+  type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
-  case class EtlJobException(msg : String) extends RuntimeException(msg)
-  case class EtlJobNotFoundException(msg : String) extends RuntimeException(msg)
-  case class StepLogger(db: Option[DbStepLogger], slack: Option[SlackLogger])
-  case class JobLogger(db: Option[DbJobLogger], slack: Option[SlackLogger])
-  type StepEnv = Has[StepLogger] with ZEnv
+  trait EtlJobProps extends Product
 
-  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: ClassTag[EJ], tag_EJP: ClassTag[EJP]) {
-    val job_description: String         = ""
-    val job_schedule: String            = ""
-    val job_max_active_runs: Int        = 10
-    val job_deploy_mode: Executor       = Executor.LOCAL
-    val job_retries: Int                = 0
-    val job_retry_delay_in_minutes: Int = 0
+  abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit tag_EJ: Tag[EJ], tag_EJP: Tag[EJP], encoder: Encoder[EJP]) {
+    val job_description: String               = ""
+    val job_schedule: String                  = ""
+    val job_max_active_runs: Int              = 10
+    val job_deploy_mode: Executor             = Executor.LOCAL
+    val job_retries: Int                      = 0
+    val job_retry_delay_in_minutes: Int       = 0
     val job_enable_db_logging: Boolean        = true
     val job_send_slack_notification: Boolean  = false
-    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
+    val job_notification_level: LoggingLevel  = LoggingLevel.INFO
 
-    final val job_name: String          = tag_EJ.toString
-    final val job_props_name: String    = tag_EJP.toString
+    final val job_name: String                = tag_EJ.tag.longName
+    final val job_props_name: String          = tag_EJP.tag.longName
 
     def getActualProperties(job_properties: Map[String, String]): EJP
+
     final def etlJob(job_properties: Map[String, String]): EJ = {
-      // https://stackoverflow.com/questions/46798242/scala-create-instance-by-type-parameter
       val props = getActualProperties(job_properties)
-      tag_EJ.runtimeClass.getConstructor(tag_EJP.runtimeClass).newInstance(props).asInstanceOf[EJ]
+      tag_EJ.closestClass.getConstructor(tag_EJP.closestClass).newInstance(props).asInstanceOf[EJ]
     }
-    final def getProps: Map[String,Any] = Map(
-        "job_name" -> job_name,
-        "job_props_name" -> job_props_name,
-        "job_description" -> job_description,
-        "job_schedule" -> job_schedule,
-        "job_deploy_mode" -> job_deploy_mode,
-        "job_max_active_runs" -> job_max_active_runs,
-        "job_retries" -> job_retries,
-        "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes,
-        "job_enable_db_logging" -> job_enable_db_logging,
-        "job_send_slack_notification" -> job_send_slack_notification,
-        "job_notification_level" -> job_notification_level
-      )
-  }
 
-  trait EtlJobSchema extends Product
+    final def getActualPropertiesAsJson(job_properties: Map[String, String]): ZIO[JsonEnv, Throwable, String] = {
+      JsonApi.convertToString(getActualProperties(job_properties), List.empty)
+    }
 
-  trait EtlJobProps {
-//    val job_enable_db_logging: Boolean        = true
-//    val job_send_slack_notification: Boolean  = false
-//    val job_notification_level: LoggingLevel  = LoggingLevel.INFO //info or debug
+    final def getProps: Map[String,String] = Map(
+      "job_name" -> job_name,
+      "job_props_name" -> job_props_name,
+      "job_description" -> job_description,
+      "job_schedule" -> job_schedule,
+      "job_deploy_mode" -> job_deploy_mode.toString,
+      "job_max_active_runs" -> job_max_active_runs.toString,
+      "job_retries" -> job_retries.toString,
+      "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes.toString,
+      "job_enable_db_logging" -> job_enable_db_logging.toString,
+      "job_send_slack_notification" -> job_send_slack_notification.toString,
+      "job_notification_level" -> job_notification_level.toString
+    )
   }
 
   object EtlStepList {

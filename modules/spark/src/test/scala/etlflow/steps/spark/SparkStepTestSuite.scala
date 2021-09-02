@@ -1,29 +1,22 @@
 package etlflow.steps.spark
 
-import doobie.implicits._
-import doobie.util.fragment.Fragment
 import etlflow.TestSparkSession
-import etlflow.coretests.DoobieHelper
 import etlflow.coretests.Schema._
+import etlflow.coretests.TestSuiteHelper
+import etlflow.db.DBApi
 import etlflow.etlsteps.{SparkReadStep, SparkReadWriteStep}
-import etlflow.spark.{ReadApi, SparkUDF}
-import etlflow.spark.IOType.{JDBC, PARQUET}
+import etlflow.schema.Credential.JDBC
+import etlflow.spark.IOType.{PARQUET, RDB}
+import etlflow.spark.ReadApi
 import org.apache.spark.sql.{Dataset, Row, SaveMode}
-import org.scalatest.{FlatSpec, Matchers}
-import org.testcontainers.containers.PostgreSQLContainer
 import zio.Runtime.default.unsafeRun
-import zio.Task
-import zio.interop.catz._
+import zio.ZIO
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assert}
 
-class SparkStepTestSuite extends FlatSpec with Matchers with DoobieHelper with TestSparkSession with SparkUDF {
+object SparkStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSparkSession {
 
-  // STEP 1: Setup test containers
-  val container = new PostgreSQLContainer("postgres:latest")
-  container.start()
-
-  val canonical_path: String    = new java.io.File(".").getCanonicalPath
-
-  // STEP 2: Define step
+  // STEP 1: Define step
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
   val input_path_parquet  = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet"
   val output_table        = "ratings"
@@ -32,7 +25,7 @@ class SparkStepTestSuite extends FlatSpec with Matchers with DoobieHelper with T
     name             = "LoadRatingsParquetToJdbc",
     input_location   = Seq(input_path_parquet),
     input_type       = PARQUET,
-    output_type      = JDBC(container.getJdbcUrl, container.getUsername, container.getPassword, "org.postgresql.Driver"),
+    output_type      = RDB(JDBC(config.db.get.url, config.db.get.user, config.db.get.password, "org.postgresql.Driver")),
     output_location  = "ratings",
     output_save_mode = SaveMode.Overwrite
   )
@@ -43,25 +36,27 @@ class SparkStepTestSuite extends FlatSpec with Matchers with DoobieHelper with T
     input_type       = PARQUET,
   )
 
-  // STEP 3: Run Step
-  unsafeRun(step1.process())
-  val op: Dataset[Rating] = unsafeRun(step2.process())
+  // STEP 2: Run Step
+  unsafeRun(step1.process(()))
+  val op: Dataset[Rating] = unsafeRun(step2.process(()))
   op.show(10)
 
-  // STEP 4: Run Test
+  // STEP 3: Run Test
   val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)
   val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
   val query: String = s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table"
-  val trans = transactor(container.getJdbcUrl, container.getUsername, container.getPassword)
-  val db_task: Task[RatingsMetrics] = Fragment.const(query).query[RatingsMetrics].unique.transact(trans)
-  val db_metrics: RatingsMetrics = unsafeRun(db_task)
+  val db_task: ZIO[zio.ZEnv, Throwable, List[RatingsMetrics]] = DBApi.executeQueryListOutput[RatingsMetrics](s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table")(rs => RatingsMetrics(rs.double("sum_ratings"),rs.long("count_ratings"))).provideCustomLayer(etlflow.db.liveDB(config.db.get))
+  val db_metrics: RatingsMetrics = unsafeRun(db_task)(0)
 
-  "Record counts" should "be matching in transformed DF and DB table " in {
-    assert(count_ratings == db_metrics.count_ratings)
-  }
-
-  "Sum of ratings" should "be matching in transformed DF and DB table " in {
-    assert(sum_ratings == db_metrics.sum_ratings)
+  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = {
+    suite("Spark Step Test Suite")(
+      test("Record counts should be matching in transformed DF and DB table") {
+        assert(count_ratings)(equalTo(db_metrics.count_ratings))
+      },
+      test("Sum of ratings should be matching in transformed DF and DB table ") {
+        assert(sum_ratings)(equalTo(db_metrics.sum_ratings))
+      }
+    )
   }
 }
 

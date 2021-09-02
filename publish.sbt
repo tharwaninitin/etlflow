@@ -16,10 +16,10 @@ ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licens
 ThisBuild / homepage := Some(url("https://github.com/tharwaninitin/etlflow"))
 
 // Add sonatype repository settings
-ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / pomIncludeRepository.withRank(KeyRanks.Invisible) := { _ => false }
 ThisBuild / publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
-ThisBuild / publishMavenStyle := true
+ThisBuild / publishMavenStyle.withRank(KeyRanks.Invisible) := true

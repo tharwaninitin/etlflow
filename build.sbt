@@ -1,102 +1,212 @@
-lazy val scala212 = "2.12.13"
-lazy val supportedScalaVersions = List(scala212)
-
 import Dependencies._
+import Versions._
+
+ThisBuild / version := EtlFlowVersion
+
+lazy val commonSettings = Seq(
+  organization := "com.github.tharwaninitin",
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, _)) => Seq(
+        "-unchecked"
+        , "-feature"
+        , "-deprecation"
+        , "-language:higherKinds"
+        , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
+        , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
+        , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
+        , "-Xfatal-warnings"
+      )
+      case Some((3, _)) => Seq(
+        "-unchecked"
+        , "-feature"
+        , "-deprecation"
+      )
+      case _ => Seq()
+    }
+  },
+  Test / parallelExecution := false,
+  libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0") ++
+    (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 12)) =>
+        Seq(
+          compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
+          compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
+        )
+      case Some((2, 13)) => Seq()
+      case Some((3, 0)) => Seq()
+      case _ => Seq()
+    }),
+  testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+)
 
 lazy val coreSettings = Seq(
   name := "etlflow-core",
-  organization := "com.github.tharwaninitin",
-  crossScalaVersions := supportedScalaVersions,
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
-  libraryDependencies ++= zioLibs ++ dbLibs ++ catsLibs ++ jsonLibs
-    ++ miscLibs ++ redis ++ scalajHttp ++ mail ++ coreTestLibs,
-  excludeDependencies ++= Seq(
-    "org.slf4j" % "slf4j-log4j12",
-  ),
-  //https://stackoverflow.com/questions/36501352/how-to-force-a-specific-version-of-dependency
-  dependencyOverrides ++= {
-    Seq(
-      "com.fasterxml.jackson.module" % "jackson-module-scala_2.12" % "2.6.7.1",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7.1",
-    )
-  }
-)
-
-lazy val cloudSettings = Seq(
-  name := "etlflow-cloud",
-  libraryDependencies ++= streamingLibs ++ googleCloudLibs ++ awsLibs ++ coreTestLibs ++ cloudTestLibs,
-  excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12")
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
 )
 
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
-  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ sparkTestLibs,
-  excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12")
+  crossScalaVersions := List(scala212),
+  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs,
+)
+
+lazy val cloudSettings = Seq(
+  name := "etlflow-cloud",
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++= cloudLibs ++ zioTestLibs ++ cloudTestLibs,
 )
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
-  libraryDependencies ++= serverLibs ++ kubernetes ++ coreTestLibs ++ serverTestLibs,
-  excludeDependencies ++= Seq("org.slf4j" % "slf4j-log4j12")
+  crossScalaVersions := allScalaVersions,
+  coverageExcludedPackages := ".*ServerApp;.*HttpServer",
+  libraryDependencies ++= serverLibs ++ zioTestLibs
+)
+
+lazy val dbSettings = Seq(
+  name := "etlflow-db",
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ dbTestLibs,
+)
+
+lazy val utilsSettings = Seq(
+  name := "etlflow-utils",
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++=  utilsLibs ++ zioTestLibs,
+)
+
+lazy val httpSettings = Seq(
+  name := "etlflow-http",
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++= httpLibs ++ zioTestLibs
+)
+
+lazy val redisSettings = Seq(
+  name := "etlflow-redis",
+  crossScalaVersions := scala2Versions,
+  libraryDependencies ++= redisLibs ++ zioTestLibs
+)
+
+lazy val jsonSettings = Seq(
+  name := "etlflow-json",
+  crossScalaVersions :=  allScalaVersions,
+  libraryDependencies ++= jsonLibs ++ zioTestLibs
+)
+
+lazy val cryptoSettings = Seq(
+  name := "etlflow-crypto",
+  crossScalaVersions :=  allScalaVersions,
+  libraryDependencies ++= cryptoLibs ++ zioTestLibs
+)
+
+lazy val emailSettings = Seq(
+  name := "etlflow-email",
+  crossScalaVersions :=  allScalaVersions,
+  libraryDependencies ++= emailLibs ++ zioTestLibs
+)
+
+lazy val cacheSettings = Seq(
+  name := "etlflow-cache",
+  crossScalaVersions :=  allScalaVersions,
+  libraryDependencies ++= cacheLibs ++ zioTestLibs
+)
+
+lazy val awsSettings = Seq(
+  name := "etlflow-aws",
+  crossScalaVersions :=  allScalaVersions,
+  libraryDependencies ++= awsLibs ++ zioTestLibs ++ cloudTestLibs
+)
+
+lazy val gcpSettings = Seq(
+  name := "etlflow-gcp",
+  crossScalaVersions :=  allScalaVersions,
+  libraryDependencies ++= gcpLibs ++ zioTestLibs ++ cloudTestLibs
 )
 
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
-    publish / skip := true)
-  .aggregate(core,spark,cloud,server)
+    publish / skip := true
+  )
+  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
+
+lazy val utils = (project in file("modules/utils"))
+  .settings(commonSettings)
+  .settings(utilsSettings)
+
+lazy val json = (project in file("modules/json"))
+  .settings(commonSettings)
+  .settings(jsonSettings)
+  .dependsOn(utils % "test")
+
+lazy val db = (project in file("modules/db"))
+  .settings(commonSettings)
+  .settings(dbSettings)
+  .dependsOn(utils)
+
+lazy val crypto = (project in file("modules/crypto"))
+  .settings(commonSettings)
+  .settings(cryptoSettings)
+  .dependsOn(utils, json)
 
 lazy val core = (project in file("modules/core"))
+  .settings(commonSettings)
   .settings(coreSettings)
   .enablePlugins(BuildInfoPlugin)
   .settings(
-    initialCommands := "import etlflow._",
     buildInfoKeys := Seq[BuildInfoKey](
       resolvers,
       Compile / libraryDependencies,
       name, version, scalaVersion, sbtVersion
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
-    buildInfoPackage := "etlflow",
-    assembly / test := {},
-    assembly / assemblyMergeStrategy := {
-      case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-      case x => MergeStrategy.first
-    },
-    assembly / assemblyShadeRules := Seq(
-      ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll
-    ),
-    Test / parallelExecution := false,
-    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
+    buildInfoPackage := "etlflow"
   )
-
-lazy val spark = (project in file("modules/spark"))
-  .settings(sparkSettings)
-  .settings(
-    scalacOptions ++= Seq("-Ypartial-unification"),
-    Test / parallelExecution := false,
-    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
-  )
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(db, utils, json, crypto)
 
 lazy val cloud = (project in file("modules/cloud"))
+  .settings(commonSettings)
   .settings(cloudSettings)
-  .settings(
-    scalacOptions ++= Seq("-Ypartial-unification"),
-    Test / parallelExecution := false,
-    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
-  )
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test", gcp, aws)
 
 lazy val server = (project in file("modules/server"))
+  .settings(commonSettings)
   .settings(serverSettings)
-  .settings(
-    scalacOptions ++= Seq("-Ypartial-unification"),
-    addCompilerPlugin("org.scalamacros" % "paradise"  % "2.1.1" cross CrossVersion.full),
-    Test / parallelExecution := false,
-    testFrameworks += (new TestFramework("zio.test.sbt.ZTestFramework"))
-  )
-  .dependsOn(core % "compile->compile;test->test", cloud)
+  .dependsOn(core % "compile->compile;test->test", gcp, cache)
 
+lazy val spark = (project in file("modules/spark"))
+  .settings(commonSettings)
+  .settings(sparkSettings)
+  .dependsOn(core % "compile->compile;test->test")
 
+lazy val http = (project in file("modules/http"))
+  .settings(commonSettings)
+  .settings(httpSettings)
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val redis = (project in file("modules/redis"))
+  .settings(commonSettings)
+  .settings(redisSettings)
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val email = (project in file("modules/email"))
+  .settings(commonSettings)
+  .settings(emailSettings)
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val cache = (project in file("modules/cache"))
+  .settings(commonSettings)
+  .settings(cacheSettings)
+
+lazy val aws = (project in file("modules/aws"))
+  .settings(commonSettings)
+  .settings(awsSettings)
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val gcp = (project in file("modules/gcp"))
+  .settings(commonSettings)
+  .settings(gcpSettings)
+  .dependsOn(core % "compile->compile;test->test")
 

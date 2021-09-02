@@ -1,21 +1,21 @@
 package etlflow.spark
 
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
 import etlflow.spark.IOType._
+import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, split}
-import org.slf4j.LoggerFactory
+
 import scala.reflect.runtime.universe.TypeTag
 
-object ReadApi {
+object ReadApi extends  ApplicationLogger {
 
-  private val read_logger = LoggerFactory.getLogger(getClass.getName)
-  read_logger.info(s"Loaded ${getClass.getName}")
+  logger.info(s"Loaded ${getClass.getName}")
 
   def LoadDF(location: Seq[String], input_type: IOType, where_clause : String = "1 = 1", select_clause: Seq[String] = Seq("*"))(implicit spark: SparkSession): Dataset[Row] = {
     val df_reader = spark.read
 
-    read_logger.info("Input file paths: " + location.toList)
+    logger.info("Input file paths: " + location.toList)
 
     val df_reader_options = input_type match {
       case CSV(delimiter,header_present,_,quotechar) => df_reader.format("csv").option("delimiter", delimiter).option("quote",quotechar).option("header", header_present)
@@ -58,7 +58,7 @@ object ReadApi {
 
     val df_reader = spark.read
 
-    read_logger.info("Input location: " + location.toList)
+    logger.info("Input location: " + location.toList)
 
     val df_reader_options = input_type match {
       case CSV(delimiter,header_present,parse_mode,quotechar) => df_reader.format("csv").schema(mapping.schema)
@@ -67,8 +67,18 @@ object ReadApi {
       case JSON(multi_line) => df_reader.format("json").option("multiline",multi_line).schema(mapping.schema)
       case PARQUET => df_reader.format("parquet")
       case ORC => df_reader.format("orc")
-      case JDBC(url, user, password, driver) => df_reader.format("jdbc")
-        .option("url", url).option("dbtable", location.mkString).option("user", user).option("password", password).option("driver", driver)
+      case RDB(jdbc,partition) =>
+        if(partition.isDefined) {
+          df_reader.format("jdbc")
+            .option("url", jdbc.url).option("dbtable", location.mkString).option("user", jdbc.user)
+            .option("password", jdbc.password).option("driver", jdbc.driver)
+            .option("numPartitions", partition.get.num_partition)
+            .option("partitionColumn", partition.get.partition_column).option("lowerBound", partition.get.lower_bound)
+            .option("upperBound", partition.get.upper_bound)
+        } else{
+          df_reader.format("jdbc").option("url", jdbc.url).option("dbtable", location.mkString).option("user", jdbc.user)
+            .option("password", jdbc.password).option("driver", jdbc.driver)
+        }
       case BQ(temp_dataset,operation_type) =>
         operation_type match {
           case "table" => df_reader.format("bigquery").option("table", location.mkString)
@@ -81,13 +91,13 @@ object ReadApi {
     }
 
     val df = input_type match {
-      case JDBC(_,_,_,_) | BQ(_,_) => df_reader_options.load().where(where_clause)
+      case RDB(_,_) | BQ(_,_) => df_reader_options.load().where(where_clause)
       case _ => df_reader_options.load(location: _*).where(where_clause)
     }
 
-    read_logger.info("#"*20 + " Actual Input Schema " + "#"*20)
+    logger.info("#"*20 + " Actual Input Schema " + "#"*20)
     df.schema.printTreeString // df.schema.foreach(x => read_logger.info(x.toString))
-    read_logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
+    logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
     mapping.schema.printTreeString
 
     df.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping)

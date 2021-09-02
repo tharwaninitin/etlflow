@@ -1,19 +1,25 @@
 package etlflow.etlsteps
 
-import etlflow.EtlJobProps
+import etlflow.crypto.CryptoEnv
+import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
-import etlflow.utils.LoggingLevel
-import zio.{Task, ZEnv}
+import etlflow.json.JsonEnv
+import etlflow.schema.LoggingLevel
+import etlflow.{CoreEnv, EtlJobProps}
+import zio.RIO
+import zio.blocking.Blocking
+import zio.clock.Clock
 
 class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJob[EJP]) extends EtlStep[Unit,Unit] {
 
   lazy val job_instance = job
-  val job_run_id = java.util.UUID.randomUUID.toString
+  var job_run_id = java.util.UUID.randomUUID.toString
 
-  final def process(in: =>Unit): Task[Unit] = {
-    etl_logger.info("#"*100)
-    etl_logger.info(s"Starting EtlFlowJobStep for: $name")
-    job_instance.execute(Some(job_run_id),Some("false")).provideLayer(ZEnv.live)
+  final def process(in: =>Unit): RIO[CoreEnv, Unit] = {
+    logger.info("#"*100)
+    logger.info(s"Starting EtlFlowJobStep for: $name")
+    job_instance.execute(Some(job_run_id), Some("false"))
+      .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](etlflow.log.Implementation.live ++ etlflow.log.SlackApi.nolog)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

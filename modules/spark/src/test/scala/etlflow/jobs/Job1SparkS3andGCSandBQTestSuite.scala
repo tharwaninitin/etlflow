@@ -14,7 +14,7 @@ object Job1SparkS3andGCSandBQTestSuite extends DefaultRunnableSpec with TestSuit
         val job = Job1SparkS3andGCSandBQSteps(EtlJob6Props())
         assertM(job.execute().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    )
+    ).provideCustomLayerShared(fullLayer.orDie)
 }
 
 

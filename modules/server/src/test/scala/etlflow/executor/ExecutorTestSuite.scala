@@ -1,41 +1,42 @@
 package etlflow.executor
 
-import etlflow.ServerSuiteHelper
-import etlflow.jdbc.DBEnv
-import etlflow.utils.EtlFlowHelper.{EtlJob, EtlJobArgs}
-import zio.blocking.Blocking
-import zio.clock.Clock
+import etlflow.api.Schema.EtlJobArgs
+import etlflow.cache.CacheEnv
+import etlflow.db.{EtlJob, RunDbMigration}
+import etlflow.{CoreEnv, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, Semaphore, ZIO}
+import zio.{RIO, ZIO}
 
-object ExecutorTestSuite extends DefaultRunnableSpec with Executor with ServerSuiteHelper {
+object ExecutorTestSuite extends ServerSuiteHelper {
 
-  zio.Runtime.default.unsafeRun(runDbMigration(credentials,clean = true))
+  def job(args: EtlJobArgs): RIO[CoreEnv with CacheEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
-  def job(args: EtlJobArgs,sem: Semaphore): RIO[DBEnv with Blocking with Clock, EtlJob] =
-    runActiveEtlJob[MEJP](args,sem,config,etlJob_name_package,"Test",testJobsQueue,false)
-
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
-    (suite("Executor Spec")(
+  val spec: ZSpec[environment.TestEnvironment with CoreEnv with CacheEnv, Any] =
+    (suite("Executor")(
+      testM("RunDbMigration") {
+        assertM(RunDbMigration(credentials,clean = true).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      },
       testM("Test runActiveEtlJob with correct JobName") {
-        assertM(
-          (for {
-            sem     <- Semaphore.make(permits = 1)
-            args    = EtlJobArgs("Job1")
-            status  <- job(args,sem)
-          } yield status).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done")
-        )
+        assertM(job(EtlJobArgs("Job1")).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      },
+      testM("Test runActiveEtlJob with disabled JobName") {
+        assertM(job(EtlJobArgs("Job2")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Job Job2 is disabled"))
       },
       testM("Test runActiveEtlJob with incorrect JobName") {
-        assertM(
-          (for {
-            sem     <- Semaphore.make(permits = 1)
-            args    = EtlJobArgs("InvalidEtlJob")
-            status  <- job(args,sem)
-          } yield status).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present")
-        )
+        assertM(job(EtlJobArgs("InvalidEtlJob")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("InvalidEtlJob not present"))
       },
-    ) @@ TestAspect.sequential).provideCustomLayerShared(testDBLayer.orDie)
-
+      testM("Test runActiveEtlJob with deploy mode is kubernetes") {
+        assertM(job(EtlJobArgs("Job6")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Deploy mode KUBERNETES not yet supported"))
+      },
+      testM("Test runActiveEtlJob with deploy mode is livy") {
+        assertM(job(EtlJobArgs("Job7")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Deploy mode livy not yet supported"))
+      },
+      testM("Test runActiveEtlJob with deploy mode is local sub process") {
+        assertM(job(EtlJobArgs("Job8")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("LOCAL SUB PROCESS JOB Job8 failed with error"))
+      },
+//      testM("Test runActiveEtlJob with deploy mode is dataproc") {
+//        assertM(job(EtlJobArgs("Job9",Some(List(Props("x1","x2"))))).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("invalid endpoint, expecting \"<host>:<port>\""))
+//      }
+    ) @@ TestAspect.sequential)
 }

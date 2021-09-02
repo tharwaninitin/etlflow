@@ -1,25 +1,49 @@
 package etlflow.utils
 
-import cats.data._
-import cats.implicits._
-import com.typesafe.config.ConfigFactory
-import io.circe.generic.auto._
+import etlflow.schema.{Config, WebServer, _}
+import zio.{IO, ZIO}
+import zio.config.typesafe.TypesafeConfigSource
+import etlflow.schema.Credential.JDBC
+import zio.config._
+import ConfigDescriptor._
 
-trait Configuration {
-  class Error(msg: String) extends RuntimeException(msg)
+object Configuration {
 
-  private val configEN: EitherNec[Throwable, Config] = Either
-    .catchNonFatal(ConfigFactory.load())
-    .toEitherNec
-    .flatMap(c => io.circe.config.parser
-      .decodeAccumulating[Config](c)
-      .toEither
-      .leftMap(NonEmptyChain.fromNonEmptyList)
-    )
+  val db: ConfigDescriptor[JDBC] = (
+    string("url") |@|
+      string("user") |@|
+      string("password") |@|
+      string("driver")
+    )(JDBC.apply, b => Some(b.url, b.user, b.password, b.driver))
 
-  final lazy val config: Config = configEN match {
-    case Left(errors) =>
-      throw new Error(errors.map(x => x.getMessage).toList.mkString("\n","\n","\n"))
-    case Right(value) => value
-  }
+  val dataprocSpark: ConfigDescriptor[DataprocSpark] = (
+    string("mainclass") |@|
+      list("deplibs")(string)
+    )(DataprocSpark.apply, b => Some(b.mainclass, b.deplibs))
+
+  val slack: ConfigDescriptor[Slack] = (
+    string("url") |@|
+      string("env") |@|
+      string("host")
+    )(Slack.apply, b => Some(b.url, b.env, b.host))
+
+  val webServer: ConfigDescriptor[WebServer] = (
+    string("ip_address").optional |@|
+      int("port").optional |@|
+      set("allowedOrigins")(string).optional
+    )(WebServer.apply, b => Some(b.ip_address, b.port, b.allowedOrigins))
+
+  val applicationConf: ConfigDescriptor[Config]  = (
+    nested("db")(db).optional |@|
+      string("timezone").optional |@|
+      nested("slack")(slack).optional |@|
+      nested("dataproc")(dataprocSpark).optional |@|
+      list("token")(string).optional |@|
+      nested("webserver")(webServer).optional |@|
+      string("secretkey").optional
+    )(Config.apply, b => Some(b.db, b.timezone, b.slack, b.dataproc, b.token, b.webserver, b.secretkey))
+
+  lazy val config: IO[ReadError[String], Config] =
+    TypesafeConfigSource.fromDefaultLoader
+      .flatMap(source => ZIO.fromEither(read(applicationConf from source)))
 }

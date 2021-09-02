@@ -1,22 +1,21 @@
 package etlflow.spark
 
+import etlflow.spark.Environment._
+import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.SparkSession
-import org.slf4j.LoggerFactory
-import Environment._
 
-object SparkManager {
-  private val spark_logger = LoggerFactory.getLogger(getClass.getName)
+object SparkManager  extends  ApplicationLogger {
   private def showSparkProperties(spark: SparkSession): Unit = {
-    spark_logger.info("spark.scheduler.mode = " + spark.sparkContext.getSchedulingMode)
-    spark_logger.info("spark.default.parallelism = " + spark.conf.getOption("spark.default.parallelism"))
-    spark_logger.info("spark.sql.shuffle.partitions = " + spark.conf.getOption("spark.sql.shuffle.partitions"))
-    spark_logger.info("spark.sql.sources.partitionOverwriteMode = " + spark.conf.getOption("spark.sql.sources.partitionOverwriteMode"))
-    spark_logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
-    spark_logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
-    spark_logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)
-    spark_logger.info("spark.eventLog.dir = " + spark.conf.getOption("spark.eventLog.dir"))
-    spark_logger.info("spark.eventLog.enabled = " + spark.conf.getOption("spark.eventLog.enabled"))
-    spark.conf.getAll.filter(m1 => m1._1.contains("yarn")).foreach(kv => spark_logger.info(kv._1 + " = " + kv._2))
+    logger.info("spark.scheduler.mode = " + spark.sparkContext.getSchedulingMode)
+    logger.info("spark.default.parallelism = " + spark.conf.getOption("spark.default.parallelism"))
+    logger.info("spark.sql.shuffle.partitions = " + spark.conf.getOption("spark.sql.shuffle.partitions"))
+    logger.info("spark.sql.sources.partitionOverwriteMode = " + spark.conf.getOption("spark.sql.sources.partitionOverwriteMode"))
+    logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
+    logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
+    logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)
+    logger.info("spark.eventLog.dir = " + spark.conf.getOption("spark.eventLog.dir"))
+    logger.info("spark.eventLog.enabled = " + spark.conf.getOption("spark.eventLog.enabled"))
+    spark.conf.getAll.filter(m1 => m1._1.contains("yarn")).foreach(kv => logger.info(kv._1 + " = " + kv._2))
   }
 
   def createSparkSession(
@@ -31,11 +30,11 @@ object SparkManager {
                         ): SparkSession =  {
     if (SparkSession.getActiveSession.isDefined) {
       val spark = SparkSession.getActiveSession.get
-      spark_logger.info(s"###### Using Already Created Spark Session with $env support ##########")
+      logger.info(s"###### Using Already Created Spark Session with $env support ##########")
       spark
     }
     else {
-      spark_logger.info(s"###### Creating Spark Session with $env support ##########")
+      logger.info(s"###### Creating Spark Session with $env support ##########")
       var sparkBuilder = SparkSession.builder()
 
       props.foreach{prop =>

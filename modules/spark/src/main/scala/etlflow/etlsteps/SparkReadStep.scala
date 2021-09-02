@@ -1,11 +1,11 @@
 package etlflow.etlsteps
 
-import etlflow.spark.IOType
-import etlflow.spark._
-import etlflow.utils.LoggingLevel
+import etlflow.schema.LoggingLevel
+import etlflow.spark.{IOType, _}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 import zio.Task
+
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
@@ -28,8 +28,8 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
         }
       }
     })
-    etl_logger.info("#################################################################################################")
-    etl_logger.info(s"Starting Spark Read Step : $name")
+    logger.info("#################################################################################################")
+    logger.info(s"Starting Spark Read Step : $name")
 
     transform_function match {
       case Some(transformFunc) =>
@@ -53,7 +53,7 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
   }
 
   def showCorruptedData(): Unit = {
-    etl_logger.info(s"Corrupted data for job $name:")
+    logger.info(s"Corrupted data for job $name:")
     val ds = ReadApi.LoadDS[O](input_location,input_type)(spark)
     ds.filter("_corrupt_record is not null").show(100,truncate = false)
   }

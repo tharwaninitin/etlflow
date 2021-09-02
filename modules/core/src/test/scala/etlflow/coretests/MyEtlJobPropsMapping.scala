@@ -3,17 +3,17 @@ package etlflow.coretests
 import etlflow.coretests.Schema._
 import etlflow.coretests.jobs._
 import etlflow.etljobs.EtlJob
-import etlflow.utils.Executor
-import etlflow.utils.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
+import etlflow.schema.Executor
+import etlflow.schema.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
 import etlflow.{EtlJobProps, EtlJobPropsMapping}
+import io.circe.generic.auto._
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP,EJ]
-
 
 object MyEtlJobPropsMapping {
 
   val kubernetes = KUBERNETES(
-    "etlflow:0.7.19",
+    "etlflow:0.10.0",
     "default",
     Map(
       "GOOGLE_APPLICATION_CREDENTIALS"-> Option("<cred_file>"),
@@ -26,7 +26,8 @@ object MyEtlJobPropsMapping {
 
   val dataproc   = DATAPROC("project-name","region","endpoint","cluster-name")
 
-  val local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS("examples/target/docker/stage/opt/docker/bin/load-data")
+  // https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/index.html#
+  val local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS("examples/target/universal/stage/bin/etlflow-examples")
 
   case object Job1 extends MyEtlJobPropsMapping[EtlJob1Props,Job1HelloWorld] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
@@ -41,27 +42,47 @@ object MyEtlJobPropsMapping {
     override val job_enable_db_logging: Boolean = false
   }
 
-  case object Job3 extends MyEtlJobPropsMapping[EtlJob3Props,Job3HttpSmtpSteps] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
-    override val job_deploy_mode: Executor = dataproc
-  }
-
-  case object Job4 extends MyEtlJobPropsMapping[EtlJob4Props,Job4DBSteps] {
+  case object Job3 extends MyEtlJobPropsMapping[EtlJob4Props,Job3DBSteps] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob4Props = EtlJob4Props()
     override val job_schedule: String = "0 30 7 ? * *"
     override val job_deploy_mode: Executor = Executor.LOCAL
   }
 
-  case object Job5 extends MyEtlJobPropsMapping[EtlJob5Props,Job5GenericSteps] {
+  case object Job4 extends MyEtlJobPropsMapping[EtlJob5Props,Job4GenericSteps] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob5Props = EtlJob5Props()
     override val job_schedule: String = "0 0 11 ? * 4"
     override val job_deploy_mode: Executor = Executor.LOCAL
     override val job_retries: Int = 3
     override val job_retry_delay_in_minutes: Int = 1
+
   }
 
-  case object Job6 extends MyEtlJobPropsMapping[EtlJob3Props,Job6RedisSteps] {
-    def getActualProperties(job_properties: Map[String, String]): EtlJob3Props = EtlJob3Props()
+  case object Job5 extends MyEtlJobPropsMapping[EtlJob1Props,Job5EtlflowJobSteps] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+  }
+
+  case object Job6 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = kubernetes
+  }
+
+  case object Job7 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = Executor.LIVY("")
+  }
+
+  case object Job8 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = local_subprocess
+  }
+
+  case object Job9 extends MyEtlJobPropsMapping[EtlJob1Props,Job6HelloWorld] {
+    def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props()
+    override val job_schedule: String = "0 */2 * * * ?"
+    override val job_deploy_mode: Executor = dataproc
   }
 }
 

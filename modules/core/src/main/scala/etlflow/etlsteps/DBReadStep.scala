@@ -1,24 +1,20 @@
 package etlflow.etlsteps
 
-import doobie.util.Read
-import etlflow.jdbc.{DbManager, QueryApi}
-import etlflow.Credential.JDBC
-import etlflow.utils.LoggingLevel
-import zio.Task
+import etlflow.db.{DBApi, liveDB}
+import etlflow.schema.Credential.JDBC
+import etlflow.schema.LoggingLevel
+import scalikejdbc.WrappedResultSet
+import zio.RIO
+import zio.blocking.Blocking
 
-class DBReadStep[T <: Product : Read] private[etlflow](
-                                                        val name: String,
-                                                        query: => String,
-                                                        credentials: JDBC
-                                                      )
-  extends EtlStep[Unit,List[T]]
-    with DbManager {
+class DBReadStep[T] private(val name: String, query: => String, credentials: JDBC, pool_size: Int = 2)(fn: WrappedResultSet => T)
+  extends EtlStep[Unit,List[T]] {
 
-  final def process(in: =>Unit): Task[List[T]] = {
-    etl_logger.info("#"*100)
-    etl_logger.info(s"Starting DB Query Result Step: $name")
-    etl_logger.info(s"Query: $query")
-    QueryApi.executeQueryWithResponse[T](createDbTransactorManaged(credentials, scala.concurrent.ExecutionContext.Implicits.global,  name + "-Pool"), query)
+  final def process(in: =>Unit): RIO[Blocking, List[T]]  = {
+    logger.info("#"*100)
+    logger.info(s"Starting DB Query Result Step: $name")
+    logger.info(s"Query: $query")
+    DBApi.executeQueryListOutput[T](query)(fn).provideLayer(liveDB(credentials, name + "-Pool", pool_size))
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
@@ -26,6 +22,6 @@ class DBReadStep[T <: Product : Read] private[etlflow](
 
 
 object DBReadStep {
-  def apply[T <: Product : Read] (name: String, query: => String, credentials: JDBC): DBReadStep[T] =
-    new DBReadStep[T](name, query, credentials)
+  def apply[T] (name: String, query: => String, credentials: JDBC, pool_size: Int = 2)(fn: WrappedResultSet => T): DBReadStep[T] =
+    new DBReadStep[T](name, query, credentials, pool_size)(fn)
 }

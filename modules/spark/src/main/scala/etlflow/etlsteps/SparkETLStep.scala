@@ -10,10 +10,10 @@ class SparkETLStep[IP,OP] (
 extends EtlStep[IP,OP] {
 
   final def process(input_state: =>IP): Task[OP] = Task {
-    etl_logger.info("#################################################################################################")
-    etl_logger.info(s"Starting Spark ETL Step: $name")
+    logger.info("#################################################################################################")
+    logger.info(s"Starting Spark ETL Step: $name")
     val op = transform_function(spark,input_state)
-    etl_logger.info("#################################################################################################")
+    logger.info("#################################################################################################")
     op
   }
 }

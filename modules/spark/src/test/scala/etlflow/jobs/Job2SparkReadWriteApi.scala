@@ -2,19 +2,21 @@ package etlflow.jobs
 
 import etlflow.TestSparkSession
 import etlflow.coretests.Schema.{EtlJob2Props, EtlJobRun, Rating}
+import etlflow.coretests.TestSuiteHelper
 import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
+import etlflow.schema.Credential.JDBC
+import etlflow.spark.IOType.{PARQUET, RDB}
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
-import etlflow.spark.IOType.{PARQUET,JDBC}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
 case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
-  extends GenericEtlJob[EtlJob2Props] with TestSparkSession with SparkUDF {
+  extends GenericEtlJob[EtlJob2Props] with TestSparkSession with TestSuiteHelper with SparkUDF {
 
   val job_props: EtlJob2Props = job_properties
-  val jdbc = JDBC(config.dbLog.url,config.dbLog.user,config.dbLog.password,config.dbLog.driver)
+  val jdbc = RDB(JDBC(config.db.get.url,config.db.get.user,config.db.get.password,config.db.get.driver))
 
   val step1 = SparkReadWriteStep[Rating](
     name             = "LoadRatingsParquetToJdbc",
@@ -42,8 +44,8 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   )
 
   def processData(ip: Array[String]): Unit = {
-    etl_job_logger.info("Processing Data")
-    etl_job_logger.info(ip.toList.toString())
+    logger.info("Processing Data")
+    logger.info(ip.toList.toString())
   }
 
   val step3 = GenericETLStep(
@@ -54,12 +56,12 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
   val step4 = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun",
-    credentials = config.dbLog
-  )
+    credentials = config.db.get
+  )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
   def processData2(ip: List[EtlJobRun]): Unit = {
-    etl_job_logger.info("Processing Data")
-    ip.foreach(jr => etl_job_logger.info(jr.toString))
+    logger.info("Processing Data")
+    ip.foreach(jr => logger.info(jr.toString))
   }
 
   val step5 = GenericETLStep(
@@ -69,10 +71,10 @@ case class Job2SparkReadWriteApi(job_properties: EtlJob2Props)
 
   val job =
     for {
-       _   <- step1.execute()
-       op1 <- step2.execute()
+       _   <- step1.execute(())
+       op1 <- step2.execute(())
        _   <- step3.execute(op1)
-       op2 <- step4.execute()
+       op2 <- step4.execute(())
        _   <- step5.execute(op2)
     } yield ()
 }

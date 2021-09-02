@@ -1,8 +1,10 @@
 package etlflow
 
-import etlflow.utils.LoggingLevel
+import etlflow.schema.Credential.JDBC
+import etlflow.schema.LoggingLevel
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import zio.{Has, Task, ZIO, ZLayer}
+
 import scala.reflect.runtime.universe.TypeTag
 
 package object spark {
@@ -16,9 +18,10 @@ package object spark {
     final case class JSON(multi_line: Boolean = false) extends IOType {
       override def toString: String = s"Json with multiline  => $multi_line"
     }
-    final case class JDBC(url: String, user: String, password: String, driver: String) extends IOType {
-      override def toString: String = s"JDBC with url => $url"
+    final case class RDB(jdbc:JDBC, partition:Option[Partition] = None) extends IOType {
+      override def toString: String = s"RDB with url => ${jdbc.url}"
     }
+    final case class Partition (num_partition:Int, partition_column:String, lower_bound:String, upper_bound:String)
     final case class BQ(temp_dataset: String = "temp", operation_type: String = "table") extends IOType
     final case object PARQUET extends IOType
     final case object ORC extends IOType

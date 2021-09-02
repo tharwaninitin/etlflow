@@ -1,18 +1,18 @@
 package etlflow.spark
 
-import etlflow.EtlJobException
+import etlflow.schema.LoggingLevel
 import etlflow.spark.IOType._
-import etlflow.utils.LoggingLevel
+import etlflow.utils.ApplicationLogger
+import etlflow.utils.EtlflowError.EtlJobException
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.sql.functions.col
 import org.apache.spark.sql._
-import org.slf4j.LoggerFactory
+import org.apache.spark.sql.functions.col
+
 import scala.reflect.runtime.universe.TypeTag
 
-object WriteApi {
+object WriteApi extends ApplicationLogger {
 
-  private val write_logger = LoggerFactory.getLogger(getClass.getName)
-  write_logger.info(s"Loaded ${getClass.getName}")
+  logger.info(s"Loaded ${getClass.getName}")
 
   def WriteDSHelper[T <: Product : TypeTag](level: LoggingLevel,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
                                             , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
@@ -45,17 +45,17 @@ object WriteApi {
                                      )(source: Dataset[T], spark: SparkSession) : Unit = {
     val mapping = Encoders.product[T]
 
-    write_logger.info("#"*20 + " Actual Output Schema " + "#"*20)
+    logger.info("#"*20 + " Actual Output Schema " + "#"*20)
     source.schema.printTreeString
-    write_logger.info("#"*20 + " Provided Output Case Class Schema " + "#"*20)
+    logger.info("#"*20 + " Provided Output Case Class Schema " + "#"*20)
     mapping.schema.printTreeString
 
     val df_writer = partition_by match {
       case partition if partition.nonEmpty && repartition =>
-        write_logger.info(s"Will generate $n repartitioned output files inside partitions $partition_by")
+        logger.info(s"Will generate $n repartitioned output files inside partitions $partition_by")
         source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n, partition.map(c => col(c)):_*).write.option("compression",compression)
       case partition if partition.isEmpty && repartition =>
-        write_logger.info(s"Will generate $n repartitioned output files")
+        logger.info(s"Will generate $n repartitioned output files")
         source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).repartition(n).write.option("compression",compression)
       case _ => source.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping).write.option("compression",compression)
     }
@@ -68,42 +68,43 @@ object WriteApi {
       case ORC => df_writer.format("orc")
       case JSON(multi_line) => df_writer.format("json").option("multiline",multi_line)
       case TEXT => df_writer.format("text")
-      case JDBC(_, _, _, _) => df_writer
+      case RDB(_, _) => df_writer
+      case a => throw EtlJobException(s"Unsupported output format $a")
     }
 
     partition_by match {
       case partition if partition.nonEmpty =>
         output_type match {
-          case JDBC(_, _, _, _) => throw EtlJobException("Output partitioning with JDBC is not yet implemented")
+          case RDB(_, _) => throw EtlJobException("Output partitioning with JDBC is not yet implemented")
           case _ => df_writer_options.partitionBy(partition: _*).mode(save_mode).save(output_location)
         }
       case _ => {
         output_type match {
-          case JDBC(url, user, password, driver) => {
+          case RDB(jdbc,_) => {
             val prop = new java.util.Properties
-            prop.setProperty("driver", driver)
-            prop.setProperty("user", user)
-            prop.setProperty("password", password)
-            df_writer_options.mode(save_mode).jdbc(url, output_location, prop)
+            prop.setProperty("driver", jdbc.driver)
+            prop.setProperty("user", jdbc.user)
+            prop.setProperty("password", jdbc.password)
+            df_writer_options.mode(save_mode).jdbc(jdbc.url, output_location, prop)
           }
           case _ => df_writer_options.mode(save_mode).save(output_location)
         }
       }
     }
 
-    write_logger.info(s"Successfully wrote data in $output_type in location $output_location with SAVEMODE $save_mode Partitioned by $partition_by")
+    logger.info(s"Successfully wrote data in $output_type in location $output_location with SAVEMODE $save_mode Partitioned by $partition_by")
 
     output_filename.foreach { output_file =>
       val path = s"$output_location/"
       val fs = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
       val fileStatus = fs.globStatus(new Path(path + "part*"))
       if (fileStatus.size > 1) {
-        write_logger.error("multiple output files found, expected single file")
+        logger.error("multiple output files found, expected single file")
         throw new RuntimeException("multiple output files found, expected single file")
       }
       val fileName = fileStatus(0).getPath.getName
       fs.rename(new Path(path + fileName), new Path(path + output_file))
-      write_logger.info(s"Renamed file path $path$fileName to $path$output_file")
+      logger.info(s"Renamed file path $path$fileName to $path$output_file")
       fs.close()
     }
   }

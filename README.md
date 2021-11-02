@@ -40,7 +40,7 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 
 ## Examples 
 
-You can use this library in 3 different ways mentioned below
+You can use this library in different ways mentioned below
 
 * [Core Mode without logging](examplecore) :         
     Using this mode you can directly use etl steps into your project without starting up the server and database logging
@@ -55,7 +55,7 @@ You can use this library in 3 different ways mentioned below
     Using this mode you can use job scheduling along with all the features of core mode.
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.13, 2.13.6, 3.0.0
+This project is compiled with scala versions 2.12.15, 2.13.7, 3.1.0
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the latest release as a dependency to your project
 

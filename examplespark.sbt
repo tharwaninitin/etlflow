@@ -14,12 +14,12 @@ lazy val examplespark = (project in file("examplespark"))
     ),
     assembly / mainClass := Some("examples.LoadData"),
     Compile / mainClass := Some("examples.LoadData"),
-    assemblyMergeStrategy in assembly := {
+    assembly / assemblyMergeStrategy := {
       case PathList("META-INF", _*) => MergeStrategy.discard
       case "META-INF/services/org.apache.spark.sql.sources.DataSourceRegister" => MergeStrategy.concat
       case _ => MergeStrategy.first
     },
-    assemblyShadeRules in assembly := Seq(
+    assembly / assemblyShadeRules := Seq(
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
       ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll,
       ShadeRule.rename("shapeless.**" -> "shadeshapless.@1").inAll

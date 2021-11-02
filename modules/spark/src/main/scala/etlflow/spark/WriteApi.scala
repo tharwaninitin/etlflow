@@ -46,9 +46,9 @@ object WriteApi extends ApplicationLogger {
     val mapping = Encoders.product[T]
 
     logger.info("#"*20 + " Actual Output Schema " + "#"*20)
-    source.schema.printTreeString
+    source.schema.printTreeString()
     logger.info("#"*20 + " Provided Output Case Class Schema " + "#"*20)
-    mapping.schema.printTreeString
+    mapping.schema.printTreeString()
 
     val df_writer = partition_by match {
       case partition if partition.nonEmpty && repartition =>

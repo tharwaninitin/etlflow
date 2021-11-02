@@ -1,4 +1,4 @@
-name: ExampaleSpark Workflow
+name: ExampleSpark Workflow
 on: [push]
 jobs:
   test:

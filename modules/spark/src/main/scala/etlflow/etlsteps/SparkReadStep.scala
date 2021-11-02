@@ -22,7 +22,7 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
     val program = SparkApi.LoadDS[I](input_location,input_type,input_filter)
 
     spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
         synchronized {
           recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
         }

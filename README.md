@@ -35,7 +35,7 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 | Aws                | ✅                   | ✅          | ✅          |
 | Gcp                | ✅                   | ✅          | ✅          |
 | Redis              | ✅                   | ✅          | ❌          |
-| Spark              | ✅                   | ❌          | ❌          |
+| Spark              | ✅                   | ✅          | ❌          |
 
 
 ## Examples 

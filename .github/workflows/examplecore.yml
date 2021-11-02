@@ -1,4 +1,4 @@
-name: ExampaleCore Workflow
+name: ExampleCore Workflow
 on: [push]
 jobs:
   test:

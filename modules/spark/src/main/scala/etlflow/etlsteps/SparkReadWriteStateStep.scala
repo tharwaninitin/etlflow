@@ -32,7 +32,7 @@ class SparkReadWriteStateStep[T <: Product: TypeTag, IPSTATE, O <: Product: Type
   final def process(input_state: =>IPSTATE): Task[OPSTATE] = Task {
     implicit lazy val sp = spark.get
     sp.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
         synchronized {
           recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
         }

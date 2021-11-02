@@ -4,6 +4,7 @@ import Versions._
 ThisBuild / version := EtlFlowVersion
 
 lazy val commonSettings = Seq(
+  scalaVersion := scala213,
   organization := "com.github.tharwaninitin",
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
@@ -48,7 +49,7 @@ lazy val coreSettings = Seq(
 
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
-  crossScalaVersions := List(scala212),
+  crossScalaVersions := scala2Versions,
   libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs,
 )
 

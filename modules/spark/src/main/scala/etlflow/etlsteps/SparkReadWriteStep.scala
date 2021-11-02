@@ -40,14 +40,14 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
 
   final def process(input_state: =>Unit): Task[Unit] = Task {
     spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
         synchronized {
           recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
         }
       }
     })
     spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd) {
+      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
         synchronized {
           recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
         }

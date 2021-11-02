@@ -7,13 +7,13 @@ lazy val examplespark = (project in file("examplespark"))
     crossScalaVersions := List(scala212),
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
-      "org.apache.spark" %% "spark-sql" % "2.4.7"  excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
+      "org.apache.spark" %% "spark-sql" % SparkVersion excludeAll ExclusionRule(organization = "org.scala-lang.modules"),
       "ch.qos.logback" % "logback-classic" % LogbackVersion,
       "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
       "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
     ),
-    assembly / mainClass := Some("examples.LoadData"),
     Compile / mainClass := Some("examples.LoadData"),
+    assembly / mainClass := Some("examples.LoadData"),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", _*) => MergeStrategy.discard
       case "META-INF/services/org.apache.spark.sql.sources.DataSourceRegister" => MergeStrategy.concat

@@ -1,4 +1,4 @@
-name: ExampaleServer Workflow
+name: ExampleServer Workflow
 on: [push]
 jobs:
   test:

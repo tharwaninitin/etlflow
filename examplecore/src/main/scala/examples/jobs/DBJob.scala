@@ -4,10 +4,10 @@ import etlflow.etljobs.GenericEtlJob
 import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
 import examples.schema.MyEtlJobProps.EtlJob1Props
-import examples.schema.MyEtlJobSchema.EtlJobRun
-import io.circe.generic.auto._
 
-case class JobDBSteps(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
+case class DBJob(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
+
+  case class EtlJobRun(job_name: String, job_run_id:String, state:String)
 
   val cred = JDBC(sys.env("DB_URL"),sys.env("DB_USER"),sys.env("DB_PWD"),"org.postgresql.Driver")
 

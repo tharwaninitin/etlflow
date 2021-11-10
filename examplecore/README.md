@@ -17,7 +17,7 @@ STEP 3) Now to run sample job use below command:
 ```shell
 sbt
 project examplecore
-runMain examples.LoadData run_job --job_name JobDBSteps
+runMain examples.LoadData run_job --job_name HelloWorldJob
 ```
 
 ## With database logging
@@ -64,7 +64,7 @@ STEP 6) Now to run sample job use below command:
 ```shell
 sbt
 project examplecore
-runMain examples.LoadData run_job --job_name JobDBSteps
+runMain examples.LoadData run_job --job_name DBJob
 ```
 
 ## With additional slack logging
@@ -78,10 +78,4 @@ Add slack properties in application.conf
   slack.url   = "http://slackwebhookurl",
   slack.env   = "dev"
   slack.host  = "http://localhost:8080/#"
-```
-
-## Using Docker Image
-Run below command to run the core mode using docker:
-```shell
-sh examplecore/run_examplecore.sh
 ```

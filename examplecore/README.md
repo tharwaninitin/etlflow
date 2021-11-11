@@ -17,7 +17,7 @@ STEP 3) Now to run sample job use below command:
 ```shell
 sbt
 project examplecore
-runMain examples.LoadData run_job --job_name HelloWorldJob
+runMain examples.LoadData run_job --job_name Job1
 ```
 
 ## With database logging
@@ -64,7 +64,7 @@ STEP 6) Now to run sample job use below command:
 ```shell
 sbt
 project examplecore
-runMain examples.LoadData run_job --job_name DBJob
+runMain examples.LoadData run_job --job_name Job3
 ```
 
 ## With additional slack logging

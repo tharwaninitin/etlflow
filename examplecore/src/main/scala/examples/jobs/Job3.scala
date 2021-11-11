@@ -5,7 +5,7 @@ import etlflow.etlsteps._
 import etlflow.schema.Credential.JDBC
 import examples.schema.MyEtlJobProps.EtlJob1Props
 
-case class DBJob(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
+case class Job3(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
 
   case class EtlJobRun(job_name: String, job_run_id:String, state:String)
 

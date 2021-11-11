@@ -5,7 +5,6 @@ import etlflow.spark.{IOType, _}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 import zio.Task
-
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
@@ -56,18 +55,6 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
     logger.info(s"Corrupted data for job $name:")
     val ds = ReadApi.LoadDS[O](input_location,input_type)(spark)
     ds.filter("_corrupt_record is not null").show(100,truncate = false)
-  }
-}
-
-object SparkReadTransformStep {
-  def apply[T <: Product : TypeTag, O <: Product : TypeTag](
-                                                             name: String
-                                                             ,input_location: Seq[String]
-                                                             ,input_type: IOType
-                                                             ,input_filter: String = "1 = 1"
-                                                             ,transform_function: (SparkSession,Dataset[T]) => Dataset[O]
-                                                           )(implicit spark: SparkSession): SparkReadStep[T, O] = {
-    new SparkReadStep[T, O](name, input_location, input_type, input_filter, Some(transform_function))
   }
 }
 

@@ -8,7 +8,6 @@ lazy val exampleserver = (project in file("exampleserver"))
     name := "exampleserver",
     crossScalaVersions := allScalaVersions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
       "com.github.tharwaninitin" %% "etlflow-server" % EtlFlowVersion,
       "ch.qos.logback" % "logback-classic" % LogbackVersion
     ),

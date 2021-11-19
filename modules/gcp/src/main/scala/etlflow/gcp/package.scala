@@ -4,9 +4,8 @@ import com.google.api.gax.paging.Page
 import com.google.cloud.bigquery.{Field, FieldValueList, JobInfo, LegacySQLTypeName, Schema}
 import com.google.cloud.storage.Blob
 import com.google.cloud.storage.Storage.BlobListOption
-import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
+import etlflow.utils.{ApplicationLogger, GetFields}
 import zio.{Has, Tag, ZIO}
-
 import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -155,7 +154,7 @@ package object gcp extends ApplicationLogger{
   def getBqSchema[T: Tag]: Option[Schema] = {
     Try {
       val fields = new util.ArrayList[Field]
-      val ccFields = RF.getFields[T]
+      val ccFields = GetFields[T]
       if (ccFields.isEmpty)
         throw new RuntimeException("Schema not provided")
       ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))

@@ -5,11 +5,10 @@ import etlflow.schema.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
-
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-object SendMailStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with SensorStep  {
+object SendMailStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
 
   val emailBody: String = {
     val exec_time = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm").format(LocalDateTime.now)
@@ -55,7 +54,7 @@ object SendMailStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper wi
       },
       test("Execute getStepProperties") {
         val props = step.getStepProperties()
-        assert(props)(equalTo(Map("subject" -> "SendMailStep Test Ran Successfully", "recipient_list" -> "swapnil.sonawane@startv.com")))
+        assert(props)(equalTo(Map("subject" -> "SendMailStep Test Ran Successfully", "recipient_list" -> "abcd@abcd.com")))
       }
     )
 }

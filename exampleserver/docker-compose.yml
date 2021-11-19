@@ -12,8 +12,21 @@ services:
     - POSTGRES_DB=etlflow
     ports:
     - '5432:5432'
+  pgadmin:
+    image: 'dpage/pgadmin4'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      - postgres
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=etlflow@etlflow.com
+      - PGADMIN_DEFAULT_PASSWORD=etlflow
+    ports:
+      - '5050:80'
   webserver:
-    image: 'etlflow-server:0.11.0'
+    image: 'etlflow-server:0.12.0'
 #    entrypoint: /opt/docker/bin/exampleserver
     command: run_server
     deploy:

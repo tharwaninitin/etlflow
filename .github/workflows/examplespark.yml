@@ -13,5 +13,5 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Compile ExampalesCore Module
+      - name: Compile ExampleSpark Module
         run: sbt ";project root; +publishLocal ;project examplespark; Test/compile"

@@ -5,7 +5,7 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import scala.concurrent.duration._
 
-object SensorStepTestSuite extends SensorStep {
+object SensorStepTestSuite extends DefaultRunnableSpec with SensorStep {
   val spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Sensor Step")(
       testM("Execute GenericETLStep with retry") {

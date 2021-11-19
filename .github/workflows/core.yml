@@ -6,23 +6,6 @@ jobs:
     strategy:
       matrix:
         java-version: [ 8, 11, 14 ]
-    services:
-      # Label used to access the service container
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_PASSWORD: etlflow
-          POSTGRES_USER: etlflow
-          POSTGRES_DB: etlflow
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          # Maps tcp port 5432 on service container to the host
-          - 5432:5432
     steps:
       - name: Checkout Code
         uses: actions/checkout@v1
@@ -38,14 +21,14 @@ jobs:
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: org.postgresql.Driver
       - name: Run Core Tests For 2.12
-        run: sbt ";project core; test:runMain etlflow.coretests.LoadData initdb; ++2.12.15 test;"
+        run: sbt ";project core; ++2.12.15 test;"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
           LOG_DB_USER: etlflow
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: org.postgresql.Driver
       - name: Run Core Tests For 2.13
-        run: sbt ";project core; test:runMain etlflow.coretests.LoadData initdb; ++2.13.7 test;"
+        run: sbt ";project core; ++2.13.7 test;"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
           LOG_DB_USER: etlflow

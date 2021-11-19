@@ -3,11 +3,11 @@ package etlflow
 import etlflow.api.Schema.QueueDetails
 import etlflow.api.{APIEnv, Implementation}
 import etlflow.cache.{CacheApi, CacheEnv}
-import etlflow.coretests.MyEtlJobPropsMapping
 import etlflow.crypto.CryptoEnv
 import etlflow.db.{DBEnv, liveDB}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
+import etlflow.jobtests.MyEtlJobPropsMapping
 import etlflow.json.JsonEnv
 import etlflow.log.LoggerEnv
 import etlflow.schema.Credential.JDBC

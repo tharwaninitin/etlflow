@@ -1,11 +1,19 @@
 import Dependencies._
 import Versions._
+import ScalaCompileOptions._
 
 ThisBuild / version := EtlFlowVersion
 
 lazy val commonSettings = Seq(
   scalaVersion := scala212,
   organization := "com.github.tharwaninitin",
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, _)) => s2copts
+      case Some((3, _)) => s3copts
+      case _ => Seq()
+    }
+  },
   Test / parallelExecution := false,
   libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0") ++
     (CrossVersion.partialVersion(scalaVersion.value) match {

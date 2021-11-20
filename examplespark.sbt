@@ -1,10 +1,12 @@
 import Versions._
+import ScalaCompileOptions._
 
 lazy val examplespark = (project in file("examplespark"))
   .settings(
     name := "examplespark",
     organization := "com.github.tharwaninitin",
-    crossScalaVersions := List(scala212),
+    crossScalaVersions := scala2Versions,
+    scalacOptions ++= s2copts,
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
       "org.apache.spark" %% "spark-sql" % SparkVersion excludeAll ExclusionRule(organization = "org.scala-lang.modules"),

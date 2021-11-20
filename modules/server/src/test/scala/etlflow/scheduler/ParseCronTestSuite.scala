@@ -33,22 +33,22 @@ object ParseCronTestSuite extends Scheduler {
         assertM(Task.fromTry(parseCron("0 */2 * ")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Cron expression contains 3 parts but we expect one of [6, 7]"))
       },
       testM("parseCron Should return Error when incorrect cron  provided") {
-        assertM(Task.fromTry(parseCron("0 0 8-17 ? * MON-FRII")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse '0 0 8-17 ? * MON-FRII'. Invalid chars in expression! Expression: FRII Invalid chars: FRII"))
+        assertM(Task.fromTry(parseCron("0 0 8-17 ? * MON-FRII")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse cron expression. Invalid chars in expression! Expression: FRII Invalid chars: FRII"))
       },
       testM("parseCron Should return Error when incorrect cron  provided: Seconds are out of range") {
-        assertM(Task.fromTry(parseCron("155 15 10 ? * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse '155 15 10 ? * MON-FRI'. Value 155 not in range [0, 59]"))
+        assertM(Task.fromTry(parseCron("155 15 10 ? * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse cron expression. Value 155 not in range [0, 59]"))
       },
       testM("parseCron Should return Error when incorrect cron  provided: Minutes are out of range") {
-        assertM(Task.fromTry(parseCron("0 155 10 ? * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse '0 155 10 ? * MON-FRI'. Value 155 not in range [0, 59]"))
+        assertM(Task.fromTry(parseCron("0 155 10 ? * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse cron expression. Value 155 not in range [0, 59]"))
       },
       testM("parseCron Should return Error when incorrect cron  provided: Hours are out of range") {
-        assertM(Task.fromTry(parseCron("0 15 100 ? * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse '0 15 100 ? * MON-FRI'. Value 100 not in range [0, 23]"))
+        assertM(Task.fromTry(parseCron("0 15 100 ? * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse cron expression. Value 100 not in range [0, 23]"))
       },
       testM("parseCron Should return Error when incorrect cron  provided: DayOfMonth are out of range") {
-        assertM(Task.fromTry(parseCron("0 15 10 33 * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse '0 15 10 33 * MON-FRI'. Value 33 not in range [1, 31]"))
+        assertM(Task.fromTry(parseCron("0 15 10 33 * MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse cron expression. Value 33 not in range [1, 31]"))
       },
       testM("parseCron Should return Error when incorrect cron  provided: Months are out of range") {
-        assertM(Task.fromTry(parseCron("0 15 10 ? 13 MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse '0 15 10 ? 13 MON-FRI'. Value 13 not in range [1, 12]"))
+        assertM(Task.fromTry(parseCron("0 15 10 ? 13 MON-FRI")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("Failed to parse cron expression. Value 13 not in range [1, 12]"))
       },
     )
   }

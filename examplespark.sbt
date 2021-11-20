@@ -12,6 +12,7 @@ lazy val examplespark = (project in file("examplespark"))
       "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
       "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
     ),
+    excludeDependencies += "org.slf4j" % "slf4j-log4j12",
     Compile / mainClass := Some("examples.LoadData"),
     assembly / mainClass := Some("examples.LoadData"),
     assembly / assemblyMergeStrategy := {

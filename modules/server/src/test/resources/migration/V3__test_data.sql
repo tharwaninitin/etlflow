@@ -1,3 +1,9 @@
+TRUNCATE TABLE userinfo;
+TRUNCATE TABLE job;
+TRUNCATE TABLE jobrun;
+TRUNCATE TABLE steprun;
+TRUNCATE TABLE credential;
+
 INSERT INTO userinfo (user_name,password,user_active,user_role)
 VALUES ('admin','$2a$10$gABYeKWB2W0nI.zGCoovD.7emHUlHq1flgxWjqAIowdLMWkzYlIOy','true','admin');
 

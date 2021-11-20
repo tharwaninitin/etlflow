@@ -183,7 +183,7 @@ object GraphqlTestSuite extends ServerSuiteHelper with ApplicationLogger {
                  name
                 }
                }""")
-        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.errors.map(_.getMessage)))(equalTo(List("""Invalid value testing for trait Creds"""))
+        assertM(etlFlowInterpreter.flatMap(_.execute(query)).map(_.errors.map(_.getMessage)))(equalTo(List("""InputValue 'type' of Field 'add_credentials' has invalid enum value: testing"""))
         )
       },
       testM("Test mutation update credentials end point") {

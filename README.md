@@ -42,17 +42,14 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 
 You can use this library in different ways mentioned below
 
-* [Core Mode without logging](examplecore) :         
-    Using this mode you can directly use etl steps into your project without starting up the server and database logging
-
-* [Core Mode with logging](examplecore) :         
-    Using this mode you can directly use etl steps into your project without starting up the server
-
-* [Core Mode with spark steps](examplespark) :         
-    Using this mode you can directly use spark etl steps into your project without starting up the server
-
-* [Server Mode](exampleserver) :         
-    Using this mode you can use job scheduling along with all the features of core mode.
+* [Core Module](examplecore) :         
+    Using this module you can use Step API into your project
+* [Spark Module with spark steps](examplespark) :         
+  Using this module you can use spark steps into your project
+* [Job Module](examplejob) :         
+    Using this module you can use Job API into your project
+* [Server Module](exampleserver) :         
+    Using this module you can use Server API into your project.
 
 ## Requirements and Installation
 This project is compiled with scala versions 2.12.15, 2.13.7, 3.1.0
@@ -64,6 +61,7 @@ Add the latest release as a dependency to your project
 __SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-job" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-server" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
@@ -72,7 +70,6 @@ libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "x.x.x"
-
 ```
 __Maven__
 ```

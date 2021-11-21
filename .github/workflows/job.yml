@@ -1,4 +1,4 @@
-name: Core Workflow
+name: Job Workflow
 on: [push]
 jobs:
   test:
@@ -30,21 +30,21 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Compile Core Tests
-        run: sbt ";project core; +Test/compile;"
+      - name: Compile Job Tests
+        run: sbt ";project job; +Test/compile;"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
           LOG_DB_USER: etlflow
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: org.postgresql.Driver
-      - name: Run Core Tests For 2.12
+      - name: Run Job Tests For 2.12
         run: sbt ";project job; test:runMain etlflow.jobtests.LoadData initdb; ++2.12.15 test;"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
           LOG_DB_USER: etlflow
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: org.postgresql.Driver
-      - name: Run Core Tests For 2.13
+      - name: Run Job Tests For 2.13
         run: sbt ";project job; test:runMain etlflow.jobtests.LoadData initdb; ++2.13.7 test;"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow

@@ -1,10 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.CoreEnv
-import etlflow.crypto.CryptoEnv
-import etlflow.db.DBEnv
+import etlflow.core.CoreEnv
 import etlflow.json.JsonEnv
-import etlflow.log.LoggerApi
+import etlflow.log.{DBLogEnv, LoggerApi}
 import etlflow.schema.LoggingLevel
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -21,7 +19,7 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
     (for{
       _   <- LoggerApi.setJobRunId(job_run_id)
       _   <- ZIO.foreachPar_(steps)(x => x.execute(()))
-    } yield ()).provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](layer)
+    } yield ()).provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](layer)
   }
 
   final override def getStepProperties(level: LoggingLevel): Map[String, String] =

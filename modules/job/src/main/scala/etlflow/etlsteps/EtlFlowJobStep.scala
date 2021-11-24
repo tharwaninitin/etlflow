@@ -1,11 +1,11 @@
 package etlflow.etlsteps
 
-import etlflow.crypto.CryptoEnv
-import etlflow.db.DBEnv
+import etlflow.core.CoreEnv
 import etlflow.etljobs.EtlJob
 import etlflow.json.JsonEnv
+import etlflow.log.DBLogEnv
 import etlflow.schema.LoggingLevel
-import etlflow.{CoreEnv, EtlJobProps}
+import etlflow.EtlJobProps
 import zio.RIO
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -20,7 +20,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
     logger.info(s"Starting EtlFlowJobStep for: $name")
     val layer = etlflow.log.Implementation.live ++ etlflow.log.SlackImplementation.nolog ++ etlflow.log.ConsoleImplementation.live
     job_instance.execute(Some(job_run_id), Some("false"))
-      .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](layer)
+      .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](layer)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

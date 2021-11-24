@@ -1,8 +1,9 @@
 package etlflow.etljobs
 
+import etlflow.core.JobEnv
 import etlflow.etlsteps._
 import etlflow.schema.LoggingLevel
-import etlflow.{EtlJobProps, JobEnv}
+import etlflow.EtlJobProps
 import zio.{Task, ZIO}
 
 trait SequentialEtlJob[EJP <: EtlJobProps] extends GenericEtlJob[EJP] {

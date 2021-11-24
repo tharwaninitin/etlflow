@@ -5,7 +5,8 @@ import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.log.{ConsoleImplementation, SlackImplementation}
 import etlflow.schema.Slack
 import etlflow.utils.{ReflectAPI => RF}
-import etlflow.{CoreEnv, EJPMType}
+import etlflow.EJPMType
+import etlflow.core.CoreEnv
 import zio._
 
 case class LocalExecutor[T <: EJPMType : Tag]() {

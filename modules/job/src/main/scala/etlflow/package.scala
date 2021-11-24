@@ -1,21 +1,14 @@
 
-import etlflow.crypto.CryptoEnv
-import etlflow.db.DBEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.log.{ConsoleEnv, LoggerEnv, SlackEnv}
 import etlflow.schema.{Executor, LoggingLevel}
 import etlflow.utils.EtlflowError.EtlJobException
 import io.circe.Encoder
-import zio.blocking.Blocking
-import zio.clock.Clock
 import zio.{Tag, ZIO}
 
 package object etlflow {
 
-  type CoreEnv = DBEnv with JsonEnv with CryptoEnv with LoggerEnv with Blocking with Clock
-  type JobEnv = CoreEnv with SlackEnv with ConsoleEnv
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
 
   trait EtlJobProps extends Product

@@ -2,10 +2,12 @@ package etlflow
 
 import com.google.api.gax.paging.Page
 import com.google.cloud.bigquery.{Field, FieldValueList, JobInfo, LegacySQLTypeName, Schema}
+import com.google.cloud.dataproc.v1.Cluster
 import com.google.cloud.storage.Blob
 import com.google.cloud.storage.Storage.BlobListOption
 import etlflow.utils.{ApplicationLogger, GetFields}
 import zio.{Has, Tag, ZIO}
+
 import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -129,13 +131,13 @@ package object gcp extends ApplicationLogger{
     trait Service {
       def executeSparkJob(name: String, properties: Map[String,String], main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit]
       def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit]
-      def createDataproc(props: DataprocProperties): ZIO[DPService, Throwable, Unit]
+      def createDataproc(props: DataprocProperties): ZIO[DPService, Throwable, Cluster]
       def deleteDataproc(): ZIO[DPService, Throwable, Unit]
     }
     def executeSparkJob(name: String, properties: Map[String,String], main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit] =
       ZIO.accessM(_.get.executeSparkJob(name, properties, main_class, libs))
     def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = ZIO.accessM(_.get.executeHiveJob(query))
-    def createDataproc(props: DataprocProperties): ZIO[DPService, Throwable, Unit] = ZIO.accessM(_.get.createDataproc(props))
+    def createDataproc(props: DataprocProperties): ZIO[DPService, Throwable, Cluster] = ZIO.accessM(_.get.createDataproc(props))
     def deleteDataproc(): ZIO[DPService, Throwable, Unit] = ZIO.accessM(_.get.deleteDataproc())
   }
 

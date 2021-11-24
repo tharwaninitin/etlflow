@@ -1,10 +1,9 @@
 package etlflow.log
 
-import etlflow.crypto.CryptoEnv
-import etlflow.db.DBEnv
+import etlflow.core.CoreEnv
 import etlflow.etlsteps.GenericETLStep
 import etlflow.json.JsonEnv
-import etlflow.{CoreEnv, log}
+import etlflow.log
 import etlflow.schema.{LoggingLevel, Slack}
 import etlflow.utils.ApplicationLogger
 import zio.UIO
@@ -12,6 +11,7 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.test.Assertion.equalTo
 import zio.test._
+
 import java.util.TimeZone
 
 object SlackLoggingTestSuite extends ApplicationLogger {
@@ -70,7 +70,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
         val slackInfoLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.INFO)
           .tapError(ex => UIO(logger.error(ex.getMessage)))
           .flatMap(_ => log.SlackApi.getSlackNotification)
-          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](slackLayer)
           .map(cleanSlackMessage)
 
         assertM(slackInfoLevelExecutor)(equalTo(message))
@@ -99,7 +99,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
         val slackInfoLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.INFO)
           .tapError(ex => UIO(logger.error(ex.getMessage)))
           .flatMap(_ => log.SlackApi.getSlackNotification)
-          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](slackLayer)
           .map(cleanSlackMessage)
 
         assertM(slackInfoLevelExecutor)(equalTo(message))
@@ -132,7 +132,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
         val slackMessageResult = JobExecutor(job_name, jri, job, LoggingLevel.DEBUG)
           .tapError(ex => UIO(logger.error(ex.getMessage)))
           .flatMap(_ => log.SlackApi.getSlackNotification)
-          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](slackLayer)
           .map(cleanSlackMessage)
 
         assertM(slackMessageResult)(equalTo(debugMessage))
@@ -164,7 +164,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
         val slackDebugLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.DEBUG)
           .tapError(ex => UIO(logger.error(ex.getMessage)))
           .flatMap(_ => log.SlackApi.getSlackNotification)
-          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](slackLayer)
           .map(cleanSlackMessage)
 
         assertM(slackDebugLevelExecutor)(equalTo(debugFailureMessage))
@@ -191,7 +191,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
         val slackJobLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.JOB)
           .tapError(ex => UIO(logger.error(ex.getMessage)))
           .flatMap(_ => log.SlackApi.getSlackNotification)
-          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](slackLayer)
           .map(cleanSlackMessage)
 
         assertM(slackJobLevelExecutor)(equalTo(message))
@@ -218,7 +218,7 @@ object SlackLoggingTestSuite extends ApplicationLogger {
         val slackJobLevelExecutor = JobExecutor(job_name, jri, job, LoggingLevel.JOB)
           .tapError(ex => UIO(logger.error(ex.getMessage)))
           .flatMap(_ => log.SlackApi.getSlackNotification)
-          .provideSomeLayer[DBEnv with JsonEnv with CryptoEnv with Blocking with Clock](slackLayer)
+          .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](slackLayer)
           .map(cleanSlackMessage)
 
         assertM(slackJobLevelExecutor)(equalTo(message))

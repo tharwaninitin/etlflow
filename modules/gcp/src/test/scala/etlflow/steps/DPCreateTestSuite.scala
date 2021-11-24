@@ -1,16 +1,16 @@
-package etlflow.steps.gcp
+package etlflow.steps
 
 import etlflow.etlsteps.DPCreateStep
 import etlflow.gcp.DataprocProperties
 import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
-import zio.test.Assertion._
-import zio.test._
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
-object GCPDataprocCreateTestSuite extends DefaultRunnableSpec {
+object DPCreateTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow Steps") (
+    suite("EtlFlow Steps")(
       testM("Execute DPCreateStep") {
 
         val dpConfig = DATAPROC(
@@ -20,17 +20,17 @@ object GCPDataprocCreateTestSuite extends DefaultRunnableSpec {
           sys.env("DP_CLUSTER_NAME")
         )
 
-        val dpProps =  DataprocProperties(
-          bucket_name     = sys.env("DP_BUCKET_NAME"),
-          subnet_uri      = sys.env.get("DP_SUBNET_WORK_URI"),
-          network_tags    = sys.env("DP_NETWORK_TAGS").split(",").toList,
+        val dpProps = DataprocProperties(
+          bucket_name = sys.env("DP_BUCKET_NAME"),
+          subnet_uri = sys.env.get("DP_SUBNET_WORK_URI"),
+          network_tags = sys.env("DP_NETWORK_TAGS").split(",").toList,
           service_account = sys.env.get("DP_SERVICE_ACCOUNT")
         )
 
         val step = DPCreateStep(
-          name     = "DPCreateStepExample",
-          config   = dpConfig,
-          props    = dpProps
+          name = "DPCreateStepExample",
+          config = dpConfig,
+          props = dpProps
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

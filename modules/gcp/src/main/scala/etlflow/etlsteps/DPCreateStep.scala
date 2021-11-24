@@ -1,5 +1,6 @@
 package etlflow.etlsteps
 
+import com.google.cloud.dataproc.v1.Cluster
 import etlflow.gcp.{DP, DPService, DataprocProperties}
 import etlflow.schema.Executor.DATAPROC
 import etlflow.schema.LoggingLevel
@@ -9,8 +10,8 @@ class DPCreateStep(
                      val name: String,
                      val config: DATAPROC,
                      val props: DataprocProperties
-                   ) extends EtlStep[Unit,Unit] {
-  final def process(in: =>Unit): Task[Unit] = {
+                   ) extends EtlStep[Unit,Cluster] {
+  final def process(in: =>Unit): Task[Cluster] = {
     val env = DP.live(config)
     logger.info("#"*100)
     logger.info(s"Starting Create Cluster Step: $name")

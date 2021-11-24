@@ -4,9 +4,13 @@ import Versions._
 object Dependencies {
 
   lazy val coreLibs = List(
+    "dev.zio" %% "zio" % ZioVersion
+  )
+
+  lazy val jobLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" % ZioConfig excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
-    "dev.zio" %% "zio-config-typesafe" % ZioConfig excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
+    "dev.zio" %% "zio-config" % ZioConfig,
+    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "com.github.scopt" %% "scopt" % ScoptVersion
   )
 
@@ -114,11 +118,7 @@ object Dependencies {
 
   lazy val sparkTestLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion,
-    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
-  ).map(_ % Test)
-
-  lazy val dbTestLibs = List(
-    "ch.qos.logback" % "logback-classic" % LogbackVersion
+    //"com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 
 }

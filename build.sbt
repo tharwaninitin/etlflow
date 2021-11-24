@@ -1,36 +1,25 @@
 import Dependencies._
 import Versions._
+import ScalaCompileOptions._
 
 ThisBuild / version := EtlFlowVersion
 
 lazy val commonSettings = Seq(
+  scalaVersion := scala212,
   organization := "com.github.tharwaninitin",
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, _)) => Seq(
-        "-unchecked"
-        , "-feature"
-        , "-deprecation"
-        , "-language:higherKinds"
-        , "-Ywarn-unused:implicits"             // Warn if an implicit parameter is unused.
-        , "-Ywarn-unused:imports"               // Warn if an import selector is not referenced.
-        , "-Ywarn-unused:locals"                // Warn if a local definition is unused.
-        , "-Xfatal-warnings"
-      )
-      case Some((3, _)) => Seq(
-        "-unchecked"
-        , "-feature"
-        , "-deprecation"
-      )
+      case Some((2, _)) => s2copts
+      case Some((3, _)) => s3copts
       case _ => Seq()
     }
   },
   Test / parallelExecution := false,
-  libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0") ++
+  libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0") ++
     (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 12)) =>
         Seq(
-          compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
+          compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.2").cross(CrossVersion.full)),
           compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
         )
       case Some((2, 13)) => Seq()
@@ -46,9 +35,15 @@ lazy val coreSettings = Seq(
   libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
 )
 
+lazy val jobSettings = Seq(
+  name := "etlflow-job",
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++= jobLibs ++ zioTestLibs ++ coreTestLibs
+)
+
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
-  crossScalaVersions := List(scala212),
+  crossScalaVersions := scala2Versions,
   libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs,
 )
 
@@ -68,7 +63,7 @@ lazy val serverSettings = Seq(
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ dbTestLibs,
+  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs,
 )
 
 lazy val utilsSettings = Seq(
@@ -130,7 +125,7 @@ lazy val root = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
+  .aggregate(utils,db,json,crypto,core,job,spark,cloud,server,http,redis,email,cache,aws,gcp)
 
 lazy val utils = (project in file("modules/utils"))
   .settings(commonSettings)
@@ -154,6 +149,11 @@ lazy val crypto = (project in file("modules/crypto"))
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
+  .dependsOn(db % "compile->compile;test->test", utils, json, crypto)
+
+lazy val job = (project in file("modules/job"))
+  .settings(commonSettings)
+  .settings(jobSettings)
   .enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](
@@ -164,17 +164,17 @@ lazy val core = (project in file("modules/core"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(db, utils, json, crypto)
+  .dependsOn(core % "compile->compile;test->test")
+
+lazy val server = (project in file("modules/server"))
+  .settings(commonSettings)
+  .settings(serverSettings)
+  .dependsOn(job % "compile->compile;test->test", gcp, cache)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
   .settings(cloudSettings)
   .dependsOn(core % "compile->compile;test->test", gcp, aws)
-
-lazy val server = (project in file("modules/server"))
-  .settings(commonSettings)
-  .settings(serverSettings)
-  .dependsOn(core % "compile->compile;test->test", gcp, cache)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)

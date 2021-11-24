@@ -96,9 +96,9 @@ object ReadApi extends  ApplicationLogger {
     }
 
     logger.info("#"*20 + " Actual Input Schema " + "#"*20)
-    df.schema.printTreeString // df.schema.foreach(x => read_logger.info(x.toString))
+    df.schema.printTreeString() // df.schema.foreach(x => read_logger.info(x.toString))
     logger.info("#"*20 + " Provided Input Case Class Schema " + "#"*20)
-    mapping.schema.printTreeString
+    mapping.schema.printTreeString()
 
     df.select(mapping.schema.map(x => col(x.name)):_*).as[T](mapping)
   }

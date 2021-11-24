@@ -1,4 +1,5 @@
 import NativePackagerHelper._
+import ScalaCompileOptions._
 import Versions._
 
 lazy val exampleserver = (project in file("exampleserver"))
@@ -7,8 +8,14 @@ lazy val exampleserver = (project in file("exampleserver"))
   .settings(
     name := "exampleserver",
     crossScalaVersions := allScalaVersions,
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, _)) => s2copts
+        case Some((3, _)) => s3copts
+        case _ => Seq()
+      }
+    },
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
       "com.github.tharwaninitin" %% "etlflow-server" % EtlFlowVersion,
       "ch.qos.logback" % "logback-classic" % LogbackVersion
     ),

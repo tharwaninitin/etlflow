@@ -5,6 +5,8 @@
       <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss,SSS"} [%thread] %highlight(%-5level) %cyan(%logger{15}) - %msg %n</pattern>
     </encoder>
   </appender>
+  <logger name="org.apache.spark" level="WARN"/>
+  <logger name="org.apache.hadoop" level="WARN"/>
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>

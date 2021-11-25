@@ -144,12 +144,11 @@ lazy val db = (project in file("modules/db"))
 lazy val crypto = (project in file("modules/crypto"))
   .settings(commonSettings)
   .settings(cryptoSettings)
-  .dependsOn(utils, json)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
-  .dependsOn(utils, json)
+  .dependsOn(utils)
 
 lazy val job = (project in file("modules/job"))
   .settings(commonSettings)
@@ -164,7 +163,7 @@ lazy val job = (project in file("modules/job"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(core % "compile->compile;test->test", db % "compile->compile;test->test", crypto)
+  .dependsOn(core % "compile->compile;test->test", db % "compile->compile;test->test", crypto, json)
 
 lazy val server = (project in file("modules/server"))
   .settings(commonSettings)
@@ -184,7 +183,7 @@ lazy val spark = (project in file("modules/spark"))
 lazy val http = (project in file("modules/http"))
   .settings(commonSettings)
   .settings(httpSettings)
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test", json)
 
 lazy val redis = (project in file("modules/redis"))
   .settings(commonSettings)

@@ -1,7 +1,9 @@
 
+import etlflow.core.CoreEnv
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlStep
 import etlflow.json.{JsonApi, JsonEnv}
+import etlflow.log.{DBLogEnv, LoggerEnv}
 import etlflow.schema.{Executor, LoggingLevel}
 import etlflow.utils.EtlflowError.EtlJobException
 import io.circe.Encoder
@@ -10,6 +12,7 @@ import zio.{Tag, ZIO}
 package object etlflow {
 
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
+  type JobEnv = CoreEnv with LoggerEnv with DBLogEnv with JsonEnv
 
   trait EtlJobProps extends Product
 

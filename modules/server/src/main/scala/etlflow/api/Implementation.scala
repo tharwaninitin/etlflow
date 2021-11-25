@@ -3,10 +3,11 @@ package etlflow.api
 import etlflow.api.Schema.Creds.{AWS, JDBC}
 import etlflow.api.Schema._
 import etlflow.cache._
-import etlflow.crypto.CryptoApi
+import etlflow.crypto.{CryptoApi, CryptoEnv}
 import etlflow.db._
 import etlflow.executor.Executor
 import etlflow.json.{JsonApi, JsonEnv}
+import etlflow.schema.Credential
 import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeFromTimestamp, getTimestampAsString}
 import etlflow.utils.{ReflectAPI => RF, _}
 import etlflow.webserver.Authentication
@@ -15,6 +16,7 @@ import org.ocpsoft.prettytime.PrettyTime
 import zio.Fiber.Status.{Running, Suspended}
 import zio.blocking.Blocking
 import zio._
+import io.circe.generic.auto._
 
 private[etlflow] object Implementation extends ApplicationLogger {
 
@@ -48,7 +50,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
         } yield etljobs
       }
 
-      override def getCacheStats: ZIO[APIEnv with CacheEnv with JsonEnv, Throwable, List[CacheDetails]] = {
+      override def getCacheStats: ZIO[APIEnv with CacheEnv, Throwable, List[CacheDetails]] = {
         for {
           //job_props <- CacheApi.getCacheStats(jobPropsMappingCache, "JobProps")
           login     <- CacheApi.getStats(auth.cache, "Login")
@@ -90,6 +92,25 @@ private[etlflow] object Implementation extends ApplicationLogger {
 
       override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] = UIO(CurrentTime(current_time = getCurrentTimestampAsString()))
 
+      def encryptCredential(`type`: String, value: String): RIO[CryptoEnv with JsonEnv,String] = {
+        `type` match {
+          case "jdbc" =>
+            for {
+              jdbc                <- JsonApi.convertToObject[Credential.JDBC](value)
+              encrypt_user        <- CryptoApi.encrypt(jdbc.user)
+              encrypt_password    <- CryptoApi.encrypt(jdbc.password)
+              json <- JsonApi.convertToString(Credential.JDBC(jdbc.url, encrypt_user, encrypt_password, jdbc.driver), List.empty)
+            } yield json
+          case "aws" =>
+            for {
+              aws  <- JsonApi.convertToObject[Credential.AWS](value)
+              encrypt_access_key <- CryptoApi.encrypt(aws.access_key)
+              encrypt_secret_key <- CryptoApi.encrypt(aws.secret_key)
+              json <- JsonApi.convertToString(Credential.AWS(encrypt_access_key, encrypt_secret_key), List.empty)
+            } yield json
+        }
+      }
+
       override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
         for{
           value <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
@@ -101,7 +122,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             },
             JsonString(value)
           )
-          actualSerializerOutput <- CryptoApi.encryptCredential(credentialDB.`type`,credentialDB.value.str)
+          actualSerializerOutput <- encryptCredential(credentialDB.`type`,credentialDB.value.str)
           addCredential <- DBServerApi.addCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield addCredential
       }
@@ -117,7 +138,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             },
             JsonString(value)
           )
-          actualSerializerOutput <- CryptoApi.encryptCredential(credentialDB.`type`,credentialDB.value.str)
+          actualSerializerOutput <- encryptCredential(credentialDB.`type`,credentialDB.value.str)
           updateCredential <- DBServerApi.updateCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield updateCredential
       }

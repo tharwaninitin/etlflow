@@ -1,7 +1,6 @@
 package etlflow.log
 
 import etlflow.etlsteps.EtlStep
-import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString}
@@ -16,22 +15,19 @@ object Implementation extends ApplicationLogger {
     private def stringFormatter(value: String): String =
       value.take(50).replaceAll("[^a-zA-Z0-9]", " ").replaceAll("\\s+", "_").toLowerCase
 
-    def update(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBLogEnv with JsonEnv, Throwable, Unit] = {
+    private def toJson(map: Map[String,String]): String = "{" + map.map(kv => s""""${kv._1}":"${kv._2}"""").mkString(",") + "}"
+
+    def update(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBLogEnv, Throwable, Unit] = {
       val step_name = stringFormatter(etlStep.name)
+      val properties = toJson(etlStep.getStepProperties(job_notification_level))
+      val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties(job_notification_level)("step_run_id") else ""
       if (mode == "insert") {
-        val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties(job_notification_level)("step_run_id") else ""
-        for {
-          properties <- JsonApi.convertToString(etlStep.getStepProperties(job_notification_level), List.empty)
-          _ <- DBApi.insertStepRun(job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
-        } yield ()
+        DBApi.insertStepRun(job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
       }
       else {
         val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
         val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
-        for {
-          properties <- JsonApi.convertToString(etlStep.getStepProperties(job_notification_level), List.empty)
-          _ <- DBApi.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
-        } yield ()
+        DBApi.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
       }
     }
   }
@@ -62,13 +58,13 @@ object Implementation extends ApplicationLogger {
           (if (ex.isEmpty) ZIO.unit else Task.fail(new RuntimeException(ex.get.getMessage)))
       }
 
-      override def stepLogStart(start_time: Long, etlStep: EtlStep[_, _]): RIO[DBLogEnv with ConsoleEnv with JsonEnv, Unit] = {
+      override def stepLogStart(start_time: Long, etlStep: EtlStep[_, _]): RIO[DBLogEnv with ConsoleEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
         ConsoleApi.stepLogStart(etlStep.name) *>
           stepLogger.update(start_time, "started", mode = "insert")
       }
 
-      override def stepLogEnd(start_time: Long, etlStep: EtlStep[_, _], ex: Option[Throwable]): RIO[DBLogEnv with ConsoleEnv with SlackEnv with JsonEnv, Unit] = {
+      override def stepLogEnd(start_time: Long, etlStep: EtlStep[_, _], ex: Option[Throwable]): RIO[DBLogEnv with ConsoleEnv with SlackEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
         val status = if (ex.isEmpty) "pass" else "failed" + ex.get.getMessage
         val error = if (ex.isEmpty) None else Some(ex.get.getMessage)

@@ -1,11 +1,10 @@
 package etlflow.api
 
+import etlflow.JobEnv
 import etlflow.api.Schema._
 import etlflow.cache.{CacheDetails, CacheEnv}
-import etlflow.core.CoreEnv
 import etlflow.crypto.CryptoEnv
 import etlflow.db._
-import etlflow.json.JsonEnv
 import zio.{RIO, ZIO}
 
 private[etlflow] trait Service {
@@ -20,7 +19,7 @@ private[etlflow] trait Service {
   def getCredentials: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]]
   def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics]
   def getJobs: ZIO[ServerEnv, Throwable, List[Job]]
-  def getCacheStats: ZIO[APIEnv with CacheEnv with JsonEnv, Throwable, List[CacheDetails]]
+  def getCacheStats: ZIO[APIEnv with CacheEnv, Throwable, List[CacheDetails]]
   def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]]
   def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]]
   def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]
@@ -29,7 +28,7 @@ private[etlflow] trait Service {
 private[etlflow] object Service {
 
   def runJob(args: EtlJobArgs, submitter: String): ZIO[ServerEnv, Throwable, EtlJob] =
-    ZIO.accessM[APIEnv with CoreEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.runJob(args,submitter)).absorb
+    ZIO.accessM[APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.runJob(args,submitter)).absorb
 
   def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean] =
     ZIO.accessM[APIEnv with DBServerEnv](_.get.updateJobState(args))
@@ -47,16 +46,16 @@ private[etlflow] object Service {
     ZIO.accessM[APIEnv with DBServerEnv](_.get.getDbStepRuns(args))
 
   def getJobs: ZIO[ServerEnv, Throwable, List[Job]] =
-    ZIO.accessM[APIEnv with CoreEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.getJobs)
+    ZIO.accessM[APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.getJobs)
 
-  def getCacheStats: ZIO[APIEnv with CacheEnv with JsonEnv, Throwable, List[CacheDetails]] =
-    ZIO.accessM[APIEnv with CacheEnv with JsonEnv](_.get.getCacheStats)
+  def getCacheStats: ZIO[APIEnv with CacheEnv, Throwable, List[CacheDetails]] =
+    ZIO.accessM[APIEnv with CacheEnv](_.get.getCacheStats)
 
   def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] =
-    ZIO.accessM[APIEnv with CoreEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.addCredentials(args))
+    ZIO.accessM[APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.addCredentials(args))
 
   def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] =
-    ZIO.accessM[APIEnv with CoreEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.updateCredentials(args))
+    ZIO.accessM[APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.updateCredentials(args))
 
   def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] =
     ZIO.accessM[APIEnv](_.get.getCurrentTime)

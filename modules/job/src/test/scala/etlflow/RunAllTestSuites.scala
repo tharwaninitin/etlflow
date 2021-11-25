@@ -23,5 +23,5 @@ object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper with Co
     LocalSubProcessExecutorTestSuite.spec,
     //SlackLoggingTestSuite.spec,
     ReflectionTestSuite.spec,
-  ).provideCustomLayerShared(fullCoreLayer ++ etlflow.crypto.Implementation.live(None))
+  ).provideCustomLayerShared(fullCoreLayer ++ etlflow.json.Implementation.live ++ etlflow.crypto.Implementation.live(None))
 }

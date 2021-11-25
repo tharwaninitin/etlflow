@@ -1,11 +1,9 @@
 package etlflow.etlsteps
 
 import etlflow.core.CoreEnv
-import etlflow.json.JsonEnv
-import etlflow.log.{DBLogEnv, LoggerApi}
+import etlflow.log.LoggerApi
 import etlflow.schema.LoggingLevel
-import zio.blocking.Blocking
-import zio.clock.Clock
+import etlflow.utils.Configuration
 import zio.{RIO, ZIO}
 
 case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends EtlStep[Unit,Unit] {
@@ -16,10 +14,10 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
     logger.info("#################################################################################################")
     logger.info(s"Starting steps => ${steps.map(_.name).mkString(",")} in parallel")
     val layer = etlflow.log.Implementation.live ++ etlflow.log.SlackImplementation.nolog ++ etlflow.log.ConsoleImplementation.live
-    (for{
-      _   <- LoggerApi.setJobRunId(job_run_id)
-      _   <- ZIO.foreachPar_(steps)(x => x.execute(()))
-    } yield ()).provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](layer)
+    for{
+      cfg <- Configuration.config
+      _   <- (LoggerApi.setJobRunId(job_run_id) *> ZIO.foreachPar_(steps)(x => x.execute(()))).provideSomeLayer[CoreEnv](layer ++ etlflow.db.liveLogDB(cfg.db.get, "Parallel-Step-" + name + "-Pool", 1))
+    } yield ()
   }
 
   final override def getStepProperties(level: LoggingLevel): Map[String, String] =

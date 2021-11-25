@@ -5,13 +5,12 @@ import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.log.{ConsoleImplementation, SlackImplementation}
 import etlflow.schema.Slack
 import etlflow.utils.{ReflectAPI => RF}
-import etlflow.EJPMType
-import etlflow.core.CoreEnv
+import etlflow.{EJPMType, JobEnv}
 import zio._
 
 case class LocalExecutor[T <: EJPMType : Tag]() {
 
-  def executeJob(name: String, properties: Map[String, String], slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None): ZIO[CoreEnv, Throwable, Unit] = {
+  def executeJob(name: String, properties: Map[String, String], slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None): ZIO[JobEnv, Throwable, Unit] = {
     for {
       ejpm <- RF.getJob[T](name)
       job  = ejpm.etlJob(properties)
@@ -22,7 +21,7 @@ case class LocalExecutor[T <: EJPMType : Tag]() {
                 job.job_notification_level = ejpm.job_notification_level
             }
       props <- ejpm.getActualPropertiesAsJson(properties)
-      _     <- job.execute(job_run_id, is_master, props).provideSomeLayer[CoreEnv](SlackImplementation.live(slack) ++ ConsoleImplementation.live)
+      _     <- job.execute(job_run_id, is_master, props).provideSomeLayer[JobEnv](SlackImplementation.live(slack) ++ ConsoleImplementation.live)
     } yield ()
   }
 

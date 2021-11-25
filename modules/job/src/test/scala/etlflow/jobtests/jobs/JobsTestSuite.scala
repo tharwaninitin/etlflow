@@ -1,6 +1,6 @@
 package etlflow.jobtests.jobs
 
-import etlflow.core.JobEnv
+import etlflow.core.StepEnv
 import etlflow.etljobs.EtlJob
 import etlflow.jobtests.MyEtlJobPropsMapping
 import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
@@ -16,7 +16,7 @@ case class JobsTestSuite(config: Config) {
   private def job(args: List[String]): ZIO[ZEnv, Throwable, Unit] = app.cliRunner(args,config)
   private val job1 = Job1HelloWorld(EtlJob1Props())
 
-  val spec: ZSpec[ZEnv with JobEnv, String] = suite("EtlFlow Job") (
+  val spec: ZSpec[ZEnv with StepEnv, String] = suite("EtlFlow Job") (
     testM("Execute Job1HelloWorld using EtlFlowApp") {
       val args = List("run_job", "--job_name", "Job1")
       assertM(job(args).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

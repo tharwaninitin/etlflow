@@ -1,14 +1,11 @@
 package etlflow.etlsteps
 
+import etlflow.EtlJobProps
 import etlflow.core.CoreEnv
 import etlflow.etljobs.EtlJob
-import etlflow.json.JsonEnv
-import etlflow.log.DBLogEnv
 import etlflow.schema.LoggingLevel
-import etlflow.EtlJobProps
+import etlflow.utils.Configuration
 import zio.RIO
-import zio.blocking.Blocking
-import zio.clock.Clock
 
 class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJob[EJP]) extends EtlStep[Unit,Unit] {
 
@@ -19,8 +16,10 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
     logger.info("#"*100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
     val layer = etlflow.log.Implementation.live ++ etlflow.log.SlackImplementation.nolog ++ etlflow.log.ConsoleImplementation.live
-    job_instance.execute(Some(job_run_id), Some("false"))
-      .provideSomeLayer[DBLogEnv with JsonEnv with Blocking with Clock](layer)
+    for {
+      cfg <- Configuration.config
+      _   <- job_instance.execute(Some(job_run_id), Some("false")).provideSomeLayer[CoreEnv](layer ++ etlflow.db.liveLogDB(cfg.db.get, "EtlFlowJobStep-" + name + "-Pool", 1))
+    } yield ()
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =  {

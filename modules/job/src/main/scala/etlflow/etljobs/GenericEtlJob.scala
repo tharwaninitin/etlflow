@@ -1,6 +1,7 @@
 package etlflow.etljobs
 
 import etlflow._
+import etlflow.core.JobEnv
 import etlflow.log.LoggerApi
 import etlflow.schema.LoggingLevel
 import etlflow.utils.DateTimeApi.getCurrentTimestamp

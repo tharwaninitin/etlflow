@@ -1,15 +1,15 @@
-package etlflow.steps.gcp
+package etlflow.steps
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
-import zio.test.Assertion._
-import zio.test._
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
-object GCPDataprocStepsTestSuite extends DefaultRunnableSpec {
+object DPStepsTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow Steps") (
+    suite("EtlFlow Steps")(
       testM("Execute DPHiveJob step") {
         val dpConfig = DATAPROC(
           sys.env("DP_PROJECT_ID"),
@@ -33,12 +33,12 @@ object GCPDataprocStepsTestSuite extends DefaultRunnableSpec {
         )
         val libs = sys.env("DP_LIBS").split(",").toList
         val step = DPSparkJobStep(
-          name        = "DPSparkJobStepExample",
-          job_name    = sys.env("DP_JOB_NAME"),
-          props       = Map.empty,
-          config      = dpConfig,
-          main_class  = sys.env("DP_MAIN_CLASS"),
-          libs        = libs
+          name = "DPSparkJobStepExample",
+          job_name = sys.env("DP_JOB_NAME"),
+          props = Map.empty,
+          config = dpConfig,
+          main_class = sys.env("DP_MAIN_CLASS"),
+          libs = libs
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

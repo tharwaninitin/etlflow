@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.CoreEnv
+import etlflow.core.CoreEnv
 import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
 import etlflow.jobtests.jobs.Job1HelloWorld
 import etlflow.schema.Config

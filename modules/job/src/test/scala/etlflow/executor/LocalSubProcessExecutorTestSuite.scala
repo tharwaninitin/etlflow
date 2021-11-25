@@ -1,6 +1,6 @@
 package etlflow.executor
 
-import etlflow.CoreEnv
+import etlflow.core.CoreEnv
 import etlflow.schema.Executor.LOCAL_SUBPROCESS
 import zio.ZIO
 import zio.test.Assertion.equalTo

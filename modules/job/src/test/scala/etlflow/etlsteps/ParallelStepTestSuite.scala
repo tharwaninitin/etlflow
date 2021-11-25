@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.CoreEnv
+import etlflow.core.CoreEnv
 import etlflow.schema.Config
 import etlflow.utils.ApplicationLogger
 import zio.ZIO

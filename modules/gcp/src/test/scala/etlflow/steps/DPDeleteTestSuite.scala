@@ -1,15 +1,15 @@
-package etlflow.steps.gcp
+package etlflow.steps
 
 import etlflow.etlsteps.DPDeleteStep
 import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
-import zio.test.Assertion._
-import zio.test._
+import zio.test.Assertion.equalTo
+import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 
-object GCPDataprocDeleteTestSuite extends DefaultRunnableSpec {
+object DPDeleteTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow DPDeleteStep Steps") (
+    suite("EtlFlow DPDeleteStep Steps")(
       testM("Execute DPDeleteStep") {
 
         val dpConfig = DATAPROC(
@@ -20,8 +20,8 @@ object GCPDataprocDeleteTestSuite extends DefaultRunnableSpec {
         )
 
         val step = DPDeleteStep(
-          name     = "DPDeleteStepExample",
-          config   = dpConfig,
+          name = "DPDeleteStepExample",
+          config = dpConfig,
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

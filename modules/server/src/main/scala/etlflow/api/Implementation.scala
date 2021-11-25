@@ -38,7 +38,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
 
       override def getJobs: ZIO[ServerEnv, Throwable, List[Job]] = {
         for {
-          jobs     <- DBApi.getJobs
+          jobs     <- DBServerApi.getJobs
           etljobs  <- ZIO.foreach(jobs)(x =>
             RF.getJob[T](x.job_name).map{ejpm =>
               val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
@@ -63,19 +63,19 @@ private[etlflow] object Implementation extends ApplicationLogger {
 
       override def getJobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]] = monitorFibers(supervisor)
 
-      override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]] = DBApi.getJobLogs(args)
+      override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]] = DBServerApi.getJobLogs(args)
 
-      override def getCredentials: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]] = DBApi.getCredentials
+      override def getCredentials: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]] = DBServerApi.getCredentials
 
       override def runJob(args: EtlJobArgs, submitter: String): RIO[ServerEnv, EtlJob] = executor.runActiveEtlJob(args, submitter)
 
-      override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[StepRun]] = DBApi.getStepRuns(args)
+      override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]] = DBServerApi.getStepRuns(args)
 
-      override def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBEnv, Throwable, List[JobRun]] = DBApi.getJobRuns(args)
+      override def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]] = DBServerApi.getJobRuns(args)
 
-      override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBEnv, Throwable, Boolean] = DBApi.updateJobState(args)
+      override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean] = DBServerApi.updateJobState(args)
 
-      override def login(args: UserArgs): ZIO[APIEnv with DBEnv with CacheEnv, Throwable, UserAuth] = auth.login(args)
+      override def login(args: UserArgs): ZIO[APIEnv with DBServerEnv with CacheEnv, Throwable, UserAuth] = auth.login(args)
 
       override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = Task {
         val dt = getLocalDateTimeFromTimestamp(BI.builtAtMillis)
@@ -102,7 +102,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             JsonString(value)
           )
           actualSerializerOutput <- CryptoApi.encryptCredential(credentialDB.`type`,credentialDB.value.str)
-          addCredential <- DBApi.addCredential(credentialDB,JsonString(actualSerializerOutput))
+          addCredential <- DBServerApi.addCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield addCredential
       }
 
@@ -118,7 +118,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             JsonString(value)
           )
           actualSerializerOutput <- CryptoApi.encryptCredential(credentialDB.`type`,credentialDB.value.str)
-          updateCredential <- DBApi.updateCredential(credentialDB,JsonString(actualSerializerOutput))
+          updateCredential <- DBServerApi.updateCredential(credentialDB,JsonString(actualSerializerOutput))
         } yield updateCredential
       }
     })

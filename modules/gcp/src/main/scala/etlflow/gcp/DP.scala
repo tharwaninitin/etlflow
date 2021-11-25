@@ -4,14 +4,13 @@ import com.google.cloud.dataproc.v1._
 import com.google.protobuf.Duration
 import etlflow.schema.Executor.DATAPROC
 import etlflow.utils.ApplicationLogger
-import zio.{Layer, Task, ZIO, ZLayer}
+import zio.{Task, UIO, ULayer}
 import java.util.concurrent.TimeUnit
 import scala.jdk.CollectionConverters._
 
 private[etlflow] object DP extends ApplicationLogger {
 
-  private def submitAndWaitForJobCompletion(name: String, jobControllerClient: JobControllerClient, projectId: String,
-                                            region: String, job: Job): Unit = {
+  private def submitAndWaitForJobCompletion(name: String, jobControllerClient: JobControllerClient, projectId: String, region: String, job: Job): Unit = {
     val request = jobControllerClient.submitJob(projectId, region, job)
     val jobId = request.getReference.getJobId
     logger.info(s"Submitted job $name $jobId")
@@ -38,12 +37,10 @@ private[etlflow] object DP extends ApplicationLogger {
     }
   }
 
-  def live(config: DATAPROC): Layer[Throwable, DPService] = ZLayer.fromEffect {
-    Task {
+  def live(config: DATAPROC): ULayer[DPService] = {
+    UIO {
       new DPService.Service {
-        override def executeSparkJob(
-             name: String, properties: Map[String, String],
-              main_class: String, libs: List[String]): ZIO[DPService, Throwable, Unit] = Task {
+        override def executeSparkJob(name: String, properties: Map[String, String], main_class: String, libs: List[String]): Task[Unit] = Task {
           logger.info(s"""Trying to submit spark job $name on Dataproc with Configurations:
                              |dp_region => ${config.region}
                              |dp_project => ${config.project}
@@ -74,7 +71,7 @@ private[etlflow] object DP extends ApplicationLogger {
           submitAndWaitForJobCompletion(name, jobControllerClient, config.project, config.region, job)
         }
 
-        override def executeHiveJob(query: String): ZIO[DPService, Throwable, Unit] = Task {
+        override def executeHiveJob(query: String): Task[Unit] = Task {
           logger.info(s"""Trying to submit hive job on Dataproc with Configurations:
                              |dp_region => ${config.region}
                              |dp_project => ${config.project}
@@ -92,7 +89,7 @@ private[etlflow] object DP extends ApplicationLogger {
           submitAndWaitForJobCompletion("",jobControllerClient, config.project, config.region, job)
         }
 
-        override def deleteDataproc(): ZIO[DPService, Throwable, Unit] = Task {
+        override def deleteDataproc(): Task[Unit] = Task {
           val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
           val cluster_controller_client = ClusterControllerClient.create(cluster_controller_settings)
 
@@ -107,7 +104,7 @@ private[etlflow] object DP extends ApplicationLogger {
           } finally if (cluster_controller_client != null) cluster_controller_client.close()
         }
 
-        override def createDataproc(props: DataprocProperties): ZIO[DPService, Throwable, Unit] = Task {
+        override def createDataproc(props: DataprocProperties): Task[Cluster] = Task {
           val end_point_config = EndpointConfig.newBuilder().setEnableHttpPortAccess(true)
           val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
           val cluster_controller_client = ClusterControllerClient.create(cluster_controller_settings)
@@ -154,6 +151,7 @@ private[etlflow] object DP extends ApplicationLogger {
             val create_cluster_async_request = cluster_controller_client.createClusterAsync(config.project, config.region, cluster)
             val response = create_cluster_async_request.get
             logger.info(s"Cluster created successfully: ${response.getClusterName}")
+            response
           } catch {
             case e: Throwable =>
               logger.error(s"Error creating cluster: ${e.getMessage} ")
@@ -161,6 +159,6 @@ private[etlflow] object DP extends ApplicationLogger {
           } finally if (cluster_controller_client != null) cluster_controller_client.close()
         }
       }
-    }
+    }.toLayer
   }
 }

@@ -2,7 +2,8 @@ package etlflow.executor
 
 import etlflow.etljobs.EtlJob
 import etlflow.jobtests.MyEtlJobPropsMapping
-import etlflow.{CoreEnv, EtlJobProps}
+import etlflow.EtlJobProps
+import etlflow.core.CoreEnv
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

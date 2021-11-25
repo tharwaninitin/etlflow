@@ -14,6 +14,7 @@ lazy val examplecore = (project in file("examplecore"))
     },
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-core" % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-db" % EtlFlowVersion,
       "ch.qos.logback" % "logback-classic" % LogbackVersion
     )
   )

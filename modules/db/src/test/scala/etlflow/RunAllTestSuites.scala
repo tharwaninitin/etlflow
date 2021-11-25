@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.db.{DbLayerTestSuite, RunDbMigration, SqlTestSuite, UtilsTestSuite, liveDB}
+import etlflow.db._
 import zio.test._
 
 object RunAllTestSuites extends DefaultRunnableSpec with DbSuiteHelper {
@@ -9,5 +9,5 @@ object RunAllTestSuites extends DefaultRunnableSpec with DbSuiteHelper {
     DbLayerTestSuite.spec,
     SqlTestSuite.spec,
     UtilsTestSuite.spec
-  ).provideCustomLayerShared(liveDB(credentials).orDie)
+  ).provideCustomLayerShared(liveFullDB(credentials).orDie)
 }

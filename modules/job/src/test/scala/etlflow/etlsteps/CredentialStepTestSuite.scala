@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.CoreEnv
-import etlflow.crypto.CryptoApi
+import etlflow.core.CoreEnv
+import etlflow.crypto.{CryptoApi, CryptoEnv}
 import etlflow.schema.Config
 import etlflow.schema.Credential.JDBC
 import io.circe.generic.auto._
@@ -26,7 +26,7 @@ case class CredentialStepTestSuite(config: Config) {
     credential_name = "etlflow",
   )
 
-  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with CoreEnv with CryptoEnv, Any] =
     suite("GetCredential Step")(
       testM("Execute GetCredentialStep") {
         def step1(script: String) = DBQueryStep(

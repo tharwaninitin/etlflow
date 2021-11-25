@@ -13,7 +13,7 @@ object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper with Co
 
   zio.Runtime.default.unsafeRun(RunDbMigration(config.db.get,clean = true))
 
-  def spec: ZSpec[environment.TestEnvironment, Any] = suite("Core Test Suites") (
+  def spec: ZSpec[environment.TestEnvironment, Any] = suite("Job Test Suites") (
     JobsTestSuite(config).spec,
     CredentialStepTestSuite(config).spec,
     DBStepTestSuite(config).spec,
@@ -23,5 +23,5 @@ object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper with Co
     LocalSubProcessExecutorTestSuite.spec,
     //SlackLoggingTestSuite.spec,
     ReflectionTestSuite.spec,
-  ).provideCustomLayerShared(fullLayer.orDie)
+  ).provideCustomLayerShared(fullCoreLayer ++ etlflow.crypto.Implementation.live(None))
 }

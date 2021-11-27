@@ -2,21 +2,21 @@
 STEP 1) To list commands available to run use below:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData --help
 ```
 
 STEP 2) To list available jobs:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData list_jobs
 ```
 
 STEP 3) Now to run sample job use below command:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData run_job --job_name Job1
 ```
 
@@ -42,28 +42,28 @@ STEP 2) set below environment variables in your shell.
 STEP 3) Now to create database tables used in this library run below commands from repo root folder:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData initdb
 ```
 
 STEP 4) To list commands available to run use below:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData --help
 ```
 
 STEP 5) To list available jobs:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData list_jobs
 ```
 
 STEP 6) Now to run sample job use below command:
 ```shell
 sbt
-project examplecore
+project examplejob
 runMain examples.LoadData run_job --job_name Job3
 ```
 

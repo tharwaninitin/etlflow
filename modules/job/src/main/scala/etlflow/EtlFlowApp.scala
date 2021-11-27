@@ -2,12 +2,13 @@ package etlflow
 
 import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration}
+import etlflow.executor.EtlFlowJobExecutor
 import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI
 import etlflow.utils.CliArgsParserAPI.EtlJobConfig
 import etlflow.utils.CliArgsDBParserAPI
 import etlflow.utils.CliArgsDBParserAPI.EtlJobDBConfig
-import etlflow.utils.{ApplicationLogger, EtlFlowJobExecutor, Configuration}
+import etlflow.utils.{ApplicationLogger, Configuration}
 import zio._
 
 abstract class EtlFlowApp[T <: EJPMType : Tag]

@@ -2,8 +2,8 @@ package etlflow.log
 
 import zio.{IO, Layer, Task, ZLayer}
 
-object DBImplementation {
-  val noLog: Layer[Nothing, DBLogEnv] = ZLayer.succeed(
+object DBNoLogImplementation {
+  def apply(): Layer[Nothing, DBLogEnv] = ZLayer.succeed(
     new etlflow.log.DBApi.Service {
       override def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[Throwable, Unit] = Task.unit
       override def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[Throwable, Unit] = Task.unit

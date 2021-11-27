@@ -80,12 +80,9 @@ package object db {
   def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
     Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLayer
 
-  private[etlflow] def liveLogDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBLogEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLogLayer
-
   private[etlflow] def liveLogServerDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBLogEnv with DBServerEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLogLayer ++ Implementation.dbServerLayer)
+    Implementation.cpLayer(db, pool_name, pool_size) >>> (log.DBLiveImplementation.dbLogLayer ++ Implementation.dbServerLayer)
 
   private[etlflow] def liveFullDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv with DBLogEnv with DBServerEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLayer ++ Implementation.dbLogLayer ++ Implementation.dbServerLayer)
+    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLayer ++ log.DBLiveImplementation.dbLogLayer ++ Implementation.dbServerLayer)
 }

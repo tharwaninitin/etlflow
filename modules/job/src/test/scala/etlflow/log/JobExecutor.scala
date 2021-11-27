@@ -18,6 +18,6 @@ object JobExecutor {
         ex => LoggerApi.jobLogEnd(job_start_time, jri, job_name, Some(ex)).unit,
         _ => LoggerApi.jobLogEnd(job_start_time, jri, job_name)
       )
-    } yield ()).provideSomeLayer[SlackEnv with Blocking with Clock](etlflow.log.Implementation.live ++ etlflow.log.ConsoleImplementation.live ++ etlflow.log.DBImplementation.noLog)
+    } yield ()).provideSomeLayer[SlackEnv with Blocking with Clock](etlflow.log.Implementation.live ++ etlflow.log.ConsoleImplementation.live ++ etlflow.log.DBNoLogImplementation())
   }
 }

@@ -16,7 +16,7 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
     val layer = etlflow.log.Implementation.live ++ etlflow.log.SlackImplementation.nolog ++ etlflow.log.ConsoleImplementation.live
     for{
       cfg <- Configuration.config
-      _   <- (LoggerApi.setJobRunId(job_run_id) *> ZIO.foreachPar_(steps)(x => x.execute(()))).provideSomeLayer[CoreEnv](layer ++ etlflow.db.liveLogDB(cfg.db.get, "Parallel-Step-" + name + "-Pool", 1))
+      _   <- (LoggerApi.setJobRunId(job_run_id) *> ZIO.foreachPar_(steps)(x => x.execute(()))).provideSomeLayer[CoreEnv](layer ++ etlflow.log.DBLiveImplementation(cfg.db.get, "Parallel-Step-" + name + "-Pool", 1))
     } yield ()
   }
 

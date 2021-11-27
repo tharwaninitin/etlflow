@@ -22,12 +22,12 @@ object Implementation extends ApplicationLogger {
       val properties = toJson(etlStep.getStepProperties(job_notification_level))
       val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties(job_notification_level)("step_run_id") else ""
       if (mode == "insert") {
-        DBApi.insertStepRun(job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
+        DBApi.insertStepRun(if (job_run_id == null) "" else job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
       }
       else {
         val status = if (error_message.isDefined) state_status.toLowerCase() + " with error: " + error_message.get else state_status.toLowerCase()
         val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
-        DBApi.updateStepRun(job_run_id, step_name, properties, status, elapsed_time)
+        DBApi.updateStepRun(if (job_run_id == null) "" else job_run_id, step_name, properties, status, elapsed_time)
       }
     }
   }

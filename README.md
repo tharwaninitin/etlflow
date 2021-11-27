@@ -15,15 +15,17 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 [comment]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
 
 ## Examples
-You can use this library in different ways mentioned below
-* [Core Module](examplecore) :         
-  Using just this module you can use Step API into your project.
-* [Spark Module (spark steps)](examplespark) :         
-  Using this addon module along with core you can use spark steps into your project.
-* [Job Module](examplejob) :         
-  Using this module along with core you can use Job API into your project.
-* [Server Module](exampleserver) :         
-  Using this module along with job you can use Server API into your project.
+You can use this library in different ways mentioned below.
+* [Core Module](examplecore):         
+  Using this module you can use features of Step API into your project.
+* [Spark Module (spark steps)](examplespark):         
+  Using this addon module along with core you can use Apache Spark steps into your project.
+* [GCP Module (spark steps)](examplegcp):         
+  Using this addon module along with core you can use GCP steps into your project.
+* [Job Module](examplejob):         
+  Using this module along with core you can use additional features of Job API into your project.
+* [Server Module](exampleserver):         
+  Using this module along with job you can use additional features of Server API into your project.
 
 ## Modules Dependency Graph
 
@@ -37,7 +39,6 @@ You can use this library in different ways mentioned below
 | Json               | ✅                   | ✅          | ✅          |
 | Cache              | ✅                   | ✅          | ✅          |
 | Crypto             | ✅                   | ✅          | ✅          |
-| Db                 | ✅                   | ✅          | ✅          |
 
 ### Main Modules
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
@@ -49,6 +50,7 @@ You can use this library in different ways mentioned below
 ### Addon Modules For Core
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
 | -------------------|:--------------------:| -----------:| ----------:|
+| Db                 | ✅                   | ✅          | ✅          |
 | Http               | ✅                   | ✅          | ✅          |
 | Cloud              | ✅                   | ✅          | ✅          |
 | Email              | ✅                   | ✅          | ✅          |

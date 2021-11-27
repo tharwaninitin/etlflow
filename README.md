@@ -22,8 +22,6 @@ You can use this library in different ways mentioned below.
   Using this addon module along with core you can use Apache Spark steps into your project.
 * [GCP Module (spark steps)](examplegcp):         
   Using this addon module along with core you can use GCP steps into your project.
-* [Job Module](examplejob):         
-  Using this module along with core you can use additional features of Job API into your project.
 * [Server Module](exampleserver):         
   Using this module along with job you can use additional features of Server API into your project.
 

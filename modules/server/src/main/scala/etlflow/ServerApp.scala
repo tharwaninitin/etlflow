@@ -14,7 +14,7 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 
 abstract class ServerApp[T <: EJPMType : Tag]
-  extends EtlFlowApp[T] with HttpServer with Scheduler {
+  extends CliApp[T] with HttpServer with Scheduler {
 
   final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
     for {

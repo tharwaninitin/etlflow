@@ -1,18 +1,18 @@
-package examples.jobs
+package etlflow
 
-import etlflow.etljobs.GenericEtlJob
-import etlflow.etlsteps._
+import etlflow.core.StepEnv
+import etlflow.etlsteps.{DBReadStep, GenericETLStep}
 import etlflow.schema.Credential.JDBC
-import examples.schema.MyEtlJobProps.EtlJob1Props
+import zio.RIO
 
-case class Job3(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
+object Job4 extends EtlFlowApp {
 
-  case class EtlJobRun(job_name: String, job_run_id:String, state:String)
+  case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  val cred = JDBC(sys.env("DB_URL"),sys.env("DB_USER"),sys.env("DB_PWD"),"org.postgresql.Driver")
+  val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
 
   private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
-    name  = "FetchEtlJobRun",
+    name = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10",
     credentials = cred
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
@@ -23,13 +23,13 @@ case class Job3(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props
   }
 
   private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
-    name               = "ProcessData",
+    name = "ProcessData",
     transform_function = processData,
   )
 
-  val job =
+  def job(args: List[String]): RIO[StepEnv, Unit] =
     for {
-      op1   <- step1(cred).execute(())
-      _     <- step2.execute(op1)
+      op1 <- step1(cred).execute(())
+      _ <- step2.execute(op1)
     } yield ()
 }

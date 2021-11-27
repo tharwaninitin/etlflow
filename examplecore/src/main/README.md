@@ -2,22 +2,10 @@
 STEP 1) To list commands available to run use below:
 ```shell
 sbt
-project examplejob
-runMain examples.LoadData --help
-```
-
-STEP 2) To list available jobs:
-```shell
-sbt
-project examplejob
-runMain examples.LoadData list_jobs
-```
-
-STEP 3) Now to run sample job use below command:
-```shell
-sbt
-project examplejob
-runMain examples.LoadData run_job --job_name Job1
+project examplecore
+runMain examples.Job1
+runMain examples.Job2
+runMain examples.Job3
 ```
 
 ## With database logging
@@ -42,29 +30,15 @@ STEP 2) set below environment variables in your shell.
 STEP 3) Now to create database tables used in this library run below commands from repo root folder:
 ```shell
 sbt
-project examplejob
-runMain examples.LoadData initdb
-```
-
-STEP 4) To list commands available to run use below:
-```shell
-sbt
-project examplejob
-runMain examples.LoadData --help
-```
-
-STEP 5) To list available jobs:
-```shell
-sbt
-project examplejob
-runMain examples.LoadData list_jobs
+project examplecore
+runMain etlflow.InitDB
 ```
 
 STEP 6) Now to run sample job use below command:
 ```shell
 sbt
 project examplejob
-runMain examples.LoadData run_job --job_name Job3
+runMain examples.Job4
 ```
 
 ## With additional slack logging

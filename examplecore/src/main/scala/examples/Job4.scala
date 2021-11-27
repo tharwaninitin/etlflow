@@ -1,13 +1,12 @@
 package examples
 
+import etlflow.EtlFlowApp
+import etlflow.core.StepEnv
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
 import etlflow.schema.Credential.JDBC
-import etlflow.utils.ApplicationLogger
-import zio.blocking.Blocking
-import zio.clock.Clock
-import zio.{ExitCode, URIO}
+import zio.RIO
 
-object Job4 extends zio.App with ApplicationLogger {
+object Job4 extends EtlFlowApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -29,14 +28,9 @@ object Job4 extends zio.App with ApplicationLogger {
     transform_function = processData,
   )
 
-  val job =
+  def job(args: List[String]): RIO[StepEnv, Unit] =
     for {
       op1 <- step1(cred).execute(())
       _ <- step2.execute(op1)
     } yield ()
-
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
-    val layer = etlflow.log.DBLiveImplementation(cred) ++ etlflow.log.Implementation.live ++ etlflow.log.ConsoleImplementation.live ++ etlflow.log.SlackImplementation.nolog
-    job.provideSomeLayer[Blocking with Clock](layer).exitCode
-  }
 }

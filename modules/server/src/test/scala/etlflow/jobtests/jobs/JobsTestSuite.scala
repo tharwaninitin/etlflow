@@ -5,14 +5,14 @@ import etlflow.etljobs.EtlJob
 import etlflow.jobtests.MyEtlJobPropsMapping
 import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
 import etlflow.schema.Config
-import etlflow.{EtlFlowApp, EtlJobProps}
+import etlflow.{CliApp, EtlJobProps}
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{ZEnv, ZIO}
 
 case class JobsTestSuite(config: Config) {
 
-  private val app = new EtlFlowApp[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] {}
+  private val app = new CliApp[MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]] {}
   private def job(args: List[String]): ZIO[ZEnv, Throwable, Unit] = app.cliRunner(args,config)
   private val job1 = Job1HelloWorld(EtlJob1Props())
 

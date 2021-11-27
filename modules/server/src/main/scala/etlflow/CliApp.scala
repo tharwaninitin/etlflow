@@ -11,7 +11,7 @@ import etlflow.utils.CliArgsDBParserAPI.EtlJobDBConfig
 import etlflow.utils.{ApplicationLogger, Configuration}
 import zio._
 
-abstract class EtlFlowApp[T <: EJPMType : Tag]
+abstract class CliApp[T <: EJPMType : Tag]
   extends ApplicationLogger
     with App {
 

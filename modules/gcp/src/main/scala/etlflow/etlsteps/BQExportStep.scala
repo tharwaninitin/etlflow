@@ -25,7 +25,7 @@ class BQExportStep private[etlflow](
     val env = BQ.live(credentials)
 
     val program: Task[Unit] = {
-      BQService.exportFromBQTable(
+      BQApi.exportFromBQTable(
         source_project,source_dataset,
         source_table,destination_path,destination_file_name,destination_format,destination_compression_type
       ).provideLayer(env)

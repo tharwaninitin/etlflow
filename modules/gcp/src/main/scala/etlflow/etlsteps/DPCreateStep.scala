@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import com.google.cloud.dataproc.v1.Cluster
-import etlflow.gcp.{DP, DPService, DataprocProperties}
+import etlflow.gcp.{DP, DPApi, DataprocProperties}
 import etlflow.schema.Executor.DATAPROC
 import etlflow.schema.LoggingLevel
 import zio.Task
@@ -16,7 +16,7 @@ class DPCreateStep(
     logger.info("#"*100)
     logger.info(s"Starting Create Cluster Step: $name")
     logger.info(s"Cluster Name: ${config.cluster_name} and Region: ${config.region}")
-    DPService.createDataproc(props).provideLayer(env)
+    DPApi.createDataproc(props).provideLayer(env)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =

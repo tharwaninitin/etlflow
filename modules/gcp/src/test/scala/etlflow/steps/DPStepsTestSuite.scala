@@ -4,19 +4,20 @@ import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
 import etlflow.schema.Executor.DATAPROC
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
+import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
 
 object DPStepsTestSuite extends DefaultRunnableSpec {
+
+  val dpConfig: DATAPROC = DATAPROC(
+    sys.env("DP_PROJECT_ID"),
+    sys.env("DP_REGION"),
+    sys.env("DP_ENDPOINT"),
+    sys.env("DP_CLUSTER_NAME")
+  )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("EtlFlow Steps")(
       testM("Execute DPHiveJob step") {
-        val dpConfig = DATAPROC(
-          sys.env("DP_PROJECT_ID"),
-          sys.env("DP_REGION"),
-          sys.env("DP_ENDPOINT"),
-          sys.env("DP_CLUSTER_NAME")
-        )
         val step = DPHiveJobStep(
           name = "DPHiveJobStepExample",
           query = "SELECT 1 AS ONE",
@@ -25,22 +26,15 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
-        val dpConfig = DATAPROC(
-          sys.env("DP_PROJECT_ID"),
-          sys.env("DP_REGION"),
-          sys.env("DP_ENDPOINT"),
-          sys.env("DP_CLUSTER_NAME")
-        )
-        val libs = sys.env("DP_LIBS").split(",").toList
+        val libs = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
         val step = DPSparkJobStep(
           name = "DPSparkJobStepExample",
-          job_name = sys.env("DP_JOB_NAME"),
-          props = Map.empty,
+          args = List("1000"),
           config = dpConfig,
-          main_class = sys.env("DP_MAIN_CLASS"),
+          main_class = "org.apache.spark.examples.SparkPi",
           libs = libs
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    )
+    ) @@ TestAspect.sequential
 }

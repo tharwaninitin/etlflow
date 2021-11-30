@@ -28,7 +28,7 @@ private[etlflow] object BQ extends ApplicationLogger {
     case _ => FormatOptions.parquet
   }
 
-  def live(credentials: Option[Credential.GCP] = None): Layer[Throwable, BQService] = ZLayer.fromManaged {
+  def live(credentials: Option[Credential.GCP] = None): Layer[Throwable, BQEnv] = ZLayer.fromManaged {
     val acquire = IO.effect{
       val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
       credentials match {
@@ -47,7 +47,7 @@ private[etlflow] object BQ extends ApplicationLogger {
       }
     }
     Managed.fromEffect(acquire).map { bq =>
-      new BQService.Service {
+      new BQApi.Service {
 
         def executeQuery(query: String): Task[Unit] = Task {
           val queryConfig: QueryJobConfiguration = QueryJobConfiguration.newBuilder(query)

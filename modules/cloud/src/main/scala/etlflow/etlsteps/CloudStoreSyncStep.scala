@@ -43,7 +43,7 @@ case class CloudStoreSyncStep (
 
     val inputStore: Store[Task, FsObject] = input_location match {
       case location: Location.GCS =>
-        val storage = GCS.getClient(location)
+        val storage = GCS.getClient(location.credentials)
         inputStorePath = Url("gs", inputBucket, Path(input_location.location))
         GcsStore[Task](storage, List.empty)
       case location: Location.S3 =>
@@ -57,7 +57,7 @@ case class CloudStoreSyncStep (
 
     val outputStore: Store[Task, FsObject] = output_location match {
       case location: Location.GCS =>
-        val storage = GCS.getClient(location)
+        val storage = GCS.getClient(location.credentials)
         outputStorePath = Url("gs", outputBucket, Path(output_location.location))
         output_scheme = "gs"
         GcsStore[Task](storage, List.empty)

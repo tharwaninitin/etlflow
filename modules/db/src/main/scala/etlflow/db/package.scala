@@ -1,13 +1,15 @@
 package etlflow
 
+import etlflow.log.DBLogEnv
 import etlflow.schema.Credential.JDBC
 import scalikejdbc.{SQLSyntaxSupport, WrappedResultSet}
 import zio.blocking.Blocking
-import zio.{Has, Layer, ZLayer}
+import zio.{Has, ZLayer}
 
 package object db {
 
-  private[etlflow] type DBEnv = Has[DBApi.Service]
+  private[etlflow] type DBServerEnv = Has[DBServerApi.Service]
+  type DBEnv = Has[DBApi.Service]
 
   case class DbStepRunArgs(job_run_id: String)
   case class DbJobRunArgs(
@@ -75,9 +77,12 @@ package object db {
       rs.string("step_type"), rs.string("step_run_id") ,rs.long("inserted_at"))
   }
 
-  private[etlflow] def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
+  def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
     Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLayer
 
-  private[etlflow] val noLog: Layer[Nothing, DBEnv] = Implementation.noLog
+  private[etlflow] def liveLogServerDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBLogEnv with DBServerEnv] =
+    Implementation.cpLayer(db, pool_name, pool_size) >>> (log.DBLiveImplementation.dbLogLayer ++ Implementation.dbServerLayer)
 
+  private[etlflow] def liveFullDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv with DBLogEnv with DBServerEnv] =
+    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLayer ++ log.DBLiveImplementation.dbLogLayer ++ Implementation.dbServerLayer)
 }

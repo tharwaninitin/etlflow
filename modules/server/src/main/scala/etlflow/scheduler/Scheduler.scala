@@ -3,7 +3,7 @@ package etlflow.scheduler
 import com.cronutils.model.time.ExecutionTime
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
-import etlflow.db.{DBApi, EtlJob}
+import etlflow.db.{DBServerApi, EtlJob}
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio._
@@ -38,7 +38,7 @@ private [etlflow] trait Scheduler extends ApplicationLogger {
     }
   }
   final def etlFlowScheduler(jobs: List[EtlJob]): ServerTask[Unit] = for {
-    dbJobs      <- DBApi.refreshJobs(jobs)
+    dbJobs      <- DBServerApi.refreshJobs(jobs)
     cronJobs    =  dbJobs.map(x => CronJob(x.job_name, Cron(x.schedule))).filter(_.schedule.cron.isDefined)
     _           <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))
     _           <- UIO(logger.info("Starting scheduler"))

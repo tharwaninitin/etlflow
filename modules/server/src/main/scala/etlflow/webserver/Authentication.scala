@@ -2,7 +2,7 @@ package etlflow.webserver
 
 import etlflow.api.Schema.{UserArgs, UserAuth}
 import etlflow.cache.{Cache, CacheApi, CacheEnv, default_ttl}
-import etlflow.db.{DBApi, DBEnv}
+import etlflow.db.{DBServerApi, DBServerEnv}
 import etlflow.utils.ApplicationLogger
 import org.mindrot.jbcrypt.BCrypt
 import pdi.jwt.{Jwt, JwtAlgorithm}
@@ -46,8 +46,8 @@ case class Authentication(cache: Cache[String], secretkey: Option[String]) exten
     })
   }
 
-  private [etlflow] def login(args: UserArgs): RIO[DBEnv with CacheEnv, UserAuth] =  {
-    DBApi.getUser(args.user_name).foldM(ex => {
+  private [etlflow] def login(args: UserArgs): RIO[DBServerEnv with CacheEnv, UserAuth] =  {
+    DBServerApi.getUser(args.user_name).foldM(ex => {
       logger.error("Error in fetching user from db => " + ex.getMessage)
       Task(UserAuth("Invalid User/Password", ""))
     }, user => {

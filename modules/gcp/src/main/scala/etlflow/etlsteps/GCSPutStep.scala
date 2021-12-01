@@ -13,7 +13,7 @@ class GCSPutStep private[etlsteps](
                  ) extends EtlStep[Unit,Unit] {
   override def process(input_state: => Unit): Task[Unit] = {
     val env       = GCS.live(credentials)
-    val program   = GCSService.putObject(bucket,key,file)
+    val program   = GCSApi.putObject(bucket,key,file)
     val runnable  = for {
                       _   <- Task.succeed(logger.info("#"*100))
                       _   <- Task.succeed(logger.info(s"Input local path $file"))

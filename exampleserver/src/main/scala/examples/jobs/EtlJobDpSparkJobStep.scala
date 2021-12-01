@@ -18,8 +18,7 @@ case class EtlJobDpSparkJobStep(job_properties: SampleProps) extends SequentialE
 
   val step = DPSparkJobStep(
     name        = "DPSparkJobStepExample",
-    job_name    = sys.env("DP_JOB_NAME"),
-    props       = Map.empty,
+    args        = List.empty,
     config      = dpConfig,
     main_class  = sys.env("DP_MAIN_CLASS"),
     libs        = libs

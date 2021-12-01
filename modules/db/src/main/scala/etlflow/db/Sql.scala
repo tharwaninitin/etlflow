@@ -4,11 +4,10 @@ import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import org.postgresql.util.PGobject
 import scalikejdbc._
-
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
-private[db] object Sql extends ApplicationLogger {
+private[etlflow] object Sql extends ApplicationLogger {
 
   def getStartTime(startTime:Option[java.time.LocalDate]): Long = {
     val sdf = new SimpleDateFormat("yyyy-MM-dd")

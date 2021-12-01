@@ -1,6 +1,5 @@
 package etlflow.db
 
-import etlflow.db.DBApi.Service
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getTimestampAsString
@@ -8,7 +7,7 @@ import etlflow.utils.EtlflowError.DBException
 import scalikejdbc._
 import zio._
 
-private[db] object Implementation extends ApplicationLogger {
+private[etlflow] object Implementation extends ApplicationLogger {
 
   private def createConnectionPool(db: JDBC, pool_name: String = "EtlFlowPool", pool_size: Int = 2): Managed[Throwable, String] = 
     Managed.make(Task{
@@ -24,35 +23,46 @@ private[db] object Implementation extends ApplicationLogger {
   def cpLayer(db: JDBC, pool_name: String, pool_size: Int): Layer[Throwable, Has[String]] =
     ZLayer.fromManaged(createConnectionPool(db, pool_name, pool_size))
 
-  val noLog: Layer[Nothing, DBEnv] = ZLayer.succeed(
-    new Service {
-      override def getUser(user_name: String): IO[Throwable, UserDB] = ???
-      override def getJob(name: String): IO[Throwable, JobDB] = ???
-      override def getJobs: IO[Throwable, List[JobDBAll]] = ???
-      override def getStepRuns(args: DbStepRunArgs): IO[Throwable, List[StepRun]] = ???
-      override def getJobRuns(args: DbJobRunArgs): IO[Throwable, List[JobRun]] = ???
-      override def getJobLogs(args: JobLogsArgs): IO[Throwable, List[JobLogs]] = ???
-      override def getCredentials: IO[Throwable, List[GetCredential]] = ???
-      override def updateSuccessJob(job: String, ts: Long): IO[Throwable, Long] = ???
-      override def updateFailedJob(job: String, ts: Long): IO[Throwable, Long] = ???
-      override def updateJobState(args: EtlJobStateArgs): IO[Throwable, Boolean] = ???
-      override def addCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[Throwable, Credentials] = ???
-      override def updateCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[Throwable, Credentials] = ???
-      override def refreshJobs(jobs: List[EtlJob]): IO[Throwable, List[JobDB]] = ???
-      override def executeQuery(query: String): IO[Throwable, Unit] = ???
-      override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, T] = ???
-      override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[Throwable, List[T]] = ???
-
-      override def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[Throwable, Unit] = Task.unit
-      override def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[Throwable, Unit] = Task.unit
-      override def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[Throwable, Unit] = Task.unit
-      override def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[Throwable, Unit] = Task.unit
-    }
-  )
-
   val dbLayer: ZLayer[Has[String], Throwable, DBEnv] = ZLayer.fromService { pool_name =>
-    new Service {
-    
+    new DBApi.Service {
+      override def executeQuery(query: String): IO[DBException, Unit] =
+        Task(
+          NamedDB(pool_name) localTx { implicit s =>
+            scalikejdbc.SQL(query)
+              .update()
+          }).mapError({
+          e =>
+            logger.error(e.getMessage)
+            DBException(e.getMessage)
+        }).unit
+      override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, T] =
+        Task(
+          NamedDB(pool_name) localTx { implicit s =>
+            scalikejdbc.SQL(query)
+              .map(fn)
+              .single()
+              .get
+          }).mapError({
+          e =>
+            logger.error(e.getMessage)
+            DBException(e.getMessage)
+        })
+      override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, List[T]] =
+        Task(
+          NamedDB(pool_name) localTx { implicit s =>
+            scalikejdbc.SQL(query)
+              .map(fn)
+              .list()
+          }).mapError({
+          e =>
+            logger.error(e.getMessage)
+            DBException(e.getMessage)
+        })
+    }
+  }
+
+  val dbServerLayer: ZLayer[Has[String], Throwable, DBServerEnv] = ZLayer.fromService { pool_name =>
+    new DBServerApi.Service {
       override def getUser(name: String): IO[DBException, UserDB] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>
@@ -66,7 +76,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
         }
       }
-
       override def getJob(name: String): IO[DBException, JobDB] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>  
@@ -80,7 +89,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def getJobs: IO[DBException, List[JobDBAll]] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>    
@@ -93,7 +101,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
          }
       }
-
       override def getStepRuns(args: DbStepRunArgs): IO[DBException, List[StepRun]] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>   
@@ -109,7 +116,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def getJobRuns(args: DbJobRunArgs): IO[DBException, List[JobRun]] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>  
@@ -125,7 +131,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def getJobLogs(args: JobLogsArgs): IO[DBException, List[JobLogs]] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>   
@@ -138,7 +143,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def getCredentials: IO[DBException, List[GetCredential]] = {
         Task(
           NamedDB(pool_name) readOnly { implicit s =>  
@@ -151,7 +155,6 @@ private[db] object Implementation extends ApplicationLogger {
             DBException(e.getMessage)
           }
       }
-
       override def updateSuccessJob(job: String, ts: Long): IO[DBException, Long] = {
         Task(
           NamedDB(pool_name) localTx { implicit s => 
@@ -164,7 +167,6 @@ private[db] object Implementation extends ApplicationLogger {
           }, _ => 1L
           )
       }
-
       override def updateFailedJob(job: String, ts: Long): IO[DBException, Long] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>   
@@ -178,7 +180,6 @@ private[db] object Implementation extends ApplicationLogger {
             _ => 1L
           )
       }
-
       override def updateJobState(args: EtlJobStateArgs): IO[DBException, Boolean] = {
         Task(
           NamedDB(pool_name) localTx { implicit s => 
@@ -192,7 +193,6 @@ private[db] object Implementation extends ApplicationLogger {
             _ => args.state
           )
       }
-
       override def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>   
@@ -206,7 +206,6 @@ private[db] object Implementation extends ApplicationLogger {
             _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
           )
       }
-
       override def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>
@@ -221,7 +220,6 @@ private[db] object Implementation extends ApplicationLogger {
           }, _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
         )
       }
-
       override def refreshJobs(jobs: List[EtlJob]): IO[DBException, List[JobDB]] = {
         val jobsDB = jobs.map{x =>
           JobDB(x.name, x.props.getOrElse("job_schedule",""), is_active = true)
@@ -244,94 +242,6 @@ private[db] object Implementation extends ApplicationLogger {
               DBException(e.getMessage)
             }
       }
-
-      override def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): IO[DBException, Unit] = {
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            Sql.updateStepRun(job_run_id, step_name, props, status, elapsed_time)
-            .update
-            .apply()
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-          }).unit
-      }
-
-      override def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): IO[DBException, Unit] = {
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            Sql.insertStepRun(job_run_id, step_name, props, step_type, step_run_id, start_time)
-            .update
-            .apply()
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-          }).unit
-      }
-
-      override def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): IO[DBException, Unit] = {
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            Sql.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
-            .update
-            .apply()
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-          }).unit
-      }
-
-      override def updateJobRun(job_run_id: String, status: String, elapsed_time: String): IO[DBException, Unit] = {
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            Sql.updateJobRun(job_run_id, status, elapsed_time)
-            .update
-            .apply()
-          }).mapError({
-            e =>
-              logger.error(e.getMessage)
-              DBException(e.getMessage)
-          }).unit
-      }
-
-      override def executeQuery(query: String): IO[DBException, Unit] = 
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            scalikejdbc.SQL(query)
-            .update()
-          }).mapError({
-            e =>
-              logger.error(e.getMessage)
-              DBException(e.getMessage)
-          }).unit
-          
-      override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, T] = 
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            scalikejdbc.SQL(query)
-            .map(fn)
-            .single()
-            .get
-          }).mapError({
-            e =>
-              logger.error(e.getMessage)
-              DBException(e.getMessage)
-          })
-
-      override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, List[T]] =
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            scalikejdbc.SQL(query)
-              .map(fn)
-              .list()
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-        })
     }
   }
 }

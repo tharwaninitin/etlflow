@@ -4,14 +4,7 @@ import Versions._
 object Dependencies {
 
   lazy val coreLibs = List(
-    "dev.zio" %% "zio" % ZioVersion
-  )
-
-  lazy val jobLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" % ZioConfig,
-    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
-    "com.github.scopt" %% "scopt" % ScoptVersion
   )
 
   lazy val cloudLibs = List(
@@ -41,6 +34,8 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-config" % ZioConfig,
+    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "org.scalikejdbc" %% "scalikejdbc" % ScalaLikeJdbcVersion,
     "org.postgresql" % "postgresql" % PgVersion,
     "org.flywaydb" % "flyway-core" % FlywayVersion
@@ -64,6 +59,7 @@ object Dependencies {
     "io.d11" %% "zhttp" % ZioHttpVersion,
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
+    "com.github.scopt" %% "scopt" % ScoptVersion,
     "com.cronutils" % "cron-utils" % CronUtilsVersion,
   )
 

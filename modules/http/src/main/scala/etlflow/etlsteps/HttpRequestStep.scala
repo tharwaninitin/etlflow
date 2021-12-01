@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.http.{HttpMethod, HttpApi}
-import etlflow.json.{JsonApi, JsonEnv}
+import etlflow.http.{HttpApi, HttpMethod}
+import etlflow.json.JsonApi
 import etlflow.schema.LoggingLevel
 import io.circe.Decoder
 import sttp.client3.Response
@@ -20,7 +20,7 @@ case class HttpRequestStep[A: Tag : Decoder](
    )
   extends EtlStep[Unit, A] {
 
-  final def process(in: =>Unit): RIO[JsonEnv, A] = {
+  final def process(in: =>Unit): Task[A] = {
     logger.info("#"*100)
     logger.info(s"Starting HttpRequestStep: $name")
     logger.info(s"URL: $url")
@@ -39,7 +39,7 @@ case class HttpRequestStep[A: Tag : Decoder](
       case _ =>
         for {
           op <- output
-          obj <- JsonApi.convertToObject[A](op.body)
+          obj <- JsonApi.convertToObject[A](op.body).provideLayer(etlflow.json.Implementation.live)
         } yield obj
     }
   }

@@ -3,9 +3,9 @@ package etlflow.webserver
 import etlflow.api.APIEnv
 import etlflow.cache.CacheEnv
 import etlflow.crypto.CryptoEnv
-import etlflow.db.DBEnv
+import etlflow.db.DBServerEnv
 import etlflow.json.JsonEnv
-import etlflow.log.LoggerEnv
+import etlflow.log.{DBLogEnv, LoggerEnv}
 import zhttp.http.HttpData.CompleteData
 import zhttp.http.URL.Location
 import zhttp.http._
@@ -14,7 +14,7 @@ import zio.{Chunk, Has, ZIO, ZManaged}
 
 abstract class HttpRunnableSpec(port: Int) {
 
-  type TestAuthEnv = EventLoopGroup with ChannelFactory with zhttp.service.ServerChannelFactory with APIEnv with DBEnv with JsonEnv with CryptoEnv with CacheEnv with LoggerEnv 
+  type TestAuthEnv = EventLoopGroup with ChannelFactory with zhttp.service.ServerChannelFactory with APIEnv with DBServerEnv with DBLogEnv with JsonEnv with CryptoEnv with CacheEnv with LoggerEnv
 
   def serve[R <: Has[_]](app: RHttpApp[R]): ZManaged[R with EventLoopGroup with ServerChannelFactory, Nothing, Unit] =
     Server.make(Server.app(app) ++ Server.port(port)).orDie

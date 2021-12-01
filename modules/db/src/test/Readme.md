@@ -19,4 +19,5 @@ export LOG_DB_DRIVER=org.postgresql.Driver
 #Run Tests
 ```shell
 sbt ";project db; +test"
+sbt ";project db; +test"
 ```

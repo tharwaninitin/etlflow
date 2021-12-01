@@ -24,20 +24,20 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 
   case class Queries(
                       jobs: ZIO[ServerEnv, Throwable, List[Job]],
-                      jobruns: DbJobRunArgs => ZIO[APIEnv with DBEnv, Throwable, List[JobRun]],
-                      stepruns: DbStepRunArgs => ZIO[APIEnv with DBEnv, Throwable, List[StepRun]],
+                      jobruns: DbJobRunArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]],
+                      stepruns: DbStepRunArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]],
                       metrics: ZIO[APIEnv, Throwable, EtlFlowMetrics],
                       currentime: ZIO[APIEnv, Throwable, CurrentTime],
                       cacheStats:ZIO[APIEnv with JsonEnv with CacheEnv, Throwable, List[CacheDetails]],
                       queueStats:ZIO[APIEnv with CacheEnv, Throwable, List[QueueDetails]],
-                      jobLogs: JobLogsArgs => ZIO[APIEnv with DBEnv, Throwable, List[JobLogs]],
-                      credential: ZIO[APIEnv with DBEnv, Throwable, List[GetCredential]],
+                      jobLogs: JobLogsArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]],
+                      credential: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]],
                       jobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]
   )
 
   case class Mutations(
                         run_job: EtlJobArgs => ZIO[ServerEnv, Throwable, EtlJob],
-                        update_job_state: EtlJobStateArgs => ZIO[APIEnv with DBEnv, Throwable, Boolean],
+                        update_job_state: EtlJobStateArgs => ZIO[APIEnv with DBServerEnv, Throwable, Boolean],
                         add_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
                         update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
                       )

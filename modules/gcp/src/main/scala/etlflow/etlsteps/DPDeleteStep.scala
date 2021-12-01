@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp.{DP, DPService}
+import etlflow.gcp.{DP, DPApi}
 import etlflow.schema.Executor.DATAPROC
 import etlflow.schema.LoggingLevel
 import zio.Task
@@ -15,7 +15,7 @@ class DPDeleteStep (
     logger.info("#" * 100)
     logger.info(s"Starting Delete Cluster Step: $name")
     logger.info(s"Cluster Name: ${config.cluster_name} and Region: ${config.region}")
-    DPService.deleteDataproc().provideLayer(env)
+    DPApi.deleteDataproc().provideLayer(env)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] =

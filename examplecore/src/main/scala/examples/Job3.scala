@@ -27,11 +27,9 @@ object Job3 extends zio.App with ApplicationLogger {
     transform_function = processData,
   )
 
-  val job =
-    for {
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+    (for {
       op1 <- step1(cred).process(())
       _ <- step2.process(op1)
-    } yield ()
-
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
+    } yield ()).exitCode
 }

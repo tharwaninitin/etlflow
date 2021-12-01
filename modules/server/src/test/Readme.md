@@ -18,6 +18,7 @@ export LOG_DB_DRIVER=org.postgresql.Driver
 
 #Run Tests
 ```shell
+sbt ";project server; test:runMain etlflow.jobtests.LoadData initdb;"
 sbt ";project server; ++2.12.15 test;"
 sbt ";project server; ++2.13.7 test;"
 ```

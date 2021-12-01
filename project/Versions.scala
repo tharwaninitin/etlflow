@@ -4,7 +4,7 @@ object Versions {
   val scala3 = "3.1.0"
   val scala2Versions = List(scala212 ,scala213)
   val allScalaVersions = List(scala212, scala213, scala3)
-  val EtlFlowVersion = "0.12.0"
+  val EtlFlowVersion = "0.13.0"
 
   val ZioVersion = "1.0.12"
   val ZioCatsInteropVersion = "3.1.1.0"

@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp.{DP, DPService}
+import etlflow.gcp.{DP, DPApi}
 import etlflow.schema.Executor.DATAPROC
 import etlflow.schema.LoggingLevel
 import zio.Task
@@ -16,7 +16,7 @@ case class DPHiveJobStep(
     val env = DP.live(config)
     logger.info("#"*100)
     logger.info(s"Starting Hive Dataproc Job: $name")
-    DPService.executeHiveJob(query).provideLayer(env)
+    DPApi.executeHiveJob(query).provideLayer(env)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)

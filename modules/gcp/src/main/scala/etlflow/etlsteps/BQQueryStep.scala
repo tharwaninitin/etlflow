@@ -17,7 +17,7 @@ class BQQueryStep private[etlflow](
     val env = BQ.live(credentials)
     logger.info(s"Starting BQ Query Step: $name")
     logger.info(s"Query: $query")
-    BQService.executeQuery(query).provideLayer(env)
+    BQApi.executeQuery(query).provideLayer(env)
   }
 
   override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)

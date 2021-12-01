@@ -2,7 +2,7 @@ package etlflow
 
 import etlflow.api.Schema.QueueDetails
 import etlflow.cache.{CacheApi, CacheEnv}
-import etlflow.db.{EtlJob, liveDB}
+import etlflow.db.{EtlJob, liveLogServerDB}
 import etlflow.executor.Executor
 import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
@@ -14,7 +14,7 @@ import zio.blocking.Blocking
 import zio.clock.Clock
 
 abstract class ServerApp[T <: EJPMType : Tag]
-  extends EtlFlowApp[T] with HttpServer with Scheduler {
+  extends CliApp[T] with HttpServer with Scheduler {
 
   final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] = {
     for {
@@ -34,7 +34,7 @@ abstract class ServerApp[T <: EJPMType : Tag]
     sem         <- createSemaphores(jobs).toManaged_
     executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
-    dbLayer     = liveDB(config.db.get, pool_size = 10)
+    dbLayer     = liveLogServerDB(config.db.get, pool_size = 10)
     logLayer    = log.Implementation.live
     cryptoLayer = crypto.Implementation.live(config.secretkey)
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)

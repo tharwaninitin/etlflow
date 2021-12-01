@@ -113,6 +113,6 @@ object HttpStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with A
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
     suite("Http Steps")(
       testM("Execute Http steps") {
-        assertM(job.provideLayer(jsonLayer).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       })
 }

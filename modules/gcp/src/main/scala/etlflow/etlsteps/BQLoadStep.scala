@@ -30,7 +30,7 @@ class BQLoadStep private[etlflow](
     val program: Task[Unit] = input_file_system match {
       case FSType.LOCAL =>
         logger.info(s"FileSystem: $input_file_system")
-        BQService.loadIntoBQFromLocalFile(
+        BQApi.loadIntoBQFromLocalFile(
           input_location, input_type, output_dataset, output_table,
           output_write_disposition, output_create_disposition
         ).provideLayer(env)
@@ -38,7 +38,7 @@ class BQLoadStep private[etlflow](
         input_location match {
           case Left(value) =>
             logger.info(s"FileSystem: $input_file_system")
-            BQService.loadIntoBQTable(
+            BQApi.loadIntoBQTable(
               value, input_type, output_project, output_dataset, output_table, output_write_disposition,
               output_create_disposition, schema
             ).provideLayer(env).map{x =>
@@ -46,7 +46,7 @@ class BQLoadStep private[etlflow](
             }
           case Right(value) =>
             logger.info(s"FileSystem: $input_file_system")
-            BQService.loadIntoPartitionedBQTable(
+            BQApi.loadIntoPartitionedBQTable(
               value, input_type, output_project, output_dataset, output_table, output_write_disposition,
               output_create_disposition, schema, 10).provideLayer(env).map{x =>
               row_count = x

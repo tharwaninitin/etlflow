@@ -19,7 +19,7 @@ class GCSSensorStep private [etlsteps](
                ) extends EtlStep[Unit,Unit] with SensorStep {
   override def process(input_state: => Unit): Task[Unit] = {
     val env     = GCS.live(credentials)
-    val lookup  = GCSService.lookupObject(bucket,prefix,key).provideLayer(env)
+    val lookup  = GCSApi.lookupObject(bucket,prefix,key).provideLayer(env)
 
     val program: Task[Unit] = (for {
                                 out <- lookup

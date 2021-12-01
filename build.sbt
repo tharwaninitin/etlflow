@@ -35,12 +35,6 @@ lazy val coreSettings = Seq(
   libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
 )
 
-lazy val jobSettings = Seq(
-  name := "etlflow-job",
-  crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= jobLibs ++ zioTestLibs ++ coreTestLibs
-)
-
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
   crossScalaVersions := scala2Versions,
@@ -125,7 +119,7 @@ lazy val root = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(utils,db,json,crypto,core,job,spark,cloud,server,http,redis,email,cache,aws,gcp)
+  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
 
 lazy val utils = (project in file("modules/utils"))
   .settings(commonSettings)
@@ -139,21 +133,20 @@ lazy val json = (project in file("modules/json"))
 lazy val db = (project in file("modules/db"))
   .settings(commonSettings)
   .settings(dbSettings)
-  .dependsOn(utils)
+  .dependsOn(core)
 
 lazy val crypto = (project in file("modules/crypto"))
   .settings(commonSettings)
   .settings(cryptoSettings)
-  .dependsOn(utils, json)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
-  .dependsOn(db % "compile->compile;test->test", utils, json, crypto)
+  .dependsOn(utils)
 
-lazy val job = (project in file("modules/job"))
+lazy val server = (project in file("modules/server"))
   .settings(commonSettings)
-  .settings(jobSettings)
+  .settings(serverSettings)
   .enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](
@@ -164,12 +157,7 @@ lazy val job = (project in file("modules/job"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(core % "compile->compile;test->test")
-
-lazy val server = (project in file("modules/server"))
-  .settings(commonSettings)
-  .settings(serverSettings)
-  .dependsOn(job % "compile->compile;test->test", gcp, cache)
+  .dependsOn(core % "compile->compile;test->test", db % "compile->compile;test->test", crypto, json, gcp, cache)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
@@ -184,7 +172,7 @@ lazy val spark = (project in file("modules/spark"))
 lazy val http = (project in file("modules/http"))
   .settings(commonSettings)
   .settings(httpSettings)
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test", json)
 
 lazy val redis = (project in file("modules/redis"))
   .settings(commonSettings)

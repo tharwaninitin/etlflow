@@ -5,6 +5,7 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
+    "org.slf4j" % "slf4j-api" % Sl4jVersion
   )
 
   lazy val cloudLibs = List(
@@ -68,10 +69,6 @@ object Dependencies {
     "org.apache.spark" %% "spark-sql" % SparkVersion % Provided
   )
 
-  lazy val utilsLibs = List(
-    "org.slf4j" % "slf4j-api" % Sl4jVersion
-  )
-
   lazy val jsonLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
     "io.circe" %% "circe-core" % CirceVersion,
@@ -102,7 +99,10 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val coreTestLibs = List(
-    "ch.qos.logback" % "logback-classic" % LogbackVersion,
+    "ch.qos.logback" % "logback-classic" % LogbackVersion
+  ).map(_ % Test)
+
+  lazy val dbTestLibs = List(
     "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
 

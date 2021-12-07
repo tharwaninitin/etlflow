@@ -1,15 +1,16 @@
 package json
 
 import etlflow.json.{Implementation, JsonApi}
-import etlflow.schema.{Executor, LoggingLevel}
-import io.circe.Encoder
-import io.circe.generic.semiauto.deriveEncoder
-import json.Schema.Student
+import etlflow.schema.{Executor, LoggingLevel, Student}
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
 import scala.collection.immutable.ListMap
 
 object JsonTestSuite  extends DefaultRunnableSpec{
+
+  implicit val studentDecoder: Decoder[Student] = deriveDecoder[Student]
 
   implicit val encodeLoggingLevel: Encoder[LoggingLevel] = Encoder[String].contramap {
     case LoggingLevel.INFO => "info"

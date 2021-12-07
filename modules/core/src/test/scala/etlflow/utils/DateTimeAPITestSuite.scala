@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.utils.DateTimeApi.getTimeDifferenceAsString
+import etlflow.utils.DateTimeApi._
 import zio.test.Assertion.equalTo
 import zio.test._
 import java.text.SimpleDateFormat

@@ -29,19 +29,18 @@ You can use this library in different ways mentioned below.
 ![ModuleDepGraph](moduleDep.png)
 
 ## Scala Version Compatibility Matrix
-### Internal Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
-| -------------------|:--------------------:| -----------:| ----------:|
-| Utils              | ✅                   | ✅          | ✅          |
-| Json               | ✅                   | ✅          | ✅          |
-| Cache              | ✅                   | ✅          | ✅          |
-| Crypto             | ✅                   | ✅          | ✅          |
-
 ### Main Modules
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | **Core**           | ✅                   | ✅          | ✅          |
 | **Server**         | ✅                   | ✅          | ✅          |
+
+### Server Internal Modules
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
+| -------------------|:--------------------:| -----------:| ----------:|
+| Json               | ✅                   | ✅          | ✅          |
+| Cache              | ✅                   | ✅          | ✅          |
+| Crypto             | ✅                   | ✅          | ✅          |
 
 ### Addon Modules For Core
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 

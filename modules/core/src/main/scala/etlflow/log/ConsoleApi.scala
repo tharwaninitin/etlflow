@@ -11,8 +11,8 @@ object ConsoleApi extends ApplicationLogger {
     def stepLogEnd(name: String, error: Option[String]): UIO[Unit]
   }
 
-  def jobLogStart: URIO[ConsoleEnv, Unit] = ZIO.accessM[ConsoleEnv](_.get.jobLogStart)
-  def jobLogEnd(error: Option[String]): URIO[ConsoleEnv, Unit] = ZIO.accessM[ConsoleEnv](_.get.jobLogEnd(error))
-  def stepLogStart(name: String): URIO[ConsoleEnv, Unit] = ZIO.accessM[ConsoleEnv](_.get.stepLogStart(name))
-  def stepLogEnd(name: String, error: Option[String]): URIO[ConsoleEnv, Unit] = ZIO.accessM[ConsoleEnv](_.get.stepLogEnd(name,error))
+  def jobLogStart: URIO[ConsoleLogEnv, Unit] = ZIO.accessM[ConsoleLogEnv](_.get.jobLogStart)
+  def jobLogEnd(error: Option[String]): URIO[ConsoleLogEnv, Unit] = ZIO.accessM[ConsoleLogEnv](_.get.jobLogEnd(error))
+  def stepLogStart(name: String): URIO[ConsoleLogEnv, Unit] = ZIO.accessM[ConsoleLogEnv](_.get.stepLogStart(name))
+  def stepLogEnd(name: String, error: Option[String]): URIO[ConsoleLogEnv, Unit] = ZIO.accessM[ConsoleLogEnv](_.get.stepLogEnd(name,error))
   }

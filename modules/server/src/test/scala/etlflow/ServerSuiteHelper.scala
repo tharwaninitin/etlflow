@@ -9,7 +9,7 @@ import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.Executor
 import etlflow.jobtests.MyEtlJobPropsMapping
 import etlflow.json.JsonEnv
-import etlflow.log.{DBLogEnv, LoggerEnv}
+import etlflow.log.{DBLogEnv, LogWrapperEnv}
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.Configuration
 import etlflow.webserver.Authentication
@@ -44,7 +44,7 @@ trait ServerSuiteHelper {
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
   val testCryptoLayer: ZLayer[Blocking, Throwable, CryptoEnv] = crypto.Implementation.live(skey)
   val testCacheLayer: ZLayer[Blocking, Throwable, CacheEnv] = cache.Implementation.live
-  val testLogLayer: ZLayer[Blocking, Throwable, LoggerEnv] = etlflow.log.Implementation.live
+  val testLogLayer: ZLayer[Blocking, Throwable, LogWrapperEnv] = etlflow.log.Implementation.live
   val fullLayerWithoutDB  = testAPILayer ++ testJsonLayer ++ testCryptoLayer ++ testCacheLayer ++ testLogLayer
   val fullLayer  = testAPILayer ++  testDBLayer ++ testJsonLayer ++ testCryptoLayer ++ testCacheLayer ++ testLogLayer
 }

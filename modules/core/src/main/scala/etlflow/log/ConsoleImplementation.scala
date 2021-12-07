@@ -5,7 +5,7 @@ import zio.{UIO, ULayer, ZIO, ZLayer}
 
 object ConsoleImplementation extends ApplicationLogger {
 
-  val nolog: ULayer[ConsoleEnv] = ZLayer.succeed(
+  val nolog: ULayer[ConsoleLogEnv] = ZLayer.succeed(
     new ConsoleApi.Service {
       override def jobLogStart: UIO[Unit] = ZIO.unit
       override def jobLogEnd(error: Option[String]): UIO[Unit] = ZIO.unit
@@ -14,7 +14,7 @@ object ConsoleImplementation extends ApplicationLogger {
     }
   )
 
-  val live: ULayer[ConsoleEnv] = ZLayer.succeed(
+  val live: ULayer[ConsoleLogEnv] = ZLayer.succeed(
     new ConsoleApi.Service {
       override def jobLogStart: UIO[Unit] = UIO(logger.info("Job started"))
       override def jobLogEnd(error: Option[String]): UIO[Unit] = UIO {

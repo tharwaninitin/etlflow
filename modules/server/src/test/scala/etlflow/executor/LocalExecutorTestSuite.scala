@@ -9,16 +9,12 @@ import zio.test._
 
 object LocalExecutorTestSuite {
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
-  val jobStepProps = LocalExecutor[MEJP]().showJobStepProps("Job1", Map.empty)
   val jobProps = LocalExecutor[MEJP]().showJobProps("Job1")
   val jobActualProps = LocalExecutor[MEJP]().getActualJobProps("Job2", Map("ratings_output_table_name" -> "test"))
   val executeJob = LocalExecutor[MEJP]().executeJob("Job1", Map.empty)
 
   val spec: ZSpec[environment.TestEnvironment with JobEnv, Any] =
     suite("Local Executor")(
-      testM("showJobStepProps") {
-        assertM(jobStepProps.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
-      },
       testM("showJobProps") {
         assertM(jobProps.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },

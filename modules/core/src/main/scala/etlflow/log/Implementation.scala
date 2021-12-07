@@ -32,9 +32,9 @@ object Implementation extends ApplicationLogger {
     }
   }
 
-  val live: ULayer[LoggerEnv] = ZLayer.succeed(
+  val live: ULayer[LogWrapperEnv] = ZLayer.succeed(
 
-    new LoggerApi.Service {
+    new LogWrapperApi.Service {
 
       var job_run_id: String = null
 
@@ -42,12 +42,12 @@ object Implementation extends ApplicationLogger {
         job_run_id = jri
       }
 
-      override def jobLogStart(start_time: Long, job_type: String, job_name: String, props: String, is_master: String): RIO[DBLogEnv with ConsoleEnv, Unit] = {
+      override def jobLogStart(start_time: Long, job_type: String, job_name: String, props: String, is_master: String): RIO[DBLogEnv with ConsoleLogEnv, Unit] = {
         ConsoleApi.jobLogStart *>
           DBApi.insertJobRun(job_run_id, job_name, props, job_type, is_master, start_time)
       }
 
-      override def jobLogEnd(start_time: Long, job_run_id: String, job_name: String, ex: Option[Throwable]): RIO[DBLogEnv with ConsoleEnv with SlackEnv, Unit] = {
+      override def jobLogEnd(start_time: Long, job_run_id: String, job_name: String, ex: Option[Throwable]): RIO[DBLogEnv with ConsoleLogEnv with SlackLogEnv, Unit] = {
         val elapsed_time = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
         val status = if (ex.isEmpty) "pass" else "failed with error: " + ex.get.getMessage
         val console_status = if (ex.isEmpty) None else Some(status)
@@ -58,13 +58,13 @@ object Implementation extends ApplicationLogger {
           (if (ex.isEmpty) ZIO.unit else Task.fail(new RuntimeException(ex.get.getMessage)))
       }
 
-      override def stepLogStart(start_time: Long, etlStep: EtlStep[_, _]): RIO[DBLogEnv with ConsoleEnv, Unit] = {
+      override def stepLogStart(start_time: Long, etlStep: EtlStep[_, _]): RIO[DBLogEnv with ConsoleLogEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
         ConsoleApi.stepLogStart(etlStep.name) *>
           stepLogger.update(start_time, "started", mode = "insert")
       }
 
-      override def stepLogEnd(start_time: Long, etlStep: EtlStep[_, _], ex: Option[Throwable]): RIO[DBLogEnv with ConsoleEnv with SlackEnv, Unit] = {
+      override def stepLogEnd(start_time: Long, etlStep: EtlStep[_, _], ex: Option[Throwable]): RIO[DBLogEnv with ConsoleLogEnv with SlackLogEnv, Unit] = {
         val stepLogger = new StepLogger(etlStep, job_run_id)
         val status = if (ex.isEmpty) "pass" else "failed" + ex.get.getMessage
         val error = if (ex.isEmpty) None else Some(ex.get.getMessage)

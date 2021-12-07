@@ -14,7 +14,7 @@ import scala.util.Try
 
 object SlackImplementation extends ApplicationLogger {
 
-  val nolog: ULayer[SlackEnv] = ZLayer.succeed(
+  val nolog: ULayer[SlackLogEnv] = ZLayer.succeed(
     new Service {
       override def getSlackNotification: UIO[String] = UIO("")
       override def logStepEnd(start_time: Long, job_notification_level: LoggingLevel, etlstep: EtlStep[_, _], error_message: Option[String]): Task[Unit] = Task.unit
@@ -22,7 +22,7 @@ object SlackImplementation extends ApplicationLogger {
     }
   )
 
-  def live(slack: Option[Slack]): ULayer[SlackEnv] = {
+  def live(slack: Option[Slack]): ULayer[SlackLogEnv] = {
     if (slack.isEmpty)
       nolog
     else

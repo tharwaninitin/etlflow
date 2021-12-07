@@ -1,29 +1,26 @@
 package etlflow.etljobs
 
 import etlflow._
-import etlflow.core.StepEnv
-import etlflow.log.LoggerApi
-import etlflow.schema.LoggingLevel
+import etlflow.core.CoreLogEnv
+import etlflow.log.LogWrapperApi
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import zio.{UIO, ZIO}
 
 trait GenericEtlJob[EJP <: EtlJobProps] extends EtlJob[EJP] {
 
-  def job: ZIO[StepEnv, Throwable, Unit]
-  def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit = {}
-  def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])] = List.empty
+  def job: ZIO[CoreLogEnv, Throwable, Unit]
   val job_type = "GenericEtlJob"
 
-  final def execute(job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[StepEnv, Throwable, Unit] = {
+  final def execute(job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[CoreLogEnv, Throwable, Unit] = {
     for {
       job_start_time  <- UIO(getCurrentTimestamp)
       jri             = job_run_id.getOrElse(java.util.UUID.randomUUID.toString)
       master_job      = is_master.getOrElse("true")
-      _               <- LoggerApi.setJobRunId(jri)
-      _               <- LoggerApi.jobLogStart(job_start_time, job_type, job_name, props, master_job)
+      _               <- LogWrapperApi.setJobRunId(jri)
+      _               <- LogWrapperApi.jobLogStart(job_start_time, job_type, job_name, props, master_job)
       _               <- job.foldM(
-                            ex => LoggerApi.jobLogEnd(job_start_time, jri, job_name, Some(ex)),
-                            _  => LoggerApi.jobLogEnd(job_start_time, jri, job_name)
+                            ex => LogWrapperApi.jobLogEnd(job_start_time, jri, job_name, Some(ex)),
+                            _  => LogWrapperApi.jobLogEnd(job_start_time, jri, job_name)
                           )
     } yield ()
   }

@@ -1,10 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.log.LoggerApi
+import etlflow.core.{CoreEnv, CoreLogEnv}
+import etlflow.log.LogWrapperApi
 import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
-import etlflow.core.{CoreEnv, StepEnv}
-import zio.{RIO, Task, ZIO}
+import zio.{RIO, Task}
 
 trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 
@@ -15,14 +15,14 @@ trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()
   def getStepProperties(level:LoggingLevel = LoggingLevel.INFO): Map[String,String] = Map()
 
-  final def execute(input_state: =>IPSTATE): ZIO[StepEnv, Throwable, OPSTATE] = {
+  final def execute(input_state: =>IPSTATE): RIO[CoreLogEnv, OPSTATE] = {
     for {
       step_start_time <- Task.succeed(System.currentTimeMillis())
-      _   <- LoggerApi.stepLogStart(step_start_time, self)
+      _   <- LogWrapperApi.stepLogStart(step_start_time, self)
       op  <- process(input_state).tapError{ex =>
-        LoggerApi.stepLogEnd(step_start_time,self,Some(ex))
+        LogWrapperApi.stepLogEnd(step_start_time,self,Some(ex))
       }
-      _   <- LoggerApi.stepLogEnd(step_start_time,self)
+      _   <- LogWrapperApi.stepLogEnd(step_start_time,self)
     } yield op
   }
 }

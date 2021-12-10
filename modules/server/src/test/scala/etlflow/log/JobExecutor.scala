@@ -1,15 +1,13 @@
 package etlflow.log
 
 import etlflow.core.CoreLogEnv
-import etlflow.schema.LoggingLevel
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.{UIO, ZIO}
 
 object JobExecutor {
-  def apply(job_name: String, jri: String, job: ZIO[CoreLogEnv, Throwable, Unit], job_notification_level: LoggingLevel)
-  : ZIO[SlackLogEnv with Blocking with Clock, Throwable, Unit] = {
+  def apply(job_name: String, jri: String, job: ZIO[CoreLogEnv, Throwable, Unit]): ZIO[SlackLogEnv with Blocking with Clock, Throwable, Unit] = {
     (for {
       job_start_time <- UIO.succeed(getCurrentTimestamp)
       _ <- LogWrapperApi.setJobRunId(jri)

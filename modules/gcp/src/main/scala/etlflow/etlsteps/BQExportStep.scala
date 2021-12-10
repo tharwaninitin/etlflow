@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.schema.{Credential, LoggingLevel}
+import etlflow.schema.Credential
 import zio.{Task, UIO}
 
 class BQExportStep private[etlflow](
@@ -41,24 +41,14 @@ class BQExportStep private[etlflow](
     )
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = {
-    if (level == LoggingLevel.INFO) {
-      Map(
-         "input_project" -> source_project.getOrElse("")
-        , "input_dataset" -> source_dataset
-        , "input_table" -> source_table
-        , "output_type" -> destination_format.toString()
-        , "output_location" -> destination_path
-      )
-    } else {
-      Map(
-         "input_project" -> source_project.getOrElse("")
-        , "input_dataset" -> source_dataset
-        , "input_table" -> source_table
-        , "output_type" -> destination_format.toString()
-        , "output_location" -> destination_path
-      )
-    }
+  override def getStepProperties: Map[String, String] = {
+    Map(
+       "input_project" -> source_project.getOrElse("")
+      , "input_dataset" -> source_dataset
+      , "input_table" -> source_table
+      , "output_type" -> destination_format.toString()
+      , "output_location" -> destination_path
+    )
   }
 }
 

@@ -50,7 +50,7 @@ case class ParallelStepTestSuite(config: Config) extends ApplicationLogger {
       test("Execute getStepProperties") {
         val parstep = ParallelETLStep("ParallelStep")(step1, step2)
         parstep.job_run_id = "123"
-        val props = parstep.getStepProperties()
+        val props = parstep.getStepProperties
         assert(props)(equalTo(Map("parallel_steps" -> "ProcessData,ProcessData", "step_run_id" -> "123")))
       }
     )

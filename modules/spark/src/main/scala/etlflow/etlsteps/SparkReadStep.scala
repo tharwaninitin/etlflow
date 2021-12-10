@@ -1,6 +1,5 @@
 package etlflow.etlsteps
 
-import etlflow.schema.LoggingLevel
 import etlflow.spark.{IOType, _}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
@@ -39,8 +38,8 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
     }
   }
 
-  override def getStepProperties(level: LoggingLevel) : Map[String,String] = {
-    ReadApi.LoadDSHelper[I](level,input_location,input_type).toList.toMap
+  override def getStepProperties : Map[String,String] = {
+    ReadApi.LoadDSHelper[I](input_location,input_type).toList.toMap
   }
 
   override def getExecutionMetrics : Map[String, Map[String,String]] = {

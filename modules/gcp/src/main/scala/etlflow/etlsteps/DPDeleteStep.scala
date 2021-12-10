@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPApi}
 import etlflow.schema.Executor.DATAPROC
-import etlflow.schema.LoggingLevel
 import zio.Task
 
 class DPDeleteStep (
@@ -18,7 +17,7 @@ class DPDeleteStep (
     DPApi.deleteDataproc().provideLayer(env)
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] =
+  override def getStepProperties: Map[String, String] =
     Map(
       "name" -> name,
       "config" -> config.toString

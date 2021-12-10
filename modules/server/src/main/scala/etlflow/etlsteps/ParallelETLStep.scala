@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.core.CoreEnv
 import etlflow.log.LogWrapperApi
-import etlflow.schema.LoggingLevel
 import etlflow.utils.Configuration
 import zio.{RIO, ZIO}
 
@@ -20,7 +19,7 @@ case class ParallelETLStep(name: String)(steps: EtlStep[Unit,Unit]*) extends Etl
     } yield ()
   }
 
-  final override def getStepProperties(level: LoggingLevel): Map[String, String] =
+  final override def getStepProperties: Map[String, String] =
     Map("parallel_steps" -> steps.map(_.name).mkString(","), "step_run_id" -> job_run_id)
 }
 

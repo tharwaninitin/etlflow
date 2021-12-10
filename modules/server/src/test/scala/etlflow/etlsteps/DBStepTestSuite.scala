@@ -53,7 +53,7 @@ case class DBStepTestSuite(config: Config) {
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
-        val props = step2.getStepProperties()
+        val props = step2.getStepProperties
         assert(props)(equalTo(Map("query" -> "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;")))
       }
     )

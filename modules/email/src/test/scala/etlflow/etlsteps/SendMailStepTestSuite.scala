@@ -49,11 +49,11 @@ object SendMailStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
           sender  = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
           recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
           credentials = smtp
-        ).process(()).provideCustomLayer(fullCoreLayer)
+        ).process(())
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
-        val props = step.getStepProperties()
+        val props = step.getStepProperties
         assert(props)(equalTo(Map("subject" -> "SendMailStep Test Ran Successfully", "recipient_list" -> "abcd@abcd.com")))
       }
     )

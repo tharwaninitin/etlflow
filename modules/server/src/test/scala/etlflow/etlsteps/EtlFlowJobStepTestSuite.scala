@@ -22,7 +22,7 @@ case class EtlFlowJobStepTestSuite(config: Config) {
       },
       test("Execute getStepProperties") {
         step.job_run_id = "123"
-        assert(step.getStepProperties())(equalTo(Map("step_run_id" -> "123")))
+        assert(step.getStepProperties)(equalTo(Map("step_run_id" -> "123")))
       }
     )
 }

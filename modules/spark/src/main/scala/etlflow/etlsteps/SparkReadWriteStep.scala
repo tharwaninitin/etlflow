@@ -1,6 +1,5 @@
 package etlflow.etlsteps
 
-import etlflow.schema.LoggingLevel
 import etlflow.spark.{IOType, ReadApi, SparkRuntimeConf, WriteApi}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
@@ -77,10 +76,10 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
     }
   }
 
-  override def getStepProperties(level: LoggingLevel) : Map[String,String] = {
-    val in_map = ReadApi.LoadDSHelper[I](level,input_location,input_type)
+  override def getStepProperties: Map[String,String] = {
+    val in_map = ReadApi.LoadDSHelper[I](input_location,input_type)
     val out_map = WriteApi.WriteDSHelper[O](
-      level,output_type, output_location, output_partition_col,
+      output_type, output_location, output_partition_col,
       output_save_mode, output_filename, recordsWrittenCount,
       repartition=output_repartitioning
     )

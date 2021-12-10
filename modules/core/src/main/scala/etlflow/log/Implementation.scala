@@ -1,14 +1,13 @@
 package etlflow.log
 
 import etlflow.etlsteps.EtlStep
-import etlflow.schema.LoggingLevel
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString}
 import zio.{RIO, Task, UIO, ULayer, ZIO, ZLayer}
 
 object Implementation extends ApplicationLogger {
 
-  private class StepLogger(etlStep: EtlStep[_, _], job_run_id: String, job_notification_level: LoggingLevel = LoggingLevel.INFO) extends ApplicationLogger {
+  private class StepLogger(etlStep: EtlStep[_, _], job_run_id: String) extends ApplicationLogger {
 
     val remoteStep = List("EtlFlowJobStep", "DPSparkJobStep", "ParallelETLStep")
 
@@ -19,8 +18,8 @@ object Implementation extends ApplicationLogger {
 
     def update(start_time: Long, state_status: String, error_message: Option[String] = None, mode: String = "update"): ZIO[DBLogEnv, Throwable, Unit] = {
       val step_name = stringFormatter(etlStep.name)
-      val properties = toJson(etlStep.getStepProperties(job_notification_level))
-      val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties(job_notification_level)("step_run_id") else ""
+      val properties = toJson(etlStep.getStepProperties)
+      val step_run_id = if (remoteStep.contains(etlStep.step_type)) etlStep.getStepProperties("step_run_id") else ""
       if (mode == "insert") {
         DBApi.insertStepRun(if (job_run_id == null) "" else job_run_id, step_name, properties, etlStep.step_type, step_run_id, start_time)
       }
@@ -53,7 +52,7 @@ object Implementation extends ApplicationLogger {
         val console_status = if (ex.isEmpty) None else Some(status)
         val slack_status = if (ex.isEmpty) None else Some(ex.get.getMessage)
         ConsoleApi.jobLogEnd(console_status) *>
-          SlackApi.logJobEnd(job_name, job_run_id, LoggingLevel.INFO, start_time, slack_status) *>
+          SlackApi.logJobEnd(job_name, job_run_id, start_time, slack_status) *>
           DBApi.updateJobRun(job_run_id, status, elapsed_time) *>
           (if (ex.isEmpty) ZIO.unit else Task.fail(new RuntimeException(ex.get.getMessage)))
       }
@@ -69,7 +68,7 @@ object Implementation extends ApplicationLogger {
         val status = if (ex.isEmpty) "pass" else "failed" + ex.get.getMessage
         val error = if (ex.isEmpty) None else Some(ex.get.getMessage)
         ConsoleApi.stepLogEnd(etlStep.name, if (ex.isEmpty) None else Some(ex.get.getStackTrace.mkString("\n"))) *>
-          SlackApi.logStepEnd(start_time, LoggingLevel.INFO, etlStep) *>
+          SlackApi.logStepEnd(start_time, etlStep) *>
           stepLogger.update(start_time, status, error) *>
           (if (ex.isEmpty) ZIO.unit else Task.fail(new RuntimeException(ex.get.getMessage)))
       }

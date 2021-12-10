@@ -1,10 +1,8 @@
 package etlflow
 
 import etlflow.schema.Credential.JDBC
-import etlflow.schema.LoggingLevel
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import zio.{Has, Task, ZIO, ZLayer}
-
 import scala.reflect.runtime.universe.TypeTag
 
 package object spark {
@@ -41,7 +39,7 @@ package object spark {
   }
 
   trait Service {
-    def LoadDSHelper[T <: Product : TypeTag](level: LoggingLevel,location: Seq[String], input_type: IOType, where_clause: String = "1 = 1"): Task[Map[String,String]]
+    def LoadDSHelper[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1"): Task[Map[String,String]]
     def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1"): Task[Dataset[T]]
     def LoadDF(location: Seq[String], input_type: IOType, where_clause: String = "1 = 1"): Task[Dataset[Row]]
   }

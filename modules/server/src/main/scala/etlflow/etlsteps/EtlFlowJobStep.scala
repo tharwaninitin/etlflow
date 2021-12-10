@@ -3,7 +3,6 @@ package etlflow.etlsteps
 import etlflow.EtlJobProps
 import etlflow.core.CoreEnv
 import etlflow.etljobs.EtlJob
-import etlflow.schema.LoggingLevel
 import etlflow.utils.Configuration
 import zio.RIO
 
@@ -22,7 +21,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
     } yield ()
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] =  {
+  override def getStepProperties: Map[String, String] =  {
     Map("step_run_id" -> job_run_id)
   }
 }

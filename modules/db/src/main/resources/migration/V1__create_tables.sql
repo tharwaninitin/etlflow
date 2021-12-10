@@ -12,7 +12,7 @@ CREATE TABLE "jobrun" (
     "job_run_id" varchar(100) PRIMARY KEY,
     "job_name" text NOT NULL,
     "properties" jsonb NOT NULL,
-    "state" text NOT NULL,
+    "status" text NOT NULL,
     "elapsed_time" varchar(100) NOT NULL,
     "job_type" varchar(100) NOT NULL,
     "is_master" varchar(100) NOT NULL,
@@ -20,13 +20,13 @@ CREATE TABLE "jobrun" (
 );
 
 CREATE TABLE "steprun" (
-    "job_run_id" varchar(100) NOT NULL,
-    "step_name" varchar(100) NOT NULL,
+    "step_run_id" varchar(100) PRIMARY KEY,
+    "job_run_id" varchar(100),
+    "step_name" text NOT NULL,
     "properties" jsonb NOT NULL,
-    "state" text NOT NULL,
+    "status" text NOT NULL,
     "elapsed_time" varchar(100) NOT NULL,
     "step_type" varchar(100) NOT NULL,
-    "step_run_id" varchar(100) NOT NULL,
     "inserted_at" bigint NOT NULL
 );
 

@@ -1,8 +1,7 @@
 package etlflow.executor
 
 import etlflow.json.JsonEnv
-import etlflow.log.{ConsoleImplementation, SlackImplementation}
-import etlflow.schema.{Config, Slack}
+import etlflow.schema.Config
 import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
 import etlflow.{EJPMType, JobEnv, crypto, json, log}
 import zio._
@@ -27,24 +26,22 @@ case class LocalExecutor[T <: EJPMType : Tag]() extends ApplicationLogger {
     } yield job_props
   }
 
-  def executeJob(name: String, properties: Map[String, String], slack: Option[Slack] = None, job_run_id: Option[String] = None, is_master: Option[String] = None): RIO[JobEnv, Unit] = {
+  def executeJob(name: String, properties: Map[String, String], job_run_id: Option[String] = None): RIO[JobEnv, Unit] = {
     for {
       ejpm <- RF.getJob[T](name)
       job  = ejpm.etlJob(properties)
       _    = { job.job_name = ejpm.toString }
-      props <- ejpm.getActualPropertiesAsJson(properties)
-      _     <- job.execute(job_run_id, is_master, props).provideSomeLayer[JobEnv](SlackImplementation.live(slack) ++ ConsoleImplementation.live)
+      args <- ejpm.getActualPropertiesAsJson(properties)
+      _     <- job.execute(job_run_id, args)
     } yield ()
   }
 
   def runJob(name: String, properties: Map[String,String], config: Config): RIO[ZEnv, Unit] = {
     val jri         = if (properties.keySet.contains("job_run_id")) Some(properties("job_run_id")) else None
-    val is_master   = if (properties.keySet.contains("is_master")) Some(properties("is_master")) else None
-    val dbLayer     = if(config.db.isEmpty) log.DBNoLogImplementation() else log.DBLiveImplementation(config.db.get, "Job-" + name + "-Pool", 2)
+    val dbLogLayer  = if(config.db.isEmpty) log.nolog else log.DBLogger(config.db.get, "Job-" + name + "-Pool", 2)
     val jsonLayer   = json.Implementation.live
     val cryptoLayer = crypto.Implementation.live(config.secretkey)
-    val logLayer    = log.Implementation.live
-    executeJob(name, properties, config.slack, jri, is_master)
-      .provideCustomLayer(dbLayer ++ jsonLayer ++ cryptoLayer ++ logLayer)
+    executeJob(name, properties, jri)
+      .provideCustomLayer(dbLogLayer ++ jsonLayer ++ cryptoLayer)
   }
 }

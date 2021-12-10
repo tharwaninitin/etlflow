@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.log.DBLogEnv
+import etlflow.log.LogEnv
 import etlflow.schema.Credential.JDBC
 import scalikejdbc.{SQLSyntaxSupport, WrappedResultSet}
 import zio.blocking.Blocking
@@ -49,7 +49,6 @@ package object db {
       rs.string("job_name"), rs.string("schedule"), rs.boolean("is_active"))
   }
 
-  case class JobRun(job_run_id: String,job_name: String,properties: String,state: String,start_time: String,elapsed_time: String,job_type: String,is_master:String)
   case class JobDBAll(job_name: String, job_description: String, schedule: String, failed: Long, success: Long, is_active: Boolean, last_run_time: Option[Long] = None)
   object JobDBAll extends SQLSyntaxSupport[JobDBAll] {
     override val tableName = "Job"
@@ -59,30 +58,31 @@ package object db {
       rs.longOpt("last_run_time"))
   }
 
-  case class JobRunDB(job_run_id: String,job_name: String,properties: String,state: String,elapsed_time: String,job_type: String,is_master:String,inserted_at:Long)
+  case class JobRun(job_run_id: String,job_name: String,properties: String,status: String,start_time: String,elapsed_time: String,job_type: String,is_master:String)
+  case class JobRunDB(job_run_id: String,job_name: String,properties: String,status: String,elapsed_time: String,job_type: String,is_master:String,inserted_at:Long)
   object JobRunDB extends SQLSyntaxSupport[JobRunDB] {
     def apply(rs: WrappedResultSet): JobRunDB =  JobRunDB(
       rs.string("job_run_id"), rs.string("job_name"), rs.string("properties"),
-      rs.string("state"), rs.string("elapsed_time"),
+      rs.string("status"), rs.string("elapsed_time"),
       rs.string("job_type"), rs.string("is_master") ,rs.long("inserted_at"))
   }
 
 
-  case class StepRun(job_run_id: String,step_name: String,properties: String,state: String,start_time: String,elapsed_time:String,step_type:String,step_run_id:String)
-  case class StepRunDB(job_run_id: String,step_name: String,properties: String,state: String,elapsed_time:String,step_type:String,step_run_id:String, inserted_at:Long)
+  case class StepRun(job_run_id: String,step_name: String,properties: String,status: String,start_time: String,elapsed_time:String,step_type:String,step_run_id:String)
+  case class StepRunDB(job_run_id: String,step_name: String,properties: String,status: String,elapsed_time:String,step_type:String,step_run_id:String, inserted_at:Long)
   object StepRunDB extends SQLSyntaxSupport[StepRunDB] {
     def apply(rs: WrappedResultSet): StepRunDB =  StepRunDB(
       rs.string("job_run_id"), rs.string("step_name"), rs.string("properties"),
-      rs.string("state"), rs.string("elapsed_time"),
+      rs.string("status"), rs.string("elapsed_time"),
       rs.string("step_type"), rs.string("step_run_id") ,rs.long("inserted_at"))
   }
 
   def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
     Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLayer
 
-  private[etlflow] def liveLogServerDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBLogEnv with DBServerEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> (log.DBLiveImplementation.dbLogLayer ++ Implementation.dbServerLayer)
+  private[etlflow] def liveLogServerDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, LogEnv with DBServerEnv] =
+    Implementation.cpLayer(db, pool_name, pool_size) >>> (log.DBLogger.dbLogLayer ++ Implementation.dbServerLayer)
 
-  private[etlflow] def liveFullDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv with DBLogEnv with DBServerEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLayer ++ log.DBLiveImplementation.dbLogLayer ++ Implementation.dbServerLayer)
+  private[etlflow] def liveFullDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv with LogEnv with DBServerEnv] =
+    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLayer ++ log.DBLogger.dbLogLayer ++ Implementation.dbServerLayer)
 }

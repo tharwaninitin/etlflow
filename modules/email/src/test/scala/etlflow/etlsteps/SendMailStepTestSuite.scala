@@ -1,6 +1,5 @@
 package etlflow.etlsteps
 
-import etlflow.coretests.TestSuiteHelper
 import etlflow.schema.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
@@ -8,7 +7,7 @@ import zio.test._
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-object SendMailStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object SendMailStepTestSuite extends DefaultRunnableSpec {
 
   val emailBody: String = {
     val exec_time = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm").format(LocalDateTime.now)

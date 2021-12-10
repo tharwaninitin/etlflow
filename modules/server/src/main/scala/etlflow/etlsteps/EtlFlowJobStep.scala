@@ -14,10 +14,9 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
   final def process(in: =>Unit): RIO[CoreEnv, Unit] = {
     logger.info("#"*100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
-    val layer = etlflow.log.Implementation.live ++ etlflow.log.SlackImplementation.nolog ++ etlflow.log.ConsoleImplementation.live
     for {
       cfg <- Configuration.config
-      _   <- job_instance.execute(Some(job_run_id), Some("false")).provideSomeLayer[CoreEnv](layer ++ etlflow.log.DBLiveImplementation(cfg.db.get, "EtlFlowJobStep-" + name + "-Pool", 1))
+      _   <- job_instance.execute(Some(job_run_id)).provideSomeLayer[CoreEnv](etlflow.log.DBLogger(cfg.db.get, "EtlFlowJobStep-" + name + "-Pool", 1))
     } yield ()
   }
 

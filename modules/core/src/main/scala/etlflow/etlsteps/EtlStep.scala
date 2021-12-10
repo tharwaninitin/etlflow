@@ -1,9 +1,10 @@
 package etlflow.etlsteps
 
 import etlflow.core.{CoreEnv, CoreLogEnv}
-import etlflow.log.LogWrapperApi
+import etlflow.log.LogApi
 import etlflow.utils.ApplicationLogger
-import zio.{RIO, Task}
+import etlflow.utils.DateTimeApi
+import zio.{RIO, UIO}
 
 trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 
@@ -16,13 +17,12 @@ trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 
   final def execute(input_state: =>IPSTATE): RIO[CoreLogEnv, OPSTATE] = {
     for {
-      step_start_time <- Task.succeed(System.currentTimeMillis())
-      sri =  java.util.UUID.randomUUID.toString
-      _   <- LogWrapperApi.stepLogStart(step_start_time, self)
+      sri <- UIO(java.util.UUID.randomUUID.toString)
+      _   <- LogApi.logStepStart(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
       op  <- process(input_state).tapError{ex =>
-                LogWrapperApi.stepLogEnd(step_start_time, self, Some(ex))
+                LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp, Some(ex))
              }
-      _   <- LogWrapperApi.stepLogEnd(step_start_time, self)
+      _   <- LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
     } yield op
   }
 }

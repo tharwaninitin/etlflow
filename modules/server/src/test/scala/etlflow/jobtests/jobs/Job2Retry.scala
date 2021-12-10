@@ -1,12 +1,12 @@
 package etlflow.jobtests.jobs
 
-import etlflow.etljobs.GenericEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.GenericETLStep
 import zio.Schedule
 import zio.duration._
 import etlflow.jobtests.MyEtlJobProps.EtlJob2Props
 
-case class Job2Retry(job_properties: EtlJob2Props) extends GenericEtlJob[EtlJob2Props] {
+case class Job2Retry(job_properties: EtlJob2Props) extends EtlJob[EtlJob2Props] {
 
   //throw new RuntimeException("!! Error in job instance creation")
 

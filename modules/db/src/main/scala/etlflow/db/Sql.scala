@@ -39,7 +39,7 @@ private[etlflow] object Sql extends ApplicationLogger {
     sql"""SELECT job_run_id,
             step_name,
             properties::TEXT,
-            state,
+            status,
             elapsed_time,
             step_type,
             step_run_id,
@@ -63,7 +63,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                      job_run_id,
                      job_name,
                      properties::TEXT,
-                     state,
+                     status,
                      elapsed_time,
                      job_type,
                      is_master,
@@ -83,7 +83,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                      job_run_id,
                      job_name,
                      properties::TEXT,
-                     state,
+                     status,
                      elapsed_time,
                      job_type,
                      is_master,
@@ -107,7 +107,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                      job_run_id,
                      job_name,
                      properties::TEXT,
-                     state,
+                     status,
                      elapsed_time,
                      job_type,
                      is_master,
@@ -125,7 +125,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                    job_run_id,
                      job_name,
                      properties::TEXT,
-                     state,
+                     status,
                      elapsed_time,
                      job_type,
                      is_master,
@@ -147,7 +147,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                      job_run_id,
                      job_name,
                      properties::TEXT,
-                     state,
+                     status,
                      elapsed_time,
                      job_type,
                      is_master,
@@ -166,7 +166,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                      job_run_id,
                      job_name,
                      properties::TEXT,
-                     state,
+                     status,
                      elapsed_time,
                      job_type,
                      is_master,
@@ -190,18 +190,18 @@ private[etlflow] object Sql extends ApplicationLogger {
         sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
-                            WHEN state = 'pass'
+                            WHEN status = 'pass'
                             THEN sum(count) ELSE 0
                         END success,
                         CASE
-                            WHEN state != 'pass'
+                            WHEN status != 'pass'
                             THEN sum(count) ELSE 0
                         END failed
-                  FROM (select job_name, state,count(*) as count from jobrun
+                  FROM (select job_name, status,count(*) as count from jobrun
                   WHERE inserted_at >= ${end_time1} AND
                     inserted_at <= ${end_time2}
-                    GROUP by job_name,state limit ${args.limit}) t
-                    GROUP by job_name,state
+                    GROUP by job_name,status limit ${args.limit}) t
+                    GROUP by job_name,status
                   ) t1 GROUP by job_name;""".stripMargin
     }
     else if (args.filter.isDefined) {
@@ -212,20 +212,20 @@ private[etlflow] object Sql extends ApplicationLogger {
         sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
-                          WHEN state = 'pass'
+                          WHEN status = 'pass'
                           THEN sum(count)
                           ELSE 0
                       END success,
                       CASE
-                          WHEN state != 'pass'
+                          WHEN status != 'pass'
                           THEN sum(count)
                           ELSE 0
                       END failed
-               FROM (select job_name, state,count(*) as count from jobrun
+               FROM (select job_name, status,count(*) as count from jobrun
                   WHERE inserted_at >= ${end_time1} AND
                    inserted_at <= ${end_time2}
-                  GROUP by job_name,state limit 50) t
-                  GROUP by job_name,state
+                  GROUP by job_name,status limit 50) t
+                  GROUP by job_name,status
                ) t1 GROUP by job_name;""".stripMargin
     }
     else if (args.limit.isDefined) {
@@ -233,18 +233,18 @@ private[etlflow] object Sql extends ApplicationLogger {
         sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                SELECT job_name,
                       CASE
-                          WHEN state = 'pass'
+                          WHEN status = 'pass'
                           THEN sum(count)
                           ELSE 0
                       END success,
                       CASE
-                          WHEN state != 'pass'
+                          WHEN status != 'pass'
                           THEN sum(count)
                           ELSE 0
                       END failed
-               FROM (select job_name, state,count(*) as count from jobrun
-                  GROUP by job_name,state limit ${args.limit}) t
-                  GROUP by job_name,state
+               FROM (select job_name, status,count(*) as count from jobrun
+                  GROUP by job_name,status limit ${args.limit}) t
+                  GROUP by job_name,status
                ) t1 GROUP by job_name;""".stripMargin
     }
     else {
@@ -252,18 +252,18 @@ private[etlflow] object Sql extends ApplicationLogger {
         sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                  SELECT job_name,
                         CASE
-                            WHEN state = 'pass'
+                            WHEN status = 'pass'
                             THEN sum(count)
                             ELSE 0
                         END success,
                         CASE
-                            WHEN state != 'pass'
+                            WHEN status != 'pass'
                             THEN sum(count)
                             ELSE 0
                         END failed
-                 FROM (select job_name, state,count(*) as count from jobrun
-                    GROUP by job_name,state limit 20) t
-                    GROUP by job_name,state
+                 FROM (select job_name, status,count(*) as count from jobrun
+                    GROUP by job_name,status limit 20) t
+                    GROUP by job_name,status
                  ) t1 GROUP by job_name;""".stripMargin
     }
     q
@@ -292,45 +292,45 @@ private[etlflow] object Sql extends ApplicationLogger {
        AND credential.valid_to IS NULL
     """.stripMargin
 
-  def updateStepRun(job_run_id: String, step_name: String, props: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor] = {
+  def updateStepRun(step_run_id: String, props: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor] = {
     sql"""UPDATE StepRun
-            SET state = $status,
+            SET status = $status,
                 properties = ${JsonConverter(props)},
                 elapsed_time = $elapsed_time
-          WHERE job_run_id = $job_run_id AND step_name = $step_name"""
+          WHERE step_run_id = $step_run_id"""
   }
 
-  def insertStepRun(job_run_id: String, step_name: String, props: String, step_type: String, step_run_id: String, start_time: Long): SQL[Nothing, NoExtractor] = {
+  def insertStepRun(step_run_id: String, step_name: String, props: String, step_type: String, job_run_id: String, start_time: Long): SQL[Nothing, NoExtractor] = {
     sql"""INSERT INTO StepRun (
-           job_run_id,
+           step_run_id,
            step_name,
            properties,
-           state,
+           status,
            elapsed_time,
            step_type,
-           step_run_id,
+           job_run_id,
            inserted_at
            )
-         VALUES ($job_run_id, $step_name, ${JsonConverter(props)}, 'started', '...', $step_type, $step_run_id, $start_time)"""
+         VALUES ($step_run_id, $step_name, ${JsonConverter(props)}, 'started', '...', $step_type, $job_run_id, $start_time)"""
   }
 
-  def insertJobRun(job_run_id: String, job_name: String, props: String, job_type: String, is_master: String, start_time: Long): SQL[Nothing, NoExtractor]  = {
+  def insertJobRun(job_run_id: String, job_name: String, props: String, start_time: Long): SQL[Nothing, NoExtractor]  = {
     sql"""INSERT INTO JobRun(
             job_run_id,
             job_name,
             properties,
-            state,
+            status,
             elapsed_time,
             job_type,
             is_master,
             inserted_at
             )
-         VALUES ($job_run_id, $job_name,  ${JsonConverter(props)}, 'started', '...', $job_type, $is_master, $start_time)"""
+         VALUES ($job_run_id, $job_name,  ${JsonConverter(props)}, 'started', '...', '', '', $start_time)"""
   }
 
   def updateJobRun(job_run_id: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor]  = {
     sql""" UPDATE JobRun
-              SET state = $status,
+              SET status = $status,
                   elapsed_time = $elapsed_time
            WHERE job_run_id = $job_run_id"""
   }

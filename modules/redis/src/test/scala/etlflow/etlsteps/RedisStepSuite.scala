@@ -1,13 +1,12 @@
 package etlflow.etlsteps
 
-import etlflow.coretests.TestSuiteHelper
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.schema.Credential.REDIS
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
 
-object RedisStepSuite extends DefaultRunnableSpec with TestSuiteHelper {
+object RedisStepSuite extends DefaultRunnableSpec {
 
   val redis_config: REDIS = REDIS("localhost")
 

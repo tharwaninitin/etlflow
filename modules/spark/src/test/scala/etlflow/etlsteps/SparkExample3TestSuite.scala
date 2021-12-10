@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.TestSparkSession
 import etlflow.coretests.Schema.Rating
-import etlflow.coretests.TestSuiteHelper
 import etlflow.schema.Credential.JDBC
 import etlflow.spark.IOType.{PARQUET, RDB}
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
@@ -14,7 +13,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
 
-object SparkExample3TestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSparkSession with SparkUDF with ApplicationLogger {
+object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF with ApplicationLogger {
 
   val cred = JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))
   val jdbc = RDB(cred)

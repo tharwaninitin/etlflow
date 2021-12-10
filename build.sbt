@@ -57,7 +57,7 @@ lazy val serverSettings = Seq(
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ dbTestLibs,
+  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs,
 )
 
 lazy val httpSettings = Seq(

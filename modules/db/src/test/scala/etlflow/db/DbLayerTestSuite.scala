@@ -1,6 +1,6 @@
 package etlflow.db
 
-import etlflow.log.DBLogEnv
+import etlflow.log.LogEnv
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -19,7 +19,7 @@ object DbLayerTestSuite {
   val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0"))
   val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
 
-  val spec: ZSpec[environment.TestEnvironment with DBServerEnv with DBLogEnv with DBEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with DBServerEnv with LogEnv with DBEnv, Any] =
     (suite("Implementation Suite")(
       testM("getUser Test")(
         assertM(DBServerApi.getUser("admin").map(x => x.user_name))(equalTo("admin"))
@@ -57,17 +57,17 @@ object DbLayerTestSuite {
       testM("updateCredential Test")(
         assertM(DBServerApi.updateCredential(CredentialDB("AWS1","JDBC",JsonString("{}")), JsonString("{}")).map(x => x))(equalTo(Credentials("AWS1","JDBC",JsonString("{}").str)))
       ),
-      testM("updateStepRun Test")(
-        assertM(etlflow.log.DBApi.updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "download_spr", "{}", "pass", "").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      testM("logStepEnd Test")(
+        assertM(etlflow.log.LogApi.logStepEnd("a27a7415-57b2-4b53-8f9b-5254e847a301", "download_spr", Map.empty, "GenericStep", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       ),
-      testM("insertStepRun Test")(
-        assertM(etlflow.log.DBApi.insertStepRun("a27a7415-57b2-4b53-8f9b-5254e847a3011", "download_spr", "{}", "Generic", "123", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      testM("logStepStart Test")(
+        assertM(etlflow.log.LogApi.logStepStart("a27a7415-57b2-4b53-8f9b-5254e847a3011", "download_spr", Map.empty, "GenericStep", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       ),
-      testM("insertJobRun Test")(
-        assertM(etlflow.log.DBApi.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a3011", "download_spr", "{}", "Generic", "true", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      testM("logJobStart Test")(
+        assertM(etlflow.log.LogApi.logJobStart("a27a7415-57b2-4b53-8f9b-5254e847a3011", "download_spr", "{}", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       ),
-      testM("updateJobRun Test")(
-        assertM(etlflow.log.DBApi.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a3011", "pass", "").foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      testM("logJobEnd Test")(
+        assertM(etlflow.log.LogApi.logJobEnd("a27a7415-57b2-4b53-8f9b-5254e847a3011","download_spr", "{}",  0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       ),
       testM("refreshJobs Test")(
         assertM(DBServerApi.refreshJobs(List(EtlJob("Job1",Map.empty),EtlJob("Job2",Map.empty))).map(x => x))(equalTo(List(JobDB("Job1","",true),JobDB("Job2","",false))))

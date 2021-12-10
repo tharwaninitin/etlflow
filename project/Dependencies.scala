@@ -35,8 +35,6 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" % ZioConfig,
-    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "org.scalikejdbc" %% "scalikejdbc" % ScalaLikeJdbcVersion,
     "org.postgresql" % "postgresql" % PgVersion,
     "org.flywaydb" % "flyway-core" % FlywayVersion
@@ -55,6 +53,8 @@ object Dependencies {
 
   lazy val serverLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-config" % ZioConfig,
+    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
     "io.d11" %% "zhttp" % ZioHttpVersion,

@@ -1,6 +1,5 @@
 package etlflow
 
-import etlflow.coretests.TestSuiteHelper
 import etlflow.db.RunDbMigration
 import etlflow.etlsteps._
 import etlflow.executor._
@@ -9,7 +8,7 @@ import etlflow.jobtests.jobs.JobsTestSuite
 import etlflow.utils._
 import zio.test._
 
-object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper with ConfigHelper {
+object RunAllTestSuites extends DefaultRunnableSpec with ConfigHelper {
 
   zio.Runtime.default.unsafeRun(RunDbMigration(config.db.get,clean = true))
 
@@ -18,10 +17,9 @@ object RunAllTestSuites extends DefaultRunnableSpec with TestSuiteHelper with Co
     CredentialStepTestSuite(config).spec,
     DBStepTestSuite(config).spec,
     EtlFlowJobStepTestSuite(config).spec,
-    ParallelStepTestSuite(config).spec,
     LocalExecutorTestSuite.spec,
     LocalSubProcessExecutorTestSuite.spec,
     //SlackLoggingTestSuite.spec,
     ReflectionTestSuite.spec,
-  ).provideCustomLayerShared(fullCoreLayer ++ etlflow.json.Implementation.live ++ etlflow.crypto.Implementation.live(None))
+  ).provideCustomLayerShared(etlflow.log.nolog ++ etlflow.json.Implementation.live ++ etlflow.crypto.Implementation.live(None))
 }

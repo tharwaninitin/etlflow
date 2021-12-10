@@ -1,26 +1,16 @@
 package etlflow.log
 
-import etlflow.etlsteps.EtlStep
-import etlflow.log.SlackApi.Service
 import etlflow.schema.Slack
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
-import zio.{Task, UIO, ULayer, ZLayer}
+import zio.{Task, ULayer, ZIO, ZLayer}
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
 
-object SlackImplementation extends ApplicationLogger {
+object SlackLogger extends ApplicationLogger {
 
-  val nolog: ULayer[SlackLogEnv] = ZLayer.succeed(
-    new Service {
-      override def getSlackNotification: UIO[String] = UIO("")
-      override def logStepEnd(start_time: Long, etlstep: EtlStep[_, _], error_message: Option[String]): Task[Unit] = Task.unit
-      override def logJobEnd(job_name: String, job_run_id: String, start_time: Long, error_message: Option[String]): Task[Unit] = Task.unit
-    }
-  )
-
-  def live(slack: Option[Slack]): ULayer[SlackLogEnv] = {
+  def live(slack: Option[Slack]): ULayer[LogEnv] = {
     if (slack.isEmpty)
       nolog
     else
@@ -33,8 +23,8 @@ object SlackImplementation extends ApplicationLogger {
           val slack_url: String = slack.map(_.url).getOrElse("")
           val host_url: String = slack.map(_.host).getOrElse("http://localhost:8080/#") + "/JobRunDetails/"
 
-          private def finalMessageTemplate(job_name: String, exec_date: String, message: String, url: String, error_message: Option[String]): String = {
-            if (error_message.isEmpty) {
+          private def finalMessageTemplate(job_name: String, exec_date: String, message: String, url: String, error: Option[Throwable]): String = {
+            if (error.isEmpty) {
               /** Template for slack success message */
               final_message = final_message.concat(
                     f"""
@@ -57,7 +47,6 @@ object SlackImplementation extends ApplicationLogger {
               final_message
             }
           }
-
           private def sendSlackNotification(data: String): Unit = {
             Try {
               val conn = new URL(slack_url)
@@ -76,37 +65,36 @@ object SlackImplementation extends ApplicationLogger {
             }
           }
 
-          override def getSlackNotification: UIO[String] = UIO(final_message)
-
-          override def logStepEnd(start_time: Long, etlstep: EtlStep[_, _], error_message: Option[String]): Task[Unit] = Task {
+          override def logStepStart(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, start_time: Long): Task[Unit] = ZIO.unit
+          override def logStepEnd(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, end_time: Long, error: Option[Throwable]): Task[Unit] = Task {
             var slackMessageForSteps = ""
-            val elapsedTime = getTimeDifferenceAsString(start_time, getCurrentTimestamp)
-            val step_icon = if (error_message.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
+            val elapsedTime = getTimeDifferenceAsString(end_time, getCurrentTimestamp)
+            val step_icon = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
 
             // Update the slackMessageForSteps variable and get the information of step name and its execution time
-            slackMessageForSteps = step_icon + "*" + etlstep.name + "*" + " - (" + elapsedTime + ")"
+            slackMessageForSteps = step_icon + "*" + step_name + "*" + " - (" + elapsedTime + ")"
 
             // Update the slackMessageForSteps variable and get the information of etl steps properties
-            val error = error_message.map(msg => f"error -> $msg").getOrElse("")
+            val error_message = error.map(msg => f"error -> ${msg.getMessage}").getOrElse("")
 
             if (error.isEmpty)
               slackMessageForSteps = slackMessageForSteps
             else
-              slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + error)
+              slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + error_message)
 
             // Concatenate all the messages with finalSlackMessage
             final_step_message = final_step_message.concat(slackMessageForSteps)
           }
-
-          override def logJobEnd(job_name: String, job_run_id: String, start_time: Long, error_message: Option[String]): Task[Unit] = Task {
-            val execution_date_time = getTimestampAsString(start_time) // Add time difference in this expression
+          override def logJobStart(job_run_id: String, job_name: String, args: String, start_time: Long): Task[Unit] = ZIO.unit
+          override def logJobEnd(job_run_id: String, job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] = Task {
+            val execution_date_time = getTimestampAsString(end_time) // Add time difference in this expression
 
             val data = finalMessageTemplate(
               job_name,
               execution_date_time,
               final_step_message,
               host_url + job_run_id,
-              error_message
+              error
             )
 
             sendSlackNotification(data)

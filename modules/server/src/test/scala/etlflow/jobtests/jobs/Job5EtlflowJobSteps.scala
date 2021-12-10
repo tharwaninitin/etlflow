@@ -1,10 +1,10 @@
 package etlflow.jobtests.jobs
 
 import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
-import etlflow.etljobs.GenericEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.EtlFlowJobStep
 
-case class Job5EtlflowJobSteps(job_properties: EtlJob1Props) extends GenericEtlJob[EtlJob1Props] {
+case class Job5EtlflowJobSteps(job_properties: EtlJob1Props) extends EtlJob[EtlJob1Props] {
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")

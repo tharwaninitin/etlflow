@@ -2,16 +2,16 @@ package etlflow.jobtests.jobs
 
 import etlflow.coretests.Schema.EtlJobRun
 import etlflow.jobtests.MyEtlJobProps.EtlJob4Props
-import etlflow.coretests.{Schema, TestSuiteHelper}
+import etlflow.coretests.Schema
 import etlflow.crypto.CryptoApi
-import etlflow.etljobs.GenericEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps._
 import etlflow.jobtests.ConfigHelper
 import etlflow.schema.Credential.JDBC
 import io.circe.generic.auto._
 import zio.Runtime.default.unsafeRun
 
-case class Job3DBSteps(job_properties: EtlJob4Props) extends GenericEtlJob[EtlJob4Props] with TestSuiteHelper with ConfigHelper {
+case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] with ConfigHelper {
 
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 

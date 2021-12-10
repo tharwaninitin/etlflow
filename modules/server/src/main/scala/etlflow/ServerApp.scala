@@ -35,10 +35,9 @@ abstract class ServerApp[T <: EJPMType : Tag]
     executor    = Executor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
     dbLayer     = liveLogServerDB(config.db.get, pool_size = 10)
-    logLayer    = log.Implementation.live
     cryptoLayer = crypto.Implementation.live(config.secretkey)
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)
-    finalLayer   = apiLayer ++ dbLayer ++ cryptoLayer ++ logLayer
+    finalLayer  = apiLayer ++ dbLayer ++ cryptoLayer
     scheduler   = etlFlowScheduler(jobs).supervised(supervisor)
     webserver   = etlFlowWebServer(auth, config.webserver)
     _           <- scheduler.zipPar(webserver).provideSomeLayer[CacheEnv with JsonEnv with Blocking with Clock](finalLayer).toManaged_

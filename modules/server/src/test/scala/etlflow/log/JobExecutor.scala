@@ -2,20 +2,17 @@ package etlflow.log
 
 import etlflow.core.CoreLogEnv
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
-import zio.blocking.Blocking
-import zio.clock.Clock
-import zio.{UIO, ZIO}
+import zio.ZIO
 
 object JobExecutor {
-  def apply(job_name: String, jri: String, job: ZIO[CoreLogEnv, Throwable, Unit]): ZIO[SlackLogEnv with Blocking with Clock, Throwable, Unit] = {
+  def apply(job_name: String, jri: String, job: ZIO[CoreLogEnv, Throwable, Unit]): ZIO[CoreLogEnv, Throwable, Unit] = {
     (for {
-      job_start_time <- UIO.succeed(getCurrentTimestamp)
-      _ <- LogWrapperApi.setJobRunId(jri)
-      _ <- LogWrapperApi.jobLogStart(job_start_time, "GenericEtlJob", job_name, "{}", "false")
+      _ <- LogApi.setJobRunId(jri)
+      _ <- LogApi.logJobStart(jri, job_name, "{}", getCurrentTimestamp)
       _ <- job.foldM(
-        ex => LogWrapperApi.jobLogEnd(job_start_time, jri, job_name, Some(ex)).unit,
-        _ => LogWrapperApi.jobLogEnd(job_start_time, jri, job_name)
+        ex => LogApi.logJobEnd(jri, job_name, "{}", getCurrentTimestamp, Some(ex)),
+        _ => LogApi.logJobEnd(jri, job_name, "{}", getCurrentTimestamp)
       )
-    } yield ()).provideSomeLayer[SlackLogEnv with Blocking with Clock](etlflow.log.Implementation.live ++ etlflow.log.ConsoleImplementation.live ++ etlflow.log.DBNoLogImplementation())
+    } yield ())
   }
 }

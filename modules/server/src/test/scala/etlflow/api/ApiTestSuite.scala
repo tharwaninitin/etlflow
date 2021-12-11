@@ -9,8 +9,16 @@ import zio.test._
 
 case class ApiTestSuite(credential: JDBC) {
 
-  val jobLogs = List(JobLogs("EtlJobDownload","1","0"), JobLogs("EtlJobSpr","1","0")).sortBy(_.job_name)
-  val getCredential = List(GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"))
+  val jobLogs = List(
+    JobLogs("EtlJobDownload","1","0"),
+    JobLogs("EtlJobSpr","1","0"),
+    JobLogs("Job1","2","0"),
+    JobLogs("etlflow.jobtests.jobs.Job1HelloWorld","2","0")
+  ).sortBy(_.job_name)
+  val getCredential = List(
+    GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"),
+    GetCredential("etlflow", "jdbc", "2021-12-11 12:04:06.225525")
+  )
 
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
     suite("Server Api")(
@@ -27,7 +35,7 @@ case class ApiTestSuite(credential: JDBC) {
         assertM(Service.getJobLogs(JobLogsArgs(None,Some(10L))).map(x => x.sortBy(_.job_name)))(equalTo(jobLogs))
       ),
       testM("getCredentials Test")(
-        assertM(Service.getCredentials.map(x => x))(equalTo(getCredential))
+        assertM(Service.getCredentials.map(x => x.map(_.name)))(equalTo(getCredential.map(_.name)))
       ),
       testM("getJobStats Test")(
         assertM(Service.getJobStats.map(x => x))(equalTo(List.empty))

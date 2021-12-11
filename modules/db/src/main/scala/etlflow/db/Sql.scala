@@ -325,7 +325,7 @@ private[etlflow] object Sql extends ApplicationLogger {
             is_master,
             inserted_at
             )
-         VALUES ($job_run_id, $job_name,  ${JsonConverter(props)}, 'started', '...', '', '', $start_time)"""
+         VALUES ($job_run_id, $job_name,  ${JsonConverter(props)}, 'started', '...', '', 'true', $start_time)"""
   }
 
   def updateJobRun(job_run_id: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor]  = {

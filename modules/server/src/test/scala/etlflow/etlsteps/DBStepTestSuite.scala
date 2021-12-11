@@ -41,9 +41,9 @@ case class DBStepTestSuite(config: Config) {
         )
         val step3 = DBReadStep[EtlJobRun](
           name = "FetchEtlJobRun",
-          query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10",
+          query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10",
           credentials = JDBC(config.db.get.url, config.db.get.user, config.db.get.password, "org.postgresql.Driver")
-        )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
+        )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
 
         val job = for {
           _ <- step1.process(())

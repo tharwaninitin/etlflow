@@ -1,12 +1,11 @@
 package examples.jobs
 
-import etlflow.EtlStepList
-import etlflow.etljobs.SequentialEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
 import etlflow.utils.Configuration
 import examples.schema.MyEtlJobProps.EtlJob4Props
 
-case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends SequentialEtlJob[EtlJob4Props]{
+case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props]{
 
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
 
@@ -43,5 +42,10 @@ case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends SequentialEtl
     credentials = config.db.get
   )
 
-  val etlStepList = EtlStepList(step1,step2,step3,step4)
+  override val job = for {
+    -  <- step1.execute(())
+    -  <- step2.execute(())
+    -  <- step3.execute(())
+    -  <- step4.execute(())
+  } yield ()
 }

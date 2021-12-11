@@ -1,14 +1,14 @@
 package examples.jobs
 
-import etlflow.etljobs.GenericEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.GenericETLStep
 import examples.schema.MyEtlJobProps.LocalSampleProps
 
-case class EtlJobGenericStep(job_properties: LocalSampleProps) extends GenericEtlJob[LocalSampleProps] {
+case class EtlJobGenericStep(job_properties: LocalSampleProps) extends EtlJob[LocalSampleProps] {
 
   def processData(ip: Unit): Unit = {
     logger.info("Hello World")
-    throw  new RuntimeException("Error123")
+    throw new RuntimeException("Error123")
   }
 
   val step1 = {
@@ -20,7 +20,7 @@ case class EtlJobGenericStep(job_properties: LocalSampleProps) extends GenericEt
 
   val step2 = {
     GenericETLStep(
-      name               = "Step    2",
+      name               = "Step_2",
       transform_function = processData,
     )
   }
@@ -36,6 +36,5 @@ case class EtlJobGenericStep(job_properties: LocalSampleProps) extends GenericEt
     -  <- step1.execute(())
     -  <- step2.execute(())
     -  <- step3.execute(())
-
   } yield ()
 }

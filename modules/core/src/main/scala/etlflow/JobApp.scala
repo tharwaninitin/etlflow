@@ -25,13 +25,6 @@ trait JobApp extends ApplicationLogger with App {
     } yield ()
   }
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    execute(args).provideSomeLayer[ZEnv](log_layer).catchAll{err =>
-      UIO {
-        logger.error(err.getMessage)
-        err.getStackTrace.foreach(x => logger.error(x.toString))
-      }
-    }
-  }.exitCode
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = execute(args).provideSomeLayer[ZEnv](log_layer).exitCode
 }
 

@@ -1,13 +1,13 @@
 package examples.jobs
 
 import com.google.cloud.bigquery.Schema
-import etlflow.etljobs.GenericEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.BQLoadStep
 import etlflow.gcp.{BQInputType, getBqSchema}
 import examples.schema.MyEtlJobProps.EtlJob2Props
 import examples.schema.MyEtlJobSchema.RatingBQ
 
-case class EtlJobBqLoadStepWithSchema(job_properties: EtlJob2Props) extends GenericEtlJob[EtlJob2Props] {
+case class EtlJobBqLoadStepWithSchema(job_properties: EtlJob2Props) extends EtlJob[EtlJob2Props] {
   private val job_props = job_properties
 
   val schema: Option[Schema] = getBqSchema[RatingBQ]
@@ -20,7 +20,5 @@ case class EtlJobBqLoadStepWithSchema(job_properties: EtlJob2Props) extends Gene
     schema = schema
   )
 
-  val job = for {
-    _ <- step1.execute(())
-   } yield ()
+  val job = step1.execute(())
 }

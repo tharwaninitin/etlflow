@@ -58,7 +58,7 @@ package object db {
       rs.longOpt("last_run_time"))
   }
 
-  case class JobRun(job_run_id: String,job_name: String,properties: String,status: String,start_time: String,elapsed_time: String,job_type: String,is_master:String)
+  case class JobRun(job_run_id: String,job_name: String,properties: String,state: String,start_time: String,elapsed_time: String,job_type: String,is_master:String)
   case class JobRunDB(job_run_id: String,job_name: String,properties: String,status: String,elapsed_time: String,job_type: String,is_master:String,inserted_at:Long)
   object JobRunDB extends SQLSyntaxSupport[JobRunDB] {
     def apply(rs: WrappedResultSet): JobRunDB =  JobRunDB(
@@ -68,7 +68,7 @@ package object db {
   }
 
 
-  case class StepRun(job_run_id: String,step_name: String,properties: String,status: String,start_time: String,elapsed_time:String,step_type:String,step_run_id:String)
+  case class StepRun(job_run_id: String,step_name: String,properties: String,state: String,start_time: String,elapsed_time:String,step_type:String,step_run_id:String)
   case class StepRunDB(job_run_id: String,step_name: String,properties: String,status: String,elapsed_time:String,step_type:String,step_run_id:String, inserted_at:Long)
   object StepRunDB extends SQLSyntaxSupport[StepRunDB] {
     def apply(rs: WrappedResultSet): StepRunDB =  StepRunDB(

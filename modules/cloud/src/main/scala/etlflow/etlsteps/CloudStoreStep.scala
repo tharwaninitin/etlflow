@@ -6,9 +6,9 @@ import blobstore.gcs.GcsStore
 import blobstore.s3.S3Store
 import blobstore.url.{Authority, FsObject, Path, Url}
 import cats.syntax.all._
-import etlflow.aws.S3CustomClient
+import etlflow.aws.{S3, S3CustomClient}
+import etlflow.cloud.Location
 import etlflow.gcp.GCS
-import etlflow.schema.Location
 import fs2.{Pipe, Stream}
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -42,7 +42,7 @@ case class CloudStoreStep[T] (
         inputStorePath = Url("gs", inputBucket, Path(input_location.location))
         GcsStore[Task](storage, List.empty)
       case location: Location.S3 =>
-        val storage = S3CustomClient(location)
+        val storage = S3CustomClient(S3(location.bucket,location.location,location.region,location.credentials))
         inputStorePath = Url("s3", inputBucket, Path(input_location.location))
         S3Store[Task](storage)
       case _: Location.LOCAL =>

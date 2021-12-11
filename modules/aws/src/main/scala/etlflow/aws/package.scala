@@ -1,5 +1,6 @@
 package etlflow
 
+import etlflow.schema.Credential
 import etlflow.schema.Credential.AWS
 import etlflow.utils.ApplicationLogger
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
@@ -7,10 +8,11 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
 import zio.{Has, Task, ZIO}
-
 import java.net.URI
 
 package object aws extends ApplicationLogger {
+
+  case class S3(bucket:String, location: String, region: String, credentials: Option[Credential.AWS] = None)
 
   type S3Api = Has[Service]
   private[etlflow] trait Service {

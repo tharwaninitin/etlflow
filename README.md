@@ -30,20 +30,20 @@ You can use this library in different ways mentioned below.
 
 ## Scala Version Compatibility Matrix
 ### Main Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | **Core**           | ✅                   | ✅          | ✅          |
-| **Server**         | ✅                   | ✅          | ✅          |
+| **Server**         | ✅                   | ✅          | ❌          |
 
 ### Server Internal Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | Json               | ✅                   | ✅          | ✅          |
 | Cache              | ✅                   | ✅          | ✅          |
 | Crypto             | ✅                   | ✅          | ✅          |
 
 ### Addon Modules For Core
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | Db                 | ✅                   | ✅          | ✅          |
 | Http               | ✅                   | ✅          | ✅          |

@@ -87,7 +87,7 @@ private[etlflow] object GCS extends ApplicationLogger {
           val blobInfo = BlobInfo.newBuilder(blobId).build
           storage.create(blobInfo, Files.readAllBytes(Paths.get(file)))
         }
-        override def copyObjects(src_bucket: String, src_prefix: String, target_bucket: String, target_prefix: String, parallelism: Int, overwrite: Boolean): Task[Unit] = {
+        override def copyObjectsGCStoGCS(src_bucket: String, src_prefix: String, target_bucket: String, target_prefix: String, parallelism: Int, overwrite: Boolean): Task[Unit] = {
           for {
             src_blobs <- listObjects(src_bucket, src_prefix)
             target_blobs <- listObjects(target_bucket, target_prefix)
@@ -100,6 +100,8 @@ private[etlflow] object GCS extends ApplicationLogger {
             })
           } yield ()
         }
+
+        override def copyObjectsLOCALtoGCS(src_path: String, target_bucket: String, target_prefix: String, parallelism: Int, overwrite: Boolean): Task[Unit] = ???
       }
     }
   }

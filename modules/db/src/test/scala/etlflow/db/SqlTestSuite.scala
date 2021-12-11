@@ -72,7 +72,7 @@ object SqlTestSuite  {
             is_master,
             inserted_at
             )
-         VALUES (?, ?,  ?, 'started', '...', '', '', ?)"""
+         VALUES (?, ?,  ?, 'started', '...', '', 'true', ?)"""
             assert(ip)(equalTo(op))
         }),
         test("insertStepRun Sql")({

@@ -30,6 +30,15 @@ case class GCSCopyStep(
                     } yield ()
     runnable
   }
+
+  override def getStepProperties: Map[String, String] =
+    Map(
+      "name" -> name,
+      "input" -> input.toString,
+      "output" -> output.toString,
+      "parallelism" -> parallelism.toString,
+      "overwrite" -> overwrite.toString
+    )
 }
 
 

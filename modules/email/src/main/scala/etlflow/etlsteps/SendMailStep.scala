@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.email.MailClientApi
 import etlflow.schema.Credential.SMTP
-import etlflow.schema.LoggingLevel
 import zio.Task
 
 case class SendMailStep(
@@ -22,7 +21,7 @@ case class SendMailStep(
     MailClientApi.sendMail(sender,recipient_list,body,subject,credentials)
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipient_list.mkString(","))
+  override def getStepProperties: Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipient_list.mkString(","))
 }
 
 

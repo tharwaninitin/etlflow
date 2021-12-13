@@ -52,7 +52,7 @@ object SqlTestSuite  {
         }),
         test("updateJobRun Sql")({
             val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "").statement.replaceAll("\\s+", " ").trim
-            val op = """UPDATE JobRun SET state = ?, elapsed_time = ? WHERE job_run_id = ?"""
+            val op = """UPDATE JobRun SET status = ?, elapsed_time = ? WHERE job_run_id = ?"""
             assert(ip)(equalTo(op))
         }),
         test("updateJobRun Params")({
@@ -61,23 +61,18 @@ object SqlTestSuite  {
             assert(ip)(equalTo(op))
         }),
         test("insertJobRun Sql")({
-            val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123",
-                "Job5",
-                "",
-                "",
-                "",
-                0L).statement
+            val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", 0L).statement
             val op = """INSERT INTO JobRun(
             job_run_id,
             job_name,
             properties,
-            state,
+            status,
             elapsed_time,
             job_type,
             is_master,
             inserted_at
             )
-         VALUES (?, ?,  ?, 'started', '...', ?, ?, ?)"""
+         VALUES (?, ?,  ?, 'started', '...', '', 'true', ?)"""
             assert(ip)(equalTo(op))
         }),
         test("insertStepRun Sql")({
@@ -88,26 +83,22 @@ object SqlTestSuite  {
                 "123",
                 0L).statement
             val op = """INSERT INTO StepRun (
-           job_run_id,
+           step_run_id,
            step_name,
            properties,
-           state,
+           status,
            elapsed_time,
            step_type,
-           step_run_id,
+           job_run_id,
            inserted_at
            )
          VALUES (?, ?, ?, 'started', '...', ?, ?, ?)"""
             assert(ip)(equalTo(op))
         }),
         test("updateStepRun Sql")({
-            val ip = Sql.updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123",
-                "Generic",
-                "{}",
-                "success",
-                "123"
+            val ip = Sql.updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123"
             ).statement.replaceAll("\\s+", " ")
-            val op = """UPDATE StepRun SET state = ?, properties = ?, elapsed_time = ? WHERE job_run_id = ? AND step_name = ?"""
+            val op = """UPDATE StepRun SET status = ?, properties = ?, elapsed_time = ? WHERE step_run_id = ?"""
             assert(ip)(equalTo(op))
         }),
         test("updateCredentials Sql")({
@@ -168,7 +159,7 @@ object SqlTestSuite  {
         test("getJobLogs Sql")({
             val jobLogsArgs =  JobLogsArgs(None,None)
             val ip = Sql.getJobLogs(jobLogsArgs).statement.replaceAll("\\s+", " ").trim
-            val op = """SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from ( SELECT job_name, CASE WHEN state = 'pass' THEN sum(count) ELSE 0 END success, CASE WHEN state != 'pass' THEN sum(count) ELSE 0 END failed FROM (select job_name, state,count(*) as count from jobrun GROUP by job_name,state limit 20) t GROUP by job_name,state ) t1 GROUP by job_name;"""
+            val op = """SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from ( SELECT job_name, CASE WHEN status = 'pass' THEN sum(count) ELSE 0 END success, CASE WHEN status != 'pass' THEN sum(count) ELSE 0 END failed FROM (select job_name, status,count(*) as count from jobrun GROUP by job_name,status limit 20) t GROUP by job_name,status ) t1 GROUP by job_name;"""
             assert(ip)(equalTo(op))
         }),
         test("getJobLogs Params")({
@@ -179,7 +170,7 @@ object SqlTestSuite  {
         test("getJobRuns Sql")({
             val dbJobRunArgs =  DbJobRunArgs(Some("a27a7415-57b2-4b53-8f9b-5254e847a301"), Some("Job1"), None, None, None, 10, 10)
             val ip = Sql.getJobRuns(dbJobRunArgs).statement.replaceAll("\\s+", " ").trim
-            val op = """SELECT job_run_id, job_name, properties::TEXT, state, elapsed_time, job_type, is_master, inserted_at FROM jobRun WHERE is_master = 'true' ORDER BY inserted_at DESC offset ? limit ?"""
+            val op = """SELECT job_run_id, job_name, properties::TEXT, status, elapsed_time, job_type, is_master, inserted_at FROM jobRun WHERE is_master = 'true' ORDER BY inserted_at DESC offset ? limit ?"""
             assert(ip)(equalTo(op))
         }),
         test("getJobRuns Params")({
@@ -189,7 +180,7 @@ object SqlTestSuite  {
         }),
         test("getStepRuns Sql")({
             val ip = Sql.getStepRuns("a27a7415-57b2-4b53-8f9b-5254e847a301").statement.replaceAll("\\s+", " ").trim
-            val op = """SELECT job_run_id, step_name, properties::TEXT, state, elapsed_time, step_type, step_run_id, inserted_at FROM StepRun WHERE job_run_id = ? ORDER BY inserted_at DESC"""
+            val op = """SELECT job_run_id, step_name, properties::TEXT, status, elapsed_time, step_type, step_run_id, inserted_at FROM StepRun WHERE job_run_id = ? ORDER BY inserted_at DESC"""
             assert(ip)(equalTo(op))
         }),
         test("getStepRuns Params")({

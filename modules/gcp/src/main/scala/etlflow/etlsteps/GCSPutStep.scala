@@ -26,6 +26,14 @@ class GCSPutStep private[etlsteps](
                     } yield ()
     runnable
   }
+
+  override def getStepProperties: Map[String, String] =
+    Map(
+      "name" -> name,
+      "bucket" -> bucket,
+      "key" -> key,
+      "file" -> file,
+    )
 }
 
 object GCSPutStep {

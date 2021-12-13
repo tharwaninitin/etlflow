@@ -6,29 +6,39 @@ import zio.Task
 
 case class GCSCopyStep(
                    name: String
-                   ,src_bucket: String
-                   ,src_prefix: String
-                   ,target_bucket: String
-                   ,target_prefix: String
+                   ,input: Location
+                   ,output: Location
                    ,parallelism: Int
                    ,overwrite: Boolean = true
                    ,credentials: Option[GCP] = None
                  ) extends EtlStep[Unit,Unit] {
   override def process(input_state: => Unit): Task[Unit] = {
-    val env       = GCS.live(credentials)
-    val program   = GCSApi.copyObjects(src_bucket,src_prefix,target_bucket,target_prefix,parallelism,overwrite)
+    val env = GCS.live(credentials)
+    val program = (input, output) match {
+      case (src @ Location.GCS(_,_), tgt @ Location.GCS(_,_)) => GCSApi.copyObjectsGCStoGCS(src.bucket,src.path,tgt.bucket,tgt.path,parallelism,overwrite)
+      case (src @ Location.LOCAL(_), tgt @ Location.GCS(_,_)) => GCSApi.copyObjectsLOCALtoGCS(src.path,tgt.bucket,tgt.path,parallelism,overwrite)
+      case (src, tgt) => Task(throw new RuntimeException(s"Copying data between source $src to target $tgt is not implemented yet"))
+    }
     val runnable  = for {
                       _   <- Task.succeed(logger.info("#"*100))
-                      _   <- Task.succeed(logger.info(s"Source GCS path gs://$src_bucket/$src_prefix"))
-                      _   <- Task.succeed(logger.info(s"Target GCS path gs://$target_bucket/$target_prefix"))
-                      _   <- program.provideLayer(env).foldM(
-                              ex => Task.succeed(logger.error(ex.getMessage)) *> Task.fail(ex),
-                              _  => Task.succeed(logger.info(s"Successfully copied objects"))
+                      _   <- Task.succeed(logger.info(s"Source Filesystem $input"))
+                      _   <- Task.succeed(logger.info(s"Target Filesystem $output"))
+                      _   <- program.provideLayer(env).tapError(
+                              ex => Task.succeed(logger.error(ex.getMessage)),
                             )
-                      _   <- Task.succeed(logger.info("#"*100))
+                      _   <- Task.succeed(logger.info(s"Successfully copied objects"+"\n"+"#"*100))
                     } yield ()
     runnable
   }
+
+  override def getStepProperties: Map[String, String] =
+    Map(
+      "name" -> name,
+      "input" -> input.toString,
+      "output" -> output.toString,
+      "parallelism" -> parallelism.toString,
+      "overwrite" -> overwrite.toString
+    )
 }
 
 

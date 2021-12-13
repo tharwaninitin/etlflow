@@ -1,7 +1,6 @@
 # EtlFlow
 
 [![Core Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml)
-[![Job Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/job.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/job.yml)
 [![Server Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
@@ -30,23 +29,21 @@ You can use this library in different ways mentioned below.
 ![ModuleDepGraph](moduleDep.png)
 
 ## Scala Version Compatibility Matrix
-### Internal Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
+### Main Modules
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
-| Utils              | ✅                   | ✅          | ✅          |
+| **Core**           | ✅                   | ✅          | ✅          |
+| **Server**         | ✅                   | ✅          | ❌          |
+
+### Server Internal Modules
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
+| -------------------|:--------------------:| -----------:| ----------:|
 | Json               | ✅                   | ✅          | ✅          |
 | Cache              | ✅                   | ✅          | ✅          |
 | Crypto             | ✅                   | ✅          | ✅          |
 
-### Main Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
-| -------------------|:--------------------:| -----------:| ----------:|
-| **Core**           | ✅                   | ✅          | ✅          |
-| **Job**            | ✅                   | ✅          | ✅          |
-| **Server**         | ✅                   | ✅          | ✅          |
-
 ### Addon Modules For Core
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.0  | 
+| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | Db                 | ✅                   | ✅          | ✅          |
 | Http               | ✅                   | ✅          | ✅          |

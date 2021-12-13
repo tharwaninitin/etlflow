@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.gcp._
 import etlflow.schema.Credential.GCP
-import etlflow.schema.LoggingLevel
 import zio.Task
 
 class BQQueryStep private[etlflow](
@@ -20,7 +19,7 @@ class BQQueryStep private[etlflow](
     BQApi.executeQuery(query).provideLayer(env)
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
+  override def getStepProperties: Map[String, String] = Map("query" -> query)
 }
 
 object BQQueryStep {

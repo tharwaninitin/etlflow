@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.db.{DBApi, liveDB}
 import etlflow.schema.Credential.JDBC
-import etlflow.schema.LoggingLevel
 import zio.RIO
 import zio.blocking.Blocking
 
@@ -16,7 +15,7 @@ class DBQueryStep private(val name: String, query: => String, credentials: JDBC,
     DBApi.executeQuery(query).provideLayer(liveDB(credentials, name + "-Pool", pool_size))
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
+  override def getStepProperties: Map[String, String] = Map("query" -> query)
 }
 
 object DBQueryStep {

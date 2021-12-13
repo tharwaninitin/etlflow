@@ -47,3 +47,4 @@ object Configuration {
     TypesafeConfigSource.fromDefaultLoader
       .flatMap(source => ZIO.fromEither(read(applicationConf from source)))
 }
+

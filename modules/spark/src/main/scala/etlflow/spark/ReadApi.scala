@@ -1,6 +1,5 @@
 package etlflow.spark
 
-import etlflow.schema.LoggingLevel
 import etlflow.spark.IOType._
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql._
@@ -40,17 +39,12 @@ object ReadApi extends  ApplicationLogger {
     df
   }
 
-  def LoadDSHelper[T <: Product : TypeTag](level: LoggingLevel,location: Seq[String], input_type: IOType, where_clause : String = "1 = 1") : Map[String,String] = {
+  def LoadDSHelper[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause : String = "1 = 1") : Map[String,String] = {
     val mapping = Encoders.product[T]
-    if (level == LoggingLevel.INFO){
-      Map("input_location"->location.mkString(",")
-        , "input_type"->input_type.toString
-      )}else{
       Map("input_location"->location.mkString(",")
         , "input_type"->input_type.toString
         , "input_class" -> mapping.schema.toDDL
       )
-    }
   }
 
   def LoadDS[T <: Product : TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(spark: SparkSession) : Dataset[T] = {

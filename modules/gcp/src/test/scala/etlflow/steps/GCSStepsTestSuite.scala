@@ -2,9 +2,11 @@ package etlflow.steps
 
 import etlflow.GcpTestHelper
 import etlflow.etlsteps.{GCSCopyStep, GCSPutStep, GCSSensorStep}
+import etlflow.gcp.Location.{GCS, LOCAL}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
+
 import scala.concurrent.duration._
 
 object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
@@ -41,13 +43,20 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute GCSCopy step") {
+      testM("Execute GCSCopy step GCS to GCS") {
         val step = GCSCopyStep(
           name = "CopyStep",
-          src_bucket = gcs_bucket,
-          src_prefix = "temp",
-          target_bucket = gcs_bucket,
-          target_prefix = "temp2",
+          input = GCS(gcs_bucket,"temp"),
+          output = GCS(gcs_bucket,"temp2"),
+          parallelism = 2
+        )
+        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute GCSCopy step LOCAL to GCS") {
+        val step = GCSCopyStep(
+          name = "CopyStep",
+          input = LOCAL("/local/path"),
+          output = GCS(gcs_bucket,"temp2"),
           parallelism = 2
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

@@ -57,13 +57,7 @@ lazy val serverSettings = Seq(
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs,
-)
-
-lazy val utilsSettings = Seq(
-  name := "etlflow-utils",
-  crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  utilsLibs ++ zioTestLibs,
+  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs,
 )
 
 lazy val httpSettings = Seq(
@@ -119,16 +113,11 @@ lazy val root = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip := true
   )
-  .aggregate(utils,db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
-
-lazy val utils = (project in file("modules/utils"))
-  .settings(commonSettings)
-  .settings(utilsSettings)
+  .aggregate(db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
 
 lazy val json = (project in file("modules/json"))
   .settings(commonSettings)
   .settings(jsonSettings)
-  .dependsOn(utils % "test")
 
 lazy val db = (project in file("modules/db"))
   .settings(commonSettings)
@@ -142,7 +131,6 @@ lazy val crypto = (project in file("modules/crypto"))
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
-  .dependsOn(utils)
 
 lazy val server = (project in file("modules/server"))
   .settings(commonSettings)

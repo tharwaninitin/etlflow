@@ -1,19 +1,15 @@
 package json
 
 import etlflow.json.{Implementation, JsonApi}
-import etlflow.schema.{Executor, LoggingLevel}
-import io.circe.generic.semiauto.deriveEncoder
-import json.Schema.Student
+import etlflow.schema.{Executor, LoggingLevel, Student}
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
-import io.circe.Decoder
-import io.circe.Encoder
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-
-import scala.language.implicitConversions
-import etlflow.schema.Credential.{AWS, JDBC}
 
 object JsonTestSuite  extends DefaultRunnableSpec {
+
+  given studentDecoder: Decoder[Student] = deriveDecoder[Student]
 
   given encodeLoggingLevel: Encoder[LoggingLevel] = Encoder[String].contramap {
     case LoggingLevel.INFO => "info"

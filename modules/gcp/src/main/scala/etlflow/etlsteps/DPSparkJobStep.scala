@@ -19,4 +19,13 @@ case class DPSparkJobStep(
     logger.info(s"Starting Dataproc Spark Job")
     DPApi.executeSparkJob(args,main_class,libs).provideLayer(env)
   }
+
+  override def getStepProperties: Map[String, String] =
+    Map(
+      "name" -> name,
+      "args" -> args.mkString(" "),
+      "config" -> config.toString,
+      "main_class" -> main_class,
+      "libs" -> libs.mkString(",")
+    )
 }

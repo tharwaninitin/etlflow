@@ -22,16 +22,7 @@ case class JobsTestSuite(config: Config) {
       assertM(job(args).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     } ,
     testM("Execute Job1HelloWorld using EtlJob") {
-
       assertM(job1.execute().foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
-    test("Execute getJobInfo") {
-      val jobInfo = job1.getJobInfo()
-      assert(jobInfo.map(x=>x._1))(equalTo(List("ProcessData")))
-    },
-    test("Execute printJobInfo") {
-      job1.printJobInfo()
-      assert("Ok")(equalTo("Ok"))
-    }
   ) @@ TestAspect.sequential @@ TestAspect.eventually @@ TestAspect.timeout(1.minute)
 }

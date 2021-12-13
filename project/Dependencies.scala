@@ -5,6 +5,7 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
+    "org.slf4j" % "slf4j-api" % Sl4jVersion
   )
 
   lazy val cloudLibs = List(
@@ -34,8 +35,6 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "dev.zio" %% "zio-config" % ZioConfig,
-    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "org.scalikejdbc" %% "scalikejdbc" % ScalaLikeJdbcVersion,
     "org.postgresql" % "postgresql" % PgVersion,
     "org.flywaydb" % "flyway-core" % FlywayVersion
@@ -54,6 +53,8 @@ object Dependencies {
 
   lazy val serverLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
+    "dev.zio" %% "zio-config" % ZioConfig,
+    "dev.zio" %% "zio-config-typesafe" % ZioConfig,
     "com.github.ghostdogpr" %% "caliban" % CalibanVersion,
     "com.github.ghostdogpr" %% "caliban-zio-http" % CalibanVersion,
     "io.d11" %% "zhttp" % ZioHttpVersion,
@@ -66,10 +67,6 @@ object Dependencies {
   lazy val sparkLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
     "org.apache.spark" %% "spark-sql" % SparkVersion % Provided
-  )
-
-  lazy val utilsLibs = List(
-    "org.slf4j" % "slf4j-api" % Sl4jVersion
   )
 
   lazy val jsonLibs = List(
@@ -102,7 +99,10 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val coreTestLibs = List(
-    "ch.qos.logback" % "logback-classic" % LogbackVersion,
+    "ch.qos.logback" % "logback-classic" % LogbackVersion
+  ).map(_ % Test)
+
+  lazy val dbTestLibs = List(
     "org.postgresql" % "postgresql" % PgVersion
   ).map(_ % Test)
 

@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import com.google.cloud.bigquery.{JobInfo, Schema}
 import etlflow.gcp._
-import etlflow.schema.{Credential, LoggingLevel}
+import etlflow.schema.Credential
 import zio.{Task, UIO}
 
 class BQLoadStep private[etlflow](
@@ -65,36 +65,20 @@ class BQLoadStep private[etlflow](
     )
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = {
-    if (level == LoggingLevel.INFO)
-    {
-      Map(
-        "input_type" -> input_type.toString
-        ,"input_location" -> input_location.fold(
-          source_path => source_path,
-          source_paths_partitions => source_paths_partitions.length.toString
-        )
-        ,"output_dataset" -> output_dataset
-        ,"output_table" -> output_table
-        ,"output_table_write_disposition" -> output_write_disposition.toString
-        ,"output_table_create_disposition" -> output_create_disposition.toString
-        ,"output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+  override def getStepProperties: Map[String, String] = {
+    Map(
+      "input_type" -> input_type.toString
+      ,"input_location" -> input_location.fold(
+        source_path => source_path,
+        source_paths_partitions => source_paths_partitions.mkString(",")
       )
-    } else
-    {
-      Map(
-        "input_type" -> input_type.toString
-        ,"input_location" -> input_location.fold(
-          source_path => source_path,
-          source_paths_partitions => source_paths_partitions.mkString(",")
-        )
-        ,"output_dataset" -> output_dataset
-        ,"output_table" -> output_table
-        ,"output_table_write_disposition" -> output_write_disposition.toString
-        ,"output_table_create_disposition" -> output_create_disposition.toString
-        ,"output_rows" -> row_count.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
-      )
-    }
+      ,"output_dataset" -> output_dataset
+      ,"output_table" -> output_table
+      ,"output_table_write_disposition" -> output_write_disposition.toString
+      ,"output_table_create_disposition" -> output_create_disposition.toString
+      //,"output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+      ,"output_rows" -> row_count.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
+    )
   }
 }
 

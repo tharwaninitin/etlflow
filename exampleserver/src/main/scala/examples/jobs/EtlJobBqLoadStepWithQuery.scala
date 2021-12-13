@@ -1,12 +1,12 @@
 package examples.jobs
 
 import com.google.cloud.bigquery.JobInfo
-import etlflow.EtlStepList
-import etlflow.etljobs.SequentialEtlJob
+import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.BQLoadStep
 import etlflow.gcp.BQInputType
 import examples.schema.MyEtlJobProps.EtlJob6Props
-case class EtlJobBqLoadStepWithQuery(job_properties: EtlJob6Props) extends SequentialEtlJob[EtlJob6Props]  {
+
+case class EtlJobBqLoadStepWithQuery(job_properties: EtlJob6Props) extends EtlJob[EtlJob6Props]  {
 
   private val select_query: String = """
                                        | SELECT movieId, COUNT(1) cnt
@@ -26,5 +26,5 @@ case class EtlJobBqLoadStepWithQuery(job_properties: EtlJob6Props) extends Seque
   )
 
 
-  val etlStepList = EtlStepList(step1)
+  val job = step1.execute(())
 }

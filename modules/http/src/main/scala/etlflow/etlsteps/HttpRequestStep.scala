@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.http.{HttpApi, HttpMethod}
 import etlflow.json.JsonApi
-import etlflow.schema.LoggingLevel
 import io.circe.Decoder
 import sttp.client3.Response
 import zio._
@@ -44,7 +43,7 @@ case class HttpRequestStep[A: Tag : Decoder](
     }
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map(
+  override def getStepProperties: Map[String, String] = Map(
       "url" -> url,
       "http_method" -> method.toString
     )

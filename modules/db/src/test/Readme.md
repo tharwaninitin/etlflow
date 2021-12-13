@@ -16,8 +16,13 @@ export LOG_DB_PWD=etlflow
 export LOG_DB_DRIVER=org.postgresql.Driver
 ```
 
+#Run Sample Test Job
+```shell
+sbt ";project db; runMain etlflow.InitDB"
+sbt ";project db; Test/runMain SampleJobWithDbLogging"
+```
+
 #Run Tests
 ```shell
-sbt ";project db; +test"
 sbt ";project db; +test"
 ```

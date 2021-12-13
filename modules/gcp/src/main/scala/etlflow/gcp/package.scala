@@ -48,6 +48,12 @@ package object gcp extends ApplicationLogger {
     case object GCS extends FSType
   }
 
+  sealed trait Location
+  object Location {
+    case class LOCAL(path: String) extends Location
+    case class GCS(bucket: String, path: String) extends Location
+  }
+
   def getBQType(sp_type: String): LegacySQLTypeName = sp_type match {
     case "string"         => LegacySQLTypeName.STRING
     case "int"            => LegacySQLTypeName.INTEGER

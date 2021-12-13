@@ -3,7 +3,6 @@ package etlflow.etlsteps
 import com.google.cloud.dataproc.v1.Cluster
 import etlflow.gcp.{DP, DPApi, DataprocProperties}
 import etlflow.schema.Executor.DATAPROC
-import etlflow.schema.LoggingLevel
 import zio.Task
 
 class DPCreateStep(
@@ -19,7 +18,7 @@ class DPCreateStep(
     DPApi.createDataproc(props).provideLayer(env)
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] =
+  override def getStepProperties: Map[String, String] =
     Map(
       "name" -> name,
       "config" -> config.toString,

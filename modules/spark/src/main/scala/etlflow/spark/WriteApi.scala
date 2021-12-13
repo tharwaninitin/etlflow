@@ -1,40 +1,30 @@
 package etlflow.spark
 
-import etlflow.schema.LoggingLevel
+
 import etlflow.spark.IOType._
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.EtlflowError.EtlJobException
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.col
-
 import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi extends ApplicationLogger {
 
   logger.info(s"Loaded ${getClass.getName}")
 
-  def WriteDSHelper[T <: Product : TypeTag](level: LoggingLevel,output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
+  def WriteDSHelper[T <: Product : TypeTag](output_type: IOType, output_location: String, partition_by: Seq[String] = Seq.empty[String]
                                             , save_mode : SaveMode = SaveMode.Append, output_filename: Option[String] = None
                                             , recordsWrittenCount:Long,n : Int = 1, compression : String = "none", repartition : Boolean = false
                                            ) : Map[String,String] = {
     val mapping = Encoders.product[T]
+    Map("output_location"->output_location
+      , "output_filename"->output_filename.getOrElse("NA")
+      , "output_type"->output_type.toString
+      , "output_class" -> mapping.schema.toDDL
+      , "output_rows" -> recordsWrittenCount.toString
+    )
 
-    if (level == LoggingLevel.INFO){
-      Map("output_location"->output_location
-        , "output_filename"->output_filename.getOrElse("NA")
-        , "output_type"->output_type.toString
-        , "output_rows" -> recordsWrittenCount.toString
-      )
-    }
-    else {
-      Map("output_location"->output_location
-        , "output_filename"->output_filename.getOrElse("NA")
-        , "output_type"->output_type.toString
-        , "output_class" -> mapping.schema.toDDL
-        , "output_rows" -> recordsWrittenCount.toString
-      )
-    }
   }
 
   def WriteDS[T <: Product : TypeTag](

@@ -1,10 +1,10 @@
 package etlflow.etlsteps
 
-import etlflow.log.LoggerApi
-import etlflow.schema.LoggingLevel
+import etlflow.core.{CoreEnv, CoreLogEnv}
+import etlflow.log.LogApi
 import etlflow.utils.ApplicationLogger
-import etlflow.core.{CoreEnv, StepEnv}
-import zio.{RIO, Task, ZIO}
+import etlflow.utils.DateTimeApi
+import zio.{RIO, UIO}
 
 trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 
@@ -13,16 +13,16 @@ trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
 
   def process(input_state: =>IPSTATE): RIO[CoreEnv, OPSTATE]
   def getExecutionMetrics: Map[String,Map[String,String]] = Map()
-  def getStepProperties(level:LoggingLevel = LoggingLevel.INFO): Map[String,String] = Map()
+  def getStepProperties: Map[String,String] = Map()
 
-  final def execute(input_state: =>IPSTATE): ZIO[StepEnv, Throwable, OPSTATE] = {
+  final def execute(input_state: =>IPSTATE): RIO[CoreLogEnv, OPSTATE] = {
     for {
-      step_start_time <- Task.succeed(System.currentTimeMillis())
-      _   <- LoggerApi.stepLogStart(step_start_time, self)
+      sri <- UIO(java.util.UUID.randomUUID.toString)
+      _   <- LogApi.logStepStart(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
       op  <- process(input_state).tapError{ex =>
-        LoggerApi.stepLogEnd(step_start_time,self,Some(ex))
-      }
-      _   <- LoggerApi.stepLogEnd(step_start_time,self)
+                LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp, Some(ex))
+             }
+      _   <- LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
     } yield op
   }
 }

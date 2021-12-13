@@ -8,7 +8,7 @@ import etlflow.schema.Credential.GCP
 import etlflow.utils.ApplicationLogger
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
 import java.io.FileInputStream
-import java.nio.file.{Files, Paths}
+import java.nio.file.{FileSystems, Files, Path, Paths}
 import scala.jdk.CollectionConverters._
 
 private[etlflow] object GCS extends ApplicationLogger {
@@ -82,21 +82,35 @@ private[etlflow] object GCS extends ApplicationLogger {
               blobs.exists(_.getName == prefix+"/"+key)
             }
         }
-        override def putObject(bucket: String, key: String, file: String): Task[Blob] = Task{
-          val blobId = BlobId.of(bucket, key)
+        override def putObject(bucket: String, prefix: String, file: String): Task[Blob] = Task{
+          val blobId = BlobId.of(bucket, prefix)
           val blobInfo = BlobInfo.newBuilder(blobId).build
           storage.create(blobInfo, Files.readAllBytes(Paths.get(file)))
         }
-        override def copyObjects(src_bucket: String, src_prefix: String, target_bucket: String, target_prefix: String, parallelism: Int, overwrite: Boolean): Task[Unit] = {
+        override def copyObjectsGCStoGCS(src_bucket: String, src_prefix: String, target_bucket: String, target_prefix: String, parallelism: Int, overwrite: Boolean): Task[Unit] = {
           for {
             src_blobs <- listObjects(src_bucket, src_prefix)
             target_blobs <- listObjects(target_bucket, target_prefix)
             _ <- compareBlobs(src_blobs,src_prefix,target_blobs,target_prefix,overwrite)
             _ <- ZIO.foreachParN_(parallelism)(src_blobs)(blob => Task{
-              val target_path = (target_prefix + "/" + blob.getName.replace(src_prefix, ""))
-                .replaceAll("//+", "/")
+              val target_path = (target_prefix + "/" + blob.getName.replace(src_prefix, "")).replaceAll("//+", "/")
               logger.info(s"Copying object from gs://$src_bucket/${blob.getName} to gs://$target_bucket/$target_path")
               blob.copyTo(target_bucket, target_path)
+            })
+          } yield ()
+        }
+        private def listLocalFsObjects(path: String): Task[Iterator[Path]] = Task {
+          val dir = FileSystems.getDefault.getPath(path)
+          Files.walk(dir).iterator().asScala.filter(Files.isRegularFile(_))
+        }
+        override def copyObjectsLOCALtoGCS(src_path: String, target_bucket: String, target_prefix: String, parallelism: Int, overwrite: Boolean): Task[Unit] = {
+          for {
+            src_paths <- listLocalFsObjects(src_path)
+            _ <- ZIO.foreachParN_(parallelism)(src_paths.toList)(path => Task{
+              val target_path = (target_prefix + "/" + path.toString.replace(src_path, "")).replaceAll("//+", "/")
+              val blobInfo = BlobInfo.newBuilder(BlobId.of(target_bucket, target_path)).build
+              logger.info(s"Copying object from local fs ${path.toString} to gs://$target_bucket/$target_path")
+              storage.create(blobInfo, Files.readAllBytes(path))
             })
           } yield ()
         }

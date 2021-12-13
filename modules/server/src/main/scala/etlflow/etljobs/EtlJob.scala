@@ -1,20 +1,27 @@
 package etlflow.etljobs
 
-import etlflow.core.StepEnv
-import etlflow.schema.LoggingLevel
+import etlflow._
+import etlflow.core.CoreLogEnv
+import etlflow.log.LogApi
 import etlflow.utils.ApplicationLogger
-import etlflow.EtlJobProps
-import zio._
+import etlflow.utils.DateTimeApi.getCurrentTimestamp
+import zio.{UIO, ZIO}
 
 trait EtlJob[EJP <: EtlJobProps] extends ApplicationLogger {
 
+  def job: ZIO[CoreLogEnv, Throwable, Unit]
   val job_properties: EJP
   var job_name: String = getClass.getName
-  var job_enable_db_logging: Boolean = true
-  var job_send_slack_notification: Boolean = false
-  var job_notification_level: LoggingLevel = LoggingLevel.INFO
 
-  def printJobInfo(level: LoggingLevel = LoggingLevel.INFO): Unit
-  def getJobInfo(level: LoggingLevel = LoggingLevel.INFO): List[(String,Map[String,String])]
-  def execute(job_run_id: Option[String] = None, is_master: Option[String] = None, props: String = "{}"): ZIO[StepEnv, Throwable, Unit]
+  final def execute(job_run_id: Option[String] = None, args: String = "{}"): ZIO[CoreLogEnv, Throwable, Unit] = {
+    for {
+      jri  <- UIO(job_run_id.getOrElse(java.util.UUID.randomUUID.toString))
+      _    <- LogApi.setJobRunId(jri)
+      _    <- LogApi.logJobStart(jri, job_name, args, getCurrentTimestamp)
+      _    <- job.foldM(
+                 ex => LogApi.logJobEnd(jri, job_name, args, getCurrentTimestamp, Some(ex)),
+                 _  => LogApi.logJobEnd(jri, job_name, args, getCurrentTimestamp)
+             )
+    } yield ()
+  }
 }

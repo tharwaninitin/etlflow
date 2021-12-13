@@ -4,7 +4,6 @@ import com.redis._
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.redis.RedisApi
 import etlflow.schema.Credential.REDIS
-import etlflow.schema.LoggingLevel
 import zio.Task
 
 class RedisStep (
@@ -26,7 +25,7 @@ class RedisStep (
     }
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("operation_type" -> command.toString)
+  override def getStepProperties: Map[String, String] = Map("operation_type" -> command.toString)
 }
 
 object RedisStep {

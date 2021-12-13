@@ -1,13 +1,12 @@
 package examples.jobs
 
 import com.google.cloud.bigquery.JobInfo
-import etlflow.EtlStepList
-import etlflow.etljobs.SequentialEtlJob
-import etlflow.etlsteps.{BQLoadStep, EtlStep}
+import etlflow.etljobs.EtlJob
+import etlflow.etlsteps.BQLoadStep
 import etlflow.gcp.BQInputType
 import examples.schema.MyEtlJobProps.EtlJob1Props
 
-case class EtlJobBqLoadStep(job_properties: EtlJob1Props) extends SequentialEtlJob[EtlJob1Props] {
+case class EtlJobBqLoadStep(job_properties: EtlJob1Props) extends EtlJob[EtlJob1Props] {
 
   private val step1 = BQLoadStep(
     name                      = "LoadRatingBQ",
@@ -18,5 +17,5 @@ case class EtlJobBqLoadStep(job_properties: EtlJob1Props) extends SequentialEtlJ
     output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
   )
 
-  val etlStepList: List[EtlStep[Unit, Unit]] = EtlStepList(step1)
+  val job = step1.execute(())
 }

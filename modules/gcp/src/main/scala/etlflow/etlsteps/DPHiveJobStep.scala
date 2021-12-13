@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.gcp.{DP, DPApi}
 import etlflow.schema.Executor.DATAPROC
-import etlflow.schema.LoggingLevel
 import zio.Task
 
 case class DPHiveJobStep(
@@ -19,7 +18,7 @@ case class DPHiveJobStep(
     DPApi.executeHiveJob(query).provideLayer(env)
   }
 
-  override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("query" -> query)
+  override def getStepProperties: Map[String, String] = Map("query" -> query)
 }
 
 

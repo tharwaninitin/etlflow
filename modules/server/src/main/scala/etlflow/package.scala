@@ -1,18 +1,15 @@
 
-import etlflow.core.CoreEnv
+import etlflow.core.CoreLogEnv
 import etlflow.etljobs.EtlJob
-import etlflow.etlsteps.EtlStep
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.log.{DBLogEnv, LoggerEnv}
-import etlflow.schema.{Executor, LoggingLevel}
-import etlflow.utils.EtlflowError.EtlJobException
+import etlflow.schema.Executor
 import io.circe.Encoder
 import zio.{Tag, ZIO}
 
 package object etlflow {
 
   type EJPMType = EtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
-  type JobEnv = CoreEnv with LoggerEnv with DBLogEnv with JsonEnv
+  type JobEnv = CoreLogEnv with JsonEnv
 
   trait EtlJobProps extends Product
 
@@ -23,9 +20,6 @@ package object etlflow {
     val job_deploy_mode: Executor             = Executor.LOCAL
     val job_retries: Int                      = 0
     val job_retry_delay_in_minutes: Int       = 0
-    val job_enable_db_logging: Boolean        = true
-    val job_send_slack_notification: Boolean  = false
-    val job_notification_level: LoggingLevel  = LoggingLevel.INFO
 
     final val job_name: String                = tag_EJ.tag.longName
     final val job_props_name: String          = tag_EJP.tag.longName
@@ -50,18 +44,6 @@ package object etlflow {
       "job_max_active_runs" -> job_max_active_runs.toString,
       "job_retries" -> job_retries.toString,
       "job_retry_delay_in_minutes" -> job_retry_delay_in_minutes.toString,
-      "job_enable_db_logging" -> job_enable_db_logging.toString,
-      "job_send_slack_notification" -> job_send_slack_notification.toString,
-      "job_notification_level" -> job_notification_level.toString
     )
-  }
-
-  object EtlStepList {
-    def apply(args: EtlStep[Unit,Unit]*): List[EtlStep[Unit,Unit]] = {
-      val seq = List(args:_*)
-      if (seq.map(x => x.name).distinct.length == seq.map(x => x.name).length)
-        seq
-      else throw EtlJobException(s"Duplicate step name detected from ${seq.map(x => x.name)}")
-    }
   }
 }

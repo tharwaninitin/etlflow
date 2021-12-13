@@ -1,0 +1,28 @@
+version: '3.4'
+services:
+  postgres:
+    image: 'postgres:13-alpine'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+    - POSTGRES_USER=etlflow
+    - POSTGRES_PASSWORD=etlflow
+    - POSTGRES_DB=etlflow
+    ports:
+    - '5432:5432'
+  pgadmin:
+    image: 'dpage/pgadmin4'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      - postgres
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=etlflow@etlflow.com
+      - PGADMIN_DEFAULT_PASSWORD=etlflow
+    ports:
+      - '5050:80'
+

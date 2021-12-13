@@ -42,7 +42,7 @@ case class CredentialStepTestSuite(config: Config) {
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
-        val props = cred_step.getStepProperties()
+        val props = cred_step.getStepProperties
         assert(props)(equalTo(Map("credential_name" -> "etlflow")))
       }
     )

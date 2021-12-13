@@ -5,7 +5,6 @@ import etlflow.crypto.{CryptoApi, CryptoEnv}
 import etlflow.db.{DBApi, liveDB}
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential.{AWS, JDBC}
-import etlflow.schema.LoggingLevel
 import etlflow.utils.Configuration
 import io.circe.Decoder
 import zio.blocking.Blocking
@@ -44,5 +43,5 @@ case class GetCredentialStep[T: Tag : Decoder](name: String, credential_name: St
     }
   }
 
-  final override def getStepProperties(level: LoggingLevel): Map[String, String] = Map("credential_name" -> credential_name)
+  final override def getStepProperties: Map[String, String] = Map("credential_name" -> credential_name)
 }

@@ -2,7 +2,7 @@ package etlflow
 
 import etlflow.crypto.CryptoApi
 import etlflow.db.{DBApi, RunDbMigration}
-import etlflow.executor.EtlFlowJobExecutor
+import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI
 import etlflow.utils.CliArgsParserAPI.EtlJobConfig
@@ -15,29 +15,21 @@ abstract class CliApp[T <: EJPMType : Tag]
   extends ApplicationLogger
     with App {
 
-  def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp")))
-  : ZIO[ZEnv,Throwable,Unit] = {
+  def cliRunner(args: List[String], config: Config, app: ZIO[ZEnv, Throwable, Unit] = ZIO.fail(new RuntimeException("Extend ServerApp instead of EtlFlowApp"))): ZIO[ZEnv,Throwable,Unit] = {
     
-    val executor = new EtlFlowJobExecutor[T]
+    val executor = LocalExecutor[T]()
     
     if(config.db.isEmpty) {
       CliArgsParserAPI.parser.parse(args, EtlJobConfig()) match {
         case Some(serverConfig) => serverConfig match {
           case ec if ec.list_jobs =>
-            executor.list_jobs
+            executor.listJobs
           case ec if ec.show_job_props && ec.job_name != "" =>
             logger.info(s"Executing show_job_props with params: job_name => ${ec.job_name}".stripMargin)
-            executor.show_job_props(ec.job_name)
-          case ec if ec.show_step_props && ec.job_name != "" =>
-            logger.info(s"Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}")
-            logger.warn(s"This command will actually instantiate EtlJob for ${ec.job_name}")
-            executor.show_step_props(ec.job_name, ec.job_properties)
-          case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
-            logger.error(s"Need to provide args --job_name")
-            ZIO.fail(new RuntimeException("Need to provide args --job_name"))
+            executor.showJobProps(ec.job_name)
           case ec if ec.run_job && ec.job_name != "" =>
             logger.info(s"Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}".stripMargin)
-            executor.run_job(ec.job_name, ec.job_properties, config)
+            executor.runJob(ec.job_name, ec.job_properties, config)
           case _ =>
             logger.error(s"Incorrect input args or no args provided, Try --help for more information.")
             ZIO.fail(new RuntimeException("Incorrect input args or no args provided, Try --help for more information."))
@@ -68,20 +60,13 @@ abstract class CliApp[T <: EJPMType : Tag]
             logger.error(s"Need to provide args --password")
             ZIO.fail(new RuntimeException("Need to provide args --password"))
           case ec if ec.list_jobs =>
-            executor.list_jobs
+            executor.listJobs
           case ec if ec.show_job_props && ec.job_name != "" =>
             logger.info(s"Executing show_job_props with params: job_name => ${ec.job_name}".stripMargin)
-            executor.show_job_props(ec.job_name)
-          case ec if ec.show_step_props && ec.job_name != "" =>
-            logger.info(s"Executing show_step_props with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}")
-            logger.warn(s"This command will actually instantiate EtlJob for ${ec.job_name}")
-            executor.show_step_props(ec.job_name, ec.job_properties)
-          case ec if (ec.show_job_props || ec.show_step_props) && ec.job_name == "" =>
-            logger.error(s"Need to provide args --job_name")
-            ZIO.fail(new RuntimeException("Need to provide args --job_name"))
+            executor.showJobProps(ec.job_name)
           case ec if ec.run_job && ec.job_name != "" =>
             logger.info(s"Running job with params: job_name => ${ec.job_name} job_properties => ${ec.job_properties}".stripMargin)
-            executor.run_job(ec.job_name, ec.job_properties, config)
+            executor.runJob(ec.job_name, ec.job_properties, config)
           case ec if ec.run_server =>
             logger.info("Starting server")
             app

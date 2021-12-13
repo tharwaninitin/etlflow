@@ -1,7 +1,6 @@
 package etlflow.etlsteps
 
 import etlflow.coretests.Schema.HttpBinResponse
-import etlflow.coretests.TestSuiteHelper
 import etlflow.http.HttpMethod
 import etlflow.utils.ApplicationLogger
 import io.circe.generic.auto._
@@ -11,7 +10,7 @@ import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-object HttpStepTestSuite extends DefaultRunnableSpec with TestSuiteHelper with ApplicationLogger {
+object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
 
   val getStep1 = HttpRequestStep[Unit](
     name = "HttpGetSimple",

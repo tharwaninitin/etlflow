@@ -1,7 +1,7 @@
 package etlflow.steps.cloud
 
+import etlflow.cloud.Location
 import etlflow.etlsteps.CloudStoreSyncStep
-import etlflow.schema.Location
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._

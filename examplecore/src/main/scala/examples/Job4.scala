@@ -1,12 +1,12 @@
 package examples
 
-import etlflow.EtlFlowApp
-import etlflow.core.StepEnv
+import etlflow.JobApp
+import etlflow.core.CoreLogEnv
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
 import etlflow.schema.Credential.JDBC
 import zio.RIO
 
-object Job4 extends EtlFlowApp {
+object Job4 extends JobApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -28,7 +28,7 @@ object Job4 extends EtlFlowApp {
     transform_function = processData,
   )
 
-  def job(args: List[String]): RIO[StepEnv, Unit] =
+  def job(args: List[String]): RIO[CoreLogEnv, Unit] =
     for {
       op1 <- step1(cred).execute(())
       _ <- step2.execute(op1)

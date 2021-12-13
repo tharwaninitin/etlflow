@@ -1,10 +1,8 @@
 package etlflow.aws
 
-import etlflow.schema.Location.S3
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
-
 import java.net.URI
 
 private[etlflow] object S3CustomClient {

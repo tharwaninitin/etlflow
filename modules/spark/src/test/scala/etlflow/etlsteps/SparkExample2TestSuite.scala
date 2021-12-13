@@ -2,7 +2,6 @@ package etlflow.etlsteps
 
 import etlflow.TestSparkSession
 import etlflow.coretests.Schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
-import etlflow.coretests.TestSuiteHelper
 import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.SparkUDF
 import org.apache.spark.sql.functions.{col, from_unixtime}
@@ -12,7 +11,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
 
-object SparkExample2TestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSparkSession with SparkUDF {
+object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF {
 
   case class EtlJob6Props(
      ratings_input_dataset: String = "test",

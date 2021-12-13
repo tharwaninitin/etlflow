@@ -107,7 +107,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             Sql.getStepRuns(args.job_run_id)
             .map(rs => {
               val res = StepRunDB(rs)
-              StepRun(res.job_run_id, res.step_name, res.properties, res.state, getTimestampAsString(res.inserted_at), res.elapsed_time, res.step_type, res.step_run_id)
+              StepRun(res.job_run_id, res.step_name, res.properties, res.status, getTimestampAsString(res.inserted_at), res.elapsed_time, res.step_type, res.step_run_id)
             })
             .list
             .apply()
@@ -122,7 +122,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             Sql.getJobRuns(args)
             .map(rs => {
               val res = JobRunDB(rs)
-              JobRun(res.job_run_id, res.job_name, res.properties, res.state, getTimestampAsString(res.inserted_at), res.elapsed_time, res.job_type, res.is_master)
+              JobRun(res.job_run_id, res.job_name, res.properties, res.status, getTimestampAsString(res.inserted_at), res.elapsed_time, res.job_type, res.is_master)
             })
             .list
             .apply()

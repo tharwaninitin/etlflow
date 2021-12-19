@@ -38,7 +38,7 @@ case class LocalExecutor[T <: EJPMType : Tag]() extends ApplicationLogger {
 
   def runJob(name: String, properties: Map[String,String], config: Config): RIO[ZEnv, Unit] = {
     val jri         = if (properties.keySet.contains("job_run_id")) Some(properties("job_run_id")) else None
-    val dbLogLayer  = if(config.db.isEmpty) log.nolog else log.DBLogger(config.db.get, "Job-" + name + "-Pool", 2)
+    val dbLogLayer  = if(config.db.isEmpty) log.nolog else log.DB(config.db.get, "Job-" + name + "-Pool")
     val jsonLayer   = json.Implementation.live
     val cryptoLayer = crypto.Implementation.live(config.secretkey)
     executeJob(name, properties, jri)

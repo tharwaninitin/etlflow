@@ -88,12 +88,10 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
     in_map ++ out_map ++ spark_conf
   }
 
-  override def getExecutionMetrics : Map[String, Map[String,String]] = {
-    Map(name ->
-      Map(
-        "Number of records written" -> recordsWrittenCount.toString,
-        "Number of records read" -> recordsReadCount.toString
-      )
+  override def getExecutionMetrics: Map[String,String] = {
+    Map(
+      "Number of records written" -> recordsWrittenCount.toString,
+      "Number of records read" -> recordsReadCount.toString
     )
   }
 

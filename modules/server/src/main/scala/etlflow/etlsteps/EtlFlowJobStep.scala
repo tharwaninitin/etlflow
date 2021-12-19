@@ -16,7 +16,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private(val name: String, job: => EtlJo
     logger.info(s"Starting EtlFlowJobStep for: $name")
     for {
       cfg <- Configuration.config
-      _   <- job_instance.execute(Some(job_run_id)).provideSomeLayer[CoreEnv](etlflow.log.DBLogger(cfg.db.get, "EtlFlowJobStep-" + name + "-Pool", 1))
+      _   <- job_instance.execute(Some(job_run_id)).provideSomeLayer[CoreEnv](etlflow.log.DB(cfg.db.get, "EtlFlowJobStep-" + name + "-Pool", 1))
     } yield ()
   }
 

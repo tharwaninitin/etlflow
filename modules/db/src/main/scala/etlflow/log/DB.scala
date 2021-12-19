@@ -7,7 +7,7 @@ import scalikejdbc.NamedDB
 import zio.blocking.Blocking
 import zio.{Has, Task, UIO, ZLayer}
 
-object DBLogger extends ApplicationLogger {
+object DB extends ApplicationLogger {
   private[etlflow] val live: ZLayer[Has[String], Throwable, LogEnv] = ZLayer.fromService { pool_name =>
     new etlflow.log.Service {
       var job_run_id: String = null

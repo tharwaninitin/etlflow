@@ -38,15 +38,13 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
     }
   }
 
-  override def getStepProperties : Map[String,String] = {
+  override def getStepProperties: Map[String,String] = {
     ReadApi.LoadDSHelper[I](input_location,input_type).toList.toMap
   }
 
-  override def getExecutionMetrics : Map[String, Map[String,String]] = {
-    Map(name ->
-      Map(
-        "Number of records read" -> recordsReadCount.toString
-      )
+  override def getExecutionMetrics: Map[String,String] = {
+    Map(
+      "Number of records read" -> recordsReadCount.toString
     )
   }
 

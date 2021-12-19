@@ -6,20 +6,20 @@ import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi
 import zio.{RIO, UIO}
 
-trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger {
+trait EtlStep[IP,OP] extends ApplicationLogger {
 
   val name: String
   val step_type: String = this.getClass.getSimpleName
 
-  def process(input_state: =>IPSTATE): RIO[CoreEnv, OPSTATE]
-  def getExecutionMetrics: Map[String,Map[String,String]] = Map()
+  def process(input: =>IP): RIO[CoreEnv, OP]
+  def getExecutionMetrics: Map[String,String] = Map()
   def getStepProperties: Map[String,String] = Map()
 
-  final def execute(input_state: =>IPSTATE): RIO[CoreLogEnv, OPSTATE] = {
+  final def execute(input: =>IP): RIO[CoreLogEnv, OP] = {
     for {
       sri <- UIO(java.util.UUID.randomUUID.toString)
       _   <- LogApi.logStepStart(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
-      op  <- process(input_state).tapError{ex =>
+      op  <- process(input).tapError{ex =>
                 LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp, Some(ex))
              }
       _   <- LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)

@@ -56,12 +56,10 @@ class BQLoadStep private[etlflow](
     program *> UIO(logger.info("#"*50))
   }
 
-  override def getExecutionMetrics: Map[String, Map[String, String]] = {
-    Map(name ->
-      Map(
-        "total_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
-        // "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
-      )
+  override def getExecutionMetrics: Map[String, String] = {
+    Map(
+      "total_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+      // "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
     )
   }
 

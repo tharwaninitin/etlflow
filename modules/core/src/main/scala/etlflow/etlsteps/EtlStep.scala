@@ -6,7 +6,7 @@ import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi
 import zio.{RIO, UIO}
 
-trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger { self =>
+trait EtlStep[IPSTATE,OPSTATE] extends ApplicationLogger {
 
   val name: String
   val step_type: String = this.getClass.getSimpleName

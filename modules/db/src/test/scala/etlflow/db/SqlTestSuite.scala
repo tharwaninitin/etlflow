@@ -51,17 +51,17 @@ object SqlTestSuite  {
             assert(ip)(equalTo(op))
         }),
         test("updateJobRun Sql")({
-            val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "").statement.replaceAll("\\s+", " ").trim
+            val ip = etlflow.log.Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "").statement.replaceAll("\\s+", " ").trim
             val op = """UPDATE JobRun SET status = ?, elapsed_time = ? WHERE job_run_id = ?"""
             assert(ip)(equalTo(op))
         }),
         test("updateJobRun Params")({
-            val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "").parameters
+            val ip = etlflow.log.Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "").parameters
             val op = List("success", "", "a27a7415-57b2-4b53-8f9b-5254e847a301")
             assert(ip)(equalTo(op))
         }),
         test("insertJobRun Sql")({
-            val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", 0L).statement
+            val ip = etlflow.log.Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", 0L).statement
             val op = """INSERT INTO JobRun(
             job_run_id,
             job_name,
@@ -76,7 +76,7 @@ object SqlTestSuite  {
             assert(ip)(equalTo(op))
         }),
         test("insertStepRun Sql")({
-            val ip = Sql.insertStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123",
+            val ip = etlflow.log.Sql.insertStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123",
                 "Generic",
                 "{}",
                 "gcp",
@@ -96,7 +96,7 @@ object SqlTestSuite  {
             assert(ip)(equalTo(op))
         }),
         test("updateStepRun Sql")({
-            val ip = Sql.updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123"
+            val ip = etlflow.log.Sql.updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123"
             ).statement.replaceAll("\\s+", " ")
             val op = """UPDATE StepRun SET status = ?, properties = ?, elapsed_time = ? WHERE step_run_id = ?"""
             assert(ip)(equalTo(op))

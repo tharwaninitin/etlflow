@@ -1,6 +1,5 @@
 package etlflow.log
 
-import etlflow.db.Utils
 import etlflow.utils.ApplicationLogger
 import scalikejdbc._
 
@@ -9,7 +8,7 @@ private[etlflow] object Sql extends ApplicationLogger {
   def updateStepRun(step_run_id: String, props: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor] = {
     sql"""UPDATE StepRun
             SET status = $status,
-                properties = ${Utils.convertToPGJson(props)},
+                properties = $props::jsonb,
                 elapsed_time = $elapsed_time
           WHERE step_run_id = $step_run_id"""
   }
@@ -25,7 +24,7 @@ private[etlflow] object Sql extends ApplicationLogger {
            job_run_id,
            inserted_at
            )
-         VALUES ($step_run_id, $step_name, ${Utils.convertToPGJson(props)}, 'started', '...', $step_type, $job_run_id, $start_time)"""
+         VALUES ($step_run_id, $step_name, $props::jsonb, 'started', '...', $step_type, $job_run_id, $start_time)"""
   }
 
   def updateJobRun(job_run_id: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor]  = {
@@ -46,7 +45,7 @@ private[etlflow] object Sql extends ApplicationLogger {
             is_master,
             inserted_at
             )
-         VALUES ($job_run_id, $job_name,  ${Utils.convertToPGJson(props)}, 'started', '...', '', 'true', $start_time)"""
+         VALUES ($job_run_id, $job_name, $props::jsonb, 'started', '...', '', 'true', $start_time)"""
   }
 
 }

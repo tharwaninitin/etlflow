@@ -3,7 +3,7 @@ package etlflow.log
 import etlflow.utils.ApplicationLogger
 import zio.{Task, UIO, ULayer, ZLayer}
 
-object ConsoleLogger extends ApplicationLogger {
+object Console extends ApplicationLogger {
 
   val live: ULayer[LogEnv] = ZLayer.succeed(
     new Service {

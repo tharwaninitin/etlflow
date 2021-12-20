@@ -265,8 +265,8 @@ private[etlflow] object Sql extends ApplicationLogger {
   def updateJobState(args: EtlJobStateArgs) :  SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
 
-  def addCredentials(args: CredentialDB, actualSerializerOutput: JsonString): SQL[Nothing, NoExtractor] =
-    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${Utils.convertToPGJson(actualSerializerOutput.str)})"""
+  def addCredentials(args: CredentialDB, json: JsonString): SQL[Nothing, NoExtractor] =
+    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${json.str}::jsonb"""
 
   def updateCredentials(args: CredentialDB):SQL[Nothing, NoExtractor] =
     sql"""

@@ -1,6 +1,6 @@
 package etlflow.log
 
-import etlflow.schema.Slack
+import etlflow.schema
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 import zio.{Task, ULayer, ZIO, ZLayer}
@@ -8,9 +8,8 @@ import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
 
-object SlackLogger extends ApplicationLogger {
-
-  def live(slack: Option[Slack]): ULayer[LogEnv] = {
+object Slack extends ApplicationLogger {
+  def live(slack: Option[schema.Slack]): ULayer[LogEnv] = {
     if (slack.isEmpty)
       nolog
     else

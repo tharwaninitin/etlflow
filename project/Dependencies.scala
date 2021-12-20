@@ -35,9 +35,7 @@ object Dependencies {
 
   lazy val dbLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
-    "org.scalikejdbc" %% "scalikejdbc" % ScalaLikeJdbcVersion,
-    "org.postgresql" % "postgresql" % PgVersion,
-    "org.flywaydb" % "flyway-core" % FlywayVersion
+    "org.scalikejdbc" %% "scalikejdbc" % ScalaLikeJdbcVersion
   )
 
   lazy val httpLibs = List(

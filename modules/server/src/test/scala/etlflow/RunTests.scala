@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.api.ApiTestSuite
-import etlflow.db.RunDbMigration
+import etlflow.db.CreateDB
 import etlflow.etlsteps.{CredentialStepTestSuite, DBStepTestSuite, EtlFlowJobStepTestSuite}
 import etlflow.executor.{ExecutorTestSuite, LocalExecutorTestSuite, LocalSubProcessExecutorTestSuite}
 import etlflow.jobtests.jobs.JobsTestSuite
@@ -14,7 +14,7 @@ import zio.test._
 
 object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
 
-  zio.Runtime.default.unsafeRun(RunDbMigration(credentials,clean = true))
+  zio.Runtime.default.unsafeRun(CreateDB(true).provideLayer(db.liveDB(config.db.get)).unit)
 
   val httpenv = EventLoopGroup.auto() ++ ChannelFactory.auto ++ ServerChannelFactory.auto
 

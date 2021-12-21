@@ -139,31 +139,31 @@ private[etlflow] object DBServerImpl extends ApplicationLogger {
             _ => args.state
           )
       }
-      override def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
+      override def addCredential(cred: Credential): IO[DBException, Credential] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>   
-            Sql.addCredentials(credentialsDB, actualSerializerOutput)
+            Sql.addCredentials(cred)
             .update()
           }).mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
           },
-            _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
+            _ => cred
           )
       }
-      override def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
+      override def updateCredential(cred: Credential): IO[DBException, Credential] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>
             // --- transaction scope start ---
-            Sql.updateCredentials(credentialsDB).update()
-            Sql.addCredentials(credentialsDB, actualSerializerOutput).update()
+            Sql.updateCredentials(cred).update()
+            Sql.addCredentials(cred).update()
             // --- transaction scope end ---
           }).mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
-          }, _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
+          }, _ => cred
         )
       }
       override def refreshJobs(jobs: List[EtlJob]): IO[DBException, List[JobDB]] = {

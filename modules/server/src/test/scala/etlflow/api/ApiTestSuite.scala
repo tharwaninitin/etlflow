@@ -44,10 +44,10 @@ case class ApiTestSuite(credential: JDBC) {
         assertM(Service.getCacheStats.map(x => x.map(y => y.name)))(equalTo(List("Login")))
       ),
       testM("addCredential Test")(
-        assertM(Service.addCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231242"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credentials("AWS1","aws","""{"access_key":"1231242","secret_key":"1231242"}""")))
+        assertM(Service.addCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231242"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credential("AWS1","aws","""{"access_key":"1231242","secret_key":"1231242"}""")))
       ),
       testM("updateCredential Test")(
-        assertM(Service.updateCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231243"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credentials("AWS1","aws","""{"access_key":"1231243","secret_key":"1231242"}""")))
+        assertM(Service.updateCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231243"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credential("AWS1","aws","""{"access_key":"1231243","secret_key":"1231242"}""")))
       ),
     )@@ TestAspect.sequential
 }

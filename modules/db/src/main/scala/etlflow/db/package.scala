@@ -19,6 +19,7 @@ package object db {
 
   case class JobLogsArgs(filter: Option[Double] = None, limit:Option[Long] = None)
 
+  case class Credential(name: String, `type`: String, json: String)
   case class GetCredential(name: String, `type`: String, valid_from: String)
   object GetCredential extends SQLSyntaxSupport[GetCredential] {
     def apply(rs: WrappedResultSet): GetCredential =  GetCredential(
@@ -32,10 +33,7 @@ package object db {
   }
 
   case class EtlJobStateArgs(name: String, state: Boolean)
-  case class Credentials(name: String, `type`: String, value: String)
   case class EtlJob(name: String, props: Map[String,String])
-  case class JsonString(str: String) extends AnyVal
-  case class CredentialDB(name: String, `type`: String, value: JsonString)
 
   case class UserDB(user_name: String, password: String, user_active: String, user_role: String)
   object UserDB extends SQLSyntaxSupport[UserDB] {

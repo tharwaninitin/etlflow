@@ -265,10 +265,10 @@ private[etlflow] object Sql extends ApplicationLogger {
   def updateJobState(args: EtlJobStateArgs) :  SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
 
-  def addCredentials(args: CredentialDB, json: JsonString): SQL[Nothing, NoExtractor] =
-    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${json.str}::jsonb"""
+  def addCredentials(args: Credential): SQL[Nothing, NoExtractor] =
+    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${args.json}::jsonb)"""
 
-  def updateCredentials(args: CredentialDB):SQL[Nothing, NoExtractor] =
+  def updateCredentials(args: Credential):SQL[Nothing, NoExtractor] =
     sql"""
     UPDATE credential
     SET valid_to = NOW() - INTERVAL '00:00:01'

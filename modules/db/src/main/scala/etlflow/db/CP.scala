@@ -6,7 +6,7 @@ import scalikejdbc.{ConnectionPool, ConnectionPoolSettings}
 import zio._
 
 object CP extends ApplicationLogger {
-  private def create(db: JDBC, pool_name: String = "EtlFlowPool", pool_size: Int = 2): Managed[Throwable, String] =
+  def create(db: JDBC, pool_name: String = "EtlFlowPool", pool_size: Int = 2): Managed[Throwable, String] =
     Managed.make(Task{
       logger.info(s"Creating connection pool $pool_name with driver ${db.driver} with pool size $pool_size")
       Class.forName(db.driver)
@@ -16,7 +16,6 @@ object CP extends ApplicationLogger {
       logger.info(s"Closing connection pool $pool_name")
       ConnectionPool.close(pool_name)
     }.orDie)
-
   def layer(db: JDBC, pool_name: String, pool_size: Int): Layer[Throwable, Has[String]] =
-    ZLayer.fromManaged(create(db, pool_name, pool_size))
+    create(db, pool_name, pool_size).toLayer
 }

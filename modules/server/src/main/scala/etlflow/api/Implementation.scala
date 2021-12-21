@@ -111,35 +111,29 @@ private[etlflow] object Implementation extends ApplicationLogger {
         }
       }
 
-      override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
+      override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.db.Credential] = {
         for{
-          value <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
-          credentialDB = CredentialDB(
-            args.name,
-            args.`type` match {
-              case JDBC => "jdbc"
-              case AWS => "aws"
-            },
-            JsonString(value)
-          )
-          actualSerializerOutput <- encryptCredential(credentialDB.`type`,credentialDB.value.str)
-          addCredential <- DBServerApi.addCredential(credentialDB,JsonString(actualSerializerOutput))
+          json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
+          cred_type = args.`type` match {
+                        case JDBC => "jdbc"
+                        case AWS => "aws"
+                      }
+          enc_json <- encryptCredential(cred_type, json)
+          cred = etlflow.db.Credential(args.name, cred_type, enc_json)
+          addCredential <- DBServerApi.addCredential(cred)
         } yield addCredential
       }
 
-      override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] = {
+      override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.db.Credential] = {
         for{
-          value <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
-          credentialDB = CredentialDB(
-            args.name,
-            args.`type` match {
-              case JDBC => "jdbc"
-              case AWS => "aws"
-            },
-            JsonString(value)
-          )
-          actualSerializerOutput <- encryptCredential(credentialDB.`type`,credentialDB.value.str)
-          updateCredential <- DBServerApi.updateCredential(credentialDB,JsonString(actualSerializerOutput))
+          json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
+          cred_type = args.`type` match {
+                        case JDBC => "jdbc"
+                        case AWS => "aws"
+                      }
+          enc_json <- encryptCredential(cred_type,json)
+          cred = etlflow.db.Credential(args.name, cred_type, enc_json)
+          updateCredential <- DBServerApi.updateCredential(cred)
         } yield updateCredential
       }
     })

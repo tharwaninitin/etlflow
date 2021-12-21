@@ -72,7 +72,7 @@ object SqlTestSuite  {
             is_master,
             inserted_at
             )
-         VALUES (?, ?,  ?, 'started', '...', '', 'true', ?)"""
+         VALUES (?, ?, ?::jsonb, 'started', '...', '', 'true', ?)"""
             assert(ip)(equalTo(op))
         }),
         test("insertStepRun Sql")({
@@ -92,30 +92,30 @@ object SqlTestSuite  {
            job_run_id,
            inserted_at
            )
-         VALUES (?, ?, ?, 'started', '...', ?, ?, ?)"""
+         VALUES (?, ?, ?::jsonb, 'started', '...', ?, ?, ?)"""
             assert(ip)(equalTo(op))
         }),
         test("updateStepRun Sql")({
             val ip = etlflow.log.Sql.updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123"
             ).statement.replaceAll("\\s+", " ")
-            val op = """UPDATE StepRun SET status = ?, properties = ?, elapsed_time = ? WHERE step_run_id = ?"""
+            val op = """UPDATE StepRun SET status = ?, properties = ?::jsonb, elapsed_time = ? WHERE step_run_id = ?"""
             assert(ip)(equalTo(op))
         }),
         test("updateCredentials Sql")({
-            val credentialDB = CredentialDB("Sample1","JDBC", JsonString("{}"))
+            val credentialDB = Credential("Sample1","JDBC", "{}")
             val ip = Sql.updateCredentials(credentialDB).statement.replaceAll("\\s+", " ").trim
             val op = """UPDATE credential SET valid_to = NOW() - INTERVAL '00:00:01' WHERE credential.name = ? AND credential.valid_to IS NULL"""
             assert(ip)(equalTo(op))
         }),
         test("updateCredentials Params")({
-            val credentialDB = CredentialDB("Sample1","JDBC", JsonString("{}"))
+            val credentialDB = Credential("Sample1", "JDBC", "{}")
             val ip = Sql.updateCredentials(credentialDB).parameters
             assert(ip)(equalTo(List("Sample1")))
         }),
         test("addCredentials Sql")({
-            val credentialDB = CredentialDB("Sample2","JDBC", JsonString("{}"))
-            val ip = Sql.addCredentials(credentialDB, JsonString("{}")).statement.replaceAll("\\s+", " ").trim
-            val op = """INSERT INTO credential (name,type,value) VALUES (?, ?, ?)"""
+            val credentialDB = Credential("Sample2", "JDBC", "{}")
+            val ip = Sql.addCredentials(credentialDB).statement.replaceAll("\\s+", " ").trim
+            val op = """INSERT INTO credential (name,type,value) VALUES (?, ?, ?::jsonb)"""
             assert(ip)(equalTo(op))
         }),
         test("updateJobState Sql")({

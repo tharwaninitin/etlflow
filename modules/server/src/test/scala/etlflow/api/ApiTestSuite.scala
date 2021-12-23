@@ -19,7 +19,7 @@ case class ApiTestSuite(credential: JDBC) {
     GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"),
     GetCredential("etlflow", "jdbc", "2021-12-11 12:04:06.225525")
   )
-
+ val opCred = Credential("AWS1","aws","""{"access_key":"jKRMPNspInIansUaY+Aqjw==","secret_key":"jKRMPNspInIansUaY+Aqjw=="}""")
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
     suite("Server Api")(
       testM("getInfo Test")(
@@ -44,10 +44,10 @@ case class ApiTestSuite(credential: JDBC) {
         assertM(Service.getCacheStats.map(x => x.map(y => y.name)))(equalTo(List("Login")))
       ),
       testM("addCredential Test")(
-        assertM(Service.addCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231242"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credential("AWS1","aws","""{"access_key":"1231242","secret_key":"1231242"}""")))
+        assertM(Service.addCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231242"),Props("secret_key","1231242")))).map(x => x))(equalTo(opCred))
       ),
       testM("updateCredential Test")(
-        assertM(Service.updateCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231243"),Props("secret_key","1231242")))).map(x => x))(equalTo(Credential("AWS1","aws","""{"access_key":"1231243","secret_key":"1231242"}""")))
+        assertM(Service.updateCredentials(CredentialsArgs("AWS1",Creds.AWS,List(Props("access_key","1231242"),Props("secret_key","1231242")))).map(x => x))(equalTo(opCred))
       ),
     )@@ TestAspect.sequential
 }

@@ -1,10 +1,10 @@
 package etlflow.webserver
 
 import caliban.Macros.gqldoc
-import etlflow.ServerSuiteHelper
 import etlflow.api.ServerEnv
-import etlflow.db.{CreateDB, DBEnv}
+import etlflow.db.DBEnv
 import etlflow.utils.ApplicationLogger
+import etlflow.{ResetServerDB, ServerSuiteHelper}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -17,7 +17,7 @@ object GraphqlTestSuite extends ServerSuiteHelper with ApplicationLogger {
   val spec: ZSpec[environment.TestEnvironment with ServerEnv with DBEnv, Any] =
     (suite("GraphQL")(
       testM("ResetDB") {
-        assertM(CreateDB(true).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+        assertM(ResetServerDB.live.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },
       testM("Test query jobs end point") {
         val query = gqldoc(

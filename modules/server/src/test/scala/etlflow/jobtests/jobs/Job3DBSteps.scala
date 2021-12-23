@@ -1,12 +1,10 @@
 package etlflow.jobtests.jobs
 
-import etlflow.coretests.Schema.EtlJobRun
-import etlflow.jobtests.MyEtlJobProps.EtlJob4Props
-import etlflow.coretests.Schema
 import etlflow.crypto.CryptoApi
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps._
 import etlflow.jobtests.ConfigHelper
+import etlflow.jobtests.MyEtlJobProps.EtlJob4Props
 import etlflow.schema.Credential.JDBC
 import io.circe.generic.auto._
 import zio.Runtime.default.unsafeRun
@@ -45,19 +43,19 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
     name  = "GetCredential",
     credential_name = "etlflow",
   )
-
-  private def step1(cred: JDBC): DBReadStep[Schema.EtlJobRun] = DBReadStep[Schema.EtlJobRun](
+  case class EtlJobRun(job_name: String, job_run_id:String, state:String)
+  private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name  = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10",
     credentials = cred
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
-  private def processData(ip: List[Schema.EtlJobRun]): Unit = {
+  private def processData(ip: List[EtlJobRun]): Unit = {
     logger.info("Processing Data")
     ip.foreach(jr => logger.info(jr.toString))
   }
 
-  private def step2: GenericETLStep[List[Schema.EtlJobRun], Unit] = GenericETLStep(
+  private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
     name               = "ProcessData",
     transform_function = processData,
   )

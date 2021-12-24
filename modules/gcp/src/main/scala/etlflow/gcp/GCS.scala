@@ -99,6 +99,33 @@ private[etlflow] object GCS extends ApplicationLogger {
             })
           } yield ()
         }
+        /**
+         * If target path ends with / -> that means directory in that case append file name to it
+         * "source_bucket": "local",
+            "source_path": "/path/to/dir/",
+            "target_bucket" : "gcs-bucket",
+            "target_path" : "/remote/path/"
+            val path = getTargetPath("/path/to/dir/file1.txt", "/path/to/dir/", "/remote/path/")
+            path = "/remote/path/file1.txt"
+         * Else it means it's a file -> directly return same
+         *  "source_bucket": "local",
+            "source_path": "/path/to/file/file.txt",
+            "target_bucket" : "gcs-bucket",
+            "target_path" : "/path/file.txt"
+            val path = getTargetPath("/path/to/file/file.txt", "/path/to/file/file.txt", "/path/file.txt")
+            path = "/path/file.txt"
+         */
+        private def getTargetPath(fileName: Path, srcPath: String, targetPath: String): String = {
+          if (targetPath.endsWith("/")) {
+            val replaceableString = if (srcPath.endsWith("/"))
+                                      srcPath // better approach -> new File(fileStore.sourcePath).isDirectory
+                                    else {
+                                      val splitFilePath = srcPath.split("/")
+                                      splitFilePath.slice(0, splitFilePath.length - 1).mkString("/")
+                                    }
+            targetPath + fileName.toString.replace(replaceableString, "")
+          } else targetPath
+        }.replaceAll("//+", "/")
         private def listLocalFsObjects(path: String): Task[Iterator[Path]] = Task {
           val dir = FileSystems.getDefault.getPath(path)
           Files.walk(dir).iterator().asScala.filter(Files.isRegularFile(_))
@@ -107,7 +134,7 @@ private[etlflow] object GCS extends ApplicationLogger {
           for {
             src_paths <- listLocalFsObjects(src_path)
             _ <- ZIO.foreachParN_(parallelism)(src_paths.toList)(path => Task{
-              val target_path = (target_prefix + "/" + path.toString.replace(src_path, "")).replaceAll("//+", "/")
+              val target_path = getTargetPath(path, src_path, target_prefix)
               val blobInfo = BlobInfo.newBuilder(BlobId.of(target_bucket, target_path)).build
               logger.info(s"Copying object from local fs ${path.toString} to gs://$target_bucket/$target_path")
               storage.create(blobInfo, Files.readAllBytes(path))

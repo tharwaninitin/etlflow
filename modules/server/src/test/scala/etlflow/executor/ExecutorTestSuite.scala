@@ -2,8 +2,8 @@ package etlflow.executor
 
 import etlflow.api.Schema.EtlJobArgs
 import etlflow.cache.CacheEnv
-import etlflow.db.{DBServerEnv, EtlJob, RunDbMigration}
-import etlflow.{JobEnv, ServerSuiteHelper}
+import etlflow.db.{DBEnv, DBServerEnv, EtlJob}
+import etlflow.{JobEnv, ResetServerDB, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, ZIO}
@@ -12,10 +12,10 @@ object ExecutorTestSuite extends ServerSuiteHelper {
 
   def job(args: EtlJobArgs): RIO[JobEnv with CacheEnv with DBServerEnv, EtlJob] = executor.runActiveEtlJob(args,"Test", fork = false)
 
-  val spec: ZSpec[environment.TestEnvironment with JobEnv with CacheEnv with DBServerEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with JobEnv with CacheEnv with DBEnv with DBServerEnv, Any] =
     (suite("Executor")(
-      testM("RunDbMigration") {
-        assertM(RunDbMigration(credentials,clean = true).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      testM("ResetDB") {
+        assertM(ResetServerDB.live.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },
       testM("Test runActiveEtlJob with correct JobName") {
         assertM(job(EtlJobArgs("Job1")).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))

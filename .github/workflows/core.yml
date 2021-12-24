@@ -13,8 +13,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Compile Core Tests
-        run: sbt ";project core; +Test/compile;"
+      - name: Run Core Tests
+        run: sbt ";project core; +test;"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
           LOG_DB_USER: etlflow

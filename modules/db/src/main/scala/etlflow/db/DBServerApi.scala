@@ -15,8 +15,8 @@ private[etlflow] object DBServerApi {
     def updateSuccessJob(job: String, ts: Long): IO[Throwable, Long]
     def updateFailedJob(job: String, ts: Long): IO[Throwable, Long]
     def updateJobState(args: EtlJobStateArgs): IO[Throwable, Boolean]
-    def addCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[Throwable, Credentials]
-    def updateCredential(credentialsDB: CredentialDB, actualSerializerOutput: JsonString): IO[Throwable, Credentials]
+    def addCredential(cred: Credential): IO[Throwable, Credential]
+    def updateCredential(cred: Credential): IO[Throwable, Credential]
     def refreshJobs(jobs: List[EtlJob]): IO[Throwable, List[JobDB]]
   }
 
@@ -30,7 +30,7 @@ private[etlflow] object DBServerApi {
   def updateSuccessJob(job: String, ts: Long): ZIO[DBServerEnv, Throwable, Long] = ZIO.accessM(_.get.updateSuccessJob(job,ts))
   def updateFailedJob(job: String, ts: Long): ZIO[DBServerEnv, Throwable, Long] = ZIO.accessM(_.get.updateFailedJob(job, ts))
   def updateJobState(args: EtlJobStateArgs): ZIO[DBServerEnv, Throwable, Boolean] = ZIO.accessM(_.get.updateJobState(args))
-  def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): ZIO[DBServerEnv, Throwable, Credentials] = ZIO.accessM(_.get.addCredential(credentialsDB,actualSerializerOutput))
-  def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): ZIO[DBServerEnv, Throwable, Credentials] = ZIO.accessM(_.get.updateCredential(credentialsDB,actualSerializerOutput))
+  def addCredential(cred: Credential): ZIO[DBServerEnv, Throwable, Credential] = ZIO.accessM(_.get.addCredential(cred))
+  def updateCredential(cred: Credential): ZIO[DBServerEnv, Throwable, Credential] = ZIO.accessM(_.get.updateCredential(cred))
   def refreshJobs(jobs: List[EtlJob]): ZIO[DBServerEnv, Throwable, List[JobDB]] = ZIO.accessM(_.get.refreshJobs(jobs))
 }

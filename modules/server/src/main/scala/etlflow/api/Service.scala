@@ -11,8 +11,8 @@ private[etlflow] trait Service {
   def runJob(args: EtlJobArgs, submitter: String): RIO[ServerEnv, EtlJob]
   def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean]
   def login(args: UserArgs): ZIO[APIEnv with DBServerEnv with CacheEnv, Throwable, UserAuth]
-  def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials]
-  def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials]
+  def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credential]
+  def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credential]
   def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime]
   def getQueueStats: ZIO[APIEnv with CacheEnv, Throwable, List[QueueDetails]]
   def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]]
@@ -51,10 +51,10 @@ private[etlflow] object Service {
   def getCacheStats: ZIO[APIEnv with CacheEnv, Throwable, List[CacheDetails]] =
     ZIO.accessM[APIEnv with CacheEnv](_.get.getCacheStats)
 
-  def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] =
+  def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credential] =
     ZIO.accessM[APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.addCredentials(args))
 
-  def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credentials] =
+  def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credential] =
     ZIO.accessM[APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv](_.get.updateCredentials(args))
 
   def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] =

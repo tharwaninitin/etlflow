@@ -38,26 +38,26 @@ lazy val coreSettings = Seq(
 lazy val sparkSettings = Seq(
   name := "etlflow-spark",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs,
+  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs
 )
 
 lazy val cloudSettings = Seq(
   name := "etlflow-cloud",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= cloudLibs ++ zioTestLibs ++ cloudTestLibs,
+  libraryDependencies ++= cloudLibs ++ zioTestLibs ++ cloudTestLibs
 )
 
 lazy val serverSettings = Seq(
   name := "etlflow-server",
   crossScalaVersions := allScalaVersions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
-  libraryDependencies ++= serverLibs ++ zioTestLibs
+  libraryDependencies ++= serverLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val dbSettings = Seq(
   name := "etlflow-db",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs,
+  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val httpSettings = Seq(
@@ -145,7 +145,7 @@ lazy val server = (project in file("modules/server"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(core % "compile->compile;test->test", db % "compile->compile;test->test", crypto, json, gcp, cache)
+  .dependsOn(core, db, crypto, json, gcp, cache)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)

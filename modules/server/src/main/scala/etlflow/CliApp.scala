@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.crypto.CryptoApi
-import etlflow.db.{DBApi, RunDbMigration}
+import etlflow.db.{CreateDB, DBApi}
 import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
 import etlflow.utils.CliArgsParserAPI
@@ -42,10 +42,10 @@ abstract class CliApp[T <: EJPMType : Tag]
         case Some(serverConfig) => serverConfig match {
           case ec if ec.init_db =>
             logger.info("Initializing etlflow database")
-            RunDbMigration(config.db.get).unit
+            CreateDB().provideLayer(db.liveDB(config.db.get)).unit
           case ec if ec.reset_db =>
             logger.info("Resetting etlflow database")
-            RunDbMigration(config.db.get, clean = true).unit
+            CreateDB(true).provideLayer(db.liveDB(config.db.get)).unit
           case ec if ec.add_user && ec.user != "" && ec.password != "" =>
             logger.info("Inserting user into database")
             val key = config.secretkey

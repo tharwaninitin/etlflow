@@ -19,6 +19,7 @@ package object db {
 
   case class JobLogsArgs(filter: Option[Double] = None, limit:Option[Long] = None)
 
+  case class Credential(name: String, `type`: String, json: String)
   case class GetCredential(name: String, `type`: String, valid_from: String)
   object GetCredential extends SQLSyntaxSupport[GetCredential] {
     def apply(rs: WrappedResultSet): GetCredential =  GetCredential(
@@ -32,10 +33,7 @@ package object db {
   }
 
   case class EtlJobStateArgs(name: String, state: Boolean)
-  case class Credentials(name: String, `type`: String, value: String)
   case class EtlJob(name: String, props: Map[String,String])
-  case class JsonString(str: String) extends AnyVal
-  case class CredentialDB(name: String, `type`: String, value: JsonString)
 
   case class UserDB(user_name: String, password: String, user_active: String, user_role: String)
   object UserDB extends SQLSyntaxSupport[UserDB] {
@@ -78,11 +76,11 @@ package object db {
   }
 
   def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> Implementation.dbLayer
+    CP.layer(db, pool_name, pool_size) >>> DBImpl.live
 
   private[etlflow] def liveLogServerDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, LogEnv with DBServerEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> (log.DBLogger.dbLogLayer ++ Implementation.dbServerLayer)
+    CP.layer(db, pool_name, pool_size) >>> (log.DB.live ++ DBServerImpl.live)
 
   private[etlflow] def liveFullDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv with LogEnv with DBServerEnv] =
-    Implementation.cpLayer(db, pool_name, pool_size) >>> (Implementation.dbLayer ++ log.DBLogger.dbLogLayer ++ Implementation.dbServerLayer)
+    CP.layer(db, pool_name, pool_size) >>> (DBImpl.live ++ log.DB.live ++ DBServerImpl.live)
 }

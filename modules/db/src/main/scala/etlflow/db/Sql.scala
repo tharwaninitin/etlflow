@@ -2,27 +2,11 @@ package etlflow.db
 
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
-import org.postgresql.util.PGobject
 import scalikejdbc._
 import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
 private[etlflow] object Sql extends ApplicationLogger {
-
-  def getStartTime(startTime:Option[java.time.LocalDate]): Long = {
-    val sdf = new SimpleDateFormat("yyyy-MM-dd")
-    if (startTime.isDefined)
-      startTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    else
-      sdf.parse(LocalDate.now().toString).getTime
-  }
-
-  def JsonConverter(rs: String): PGobject = {
-    val jsonObject = new PGobject()
-    jsonObject.setType("json")
-    jsonObject.setValue(rs)
-    jsonObject
-  }
 
   def getUser(name: String): SQL[Nothing, NoExtractor] =
     sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
@@ -53,7 +37,7 @@ private[etlflow] object Sql extends ApplicationLogger {
     var q: SQL[Nothing, NoExtractor] = null
 
     if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
-      val startTime = getStartTime(args.startTime)
+      val startTime = Utils.getStartTime(args.startTime)
       val endTime = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       args.filter.get match {
         case "IN" => {
@@ -139,7 +123,7 @@ private[etlflow] object Sql extends ApplicationLogger {
       }
     }
     else if (args.endTime.isDefined) {
-      val startTime = getStartTime(args.startTime)
+      val startTime = Utils.getStartTime(args.startTime)
       val endTime = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       q =
         sql"""
@@ -281,59 +265,16 @@ private[etlflow] object Sql extends ApplicationLogger {
   def updateJobState(args: EtlJobStateArgs) :  SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
 
-  def addCredentials(args: CredentialDB, actualSerializerOutput: JsonString): SQL[Nothing, NoExtractor] =
-    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${JsonConverter(actualSerializerOutput.str)})"""
+  def addCredentials(args: Credential): SQL[Nothing, NoExtractor] =
+    sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${args.json}::jsonb)"""
 
-  def updateCredentials(args: CredentialDB):SQL[Nothing, NoExtractor] =
+  def updateCredentials(args: Credential):SQL[Nothing, NoExtractor] =
     sql"""
     UPDATE credential
     SET valid_to = NOW() - INTERVAL '00:00:01'
     WHERE credential.name = ${args.name}
        AND credential.valid_to IS NULL
     """.stripMargin
-
-  def updateStepRun(step_run_id: String, props: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor] = {
-    sql"""UPDATE StepRun
-            SET status = $status,
-                properties = ${JsonConverter(props)},
-                elapsed_time = $elapsed_time
-          WHERE step_run_id = $step_run_id"""
-  }
-
-  def insertStepRun(step_run_id: String, step_name: String, props: String, step_type: String, job_run_id: String, start_time: Long): SQL[Nothing, NoExtractor] = {
-    sql"""INSERT INTO StepRun (
-           step_run_id,
-           step_name,
-           properties,
-           status,
-           elapsed_time,
-           step_type,
-           job_run_id,
-           inserted_at
-           )
-         VALUES ($step_run_id, $step_name, ${JsonConverter(props)}, 'started', '...', $step_type, $job_run_id, $start_time)"""
-  }
-
-  def insertJobRun(job_run_id: String, job_name: String, props: String, start_time: Long): SQL[Nothing, NoExtractor]  = {
-    sql"""INSERT INTO JobRun(
-            job_run_id,
-            job_name,
-            properties,
-            status,
-            elapsed_time,
-            job_type,
-            is_master,
-            inserted_at
-            )
-         VALUES ($job_run_id, $job_name,  ${JsonConverter(props)}, 'started', '...', '', 'true', $start_time)"""
-  }
-
-  def updateJobRun(job_run_id: String, status: String, elapsed_time: String): SQL[Nothing, NoExtractor]  = {
-    sql""" UPDATE JobRun
-              SET status = $status,
-                  elapsed_time = $elapsed_time
-           WHERE job_run_id = $job_run_id"""
-  }
 
   def deleteJobs(jobs: List[JobDB]): SQL[Nothing, NoExtractor]  = {
     val list = jobs.map(x => x.job_name)

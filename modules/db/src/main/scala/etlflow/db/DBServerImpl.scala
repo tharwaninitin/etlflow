@@ -1,67 +1,13 @@
 package etlflow.db
 
-import etlflow.schema.Credential.JDBC
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getTimestampAsString
 import etlflow.utils.EtlflowError.DBException
 import scalikejdbc._
 import zio._
 
-private[etlflow] object Implementation extends ApplicationLogger {
-
-  private def createConnectionPool(db: JDBC, pool_name: String = "EtlFlowPool", pool_size: Int = 2): Managed[Throwable, String] = 
-    Managed.make(Task{
-      logger.info(s"Creating connection pool $pool_name with driver ${db.driver} with pool size $pool_size")
-      Class.forName(db.driver)
-      ConnectionPool.add(pool_name, db.url, db.user, db.password, ConnectionPoolSettings(maxSize = pool_size))
-      pool_name
-    })(_ => Task{
-      logger.info(s"Closing connection pool $pool_name")
-      ConnectionPool.close(pool_name)
-    }.orDie)
-
-  def cpLayer(db: JDBC, pool_name: String, pool_size: Int): Layer[Throwable, Has[String]] =
-    ZLayer.fromManaged(createConnectionPool(db, pool_name, pool_size))
-
-  val dbLayer: ZLayer[Has[String], Throwable, DBEnv] = ZLayer.fromService { pool_name =>
-    new DBApi.Service {
-      override def executeQuery(query: String): IO[DBException, Unit] =
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            scalikejdbc.SQL(query)
-              .update()
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-        }).unit
-      override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, T] =
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            scalikejdbc.SQL(query)
-              .map(fn)
-              .single()
-              .get
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-        })
-      override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, List[T]] =
-        Task(
-          NamedDB(pool_name) localTx { implicit s =>
-            scalikejdbc.SQL(query)
-              .map(fn)
-              .list()
-          }).mapError({
-          e =>
-            logger.error(e.getMessage)
-            DBException(e.getMessage)
-        })
-    }
-  }
-
-  val dbServerLayer: ZLayer[Has[String], Throwable, DBServerEnv] = ZLayer.fromService { pool_name =>
+private[etlflow] object DBServerImpl extends ApplicationLogger {
+  val live: ZLayer[Has[String], Throwable, DBServerEnv] = ZLayer.fromService { pool_name =>
     new DBServerApi.Service {
       override def getUser(name: String): IO[DBException, UserDB] = {
         Task(
@@ -193,31 +139,31 @@ private[etlflow] object Implementation extends ApplicationLogger {
             _ => args.state
           )
       }
-      override def addCredential(credentialsDB: CredentialDB, actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
+      override def addCredential(cred: Credential): IO[DBException, Credential] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>   
-            Sql.addCredentials(credentialsDB, actualSerializerOutput)
+            Sql.addCredentials(cred)
             .update()
           }).mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
           },
-            _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
+            _ => cred
           )
       }
-      override def updateCredential(credentialsDB: CredentialDB,actualSerializerOutput:JsonString): IO[DBException, Credentials] = {
+      override def updateCredential(cred: Credential): IO[DBException, Credential] = {
         Task(
           NamedDB(pool_name) localTx { implicit s =>
             // --- transaction scope start ---
-            Sql.updateCredentials(credentialsDB).update()
-            Sql.addCredentials(credentialsDB, actualSerializerOutput).update()
+            Sql.updateCredentials(cred).update()
+            Sql.addCredentials(cred).update()
             // --- transaction scope end ---
           }).mapBoth({
             e =>
               logger.error(e.getMessage)
               DBException(e.getMessage)
-          }, _ => Credentials(credentialsDB.name, credentialsDB.`type`, credentialsDB.value.str)
+          }, _ => cred
         )
       }
       override def refreshJobs(jobs: List[EtlJob]): IO[DBException, List[JobDB]] = {

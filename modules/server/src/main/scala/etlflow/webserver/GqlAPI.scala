@@ -38,8 +38,8 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
   case class Mutations(
                         run_job: EtlJobArgs => ZIO[ServerEnv, Throwable, EtlJob],
                         update_job_state: EtlJobStateArgs => ZIO[APIEnv with DBServerEnv, Throwable, Boolean],
-                        add_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
-                        update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credentials],
+                        add_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credential],
+                        update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credential],
                       )
 
 //  implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)

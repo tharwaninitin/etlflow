@@ -1,6 +1,5 @@
 package etlflow.log
 
-import etlflow.db.Sql
 import etlflow.schema.Credential.JDBC
 import etlflow.utils.EtlflowError.DBException
 import etlflow.utils.{ApplicationLogger, DateTimeApi, MapToJson}
@@ -8,12 +7,10 @@ import scalikejdbc.NamedDB
 import zio.blocking.Blocking
 import zio.{Has, Task, UIO, ZLayer}
 
-object DBLogger extends ApplicationLogger {
-  private[etlflow] val dbLogLayer: ZLayer[Has[String], Throwable, LogEnv] = ZLayer.fromService { pool_name =>
+object DB extends ApplicationLogger {
+  private[etlflow] val live: ZLayer[Has[String], Throwable, LogEnv] = ZLayer.fromService { pool_name =>
     new etlflow.log.Service {
-
       var job_run_id: String = null
-
       override def setJobRunId(jri: String): UIO[Unit] = UIO {
         job_run_id = jri
       }
@@ -72,5 +69,5 @@ object DBLogger extends ApplicationLogger {
     }
   }
   def apply(db: JDBC, pool_name: String = "Job-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, LogEnv] =
-    etlflow.db.Implementation.cpLayer(db, pool_name, pool_size) >>> dbLogLayer
+    etlflow.db.CP.layer(db, pool_name, pool_size) >>> live
 }

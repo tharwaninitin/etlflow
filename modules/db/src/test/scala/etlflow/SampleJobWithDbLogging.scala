@@ -10,7 +10,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
 
-  override val log_layer: ZLayer[ZEnv, Throwable, LogEnv] = log.DBLogger(cred)
+  override val log_layer: ZLayer[ZEnv, Throwable, LogEnv] = log.DB(cred)
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 

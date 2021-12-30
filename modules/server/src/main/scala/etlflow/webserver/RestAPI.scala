@@ -8,17 +8,20 @@ import zhttp.http.Method._
 import zhttp.http._
 
 object RestAPI {
+  def getProps(json: String) = io.circe.parser.decode[Map[String, String]](json) match {
+    case Left(_) => None
+    case Right(value) => Some(value.map(kv => Props(kv._1,kv._2)).toList)
+  }
+
   def apply(): HttpApp[ServerEnv, Throwable] =
-    HttpApp.collectM {
-    case req@POST  -> Root /  "restapi" / "runjob" / name =>
-      val props = io.circe.parser.decode[Map[String, String]](req.getBodyAsString.getOrElse("")) match {
-        case Left(_) => None
-        case Right(value) => Some(value.map(kv => Props(kv._1,kv._2)).toList)
-      }
+    Http.collectM {
+    case req@POST  -> !! /  "restapi" / "runjob" / name =>
       for {
-          etlJob   <- Service.runJob(EtlJobArgs(name,props),"New Rest API")
+          reqStr   <- req.getBodyAsString
+          props    = getProps(reqStr)
+          etlJob   <- Service.runJob(EtlJobArgs(name,props),"Rest API")
           json     <- JsonApi.convertToString(etlJob,List.empty)
-          response = Response.jsonString(json)
+          response = Response.json(json)
         } yield response
 
     }

@@ -15,11 +15,18 @@ case class ApiTestSuite(credential: JDBC) {
     JobLogs("Job1","2","0"),
     JobLogs("etlflow.jobtests.jobs.Job1HelloWorld","2","0")
   ).sortBy(_.job_name)
+
   val getCredential = List(
     GetCredential("AWS", "JDBC", "2021-07-21 12:37:19.298812"),
     GetCredential("etlflow", "jdbc", "2021-12-11 12:04:06.225525")
   )
- val opCred = Credential("AWS1","aws","""{"access_key":"jKRMPNspInIansUaY+Aqjw==","secret_key":"jKRMPNspInIansUaY+Aqjw=="}""")
+
+  val opCred = Credential(
+    "AWS1",
+    "aws",
+    """{"access_key":"jKRMPNspInIansUaY+Aqjw==","secret_key":"jKRMPNspInIansUaY+Aqjw=="}"""
+  )
+
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
     suite("Server Api")(
       testM("getInfo Test")(

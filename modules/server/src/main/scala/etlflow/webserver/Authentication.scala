@@ -26,22 +26,22 @@ case class Authentication(cache: Cache[String], secretkey: Option[String]) exten
         req.getHeader("X-Auth-Token")
       headerValue match {
         case Some(value) =>
-          val token = value.value.toString
+          val token = value._2.toString
           if(validateJwt(token)) {
             unsafeRun(isCached(token)) match {
               case Some(_) => app
               case None =>
                 logger.warn(s"Expired token $token")
-                HttpApp.forbidden("Not allowed!")
+                Http.forbidden("Not allowed!")
             }
           }
           else {
             logger.warn(s"Invalid token $token")
-            HttpApp.forbidden("Request Not allowed due to Invalid token!")
+            Http.forbidden("Request Not allowed due to Invalid token!")
           }
         case None =>
           logger.warn("Header not present. Invalid Request !!")
-          HttpApp.forbidden("Request Not allowed. Header not present!")
+          Http.forbidden("Request Not allowed. Header not present!")
       }
     })
   }

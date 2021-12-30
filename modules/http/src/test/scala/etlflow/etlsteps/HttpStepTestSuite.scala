@@ -6,7 +6,8 @@ import etlflow.utils.ApplicationLogger
 import io.circe.generic.auto._
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
+import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM}
+
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -113,5 +114,5 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
     suite("Http Steps")(
       testM("Execute Http steps") {
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      })
+      }) @@ TestAspect.flaky
 }

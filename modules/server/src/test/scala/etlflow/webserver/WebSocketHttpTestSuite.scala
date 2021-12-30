@@ -17,11 +17,11 @@ case class WebSocketHttpTestSuite(port: Int) extends HttpRunnableSpec(port) with
         .as(
           List(
             testM("NOT_FOUND response when Incorrect URL provided.") {
-              val actual = statusGet(Root  / "ws" / "etlflow" )
+              val actual = statusGet(!!  / "ws" / "etlflow" )
               assertM(actual)(equalTo(Status.NOT_FOUND))
             },
             testM("200 response when valid URL provided.") {
-              val actual = statusGet(Root  / "ws" / "etlflow" / token)
+              val actual = statusGet(!!  / "ws" / "etlflow" / token)
               actual.as(assertCompletes)
             }
           )

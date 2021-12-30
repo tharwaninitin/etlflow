@@ -44,8 +44,8 @@ case class WebsocketAPI(auth: Authentication)  extends ApplicationLogger {
     )
 
   val webSocketApp =
-    HttpApp.collect {
-      case Method.GET -> Root / "ws" / "etlflow" / token => socketApp(token).asResponse
+    Http.collect[Request] {
+      case Method.GET -> !! / "ws" / "etlflow" / token => socketApp(token).asResponse
     }
 
 }

@@ -2,6 +2,7 @@ package etlflow
 
 import etlflow.log.LogEnv
 import etlflow.schema.Credential.JDBC
+import etlflow.server.{DBServerApi, DBServerImpl}
 import scalikejdbc.{SQLSyntaxSupport, WrappedResultSet}
 import zio.blocking.Blocking
 import zio.{Has, ZLayer}

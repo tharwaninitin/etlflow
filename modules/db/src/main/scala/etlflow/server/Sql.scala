@@ -1,5 +1,6 @@
-package etlflow.db
+package etlflow.server
 
+import etlflow.db._
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import scalikejdbc._
@@ -11,15 +12,15 @@ private[etlflow] object Sql extends ApplicationLogger {
   def getUser(name: String): SQL[Nothing, NoExtractor] =
     sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
 
-  def getCredentialsWithFilter(credential_name: String):  SQL[Nothing, NoExtractor] =
+  def getCredentialsWithFilter(credential_name: String): SQL[Nothing, NoExtractor] =
     sql"""SELECT value FROM credential WHERE name='$credential_name' and valid_to is null"""
 
-  def getJob(name: String):  SQL[Nothing, NoExtractor] =
+  def getJob(name: String): SQL[Nothing, NoExtractor] =
     sql"SELECT job_name, schedule, is_active FROM job WHERE job_name = $name"
 
   def getJobs: SQL[Nothing, NoExtractor] = sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
 
-  def getStepRuns(job_run_id: String):  SQL[Nothing, NoExtractor] =
+  def getStepRuns(job_run_id: String): SQL[Nothing, NoExtractor] =
     sql"""SELECT job_run_id,
             step_name,
             properties::TEXT,
@@ -253,22 +254,22 @@ private[etlflow] object Sql extends ApplicationLogger {
     q
   }
 
-  def getCredentials:  SQL[Nothing, NoExtractor] =
+  def getCredentials: SQL[Nothing, NoExtractor] =
     sql"SELECT name, type::TEXT ,valid_from::TEXT FROM credential WHERE valid_to is null;"
 
-  def updateSuccessJob(job: String, ts: Long):  SQL[Nothing, NoExtractor] =
+  def updateSuccessJob(job: String, ts: Long): SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET success = (success + 1), last_run_time = $ts WHERE job_name = $job"
 
-  def updateFailedJob(job: String, ts: Long) :  SQL[Nothing, NoExtractor] =
+  def updateFailedJob(job: String, ts: Long): SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET failed = (failed + 1), last_run_time = $ts WHERE job_name = $job"
 
-  def updateJobState(args: EtlJobStateArgs) :  SQL[Nothing, NoExtractor] =
+  def updateJobState(args: EtlJobStateArgs): SQL[Nothing, NoExtractor] =
     sql"UPDATE job SET is_active = ${args.state} WHERE job_name = ${args.name}"
 
   def addCredentials(args: Credential): SQL[Nothing, NoExtractor] =
     sql"""INSERT INTO credential (name,type,value) VALUES (${args.name}, ${args.`type`}, ${args.json}::jsonb)"""
 
-  def updateCredentials(args: Credential):SQL[Nothing, NoExtractor] =
+  def updateCredentials(args: Credential): SQL[Nothing, NoExtractor] =
     sql"""
     UPDATE credential
     SET valid_to = NOW() - INTERVAL '00:00:01'
@@ -276,15 +277,15 @@ private[etlflow] object Sql extends ApplicationLogger {
        AND credential.valid_to IS NULL
     """.stripMargin
 
-  def deleteJobs(jobs: List[JobDB]): SQL[Nothing, NoExtractor]  = {
+  def deleteJobs(jobs: List[JobDB]): SQL[Nothing, NoExtractor] = {
     val list = jobs.map(x => x.job_name)
     sql"""DELETE FROM job WHERE job_name not in ($list)"""
   }
 
   def insertJobs(data: Seq[Seq[Any]]): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
     insert.into(JobDBAll)
-    .multipleValues(data:_*)
-    .append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
+      .multipleValues(data: _*)
+      .append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
   }
 
   val selectJobs: SQL[Nothing, NoExtractor] = sql"""SELECT job_name, schedule, is_active FROM job"""

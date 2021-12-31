@@ -31,7 +31,7 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Run DB Tests
-        run: sbt ";project db; Test/runMain etlflow.db.ResetDB; ++2.12.15 test; Test/runMain etlflow.db.ResetDB; ++2.13.7 test; Test/runMain etlflow.db.ResetDB; ++3.1.0 test; +Test/runMain etlflow.SampleJobWithDbLogging"
+        run: sbt ";project db; +test; +Test/runMain etlflow.SampleJobWithDbLogging"
         env:
           LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
           LOG_DB_USER: etlflow

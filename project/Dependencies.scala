@@ -101,7 +101,8 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val dbTestLibs = List(
-    "org.postgresql" % "postgresql" % PgVersion
+    "org.postgresql" % "postgresql" % PgVersion,
+    "mysql" % "mysql-connector-java" % MySqlVersion
   ).map(_ % Test)
 
   lazy val cloudTestLibs = List(

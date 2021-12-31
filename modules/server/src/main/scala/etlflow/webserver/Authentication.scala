@@ -2,7 +2,8 @@ package etlflow.webserver
 
 import etlflow.api.Schema.{UserArgs, UserAuth}
 import etlflow.cache.{Cache, CacheApi, CacheEnv, default_ttl}
-import etlflow.db.{DBServerApi, DBServerEnv}
+import etlflow.db.DBServerEnv
+import etlflow.server.DBServerApi
 import etlflow.utils.ApplicationLogger
 import org.mindrot.jbcrypt.BCrypt
 import pdi.jwt.{Jwt, JwtAlgorithm}

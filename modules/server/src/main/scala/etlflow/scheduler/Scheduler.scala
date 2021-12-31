@@ -3,7 +3,8 @@ package etlflow.scheduler
 import com.cronutils.model.time.ExecutionTime
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
-import etlflow.db.{DBServerApi, EtlJob}
+import etlflow.db.EtlJob
+import etlflow.server.DBServerApi
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio._

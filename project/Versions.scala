@@ -33,10 +33,12 @@ object Versions {
   val HadoopS3Version = "3.3.1"
   val AwsS3Version = "2.17.102"
 
+  val PgVersion = "42.3.1"
+  val MySqlVersion = "8.0.27"
+
   val Json4sVersion = "3.6.11"
   val ScoptVersion = "4.0.1"
   val LogbackVersion = "1.2.10"
-  val PgVersion = "42.3.1"
   val RedisVersion = "3.42"
   val MailVersion = "1.6.2"
   val JwtCoreVersion = "9.0.2"

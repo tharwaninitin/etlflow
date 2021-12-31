@@ -24,5 +24,5 @@ sbt ";project db; Test/runMain SampleJobWithDbLogging"
 
 #Run Tests
 ```shell
-sbt ";project db; Test/runMain etlflow.db.InitDB; test"
+sbt ";project db; test"
 ```

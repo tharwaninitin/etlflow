@@ -5,7 +5,7 @@ import etlflow.api.Schema._
 import etlflow.cache._
 import etlflow.crypto.{CryptoApi, CryptoEnv}
 import etlflow.db._
-import etlflow.executor.Executor
+import etlflow.executor.ServerExecutor
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential
 import etlflow.server.DBServerApi
@@ -21,7 +21,7 @@ import io.circe.generic.auto._
 
 private[etlflow] object Implementation extends ApplicationLogger {
 
-  def live[T <: EJPMType : Tag](auth: Authentication, executor: Executor[T], jobs: List[EtlJob], supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
+  def live[T <: EJPMType : Tag](auth: Authentication, executor: ServerExecutor[T], jobs: List[EtlJob], supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]], cache: Cache[QueueDetails]): ZLayer[Blocking, Throwable, APIEnv] = {
     ZLayer.succeed(new Service {
 
       val pt = new PrettyTime()

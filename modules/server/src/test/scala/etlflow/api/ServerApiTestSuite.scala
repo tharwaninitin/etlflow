@@ -7,7 +7,7 @@ import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo
 import zio.test._
 
-case class ApiTestSuite(credential: JDBC) {
+case class ServerApiTestSuite(credential: JDBC) {
 
   val jobLogs = List(
     JobLogs("EtlJobDownload","1","0"),

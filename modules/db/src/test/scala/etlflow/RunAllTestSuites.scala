@@ -3,6 +3,7 @@ package etlflow
 import zio.test._
 
 object RunAllTestSuites extends DefaultRunnableSpec with DbSuiteHelper {
+  val jri = "a27a7415-57b2-4b53-8f9b-5254e847a3011"
   def spec: ZSpec[environment.TestEnvironment, Any] = (suite("DB Test Suites") (
     InitDBSuite.spec,           // Will initialize db
     server.DbTestSuite.spec,    // Will execute actual DB queries
@@ -11,5 +12,5 @@ object RunAllTestSuites extends DefaultRunnableSpec with DbSuiteHelper {
     server.SqlTestSuite.spec,
     log.SqlTestSuite.spec,
     db.UtilsTestSuite.spec
-  ) @@ TestAspect.sequential).provideCustomLayerShared(db.liveFullDB(credentials).orDie)
+  ) @@ TestAspect.sequential).provideCustomLayerShared(db.liveFullDBWithLog(credentials,jri).orDie)
 }

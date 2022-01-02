@@ -7,6 +7,7 @@ object Console extends ApplicationLogger {
 
   val live: ULayer[LogEnv] = ZLayer.succeed(
     new Service {
+      override val job_run_id: String = ""
       override def logStepStart(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, start_time: Long): Task[Unit] =
         UIO(logger.info(s"Step $step_name started"))
       override def logStepEnd(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, end_time: Long, error: Option[Throwable]): Task[Unit] =
@@ -16,9 +17,9 @@ object Console extends ApplicationLogger {
           else
             logger.error(s"Step $step_name failed, Error StackTrace:"+"\n" + error.get.getStackTrace.mkString("\n"))
         }
-      override def logJobStart(job_run_id: String, job_name: String, args: String, start_time: Long): Task[Unit] =
+      override def logJobStart(job_name: String, args: String, start_time: Long): Task[Unit] =
         UIO(logger.info(s"Job  started"))
-      override def logJobEnd(job_run_id: String, job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] =
+      override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] =
         UIO {
           if(error.isEmpty)
             logger.info(s"Job completed with success")

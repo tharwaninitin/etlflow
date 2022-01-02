@@ -9,13 +9,13 @@ import java.net.{HttpURLConnection, URL}
 import scala.util.Try
 
 object Slack extends ApplicationLogger {
-  def live(slack: Option[schema.Slack]): ULayer[LogEnv] = {
+  def live(slack: Option[schema.Slack], jri: String): ULayer[LogEnv] = {
     if (slack.isEmpty)
       nolog
     else
       ZLayer.succeed(
         new Service {
-
+          override val job_run_id: String = jri
           var final_step_message: String = ""
           var final_message: String = ""
           val slack_env: String = slack.map(_.env).getOrElse("")
@@ -84,8 +84,8 @@ object Slack extends ApplicationLogger {
             // Concatenate all the messages with finalSlackMessage
             final_step_message = final_step_message.concat(slackMessageForSteps)
           }
-          override def logJobStart(job_run_id: String, job_name: String, args: String, start_time: Long): Task[Unit] = ZIO.unit
-          override def logJobEnd(job_run_id: String, job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] = Task {
+          override def logJobStart(job_name: String, args: String, start_time: Long): Task[Unit] = ZIO.unit
+          override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] = Task {
             val execution_date_time = getTimestampAsString(end_time) // Add time difference in this expression
 
             val data = finalMessageTemplate(

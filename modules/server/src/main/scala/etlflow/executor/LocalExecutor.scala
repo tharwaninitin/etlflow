@@ -1,9 +1,10 @@
 package etlflow.executor
 
+import etlflow.core.CoreEnv
 import etlflow.json.JsonEnv
 import etlflow.schema.Config
 import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
-import etlflow.{EJPMType, JobEnv, crypto, json, log}
+import etlflow.{EJPMType, json, log}
 import zio._
 
 case class LocalExecutor[T <: EJPMType : Tag]() extends ApplicationLogger {
@@ -26,22 +27,20 @@ case class LocalExecutor[T <: EJPMType : Tag]() extends ApplicationLogger {
     } yield job_props
   }
 
-  def executeJob(name: String, properties: Map[String, String], job_run_id: Option[String] = None): RIO[JobEnv, Unit] = {
+  def executeJob(name: String, properties: Map[String, String], config: Config, job_run_id: String): RIO[CoreEnv with JsonEnv, Unit] = {
     for {
-      ejpm <- RF.getJob[T](name)
-      job  = ejpm.etlJob(properties)
-      _    = { job.job_name = ejpm.toString }
-      args <- ejpm.getActualPropertiesAsJson(properties)
-      _     <- job.execute(job_run_id, args)
+      ejpm  <- RF.getJob[T](name)
+      job   = ejpm.etlJob(properties)
+      _     = { job.job_name = ejpm.toString }
+      args  <- ejpm.getActualPropertiesAsJson(properties)
+      dblog = if(config.db.isEmpty) log.nolog else log.DB(config.db.get, job_run_id, "Job-" + name + "-Pool")
+      _     <- job.execute(args).provideSomeLayer[CoreEnv with JsonEnv](dblog)
     } yield ()
   }
 
-  def runJob(name: String, properties: Map[String,String], config: Config): RIO[ZEnv, Unit] = {
-    val jri         = if (properties.keySet.contains("job_run_id")) Some(properties("job_run_id")) else None
-    val dbLogLayer  = if(config.db.isEmpty) log.nolog else log.DB(config.db.get, "Job-" + name + "-Pool")
+  def runJob(name: String, properties: Map[String,String], config: Config): RIO[CoreEnv, Unit] = {
+    val jri         = if (properties.keySet.contains("job_run_id")) properties("job_run_id") else java.util.UUID.randomUUID.toString
     val jsonLayer   = json.Implementation.live
-    val cryptoLayer = crypto.Implementation.live(config.secretkey)
-    executeJob(name, properties, jri)
-      .provideCustomLayer(dbLogLayer ++ jsonLayer ++ cryptoLayer)
+    executeJob(name, properties, config, jri).provideSomeLayer[CoreEnv](jsonLayer)
   }
 }

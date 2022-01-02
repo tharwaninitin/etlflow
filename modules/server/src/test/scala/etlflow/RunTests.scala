@@ -1,8 +1,8 @@
 package etlflow
 
-import etlflow.api.ApiTestSuite
+import etlflow.api.ServerApiTestSuite
 import etlflow.etlsteps.{CredentialStepTestSuite, DBStepTestSuite, EtlFlowJobStepTestSuite}
-import etlflow.executor.{ExecutorTestSuite, LocalExecutorTestSuite, LocalSubProcessExecutorTestSuite}
+import etlflow.executor.{ServerExecutorTestSuite, LocalExecutorTestSuite, LocalSubProcessExecutorTestSuite}
 import etlflow.jobtests.jobs.JobsTestSuite
 import etlflow.scheduler.{ParseCronTestSuite, SchedulerTestSuite}
 import etlflow.utils.{CorsConfigTestSuite, GetCronJobTestSuite, ReflectionTestSuite, SetTimeZoneTestSuite}
@@ -23,12 +23,12 @@ object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
       CredentialStepTestSuite(config).spec,
       DBStepTestSuite(config).spec,
       EtlFlowJobStepTestSuite(config).spec,
-      LocalExecutorTestSuite.spec,
+      LocalExecutorTestSuite(config).spec,
       LocalSubProcessExecutorTestSuite.spec,
       //SlackLoggingTestSuite.spec,
       ReflectionTestSuite.spec,
       SchedulerTestSuite.spec,
-      ApiTestSuite(config.db.get).spec,
+      ServerApiTestSuite(config.db.get).spec,
       CorsConfigTestSuite.spec,
       GetCronJobTestSuite.spec,
       SetTimeZoneTestSuite(config).spec,
@@ -36,8 +36,8 @@ object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
       ParseCronTestSuite.spec,
       AuthenticationTestSuite(config.db.get, 8080).spec,
       RestTestSuite(8081).spec,
-      WebSocketHttpTestSuite(8083).spec,
-      ExecutorTestSuite.spec,
+      //WebSocketHttpTestSuite(8083).spec,
+      ServerExecutorTestSuite.spec,
       GraphqlTestSuite.spec,
     ) @@ TestAspect.sequential
   }.provideCustomLayerShared(httpenv ++ fullLayer.orDie)

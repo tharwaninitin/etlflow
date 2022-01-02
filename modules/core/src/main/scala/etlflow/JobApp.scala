@@ -8,20 +8,19 @@ import zio.{App, ExitCode, RIO, UIO, URIO, ZEnv, ZIO, ZLayer}
 trait JobApp extends ApplicationLogger with App {
 
   def job(args: List[String]): RIO[CoreLogEnv, Unit]
-  val log_layer: ZLayer[ZEnv, Throwable, LogEnv] = log.nolog
-  val job_name: String = this.getClass.getSimpleName.replace('$',' ').trim
 
-  final def execute(args: List[String]): ZIO[CoreLogEnv, Throwable, Unit] = {
+  val jri: String = java.util.UUID.randomUUID.toString
+  val log_layer: ZLayer[ZEnv, Throwable, LogEnv] = log.nolog
+  val name: String = this.getClass.getSimpleName.replace('$',' ').trim
+
+  final def execute(cli_args: List[String]): ZIO[CoreLogEnv, Throwable, Unit] = {
     for {
-      job_start_time  <- UIO(DateTimeApi.getCurrentTimestamp)
-      jri             = java.util.UUID.randomUUID.toString
-      job_args        = MapToJson(args.zipWithIndex.map(t => (t._2.toString, t._1)).toMap)
-      _               <- LogApi.setJobRunId(jri)
-      _               <- LogApi.logJobStart(jri, job_name, job_args, job_start_time)
-      _               <- job(args).tapError{ex =>
-                           LogApi.logJobEnd(jri, job_name, job_args, DateTimeApi.getCurrentTimestamp, Some(ex))
-                         }
-        _             <- LogApi.logJobEnd(jri, job_name, job_args, DateTimeApi.getCurrentTimestamp)
+      args        <- UIO(MapToJson(cli_args.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
+      _           <- LogApi.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
+      _           <- job(cli_args).tapError{ex =>
+                       LogApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
+                     }
+        _         <- LogApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
     } yield ()
   }
 

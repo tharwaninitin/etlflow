@@ -1,14 +1,16 @@
 package etlflow
 
 import etlflow.cache.CacheEnv
+import etlflow.core.CoreEnv
 import etlflow.crypto.CryptoEnv
 import etlflow.db.DBServerEnv
+import etlflow.json.JsonEnv
 import zio.{Has, RIO}
 
 package object api {
 
   private[etlflow] type APIEnv = Has[Service]
-  private[etlflow] type ServerEnv = APIEnv with JobEnv with CacheEnv with CryptoEnv with DBServerEnv
+  private[etlflow] type ServerEnv = APIEnv with CoreEnv with JsonEnv with CacheEnv with CryptoEnv with DBServerEnv
   private[etlflow] type ServerTask[A] = RIO[ServerEnv, A]
 
   private[etlflow] object Schema {

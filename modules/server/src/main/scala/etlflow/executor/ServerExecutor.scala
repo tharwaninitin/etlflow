@@ -3,25 +3,25 @@ package etlflow.executor
 import caliban.CalibanError.ExecutionError
 import etlflow.api.Schema._
 import etlflow.cache.{Cache, CacheApi, CacheEnv}
+import etlflow.core.CoreEnv
 import etlflow.db.{DBServerEnv, EtlJob}
 import etlflow.gcp.{DP, DPApi}
-import etlflow.json.JsonApi
+import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Config
 import etlflow.schema.Executor._
 import etlflow.server.DBServerApi
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
-import etlflow.{EJPMType, JobEnv, schema}
+import etlflow.{EJPMType, schema}
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
-
 import scala.concurrent.duration._
 
-case class Executor[T <: EJPMType : Tag](sem: Map[String, Semaphore], config: Config, cache: Cache[QueueDetails])
+case class ServerExecutor[T <: EJPMType : Tag](sem: Map[String, Semaphore], config: Config, cache: Cache[QueueDetails])
   extends ApplicationLogger {
 
-  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[JobEnv with CacheEnv with DBServerEnv, EtlJob] = {
+  final def runActiveEtlJob(args: EtlJobArgs, submitted_from: String, fork: Boolean = true): RIO[CoreEnv with JsonEnv with CacheEnv with DBServerEnv, EtlJob] = {
     for {
       ejpm           <- RF.getJob[T](args.name).mapError(e => ExecutionError(e.getMessage))
       mapping_props  = ejpm.getProps
@@ -44,16 +44,16 @@ case class Executor[T <: EJPMType : Tag](sem: Map[String, Semaphore], config: Co
     } yield EtlJob(args.name,final_props)
   }
 
-  private def runEtlJob(args: EtlJobArgs, deploy_mode: schema.Executor, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[JobEnv with CacheEnv with DBServerEnv, Unit] = {
+  private def runEtlJob(args: EtlJobArgs, deploy_mode: schema.Executor, cache_key: String, retry: Int = 0, spaced: Int = 0, fork: Boolean = true): RIO[CoreEnv with JsonEnv with CacheEnv with DBServerEnv, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key,x.value)).toMap
 
-    val jobRun: RIO[JobEnv,Unit] =
+    val jobRun: RIO[CoreEnv with JsonEnv,Unit] =
       deploy_mode
          match {
           case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
             LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
           case LOCAL =>
-            LocalExecutor[T]().executeJob(args.name, actual_props)
+            LocalExecutor[T]().executeJob(args.name, actual_props, config, java.util.UUID.randomUUID.toString)
           case dp @ DATAPROC(_, _, _, _, _) =>
             val main_class = config.dataproc.map(_.mainclass).getOrElse("")
             val dp_libs = config.dataproc.map(_.deplibs).getOrElse(List.empty)
@@ -66,7 +66,7 @@ case class Executor[T <: EJPMType : Tag](sem: Map[String, Semaphore], config: Co
             Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
         }
 
-    val loggedJobRun: RIO[JobEnv with CacheEnv with DBServerEnv, Long] = jobRun
+    val loggedJobRun: RIO[CoreEnv with JsonEnv with CacheEnv with DBServerEnv, Long] = jobRun
       .ensuring(CacheApi.remove(cache, cache_key).orDie)
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced,MINUTES))) && Schedule.recurs(retry))
       .tapError( ex =>

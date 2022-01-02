@@ -2,16 +2,17 @@ package etlflow.executor
 
 import etlflow.etljobs.EtlJob
 import etlflow.jobtests.MyEtlJobPropsMapping
+import etlflow.schema.Config
 import etlflow.{EtlJobProps, JobEnv}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object LocalExecutorTestSuite {
+case class LocalExecutorTestSuite(config: Config) {
   type MEJP = MyEtlJobPropsMapping[EtlJobProps,EtlJob[EtlJobProps]]
   val jobProps = LocalExecutor[MEJP]().showJobProps("Job1")
   val jobActualProps = LocalExecutor[MEJP]().getActualJobProps("Job2", Map("ratings_output_table_name" -> "test"))
-  val executeJob = LocalExecutor[MEJP]().executeJob("Job1", Map.empty)
+  val executeJob = LocalExecutor[MEJP]().executeJob("Job1", Map.empty, config, java.util.UUID.randomUUID.toString)
 
   val spec: ZSpec[environment.TestEnvironment with JobEnv, Any] =
     suite("Local Executor")(

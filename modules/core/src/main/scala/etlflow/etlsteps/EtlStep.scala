@@ -26,3 +26,9 @@ trait EtlStep[IP,OP] extends ApplicationLogger {
     } yield op
   }
 }
+
+object EtlStep {
+  /* Features to develop
+    SEMAPHORE - Control at global level number of parallel steps execution
+   */
+}

@@ -2,8 +2,8 @@ package etlflow
 
 import etlflow.api.Schema.QueueDetails
 import etlflow.cache.{CacheApi, CacheEnv}
-import etlflow.db.{EtlJob, liveLogServerDB}
-import etlflow.executor.Executor
+import etlflow.db.{EtlJob, liveFullDB}
+import etlflow.executor.ServerExecutor
 import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
 import etlflow.schema.Config
@@ -32,9 +32,9 @@ abstract class ServerApp[T <: EJPMType : Tag]
     auth        = Authentication(authCache, config.secretkey)
     jobs        <- RF.getJobs[T].toManaged_
     sem         <- createSemaphores(jobs).toManaged_
-    executor    = Executor[T](sem, config, statsCache)
+    executor    = ServerExecutor[T](sem, config, statsCache)
     supervisor  <- Supervisor.track(true).toManaged_
-    dbLayer     = liveLogServerDB(config.db.get, pool_size = 10)
+    dbLayer     = liveFullDB(config.db.get, pool_size = 10)
     cryptoLayer = crypto.Implementation.live(config.secretkey)
     apiLayer    = api.Implementation.live[T](auth,executor,jobs,supervisor,statsCache)
     finalLayer  = apiLayer ++ dbLayer ++ cryptoLayer

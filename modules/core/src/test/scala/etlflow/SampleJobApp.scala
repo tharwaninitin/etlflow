@@ -11,6 +11,7 @@ object SampleJobApp extends JobApp {
 
   def processData1(ip: Unit): String = {
     logger.info(s"Hello World")
+    Thread.sleep(2000)
     "Hello World"
   }
 
@@ -30,7 +31,7 @@ object SampleJobApp extends JobApp {
 
   def processData3(ip: Unit): Unit = {
     logger.info(s"Hello World")
-    throw new RuntimeException("Error123")
+    //throw new RuntimeException("Error123")
   }
 
   val step3 = GenericETLStep(

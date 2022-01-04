@@ -2,51 +2,54 @@ package etlflow.log
 
 import etlflow.utils.{ApplicationLogger, DateTimeApi}
 import zio.{Ref, Task, UIO, ULayer, ZLayer}
+import scala.collection.mutable
 
 object Memory extends ApplicationLogger {
 
   sealed trait Status
   object Status {
-    case object Running  extends Status
+    case object Running extends Status
     case object Succeed extends Status
-    case class Failed(error: Throwable)  extends Status
+    case class Failed(error: Throwable) extends Status
   }
-  case class State(step_name: String, status: Status, start_time: Long, end_time: Option[Long])
+  case class State(step_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
+    override def toString: String = s"$step_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
+  }
 
-  val state: UIO[Ref[Map[String,State]]] = Ref.make(Map.empty[String,State])
+  val state: UIO[Ref[mutable.Map[String,State]]] = Ref.make(mutable.Map.empty[String,State])
 
-  case class MemoryLogger(job_run_id: String) extends Service{
+  case class MemoryLogger(job_run_id: String) extends Service {
     override def logStepStart(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, start_time: Long): Task[Unit] =
       for {
         stateRef <- state
         _     <- stateRef.update{ st =>
-                    st + (step_run_id -> State(step_name, Status.Running, DateTimeApi.getCurrentTimestamp, None))
+                    st.update(step_run_id,State(step_name, Status.Running, DateTimeApi.getCurrentTimestamp, None))
+                    st
                   }
       } yield ()
     override def logStepEnd(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, end_time: Long, error: Option[Throwable]): Task[Unit] =
       for {
         stateRef <- state
         _     <- stateRef.update{ st =>
-                  val new_step_state = if(error.isEmpty)
-                      State(step_name, Status.Succeed, DateTimeApi.getCurrentTimestamp, Some(DateTimeApi.getCurrentTimestamp))
-                    else
-                      State(step_name, Status.Failed(error.get), DateTimeApi.getCurrentTimestamp, Some(DateTimeApi.getCurrentTimestamp))
-                  val new_state = st - step_run_id
-                  new_state + (step_run_id -> new_step_state)
+                  if(error.isEmpty) {
+                    st.update(step_run_id, st(step_run_id).copy(status = Status.Succeed, end_time = Some(DateTimeApi.getCurrentTimestamp)))
+                  } else
+                    st.update(step_run_id, st(step_run_id).copy(status = Status.Failed(error.get), end_time = Some(DateTimeApi.getCurrentTimestamp)))
+                  st
                 }
       } yield ()
     override def logJobStart(job_name: String, args: String, start_time: Long): Task[Unit] =
-      UIO(logger.info(s"Job  started"))
+      UIO(logger.info(s"Job $job_name started"))
     override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] = {
       for {
         stateRef <- state
         value    <- stateRef.get
         _        = if(error.isEmpty) {
                       logger.info(s"Job completed with success")
-                      logger.info(value.toString())
+                      value.values.toList.sortBy(_.start_time).foreach(x => logger.info(x.toString()))
                     } else {
                       logger.error(s"Job completed with failure ${error.get.getMessage}")
-                      logger.error(value.toString())
+                      value.values.toList.sortBy(_.start_time).foreach(x => logger.info(x.toString()))
                     }
       } yield ()
     }

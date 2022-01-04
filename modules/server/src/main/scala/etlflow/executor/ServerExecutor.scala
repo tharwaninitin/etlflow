@@ -61,7 +61,7 @@ case class ServerExecutor[T <: EJPMType : Tag](sem: Map[String, Semaphore], conf
             val dp_args = List("run_job", "--job_name", args.name, "--props", actual_props_str)
             DPApi.executeSparkJob(dp_args, main_class, dp_libs).provideLayer(DP.live(dp))
           case LIVY(_) =>
-            Task.fail(ExecutionError("Deploy mode livy not yet supported"))
+            Task.fail(ExecutionError("Deploy mode LIVY not yet supported"))
           case KUBERNETES(_, _, _, _, _, _) =>
             Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
         }

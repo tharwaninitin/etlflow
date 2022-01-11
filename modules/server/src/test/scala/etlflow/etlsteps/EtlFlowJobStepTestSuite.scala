@@ -12,7 +12,7 @@ case class EtlFlowJobStepTestSuite(config: Config) {
 
   val step = EtlFlowJobStep[EtlJob1Props](
     name = "Test",
-    job = Job1HelloWorld(EtlJob1Props()),
+    job = Job1HelloWorld(EtlJob1Props())
   )
 
   val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
@@ -22,7 +22,7 @@ case class EtlFlowJobStepTestSuite(config: Config) {
       },
       test("Execute getStepProperties") {
         step.job_run_id = "123"
-        assert(step.getStepProperties)(equalTo(Map("step_run_id" -> "123")))
+        assertTrue(step.getStepProperties == Map("step_run_id" -> "123"))
       }
     )
 }

@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.crypto.CryptoApi
+import crypto4s.Crypto
 import etlflow.db.{CreateDB, DBApi}
 import etlflow.executor.LocalExecutor
 import etlflow.schema.Config
@@ -49,8 +49,8 @@ abstract class CliApp[T <: EJPMType : Tag]
           case ec if ec.add_user && ec.user != "" && ec.password != "" =>
             logger.info("Inserting user into database")
             val key = config.secretkey
-            val encryptedPassword = CryptoApi.oneWayEncrypt(ec.password).provideCustomLayer(crypto.Implementation.live(key))
-            val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'${unsafeRun(encryptedPassword)}\',\'true\',\'${"admin"}\');"
+            val encryptedPassword = Crypto(key).oneWayEncrypt(ec.password)
+            val query = s"INSERT INTO userinfo(user_name,password,user_active,user_role) values (\'${ec.user}\',\'$encryptedPassword\',\'true\',\'${"admin"}\');"
             val dbLayer = db.liveDB(config.db.get)
             DBApi.executeQuery(query).provideCustomLayer(dbLayer)
           case ec if ec.add_user && ec.user == "" =>

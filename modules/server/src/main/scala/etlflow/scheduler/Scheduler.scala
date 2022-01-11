@@ -1,6 +1,7 @@
 package etlflow.scheduler
 
 import com.cronutils.model.time.ExecutionTime
+import cron4zio._
 import etlflow.api.Schema._
 import etlflow.api.{ServerEnv, ServerTask, Service}
 import etlflow.db.EtlJob
@@ -18,7 +19,7 @@ private [etlflow] trait Scheduler extends ApplicationLogger {
       ZIO.unit
     }
     else {
-      val listOfCron: List[(String, ExecutionTime, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.job_name,cj.schedule.cron.get, {
+      val listOfCron: List[(ExecutionTime, URIO[ServerEnv, Option[EtlJob]])] = dbCronJobs.map(cj => (cj.schedule.cron.get, {
         logger.info(s"Scheduling job ${cj.job_name} with schedule ${cj.schedule.name} at ${getCurrentTimestampAsString()}")
         Service
           .runJob(EtlJobArgs(cj.job_name),"Scheduler")
@@ -26,7 +27,7 @@ private [etlflow] trait Scheduler extends ApplicationLogger {
           .catchAll(_ => UIO.none)
       }))
 
-      val scheduledJobs = repeatEffectsForCronWithName(listOfCron)
+      val scheduledJobs = repeatEffectsForCron(listOfCron)
 
       UIO(logger.info("*"*30 + s" Scheduler heartbeat at ${getCurrentTimestampAsString()} " + "*"*30))
         .repeat(Schedule.forever && Schedule.spaced(60.minute))

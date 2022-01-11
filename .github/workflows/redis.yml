@@ -29,8 +29,3 @@ jobs:
           java-version: ${{ matrix.java-version }}
       - name: Run Redis Tests
         run: sbt ";project redis; +test"
-        env:
-          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: org.postgresql.Driver

@@ -1,51 +1,48 @@
 package etlflow.jobtests.jobs
 
-import etlflow.crypto.CryptoApi
+import crypto4s.Crypto
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps._
 import etlflow.jobtests.ConfigHelper
 import etlflow.jobtests.MyEtlJobProps.EtlJob4Props
 import etlflow.schema.Credential.JDBC
 import io.circe.generic.auto._
-import zio.Runtime.default.unsafeRun
 
 case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] with ConfigHelper {
 
   val delete_credential_script = "DELETE FROM credential WHERE name = 'etlflow'"
 
-  val dbLog = unsafeRun((for{
-    dbLog_user     <- CryptoApi.encrypt(config.db.get.user)
-    dbLog_password <- CryptoApi.encrypt(config.db.get.password)
-  } yield (dbLog_user, dbLog_password)).provideCustomLayer(etlflow.crypto.Implementation.live(None)))
-
+  val crypto         = Crypto(config.secretkey)
+  val dbLog_user     = crypto.encrypt(config.db.get.user)
+  val dbLog_password = crypto.encrypt(config.db.get.password)
 
   val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES(
       'etlflow',
       'jdbc',
-      '{"url" : "${config.db.get.url}", "user" : "${dbLog._1}", "password" : "${dbLog._2}", "driver" : "org.postgresql.Driver" }'
+      '{"url" : "${config.db.get.url}", "user" : "$dbLog_user", "password" : "$dbLog_password", "driver" : "org.postgresql.Driver" }'
       )
       """
 
   private val deleteCredStep = DBQueryStep(
-      name  = "DeleteCredential",
-      query = delete_credential_script,
-      credentials = config.db.get
-    ).process(())
+    name = "DeleteCredential",
+    query = delete_credential_script,
+    credentials = config.db.get
+  ).process(())
 
-  private val addCredStep =  DBQueryStep(
-      name  = "AddCredential",
-      query = insert_credential_script,
-      credentials = config.db.get
-    ).process(())
+  private val addCredStep = DBQueryStep(
+    name = "AddCredential",
+    query = insert_credential_script,
+    credentials = config.db.get
+  ).process(())
 
-  private val creds =  GetCredentialStep[JDBC](
-    name  = "GetCredential",
-    credential_name = "etlflow",
+  private val creds = GetCredentialStep[JDBC](
+    name = "GetCredential",
+    credential_name = "etlflow"
   )
-  case class EtlJobRun(job_name: String, job_run_id:String, state:String)
+  case class EtlJobRun(job_name: String, job_run_id: String, state: String)
   private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
-    name  = "FetchEtlJobRun",
+    name = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10",
     credentials = cred
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
@@ -56,16 +53,16 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
   }
 
   private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
-    name               = "ProcessData",
-    transform_function = processData,
+    name = "ProcessData",
+    transform_function = processData
   )
 
   val job =
     for {
-      _     <- deleteCredStep
-      _     <- addCredStep
-      cred  <- creds.execute(())
-      op2   <- step1(cred).execute(())
-      _     <- step2.execute(op2)
+      _    <- deleteCredStep
+      _    <- addCredStep
+      cred <- creds.execute(())
+      op2  <- step1(cred).execute(())
+      _    <- step2.execute(op2)
     } yield ()
 }

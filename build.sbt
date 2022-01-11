@@ -11,7 +11,7 @@ lazy val commonSettings = Seq(
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, _)) => s2copts
       case Some((3, _)) => s3copts
-      case _ => Seq()
+      case _            => Seq()
     }
   },
   Test / parallelExecution := false,
@@ -19,101 +19,93 @@ lazy val commonSettings = Seq(
     (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 12)) =>
         Seq(
-          compilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.2").cross(CrossVersion.full)),
-          compilerPlugin(("org.scalamacros" % "paradise"  % "2.1.1").cross(CrossVersion.full)),
+          compilerPlugin(("org.typelevel"  %% "kind-projector" % "0.13.2").cross(CrossVersion.full)),
+          compilerPlugin(("org.scalamacros" % "paradise"       % "2.1.1").cross(CrossVersion.full))
         )
       case Some((2, 13)) => Seq()
-      case Some((3, 0)) => Seq()
-      case _ => Seq()
+      case Some((3, 0))  => Seq()
+      case _             => Seq()
     }),
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
 
 lazy val coreSettings = Seq(
-  name := "etlflow-core",
+  name               := "etlflow-core",
   crossScalaVersions := allScalaVersions,
   libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
 )
 
 lazy val sparkSettings = Seq(
-  name := "etlflow-spark",
+  name               := "etlflow-spark",
   crossScalaVersions := scala2Versions,
   libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs
 )
 
 lazy val cloudSettings = Seq(
-  name := "etlflow-cloud",
+  name               := "etlflow-cloud",
   crossScalaVersions := allScalaVersions,
   libraryDependencies ++= cloudLibs ++ zioTestLibs ++ cloudTestLibs
 )
 
 lazy val serverSettings = Seq(
-  name := "etlflow-server",
-  crossScalaVersions := allScalaVersions,
+  name                     := "etlflow-server",
+  crossScalaVersions       := allScalaVersions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
   libraryDependencies ++= serverLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val dbSettings = Seq(
-  name := "etlflow-db",
+  name               := "etlflow-db",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++=  dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
+  libraryDependencies ++= dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val httpSettings = Seq(
-  name := "etlflow-http",
+  name               := "etlflow-http",
   crossScalaVersions := allScalaVersions,
   libraryDependencies ++= httpLibs ++ zioTestLibs
 )
 
 lazy val redisSettings = Seq(
-  name := "etlflow-redis",
+  name               := "etlflow-redis",
   crossScalaVersions := scala2Versions,
   libraryDependencies ++= redisLibs ++ zioTestLibs
 )
 
 lazy val jsonSettings = Seq(
-  name := "etlflow-json",
-  crossScalaVersions :=  allScalaVersions,
+  name               := "etlflow-json",
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++= jsonLibs ++ zioTestLibs
 )
 
-lazy val cryptoSettings = Seq(
-  name := "etlflow-crypto",
-  crossScalaVersions :=  allScalaVersions,
-  libraryDependencies ++= cryptoLibs ++ zioTestLibs
-)
-
 lazy val emailSettings = Seq(
-  name := "etlflow-email",
-  crossScalaVersions :=  allScalaVersions,
+  name               := "etlflow-email",
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++= emailLibs ++ zioTestLibs
 )
 
-lazy val cacheSettings = Seq(
-  name := "etlflow-cache",
-  crossScalaVersions :=  allScalaVersions,
-  libraryDependencies ++= cacheLibs ++ zioTestLibs
-)
-
 lazy val awsSettings = Seq(
-  name := "etlflow-aws",
-  crossScalaVersions :=  allScalaVersions,
+  name               := "etlflow-aws",
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++= awsLibs ++ zioTestLibs ++ cloudTestLibs
 )
 
 lazy val gcpSettings = Seq(
-  name := "etlflow-gcp",
-  crossScalaVersions :=  allScalaVersions,
+  name               := "etlflow-gcp",
+  crossScalaVersions := allScalaVersions,
   libraryDependencies ++= gcpLibs ++ zioTestLibs ++ cloudTestLibs
 )
 
-lazy val root = (project in file("."))
+lazy val etlflow = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
-    publish / skip := true
+    publish / skip     := true
   )
-  .aggregate(db,json,crypto,core,spark,cloud,server,http,redis,email,cache,aws,gcp)
+  .aggregate(core, server, json, spark, cloud, db, http, redis, email, aws, gcp)
+
+lazy val core = (project in file("modules/core"))
+  .settings(commonSettings)
+  .settings(coreSettings)
 
 lazy val json = (project in file("modules/json"))
   .settings(commonSettings)
@@ -124,14 +116,6 @@ lazy val db = (project in file("modules/db"))
   .settings(dbSettings)
   .dependsOn(core)
 
-lazy val crypto = (project in file("modules/crypto"))
-  .settings(commonSettings)
-  .settings(cryptoSettings)
-
-lazy val core = (project in file("modules/core"))
-  .settings(commonSettings)
-  .settings(coreSettings)
-
 lazy val server = (project in file("modules/server"))
   .settings(commonSettings)
   .settings(serverSettings)
@@ -140,12 +124,15 @@ lazy val server = (project in file("modules/server"))
     buildInfoKeys := Seq[BuildInfoKey](
       resolvers,
       Compile / libraryDependencies,
-      name, version, scalaVersion, sbtVersion
+      name,
+      version,
+      scalaVersion,
+      sbtVersion
     ),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(core, db, crypto, json, gcp, cache)
+  .dependsOn(core, db, json, gcp)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
@@ -172,10 +159,6 @@ lazy val email = (project in file("modules/email"))
   .settings(emailSettings)
   .dependsOn(core % "compile->compile;test->test")
 
-lazy val cache = (project in file("modules/cache"))
-  .settings(commonSettings)
-  .settings(cacheSettings)
-
 lazy val aws = (project in file("modules/aws"))
   .settings(commonSettings)
   .settings(awsSettings)
@@ -185,4 +168,3 @@ lazy val gcp = (project in file("modules/gcp"))
   .settings(commonSettings)
   .settings(gcpSettings)
   .dependsOn(core % "compile->compile;test->test")
-

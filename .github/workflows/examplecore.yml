@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile ExampleCore Module
-        run: sbt ";project root; +publishLocal ;project examplecore; +Test/compile"
+        run: sbt ";project etlflow; +publishLocal ;project examplecore; +Test/compile"

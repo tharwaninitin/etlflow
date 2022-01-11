@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
+import crypto4s.Crypto
 import etlflow.core.CoreEnv
-import etlflow.crypto.{CryptoApi, CryptoEnv}
 import etlflow.schema.Config
 import etlflow.schema.Credential.JDBC
 import io.circe.generic.auto._
@@ -10,23 +10,24 @@ import zio.test.Assertion.equalTo
 import zio.test._
 
 case class CredentialStepTestSuite(config: Config) {
+  val crypto      = Crypto(config.secretkey)
+  val db_user     = crypto.encrypt(config.db.get.user)
+  val db_password = crypto.encrypt(config.db.get.password)
 
-  val db_user_password = CryptoApi.encrypt(config.db.get.user)zip(CryptoApi.encrypt(config.db.get.password))
-
-  val insert_credential_script = db_user_password.map(tp => s"""
+  val insert_credential_script = s"""
       INSERT INTO credential (name,type,value) VALUES (
       'etlflow',
       'jdbc',
-      '{"url": "${config.db.get.url}", "user": "${tp._1}", "password": "${tp._2}", "driver": "org.postgresql.Driver" }'
+      '{"url": "${config.db.get.url}", "user": "$db_user", "password": "$db_password", "driver": "org.postgresql.Driver" }'
       )
-      """)
+      """
 
   val cred_step = GetCredentialStep[JDBC](
     name = "GetCredential",
-    credential_name = "etlflow",
+    credential_name = "etlflow"
   )
 
-  val spec: ZSpec[environment.TestEnvironment with CoreEnv with CryptoEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
     suite("GetCredential Step")(
       testM("Execute GetCredentialStep") {
         def step1(script: String) = DBQueryStep(
@@ -35,15 +36,14 @@ case class CredentialStepTestSuite(config: Config) {
           credentials = config.db.get
         )
         val job = for {
-          script  <- insert_credential_script
-          _       <- step1(script).process(())
-          _       <- cred_step.process(())
+          _ <- step1(insert_credential_script).process(())
+          _ <- cred_step.process(())
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
         val props = cred_step.getStepProperties
-        assert(props)(equalTo(Map("credential_name" -> "etlflow")))
+        assertTrue(props == Map("credential_name" -> "etlflow"))
       }
     )
 }

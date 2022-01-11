@@ -8,9 +8,7 @@ import com.cronutils.model.time.ExecutionTime
 import etlflow.api.Schema._
 import etlflow.api.Service._
 import etlflow.api.{APIEnv, ServerEnv}
-import etlflow.cache.{CacheDetails, CacheEnv}
 import etlflow.db._
-import etlflow.json.JsonEnv
 import zio.ZIO
 
 private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
@@ -23,24 +21,21 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
 //  }
 
   case class Queries(
-                      jobs: ZIO[ServerEnv, Throwable, List[Job]],
-                      jobruns: DbJobRunArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]],
-                      stepruns: DbStepRunArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]],
-                      metrics: ZIO[APIEnv, Throwable, EtlFlowMetrics],
-                      currentime: ZIO[APIEnv, Throwable, CurrentTime],
-                      cacheStats:ZIO[APIEnv with JsonEnv with CacheEnv, Throwable, List[CacheDetails]],
-                      queueStats:ZIO[APIEnv with CacheEnv, Throwable, List[QueueDetails]],
-                      jobLogs: JobLogsArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]],
-                      credential: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]],
-                      jobStats: ZIO[APIEnv, Throwable, List[EtlJobStatus]]
+      jobs: ZIO[ServerEnv, Throwable, List[Job]],
+      jobruns: DbJobRunArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]],
+      stepruns: DbStepRunArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]],
+      metrics: ZIO[APIEnv, Throwable, EtlFlowMetrics],
+      currentime: ZIO[APIEnv, Throwable, CurrentTime],
+      jobLogs: JobLogsArgs => ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]],
+      credential: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]]
   )
 
   case class Mutations(
-                        run_job: EtlJobArgs => ZIO[ServerEnv, Throwable, EtlJob],
-                        update_job_state: EtlJobStateArgs => ZIO[APIEnv with DBServerEnv, Throwable, Boolean],
-                        add_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credential],
-                        update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credential],
-                      )
+      run_job: EtlJobArgs => ZIO[ServerEnv, Throwable, EtlJob],
+      update_job_state: EtlJobStateArgs => ZIO[APIEnv with DBServerEnv, Throwable, Boolean],
+      add_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credential],
+      update_credentials: CredentialsArgs => ZIO[ServerEnv, Throwable, Credential]
+  )
 
 //  implicit val localDateExprStringSchema: Schema[Any, java.time.LocalDate] = Schema.stringSchema.contramap(_.toString)
 //
@@ -58,14 +53,11 @@ private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {
           args => getDbStepRuns(args),
           getInfo,
           getCurrentTime,
-          getCacheStats,
-          getQueueStats,
           args => getJobLogs(args),
-          getCredentials,
-          getJobStats
+          getCredentials
         ),
         Mutations(
-          args => runJob(args,"GraphQL API").mapError(ex => ExecutionError(ex.getMessage)),
+          args => runJob(args, "GraphQL API").mapError(ex => ExecutionError(ex.getMessage)),
           args => updateJobState(args),
           args => addCredentials(args).mapError(ex => ExecutionError(ex.getMessage)),
           args => updateCredentials(args)

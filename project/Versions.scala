@@ -4,13 +4,17 @@ object Versions {
   val scala3 = "3.1.0"
   val scala2Versions = List(scala212 ,scala213)
   val allScalaVersions = List(scala212, scala213, scala3)
-  val EtlFlowVersion = "0.13.3"
+  val EtlFlowVersion = "0.13.2"
 
   val ZioVersion = "1.0.13"
   val ZioCatsInteropVersion = "3.2.9.0"
   val ZioHttpVersion = "1.0.0.0-RC21"
   val ZioConfig = "1.0.10"
   val CalibanVersion ="1.2.4"
+
+  val Cron4zioVersion = "0.1.0"
+  val Crypto4sVersion = "0.2.0"
+  val Cache4sVersion = "0.1.0"
 
   val CatsCoreVersion = "2.7.0"
   val CatsEffectVersion = "3.3.2"

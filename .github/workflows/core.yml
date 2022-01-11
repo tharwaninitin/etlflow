@@ -20,17 +20,3 @@ jobs:
           LOG_DB_USER: etlflow
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: org.postgresql.Driver
-      - name: Run Core Tests For 2.12
-        run: sbt ";project core; ++2.12.15 test;"
-        env:
-          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: org.postgresql.Driver
-      - name: Run Core Tests For 2.13
-        run: sbt ";project core; ++2.13.7 test;"
-        env:
-          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: org.postgresql.Driver

@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile ExampleSpark Module
-        run: sbt ";project root; +publishLocal ;project examplespark; Test/compile"
+        run: sbt ";project etlflow; +publishLocal ;project examplespark; Test/compile"

@@ -59,7 +59,9 @@ object Dependencies {
     "com.github.jwt-scala" %% "jwt-core" % JwtCoreVersion,
     "org.ocpsoft.prettytime" % "prettytime" % PrettyTimeVersion,
     "com.github.scopt" %% "scopt" % ScoptVersion,
-    "com.cronutils" % "cron-utils" % CronUtilsVersion,
+    "com.github.tharwaninitin" %% "cron4zio" % Cron4zioVersion,
+    "com.github.tharwaninitin" %% "crypto4s" % Crypto4sVersion,
+    "com.github.tharwaninitin" %% "cache4s" % Cache4sVersion
   )
 
   lazy val sparkLibs = List(
@@ -75,20 +77,10 @@ object Dependencies {
     "org.typelevel" %% "cats-core" % CatsCoreVersion
   )
 
-  lazy val cryptoLibs = List(
-    "dev.zio" %% "zio" % ZioVersion,
-    "de.svenkubiak" % "jBCrypt" % BcryptVersion
-  )
-
   lazy val emailLibs = List(
     "dev.zio" %% "zio" % ZioVersion,
     "javax.mail" % "javax.mail-api" % MailVersion,
     "com.sun.mail" % "javax.mail" % MailVersion
-  )
-
-  lazy val cacheLibs = List(
-    "dev.zio" %% "zio" % ZioVersion,
-    "com.github.ben-manes.caffeine" % "caffeine" % CaffeineCacheVersion
   )
 
   lazy val zioTestLibs = List(

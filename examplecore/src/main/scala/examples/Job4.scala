@@ -13,7 +13,7 @@ object Job4 extends JobApp {
 
   val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
 
-  override val log_layer: ZLayer[zio.ZEnv, Throwable, LogEnv] = etlflow.log.DB(cred)
+  override val log_layer: ZLayer[zio.ZEnv, Throwable, LogEnv] = etlflow.log.DB(cred, java.util.UUID.randomUUID.toString)
 
   private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name = "FetchEtlJobRun",
@@ -28,12 +28,12 @@ object Job4 extends JobApp {
 
   private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData,
+    transform_function = processData
   )
 
   def job(args: List[String]): RIO[CoreLogEnv, Unit] =
     for {
       op1 <- step1(cred).execute(())
-      _ <- step2.execute(op1)
+      _   <- step2.execute(op1)
     } yield ()
 }

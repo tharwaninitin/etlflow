@@ -12,7 +12,6 @@ case class ServerApiTestSuite(credential: JDBC) {
   val jobLogs = List(
     JobLogs("EtlJobDownload", "1", "0"),
     JobLogs("EtlJobSpr", "1", "0"),
-    JobLogs("Job1", "2", "0"),
     JobLogs("etlflow.jobtests.jobs.Job1HelloWorld", "2", "0")
   ).sortBy(_.job_name)
 
@@ -24,7 +23,7 @@ case class ServerApiTestSuite(credential: JDBC) {
   val opCred = Credential(
     "AWS1",
     "aws",
-    """{"access_key":"jKRMPNspInIansUaY+Aqjw==","secret_key":"jKRMPNspInIansUaY+Aqjw=="}"""
+    """{"access_key":"oCeOP7W5awGX8R9GkWRUvg==","secret_key":"oCeOP7W5awGX8R9GkWRUvg=="}"""
   )
 
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
@@ -36,7 +35,9 @@ case class ServerApiTestSuite(credential: JDBC) {
         assertM(Service.getCurrentTime.map(x => x))(equalTo(CurrentTime(current_time = getCurrentTimestampAsString())))
       ),
       testM("getJobLogs Test")(
-        assertM(Service.getJobLogs(JobLogsArgs(None, Some(10L))).map(x => x.sortBy(_.job_name)))(equalTo(jobLogs))
+        assertM(Service.getJobLogs(JobLogsArgs(None, Some(10L))).map(x => x.filter(_.job_name != "Job1").sortBy(_.job_name)))(
+          equalTo(jobLogs)
+        )
       ),
       testM("getCredentials Test")(
         assertM(Service.getCredentials.map(x => x.map(_.name)))(equalTo(getCredential.map(_.name)))

@@ -36,7 +36,7 @@ object ServerExecutorTestSuite extends ServerSuiteHelper {
       },
       testM("Test runActiveEtlJob with deploy mode is livy") {
         assertM(job(EtlJobArgs("Job7")).foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("Done")))(
-          equalTo("Deploy mode livy not yet supported")
+          equalTo("Deploy mode LIVY not yet supported")
         )
       },
       testM("Test runActiveEtlJob with deploy mode is local sub process") {

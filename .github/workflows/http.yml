@@ -13,9 +13,5 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Run Http Tests For 2.12
-        run: sbt ";project http; ++2.12.15 test"
-      - name: Run Http Tests For 2.13
-        run: sbt ";project http;  ++2.13.7 test"
       - name: Run Http Tests For All Modules
         run: sbt ";project http; +test"

@@ -2,8 +2,8 @@ package etlflow
 
 import cache4s.Cache
 import crypto4s.Crypto
-import etlflow.api.{APIEnv, Implementation}
-import etlflow.db.{DBEnv, DBServerEnv, liveFullDBWithLog}
+import etlflow.api.APIEnv
+import etlflow.db.{DBEnv, DBServerEnv}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.ServerExecutor
 import etlflow.jobtests.MyEtlJobPropsMapping
@@ -13,17 +13,18 @@ import etlflow.schema.Credential.JDBC
 import etlflow.utils.Configuration
 import etlflow.webserver.Authentication
 import zio.blocking.Blocking
-import zio.{Chunk, Fiber, Runtime, Semaphore, Supervisor, ZLayer}
+import zio.{Runtime, Semaphore, ZLayer}
+import java.util.UUID
 
 trait ServerSuiteHelper {
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
-  val skey   = config.secretkey
 
   type MEJP = MyEtlJobPropsMapping[EtlJobProps, CoreEtlJob[EtlJobProps]]
 
   val authCache: Cache[String, String] = Cache.create[String, String]()
-  val crypto: Crypto                   = Crypto(skey)
+  val crypto: Crypto                   = Crypto(None)
   val credentials: JDBC                = config.db.get
+
   val sem: Map[String, Semaphore] =
     Map(
       "Job1" -> Runtime.default.unsafeRun(Semaphore.make(1)),
@@ -33,15 +34,14 @@ trait ServerSuiteHelper {
       "Job9" -> Runtime.default.unsafeRun(Semaphore.make(1))
     )
 
-  val auth: Authentication = Authentication(authCache, config.secretkey)
+  val auth: Authentication           = Authentication(authCache, config.secretkey)
+  val executor: ServerExecutor[MEJP] = ServerExecutor[MEJP](sem, config)
 
-  val executor: ServerExecutor[MEJP]                         = ServerExecutor[MEJP](sem, config)
-  val supervisor: Supervisor[Chunk[Fiber.Runtime[Any, Any]]] = Runtime.default.unsafeRun(Supervisor.track(true))
-  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv] =
-    Implementation.live[MEJP](auth, executor, List.empty, crypto)
-  val testDBLayer: ZLayer[Blocking, Throwable, DBEnv with LogEnv with DBServerEnv] =
-    liveFullDBWithLog(config.db.get, java.util.UUID.randomUUID.toString)
+  type AllDBEnv = DBEnv with LogEnv with DBServerEnv
+  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv]   = api.Implementation.live[MEJP](auth, executor, List.empty, crypto)
+  val testDBLayer: ZLayer[Blocking, Throwable, AllDBEnv]  = db.liveFullDBWithLog(config.db.get, UUID.randomUUID.toString)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
-  val fullLayerWithoutDB                                  = testAPILayer ++ testJsonLayer
-  val fullLayer                                           = testAPILayer ++ testDBLayer ++ testJsonLayer
+
+  val fullLayerWithoutDB = testAPILayer ++ testJsonLayer
+  val fullLayer          = testAPILayer ++ testDBLayer ++ testJsonLayer
 }

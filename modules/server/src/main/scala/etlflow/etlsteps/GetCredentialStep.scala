@@ -4,7 +4,7 @@ import crypto4s.Crypto
 import etlflow.core.CoreEnv
 import etlflow.db.{DBApi, liveDB}
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.schema.Credential.{AWS, JDBC}
+import etlflow.model.Credential.{AWS, JDBC}
 import etlflow.utils.Configuration
 import io.circe.Decoder
 import zio.blocking.Blocking

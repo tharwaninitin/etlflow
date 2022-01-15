@@ -4,7 +4,7 @@
 //import etlflow.coretests.Schema._
 //import etlflow.coretests.TestSuiteHelper
 //import etlflow.db.DBApi
-//import etlflow.schema.Credential.JDBC
+//import etlflow.model.Credential.JDBC
 //import etlflow.spark.IOType.{PARQUET, RDB}
 //import etlflow.spark.ReadApi
 //import org.apache.spark.sql.{Dataset, Row, SaveMode}

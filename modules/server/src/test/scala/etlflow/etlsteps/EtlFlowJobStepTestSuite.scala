@@ -3,7 +3,7 @@ package etlflow.etlsteps
 import etlflow.core.CoreEnv
 import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
 import etlflow.jobtests.jobs.Job1HelloWorld
-import etlflow.schema.Config
+import etlflow.model.Config
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

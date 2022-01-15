@@ -4,7 +4,7 @@ import crypto4s.Crypto
 import etlflow.db.DBApi
 import etlflow.db.utils.CreateDB
 import etlflow.executor.LocalExecutor
-import etlflow.schema.Config
+import etlflow.model.Config
 import etlflow.utils.CliArgsParserAPI
 import etlflow.utils.CliArgsParserAPI.EtlJobConfig
 import etlflow.utils.CliArgsDBParserAPI
@@ -89,12 +89,14 @@ abstract class CliApp[T <: EJPMType: Tag] extends ApplicationLogger with App {
   }
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    Configuration.config.flatMap(cfg =>
-      cliRunner(args, cfg, ZIO.unit).catchAll { err =>
-        UIO {
-          logger.error(err.getMessage)
-          err.getStackTrace.foreach(x => logger.error(x.toString))
+    Configuration.config
+      .flatMap(cfg =>
+        cliRunner(args, cfg, ZIO.unit).catchAll { err =>
+          UIO {
+            logger.error(err.getMessage)
+            err.getStackTrace.foreach(x => logger.error(x.toString))
+          }
         }
-      }
-    ).exitCode
+      )
+      .exitCode
 }

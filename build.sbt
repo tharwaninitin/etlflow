@@ -49,7 +49,7 @@ lazy val cloudSettings = Seq(
 
 lazy val serverSettings = Seq(
   name                     := "etlflow-server",
-  crossScalaVersions       := allScalaVersions,
+  crossScalaVersions       := scala2Versions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
   libraryDependencies ++= serverLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
 )

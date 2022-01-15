@@ -4,7 +4,7 @@ import etlflow.JobApp
 import etlflow.core.CoreLogEnv
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
 import etlflow.log.LogEnv
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import zio.{RIO, ZLayer}
 
 object Job4 extends JobApp {

@@ -1,15 +1,15 @@
 package etlflow.etlsteps
 
 import etlflow.db.{DBApi, liveDB}
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import zio.RIO
 import zio.blocking.Blocking
 
-class DBQueryStep private(val name: String, query: => String, credentials: JDBC, pool_size: Int = 2)
-  extends EtlStep[Unit,Unit] {
+class DBQueryStep private (val name: String, query: => String, credentials: JDBC, pool_size: Int = 2)
+    extends EtlStep[Unit, Unit] {
 
-  final def process(in: =>Unit): RIO[Blocking, Unit] = {
-    logger.info("#"*100)
+  final def process(in: => Unit): RIO[Blocking, Unit] = {
+    logger.info("#" * 100)
     logger.info(s"Starting DB Query Step: $name")
     logger.info(s"Query: $query")
     DBApi.executeQuery(query).provideLayer(liveDB(credentials, name + "-Pool", pool_size))

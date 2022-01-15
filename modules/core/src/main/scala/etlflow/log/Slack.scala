@@ -1,6 +1,6 @@
 package etlflow.log
 
-import etlflow.schema
+import etlflow.model
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 import zio.{Task, ULayer, ZIO, ZLayer}
@@ -10,7 +10,7 @@ import scala.util.Try
 
 object Slack extends ApplicationLogger {
 
-  case class SlackLogger(job_run_id: String, slack: Option[schema.Slack]) extends Service {
+  case class SlackLogger(job_run_id: String, slack: Option[model.Slack]) extends Service {
     var final_step_message: String = ""
     var final_message: String      = ""
     val slack_env: String          = slack.map(_.env).getOrElse("")
@@ -111,7 +111,7 @@ object Slack extends ApplicationLogger {
     }
   }
 
-  def live(slack: Option[schema.Slack], jri: String): ULayer[LogEnv] =
+  def live(slack: Option[model.Slack], jri: String): ULayer[LogEnv] =
     if (slack.isEmpty)
       nolog
     else

@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.schema.Credential.SMTP
+import etlflow.model.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
@@ -21,31 +21,31 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
     sys.env.getOrElse("SMTP_PORT", "587"),
     sys.env.getOrElse("SMTP_HOST", "..."),
     sys.env.getOrElse("SMTP_USER", "..."),
-    sys.env.getOrElse("SMTP_PASS", "..."),
+    sys.env.getOrElse("SMTP_PASS", "...")
   )
 
   val step = SendMailStep(
     name = "SendSMTPEmail",
     body = emailBody,
     subject = "SendMailStep Test Ran Successfully",
-    sender  = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
+    sender = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
     recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
     credentials = SMTP(
       sys.env.getOrElse("SMTP_PORT", "587"),
       sys.env.getOrElse("SMTP_HOST", "..."),
       sys.env.getOrElse("SMTP_USER", "..."),
-      sys.env.getOrElse("SMTP_PASS", "..."),
+      sys.env.getOrElse("SMTP_PASS", "...")
     )
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("SendMailStepTestSuite") (
+    suite("SendMailStepTestSuite")(
       testM("Execute SendMailStep") {
         val step = SendMailStep(
           name = "SendSMTPEmail",
           body = emailBody,
           subject = "SendMailStep Test Ran Successfully",
-          sender  = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
+          sender = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
           recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
           credentials = smtp
         ).process(())

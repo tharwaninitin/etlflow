@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.schema.Config
+import etlflow.model.Config
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

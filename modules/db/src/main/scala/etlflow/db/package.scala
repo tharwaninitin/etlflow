@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.log.LogEnv
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import zio.blocking.Blocking
 import zio.{Has, ZLayer}
 

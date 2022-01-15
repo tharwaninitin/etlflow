@@ -1,6 +1,6 @@
 package etlflow.server
 
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import etlflow.server.model._
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo

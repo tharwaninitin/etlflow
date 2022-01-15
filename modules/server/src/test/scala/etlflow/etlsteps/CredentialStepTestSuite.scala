@@ -2,8 +2,8 @@ package etlflow.etlsteps
 
 import crypto4s.Crypto
 import etlflow.core.CoreEnv
-import etlflow.schema.Config
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Config
+import etlflow.model.Credential.JDBC
 import io.circe.generic.auto._
 import zio.ZIO
 import zio.test.Assertion.equalTo

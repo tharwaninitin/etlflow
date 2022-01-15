@@ -1,7 +1,7 @@
 package examples
 
 import etlflow.etlsteps.SparkReadWriteStep
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.RDB
 import etlflow.spark.{IOType, SparkManager}
 import etlflow.utils.ApplicationLogger
@@ -11,7 +11,8 @@ import zio.{ExitCode, URIO}
 
 object EtlJobBqToJdbc extends zio.App with ApplicationLogger {
 
-  private implicit val spark: SparkSession = SparkManager.createSparkSession(Set(etlflow.spark.Environment.LOCAL), hive_support = false)
+  private implicit val spark: SparkSession =
+    SparkManager.createSparkSession(Set(etlflow.spark.Environment.LOCAL), hive_support = false)
 
   private val step1 = SparkReadWriteStep[RatingBQ](
     name = "LoadRatingsBqToJdbc",

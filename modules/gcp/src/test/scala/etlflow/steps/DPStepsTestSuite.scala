@@ -1,7 +1,7 @@
 package etlflow.steps
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.schema.Executor.{DATAPROC, SPARK_CONF}
+import etlflow.model.Executor.{DATAPROC, SPARK_CONF}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
@@ -21,15 +21,15 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
         val step = DPHiveJobStep(
           name = "DPHiveJobStepExample",
           query = "SELECT 1 AS ONE",
-          config = dpConfig,
+          config = dpConfig
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
         val libs = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
         val spark_conf = List(
-          SPARK_CONF("spark.executor.memory","1g"),
-          SPARK_CONF("spark.driver.memory","1g"),
+          SPARK_CONF("spark.executor.memory", "1g"),
+          SPARK_CONF("spark.driver.memory", "1g")
         )
         val step = DPSparkJobStep(
           name = "DPSparkJobStepExample",

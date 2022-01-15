@@ -5,16 +5,18 @@ import etlflow.core.CoreEnv
 import etlflow.db.DBServerEnv
 import etlflow.gcp.{DP, DPApi}
 import etlflow.json.JsonEnv
-import etlflow.schema.Config
-import etlflow.schema.Executor._
+import etlflow.model.Executor
+import etlflow.model.Config
+import etlflow.model.Executor._
 import etlflow.server.DBServerApi
 import etlflow.server.model.{EtlJob, EtlJobArgs}
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
-import etlflow.{EJPMType, schema}
+import etlflow.EJPMType
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration._
 
 case class ServerExecutor[T <: EJPMType: Tag](
@@ -54,7 +56,7 @@ case class ServerExecutor[T <: EJPMType: Tag](
 
   private def runEtlJob(
       args: EtlJobArgs,
-      deploy_mode: schema.Executor,
+      deploy_mode: Executor,
       retry: Int = 0,
       spaced: Int = 0,
       fork: Boolean = true

@@ -1,7 +1,7 @@
 package etlflow.steps
 
 import etlflow.etlsteps.DPDeleteStep
-import etlflow.schema.Executor.DATAPROC
+import etlflow.model.Executor.DATAPROC
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, ZSpec, assertM, environment}
@@ -21,7 +21,7 @@ object DPDeleteTestSuite extends DefaultRunnableSpec {
 
         val step = DPDeleteStep(
           name = "DPDeleteStepExample",
-          config = dpConfig,
+          config = dpConfig
         )
         assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

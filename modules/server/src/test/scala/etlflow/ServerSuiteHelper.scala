@@ -9,7 +9,7 @@ import etlflow.executor.ServerExecutor
 import etlflow.jobtests.MyEtlJobPropsMapping
 import etlflow.json.JsonEnv
 import etlflow.log.LogEnv
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import etlflow.utils.Configuration
 import etlflow.webserver.Authentication
 import zio.blocking.Blocking

@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.schema.Config
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Config
+import etlflow.model.Credential.JDBC
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test.{ZSpec, assertM, assert, environment, suite, test, testM}

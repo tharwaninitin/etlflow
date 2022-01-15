@@ -1,6 +1,5 @@
 package etlflow.server
 
-import etlflow.db._
 import etlflow.server.model._
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
@@ -9,6 +8,14 @@ import java.text.SimpleDateFormat
 import java.time.{LocalDate, ZoneId}
 
 private[etlflow] object Sql extends ApplicationLogger {
+
+  private def getStartTime(startTime: Option[java.time.LocalDate]): Long = {
+    val sdf = new SimpleDateFormat("yyyy-MM-dd")
+    if (startTime.isDefined)
+      startTime.get.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    else
+      sdf.parse(LocalDate.now().toString).getTime
+  }
 
   def getUser(name: String): SQL[Nothing, NoExtractor] =
     sql"""SELECT user_name, password, user_active, user_role FROM userinfo WHERE user_name = $name"""
@@ -40,7 +47,7 @@ private[etlflow] object Sql extends ApplicationLogger {
     var q: SQL[Nothing, NoExtractor] = null
 
     if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
-      val startTime = Utils.getStartTime(args.startTime)
+      val startTime = getStartTime(args.startTime)
       val endTime   = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       args.filter.get match {
         case "IN" =>
@@ -116,7 +123,7 @@ private[etlflow] object Sql extends ApplicationLogger {
                  offset ${args.offset} limit ${args.limit}"""
       }
     } else if (args.endTime.isDefined) {
-      val startTime = Utils.getStartTime(args.startTime)
+      val startTime = getStartTime(args.startTime)
       val endTime   = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       q = sql"""
                  SELECT

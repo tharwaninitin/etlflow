@@ -2,12 +2,12 @@ package etlflow.utils
 
 import java.util.TimeZone
 import java.util.Calendar
-import etlflow.schema.Config
+import etlflow.model.Config
 import zio.Task
 
-private [etlflow]  object SetTimeZone extends ApplicationLogger {
+private[etlflow] object SetTimeZone extends ApplicationLogger {
   def apply(config: Config): Task[Unit] = Task {
-    config.timezone.foreach{tz =>
+    config.timezone.foreach { tz =>
       TimeZone.setDefault(TimeZone.getTimeZone(tz))
       logger.info(s"TimeZone provided in application.conf $tz")
     }

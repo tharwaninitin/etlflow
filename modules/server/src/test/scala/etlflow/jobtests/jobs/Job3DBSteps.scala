@@ -5,7 +5,7 @@ import etlflow.etljobs.EtlJob
 import etlflow.etlsteps._
 import etlflow.jobtests.ConfigHelper
 import etlflow.jobtests.MyEtlJobProps.EtlJob4Props
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import io.circe.generic.auto._
 
 case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] with ConfigHelper {

@@ -2,7 +2,7 @@ package etlflow.gcp
 
 import com.google.cloud.dataproc.v1._
 import com.google.protobuf.Duration
-import etlflow.schema.Executor.DATAPROC
+import etlflow.model.Executor.DATAPROC
 import etlflow.utils.ApplicationLogger
 import zio.{Task, UIO, ULayer}
 import java.util.concurrent.TimeUnit
@@ -10,12 +10,17 @@ import scala.jdk.CollectionConverters._
 
 private[etlflow] object DP extends ApplicationLogger {
 
-  private def submitAndWaitForJobCompletion(jobControllerClient: JobControllerClient, projectId: String, region: String, job: Job): Unit = {
+  private def submitAndWaitForJobCompletion(
+      jobControllerClient: JobControllerClient,
+      projectId: String,
+      region: String,
+      job: Job
+  ): Unit = {
     val request = jobControllerClient.submitJob(projectId, region, job)
-    val jobId = request.getReference.getJobId
+    val jobId   = request.getReference.getJobId
     logger.info(s"Submitted job $jobId")
     var continue = true
-    var jobInfo = jobControllerClient.getJob(projectId, region, jobId)
+    var jobInfo  = jobControllerClient.getJob(projectId, region, jobId)
     var jobState = jobInfo.getStatus.getState.toString
     while (continue) {
       jobInfo = jobControllerClient.getJob(projectId, region, jobId)
@@ -50,13 +55,14 @@ private[etlflow] object DP extends ApplicationLogger {
                              |args => $args
                              |spark_conf => ${config.sp}""".stripMargin)
           val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
-          val jobControllerClient = JobControllerClient.create(jobControllerSettings)
-          val jobPlacement = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
+          val jobControllerClient   = JobControllerClient.create(jobControllerSettings)
+          val jobPlacement          = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
 
           logger.info("dp_libs")
           libs.foreach(logger.info)
-          val spark_conf = config.sp.map(x => (x.key,x.value)).toMap
-          val sparkJob = SparkJob.newBuilder()
+          val spark_conf = config.sp.map(x => (x.key, x.value)).toMap
+          val sparkJob = SparkJob
+            .newBuilder()
             .addAllJarFileUris(libs.asJava)
             .putAllProperties(spark_conf.asJava)
             .setMainClass(main_class)
@@ -74,10 +80,11 @@ private[etlflow] object DP extends ApplicationLogger {
                              |dp_cluster_name => ${config.cluster_name}
                              |query => $query""".stripMargin)
           val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
-          val jobControllerClient = JobControllerClient.create(jobControllerSettings)
-          val jobPlacement = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
-          val queryList = QueryList.newBuilder().addQueries(query)
-          val hiveJob = HiveJob.newBuilder()
+          val jobControllerClient   = JobControllerClient.create(jobControllerSettings)
+          val jobPlacement          = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
+          val queryList             = QueryList.newBuilder().addQueries(query)
+          val hiveJob = HiveJob
+            .newBuilder()
             .setQueryList(queryList)
             .build()
           val job = Job.newBuilder().setPlacement(jobPlacement).setHiveJob(hiveJob).build()
@@ -86,10 +93,11 @@ private[etlflow] object DP extends ApplicationLogger {
 
         override def deleteDataproc(): Task[Unit] = Task {
           val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
-          val cluster_controller_client = ClusterControllerClient.create(cluster_controller_settings)
+          val cluster_controller_client   = ClusterControllerClient.create(cluster_controller_settings)
 
           try {
-            val delete_cluster_async_request = cluster_controller_client.deleteClusterAsync(config.project, config.region, config.cluster_name)
+            val delete_cluster_async_request =
+              cluster_controller_client.deleteClusterAsync(config.project, config.region, config.cluster_name)
             val response = delete_cluster_async_request.get
             logger.info(s"Cluster ${config.cluster_name} successfully deleted. API response is ${response.toString}")
           } catch {
@@ -100,33 +108,47 @@ private[etlflow] object DP extends ApplicationLogger {
         }
 
         override def createDataproc(props: DataprocProperties): Task[Cluster] = Task {
-          val end_point_config = EndpointConfig.newBuilder().setEnableHttpPortAccess(true)
+          val end_point_config            = EndpointConfig.newBuilder().setEnableHttpPortAccess(true)
           val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
-          val cluster_controller_client = ClusterControllerClient.create(cluster_controller_settings)
-          val software_config = SoftwareConfig.newBuilder().setImageVersion(props.image_version)
-          val disk_config_m = DiskConfig.newBuilder().setBootDiskType(props.boot_disk_type).setBootDiskSizeGb(props.master_boot_disk_size_gb)
-          val disk_config_w = DiskConfig.newBuilder().setBootDiskType(props.boot_disk_type).setBootDiskSizeGb(props.worker_boot_disk_size_gb)
+          val cluster_controller_client   = ClusterControllerClient.create(cluster_controller_settings)
+          val software_config             = SoftwareConfig.newBuilder().setImageVersion(props.image_version)
+          val disk_config_m =
+            DiskConfig.newBuilder().setBootDiskType(props.boot_disk_type).setBootDiskSizeGb(props.master_boot_disk_size_gb)
+          val disk_config_w =
+            DiskConfig.newBuilder().setBootDiskType(props.boot_disk_type).setBootDiskSizeGb(props.worker_boot_disk_size_gb)
 
           val gce_cluster_builder = props.subnet_uri match {
-            case Some(value) => GceClusterConfig.newBuilder()
-              .setInternalIpOnly(true)
-              .setSubnetworkUri(value)
-              .addAllTags(props.network_tags.asJava)
-              .addServiceAccountScopes("https://www.googleapis.com/auth/cloud-platform")
-            case None => GceClusterConfig.newBuilder()
-              .setInternalIpOnly(true)
-              .addAllTags(props.network_tags.asJava)
-              .addServiceAccountScopes("https://www.googleapis.com/auth/cloud-platform")
+            case Some(value) =>
+              GceClusterConfig
+                .newBuilder()
+                .setInternalIpOnly(true)
+                .setSubnetworkUri(value)
+                .addAllTags(props.network_tags.asJava)
+                .addServiceAccountScopes("https://www.googleapis.com/auth/cloud-platform")
+            case None =>
+              GceClusterConfig
+                .newBuilder()
+                .setInternalIpOnly(true)
+                .addAllTags(props.network_tags.asJava)
+                .addServiceAccountScopes("https://www.googleapis.com/auth/cloud-platform")
           }
 
           val gce_cluster_config = props.service_account match {
             case Some(value) => gce_cluster_builder.setServiceAccount(value)
-            case _ => gce_cluster_builder
+            case _           => gce_cluster_builder
           }
 
           try {
-            val master_config = InstanceGroupConfig.newBuilder.setMachineTypeUri(props.master_machine_type_uri).setNumInstances(props.master_num_instance).setDiskConfig(disk_config_m).build
-            val worker_config = InstanceGroupConfig.newBuilder.setMachineTypeUri(props.worker_machine_type_uri).setNumInstances(props.worker_num_instance).setDiskConfig(disk_config_w).build
+            val master_config = InstanceGroupConfig.newBuilder
+              .setMachineTypeUri(props.master_machine_type_uri)
+              .setNumInstances(props.master_num_instance)
+              .setDiskConfig(disk_config_m)
+              .build
+            val worker_config = InstanceGroupConfig.newBuilder
+              .setMachineTypeUri(props.worker_machine_type_uri)
+              .setNumInstances(props.worker_num_instance)
+              .setDiskConfig(disk_config_w)
+              .build
             val cluster_config_builder = ClusterConfig.newBuilder
               .setMasterConfig(master_config)
               .setWorkerConfig(worker_config)
@@ -136,14 +158,18 @@ private[etlflow] object DP extends ApplicationLogger {
               .setEndpointConfig(end_point_config)
 
             val cluster_config = props.idle_deletion_duration_sec match {
-              case Some(value) => cluster_config_builder.setLifecycleConfig(
-                LifecycleConfig.newBuilder().setIdleDeleteTtl(Duration.newBuilder().setSeconds(value))
-              ).build
-              case _       => cluster_config_builder.build
+              case Some(value) =>
+                cluster_config_builder
+                  .setLifecycleConfig(
+                    LifecycleConfig.newBuilder().setIdleDeleteTtl(Duration.newBuilder().setSeconds(value))
+                  )
+                  .build
+              case _ => cluster_config_builder.build
             }
 
             val cluster = Cluster.newBuilder.setClusterName(config.cluster_name).setConfig(cluster_config).build
-            val create_cluster_async_request = cluster_controller_client.createClusterAsync(config.project, config.region, cluster)
+            val create_cluster_async_request =
+              cluster_controller_client.createClusterAsync(config.project, config.region, cluster)
             val response = create_cluster_async_request.get
             logger.info(s"Cluster created successfully: ${response.getClusterName}")
             response

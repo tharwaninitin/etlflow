@@ -6,7 +6,7 @@ import etlflow.server.model.EtlJob
 import etlflow.executor.ServerExecutor
 import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
-import etlflow.schema.Config
+import etlflow.model.Config
 import etlflow.server.Implementation
 import etlflow.utils.{Configuration, SetTimeZone, ReflectAPI => RF}
 import etlflow.webserver.{Authentication, HttpServer}

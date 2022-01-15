@@ -5,7 +5,7 @@ import etlflow.db._
 import etlflow.server.model._
 import etlflow.executor.ServerExecutor
 import etlflow.json.{JsonApi, JsonEnv}
-import etlflow.schema.Credential
+import etlflow.model.Credential
 import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeFromTimestamp}
 import etlflow.utils.{ReflectAPI => RF, _}
 import etlflow.webserver.Authentication

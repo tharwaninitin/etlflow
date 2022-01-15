@@ -1,7 +1,7 @@
 package examples
 
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import etlflow.utils.ApplicationLogger
 import zio.{ExitCode, URIO}
 
@@ -24,12 +24,12 @@ object Job3 extends zio.App with ApplicationLogger {
 
   private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData,
+    transform_function = processData
   )
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
       op1 <- step1(cred).process(())
-      _ <- step2.process(op1)
+      _   <- step2.process(op1)
     } yield ()).exitCode
 }

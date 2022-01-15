@@ -3,25 +3,24 @@ package etlflow.etlsteps
 import com.redis._
 import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.redis.RedisApi
-import etlflow.schema.Credential.REDIS
+import etlflow.model.Credential.REDIS
 import zio.Task
 
-class RedisStep (
-                  val name: String,
-                  val command: RedisCmd,
-                  val credentials: REDIS
-                )
-  extends EtlStep[Unit,Unit] {
+class RedisStep(
+    val name: String,
+    val command: RedisCmd,
+    val credentials: REDIS
+) extends EtlStep[Unit, Unit] {
 
-  final def process(in: =>Unit): Task[Unit] = Task{
+  final def process(in: => Unit): Task[Unit] = Task {
     logger.info("#" * 100)
-    val redisClient = new RedisClient(credentials.host_name, credentials.port, secret=credentials.password)
+    val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
     logger.info(s"Starting Redis Query Step: $name")
     logger.info(s"Query to perform: $command")
     command match {
-      case RedisCmd.SET(kv) => RedisApi.setKeys(kv,redisClient)
-      case RedisCmd.FLUSHALL => redisClient.flushall
-      case RedisCmd.DELETE(prefix) => RedisApi.deleteKeysOfPreFix(prefix,redisClient)
+      case RedisCmd.SET(kv)        => RedisApi.setKeys(kv, redisClient)
+      case RedisCmd.FLUSHALL       => redisClient.flushall
+      case RedisCmd.DELETE(prefix) => RedisApi.deleteKeysOfPreFix(prefix, redisClient)
     }
   }
 
@@ -31,8 +30,8 @@ class RedisStep (
 object RedisStep {
   sealed trait RedisCmd
   object RedisCmd {
-    case class SET(kv: Map[String,String]) extends RedisCmd
-    case object FLUSHALL extends RedisCmd
+    case class SET(kv: Map[String, String]) extends RedisCmd
+    case object FLUSHALL                    extends RedisCmd
     case class DELETE(prefix: List[String]) extends RedisCmd
   }
 

@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import etlflow.TestSparkSession
 import etlflow.coretests.Schema.Rating
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.{PARQUET, RDB}
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
 import etlflow.utils.ApplicationLogger
@@ -33,7 +33,10 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     val year_month = ds
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn("year_month", get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
-      .selectExpr("year_month").distinct().as[String].collect()
+      .selectExpr("year_month")
+      .distinct()
+      .as[String]
+      .collect()
     WriteApi.WriteDS[Rating](jdbc, "ratings")(ds, spark)
     year_month
   }
@@ -50,19 +53,18 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
 
   val step3 = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData,
+    transform_function = processData
   )
 
   val job =
     for {
-      _ <- step1.process(())
+      _   <- step1.process(())
       op1 <- step2.process(())
-      _ <- step3.process(op1)
+      _   <- step3.process(op1)
     } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("Spark Steps")(
-      testM("Execute Spark steps") {
-        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      })
+    suite("Spark Steps")(testM("Execute Spark steps") {
+      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    })
 }

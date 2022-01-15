@@ -2,7 +2,7 @@ package examples.jobs
 
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.DPSparkJobStep
-import etlflow.schema.Executor.DATAPROC
+import etlflow.model.Executor.DATAPROC
 import examples.schema.MyEtlJobProps.SampleProps
 
 case class EtlJobDpSparkJobStep(job_properties: SampleProps) extends EtlJob[SampleProps] {
@@ -16,11 +16,11 @@ case class EtlJobDpSparkJobStep(job_properties: SampleProps) extends EtlJob[Samp
   val libs = sys.env("DP_LIBS").split(",").toList
 
   val step = DPSparkJobStep(
-    name        = "DPSparkJobStepExample",
-    args        = List.empty,
-    config      = dpConfig,
-    main_class  = sys.env("DP_MAIN_CLASS"),
-    libs        = libs
+    name = "DPSparkJobStepExample",
+    args = List.empty,
+    config = dpConfig,
+    main_class = sys.env("DP_MAIN_CLASS"),
+    libs = libs
   )
 
   val job = step.execute(())

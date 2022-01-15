@@ -3,7 +3,7 @@ package etlflow.webserver
 import cache4s.default_ttl
 import etlflow.ServerSuiteHelper
 import etlflow.server.model.UserArgs
-import etlflow.schema.Credential.JDBC
+import etlflow.model.Credential.JDBC
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http._
 import zio.test.Assertion.equalTo

@@ -10,9 +10,9 @@ import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http._
 import zio.{RIO, Task}
 
-case class Authentication(cache: Cache[String, String], secretkey: Option[String]) extends ApplicationLogger {
+case class Authentication(cache: Cache[String, String], secretKey: Option[String]) extends ApplicationLogger {
 
-  final val secret = secretkey.getOrElse(etlflow.utils.Defaults.secretkey)
+  final val secret = secretKey.getOrElse("EtlFlowCrypt2020")
 
   private[etlflow] def validateJwt(token: String): Boolean = Jwt.isValid(token, secret, Seq(JwtAlgorithm.HS256))
 

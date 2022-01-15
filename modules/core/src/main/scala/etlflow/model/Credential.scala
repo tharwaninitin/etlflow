@@ -1,4 +1,4 @@
-package etlflow.schema
+package etlflow.model
 
 sealed trait Credential
 object Credential {
@@ -18,7 +18,15 @@ object Credential {
     override def toString: String = s"REDIS with url $host_name and port $port"
   }
 
-  final case class SMTP(port: String, host: String, user: String, password: String, transport_protocol: String = "smtp", starttls_enable: String = "true", smtp_auth: String = "true") extends Credential {
+  final case class SMTP(
+      port: String,
+      host: String,
+      user: String,
+      password: String,
+      transport_protocol: String = "smtp",
+      starttls_enable: String = "true",
+      smtp_auth: String = "true"
+  ) extends Credential {
     override def toString: String = s"SMTP with host  => $host and user => $user"
   }
 }

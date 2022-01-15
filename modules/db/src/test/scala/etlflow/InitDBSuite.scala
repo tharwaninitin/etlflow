@@ -1,6 +1,7 @@
 package etlflow
 
-import etlflow.db.{CreateDB, DBApi, DBEnv}
+import etlflow.db.utils.CreateDB
+import etlflow.db.{DBApi, DBEnv}
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -36,11 +37,10 @@ object InitDBSuite extends DbSuiteHelper {
     - <- CreateDB(true)
     _ <- DBApi.executeQuery(sql)
   } yield ()
-  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] = {
+  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
     suite("InitTestDB")(
       testM("InitTestDB") {
         assertM(program.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       }
     )
-  }
 }

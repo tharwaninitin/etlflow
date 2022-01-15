@@ -3,9 +3,9 @@ package etlflow.webserver
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema
 import caliban.{GraphQL, RootResolver}
-import etlflow.api.APIEnv
-import etlflow.api.Schema._
-import etlflow.api.Service.login
+import etlflow.server.APIEnv
+import etlflow.server.model._
+import etlflow.server.Service.login
 import etlflow.db.DBServerEnv
 import zio.{Task, UIO, ZIO}
 

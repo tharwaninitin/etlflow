@@ -1,7 +1,7 @@
 package etlflow.webserver
 
 import caliban.Macros.gqldoc
-import etlflow.api.ServerEnv
+import etlflow.server.ServerEnv
 import etlflow.db.DBEnv
 import etlflow.utils.ApplicationLogger
 import etlflow.{ResetServerDB, ServerSuiteHelper}

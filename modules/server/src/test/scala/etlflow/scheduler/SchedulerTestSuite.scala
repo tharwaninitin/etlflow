@@ -2,8 +2,8 @@ package etlflow.scheduler
 
 import cron4zio._
 import etlflow.ServerSuiteHelper
-import etlflow.api.ServerEnv
-import etlflow.db.EtlJob
+import etlflow.server.ServerEnv
+import etlflow.server.model.EtlJob
 import etlflow.utils.{ReflectAPI => RF}
 import zio.duration.{Duration => ZDuration}
 import zio.test._
@@ -30,7 +30,7 @@ object SchedulerTestSuite extends ServerSuiteHelper with Scheduler {
       ),
       testM("Test Cron Job")(
         for {
-          _ <- sleepForCron(parseCron("0 */2 * * * ?").get).fork
+          _ <- sleepForCron(parse("0 */2 * * * ?").get).fork
           _ <- TestClock.adjust(10.seconds)
         } yield assertTrue(1 == 1)
       )

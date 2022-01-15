@@ -2,7 +2,7 @@ package etlflow
 
 import cache4s.Cache
 import crypto4s.Crypto
-import etlflow.api.APIEnv
+import etlflow.server.APIEnv
 import etlflow.db.{DBEnv, DBServerEnv}
 import etlflow.etljobs.{EtlJob => CoreEtlJob}
 import etlflow.executor.ServerExecutor
@@ -38,7 +38,7 @@ trait ServerSuiteHelper {
   val executor: ServerExecutor[MEJP] = ServerExecutor[MEJP](sem, config)
 
   type AllDBEnv = DBEnv with LogEnv with DBServerEnv
-  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv]   = api.Implementation.live[MEJP](auth, executor, List.empty, crypto)
+  val testAPILayer: ZLayer[Blocking, Throwable, APIEnv]   = server.Implementation.live[MEJP](auth, executor, List.empty, crypto)
   val testDBLayer: ZLayer[Blocking, Throwable, AllDBEnv]  = db.liveFullDBWithLog(config.db.get, UUID.randomUUID.toString)
   val testJsonLayer: ZLayer[Blocking, Throwable, JsonEnv] = json.Implementation.live
 

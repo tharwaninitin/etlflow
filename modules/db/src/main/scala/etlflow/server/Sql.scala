@@ -1,6 +1,7 @@
 package etlflow.server
 
 import etlflow.db._
+import etlflow.server.model._
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestamp
 import scalikejdbc._
@@ -18,7 +19,8 @@ private[etlflow] object Sql extends ApplicationLogger {
   def getJob(name: String): SQL[Nothing, NoExtractor] =
     sql"SELECT job_name, schedule, is_active FROM job WHERE job_name = $name"
 
-  def getJobs: SQL[Nothing, NoExtractor] = sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
+  def getJobs: SQL[Nothing, NoExtractor] =
+    sql"SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"
 
   def getStepRuns(job_run_id: String): SQL[Nothing, NoExtractor] =
     sql"""SELECT job_run_id,
@@ -39,11 +41,10 @@ private[etlflow] object Sql extends ApplicationLogger {
 
     if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined && args.endTime.isDefined) {
       val startTime = Utils.getStartTime(args.startTime)
-      val endTime = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+      val endTime   = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
       args.filter.get match {
-        case "IN" => {
-          q =
-            sql"""
+        case "IN" =>
+          q = sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -60,10 +61,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                  AND inserted_at < $endTime
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        }
-        case "NOT IN" => {
-          q =
-            sql"""
+        case "NOT IN" =>
+          q = sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -80,14 +79,11 @@ private[etlflow] object Sql extends ApplicationLogger {
                  AND inserted_at < ${endTime}
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        }
       }
-    }
-    else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
+    } else if (args.jobRunId.isEmpty && args.jobName.isDefined && args.filter.isDefined) {
       args.filter.get match {
-        case "IN" => {
-          q =
-            sql"""
+        case "IN" =>
+          q = sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -102,10 +98,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        }
-        case "NOT IN" => {
-          q =
-            sql"""
+        case "NOT IN" =>
+          q = sql"""
                  SELECT
                    job_run_id,
                      job_name,
@@ -120,14 +114,11 @@ private[etlflow] object Sql extends ApplicationLogger {
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-        }
       }
-    }
-    else if (args.endTime.isDefined) {
+    } else if (args.endTime.isDefined) {
       val startTime = Utils.getStartTime(args.startTime)
-      val endTime = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-      q =
-        sql"""
+      val endTime   = args.endTime.get.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+      q = sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -143,10 +134,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                  AND is_master = 'true'
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
-    }
-    else {
-      q =
-        sql"""
+    } else {
+      q = sql"""
                  SELECT
                      job_run_id,
                      job_name,
@@ -168,11 +157,10 @@ private[etlflow] object Sql extends ApplicationLogger {
     var q: SQL[Nothing, NoExtractor] = null
 
     if (args.filter.isDefined && args.limit.isDefined) {
-      val sdf = new SimpleDateFormat("yyyy-MM-dd")
+      val sdf       = new SimpleDateFormat("yyyy-MM-dd")
       val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
       val end_time2 = getCurrentTimestamp
-      q =
-        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                   SELECT job_name,
                         CASE
                             WHEN status = 'pass'
@@ -188,13 +176,11 @@ private[etlflow] object Sql extends ApplicationLogger {
                     GROUP by job_name,status limit ${args.limit}) t
                     GROUP by job_name,status
                   ) t1 GROUP by job_name;""".stripMargin
-    }
-    else if (args.filter.isDefined) {
-      val sdf = new SimpleDateFormat("yyyy-MM-dd")
+    } else if (args.filter.isDefined) {
+      val sdf       = new SimpleDateFormat("yyyy-MM-dd")
       val end_time1 = sdf.parse(LocalDate.now().minusDays(args.filter.get.toLong).toString).getTime
       val end_time2 = getCurrentTimestamp
-      q =
-        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                 SELECT job_name,
                        CASE
                           WHEN status = 'pass'
@@ -212,10 +198,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                   GROUP by job_name,status limit 50) t
                   GROUP by job_name,status
                ) t1 GROUP by job_name;""".stripMargin
-    }
-    else if (args.limit.isDefined) {
-      q =
-        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+    } else if (args.limit.isDefined) {
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                SELECT job_name,
                       CASE
                           WHEN status = 'pass'
@@ -231,10 +215,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                   GROUP by job_name,status limit ${args.limit}) t
                   GROUP by job_name,status
                ) t1 GROUP by job_name;""".stripMargin
-    }
-    else {
-      q =
-        sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
+    } else {
+      q = sql"""SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from (
                  SELECT job_name,
                         CASE
                             WHEN status = 'pass'
@@ -283,7 +265,8 @@ private[etlflow] object Sql extends ApplicationLogger {
   }
 
   def insertJobs(data: Seq[Seq[Any]]): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
-    insert.into(JobDBAll)
+    insert
+      .into(JobDBAll)
       .multipleValues(data: _*)
       .append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
   }

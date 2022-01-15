@@ -1,6 +1,7 @@
 package etlflow.server
 
 import etlflow.db._
+import etlflow.server.model._
 import zio.{IO, ZIO}
 
 private[etlflow] object DBServerApi {

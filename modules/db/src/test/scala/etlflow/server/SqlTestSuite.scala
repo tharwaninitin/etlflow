@@ -1,6 +1,6 @@
 package etlflow.server
 
-import etlflow.db._
+import etlflow.server.model._
 import zio.test.{ZSpec, assertTrue, environment, suite, test}
 
 object SqlTestSuite {
@@ -9,16 +9,17 @@ object SqlTestSuite {
       test("insertJobs Sql")({
         val seq = Seq(
           Seq("Job1", "", "", 0, 0, true),
-          Seq("Job2", "", "", 0, 0, true),
+          Seq("Job2", "", "", 0, 0, true)
         )
         val ip = Sql.insertJobs(seq).statement
-        val op = """insert into Job values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?) ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule"""
+        val op =
+          """insert into Job values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?) ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule"""
         assertTrue(ip == op)
       }),
       test("insertJobs Params")({
         val seq = Seq(
           Seq("Job1", "", "", 0, 0, true),
-          Seq("Job2", "", "", 0, 0, true),
+          Seq("Job2", "", "", 0, 0, true)
         )
         val ip = Sql.insertJobs(seq).parameters
         val op = Seq("Job1", "", "", 0, 0, true, "Job2", "", "", 0, 0, true)
@@ -52,30 +53,31 @@ object SqlTestSuite {
       }),
       test("updateCredentials Sql")({
         val credentialDB = Credential("Sample1", "JDBC", "{}")
-        val ip = Sql.updateCredentials(credentialDB).statement.replaceAll("\\s+", " ").trim
-        val op = """UPDATE credential SET valid_to = NOW() - INTERVAL '00:00:01' WHERE credential.name = ? AND credential.valid_to IS NULL"""
+        val ip           = Sql.updateCredentials(credentialDB).statement.replaceAll("\\s+", " ").trim
+        val op =
+          """UPDATE credential SET valid_to = NOW() - INTERVAL '00:00:01' WHERE credential.name = ? AND credential.valid_to IS NULL"""
         assertTrue(ip == op)
       }),
       test("updateCredentials Params")({
         val credentialDB = Credential("Sample1", "JDBC", "{}")
-        val ip = Sql.updateCredentials(credentialDB).parameters
+        val ip           = Sql.updateCredentials(credentialDB).parameters
         assertTrue(ip == List("Sample1"))
       }),
       test("addCredentials Sql")({
         val credentialDB = Credential("Sample2", "JDBC", "{}")
-        val ip = Sql.addCredentials(credentialDB).statement.replaceAll("\\s+", " ").trim
-        val op = """INSERT INTO credential (name,type,value) VALUES (?, ?, ?::jsonb)"""
+        val ip           = Sql.addCredentials(credentialDB).statement.replaceAll("\\s+", " ").trim
+        val op           = """INSERT INTO credential (name,type,value) VALUES (?, ?, ?::jsonb)"""
         assertTrue(ip == op)
       }),
       test("updateJobState Sql")({
         val etlJobStateArgs = EtlJobStateArgs("Job1", true)
-        val ip = Sql.updateJobState(etlJobStateArgs).statement
-        val op = """UPDATE job SET is_active = ? WHERE job_name = ?"""
+        val ip              = Sql.updateJobState(etlJobStateArgs).statement
+        val op              = """UPDATE job SET is_active = ? WHERE job_name = ?"""
         assertTrue(ip == op)
       }),
       test("updateJobState Params")({
         val etlJobStateArgs = EtlJobStateArgs("Job1", true)
-        val ip = Sql.updateJobState(etlJobStateArgs).parameters
+        val ip              = Sql.updateJobState(etlJobStateArgs).parameters
         assertTrue(ip == List(true, "Job1"))
       }),
       test("updateFailedJob Sql")({
@@ -107,29 +109,32 @@ object SqlTestSuite {
       }),
       test("getJobLogs Sql")({
         val jobLogsArgs = JobLogsArgs(None, None)
-        val ip = Sql.getJobLogs(jobLogsArgs).statement.replaceAll("\\s+", " ").trim
-        val op = """SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from ( SELECT job_name, CASE WHEN status = 'pass' THEN sum(count) ELSE 0 END success, CASE WHEN status != 'pass' THEN sum(count) ELSE 0 END failed FROM (select job_name, status,count(*) as count from jobrun GROUP by job_name,status limit 20) t GROUP by job_name,status ) t1 GROUP by job_name;"""
+        val ip          = Sql.getJobLogs(jobLogsArgs).statement.replaceAll("\\s+", " ").trim
+        val op =
+          """SELECT job_name,sum(success)::varchar as success, sum(failed)::varchar as failed from ( SELECT job_name, CASE WHEN status = 'pass' THEN sum(count) ELSE 0 END success, CASE WHEN status != 'pass' THEN sum(count) ELSE 0 END failed FROM (select job_name, status,count(*) as count from jobrun GROUP by job_name,status limit 20) t GROUP by job_name,status ) t1 GROUP by job_name;"""
         assertTrue(ip == op)
       }),
       test("getJobLogs Params")({
         val jobLogsArgs = JobLogsArgs(None, None)
-        val ip = Sql.getJobLogs(jobLogsArgs).parameters
+        val ip          = Sql.getJobLogs(jobLogsArgs).parameters
         assertTrue(ip == List.empty)
       }),
       test("getJobRuns Sql")({
         val dbJobRunArgs = DbJobRunArgs(Some("a27a7415-57b2-4b53-8f9b-5254e847a301"), Some("Job1"), None, None, None, 10, 10)
-        val ip = Sql.getJobRuns(dbJobRunArgs).statement.replaceAll("\\s+", " ").trim
-        val op = """SELECT job_run_id, job_name, properties::TEXT, status, elapsed_time, job_type, is_master, inserted_at FROM jobRun WHERE is_master = 'true' ORDER BY inserted_at DESC offset ? limit ?"""
+        val ip           = Sql.getJobRuns(dbJobRunArgs).statement.replaceAll("\\s+", " ").trim
+        val op =
+          """SELECT job_run_id, job_name, properties::TEXT, status, elapsed_time, job_type, is_master, inserted_at FROM jobRun WHERE is_master = 'true' ORDER BY inserted_at DESC offset ? limit ?"""
         assertTrue(ip == op)
       }),
       test("getJobRuns Params")({
         val dbJobRunArgs = DbJobRunArgs(Some("a27a7415-57b2-4b53-8f9b-5254e847a301"), Some("Job1"), None, None, None, 10, 10)
-        val ip = Sql.getJobRuns(dbJobRunArgs).parameters
+        val ip           = Sql.getJobRuns(dbJobRunArgs).parameters
         assertTrue(ip == List(10, 10))
       }),
       test("getStepRuns Sql")({
         val ip = Sql.getStepRuns("a27a7415-57b2-4b53-8f9b-5254e847a301").statement.replaceAll("\\s+", " ").trim
-        val op = """SELECT job_run_id, step_name, properties::TEXT, status, elapsed_time, step_type, step_run_id, inserted_at FROM StepRun WHERE job_run_id = ? ORDER BY inserted_at DESC"""
+        val op =
+          """SELECT job_run_id, step_name, properties::TEXT, status, elapsed_time, step_type, step_run_id, inserted_at FROM StepRun WHERE job_run_id = ? ORDER BY inserted_at DESC"""
         assertTrue(ip == op)
       }),
       test("getStepRuns Params")({
@@ -138,7 +143,8 @@ object SqlTestSuite {
       }),
       test("getJobs Sql")({
         val ip = Sql.getJobs.statement
-        val op = """SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"""
+        val op =
+          """SELECT x.job_name, x.job_description, x.schedule, x.failed, x.success, x.is_active, x.last_run_time FROM job x"""
         assertTrue(ip == op)
       }),
       test("getJobs Params")({
@@ -171,6 +177,6 @@ object SqlTestSuite {
       test("getUser Params")({
         val ip = Sql.getUser("admin").parameters
         assertTrue(ip == List("admin"))
-      }),
+      })
     )
 }

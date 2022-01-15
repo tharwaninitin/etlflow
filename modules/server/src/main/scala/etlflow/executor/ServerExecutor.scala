@@ -1,14 +1,14 @@
 package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
-import etlflow.api.Schema._
 import etlflow.core.CoreEnv
-import etlflow.db.{DBServerEnv, EtlJob}
+import etlflow.db.DBServerEnv
 import etlflow.gcp.{DP, DPApi}
-import etlflow.json.{JsonApi, JsonEnv}
+import etlflow.json.JsonEnv
 import etlflow.schema.Config
 import etlflow.schema.Executor._
 import etlflow.server.DBServerApi
+import etlflow.server.model.{EtlJob, EtlJobArgs}
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getCurrentTimestampAsString}
 import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
 import etlflow.{EJPMType, schema}
@@ -34,18 +34,15 @@ case class ServerExecutor[T <: EJPMType: Tag](
       _      <- UIO(logger.info(s"Checking if job ${args.name} is active at ${getCurrentTimestampAsString()}"))
       db_job <- DBServerApi.getJob(args.name)
       final_props = mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
-      props_json <- JsonApi.convertToString(final_props.filter(x => x._2 != null && x._2.trim != ""), List.empty)
-      retry  = mapping_props.getOrElse("job_retries", "0").toInt
-      spaced = mapping_props.getOrElse("job_retry_delay_in_minutes", "0").toInt
+      retry       = mapping_props.getOrElse("job_retries", "0").toInt
+      spaced      = mapping_props.getOrElse("job_retry_delay_in_minutes", "0").toInt
       _ <-
         if (db_job.is_active)
           for {
             _ <- UIO(
               logger.info(s"Submitting job ${db_job.job_name} from $submitted_from at ${getCurrentTimestampAsString()}")
             )
-            key   = s"${args.name} ${getCurrentTimestamp}"
-            value = QueueDetails(args.name, props_json, submitted_from, getCurrentTimestampAsString())
-            _ <- runEtlJob(args, ejpm.job_deploy_mode, key, retry, spaced, fork)
+            _ <- runEtlJob(args, ejpm.job_deploy_mode, retry, spaced, fork)
           } yield ()
         else
           UIO(
@@ -58,7 +55,6 @@ case class ServerExecutor[T <: EJPMType: Tag](
   private def runEtlJob(
       args: EtlJobArgs,
       deploy_mode: schema.Executor,
-      cache_key: String,
       retry: Int = 0,
       spaced: Int = 0,
       fork: Boolean = true

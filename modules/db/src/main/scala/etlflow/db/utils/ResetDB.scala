@@ -1,5 +1,6 @@
-package etlflow.db
+package etlflow.db.utils
 
+import etlflow.db.liveDB
 import etlflow.schema.Credential.JDBC
 import zio.{ExitCode, URIO}
 

@@ -1,7 +1,7 @@
 package etlflow.webserver
 
 import cache4s.{Cache, default_ttl}
-import etlflow.api.Schema.{UserArgs, UserAuth}
+import etlflow.server.model.{UserArgs, UserAuth}
 import etlflow.db.DBServerEnv
 import etlflow.server.DBServerApi
 import etlflow.utils.ApplicationLogger

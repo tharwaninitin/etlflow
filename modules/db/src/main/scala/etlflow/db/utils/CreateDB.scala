@@ -1,5 +1,6 @@
-package etlflow.db
+package etlflow.db.utils
 
+import etlflow.db.{DBApi, DBEnv}
 import etlflow.utils.ApplicationLogger
 import zio.ZIO
 

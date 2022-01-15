@@ -1,7 +1,7 @@
 package etlflow.webserver
 
-import etlflow.api.Schema.{EtlJobArgs, Props}
-import etlflow.api.{ServerEnv, Service}
+import etlflow.server.model.{EtlJobArgs, Props}
+import etlflow.server.{ServerEnv, Service}
 import etlflow.json.JsonApi
 import io.circe.generic.auto._
 import zhttp.http.Method._

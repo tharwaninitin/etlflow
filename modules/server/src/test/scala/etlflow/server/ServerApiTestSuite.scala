@@ -1,11 +1,10 @@
-package etlflow.api
+package etlflow.server
 
-import etlflow.api.Schema.{CredentialsArgs, Creds, CurrentTime, Props}
-import etlflow.db._
 import etlflow.schema.Credential.JDBC
+import etlflow.server.model._
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo
-import zio.test._
+import zio.test.{TestAspect, ZSpec, assertM, environment, suite, testM}
 
 case class ServerApiTestSuite(credential: JDBC) {
 

@@ -2,11 +2,12 @@ package etlflow
 
 import cache4s.Cache
 import crypto4s.Crypto
-import etlflow.db.{EtlJob, liveFullDB}
+import etlflow.server.model.EtlJob
 import etlflow.executor.ServerExecutor
 import etlflow.json.JsonEnv
 import etlflow.scheduler.Scheduler
 import etlflow.schema.Config
+import etlflow.server.Implementation
 import etlflow.utils.{Configuration, SetTimeZone, ReflectAPI => RF}
 import etlflow.webserver.{Authentication, HttpServer}
 import zio._
@@ -34,8 +35,8 @@ abstract class ServerApp[T <: EJPMType: Tag] extends CliApp[T] with HttpServer w
     sem  <- createSemaphores(jobs).toManaged_
     executor = ServerExecutor[T](sem, config)
     supervisor <- Supervisor.track(true).toManaged_
-    dbLayer    = liveFullDB(config.db.get, pool_size = 10)
-    apiLayer   = api.Implementation.live[T](auth, executor, jobs, crypto)
+    dbLayer    = db.liveFullDB(config.db.get, pool_size = 10)
+    apiLayer   = Implementation.live[T](auth, executor, jobs, crypto)
     finalLayer = apiLayer ++ dbLayer
     scheduler  = etlFlowScheduler(jobs).supervised(supervisor)
     webserver  = etlFlowWebServer(auth, config.webserver)

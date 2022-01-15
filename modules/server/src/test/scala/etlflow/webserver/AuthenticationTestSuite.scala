@@ -2,7 +2,7 @@ package etlflow.webserver
 
 import cache4s.default_ttl
 import etlflow.ServerSuiteHelper
-import etlflow.api.Schema.UserArgs
+import etlflow.server.model.UserArgs
 import etlflow.schema.Credential.JDBC
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import zhttp.http._

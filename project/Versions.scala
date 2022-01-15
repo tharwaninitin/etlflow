@@ -12,7 +12,7 @@ object Versions {
   val ZioConfig             = "1.0.10"
   val CalibanVersion        = "1.2.4"
 
-  val Cron4zioVersion = "0.1.0"
+  val Cron4zioVersion = "0.2.1"
   val Crypto4sVersion = "0.2.0"
   val Cache4sVersion  = "0.1.0"
 

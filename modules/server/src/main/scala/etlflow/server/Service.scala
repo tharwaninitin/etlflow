@@ -1,8 +1,8 @@
-package etlflow.api
+package etlflow.server
 
-import etlflow.api.Schema._
 import etlflow.core.CoreEnv
 import etlflow.db._
+import etlflow.server.model._
 import etlflow.json.JsonEnv
 import zio.{RIO, ZIO}
 

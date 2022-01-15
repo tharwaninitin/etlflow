@@ -5,10 +5,10 @@ import caliban.GraphQL.graphQL
 import caliban.schema.{GenericSchema, Schema}
 import caliban.{GraphQL, RootResolver}
 import com.cronutils.model.time.ExecutionTime
-import etlflow.api.Schema._
-import etlflow.api.Service._
-import etlflow.api.{APIEnv, ServerEnv}
+import etlflow.server.Service._
+import etlflow.server.{APIEnv, ServerEnv}
 import etlflow.db._
+import etlflow.server.model._
 import zio.ZIO
 
 private[etlflow] object GqlAPI extends GenericSchema[ServerEnv] {

@@ -1,6 +1,7 @@
 package etlflow
 
-import etlflow.db.{CreateDB, DBApi}
+import etlflow.db.DBApi
+import etlflow.db.utils.CreateDB
 
 object ResetServerDB {
   private val sql =

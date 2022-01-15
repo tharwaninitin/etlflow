@@ -1,7 +1,7 @@
 package etlflow.executor
 
-import etlflow.api.Schema.EtlJobArgs
-import etlflow.db.{DBEnv, DBServerEnv, EtlJob}
+import etlflow.db.{DBEnv, DBServerEnv}
+import etlflow.server.model.{EtlJob, EtlJobArgs}
 import etlflow.{JobEnv, ResetServerDB, ServerSuiteHelper}
 import zio.test.Assertion.equalTo
 import zio.test._

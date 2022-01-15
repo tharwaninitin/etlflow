@@ -1,10 +1,10 @@
 package etlflow
 
-import etlflow.api.ServerApiTestSuite
 import etlflow.etlsteps.{CredentialStepTestSuite, DBStepTestSuite, EtlFlowJobStepTestSuite}
 import etlflow.executor.{ServerExecutorTestSuite, LocalExecutorTestSuite, LocalSubProcessExecutorTestSuite}
 import etlflow.jobtests.jobs.JobsTestSuite
 import etlflow.scheduler.SchedulerTestSuite
+import etlflow.server.ServerApiTestSuite
 import etlflow.utils.{CorsConfigTestSuite, GetCronJobTestSuite, ReflectionTestSuite, SetTimeZoneTestSuite}
 import etlflow.webserver._
 import zhttp.service.server.ServerChannelFactory

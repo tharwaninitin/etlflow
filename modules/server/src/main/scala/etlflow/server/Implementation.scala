@@ -1,13 +1,11 @@
-package etlflow.api
+package etlflow.server
 
 import crypto4s.Crypto
-import etlflow.api.Schema.Creds.{AWS, JDBC}
-import etlflow.api.Schema._
 import etlflow.db._
+import etlflow.server.model._
 import etlflow.executor.ServerExecutor
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.schema.Credential
-import etlflow.server.DBServerApi
 import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeFromTimestamp}
 import etlflow.utils.{ReflectAPI => RF, _}
 import etlflow.webserver.Authentication
@@ -35,7 +33,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
           etljobs <- ZIO.foreach(jobs)(x =>
             RF.getJob[T](x.job_name).map { ejpm =>
               val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-              GetCronJob(x.schedule, x, lastRunTime, ejpm.getProps)
+              GetJob(x.schedule, x, lastRunTime, ejpm.getProps)
             }
           )
         } yield etljobs
@@ -95,27 +93,27 @@ private[etlflow] object Implementation extends ApplicationLogger {
             } yield json
         }
 
-      override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.db.Credential] =
+      override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.server.model.Credential] =
         for {
           json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
           cred_type = args.`type` match {
-            case JDBC => "jdbc"
-            case AWS  => "aws"
+            case Creds.JDBC => "jdbc"
+            case Creds.AWS  => "aws"
           }
           enc_json <- encryptCredential(cred_type, json)
-          cred = etlflow.db.Credential(args.name, cred_type, enc_json)
+          cred = etlflow.server.model.Credential(args.name, cred_type, enc_json)
           addCredential <- DBServerApi.addCredential(cred)
         } yield addCredential
 
-      override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.db.Credential] =
+      override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.server.model.Credential] =
         for {
           json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
           cred_type = args.`type` match {
-            case JDBC => "jdbc"
-            case AWS  => "aws"
+            case Creds.JDBC => "jdbc"
+            case Creds.AWS  => "aws"
           }
           enc_json <- encryptCredential(cred_type, json)
-          cred = etlflow.db.Credential(args.name, cred_type, enc_json)
+          cred = etlflow.server.model.Credential(args.name, cred_type, enc_json)
           updateCredential <- DBServerApi.updateCredential(cred)
         } yield updateCredential
     })

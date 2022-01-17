@@ -1,7 +1,5 @@
 package etlflow.log
 
-import zio.ZIO
-import zio.test.Assertion.equalTo
 import zio.test._
 
 object DbTestSuite {
@@ -9,16 +7,16 @@ object DbTestSuite {
   val spec: ZSpec[environment.TestEnvironment with LogEnv, Any] =
     suite("DB(log) Suite")(
       testM("logJobStart Test")(
-        assertM(LogApi.logJobStart("Job1", "{}", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+        LogApi.logJobStart("Job1", "{}", 0L).as(assertCompletes)
       ),
       testM("logStepStart Test")(
-        assertM(LogApi.logStepStart(sri, "Step1", Map.empty, "GenericStep", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+        LogApi.logStepStart(sri, "Step1", Map.empty, "GenericStep", 0L).as(assertCompletes)
       ),
       testM("logStepEnd Test")(
-        assertM(LogApi.logStepEnd(sri, "Step1", Map.empty, "GenericStep", 0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+        LogApi.logStepEnd(sri, "Step1", Map.empty, "GenericStep", 0L).as(assertCompletes)
       ),
       testM("logJobEnd Test")(
-        assertM(LogApi.logJobEnd("Job1", "{}",  0L).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+        LogApi.logJobEnd("Job1", "{}", 0L).as(assertCompletes)
       )
     ) @@ TestAspect.sequential
 }

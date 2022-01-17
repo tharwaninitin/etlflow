@@ -1,25 +1,26 @@
 package etlflow.log
 
 import etlflow.utils.{ApplicationLogger, DateTimeApi}
-import zio.{Ref, Task, UIO, ULayer, ZLayer}
+import zio.{Ref, UIO, ULayer, ZLayer}
 import scala.collection.mutable
 
 object Memory extends ApplicationLogger {
 
   sealed trait Status
   object Status {
-    case object Running extends Status
-    case object Succeed extends Status
+    case object Running                 extends Status
+    case object Succeed                 extends Status
     case class Failed(error: Throwable) extends Status
   }
   case class State(step_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
-    override def toString: String = s"$step_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
+    override def toString: String =
+      s"$step_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
   }
 
-  val state: UIO[Ref[mutable.Map[String,State]]] = Ref.make(mutable.Map.empty[String,State])
-
+  val state: UIO[Ref[mutable.Map[String, State]]] = Ref.make(mutable.Map.empty[String, State])
+  // format: off
   case class MemoryLogger(job_run_id: String) extends Service {
-    override def logStepStart(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, start_time: Long): Task[Unit] =
+    override def logStepStart(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, start_time: Long): UIO[Unit] =
       for {
         stateRef <- state
         _     <- stateRef.update{ st =>
@@ -27,7 +28,7 @@ object Memory extends ApplicationLogger {
                     st
                   }
       } yield ()
-    override def logStepEnd(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, end_time: Long, error: Option[Throwable]): Task[Unit] =
+    override def logStepEnd(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, end_time: Long, error: Option[Throwable]): UIO[Unit] =
       for {
         stateRef <- state
         _     <- stateRef.update{ st =>
@@ -38,9 +39,9 @@ object Memory extends ApplicationLogger {
                   st
                 }
       } yield ()
-    override def logJobStart(job_name: String, args: String, start_time: Long): Task[Unit] =
+    override def logJobStart(job_name: String, args: String, start_time: Long): UIO[Unit] =
       UIO(logger.info(s"Job $job_name started"))
-    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] = {
+    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] = {
       for {
         stateRef <- state
         value    <- stateRef.get
@@ -54,6 +55,7 @@ object Memory extends ApplicationLogger {
       } yield ()
     }
   }
+  // format: on
 
   def live(job_run_id: String): ULayer[LogEnv] = ZLayer.succeed(MemoryLogger(job_run_id))
 }

@@ -3,7 +3,7 @@ package etlflow.log
 import etlflow.model
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
-import zio.{Task, ULayer, ZIO, ZLayer}
+import zio.{Task, UIO, ULayer, ZIO, ZLayer}
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
@@ -68,7 +68,7 @@ object Slack extends ApplicationLogger {
         props: Map[String, String],
         step_type: String,
         start_time: Long
-    ): Task[Unit] = ZIO.unit
+    ): UIO[Unit] = ZIO.unit
     override def logStepEnd(
         step_run_id: String,
         step_name: String,
@@ -76,7 +76,7 @@ object Slack extends ApplicationLogger {
         step_type: String,
         end_time: Long,
         error: Option[Throwable]
-    ): Task[Unit] = Task {
+    ): UIO[Unit] = UIO {
       var slackMessageForSteps = ""
       val elapsedTime          = getTimeDifferenceAsString(end_time, getCurrentTimestamp)
       val step_icon            = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
@@ -95,8 +95,8 @@ object Slack extends ApplicationLogger {
       // Concatenate all the messages with finalSlackMessage
       final_step_message = final_step_message.concat(slackMessageForSteps)
     }
-    override def logJobStart(job_name: String, args: String, start_time: Long): Task[Unit] = ZIO.unit
-    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): Task[Unit] = Task {
+    override def logJobStart(job_name: String, args: String, start_time: Long): UIO[Unit] = ZIO.unit
+    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] = Task {
       val execution_date_time = getTimestampAsString(end_time) // Add time difference in this expression
 
       val data = finalMessageTemplate(
@@ -108,7 +108,7 @@ object Slack extends ApplicationLogger {
       )
 
       sendSlackNotification(data)
-    }
+    }.orDie
   }
 
   def live(slack: Option[model.Slack], jri: String): ULayer[LogEnv] =

@@ -1,7 +1,7 @@
 package etlflow.email
 
 import etlflow.model.Credential.SMTP
-import etlflow.utils.{ApplicationLogger, LogTry}
+import etlflow.utils.{ApplicationLogger, LoggedTry}
 import java.util.Properties
 import javax.mail.internet.{InternetAddress, MimeMessage}
 import javax.mail.{Address, Message, Session}
@@ -9,7 +9,7 @@ import javax.mail.{Address, Message, Session}
 private[etlflow] object MailClientApi extends ApplicationLogger {
 
   def sendMail(sender: Option[String], recipient: List[String], content: String, subject: String, credentials: SMTP): Unit =
-    LogTry {
+    LoggedTry {
       val properties = new Properties
       properties.put("mail.smtp.port", credentials.port)
       properties.setProperty("mail.transport.protocol", credentials.transport_protocol)

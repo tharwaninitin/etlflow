@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.utils.ApplicationLogger
-import etlflow.utils.EtlflowError.EtlJobException
+import etlflow.model.EtlflowError.EtlJobException
 import zio.Schedule.Decision
 import zio.clock.Clock
 import zio.duration.{Duration => ZDuration}
@@ -12,7 +12,7 @@ trait SensorStep extends ApplicationLogger {
 
   lazy val noThrowable: Schedule[Any, Throwable, Throwable] = Schedule.recurWhile {
     case _: EtlJobException => true
-    case _ => false
+    case _                  => false
   }
 
   def schedule[A](retry: Int, spaced: Duration): Schedule[Clock, A, (Long, Long)] =

@@ -4,7 +4,7 @@ import etlflow.db._
 import etlflow.server.model._
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getTimestampAsString
-import etlflow.utils.EtlflowError.DBException
+import etlflow.model.EtlflowError.DBException
 import scalikejdbc.NamedDB
 import zio.{Has, IO, Task, UIO, ZLayer}
 

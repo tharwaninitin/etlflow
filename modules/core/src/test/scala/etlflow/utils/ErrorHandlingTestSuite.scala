@@ -1,6 +1,5 @@
 package etlflow.utils
 
-import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{UIO, ZIO}
 
@@ -36,7 +35,7 @@ object ErrorHandlingTestSuite {
         def logEither = LoggedEither[ArithmeticException, Int](funcArrayIndexOutOfBoundsEx)
         val effect: UIO[String] =
           ZIO.fromEither(logEither).foldCauseM(ex => ZIO.succeed(ex.squash.toString), _ => ZIO.succeed("OK"))
-        assertM(effect)(equalTo("java.lang.ArrayIndexOutOfBoundsException: 9"))
+        assertM(effect)(Assertion.containsString("java.lang.ArrayIndexOutOfBoundsException"))
       }
     ) @@ TestAspect.sequential
 }

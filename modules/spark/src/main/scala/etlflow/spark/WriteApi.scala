@@ -2,7 +2,7 @@ package etlflow.spark
 
 import etlflow.spark.IOType._
 import etlflow.utils.ApplicationLogger
-import etlflow.model.EtlflowError.EtlJobException
+import etlflow.model.EtlFlowException.EtlJobException
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.col

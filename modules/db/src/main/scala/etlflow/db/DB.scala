@@ -1,7 +1,7 @@
 package etlflow.db
 
 import etlflow.utils.ApplicationLogger
-import etlflow.model.EtlflowError.DBException
+import etlflow.model.EtlFlowException.DBException
 import scalikejdbc.{NamedDB, WrappedResultSet}
 import zio._
 

@@ -2,7 +2,7 @@ package etlflow.utils
 
 import etlflow.EJPMType
 import etlflow.server.model.EtlJob
-import etlflow.model.EtlflowError.EtlJobNotFoundException
+import etlflow.model.EtlFlowException.EtlJobNotFoundException
 import zio.{Tag, Task, UIO, ZIO}
 
 private[etlflow] object ReflectAPI extends ApplicationLogger {

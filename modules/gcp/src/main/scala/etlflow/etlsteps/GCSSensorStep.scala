@@ -2,8 +2,9 @@ package etlflow.etlsteps
 
 import etlflow.gcp._
 import etlflow.model.Credential.GCP
-import etlflow.model.EtlflowError.EtlJobException
-import zio.Task
+import etlflow.model.EtlFlowException.RetryException
+import etlflow.utils.RetrySchedule
+import zio.{IO, RIO, Task, UIO}
 import zio.clock.Clock
 import scala.concurrent.duration.Duration
 
@@ -15,18 +16,17 @@ class GCSSensorStep private[etlsteps] (
     retry: Int,
     spaced: Duration,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit, Unit]
-    with SensorStep {
-  override def process(input_state: => Unit): Task[Unit] = {
+) extends EtlStep[Unit, Unit] {
+  override def process(input_state: => Unit): RIO[Clock, Unit] = {
     val env    = GCS.live(credentials)
     val lookup = GCSApi.lookupObject(bucket, prefix, key).provideLayer(env)
 
-    val program: Task[Unit] = (for {
+    val program: RIO[Clock, Unit] = (for {
       out <- lookup
       _ <-
-        if (out) Task.succeed(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
-        else Task.fail(EtlJobException(s"key $key not found in GCS location gs://$bucket/$prefix/"))
-    } yield ()).retry(noThrowable && schedule(retry, spaced)).provideLayer(Clock.live)
+        if (out) UIO(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
+        else IO.fail(RetryException(s"key $key not found in GCS location gs://$bucket/$prefix/"))
+    } yield ()).retry(RetrySchedule(retry, spaced))
 
     val runnable = for {
       _ <- Task.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix/$key"))

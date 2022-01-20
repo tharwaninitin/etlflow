@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.TestSparkSession
-import etlflow.coretests.Schema.Rating
+import etlflow.schema.Rating
 import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.{PARQUET, RDB}
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}

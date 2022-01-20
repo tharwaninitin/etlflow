@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.TestSparkSession
-import etlflow.coretests.Schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
+import etlflow.schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.SparkUDF
 import org.apache.spark.sql.functions.{col, from_unixtime}
@@ -14,14 +14,14 @@ import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
 object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF {
 
   case class EtlJob6Props(
-     ratings_input_dataset: String = "test",
-     ratings_input_table_name: String = "ratings",
-     ratings_intermediate_bucket: String = s"gs://${sys.env("GCS_BUCKET")}/intermediate/ratings",
-     ratings_output_bucket_1: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/csv",
-     ratings_output_bucket_2: String = s"s3a://${sys.env("S3_BUCKET")}/temp/output/ratings/parquet",
-     ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
-     ratings_output_file_name: Option[String] = Some("ratings.csv"),
-   )
+      ratings_input_dataset: String = "test",
+      ratings_input_table_name: String = "ratings",
+      ratings_intermediate_bucket: String = s"gs://${sys.env("GCS_BUCKET")}/intermediate/ratings",
+      ratings_output_bucket_1: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/csv",
+      ratings_output_bucket_2: String = s"s3a://${sys.env("S3_BUCKET")}/temp/output/ratings/parquet",
+      ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
+      ratings_output_file_name: Option[String] = Some("ratings.csv")
+  )
 
   val job_props: EtlJob6Props = EtlJob6Props()
 
@@ -37,7 +37,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_location = job_props.ratings_intermediate_bucket,
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
-    output_repartitioning_num = 3,
+    output_repartitioning_num = 3
   )
 
   val step1 = SparkReadWriteStep[RatingBQ](
@@ -48,7 +48,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_location = job_props.ratings_intermediate_bucket,
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
-    output_repartitioning_num = 3,
+    output_repartitioning_num = 3
   )
 
   def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutputCsv] = {
@@ -74,7 +74,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
     output_repartitioning_num = 1,
-    output_filename = job_props.ratings_output_file_name,
+    output_filename = job_props.ratings_output_file_name
   )
 
   def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
@@ -96,7 +96,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_type = PARQUET,
     output_location = job_props.ratings_output_bucket_2,
     output_save_mode = SaveMode.Overwrite,
-    output_partition_col = Seq(s"$partition_date_col"),
+    output_partition_col = Seq(s"$partition_date_col")
   )
 
   val step3 = SparkReadTransformWriteStep[Rating, RatingOutput](
@@ -109,7 +109,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_save_mode = SaveMode.Overwrite,
     output_partition_col = Seq(s"$partition_date_col"),
     output_repartitioning = true,
-    output_repartitioning_num = 1,
+    output_repartitioning_num = 1
   )
 
   val job = for {
@@ -119,8 +119,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("Spark Steps")(
-      testM("Execute Spark steps") {
-        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      })
+    suite("Spark Steps")(testM("Execute Spark steps") {
+      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    })
 }

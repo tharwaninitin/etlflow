@@ -6,7 +6,7 @@ import zio.RIO
 import zio.blocking.Blocking
 
 class DBQueryStep private (val name: String, query: => String, credentials: JDBC, pool_size: Int)
-    extends EtlStep[Unit] {
+    extends EtlStep[Blocking, Unit] {
 
   final def process: RIO[Blocking, Unit] = {
     logger.info("#" * 100)

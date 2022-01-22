@@ -1,21 +1,19 @@
 package etlflow.etlsteps
 
-import etlflow.core.{CoreEnv, CoreLogEnv}
-import etlflow.log.LogApi
+import etlflow.log.{LogApi, LogEnv}
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi
 import zio.{RIO, UIO}
 
-trait EtlStep[OP] extends ApplicationLogger {
-
+trait EtlStep[R, OP] extends ApplicationLogger {
   val name: String
   val step_type: String = this.getClass.getSimpleName
 
-  def process: RIO[CoreEnv, OP]
+  def process: RIO[R, OP]
   def getExecutionMetrics: Map[String, String] = Map()
   def getStepProperties: Map[String, String]   = Map()
 
-  final def execute: RIO[CoreLogEnv, OP] =
+  final def execute: RIO[R with LogEnv, OP] =
     for {
       sri <- UIO(java.util.UUID.randomUUID.toString)
       _   <- LogApi.logStepStart(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)

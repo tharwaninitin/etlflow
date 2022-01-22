@@ -1,11 +1,10 @@
 package examples
 
 import etlflow.JobApp
-import etlflow.core.CoreLogEnv
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
-import zio.{RIO, ZLayer}
+import zio.ZLayer
 
 object Job4 extends JobApp {
 
@@ -28,10 +27,10 @@ object Job4 extends JobApp {
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData(ip)
+    function = processData(ip)
   )
 
-  def job(args: List[String]): RIO[CoreLogEnv, Unit] =
+  def job(args: List[String]) =
     for {
       op <- step1(cred).execute
       _  <- step2(op).execute

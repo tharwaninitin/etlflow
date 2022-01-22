@@ -17,7 +17,7 @@ class BQLoadStep private[etlflow] (
     output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
     credentials: Option[Credential.GCP] = None,
     schema: Option[Schema] = None
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
   final def process: Task[Unit] = {

@@ -11,7 +11,7 @@ case class SendMailStep(
     sender: Option[String] = None,
     recipient_list: List[String] = List(""),
     credentials: SMTP
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
 
   final def process: Task[Unit] = Task {
     logger.info("#" * 100)

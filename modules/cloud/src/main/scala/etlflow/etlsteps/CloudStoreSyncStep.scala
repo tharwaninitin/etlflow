@@ -24,7 +24,7 @@ case class CloudStoreSyncStep(
     output_overwrite: Boolean = false,
     parallelism: Int = 1,
     chunk_size: Int = 32 * 1024
-) extends EtlStep[Unit] {
+) extends EtlStep[Clock with Blocking, Unit] {
 
   def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
 

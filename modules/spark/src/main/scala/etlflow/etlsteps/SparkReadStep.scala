@@ -13,7 +13,8 @@ class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlste
     input_filter: String = "1 = 1",
     transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]]
 )(implicit spark: SparkSession)
-    extends EtlStep[Dataset[O]] {
+    extends EtlStep[Any, Dataset[O]] {
+
   private var recordsReadCount = 0L
 
   final def process: Task[Dataset[O]] = {

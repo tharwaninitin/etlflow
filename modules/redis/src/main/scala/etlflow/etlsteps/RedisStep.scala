@@ -10,7 +10,7 @@ class RedisStep(
     val name: String,
     val command: RedisCmd,
     val credentials: REDIS
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
 
   final def process: Task[Unit] = Task {
     logger.info("#" * 100)

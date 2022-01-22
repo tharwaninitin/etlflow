@@ -1,9 +1,9 @@
 package etlflow
 
-import etlflow.core.CoreLogEnv
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
+import zio.blocking.Blocking
 import zio.{RIO, ZEnv, ZLayer}
 
 object SampleJobWithDbLogging extends JobApp {
@@ -30,7 +30,7 @@ object SampleJobWithDbLogging extends JobApp {
     function = processData(ip)
   )
 
-  def job(args: List[String]): RIO[CoreLogEnv, Unit] =
+  def job(args: List[String]): RIO[Blocking with LogEnv, Unit] =
     for {
       op1 <- step1(cred).execute
       _   <- step2(op1).execute

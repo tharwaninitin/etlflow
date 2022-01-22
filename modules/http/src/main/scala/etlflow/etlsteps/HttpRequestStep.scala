@@ -16,7 +16,7 @@ case class HttpRequestStep[A: Tag: Decoder](
     connection_timeout: Int = 10000,
     read_timeout: Int = 150000,
     allow_unsafe_ssl: Boolean = false
-) extends EtlStep[A] {
+) extends EtlStep[Any, A] {
 
   final def process: Task[A] = {
     logger.info("#" * 100)

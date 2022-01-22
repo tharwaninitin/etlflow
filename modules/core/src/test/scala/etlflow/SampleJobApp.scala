@@ -1,6 +1,5 @@
 package etlflow
 
-import etlflow.core.CoreLogEnv
 import etlflow.etlsteps.GenericETLStep
 import etlflow.log.LogEnv
 import zio.{RIO, ZEnv, ZLayer}
@@ -44,5 +43,5 @@ object SampleJobApp extends JobApp {
       _ <- step3.execute
     } yield ()
 
-  override def job(args: List[String]): RIO[CoreLogEnv, Unit] = job
+  override def job(args: List[String]): RIO[LogEnv, Unit] = job
 }

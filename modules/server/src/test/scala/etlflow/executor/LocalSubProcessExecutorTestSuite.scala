@@ -1,8 +1,8 @@
 package etlflow.executor
 
-import etlflow.core.CoreEnv
 import etlflow.model.Executor.LOCAL_SUBPROCESS
 import zio.ZIO
+import zio.blocking.Blocking
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -13,7 +13,7 @@ object LocalSubProcessExecutorTestSuite {
   val localJob1 = LocalSubProcessExecutor(local_subprocess).executeJob("Job8", Map.empty)
   val localJob2 = LocalSubProcessExecutor(local_subprocess).executeJob("Job8", Map("path" -> "abc"))
 
-  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with Blocking, Any] =
     suite("Local Sub Process Executor")(
       testM("local_subprocess Job1 ") {
         assertM(localJob1.foldM(_ => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))

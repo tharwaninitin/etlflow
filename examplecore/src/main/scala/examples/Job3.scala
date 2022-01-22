@@ -24,7 +24,7 @@ object Job3 extends zio.App with ApplicationLogger {
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData(ip)
+    function = processData(ip)
   )
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =

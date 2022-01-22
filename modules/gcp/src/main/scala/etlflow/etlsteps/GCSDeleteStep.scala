@@ -10,7 +10,8 @@ case class GCSDeleteStep(
     prefix: String,
     parallelism: Int,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
+
   override def process: Task[Unit] = {
     val env = GCS.live(credentials)
     logger.info(s"Deleting files at $bucket/$prefix")

@@ -1,10 +1,9 @@
 package etlflow.executor
 
-import etlflow.core.CoreEnv
 import etlflow.json.JsonEnv
 import etlflow.model.Config
 import etlflow.utils.{ApplicationLogger, ReflectAPI => RF}
-import etlflow.{EJPMType, json, log}
+import etlflow.{json, log, EJPMType}
 import zio._
 
 case class LocalExecutor[T <: EJPMType: Tag]() extends ApplicationLogger {
@@ -31,19 +30,20 @@ case class LocalExecutor[T <: EJPMType: Tag]() extends ApplicationLogger {
       properties: Map[String, String],
       config: Config,
       job_run_id: String
-  ): RIO[CoreEnv with JsonEnv, Unit] =
+  ): RIO[ZEnv with JsonEnv, Unit] =
     for {
       ejpm <- RF.getJob[T](name)
       job = ejpm.etlJob(properties)
       _   = { job.job_name = ejpm.toString }
       args <- ejpm.getActualPropertiesAsJson(properties)
       dblog = if (config.db.isEmpty) log.nolog else log.DB(config.db.get, job_run_id, "Job-" + name + "-Pool")
-      _ <- job.execute(args).provideSomeLayer[CoreEnv with JsonEnv](dblog)
+      _ <- job.execute(args).provideSomeLayer[ZEnv with JsonEnv](dblog)
     } yield ()
 
-  def runJob(name: String, properties: Map[String, String], config: Config): RIO[CoreEnv, Unit] = {
-    val jri       = if (properties.keySet.contains("job_run_id")) properties("job_run_id") else java.util.UUID.randomUUID.toString
+  def runJob(name: String, properties: Map[String, String], config: Config): RIO[ZEnv, Unit] = {
+    val jri =
+      if (properties.keySet.contains("job_run_id")) properties("job_run_id") else java.util.UUID.randomUUID.toString
     val jsonLayer = json.Implementation.live
-    executeJob(name, properties, config, jri).provideSomeLayer[CoreEnv](jsonLayer)
+    executeJob(name, properties, config, jri).provideSomeLayer[ZEnv](jsonLayer)
   }
 }

@@ -11,23 +11,20 @@ case class EtlJobGenericStep(job_properties: LocalSampleProps) extends EtlJob[Lo
     throw new RuntimeException("Error123")
   }
 
-  val step1 =
-    GenericETLStep(
-      name = "Step_1",
-      transform_function = processData
-    )
+  val step1 = GenericETLStep(
+    name = "Step_1",
+    function = processData
+  )
 
-  val step2 =
-    GenericETLStep(
-      name = "Step_2",
-      transform_function = processData
-    )
+  val step2 = GenericETLStep(
+    name = "Step_2",
+    function = processData
+  )
 
-  val step3 =
-    GenericETLStep(
-      name = "Step_3",
-      transform_function = processData
-    )
+  val step3 = GenericETLStep(
+    name = "Step_3",
+    function = processData
+  )
 
   override val job = for {
     _ <- step1.execute

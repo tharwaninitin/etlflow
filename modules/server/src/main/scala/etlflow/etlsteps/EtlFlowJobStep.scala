@@ -1,24 +1,23 @@
 package etlflow.etlsteps
 
 import etlflow.EtlJobProps
-import etlflow.core.CoreEnv
 import etlflow.etljobs.EtlJob
 import etlflow.utils.Configuration
-import zio.RIO
+import zio.{RIO, ZEnv}
 
-class EtlFlowJobStep[EJP <: EtlJobProps] private (val name: String, job: => EtlJob[EJP]) extends EtlStep[Unit] {
+class EtlFlowJobStep[EJP <: EtlJobProps] private (val name: String, job: => EtlJob[EJP]) extends EtlStep[ZEnv, Unit] {
 
   lazy val job_instance = job
   var job_run_id        = java.util.UUID.randomUUID.toString
 
-  final def process: RIO[CoreEnv, Unit] = {
+  final def process: RIO[ZEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
     for {
       cfg <- Configuration.config
       _ <- job_instance
         .execute()
-        .provideSomeLayer[CoreEnv](etlflow.log.DB(cfg.db.get, job_run_id, "EtlFlowJobStep-" + name + "-Pool", 1))
+        .provideSomeLayer[ZEnv](etlflow.log.DB(cfg.db.get, job_run_id, "EtlFlowJobStep-" + name + "-Pool", 1))
     } yield ()
   }
 

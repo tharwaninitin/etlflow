@@ -1,14 +1,13 @@
-import etlflow.core.CoreLogEnv
 import etlflow.etljobs.EtlJob
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.model.Executor
 import io.circe.Encoder
-import zio.{Tag, ZIO}
+import zio.{Tag, ZEnv, ZIO}
 
 package object etlflow {
 
   type EJPMType = EtlJobPropsMapping[EtlJobProps, EtlJob[EtlJobProps]]
-  type JobEnv   = CoreLogEnv with JsonEnv
+  type JobEnv   = ZEnv with JsonEnv
 
   trait EtlJobProps extends Product
 

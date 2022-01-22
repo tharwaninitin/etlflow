@@ -16,7 +16,8 @@ class GCSSensorStep private[etlsteps] (
     retry: Int,
     spaced: Duration,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit] {
+) extends EtlStep[Clock, Unit] {
+
   override def process: RIO[Clock, Unit] = {
     val env    = GCS.live(credentials)
     val lookup = GCSApi.lookupObject(bucket, prefix, key).provideLayer(env)

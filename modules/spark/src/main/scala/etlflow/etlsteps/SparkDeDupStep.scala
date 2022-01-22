@@ -11,7 +11,7 @@ case class SparkDeDupStep[I](
     eventTimeCol: String,
     delayThreshold: String,
     deDupCols: Seq[String]
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
 
   final def process: Task[Unit] = Task {
     logger.info("#################################################################################################")

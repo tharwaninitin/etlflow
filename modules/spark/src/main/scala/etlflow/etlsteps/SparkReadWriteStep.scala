@@ -20,7 +20,8 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
     output_repartitioning_num: Int = 1,
     transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]]
 )(implicit spark: SparkSession)
-    extends EtlStep[Unit] {
+    extends EtlStep[Any, Unit] {
+
   private var recordsWrittenCount = 0L
   private var recordsReadCount    = 0L
 

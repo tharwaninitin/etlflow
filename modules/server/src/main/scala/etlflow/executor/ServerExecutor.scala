@@ -1,7 +1,6 @@
 package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
-import etlflow.core.CoreEnv
 import etlflow.db.DBServerEnv
 import etlflow.gcp.{DP, DPApi}
 import etlflow.json.JsonEnv
@@ -16,7 +15,6 @@ import etlflow.EJPMType
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
-
 import scala.concurrent.duration._
 
 case class ServerExecutor[T <: EJPMType: Tag](
@@ -28,7 +26,7 @@ case class ServerExecutor[T <: EJPMType: Tag](
       args: EtlJobArgs,
       submitted_from: String,
       fork: Boolean = true
-  ): RIO[CoreEnv with JsonEnv with DBServerEnv, EtlJob] =
+  ): RIO[ZEnv with JsonEnv with DBServerEnv, EtlJob] =
     for {
       ejpm <- RF.getJob[T](args.name).mapError(e => ExecutionError(e.getMessage))
       mapping_props = ejpm.getProps
@@ -60,10 +58,10 @@ case class ServerExecutor[T <: EJPMType: Tag](
       retry: Int,
       spaced: Long,
       fork: Boolean
-  ): RIO[CoreEnv with JsonEnv with DBServerEnv, Unit] = {
+  ): RIO[ZEnv with JsonEnv with DBServerEnv, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key, x.value)).toMap
 
-    val jobRun: RIO[CoreEnv with JsonEnv, Unit] =
+    val jobRun: RIO[ZEnv with JsonEnv, Unit] =
       deploy_mode match {
         case lsp @ LOCAL_SUBPROCESS(_, _, _) =>
           LocalSubProcessExecutor(lsp).executeJob(args.name, actual_props)
@@ -81,7 +79,7 @@ case class ServerExecutor[T <: EJPMType: Tag](
           Task.fail(ExecutionError("Deploy mode KUBERNETES not yet supported"))
       }
 
-    val loggedJobRun: RIO[CoreEnv with JsonEnv with DBServerEnv, Long] = jobRun
+    val loggedJobRun: RIO[ZEnv with JsonEnv with DBServerEnv, Long] = jobRun
       .retry(Schedule.spaced(ZDuration.fromScala(Duration(spaced, MINUTES))) && Schedule.recurs(retry))
       .tapError(ex =>
         UIO(logger.error(ex.getMessage)) *> DBServerApi.updateFailedJob(args.name, getCurrentTimestamp)

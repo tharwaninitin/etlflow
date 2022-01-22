@@ -1,10 +1,9 @@
 package etlflow.etlsteps
 
-import etlflow.core.CoreEnv
 import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
 import etlflow.jobtests.jobs.Job1HelloWorld
 import etlflow.model.Config
-import zio.ZIO
+import zio.{ZEnv, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -15,7 +14,7 @@ case class EtlFlowJobStepTestSuite(config: Config) {
     job = Job1HelloWorld(EtlJob1Props())
   )
 
-  val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with ZEnv, Any] =
     suite("EtlFlowJob Step")(
       testM("Execute EtlFlowJobStep") {
         assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

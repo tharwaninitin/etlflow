@@ -1,7 +1,6 @@
 package etlflow.etlsteps
 
 import crypto4s.Crypto
-import etlflow.core.CoreEnv
 import etlflow.db.{liveDB, DBApi}
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.model.Credential.{AWS, JDBC}
@@ -11,9 +10,9 @@ import zio.blocking.Blocking
 import zio.{RIO, Tag}
 import io.circe.generic.auto._
 
-case class GetCredentialStep[T: Tag: Decoder](name: String, credential_name: String) extends EtlStep[T] {
+case class GetCredentialStep[T: Tag: Decoder](name: String, credential_name: String) extends EtlStep[Blocking, T] {
 
-  override def process: RIO[CoreEnv, T] = {
+  override def process: RIO[Blocking, T] = {
     val query = s"SELECT value FROM credential WHERE name='$credential_name' and valid_to is null;"
     val step = for {
       config <- Configuration.config

@@ -2,8 +2,9 @@ package etlflow.etlsteps
 
 import zio.Task
 
-class GenericETLStep[OP](val name: String, function: => OP) extends EtlStep[OP] {
-  final def process: Task[OP] = Task {
+class GenericETLStep[OP](val name: String, function: => OP) extends EtlStep[Any, OP] {
+
+  final override def process: Task[OP] = Task {
     logger.info("#################################################################################################")
     logger.info(s"Starting Generic ETL Step: $name")
     val op = function

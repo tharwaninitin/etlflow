@@ -8,7 +8,7 @@ import zio.blocking.Blocking
 
 class DBReadStep[T] private (val name: String, query: => String, credentials: JDBC, pool_size: Int)(
     fn: WrappedResultSet => T
-) extends EtlStep[List[T]] {
+) extends EtlStep[Blocking, List[T]] {
 
   final def process: RIO[Blocking, List[T]] = {
     logger.info("#" * 100)

@@ -20,7 +20,8 @@ class S3SensorStep private[etlsteps] (
     region: Region,
     endpoint_override: Option[String] = None,
     credentials: Option[AWS] = None
-) extends EtlStep[Unit] {
+) extends EtlStep[Clock, Unit] {
+
   override def process: RIO[Clock, Unit] = {
     val lookup = S3Api.lookupObject(bucket, prefix, key)
     def program(s3: S3AsyncClient): RIO[Clock, Unit] =

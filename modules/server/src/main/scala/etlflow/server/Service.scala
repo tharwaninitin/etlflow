@@ -1,10 +1,9 @@
 package etlflow.server
 
-import etlflow.core.CoreEnv
 import etlflow.db._
 import etlflow.server.model._
 import etlflow.json.JsonEnv
-import zio.{RIO, ZIO}
+import zio.{RIO, ZEnv, ZIO}
 
 private[etlflow] trait Service {
   def runJob(args: EtlJobArgs, submitter: String): RIO[ServerEnv, EtlJob]
@@ -24,7 +23,7 @@ private[etlflow] trait Service {
 private[etlflow] object Service {
 
   def runJob(args: EtlJobArgs, submitter: String): ZIO[ServerEnv, Throwable, EtlJob] =
-    ZIO.accessM[APIEnv with CoreEnv with JsonEnv with DBServerEnv](_.get.runJob(args, submitter)).absorb
+    ZIO.accessM[APIEnv with ZEnv with JsonEnv with DBServerEnv](_.get.runJob(args, submitter)).absorb
 
   def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean] =
     ZIO.accessM[APIEnv with DBServerEnv](_.get.updateJobState(args))
@@ -42,13 +41,13 @@ private[etlflow] object Service {
     ZIO.accessM[APIEnv with DBServerEnv](_.get.getDbStepRuns(args))
 
   def getJobs: ZIO[ServerEnv, Throwable, List[Job]] =
-    ZIO.accessM[APIEnv with CoreEnv with JsonEnv with DBServerEnv](_.get.getJobs)
+    ZIO.accessM[APIEnv with ZEnv with JsonEnv with DBServerEnv](_.get.getJobs)
 
   def addCredentials(args: CredentialsArgs): RIO[ServerEnv, Credential] =
-    ZIO.accessM[APIEnv with CoreEnv with JsonEnv with DBServerEnv](_.get.addCredentials(args))
+    ZIO.accessM[APIEnv with ZEnv with JsonEnv with DBServerEnv](_.get.addCredentials(args))
 
   def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, Credential] =
-    ZIO.accessM[APIEnv with CoreEnv with JsonEnv with DBServerEnv](_.get.updateCredentials(args))
+    ZIO.accessM[APIEnv with ZEnv with JsonEnv with DBServerEnv](_.get.updateCredentials(args))
 
   def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] =
     ZIO.accessM[APIEnv](_.get.getCurrentTime)

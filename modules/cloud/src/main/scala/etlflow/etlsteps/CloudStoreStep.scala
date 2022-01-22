@@ -24,7 +24,7 @@ case class CloudStoreStep[T](
     error_handler: Throwable => Task[Unit],
     parallelism: Int = 1,
     chunk_size: Int = 32 * 1024
-) extends EtlStep[Unit] {
+) extends EtlStep[Clock with Blocking, Unit] {
 
   def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
 

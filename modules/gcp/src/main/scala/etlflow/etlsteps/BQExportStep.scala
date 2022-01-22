@@ -14,7 +14,7 @@ class BQExportStep private[etlflow] (
     destination_format: BQInputType,
     destination_compression_type: String = "gzip",
     credentials: Option[Credential.GCP] = None
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
   final def process: Task[Unit] = {

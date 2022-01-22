@@ -10,7 +10,7 @@ case class DPSparkJobStep(
     config: DATAPROC,
     main_class: String,
     libs: List[String]
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
 
   final def process: Task[Unit] = {
     val env = DP.live(config)

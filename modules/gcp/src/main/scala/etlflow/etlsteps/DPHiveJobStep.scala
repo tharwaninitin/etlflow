@@ -8,7 +8,7 @@ case class DPHiveJobStep(
     name: String,
     query: String,
     config: DATAPROC
-) extends EtlStep[Unit] {
+) extends EtlStep[Any, Unit] {
 
   final def process: Task[Unit] = {
     val env = DP.live(config)

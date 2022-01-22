@@ -18,7 +18,7 @@ case class Job2Retry(job_properties: EtlJob2Props) extends EtlJob[EtlJob2Props] 
 
   val step1 = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    function = processData()
   )
 
   override val job = step1.execute.retry(Schedule.spaced(1.second) && Schedule.recurs(2))

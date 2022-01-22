@@ -21,7 +21,7 @@ object RetryStepTestSuite extends ApplicationLogger {
 
         val step: RIO[Clock, Unit] = GenericETLStep(
           name = "ProcessData",
-          transform_function = processDataFail
+          function = processDataFail()
         ).process.retry(RetrySchedule(2, 5.second))
 
         val program = for {

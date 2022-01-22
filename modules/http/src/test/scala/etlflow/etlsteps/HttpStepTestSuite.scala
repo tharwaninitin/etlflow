@@ -77,7 +77,7 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
 
   def genericStep(ip: HttpBinResponse) = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData(ip)
+    function = processData(ip)
   )
 
   val putStep1 = HttpRequestStep[String](

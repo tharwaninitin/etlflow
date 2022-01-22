@@ -27,7 +27,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData(ip)
+    function = processData(ip)
   )
 
   def job(args: List[String]): RIO[CoreLogEnv, Unit] =

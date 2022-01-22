@@ -3,9 +3,8 @@ package etlflow.etlsteps
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.streaming.Trigger
 import zio.Task
-import scala.reflect.runtime.universe.TypeTag
 
-case class SparkDeDupStep[I: TypeTag](
+case class SparkDeDupStep[I](
     name: String,
     inputDataStream: Dataset[I],
     checkpointLocation: String,

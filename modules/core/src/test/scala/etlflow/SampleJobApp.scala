@@ -9,7 +9,7 @@ object SampleJobApp extends JobApp {
 
   override val log_layer: ZLayer[ZEnv, Throwable, LogEnv] = log.Memory.live(java.util.UUID.randomUUID.toString)
 
-  def processData1: String = {
+  def processData1(): String = {
     logger.info("Hello World")
     Thread.sleep(2000)
     "Hello World"
@@ -17,7 +17,7 @@ object SampleJobApp extends JobApp {
 
   val step1 = GenericETLStep(
     name = "Step_1",
-    transform_function = processData1
+    function = processData1()
   )
 
   def processData2(): Unit =
@@ -25,7 +25,7 @@ object SampleJobApp extends JobApp {
 
   val step2 = GenericETLStep(
     name = "Step_2",
-    transform_function = processData2
+    function = processData2()
   )
 
   def processData3(): Unit =
@@ -34,7 +34,7 @@ object SampleJobApp extends JobApp {
 
   val step3 = GenericETLStep(
     name = "Step_3",
-    transform_function = processData3
+    function = processData3()
   )
 
   val job =

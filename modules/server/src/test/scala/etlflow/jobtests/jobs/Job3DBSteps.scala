@@ -54,7 +54,7 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData(ip)
+    function = processData(ip)
   )
 
   val job =

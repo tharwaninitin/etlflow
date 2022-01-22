@@ -13,7 +13,7 @@ case class Job4GenericSteps(job_properties: EtlJob5Props) extends EtlJob[EtlJob5
 
   val step1 = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    function = processData()
   )
 
   val job = step1.execute

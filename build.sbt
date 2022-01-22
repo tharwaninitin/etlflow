@@ -9,9 +9,10 @@ lazy val commonSettings = Seq(
   organization := "com.github.tharwaninitin",
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, _)) => s2copts
-      case Some((3, _)) => s3copts
-      case _            => Seq()
+      case Some((2, 12)) => s2copts ++ s212copts
+      case Some((2, 13)) => s2copts
+      case Some((3, _))  => s3copts
+      case _             => Seq()
     }
   },
   Test / parallelExecution := false,

@@ -10,7 +10,7 @@ case class Job6HelloWorld(job_properties: EtlJob1Props) extends EtlJob[EtlJob1Pr
 
   val step1 = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    function = processData()
   )
 
   override val job = step1.execute

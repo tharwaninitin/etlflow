@@ -53,7 +53,7 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
 
   def step3(ip: Array[String]) = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData(ip)
+    function = processData(ip)
   )
 
   val job =

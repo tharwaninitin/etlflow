@@ -4,7 +4,7 @@ import etlflow.model.Config
 import etlflow.model.Credential.JDBC
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{ZSpec, assertM, assert, environment, suite, test, testM}
+import zio.test.{assertM, assertTrue, environment, suite, test, testM, ZSpec}
 
 case class DBStepTestSuite(config: Config) {
 
@@ -46,15 +46,15 @@ case class DBStepTestSuite(config: Config) {
         )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
 
         val job = for {
-          _ <- step1.process(())
-          _ <- step2.process(())
-          _ <- step3.process(())
+          _ <- step1.process
+          _ <- step2.process
+          _ <- step3.process
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
         val props = step2.getStepProperties
-        assert(props)(equalTo(Map("query" -> "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;")))
+        assertTrue(props == Map("query" -> "BEGIN; DELETE FROM ratings_par WHERE 1 = 1; COMMIT;"))
       }
     )
 }

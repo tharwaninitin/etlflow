@@ -36,7 +36,7 @@ object ResetServerDB {
       |VALUES('AWS','JDBC','{}','2021-07-21 12:37:19.298812');
       |""".stripMargin
   val live = for {
-    - <- CreateDB(true)
+    _ <- CreateDB(true)
     _ <- DBApi.executeQuery(sql)
   } yield ()
 }

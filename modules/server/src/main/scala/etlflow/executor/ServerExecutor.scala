@@ -37,7 +37,7 @@ case class ServerExecutor[T <: EJPMType: Tag](
       db_job <- DBServerApi.getJob(args.name)
       final_props = mapping_props ++ job_props + ("job_status" -> (if (db_job.is_active) "ACTIVE" else "INACTIVE"))
       retry       = mapping_props.getOrElse("job_retries", "0").toInt
-      spaced      = mapping_props.getOrElse("job_retry_delay_in_minutes", "0").toInt
+      spaced      = mapping_props.getOrElse("job_retry_delay_in_minutes", "0").toLong
       _ <-
         if (db_job.is_active)
           for {
@@ -57,9 +57,9 @@ case class ServerExecutor[T <: EJPMType: Tag](
   private def runEtlJob(
       args: EtlJobArgs,
       deploy_mode: Executor,
-      retry: Int = 0,
-      spaced: Int = 0,
-      fork: Boolean = true
+      retry: Int,
+      spaced: Long,
+      fork: Boolean
   ): RIO[CoreEnv with JsonEnv with DBServerEnv, Unit] = {
     val actual_props = args.props.getOrElse(List.empty).map(x => (x.key, x.value)).toMap
 

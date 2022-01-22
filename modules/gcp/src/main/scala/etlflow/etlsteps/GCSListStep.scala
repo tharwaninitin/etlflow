@@ -10,8 +10,8 @@ case class GCSListStep(
     bucket: String,
     prefix: String,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit, List[Blob]] {
-  override def process(input_state: => Unit): Task[List[Blob]] = {
+) extends EtlStep[List[Blob]] {
+  override def process: Task[List[Blob]] = {
     val env = GCS.live(credentials)
     logger.info(s"Listing files at $bucket/$prefix")
     GCSApi.listObjects(bucket, prefix).provideLayer(env)

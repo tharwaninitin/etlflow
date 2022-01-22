@@ -36,8 +36,8 @@ case class CredentialStepTestSuite(config: Config) {
           credentials = config.db.get
         )
         val job = for {
-          _ <- step1(insert_credential_script).process(())
-          _ <- cred_step.process(())
+          _ <- step1(insert_credential_script).process
+          _ <- cred_step.process
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

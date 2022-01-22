@@ -14,10 +14,10 @@ class BQExportStep private[etlflow] (
     destination_format: BQInputType,
     destination_compression_type: String = "gzip",
     credentials: Option[Credential.GCP] = None
-) extends EtlStep[Unit, Unit] {
+) extends EtlStep[Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  final def process(input: => Unit): Task[Unit] = {
+  final def process: Task[Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Step : $name")
 

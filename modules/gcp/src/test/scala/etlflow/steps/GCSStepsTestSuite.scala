@@ -21,7 +21,7 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           key = "temp/ratings.parquet",
           file = file
         )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSPut CSV step") {
         val step = GCSPutStep(
@@ -30,7 +30,7 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           key = "temp/ratings.csv",
           file = file_csv
         )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSSensor step") {
         val step = GCSSensorStep(
@@ -41,25 +41,25 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           retry = 10,
           spaced = 5.second
         )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy step GCS to GCS") {
         val step = GCSCopyStep(
           name = "CopyStep",
-          input = GCS(gcs_bucket,"temp"),
-          output = GCS(gcs_bucket,"temp2"),
+          input = GCS(gcs_bucket, "temp"),
+          output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
         )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy step LOCAL to GCS") {
         val step = GCSCopyStep(
           name = "CopyStep",
           input = LOCAL("/local/path"),
-          output = GCS(gcs_bucket,"temp2"),
+          output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
         )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

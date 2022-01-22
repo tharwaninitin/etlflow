@@ -6,10 +6,10 @@ import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.SparkUDF
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
-import org.apache.spark.sql.{Dataset, Encoders, SaveMode, SparkSession}
+import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
+import zio.test.{assertM, DefaultRunnableSpec, ZSpec}
 
 object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF {
 
@@ -27,7 +27,8 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
 
   val partition_date_col = "date_int"
 
-  val query = s""" SELECT * FROM `${job_props.ratings_input_dataset}.${job_props.ratings_input_table_name}` """.stripMargin
+  val query =
+    s""" SELECT * FROM `${job_props.ratings_input_dataset}.${job_props.ratings_input_table_name}` """.stripMargin
 
   val step0 = SparkReadWriteStep[Rating](
     name = "LoadRatings BQ(query) to GCS CSV",
@@ -52,7 +53,9 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
   )
 
   def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutputCsv] = {
-    val mapping = Encoders.product[RatingOutputCsv]
+    import spark.implicits._
+
+    // val mapping = Encoders.product[RatingOutputCsv]
 
     val ratings_df = in
       .withColumnRenamed("user_id", "User Id")
@@ -61,7 +64,7 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumnRenamed("date", "Movie Date")
 
-    ratings_df.as[RatingOutputCsv](mapping)
+    ratings_df.as[RatingOutputCsv]
   }
 
   val step21 = SparkReadTransformWriteStep[Rating, RatingOutputCsv](
@@ -78,14 +81,14 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
   )
 
   def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
-    val mapping = Encoders.product[RatingOutput]
+    import spark.implicits._
 
     val ratings_df = in
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn(partition_date_col, get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
       .where(f"$partition_date_col in ('201601', '201512', '201510')")
 
-    ratings_df.as[RatingOutput](mapping)
+    ratings_df.as[RatingOutput]
   }
 
   val step22 = SparkReadTransformWriteStep[Rating, RatingOutput](
@@ -113,9 +116,9 @@ object SparkExample2TestSuite extends DefaultRunnableSpec with TestSparkSession 
   )
 
   val job = for {
-    _ <- step1.process(())
-    _ <- step21.process(()).zipPar(step22.process(()))
-    _ <- step3.process(())
+    _ <- step1.process
+    _ <- step21.process.zipPar(step22.process)
+    _ <- step3.process
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =

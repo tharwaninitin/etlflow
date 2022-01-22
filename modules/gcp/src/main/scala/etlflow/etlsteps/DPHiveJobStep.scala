@@ -8,9 +8,9 @@ case class DPHiveJobStep(
     name: String,
     query: String,
     config: DATAPROC
-) extends EtlStep[Unit, Unit] {
+) extends EtlStep[Unit] {
 
-  final def process(in: => Unit): Task[Unit] = {
+  final def process: Task[Unit] = {
     val env = DP.live(config)
     logger.info("#" * 100)
     logger.info(s"Starting Hive Dataproc Job: $name")

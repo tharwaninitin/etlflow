@@ -191,7 +191,7 @@ private[etlflow] object DB extends ApplicationLogger {
         val jobsDB = jobs.map { x =>
           JobDB(x.name, x.props.getOrElse("job_schedule", ""), is_active = true)
         }
-        val seq = jobsDB.map(data => Seq(data.job_name, "", data.schedule, 0, 0, data.is_active))
+
         if (jobsDB.isEmpty)
           UIO {
             List.empty
@@ -200,7 +200,7 @@ private[etlflow] object DB extends ApplicationLogger {
           Task(NamedDB(pool_name).localTx { implicit s =>
             // --- transaction scope start ---
             Sql.deleteJobs(jobsDB).update()
-            Sql.insertJobs(seq).update()
+            Sql.insertJobs(jobsDB).update()
             Sql.selectJobs.map(JobDB(_)).list.apply()
             // --- transaction scope end ---
           }).mapError { e =>

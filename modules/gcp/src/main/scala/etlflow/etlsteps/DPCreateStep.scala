@@ -9,8 +9,8 @@ class DPCreateStep(
     val name: String,
     val config: DATAPROC,
     val props: DataprocProperties
-) extends EtlStep[Unit, Cluster] {
-  final def process(in: => Unit): Task[Cluster] = {
+) extends EtlStep[Cluster] {
+  final def process: Task[Cluster] = {
     val env = DP.live(config)
     logger.info("#" * 100)
     logger.info(s"Starting Create Cluster Step: $name")
@@ -26,5 +26,6 @@ class DPCreateStep(
     )
 }
 object DPCreateStep {
-  def apply(name: String, config: DATAPROC, props: DataprocProperties): DPCreateStep = new DPCreateStep(name, config, props)
+  def apply(name: String, config: DATAPROC, props: DataprocProperties): DPCreateStep =
+    new DPCreateStep(name, config, props)
 }

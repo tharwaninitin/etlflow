@@ -11,8 +11,8 @@ case class GCSCopyStep(
     parallelism: Int,
     overwrite: Boolean = true,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit, Unit] {
-  override def process(input_state: => Unit): Task[Unit] = {
+) extends EtlStep[Unit] {
+  override def process: Task[Unit] = {
     val env = GCS.live(credentials)
     val program = (input, output) match {
       case (src @ Location.GCS(_, _), tgt @ Location.GCS(_, _)) =>

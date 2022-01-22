@@ -6,7 +6,7 @@ import etlflow.utils.ApplicationLogger
 import io.circe.generic.auto._
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM}
+import zio.test.{assertM, DefaultRunnableSpec, TestAspect, ZSpec}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -75,9 +75,9 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
     logger.info(ip.toString)
   }
 
-  val genericStep = GenericETLStep(
+  def genericStep(ip: HttpBinResponse) = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    transform_function = processData(ip)
   )
 
   val putStep1 = HttpRequestStep[String](
@@ -98,15 +98,15 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
   )
 
   val job = for {
-    _   <- getStep1.process(())
-    op2 <- getStep2.process(())
-    op3 <- getStep3.process(())
-    _   <- postStep1.process(())
-    op2 <- postStep2.process(())
-    _   <- postStep3.process(())
-    _   <- genericStep.process(op3)
-    _   <- putStep1.process(())
-    _   <- putStep2.process(())
+    _   <- getStep1.process
+    _   <- getStep2.process
+    op3 <- getStep3.process
+    _   <- postStep1.process
+    _   <- postStep2.process
+    _   <- postStep3.process
+    _   <- genericStep(op3).process
+    _   <- putStep1.process
+    _   <- putStep2.process
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =

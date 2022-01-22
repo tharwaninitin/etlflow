@@ -1,15 +1,16 @@
 package etlflow.etlsteps
 
-import etlflow.db.{DBApi, liveDB}
+import etlflow.db.{liveDB, DBApi}
 import etlflow.model.Credential.JDBC
 import scalikejdbc.WrappedResultSet
 import zio.RIO
 import zio.blocking.Blocking
 
-class DBReadStep[T] private (val name: String, query: => String, credentials: JDBC, pool_size: Int = 2)(fn: WrappedResultSet => T)
-    extends EtlStep[Unit, List[T]] {
+class DBReadStep[T] private (val name: String, query: => String, credentials: JDBC, pool_size: Int)(
+    fn: WrappedResultSet => T
+) extends EtlStep[List[T]] {
 
-  final def process(in: => Unit): RIO[Blocking, List[T]] = {
+  final def process: RIO[Blocking, List[T]] = {
     logger.info("#" * 100)
     logger.info(s"Starting DB Query Result Step: $name")
     logger.info(s"Query: $query")
@@ -20,6 +21,8 @@ class DBReadStep[T] private (val name: String, query: => String, credentials: JD
 }
 
 object DBReadStep {
-  def apply[T](name: String, query: => String, credentials: JDBC, pool_size: Int = 2)(fn: WrappedResultSet => T): DBReadStep[T] =
+  def apply[T](name: String, query: => String, credentials: JDBC, pool_size: Int = 2)(
+      fn: WrappedResultSet => T
+  ): DBReadStep[T] =
     new DBReadStep[T](name, query, credentials, pool_size)(fn)
 }

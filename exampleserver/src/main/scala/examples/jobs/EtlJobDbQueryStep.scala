@@ -5,7 +5,7 @@ import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
 import etlflow.utils.Configuration
 import examples.schema.MyEtlJobProps.EtlJob4Props
 
-case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props]{
+case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] {
 
   val config = zio.Runtime.default.unsafeRun(Configuration.config)
 
@@ -15,7 +15,6 @@ case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob
                          |  SET count_user =(SELECT COUNT(*) FROM dev.ratings WHERE userId = user_id);
                          |  SELECT count_user ;
                          |END""".stripMargin
-
 
   private val step1 = BQQueryStep(
     name = "CreateStoredProcedure1BQ",
@@ -28,7 +27,7 @@ case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob
   )
 
   private val step3 = BQQueryStep(
-    name  = "CreateTableBQ",
+    name = "CreateTableBQ",
     query = s"""CREATE OR REPLACE TABLE dev.ratings_grouped as
             SELECT movieId, COUNT(1) cnt
             FROM dev.ratings
@@ -37,15 +36,15 @@ case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob
   )
 
   private val step4 = DBQueryStep(
-    name  = "UpdatePG",
+    name = "UpdatePG",
     query = "BEGIN; DELETE FROM ratings WHERE 1 =1; INSERT INTO ratings SELECT * FROM ratings_temp; COMMIT;",
     credentials = config.db.get
   )
 
   override val job = for {
-    -  <- step1.execute(())
-    -  <- step2.execute(())
-    -  <- step3.execute(())
-    -  <- step4.execute(())
+    _ <- step1.execute
+    _ <- step2.execute
+    _ <- step3.execute
+    _ <- step4.execute
   } yield ()
 }

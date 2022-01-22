@@ -25,14 +25,14 @@ object SampleJobWithDbLogging extends JobApp {
     ip.foreach(jr => logger.info(jr.toString))
   }
 
-  private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
+  private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    transform_function = processData(ip)
   )
 
   def job(args: List[String]): RIO[CoreLogEnv, Unit] =
     for {
-      op1 <- step1(cred).execute(())
-      _   <- step2.execute(op1)
+      op1 <- step1(cred).execute
+      _   <- step2(op1).execute
     } yield ()
 }

@@ -5,7 +5,7 @@ import zio.{UIO, ZIO}
 
 object ErrorHandlingTestSuite {
 
-  def funcArithmeticEx: Int            = 3 / 0
+  def funcArithmeticEx: Int            = throw new ArithmeticException()
   def funcArrayIndexOutOfBoundsEx: Int = Array(0, 1, 2, 3, 4)(9)
   def funcFatalError: Int              = throw new StackOverflowError()
 

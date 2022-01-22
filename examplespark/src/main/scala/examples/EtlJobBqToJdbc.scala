@@ -11,7 +11,7 @@ import zio.{ExitCode, URIO}
 
 object EtlJobBqToJdbc extends zio.App with ApplicationLogger {
 
-  private implicit val spark: SparkSession =
+  implicit private val spark: SparkSession =
     SparkManager.createSparkSession(Set(etlflow.spark.Environment.LOCAL), hive_support = false)
 
   private val step1 = SparkReadWriteStep[RatingBQ](
@@ -23,5 +23,5 @@ object EtlJobBqToJdbc extends zio.App with ApplicationLogger {
     output_save_mode = SaveMode.Overwrite
   )
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.process(()).exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.process.exitCode
 }

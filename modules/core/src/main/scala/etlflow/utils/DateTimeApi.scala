@@ -9,7 +9,8 @@ object DateTimeApi {
 
   def getCurrentTimestamp: Long = System.currentTimeMillis()
 
-  def getCurrentTimestampUsingLocalDateTime: Long = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+  def getCurrentTimestampUsingLocalDateTime: Long =
+    LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
 
   // https://stackoverflow.com/questions/23944370/how-to-get-milliseconds-from-localdatetime-in-java-8
   def getTimestampFromLocalDateTime(dt: LocalDateTime): Long = dt.atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
@@ -28,11 +29,13 @@ object DateTimeApi {
   def getTimestampAsString(timestamp: Long, pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
     DateTimeFormatter
       .ofPattern(pattern)
-      .format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault())) + " " + TimeZone.getDefault
+      .format(
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault())
+      ) + " " + TimeZone.getDefault
       .getDisplayName(false, TimeZone.SHORT)
 
   def roundAt(p: Int)(n: Double): Double = {
-    val s = math.pow(10, p); (math.round(n * s)) / s
+    val s = math.pow(10, p.toDouble); (math.round(n * s)) / s
   }
 
   def getTimeDifferenceAsString(start_ts: Long, end_ts: Long): String =

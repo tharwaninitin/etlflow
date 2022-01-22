@@ -23,6 +23,6 @@ case class EtlJobDpSparkJobStep(job_properties: SampleProps) extends EtlJob[Samp
     libs = libs
   )
 
-  val job = step.execute(())
+  val job = step.execute
 
 }

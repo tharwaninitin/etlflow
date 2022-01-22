@@ -7,9 +7,9 @@ import zio.Task
 class DPDeleteStep(
     val name: String,
     val config: DATAPROC
-) extends EtlStep[Unit, Unit] {
+) extends EtlStep[Unit] {
 
-  final def process(in: => Unit): Task[Unit] = {
+  final def process: Task[Unit] = {
     val env = DP.live(config)
     logger.info("#" * 100)
     logger.info(s"Starting Delete Cluster Step: $name")

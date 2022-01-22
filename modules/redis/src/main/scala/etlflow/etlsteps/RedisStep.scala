@@ -10,16 +10,16 @@ class RedisStep(
     val name: String,
     val command: RedisCmd,
     val credentials: REDIS
-) extends EtlStep[Unit, Unit] {
+) extends EtlStep[Unit] {
 
-  final def process(in: => Unit): Task[Unit] = Task {
+  final def process: Task[Unit] = Task {
     logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
     logger.info(s"Starting Redis Query Step: $name")
     logger.info(s"Query to perform: $command")
     command match {
       case RedisCmd.SET(kv)        => RedisApi.setKeys(kv, redisClient)
-      case RedisCmd.FLUSHALL       => redisClient.flushall
+      case RedisCmd.FLUSHALL       => redisClient.flushall; ()
       case RedisCmd.DELETE(prefix) => RedisApi.deleteKeysOfPreFix(prefix, redisClient)
     }
   }

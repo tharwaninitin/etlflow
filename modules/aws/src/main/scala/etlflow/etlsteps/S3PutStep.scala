@@ -13,8 +13,8 @@ class S3PutStep private[etlsteps] (
     region: Region,
     endpoint_override: Option[String] = None,
     credentials: Option[AWS] = None
-) extends EtlStep[Unit, Unit] {
-  override def process(input_state: => Unit): Task[Unit] = {
+) extends EtlStep[Unit] {
+  override def process: Task[Unit] = {
     val program = S3Api.putObject(bucket, key, file)
     val runnable = for {
       _  <- Task.succeed(logger.info("#" * 100))

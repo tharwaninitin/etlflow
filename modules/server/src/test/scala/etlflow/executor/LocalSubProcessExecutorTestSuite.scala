@@ -5,6 +5,7 @@ import etlflow.model.Executor.LOCAL_SUBPROCESS
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
+
 object LocalSubProcessExecutorTestSuite {
 
   val local_subprocess =
@@ -15,10 +16,10 @@ object LocalSubProcessExecutorTestSuite {
   val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
     suite("Local Sub Process Executor")(
       testM("local_subprocess Job1 ") {
-        assertM(localJob1.foldM(ex => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))
+        assertM(localJob1.foldM(_ => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))
       },
       testM("local_subprocess Job2") {
-        assertM(localJob2.foldM(ex => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))
+        assertM(localJob2.foldM(_ => ZIO.succeed("ok"), _ => ZIO.succeed("Done")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

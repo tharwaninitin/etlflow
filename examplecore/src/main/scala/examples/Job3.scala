@@ -22,14 +22,14 @@ object Job3 extends zio.App with ApplicationLogger {
     ip.foreach(jr => logger.info(jr.toString))
   }
 
-  private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
+  private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    transform_function = processData(ip)
   )
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
-      op1 <- step1(cred).process(())
-      _   <- step2.process(op1)
-    } yield ()).exitCode
+       op <- step1(cred).process
+       _  <- step2(op).process
+     } yield ()).exitCode
 }

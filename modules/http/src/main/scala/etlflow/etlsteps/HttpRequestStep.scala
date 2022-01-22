@@ -6,27 +6,27 @@ import io.circe.Decoder
 import sttp.client3.Response
 import zio._
 
-case class HttpRequestStep[A: Tag : Decoder](
-     name: String,
-     url: String,
-     method: HttpMethod,
-     params: Either[String, Map[String,String]] = Right(Map.empty),
-     headers: Map[String,String] = Map.empty,
-     log: Boolean = false,
-     connection_timeout: Int = 10000,
-     read_timeout: Int = 150000,
-     allow_unsafe_ssl: Boolean = false
-   )
-  extends EtlStep[Unit, A] {
+case class HttpRequestStep[A: Tag: Decoder](
+    name: String,
+    url: String,
+    method: HttpMethod,
+    params: Either[String, Map[String, String]] = Right(Map.empty),
+    headers: Map[String, String] = Map.empty,
+    log: Boolean = false,
+    connection_timeout: Int = 10000,
+    read_timeout: Int = 150000,
+    allow_unsafe_ssl: Boolean = false
+) extends EtlStep[A] {
 
-  final def process(in: =>Unit): Task[A] = {
-    logger.info("#"*100)
+  final def process: Task[A] = {
+    logger.info("#" * 100)
     logger.info(s"Starting HttpRequestStep: $name")
     logger.info(s"URL: $url")
     logger.info(s"ConnectionTimeOut: $connection_timeout")
     logger.info(s"ReadTimeOut: $read_timeout")
 
-    val output: Task[Response[String]] = HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
+    val output: Task[Response[String]] =
+      HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
 
     Tag[A] match {
       case t if t == Tag[Unit] =>
@@ -37,14 +37,14 @@ case class HttpRequestStep[A: Tag : Decoder](
         Task.fail(new RuntimeException("Need type parameter in HttpStep, if no output is required use HttpStep[Unit]"))
       case _ =>
         for {
-          op <- output
+          op  <- output
           obj <- JsonApi.convertToObject[A](op.body).provideLayer(etlflow.json.Implementation.live)
         } yield obj
     }
   }
 
   override def getStepProperties: Map[String, String] = Map(
-      "url" -> url,
-      "http_method" -> method.toString
-    )
+    "url"         -> url,
+    "http_method" -> method.toString
+  )
 }

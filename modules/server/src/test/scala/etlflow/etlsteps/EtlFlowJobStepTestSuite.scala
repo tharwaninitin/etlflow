@@ -18,7 +18,7 @@ case class EtlFlowJobStepTestSuite(config: Config) {
   val spec: ZSpec[environment.TestEnvironment with CoreEnv, Any] =
     suite("EtlFlowJob Step")(
       testM("Execute EtlFlowJobStep") {
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {
         step.job_run_id = "123"

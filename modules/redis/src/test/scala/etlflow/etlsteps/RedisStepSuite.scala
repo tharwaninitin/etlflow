@@ -4,7 +4,7 @@ import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.model.Credential.REDIS
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
+import zio.test.{assertM, DefaultRunnableSpec, ZSpec}
 
 object RedisStepSuite extends DefaultRunnableSpec {
 
@@ -41,11 +41,11 @@ object RedisStepSuite extends DefaultRunnableSpec {
   )
 
   val job = for {
-    _ <- step1.process(())
-    _ <- step2.process(())
-    _ <- step3.process(())
-    _ <- step4.process(())
-    _ <- step5.process(())
+    _ <- step1.process
+    _ <- step2.process
+    _ <- step3.process
+    _ <- step4.process
+    _ <- step5.process
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =

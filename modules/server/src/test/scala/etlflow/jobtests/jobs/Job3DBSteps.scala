@@ -28,13 +28,13 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
     name = "DeleteCredential",
     query = delete_credential_script,
     credentials = config.db.get
-  ).process(())
+  ).process
 
   private val addCredStep = DBQueryStep(
     name = "AddCredential",
     query = insert_credential_script,
     credentials = config.db.get
-  ).process(())
+  ).process
 
   private val creds = GetCredentialStep[JDBC](
     name = "GetCredential",
@@ -52,17 +52,17 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
     ip.foreach(jr => logger.info(jr.toString))
   }
 
-  private def step2: GenericETLStep[List[EtlJobRun], Unit] = GenericETLStep(
+  private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    transform_function = processData(ip)
   )
 
   val job =
     for {
       _    <- deleteCredStep
       _    <- addCredStep
-      cred <- creds.execute(())
-      op2  <- step1(cred).execute(())
-      _    <- step2.execute(op2)
+      cred <- creds.execute
+      op2  <- step1(cred).execute
+      _    <- step2(op2).execute
     } yield ()
 }

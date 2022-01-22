@@ -20,15 +20,26 @@ class S3SensorStep private[etlsteps] (
     region: Region,
     endpoint_override: Option[String] = None,
     credentials: Option[AWS] = None
-) extends EtlStep[Unit, Unit] {
-  override def process(input_state: => Unit): RIO[Clock, Unit] = {
+) extends EtlStep[Unit] {
+  override def process: RIO[Clock, Unit] = {
     val lookup = S3Api.lookupObject(bucket, prefix, key)
-    def program(s3: S3AsyncClient): RIO[Clock, Unit] = (for {
-      out <- lookup.provide(s3)
-      _ <-
-        if (out) UIO(logger.info(s"Found key $key in s3 location s3://$bucket/$prefix/"))
-        else IO.fail(RetryException(s"key $key not found in s3 location s3://$bucket/$prefix/"))
-    } yield ()).retry(RetrySchedule(retry, spaced))
+    def program(s3: S3AsyncClient): RIO[Clock, Unit] =
+      (for {
+         out <- lookup.provide(s3)
+         _ <-
+           if (out)
+             UIO(
+               logger.info(
+                 s"Found key $key in s3 location s3://$bucket/$prefix/"
+               )
+             )
+           else
+             IO.fail(
+               RetryException(
+                 s"key $key not found in s3 location s3://$bucket/$prefix/"
+               )
+             )
+       } yield ()).retry(RetrySchedule(retry, spaced))
 
     val runnable = for {
       _  <- Task.succeed(logger.info(s"Starting sensor for s3 location s3://$bucket/$prefix/$key"))

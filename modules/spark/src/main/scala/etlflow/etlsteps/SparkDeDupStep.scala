@@ -6,20 +6,20 @@ import zio.Task
 import scala.reflect.runtime.universe.TypeTag
 
 case class SparkDeDupStep[I: TypeTag](
-       name: String,
-       inputDataStream: Dataset[I],
-       checkpointLocation: String,
-       eventTimeCol: String,
-       delayThreshold: String,
-       deDupCols: Seq[String]
-  ) extends EtlStep[Unit,Unit] {
+    name: String,
+    inputDataStream: Dataset[I],
+    checkpointLocation: String,
+    eventTimeCol: String,
+    delayThreshold: String,
+    deDupCols: Seq[String]
+) extends EtlStep[Unit] {
 
-  final def process(input_state: => Unit): Task[Unit] = Task {
+  final def process: Task[Unit] = Task {
     logger.info("#################################################################################################")
     logger.info(s"Starting SparkDeDupStep: $name")
 
     inputDataStream
-      .withWatermark(eventTimeCol,delayThreshold)
+      .withWatermark(eventTimeCol, delayThreshold)
       .dropDuplicates(deDupCols)
       .writeStream
       .format("console")
@@ -32,5 +32,3 @@ case class SparkDeDupStep[I: TypeTag](
     logger.info("#################################################################################################")
   }
 }
-
-

@@ -34,7 +34,7 @@ object InitDBSuite extends DbSuiteHelper {
       |""".stripMargin
 
   val program = for {
-    - <- CreateDB(true)
+    _ <- CreateDB(true)
     _ <- DBApi.executeQuery(sql)
   } yield ()
   val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =

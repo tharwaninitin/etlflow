@@ -82,8 +82,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                  FROM jobRun
                  WHERE job_name != ${args.jobName.get}
                  AND is_master = 'true'
-                 AND inserted_at >= ${startTime}
-                 AND inserted_at < ${endTime}
+                 AND inserted_at >= $startTime
+                 AND inserted_at < $endTime
                  ORDER BY inserted_at DESC
                  offset ${args.offset} limit ${args.limit}"""
       }
@@ -178,8 +178,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                             THEN sum(count) ELSE 0
                         END failed
                   FROM (select job_name, status,count(*) as count from jobrun
-                  WHERE inserted_at >= ${end_time1} AND
-                    inserted_at <= ${end_time2}
+                  WHERE inserted_at >= $end_time1 AND
+                    inserted_at <= $end_time2
                     GROUP by job_name,status limit ${args.limit}) t
                     GROUP by job_name,status
                   ) t1 GROUP by job_name;""".stripMargin
@@ -200,8 +200,8 @@ private[etlflow] object Sql extends ApplicationLogger {
                           ELSE 0
                       END failed
                FROM (select job_name, status,count(*) as count from jobrun
-                  WHERE inserted_at >= ${end_time1} AND
-                   inserted_at <= ${end_time2}
+                  WHERE inserted_at >= $end_time1 AND
+                   inserted_at <= $end_time2
                   GROUP by job_name,status limit 50) t
                   GROUP by job_name,status
                ) t1 GROUP by job_name;""".stripMargin
@@ -271,10 +271,10 @@ private[etlflow] object Sql extends ApplicationLogger {
     sql"""DELETE FROM job WHERE job_name not in ($list)"""
   }
 
-  def insertJobs(data: Seq[Seq[Any]]): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
+  def insertJobs(data: Seq[JobDB]): SQL[scalikejdbc.UpdateOperation, NoExtractor] = withSQL {
     insert
       .into(JobDBAll)
-      .multipleValues(data: _*)
+      .multipleValues(data.map(data => Seq(data.job_name, "", data.schedule, 0, 0, data.is_active)): _*)
       .append(sqls"ON CONFLICT(job_name) DO UPDATE SET schedule = EXCLUDED.schedule")
   }
 

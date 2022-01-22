@@ -11,7 +11,7 @@ import zio.{ExitCode, UIO, URIO}
 
 object EtlJobParquetToOrc extends zio.App with ApplicationLogger {
 
-  private implicit val spark = SparkManager.createSparkSession(Set(LOCAL), hive_support = false)
+  implicit private val spark = SparkManager.createSparkSession(Set(LOCAL), hive_support = false)
 
   private val step1 = SparkReadWriteStep[Rating](
     name = "LoadRatingsParquet",
@@ -22,10 +22,10 @@ object EtlJobParquetToOrc extends zio.App with ApplicationLogger {
     output_repartitioning = true,
     output_repartitioning_num = 1,
     output_save_mode = SaveMode.Overwrite,
-    output_filename = Some("ratings.orc"),
+    output_filename = Some("ratings.orc")
   )
 
-  val job = step1.process(()) *> UIO(spark.stop())
+  val job = step1.process *> UIO(spark.stop())
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
 }

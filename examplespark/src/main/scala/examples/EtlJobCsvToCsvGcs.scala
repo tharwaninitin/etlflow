@@ -13,16 +13,18 @@ import zio.{ExitCode, URIO}
 
 object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
 
-  private val gcs_output_path = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
-  private var output_date_paths: Seq[(String, String)] = Seq()
-  private val temp_date_col = "temp_date_col"
+  private val gcs_output_path                  = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
+  var output_date_paths: Seq[(String, String)] = Seq()
+  private val temp_date_col                    = "temp_date_col"
 
-  private implicit val spark: SparkSession = SparkManager.createSparkSession(Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))), hive_support = false)
+  implicit private val spark: SparkSession = SparkManager.createSparkSession(
+    Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))),
+    hive_support = false
+  )
 
-  val get_formatted_date: (String, String, String) => Column
-  = (ColumnName: String, ExistingFormat: String, NewFormat: String) => {
-    from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
-  }
+  val get_formatted_date: (String, String, String) => Column =
+    (ColumnName: String, ExistingFormat: String, NewFormat: String) =>
+      from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
 
   private def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
 
@@ -42,7 +44,7 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
 
     ratings_df.drop(f"$temp_date_col")
 
-    val mapping = Encoders.product[RatingOutput]
+    val mapping    = Encoders.product[RatingOutput]
     val ratings_ds = ratings_df.as[RatingOutput](mapping)
     ratings_ds
   }
@@ -58,5 +60,5 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
     output_save_mode = SaveMode.Overwrite
   )
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.process(()).exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.process.exitCode
 }

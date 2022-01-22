@@ -17,10 +17,10 @@ class BQLoadStep private[etlflow] (
     output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
     credentials: Option[Credential.GCP] = None,
     schema: Option[Schema] = None
-) extends EtlStep[Unit, Unit] {
+) extends EtlStep[Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  final def process(input: => Unit): Task[Unit] = {
+  final def process: Task[Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Step : $name")
 

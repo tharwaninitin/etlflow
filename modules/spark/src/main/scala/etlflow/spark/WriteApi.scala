@@ -19,13 +19,16 @@ object WriteApi extends ApplicationLogger {
       save_mode: SaveMode = SaveMode.Append,
       output_filename: Option[String] = None,
       recordsWrittenCount: Long,
-      n: Int = 1,
       compression: String = "none",
       repartition: Boolean = false
   ): Map[String, String] = {
     val mapping = Encoders.product[T]
     Map(
       "output_location" -> output_location,
+      "partition_by"    -> partition_by.toString,
+      "save_mode"       -> save_mode.toString,
+      "compression"     -> compression,
+      "repartition"     -> repartition.toString,
       "output_filename" -> output_filename.getOrElse("NA"),
       "output_type"     -> output_type.toString,
       "output_class"    -> mapping.schema.toDDL,
@@ -68,7 +71,8 @@ object WriteApi extends ApplicationLogger {
           .repartition(n)
           .write
           .option("compression", compression)
-      case _ => source.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping).write.option("compression", compression)
+      case _ =>
+        source.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping).write.option("compression", compression)
     }
 
     val df_writer_options = output_type match {

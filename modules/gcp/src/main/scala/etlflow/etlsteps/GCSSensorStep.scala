@@ -16,17 +16,22 @@ class GCSSensorStep private[etlsteps] (
     retry: Int,
     spaced: Duration,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit, Unit] {
-  override def process(input_state: => Unit): RIO[Clock, Unit] = {
+) extends EtlStep[Unit] {
+  override def process: RIO[Clock, Unit] = {
     val env    = GCS.live(credentials)
     val lookup = GCSApi.lookupObject(bucket, prefix, key).provideLayer(env)
 
-    val program: RIO[Clock, Unit] = (for {
-      out <- lookup
-      _ <-
-        if (out) UIO(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
-        else IO.fail(RetryException(s"key $key not found in GCS location gs://$bucket/$prefix/"))
-    } yield ()).retry(RetrySchedule(retry, spaced))
+    val program: RIO[Clock, Unit] =
+      (for {
+         out <- lookup
+         _ <-
+           if (out)
+             UIO(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
+           else
+             IO.fail(
+               RetryException(s"key $key not found in GCS location gs://$bucket/$prefix/")
+             )
+       } yield ()).retry(RetrySchedule(retry, spaced))
 
     val runnable = for {
       _ <- Task.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix/$key"))

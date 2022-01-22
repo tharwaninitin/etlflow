@@ -26,7 +26,6 @@ object Slack extends ApplicationLogger {
     ): String =
       if (error.isEmpty) {
 
-        /** Template for slack success message */
         final_message = final_message.concat(f"""
             :large_blue_circle: $slack_env - $job_name Process *Success!*
             *Time of Execution*: $exec_date
@@ -36,7 +35,6 @@ object Slack extends ApplicationLogger {
         final_message
       } else {
 
-        /** Template for slack failure message * */
         final_message = final_message.concat(f"""
             :red_circle: $slack_env - $job_name Process *Failed!*
             *Time of Execution*: $exec_date
@@ -45,7 +43,7 @@ object Slack extends ApplicationLogger {
             """)
         final_message
       }
-    private def sendSlackNotification(data: String): Unit =
+    private def sendSlackNotification(data: String): Try[Unit] =
       Try {
         val conn = new URL(slack_url)
           .openConnection()
@@ -96,19 +94,20 @@ object Slack extends ApplicationLogger {
       final_step_message = final_step_message.concat(slackMessageForSteps)
     }
     override def logJobStart(job_name: String, args: String, start_time: Long): UIO[Unit] = ZIO.unit
-    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] = Task {
-      val execution_date_time = getTimestampAsString(end_time) // Add time difference in this expression
+    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] =
+      Task.fromTry {
+        val execution_date_time = getTimestampAsString(end_time) // Add time difference in this expression
 
-      val data = finalMessageTemplate(
-        job_name,
-        execution_date_time,
-        final_step_message,
-        host_url + job_run_id,
-        error
-      )
+        val data = finalMessageTemplate(
+          job_name,
+          execution_date_time,
+          final_step_message,
+          host_url + job_run_id,
+          error
+        )
 
-      sendSlackNotification(data)
-    }.orDie
+        sendSlackNotification(data)
+      }.orDie
   }
 
   def live(slack: Option[model.Slack], jri: String): ULayer[LogEnv] =

@@ -2,7 +2,7 @@ package etlflow.etlsteps
 
 import crypto4s.Crypto
 import etlflow.core.CoreEnv
-import etlflow.db.{DBApi, liveDB}
+import etlflow.db.{liveDB, DBApi}
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.model.Credential.{AWS, JDBC}
 import etlflow.utils.Configuration
@@ -11,9 +11,9 @@ import zio.blocking.Blocking
 import zio.{RIO, Tag}
 import io.circe.generic.auto._
 
-case class GetCredentialStep[T: Tag: Decoder](name: String, credential_name: String) extends EtlStep[Unit, T] {
+case class GetCredentialStep[T: Tag: Decoder](name: String, credential_name: String) extends EtlStep[T] {
 
-  override def process(input_state: => Unit): RIO[CoreEnv, T] = {
+  override def process: RIO[CoreEnv, T] = {
     val query = s"SELECT value FROM credential WHERE name='$credential_name' and valid_to is null;"
     val step = for {
       config <- Configuration.config
@@ -27,8 +27,8 @@ case class GetCredentialStep[T: Tag: Decoder](name: String, credential_name: Str
     step.provideSomeLayer[Blocking](etlflow.json.Implementation.live)
   }
 
-  def decryptCredential[T: Tag](text: String, crypto: Crypto): RIO[JsonEnv, String] =
-    implicitly[Tag[T]].tag match {
+  def decryptCredential[C: Tag](text: String, crypto: Crypto): RIO[JsonEnv, String] =
+    implicitly[Tag[C]].tag match {
       case t if t =:= Tag[JDBC].tag =>
         for {
           jdbc <- JsonApi.convertToObject[JDBC](text)

@@ -32,12 +32,12 @@ trait HttpServer {
           Response(data = HttpData.fromStream(ZStream.fromResource("static/assets/css/main.2470ea74.chunk.css")))
       }
       app2 = Http.route[Request] {
-        case _ -> !! / "api" / "etlflow"    => auth.middleware(ZHttpAdapter.makeHttpService(etlFlowInterpreter)) @@ cors()
-        case _ -> !! / "api" / "login"      => ZHttpAdapter.makeHttpService(loginInterpreter) @@ cors()
-        case _ -> !! / "ws" / "etlflow" / _ => WebsocketAPI(auth).webSocketApp @@ cors()
+        case _ -> !! / "api" / "etlflow" => auth.middleware(ZHttpAdapter.makeHttpService(etlFlowInterpreter)) @@ cors()
+        case _ -> !! / "api" / "login"   => ZHttpAdapter.makeHttpService(loginInterpreter) @@ cors()
+        case _ -> !! / "ws" / "etlflow" / _               => WebsocketAPI(auth).webSocketApp @@ cors()
         case Method.POST -> !! / "restapi" / "runjob" / _ => auth.middleware(RestAPI()) @@ cors(corsConfig)
       }
       app = app1 <> app2
       op <- Server.start(port, app)
-    } yield (op)
+    } yield op
 }

@@ -10,8 +10,8 @@ class GCSPutStep private[etlsteps] (
     key: => String,
     file: => String,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit, Unit] {
-  override def process(input_state: => Unit): Task[Unit] = {
+) extends EtlStep[Unit] {
+  override def process: Task[Unit] = {
     val env     = GCS.live(credentials)
     val program = GCSApi.putObject(bucket, key, file)
     val runnable = for {
@@ -40,6 +40,12 @@ class GCSPutStep private[etlsteps] (
 
 object GCSPutStep {
 
-  def apply(name: String, bucket: => String, key: => String, file: => String, credentials: Option[GCP] = None): GCSPutStep =
+  def apply(
+      name: String,
+      bucket: => String,
+      key: => String,
+      file: => String,
+      credentials: Option[GCP] = None
+  ): GCSPutStep =
     new GCSPutStep(name, bucket, key, file, credentials)
 }

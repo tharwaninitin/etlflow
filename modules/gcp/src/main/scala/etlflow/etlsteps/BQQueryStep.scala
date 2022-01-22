@@ -8,9 +8,9 @@ class BQQueryStep private[etlflow] (
     val name: String,
     query: => String,
     credentials: Option[GCP] = None
-) extends EtlStep[Unit, Unit] {
+) extends EtlStep[Unit] {
 
-  final def process(input: => Unit): Task[Unit] = {
+  final def process: Task[Unit] = {
     logger.info("#" * 100)
     val env = BQ.live(credentials)
     logger.info(s"Starting BQ Query Step: $name")

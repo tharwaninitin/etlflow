@@ -13,37 +13,41 @@ import zio.{ExitCode, URIO}
 
 object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
 
-  private val gcs_output_path = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
+  private val gcs_output_path                          = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
   private var output_date_paths: Seq[(String, String)] = Seq()
-  private val temp_date_col = "temp_date_col"
+  private val temp_date_col                            = "temp_date_col"
 
-  private implicit val spark: SparkSession = SparkManager.createSparkSession(Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))), hive_support = false)
+  implicit private val spark: SparkSession = SparkManager.createSparkSession(
+    Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))),
+    hive_support = false
+  )
 
-  val get_formatted_date: (String, String, String) => Column
-  = (ColumnName: String, ExistingFormat: String, NewFormat: String) => {
-    from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
-  }
+  val get_formatted_date: (String, String, String) => Column =
+    (ColumnName: String, ExistingFormat: String, NewFormat: String) =>
+      from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
 
   def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
-    val mapping = Encoders.product[RatingOutput]
+    import spark.implicits._
+    // val mapping = Encoders.product[RatingOutput]
 
     val ratings_df = in
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn(temp_date_col, get_formatted_date("date", "yyyy-MM-dd", "yyyyMMdd"))
       .where(f"$temp_date_col in ('20160101', '20160102')")
 
-    ratings_df.as[RatingOutput](mapping)
+    ratings_df.as[RatingOutput]
   }
 
-  def addFilePaths()(spark: SparkSession, ip: Unit): Unit = {
+  def addFilePaths()(spark: SparkSession): Unit = {
     import spark.implicits._
-    output_date_paths = ReadApi.LoadDS[RatingOutput](Seq(gcs_output_path), IOType.PARQUET)(spark)
+    output_date_paths = ReadApi
+      .LoadDS[RatingOutput](Seq(gcs_output_path), IOType.PARQUET)(spark)
       .select(f"$temp_date_col")
       .withColumn("filename", input_file_name)
       .distinct()
       .as[(String, String)]
       .collect()
-      .map((date) => (gcs_output_path + f"/$temp_date_col=" + date._1 + "/" + date._2.split("/").last, date._1))
+      .map(date => (gcs_output_path + f"/$temp_date_col=" + date._1 + "/" + date._2.split("/").last, date._1))
 
     logger.info("Filepaths generated are: ")
     output_date_paths.foreach(path => println(path))
@@ -67,8 +71,8 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
   )
 
   val job = for {
-    _ <- step1.process(())
-    _ <- step2.process(())
+    _ <- step1.process
+    _ <- step2.process
   } yield ()
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode

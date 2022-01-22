@@ -11,7 +11,7 @@ import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
+import zio.test.{assertM, DefaultRunnableSpec, ZSpec}
 
 object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF with ApplicationLogger {
 
@@ -27,7 +27,7 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_save_mode = SaveMode.Overwrite
   )
 
-  def getYearMonthData(spark: SparkSession, ip: Unit): Array[String] = {
+  def getYearMonthData(spark: SparkSession): Array[String] = {
     import spark.implicits._
     val ds = ReadApi.LoadDS[Rating](List("path/to/input"), PARQUET)(spark)
     val year_month = ds
@@ -51,16 +51,16 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     logger.info(ip.toList.toString())
   }
 
-  val step3 = GenericETLStep(
+  def step3(ip: Array[String]) = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData
+    transform_function = processData(ip)
   )
 
   val job =
     for {
-      _   <- step1.process(())
-      op1 <- step2.process(())
-      _   <- step3.process(op1)
+      _  <- step1.process
+      op <- step2.process
+      _  <- step3(op).process
     } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =

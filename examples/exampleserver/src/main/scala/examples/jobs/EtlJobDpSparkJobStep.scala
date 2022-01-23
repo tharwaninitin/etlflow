@@ -2,6 +2,8 @@ package examples.jobs
 
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.DPSparkJobStep
+import etlflow.gcp.DP
+import etlflow.log.LogEnv
 import etlflow.model.Executor.DATAPROC
 import examples.schema.MyEtlJobProps.SampleProps
 
@@ -23,6 +25,6 @@ case class EtlJobDpSparkJobStep(job_properties: SampleProps) extends EtlJob[Samp
     libs = libs
   )
 
-  val job = step.execute
+  val job = step.execute.provideSomeLayer[LogEnv](DP.live)
 
 }

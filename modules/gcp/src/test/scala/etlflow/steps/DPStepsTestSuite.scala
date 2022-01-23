@@ -1,6 +1,7 @@
 package etlflow.steps
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
+import etlflow.gcp.DP
 import etlflow.model.Executor.{DATAPROC, SPARK_CONF}
 import zio.ZIO
 import zio.test.Assertion.equalTo
@@ -22,8 +23,8 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
           name = "DPHiveJobStepExample",
           query = "SELECT 1 AS ONE",
           config = dpConfig
-        )
-        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        ).process.provideLayer(DP.live)
+        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
         val libs = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
@@ -37,8 +38,8 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
           config = dpConfig.copy(sp = spark_conf),
           main_class = "org.apache.spark.examples.SparkPi",
           libs = libs
-        )
-        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        ).process.provideLayer(DP.live)
+        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

@@ -3,7 +3,8 @@ package examples.jobs
 import com.google.cloud.bigquery.Schema
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.BQLoadStep
-import etlflow.gcp.{getBqSchema, BQInputType}
+import etlflow.gcp.{getBqSchema, BQ, BQInputType}
+import etlflow.log.LogEnv
 import examples.schema.MyEtlJobProps.EtlJob2Props
 import examples.schema.MyEtlJobSchema.RatingBQ
 
@@ -18,7 +19,7 @@ case class EtlJobBqLoadStepWithSchema(job_properties: EtlJob2Props) extends EtlJ
     output_dataset = job_props.ratings_output_dataset,
     output_table = job_props.ratings_output_table_name,
     schema = schema
-  )
+  ).execute.provideSomeLayer[LogEnv](BQ.live())
 
-  val job = step1.execute
+  val job = step1
 }

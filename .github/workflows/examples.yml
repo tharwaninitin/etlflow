@@ -1,4 +1,4 @@
-name: ExampleCore Workflow
+name: Examples Workflow
 on: [push]
 jobs:
   test:
@@ -13,5 +13,5 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Compile ExampleCore Module
-        run: sbt ";project etlflow; +publishLocal ;project examplecore; +Test/compile"
+      - name: Compile Example Modules
+        run: sbt ";project etlflow; +publishLocal ;project examples; +Test/compile"

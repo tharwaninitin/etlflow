@@ -1,28 +1,25 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.model.Credential.GCP
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
-import zio.{IO, RIO, Task, UIO}
 import zio.clock.Clock
+import zio.{IO, RIO, Task, UIO}
 import scala.concurrent.duration.Duration
 
-class GCSSensorStep private[etlsteps] (
-    val name: String,
-    bucket: => String,
-    prefix: => String,
-    key: => String,
+case class GCSSensorStep(
+    name: String,
+    bucket: String,
+    prefix: String,
+    key: String,
     retry: Int,
-    spaced: Duration,
-    credentials: Option[GCP] = None
-) extends EtlStep[Clock, Unit] {
+    spaced: Duration
+) extends EtlStep[GCSEnv with Clock, Unit] {
 
-  override def process: RIO[Clock, Unit] = {
-    val env    = GCS.live(credentials)
-    val lookup = GCSApi.lookupObject(bucket, prefix, key).provideLayer(env)
+  override def process: RIO[GCSEnv with Clock, Unit] = {
+    val lookup = GCSApi.lookupObject(bucket, prefix, key)
 
-    val program: RIO[Clock, Unit] =
+    val program: RIO[GCSEnv with Clock, Unit] =
       (for {
          out <- lookup
          _ <-
@@ -41,17 +38,4 @@ class GCSSensorStep private[etlsteps] (
 
     runnable
   }
-}
-
-object GCSSensorStep {
-  def apply(
-      name: String,
-      bucket: => String,
-      prefix: => String,
-      key: => String,
-      retry: Int,
-      spaced: Duration,
-      credentials: Option[GCP] = None
-  ): GCSSensorStep =
-    new GCSSensorStep(name, bucket, prefix, key, retry, spaced, credentials)
 }

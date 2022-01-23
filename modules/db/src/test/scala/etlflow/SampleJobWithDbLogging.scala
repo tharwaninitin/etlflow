@@ -14,10 +14,9 @@ object SampleJobWithDbLogging extends JobApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
+  private val step1: DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name = "FetchEtlJobRun",
-    query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10",
-    credentials = cred
+    query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
 
   private def processData(ip: List[EtlJobRun]): Unit = {
@@ -32,7 +31,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   def job(args: List[String]): RIO[Blocking with LogEnv, Unit] =
     for {
-      op1 <- step1(cred).execute
+      op1 <- step1.execute.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
       _   <- step2(op1).execute
     } yield ()
 }

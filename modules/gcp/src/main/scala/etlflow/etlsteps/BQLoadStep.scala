@@ -2,8 +2,7 @@ package etlflow.etlsteps
 
 import com.google.cloud.bigquery.{JobInfo, Schema}
 import etlflow.gcp._
-import etlflow.model.Credential
-import zio.{Task, UIO}
+import zio.{RIO, UIO}
 
 class BQLoadStep private[etlflow] (
     val name: String,
@@ -15,30 +14,25 @@ class BQLoadStep private[etlflow] (
     output_table: String,
     output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE,
     output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
-    credentials: Option[Credential.GCP] = None,
     schema: Option[Schema] = None
-) extends EtlStep[Any, Unit] {
+) extends EtlStep[BQEnv, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  final def process: Task[Unit] = {
+  final def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Step : $name")
 
-    val env = BQ.live(credentials)
-
-    val program: Task[Unit] = input_file_system match {
+    val program: RIO[BQEnv, Unit] = input_file_system match {
       case FSType.LOCAL =>
         logger.info(s"FileSystem: $input_file_system")
-        BQApi
-          .loadIntoBQFromLocalFile(
-            input_location,
-            input_type,
-            output_dataset,
-            output_table,
-            output_write_disposition,
-            output_create_disposition
-          )
-          .provideLayer(env)
+        BQApi.loadIntoBQFromLocalFile(
+          input_location,
+          input_type,
+          output_dataset,
+          output_table,
+          output_write_disposition,
+          output_create_disposition
+        )
       case FSType.GCS =>
         input_location match {
           case Left(value) =>
@@ -54,7 +48,6 @@ class BQLoadStep private[etlflow] (
                 output_create_disposition,
                 schema
               )
-              .provideLayer(env)
               .map { x =>
                 row_count = x
               }
@@ -72,7 +65,6 @@ class BQLoadStep private[etlflow] (
                 schema,
                 10
               )
-              .provideLayer(env)
               .map { x =>
                 row_count = x
               }
@@ -115,7 +107,6 @@ object BQLoadStep {
       output_table: String,
       output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE,
       output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
-      credentials: Option[Credential.GCP] = None,
       schema: Option[Schema] = None
   ): BQLoadStep =
     new BQLoadStep(
@@ -128,7 +119,6 @@ object BQLoadStep {
       output_table,
       output_write_disposition,
       output_create_disposition,
-      credentials,
       schema
     )
 }

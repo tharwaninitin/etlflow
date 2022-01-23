@@ -2,8 +2,11 @@ package examples.jobs
 
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
+import etlflow.gcp.BQ
+import etlflow.log.LogEnv
 import etlflow.utils.Configuration
 import examples.schema.MyEtlJobProps.EtlJob4Props
+import zio.blocking.Blocking
 
 case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] {
 
@@ -37,14 +40,14 @@ case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob
 
   private val step4 = DBQueryStep(
     name = "UpdatePG",
-    query = "BEGIN; DELETE FROM ratings WHERE 1 =1; INSERT INTO ratings SELECT * FROM ratings_temp; COMMIT;",
-    credentials = config.db.get
+    query = "BEGIN; DELETE FROM ratings WHERE 1 =1; INSERT INTO ratings SELECT * FROM ratings_temp; COMMIT;"
   )
 
-  override val job = for {
-    _ <- step1.execute
-    _ <- step2.execute
-    _ <- step3.execute
-    _ <- step4.execute
-  } yield ()
+  override val job =
+    (for {
+       _ <- step1.execute
+       _ <- step2.execute
+       _ <- step3.execute
+       _ <- step4.execute
+     } yield ()).provideSomeLayer[LogEnv with Blocking](BQ.live() ++ etlflow.db.liveDB(config.db.get))
 }

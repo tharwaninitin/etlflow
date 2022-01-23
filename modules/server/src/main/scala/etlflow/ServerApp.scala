@@ -34,11 +34,11 @@ abstract class ServerApp[T <: EJPMType: Tag] extends CliApp[T] with HttpServer w
        sem  <- createSemaphores(jobs).toManaged_
        executor = ServerExecutor[T](sem, config)
        supervisor <- Supervisor.track(true).toManaged_
-       dbLayer    = db.liveFullDB(config.db.get, pool_size = 10)
-       apiLayer   = Implementation.live[T](auth, executor, jobs, crypto)
-       finalLayer = apiLayer ++ dbLayer
-       scheduler  = etlFlowScheduler(jobs).supervised(supervisor)
-       webserver  = etlFlowWebServer(auth, config.webserver)
+       dbServerLayer = db.liveServerDB(config.db.get, pool_size = 10)
+       apiLayer      = Implementation.live[T](auth, executor, jobs, crypto)
+       finalLayer    = apiLayer ++ dbServerLayer
+       scheduler     = etlFlowScheduler(jobs).supervised(supervisor)
+       webserver     = etlFlowWebServer(auth, config.webserver)
        _ <- scheduler.zipPar(webserver).provideSomeLayer[JsonEnv with ZEnv](finalLayer).toManaged_
      } yield ()).useNow
       .provideCustomLayer(json.Implementation.live)

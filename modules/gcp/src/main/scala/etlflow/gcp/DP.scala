@@ -8,7 +8,7 @@ import zio.{Task, UIO, ULayer}
 import java.util.concurrent.TimeUnit
 import scala.jdk.CollectionConverters._
 
-private[etlflow] object DP extends ApplicationLogger {
+object DP extends ApplicationLogger {
 
   private def submitAndWaitForJobCompletion(
       jobControllerClient: JobControllerClient,
@@ -42,80 +42,24 @@ private[etlflow] object DP extends ApplicationLogger {
     }
   }
 
-  def live(config: DATAPROC): ULayer[DPEnv] = {
+  lazy val live: ULayer[DPEnv] = {
     UIO {
       new DPApi.Service {
-        override def executeSparkJob(args: List[String], main_class: String, libs: List[String]): Task[Unit] = Task {
-          logger.info(s"""Trying to submit spark job on Dataproc with Configurations:
-                             |dp_region => ${config.region}
-                             |dp_project => ${config.project}
-                             |dp_endpoint => ${config.endpoint}
-                             |dp_cluster_name => ${config.cluster_name}
-                             |main_class => $main_class
-                             |args => $args
-                             |spark_conf => ${config.sp}""".stripMargin)
-          val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
-          val jobControllerClient   = JobControllerClient.create(jobControllerSettings)
-          val jobPlacement          = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
-
-          logger.info("dp_libs")
-          libs.foreach(logger.info)
-          val spark_conf = config.sp.map(x => (x.key, x.value)).toMap
-          val sparkJob = SparkJob
-            .newBuilder()
-            .addAllJarFileUris(libs.asJava)
-            .putAllProperties(spark_conf.asJava)
-            .setMainClass(main_class)
-            .addAllArgs(args.asJava)
-            .build()
-          val job: Job = Job.newBuilder().setPlacement(jobPlacement).setSparkJob(sparkJob).build()
-          submitAndWaitForJobCompletion(jobControllerClient, config.project, config.region, job)
-        }
-
-        override def executeHiveJob(query: String): Task[Unit] = Task {
-          logger.info(s"""Trying to submit hive job on Dataproc with Configurations:
-                             |dp_region => ${config.region}
-                             |dp_project => ${config.project}
-                             |dp_endpoint => ${config.endpoint}
-                             |dp_cluster_name => ${config.cluster_name}
-                             |query => $query""".stripMargin)
-          val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
-          val jobControllerClient   = JobControllerClient.create(jobControllerSettings)
-          val jobPlacement          = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
-          val queryList             = QueryList.newBuilder().addQueries(query)
-          val hiveJob = HiveJob
-            .newBuilder()
-            .setQueryList(queryList)
-            .build()
-          val job = Job.newBuilder().setPlacement(jobPlacement).setHiveJob(hiveJob).build()
-          submitAndWaitForJobCompletion(jobControllerClient, config.project, config.region, job)
-        }
-
-        override def deleteDataproc(): Task[Unit] = Task {
-          val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
-          val cluster_controller_client   = ClusterControllerClient.create(cluster_controller_settings)
-
-          try {
-            val delete_cluster_async_request =
-              cluster_controller_client.deleteClusterAsync(config.project, config.region, config.cluster_name)
-            val response = delete_cluster_async_request.get
-            logger.info(s"Cluster ${config.cluster_name} successfully deleted. API response is ${response.toString}")
-          } catch {
-            case e: Throwable =>
-              logger.error(s"Error executing deleteCluster: ${e.getMessage} ")
-              throw e
-          } finally if (cluster_controller_client != null) cluster_controller_client.close()
-        }
-
-        override def createDataproc(props: DataprocProperties): Task[Cluster] = Task {
+        override def createDataproc(config: DATAPROC, props: DataprocProperties): Task[Cluster] = Task {
           val end_point_config            = EndpointConfig.newBuilder().setEnableHttpPortAccess(true)
           val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
           val cluster_controller_client   = ClusterControllerClient.create(cluster_controller_settings)
           val software_config             = SoftwareConfig.newBuilder().setImageVersion(props.image_version)
           val disk_config_m =
-            DiskConfig.newBuilder().setBootDiskType(props.boot_disk_type).setBootDiskSizeGb(props.master_boot_disk_size_gb)
+            DiskConfig
+              .newBuilder()
+              .setBootDiskType(props.boot_disk_type)
+              .setBootDiskSizeGb(props.master_boot_disk_size_gb)
           val disk_config_w =
-            DiskConfig.newBuilder().setBootDiskType(props.boot_disk_type).setBootDiskSizeGb(props.worker_boot_disk_size_gb)
+            DiskConfig
+              .newBuilder()
+              .setBootDiskType(props.boot_disk_type)
+              .setBootDiskSizeGb(props.worker_boot_disk_size_gb)
 
           val gce_cluster_builder = props.subnet_uri match {
             case Some(value) =>
@@ -178,6 +122,70 @@ private[etlflow] object DP extends ApplicationLogger {
               logger.error(s"Error creating cluster: ${e.getMessage} ")
               throw e
           } finally if (cluster_controller_client != null) cluster_controller_client.close()
+        }
+        override def deleteDataproc(config: DATAPROC): Task[Unit] = Task {
+          val cluster_controller_settings = ClusterControllerSettings.newBuilder.setEndpoint(config.endpoint).build
+          val cluster_controller_client   = ClusterControllerClient.create(cluster_controller_settings)
+
+          try {
+            val delete_cluster_async_request =
+              cluster_controller_client.deleteClusterAsync(config.project, config.region, config.cluster_name)
+            val response = delete_cluster_async_request.get
+            logger.info(s"Cluster ${config.cluster_name} successfully deleted. API response is ${response.toString}")
+          } catch {
+            case e: Throwable =>
+              logger.error(s"Error executing deleteCluster: ${e.getMessage} ")
+              throw e
+          } finally if (cluster_controller_client != null) cluster_controller_client.close()
+        }
+        override def executeSparkJob(
+            args: List[String],
+            main_class: String,
+            libs: List[String],
+            config: DATAPROC
+        ): Task[Unit] = Task {
+          logger.info(s"""Trying to submit spark job on Dataproc with Configurations:
+                         |dp_region => ${config.region}
+                         |dp_project => ${config.project}
+                         |dp_endpoint => ${config.endpoint}
+                         |dp_cluster_name => ${config.cluster_name}
+                         |main_class => $main_class
+                         |args => $args
+                         |spark_conf => ${config.sp}""".stripMargin)
+          val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
+          val jobControllerClient   = JobControllerClient.create(jobControllerSettings)
+          val jobPlacement          = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
+
+          logger.info("dp_libs")
+          libs.foreach(logger.info)
+          val spark_conf = config.sp.map(x => (x.key, x.value)).toMap
+          val sparkJob = SparkJob
+            .newBuilder()
+            .addAllJarFileUris(libs.asJava)
+            .putAllProperties(spark_conf.asJava)
+            .setMainClass(main_class)
+            .addAllArgs(args.asJava)
+            .build()
+          val job: Job = Job.newBuilder().setPlacement(jobPlacement).setSparkJob(sparkJob).build()
+          submitAndWaitForJobCompletion(jobControllerClient, config.project, config.region, job)
+        }
+        override def executeHiveJob(query: String, config: DATAPROC): Task[Unit] = Task {
+          logger.info(s"""Trying to submit hive job on Dataproc with Configurations:
+                         |dp_region => ${config.region}
+                         |dp_project => ${config.project}
+                         |dp_endpoint => ${config.endpoint}
+                         |dp_cluster_name => ${config.cluster_name}
+                         |query => $query""".stripMargin)
+          val jobControllerSettings = JobControllerSettings.newBuilder().setEndpoint(config.endpoint).build()
+          val jobControllerClient   = JobControllerClient.create(jobControllerSettings)
+          val jobPlacement          = JobPlacement.newBuilder().setClusterName(config.cluster_name).build()
+          val queryList             = QueryList.newBuilder().addQueries(query)
+          val hiveJob = HiveJob
+            .newBuilder()
+            .setQueryList(queryList)
+            .build()
+          val job = Job.newBuilder().setPlacement(jobPlacement).setHiveJob(hiveJob).build()
+          submitAndWaitForJobCompletion(jobControllerClient, config.project, config.region, job)
         }
       }
     }.toLayer

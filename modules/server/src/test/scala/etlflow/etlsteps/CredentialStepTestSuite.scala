@@ -1,11 +1,11 @@
 package etlflow.etlsteps
 
 import crypto4s.Crypto
+import etlflow.db.DBEnv
 import etlflow.model.Config
 import etlflow.model.Credential.JDBC
 import io.circe.generic.auto._
 import zio.ZIO
-import zio.blocking.Blocking
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -27,13 +27,12 @@ case class CredentialStepTestSuite(config: Config) {
     credential_name = "etlflow"
   )
 
-  val spec: ZSpec[environment.TestEnvironment with Blocking, Any] =
+  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
     suite("GetCredential Step")(
       testM("Execute GetCredentialStep") {
         def step1(script: String) = DBQueryStep(
           name = "AddCredential",
-          query = script,
-          credentials = config.db.get
+          query = script
         )
         val job = for {
           _ <- step1(insert_credential_script).process

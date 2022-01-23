@@ -13,6 +13,13 @@ package object db {
   def liveDB(db: JDBC, pool_name: String = "EtlFlow-Pool", pool_size: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
     CP.layer(db, pool_name, pool_size) >>> DB.live
 
+  private[etlflow] def liveServerDB(
+      db: JDBC,
+      pool_name: String = "EtlFlow-Pool",
+      pool_size: Int = 2
+  ): ZLayer[Blocking, Throwable, DBServerEnv] =
+    CP.layer(db, pool_name, pool_size) >>> server.DB.live
+
   private[etlflow] def liveFullDB(
       db: JDBC,
       pool_name: String = "EtlFlow-Pool",

@@ -1,8 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.model.Credential
-import zio.{Task, UIO}
+import zio.{RIO, UIO}
 
 class BQExportStep private[etlflow] (
     val name: String,
@@ -12,30 +11,22 @@ class BQExportStep private[etlflow] (
     destination_path: String,
     destination_file_name: Option[String] = None,
     destination_format: BQInputType,
-    destination_compression_type: String = "gzip",
-    credentials: Option[Credential.GCP] = None
-) extends EtlStep[Any, Unit] {
+    destination_compression_type: String = "gzip"
+) extends EtlStep[BQEnv, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  final def process: Task[Unit] = {
+  final def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Step : $name")
-
-    val env = BQ.live(credentials)
-
-    val program: Task[Unit] =
-      BQApi
-        .exportFromBQTable(
-          source_project,
-          source_dataset,
-          source_table,
-          destination_path,
-          destination_file_name,
-          destination_format,
-          destination_compression_type
-        )
-        .provideLayer(env)
-    program *> UIO(logger.info("#" * 50))
+    BQApi.exportFromBQTable(
+      source_project,
+      source_dataset,
+      source_table,
+      destination_path,
+      destination_file_name,
+      destination_format,
+      destination_compression_type
+    ) *> UIO(logger.info("#" * 50))
   }
 
   override def getExecutionMetrics: Map[String, String] =
@@ -62,8 +53,7 @@ object BQExportStep {
       destination_path: String,
       destination_file_name: Option[String] = None,
       destination_format: BQInputType,
-      destination_compression_type: String = "gzip",
-      credentials: Option[Credential.GCP] = None
+      destination_compression_type: String = "gzip"
   ): BQExportStep =
     new BQExportStep(
       name,
@@ -73,7 +63,6 @@ object BQExportStep {
       destination_path,
       destination_file_name,
       destination_format,
-      destination_compression_type,
-      credentials
+      destination_compression_type
     )
 }

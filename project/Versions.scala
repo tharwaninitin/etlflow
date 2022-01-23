@@ -28,7 +28,7 @@ object Versions {
   val SttpVersion       = "3.3.18"
   val PrettyTimeVersion = "5.0.2.Final"
   val SparkVersion      = "3.2.0"
-  val SparkBQVersion    = "0.22.2"
+  val SparkBQVersion    = "0.23.1"
   val GcpBqVersion      = "2.5.1"
   val GcpDpVersion      = "2.3.0"
   val GcpGcsVersion     = "2.2.2"

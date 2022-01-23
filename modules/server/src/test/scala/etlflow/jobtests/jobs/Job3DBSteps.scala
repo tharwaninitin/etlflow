@@ -5,8 +5,10 @@ import etlflow.etljobs.EtlJob
 import etlflow.etlsteps._
 import etlflow.jobtests.ConfigHelper
 import etlflow.jobtests.MyEtlJobProps.EtlJob4Props
+import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
 import io.circe.generic.auto._
+import zio.blocking.Blocking
 
 case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] with ConfigHelper {
 
@@ -26,25 +28,24 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
 
   private val deleteCredStep = DBQueryStep(
     name = "DeleteCredential",
-    query = delete_credential_script,
-    credentials = config.db.get
+    query = delete_credential_script
   ).process
 
   private val addCredStep = DBQueryStep(
     name = "AddCredential",
-    query = insert_credential_script,
-    credentials = config.db.get
+    query = insert_credential_script
   ).process
 
   private val creds = GetCredentialStep[JDBC](
     name = "GetCredential",
     credential_name = "etlflow"
   )
+
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
-  private def step1(cred: JDBC): DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
+
+  private val step1: DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name = "FetchEtlJobRun",
-    query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10",
-    credentials = cred
+    query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
   private def processData(ip: List[EtlJobRun]): Unit = {
@@ -57,12 +58,11 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
     function = processData(ip)
   )
 
-  val job =
-    for {
-      _    <- deleteCredStep
-      _    <- addCredStep
-      cred <- creds.execute
-      op2  <- step1(cred).execute
-      _    <- step2(op2).execute
-    } yield ()
+  val job = for {
+    _    <- deleteCredStep.provideLayer(etlflow.db.liveDB(config.db.get))
+    _    <- addCredStep.provideLayer(etlflow.db.liveDB(config.db.get))
+    cred <- creds.execute.provideSomeLayer[Blocking with LogEnv](etlflow.db.liveDB(config.db.get))
+    op2  <- step1.execute.provideSomeLayer[Blocking with LogEnv](etlflow.db.liveDB(cred))
+    _    <- step2(op2).execute
+  } yield ()
 }

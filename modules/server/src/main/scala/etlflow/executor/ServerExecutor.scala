@@ -72,7 +72,7 @@ case class ServerExecutor[T <: EJPMType: Tag](
           val dp_libs          = config.dataproc.map(_.deplibs).getOrElse(List.empty)
           val actual_props_str = actual_props.map(x => s"${x._1}=${x._2}").mkString(",")
           val dp_args          = List("run_job", "--job_name", args.name, "--props", actual_props_str)
-          DPApi.executeSparkJob(dp_args, main_class, dp_libs).provideLayer(DP.live(dp))
+          DPApi.executeSparkJob(dp_args, main_class, dp_libs, dp).provideLayer(DP.live)
         case LIVY(_) =>
           Task.fail(ExecutionError("Deploy mode LIVY not yet supported"))
         case KUBERNETES(_, _, _, _, _, _) =>

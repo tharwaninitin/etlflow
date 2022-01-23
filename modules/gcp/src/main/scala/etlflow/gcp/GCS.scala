@@ -11,7 +11,7 @@ import java.io.FileInputStream
 import java.nio.file.{FileSystems, Files, Path, Paths}
 import scala.jdk.CollectionConverters._
 
-private[etlflow] object GCS extends ApplicationLogger {
+object GCS extends ApplicationLogger {
 
   def getClient(credentials: Option[GCP]): Storage = {
     val env_path: String = sys.env.getOrElse("GOOGLE_APPLICATION_CREDENTIALS", "NOT_SET_IN_ENV")
@@ -40,8 +40,13 @@ private[etlflow] object GCS extends ApplicationLogger {
     }
     Managed.fromEffect(acquire).map { storage =>
       new GCSApi.Service {
-        private def compareBlobs(src: List[Blob], src_path: String, target: List[Blob], target_path: String, overwrite: Boolean)
-            : Task[Unit] = {
+        private def compareBlobs(
+            src: List[Blob],
+            src_path: String,
+            target: List[Blob],
+            target_path: String,
+            overwrite: Boolean
+        ): Task[Unit] = {
           val getName = (listOfBlob: List[Blob], pathToReplace: String) =>
             listOfBlob.map(_.getName.replace(pathToReplace, "").replace("/", ""))
 
@@ -106,12 +111,13 @@ private[etlflow] object GCS extends ApplicationLogger {
             )
           } yield ()
 
-        /** If target path ends with / -> that means directory in that case append file name to it "source_bucket": "local",
-          * "source_path": "/path/to/dir/", "target_bucket" : "gcs-bucket", "target_path" : "/remote/path/" val path =
-          * getTargetPath("/path/to/dir/file1.txt", "/path/to/dir/", "/remote/path/") path = "/remote/path/file1.txt" Else it
-          * means it's a file -> directly return same "source_bucket": "local", "source_path": "/path/to/file/file.txt",
-          * "target_bucket" : "gcs-bucket", "target_path" : "/path/file.txt" val path = getTargetPath("/path/to/file/file.txt",
-          * "/path/to/file/file.txt", "/path/file.txt") path = "/path/file.txt"
+        /** If target path ends with / -> that means directory in that case append file name to it "source_bucket":
+          * "local", "source_path": "/path/to/dir/", "target_bucket" : "gcs-bucket", "target_path" : "/remote/path/" val
+          * path = getTargetPath("/path/to/dir/file1.txt", "/path/to/dir/", "/remote/path/") path =
+          * "/remote/path/file1.txt" Else it means it's a file -> directly return same "source_bucket": "local",
+          * "source_path": "/path/to/file/file.txt", "target_bucket" : "gcs-bucket", "target_path" : "/path/file.txt"
+          * val path = getTargetPath("/path/to/file/file.txt", "/path/to/file/file.txt", "/path/file.txt") path =
+          * "/path/file.txt"
           */
         private def getTargetPath(fileName: Path, srcPath: String, targetPath: String): String = {
           if (targetPath.endsWith("/")) {

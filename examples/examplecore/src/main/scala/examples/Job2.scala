@@ -13,14 +13,14 @@ object Job2 extends zio.App with ApplicationLogger {
 
   val step1 = GenericETLStep(
     name = "Step_1",
-    function = processData1
+    function = processData1()
   )
 
   def processData2(): Unit = logger.info("Hello World")
 
   val step2 = GenericETLStep(
     name = "Step_2",
-    function = processData2
+    function = processData2()
   )
 
   def processData3(): Unit = {
@@ -30,15 +30,14 @@ object Job2 extends zio.App with ApplicationLogger {
 
   val step3 = GenericETLStep(
     name = "Step_3",
-    function = processData3
+    function = processData3()
   )
 
-  val job =
-    for {
-      _ <- step1.process
-      _ <- step2.process
-      _ <- step3.process
-    } yield ()
+  val job = for {
+    _ <- step1.process
+    _ <- step2.process
+    _ <- step3.process
+  } yield ()
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
 }

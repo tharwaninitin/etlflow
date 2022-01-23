@@ -1,22 +1,19 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.model.Credential.GCP
-import zio.{Task, ZIO}
+import zio.{RIO, Task, ZIO}
 
 case class GCSDeleteStep(
     name: String,
     bucket: String,
     prefix: String,
-    parallelism: Int,
-    credentials: Option[GCP] = None
-) extends EtlStep[Any, Unit] {
+    parallelism: Int
+) extends EtlStep[GCSEnv, Unit] {
 
-  override def process: Task[Unit] = {
-    val env = GCS.live(credentials)
+  override def process: RIO[GCSEnv, Unit] = {
     logger.info(s"Deleting files at $bucket/$prefix")
     for {
-      list <- GCSApi.listObjects(bucket, prefix).provideLayer(env)
+      list <- GCSApi.listObjects(bucket, prefix)
       _ <- ZIO.foreachParN_(parallelism)(list)(blob =>
         Task {
           logger.info(s"Deleting object ${blob.getName}")
@@ -26,11 +23,10 @@ case class GCSDeleteStep(
     } yield ()
   }
 
-  override def getStepProperties: Map[String, String] =
-    Map(
-      "name"        -> name,
-      "bucket"      -> bucket,
-      "prefix"      -> prefix,
-      "parallelism" -> parallelism.toString
-    )
+  override def getStepProperties: Map[String, String] = Map(
+    "name"        -> name,
+    "bucket"      -> bucket,
+    "prefix"      -> prefix,
+    "parallelism" -> parallelism.toString
+  )
 }

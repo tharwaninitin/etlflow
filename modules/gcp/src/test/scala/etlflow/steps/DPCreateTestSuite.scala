@@ -1,7 +1,7 @@
 package etlflow.steps
 
 import etlflow.etlsteps.DPCreateStep
-import etlflow.gcp.DataprocProperties
+import etlflow.gcp.{DP, DataprocProperties}
 import etlflow.model.Executor.DATAPROC
 import zio.ZIO
 import zio.test.Assertion.equalTo
@@ -31,8 +31,8 @@ object DPCreateTestSuite extends DefaultRunnableSpec {
           name = "DPCreateStepExample",
           config = dpConfig,
           props = dpProps
-        )
-        assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        ).process.provideLayer(DP.live)
+        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     )
 }

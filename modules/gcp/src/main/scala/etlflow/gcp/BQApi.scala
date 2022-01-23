@@ -3,7 +3,8 @@ package etlflow.gcp
 import com.google.cloud.bigquery.{FieldValueList, JobInfo, Schema}
 import zio.{Task, ZIO}
 
-private[etlflow] object BQApi {
+object BQApi {
+  // format: off
   trait Service {
     def executeQuery(query: String): Task[Unit]
     def getDataFromBQ(query: String): Task[Iterable[FieldValueList]]
@@ -23,4 +24,5 @@ private[etlflow] object BQApi {
     ZIO.accessM(_.get.loadIntoPartitionedBQTable(source_paths_partitions,source_format,destination_project,destination_dataset, destination_table,write_disposition,create_disposition,schema,parallelism))
   def exportFromBQTable(source_project: Option[String], source_dataset: String, source_table: String, destination_path: String,destination_file_name:Option[String], destination_format: BQInputType, destination_compression_type:String = "gzip"): ZIO[BQEnv, Throwable, Unit] =
     ZIO.accessM(_.get.exportFromBQTable(source_project,source_dataset, source_table,destination_path,destination_file_name,destination_format,destination_compression_type))
+  // format: on
 }

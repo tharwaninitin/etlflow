@@ -13,17 +13,17 @@ case class EtlJobGenericStep(job_properties: LocalSampleProps) extends EtlJob[Lo
 
   val step1 = GenericETLStep(
     name = "Step_1",
-    function = processData
+    function = processData()
   )
 
   val step2 = GenericETLStep(
     name = "Step_2",
-    function = processData
+    function = processData()
   )
 
   val step3 = GenericETLStep(
     name = "Step_3",
-    function = processData
+    function = processData()
   )
 
   override val job = for {

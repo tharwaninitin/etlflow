@@ -3,33 +3,15 @@ package etlflow.gcp
 import java.io.FileInputStream
 import java.util.UUID
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
-import com.google.cloud.bigquery.{
-  BigQuery,
-  BigQueryOptions,
-  CsvOptions,
-  ExtractJobConfiguration,
-  FieldValueList,
-  FormatOptions,
-  Job,
-  JobConfiguration,
-  JobId,
-  JobInfo,
-  LoadJobConfiguration,
-  QueryJobConfiguration,
-  Schema,
-  StandardTableDefinition,
-  TableId,
-  TableResult
-}
+import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, CsvOptions, ExtractJobConfiguration, FieldValueList, FormatOptions, Job, JobConfiguration, JobId, JobInfo, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardTableDefinition, TableId, TableResult}
 import etlflow.gcp.BQInputType.{CSV, JSON, ORC, PARQUET}
 import etlflow.model.Credential
 import etlflow.utils.ApplicationLogger
 import zio.{IO, Layer, Managed, Task, ZIO, ZLayer}
-
 import scala.sys.process._
 import scala.jdk.CollectionConverters._
 
-private[etlflow] object BQ extends ApplicationLogger {
+object BQ extends ApplicationLogger {
   case class BQLoadException(msg: String) extends RuntimeException(msg)
 
   private def getBQ(path: String): BigQuery = {
@@ -303,7 +285,7 @@ private[etlflow] object BQ extends ApplicationLogger {
             logger.error(s"BigQuery was unable to extract due to an error:" + job.getStatus().getError())
           } else {
             throw BQLoadException(
-              s"""Could not load data from bq table ${source_dataset}.${source_table} to  location  ${destination_file_name} due to error ${completedJob.getStatus.getError.getMessage}""".stripMargin
+              s"""Could not load data from bq table $source_dataset.$source_table to  location  $destination_file_name due to error ${completedJob.getStatus.getError.getMessage}""".stripMargin
             )
           }
         }

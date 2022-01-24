@@ -4,9 +4,9 @@ import com.google.cloud.bigquery.{JobInfo, Schema}
 import etlflow.gcp._
 import zio.{RIO, UIO}
 
-class BQLoadStep private[etlflow] (
-    val name: String,
-    input_location: => Either[String, Seq[(String, String)]],
+case class BQLoadStep(
+    name: String,
+    input_location: Either[String, Seq[(String, String)]],
     input_type: BQInputType,
     input_file_system: FSType = FSType.GCS,
     output_project: Option[String] = None,
@@ -93,32 +93,5 @@ class BQLoadStep private[etlflow] (
       // ,"output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
       ,
       "output_rows" -> row_count.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
-    )
-}
-
-object BQLoadStep {
-  def apply(
-      name: String,
-      input_location: => Either[String, Seq[(String, String)]],
-      input_type: BQInputType,
-      input_file_system: FSType = FSType.GCS,
-      output_project: Option[String] = None,
-      output_dataset: String,
-      output_table: String,
-      output_write_disposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE,
-      output_create_disposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
-      schema: Option[Schema] = None
-  ): BQLoadStep =
-    new BQLoadStep(
-      name,
-      input_location,
-      input_type,
-      input_file_system,
-      output_project,
-      output_dataset,
-      output_table,
-      output_write_disposition,
-      output_create_disposition,
-      schema
     )
 }

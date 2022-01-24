@@ -3,8 +3,8 @@ package etlflow.etlsteps
 import etlflow.gcp._
 import zio.{RIO, UIO}
 
-class BQExportStep private[etlflow] (
-    val name: String,
+case class BQExportStep(
+    name: String,
     source_project: Option[String] = None,
     source_dataset: String,
     source_table: String,
@@ -17,7 +17,7 @@ class BQExportStep private[etlflow] (
 
   final def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
-    logger.info(s"Starting BQ Data Export Step : $name")
+    logger.info(s"Starting BQ Data Export Step: $name")
     BQApi.exportFromBQTable(
       source_project,
       source_dataset,
@@ -41,28 +41,5 @@ class BQExportStep private[etlflow] (
       "input_table"     -> source_table,
       "output_type"     -> destination_format.toString(),
       "output_location" -> destination_path
-    )
-}
-
-object BQExportStep {
-  def apply(
-      name: String,
-      source_project: Option[String] = None,
-      source_dataset: String,
-      source_table: String,
-      destination_path: String,
-      destination_file_name: Option[String] = None,
-      destination_format: BQInputType,
-      destination_compression_type: String = "gzip"
-  ): BQExportStep =
-    new BQExportStep(
-      name,
-      source_project,
-      source_dataset,
-      source_table,
-      destination_path,
-      destination_file_name,
-      destination_format,
-      destination_compression_type
     )
 }

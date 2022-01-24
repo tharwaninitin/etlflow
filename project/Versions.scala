@@ -1,6 +1,6 @@
 object Versions {
   val scala212         = "2.12.15"
-  val scala213         = "2.13.7"
+  val scala213         = "2.13.8"
   val scala3           = "3.1.0"
   val scala2Versions   = List(scala212, scala213)
   val allScalaVersions = List(scala212, scala213, scala3)
@@ -17,7 +17,7 @@ object Versions {
   val Cache4sVersion  = "0.1.0"
 
   val CatsCoreVersion     = "2.7.0"
-  val CatsEffectVersion   = "3.3.2"
+  val CatsEffectVersion   = "3.3.4"
   val Cron4sVersion       = "0.6.1"
   val Fs2Version          = "3.2.4"
   val Fs2BlobStoreVersion = "0.9.5"
@@ -29,13 +29,13 @@ object Versions {
   val PrettyTimeVersion = "5.0.2.Final"
   val SparkVersion      = "3.2.0"
   val SparkBQVersion    = "0.23.1"
-  val GcpBqVersion      = "2.5.1"
+  val GcpBqVersion      = "2.6.2"
   val GcpDpVersion      = "2.3.0"
-  val GcpGcsVersion     = "2.2.2"
+  val GcpGcsVersion     = "2.3.0"
   val GcpPubSubVersion  = "1.113.3"
   val HadoopGCSVersion  = "1.9.4-hadoop3"
   val HadoopS3Version   = "3.3.1"
-  val AwsS3Version      = "2.17.102"
+  val AwsS3Version      = "2.17.112"
 
   val PgVersion    = "42.3.1"
   val MySqlVersion = "8.0.27"
@@ -46,7 +46,7 @@ object Versions {
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
   val JwtCoreVersion       = "9.0.2"
-  val Sl4jVersion          = "1.7.32"
+  val Sl4jVersion          = "1.7.33"
   val BcryptVersion        = "0.4.3"
   val CaffeineCacheVersion = "2.9.0"
   val ScalaTestVersion     = "3.2.9"

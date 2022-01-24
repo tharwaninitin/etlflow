@@ -7,61 +7,58 @@ import zio.Task
 import scala.reflect.runtime.universe.TypeTag
 
 class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
-        val name: String
-        ,input_location: => Seq[String]
-        ,input_type: IOType
-        ,input_filter: String = "1 = 1"
-        ,transform_function: Option[(SparkSession,Dataset[I]) => Dataset[O]]
-      )(implicit spark: SparkSession)
-  extends EtlStep[Unit,Dataset[O]] {
+    val name: String,
+    input_location: => Seq[String],
+    input_type: IOType,
+    input_filter: String = "1 = 1",
+    transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]]
+)(implicit spark: SparkSession)
+    extends EtlStep[Any, Dataset[O]] {
+
   private var recordsReadCount = 0L
 
-  final def process(input_state: =>Unit): Task[Dataset[O]] = {
-    val program = SparkApi.LoadDS[I](input_location,input_type,input_filter)
+  final def process: Task[Dataset[O]] = {
+    val program = SparkApi.LoadDS[I](input_location, input_type, input_filter)
 
     spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
+      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
         synchronized {
           recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
         }
-      }
     })
     logger.info("#################################################################################################")
     logger.info(s"Starting Spark Read Step : $name")
 
     transform_function match {
       case Some(transformFunc) =>
-        program.map(ds => transformFunc(spark,ds)).provide(spark)
+        program.map(ds => transformFunc(spark, ds)).provide(spark)
       case None =>
         val mapping = Encoders.product[O]
         program.map(ds => ds.as[O](mapping)).provide(spark)
     }
   }
 
-  override def getStepProperties: Map[String,String] = {
-    ReadApi.LoadDSHelper[I](input_location,input_type).toList.toMap
-  }
+  override def getStepProperties: Map[String, String] =
+    ReadApi.LoadDSHelper[I](input_location, input_type).toList.toMap
 
-  override def getExecutionMetrics: Map[String,String] = {
+  override def getExecutionMetrics: Map[String, String] =
     Map(
       "Number of records read" -> recordsReadCount.toString
     )
-  }
 
   def showCorruptedData(): Unit = {
     logger.info(s"Corrupted data for job $name:")
-    val ds = ReadApi.LoadDS[O](input_location,input_type)(spark)
-    ds.filter("_corrupt_record is not null").show(100,truncate = false)
+    val ds = ReadApi.LoadDS[O](input_location, input_type)(spark)
+    ds.filter("_corrupt_record is not null").show(100, truncate = false)
   }
 }
 
 object SparkReadStep {
-  def apply[T <: Product : TypeTag](
-                                     name: String
-                                     ,input_location: => Seq[String]
-                                     ,input_type: IOType
-                                     ,input_filter: String = "1 = 1"
-                                   )(implicit spark: SparkSession): SparkReadStep[T, T] = {
+  def apply[T <: Product: TypeTag](
+      name: String,
+      input_location: => Seq[String],
+      input_type: IOType,
+      input_filter: String = "1 = 1"
+  )(implicit spark: SparkSession): SparkReadStep[T, T] =
     new SparkReadStep[T, T](name, input_location, input_type, input_filter, None)
-  }
 }

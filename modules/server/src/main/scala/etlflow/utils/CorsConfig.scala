@@ -1,10 +1,9 @@
 package etlflow.utils
 
-
-import etlflow.schema.WebServer
+import etlflow.model.WebServer
 import zhttp.http.CORSConfig
 
-private [etlflow] object CorsConfig {
+private[etlflow] object CorsConfig {
   def apply(config: Option[WebServer]): CORSConfig = {
     val origins = config.map(_.allowedOrigins.getOrElse(Set.empty)).getOrElse(Set.empty)
     if (origins.isEmpty)

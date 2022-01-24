@@ -13,17 +13,5 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Run Http Tests For 2.12
-        run: sbt ";project http; ++2.12.15 test"
-        env:
-          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: org.postgresql.Driver
-      - name: Run Http Tests For 2.13
-        run: sbt ";project http;  ++2.13.7 test"
-        env:
-          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: org.postgresql.Driver
+      - name: Run Http Tests For All Modules
+        run: sbt ";project http; +test"

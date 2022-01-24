@@ -1,52 +1,28 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.schema.Credential.GCP
-import zio.Task
+import zio.{RIO, UIO}
 
-class GCSPutStep private[etlsteps](
-                   val name: String,
-                   bucket: => String,
-                   key: => String,
-                   file: => String,
-                   credentials: Option[GCP] = None
-                 ) extends EtlStep[Unit,Unit] {
-  override def process(input_state: => Unit): Task[Unit] = {
-    val env       = GCS.live(credentials)
-    val program   = GCSApi.putObject(bucket,key,file)
-    val runnable  = for {
-                      _   <- Task.succeed(logger.info("#"*100))
-                      _   <- Task.succeed(logger.info(s"Input local path $file"))
-                      _   <- Task.succeed(logger.info(s"Output GCS path gs://$bucket/$key"))
-                      _   <- program.provideLayer(env).foldM(
-                              ex => Task.succeed(logger.error(ex.getMessage)) *> Task.fail(ex),
-                              _  => Task.succeed(logger.info(s"Successfully uploaded file $file in location gs://$bucket/$key"))
-                            )
-                      _   <- Task.succeed(logger.info("#"*100))
-                    } yield ()
+case class GCSPutStep(name: String, bucket: String, key: String, file: String) extends EtlStep[GCSEnv, Unit] {
+
+  override def process: RIO[GCSEnv, Unit] = {
+    val program = GCSApi.putObject(bucket, key, file)
+    val runnable = for {
+      _ <- UIO(logger.info("#" * 100))
+      _ <- UIO(logger.info(s"Input local path $file"))
+      _ <- UIO(logger.info(s"Output GCS path gs://$bucket/$key"))
+      _ <- program
+        .as(UIO(logger.info(s"Successfully uploaded file $file in location gs://$bucket/$key")))
+        .tapError(ex => UIO(logger.error(ex.getMessage)))
+      _ <- UIO(logger.info("#" * 100))
+    } yield ()
     runnable
   }
 
-  override def getStepProperties: Map[String, String] =
-    Map(
-      "name" -> name,
-      "bucket" -> bucket,
-      "key" -> key,
-      "file" -> file,
-    )
+  override def getStepProperties: Map[String, String] = Map(
+    "name"   -> name,
+    "bucket" -> bucket,
+    "key"    -> key,
+    "file"   -> file
+  )
 }
-
-object GCSPutStep {
-
-  def apply(name: String,
-            bucket: => String,
-            key: => String,
-            file: => String,
-            credentials: Option[GCP] = None
-           ): GCSPutStep =
-    new GCSPutStep(name, bucket, key, file, credentials)
-}
-
-
-
-

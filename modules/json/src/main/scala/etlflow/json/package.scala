@@ -16,9 +16,11 @@ package object json {
 
     def convertToObject[T](str: String)(implicit Decoder: Decoder[T]): ZIO[JsonEnv, Throwable, T] =
       ZIO.accessM(_.get.convertToObject[T](str))
-    def convertToString[T](obj: T, keys: List[String] = List.empty)(implicit encoder: Encoder[T]):
-      URIO[JsonEnv, String] = ZIO.accessM(_.get.convertToString[T](obj, keys))
-    def convertToMap[T](obj: T, keys: List[String] = List.empty)(implicit encoder: Encoder[T]):
-      ZIO[JsonEnv, Throwable, Map[String, String]] = ZIO.accessM(_.get.convertToMap[T](obj, keys))
+    def convertToString[T](obj: T, keys: List[String] = List.empty)(implicit
+        encoder: Encoder[T]
+    ): URIO[JsonEnv, String] = ZIO.accessM(_.get.convertToString[T](obj, keys))
+    def convertToMap[T](obj: T, keys: List[String] = List.empty)(implicit
+        encoder: Encoder[T]
+    ): ZIO[JsonEnv, Throwable, Map[String, String]] = ZIO.accessM(_.get.convertToMap[T](obj, keys))
   }
 }

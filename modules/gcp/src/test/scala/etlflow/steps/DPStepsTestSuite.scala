@@ -1,10 +1,11 @@
 package etlflow.steps
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.schema.Executor.{DATAPROC, SPARK_CONF}
+import etlflow.gcp.DP
+import etlflow.model.Executor.{DATAPROC, SPARK_CONF}
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, TestAspect, ZSpec, assertM, environment}
+import zio.test.{assertM, environment, DefaultRunnableSpec, TestAspect, ZSpec}
 
 object DPStepsTestSuite extends DefaultRunnableSpec {
 
@@ -21,15 +22,15 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
         val step = DPHiveJobStep(
           name = "DPHiveJobStepExample",
           query = "SELECT 1 AS ONE",
-          config = dpConfig,
-        )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+          config = dpConfig
+        ).process.provideLayer(DP.live)
+        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
         val libs = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
         val spark_conf = List(
-          SPARK_CONF("spark.executor.memory","1g"),
-          SPARK_CONF("spark.driver.memory","1g"),
+          SPARK_CONF("spark.executor.memory", "1g"),
+          SPARK_CONF("spark.driver.memory", "1g")
         )
         val step = DPSparkJobStep(
           name = "DPSparkJobStepExample",
@@ -37,8 +38,8 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
           config = dpConfig.copy(sp = spark_conf),
           main_class = "org.apache.spark.examples.SparkPi",
           libs = libs
-        )
-        assertM(step.process(()).foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        ).process.provideLayer(DP.live)
+        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

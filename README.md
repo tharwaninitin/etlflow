@@ -1,5 +1,6 @@
 # EtlFlow
 
+[![License](http://img.shields.io/:license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 [![Core Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml)
 [![Server Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
@@ -39,8 +40,6 @@ You can use this library in different ways mentioned below.
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
 | Json               | ✅                   | ✅          | ✅          |
-| Cache              | ✅                   | ✅          | ✅          |
-| Crypto             | ✅                   | ✅          | ✅          |
 
 ### Addon Modules For Core
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
@@ -64,7 +63,6 @@ Add the latest release as a dependency to your project
 __SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-job" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-server" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"

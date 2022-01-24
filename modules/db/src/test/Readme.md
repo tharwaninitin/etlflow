@@ -18,11 +18,11 @@ export LOG_DB_DRIVER=org.postgresql.Driver
 
 #Run Sample Test Job
 ```shell
-sbt ";project db; Test/runMain etlflow.db.InitDB"
-sbt ";project db; Test/runMain SampleJobWithDbLogging"
+sbt ";project db; Test/runMain etlflow.db.utils.InitDB"
+sbt ";project db; Test/runMain etlflow.SampleJobWithDbLogging"
 ```
 
 #Run Tests
 ```shell
-sbt ";project db; Test/runMain etlflow.db.InitDB; test"
+sbt ";project db; test"
 ```

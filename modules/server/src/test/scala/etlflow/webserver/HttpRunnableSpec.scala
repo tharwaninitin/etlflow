@@ -1,38 +1,54 @@
 package etlflow.webserver
 
-import etlflow.api.APIEnv
-import etlflow.cache.CacheEnv
-import etlflow.crypto.CryptoEnv
+import etlflow.server.APIEnv
 import etlflow.db.DBServerEnv
 import etlflow.json.JsonEnv
 import etlflow.log.LogEnv
-import zhttp.http.HttpData.CompleteData
 import zhttp.http.URL.Location
 import zhttp.http._
 import zhttp.service._
+import zhttp.service.client.ClientSSLHandler.ClientSSLOptions.DefaultSSL
 import zio.{Chunk, Has, ZIO, ZManaged}
 
 abstract class HttpRunnableSpec(port: Int) {
 
-  type TestAuthEnv = EventLoopGroup with ChannelFactory with zhttp.service.ServerChannelFactory with APIEnv with DBServerEnv with LogEnv with JsonEnv with CryptoEnv with CacheEnv
+  type TestAuthEnv = EventLoopGroup
+    with ChannelFactory
+    with zhttp.service.ServerChannelFactory
+    with APIEnv
+    with DBServerEnv
+    with LogEnv
+    with JsonEnv
+
+  def url(path: Path) = URL(path, Location.Absolute(Scheme.HTTP, "localhost", port))
 
   def serve[R <: Has[_]](app: RHttpApp[R]): ZManaged[R with EventLoopGroup with ServerChannelFactory, Nothing, Unit] =
     Server.make(Server.app(app) ++ Server.port(port)).orDie
 
-  def statusPost(path: Path,header:Option[List[Header]]): ZIO[EventLoopGroup with ChannelFactory, Throwable, Status] =
-    requestPathPost(path,header.getOrElse(List.empty)).map(_.status)
+  def statusPost(
+      path: Path,
+      headers: Headers = Headers.empty
+  ): ZIO[EventLoopGroup with ChannelFactory, Throwable, Status] =
+    requestPathPost(path, headers).map(_.status)
 
   def statusGet(path: Path): ZIO[EventLoopGroup with ChannelFactory, Throwable, Status] =
     requestPathGet(path).map(_.status)
 
-  def requestPathPost(path: Path,header:List[Header]): ZIO[EventLoopGroup with ChannelFactory, Throwable, UHttpResponse] =
-    Client.request(Method.POST -> URL(path, Location.Absolute(Scheme.HTTP, "localhost", port)), header)
+  def requestPathPost(
+      path: Path,
+      headers: Headers
+  ): ZIO[EventLoopGroup with ChannelFactory, Throwable, Client.ClientResponse] =
+    Client.request(Method.POST, url(path), headers, sslOptions = DefaultSSL)
 
-  def requestPathGet(path: Path): ZIO[EventLoopGroup with ChannelFactory, Throwable, UHttpResponse] =
-    Client.request(Method.GET -> URL(path, Location.Absolute(Scheme.HTTP, "localhost", port)))
+  def requestPathGet(path: Path): ZIO[EventLoopGroup with ChannelFactory, Throwable, Client.ClientResponse] =
+    Client.request(Method.GET, url(path))
 
-  def request(path: Path, method: Method, content: String): ZIO[EventLoopGroup with ChannelFactory, Throwable, UHttpResponse] = {
-    val data = CompleteData(Chunk.fromArray(content.getBytes(HTTP_CHARSET)))
-    Client.request(Request(method -> URL(path, Location.Absolute(Scheme.HTTP, "localhost", port)),List.empty, data))
+  def request(
+      path: Path,
+      method: Method,
+      content: String
+  ): ZIO[EventLoopGroup with ChannelFactory, Throwable, Client.ClientResponse] = {
+    val data = HttpData.fromChunk(Chunk.fromArray(content.getBytes(HTTP_CHARSET)))
+    Client.request(method, url(path), Headers.empty, data)
   }
 }

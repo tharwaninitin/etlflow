@@ -1,48 +1,41 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.schema.Credential.GCP
-import etlflow.utils.EtlflowError.EtlJobException
-import zio.Task
+import etlflow.model.EtlFlowException.RetryException
+import etlflow.utils.RetrySchedule
 import zio.clock.Clock
+import zio.{IO, RIO, Task, UIO}
 import scala.concurrent.duration.Duration
 
-class GCSSensorStep private [etlsteps](
-               val name: String,
-               bucket: => String,
-               prefix: => String,
-               key: => String,
-               retry: Int,
-               spaced: Duration,
-               credentials: Option[GCP] = None
-               ) extends EtlStep[Unit,Unit] with SensorStep {
-  override def process(input_state: => Unit): Task[Unit] = {
-    val env     = GCS.live(credentials)
-    val lookup  = GCSApi.lookupObject(bucket,prefix,key).provideLayer(env)
+case class GCSSensorStep(
+    name: String,
+    bucket: String,
+    prefix: String,
+    key: String,
+    retry: Int,
+    spaced: Duration
+) extends EtlStep[GCSEnv with Clock, Unit] {
 
-    val program: Task[Unit] = (for {
-                                out <- lookup
-                                _   <- if(out) Task.succeed(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
-                                       else Task.fail(EtlJobException(s"key $key not found in GCS location gs://$bucket/$prefix/"))
-                              } yield ()).retry(noThrowable && schedule(retry,spaced)).provideLayer(Clock.live)
+  override def process: RIO[GCSEnv with Clock, Unit] = {
+    val lookup = GCSApi.lookupObject(bucket, prefix, key)
+
+    val program: RIO[GCSEnv with Clock, Unit] =
+      (for {
+         out <- lookup
+         _ <-
+           if (out)
+             UIO(logger.info(s"Found key $key in GCS location gs://$bucket/$prefix/"))
+           else
+             IO.fail(
+               RetryException(s"key $key not found in GCS location gs://$bucket/$prefix/")
+             )
+       } yield ()).retry(RetrySchedule(retry, spaced))
 
     val runnable = for {
-                      _   <- Task.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix/$key"))
-                      _   <- program
-                    } yield ()
+      _ <- Task.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix/$key"))
+      _ <- program
+    } yield ()
 
     runnable
   }
-}
-
-object GCSSensorStep {
-  def apply(name: String,
-            bucket: => String,
-            prefix: => String,
-            key: => String,
-            retry: Int,
-            spaced: Duration,
-            credentials: Option[GCP]= None
-           ): GCSSensorStep =
-    new GCSSensorStep(name, bucket, prefix, key, retry, spaced, credentials)
 }

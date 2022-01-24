@@ -6,14 +6,13 @@ import etlflow.jobtests.MyEtlJobProps.EtlJob1Props
 
 case class Job1HelloWorld(job_properties: EtlJob1Props) extends EtlJob[EtlJob1Props] {
 
-  def processData(ip: Unit): Unit = {
+  def processData(): Unit =
     logger.info("Hello World")
-  }
 
   val step1 = GenericETLStep(
-    name               = "ProcessData",
-    transform_function = processData,
+    name = "ProcessData",
+    function = processData()
   )
 
-  override val job = step1.execute(())
+  override val job = step1.execute
 }

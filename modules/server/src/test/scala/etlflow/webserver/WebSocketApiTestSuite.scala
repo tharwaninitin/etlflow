@@ -8,11 +8,10 @@ import zio.{UIO, ZIO}
 case class WebSocketApiTestSuite(auth: Authentication) {
 
   val ws: WebsocketAPI = WebsocketAPI(auth)
-  val token: String = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
+  val token: String    = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
 
-  def testStream(token: String): ZIO[Any with Clock, Nothing, Unit] = ws.websocketStream(token)
-    .mapM { producerRecord => UIO(println(producerRecord))}
-    .runDrain
+  def testStream(token: String): ZIO[Any with Clock, Nothing, Unit] =
+    ws.webSocketStream(token).mapM(producerRecord => UIO(println(producerRecord))).runDrain
 
   val spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("WebSocket Api")(
@@ -22,5 +21,5 @@ case class WebSocketApiTestSuite(auth: Authentication) {
       testM("WebSocketApi Test: Valid Login")(
         testStream(token).as(assertCompletes)
       )
-    )@@ TestAspect.sequential)
+    ) @@ TestAspect.sequential)
 }

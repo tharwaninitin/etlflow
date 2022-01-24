@@ -1,13 +1,13 @@
 package etlflow.scheduler
 
+import cron4zio._
 import etlflow.ServerSuiteHelper
-import etlflow.api.ServerEnv
-import etlflow.db.EtlJob
+import etlflow.server.ServerEnv
+import etlflow.server.model.EtlJob
 import etlflow.utils.{ReflectAPI => RF}
 import zio.duration.{Duration => ZDuration}
 import zio.test._
 import zio.duration._
-import zio.test.Assertion.equalTo
 import zio.test.environment.TestClock
 import scala.concurrent.duration.{Duration, MINUTES}
 
@@ -16,10 +16,10 @@ object SchedulerTestSuite extends ServerSuiteHelper with Scheduler {
     (suite("Scheduler")(
       testM("Test scheduler with Job1")(
         for {
-          jobs     <- RF.getJobs[MEJP].map(jl => jl.filter(_.name == "Job1"))
-          fiber    <- etlFlowScheduler(jobs).fork
-          _        <- TestClock.adjust(ZDuration.fromScala(Duration(3,MINUTES)))
-          _        <- fiber.interrupt
+          jobs  <- RF.getJobs[MEJP].map(jl => jl.filter(_.name == "Job1"))
+          fiber <- etlFlowScheduler(jobs).fork
+          _     <- TestClock.adjust(ZDuration.fromScala(Duration(3, MINUTES)))
+          _     <- fiber.interrupt
         } yield assertCompletes
       ),
       testM("Test scheduler with no jobs")(
@@ -30,10 +30,9 @@ object SchedulerTestSuite extends ServerSuiteHelper with Scheduler {
       ),
       testM("Test Cron Job")(
         for {
-          _      <- sleepForCron(parseCron("0 */2 * * * ?").get).fork
-          _       <- TestClock.adjust(10.seconds)
-        } yield assert(1)(equalTo(1))
+          _ <- sleepForCron(parse("0 */2 * * * ?").get).fork
+          _ <- TestClock.adjust(10.seconds)
+        } yield assertTrue(1 == 1)
       )
     ) @@ TestAspect.sequential)
 }
-

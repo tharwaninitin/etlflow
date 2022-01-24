@@ -1,16 +1,15 @@
 package etlflow.email
 
-import etlflow.schema.Credential.SMTP
-import etlflow.utils.ApplicationLogger
-
+import etlflow.model.Credential.SMTP
+import etlflow.utils.{ApplicationLogger, LoggedTry}
 import java.util.Properties
 import javax.mail.internet.{InternetAddress, MimeMessage}
 import javax.mail.{Address, Message, Session}
 
-private[etlflow] object MailClientApi  extends ApplicationLogger  {
+private[etlflow] object MailClientApi extends ApplicationLogger {
 
-  def sendMail(sender:Option[String],recipient: List[String],content:String,subject:String,credentials: SMTP): Unit = {
-    try {
+  def sendMail(sender: Option[String], recipient: List[String], content: String, subject: String, credentials: SMTP): Unit =
+    LoggedTry {
       val properties = new Properties
       properties.put("mail.smtp.port", credentials.port)
       properties.setProperty("mail.transport.protocol", credentials.transport_protocol)
@@ -21,7 +20,8 @@ private[etlflow] object MailClientApi  extends ApplicationLogger  {
       properties.setProperty("mail.smtp.auth", credentials.smtp_auth)
 
       val session = Session.getDefaultInstance(properties)
-      val recipientAddress: Array[Address] = (recipient map { recipient => new InternetAddress(recipient) }).toArray
+
+      val recipientAddress: Array[Address] = (recipient.map { recipient => new InternetAddress(recipient) }).toArray
 
       val message = new MimeMessage(session)
       message.setFrom(sender.getOrElse(new InternetAddress(credentials.user)).toString)
@@ -34,12 +34,6 @@ private[etlflow] object MailClientApi  extends ApplicationLogger  {
       transport.connect(credentials.host, credentials.user, credentials.password)
       transport.sendMessage(message, message.getAllRecipients)
       logger.info("Email Sent!!")
-      logger.info("#"*100)
-    }
-    catch {
-      case exception: Exception =>
-        logger.error("Mail delivery failed. " + exception)
-        throw exception
-    }
-  }
+      logger.info("#" * 100)
+    }.get
 }

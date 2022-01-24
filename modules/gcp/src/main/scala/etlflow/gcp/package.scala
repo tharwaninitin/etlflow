@@ -9,11 +9,11 @@ import scala.util.Try
 
 package object gcp extends ApplicationLogger {
 
-  private[etlflow] type GCSEnv = Has[GCSApi.Service]
-  private[etlflow] type BQEnv = Has[BQApi.Service]
-  private[etlflow] type DPEnv = Has[DPApi.Service]
+  type GCSEnv = Has[GCSApi.Service]
+  type BQEnv  = Has[BQApi.Service]
+  type DPEnv  = Has[DPApi.Service]
 
-  case class DataprocProperties (
+  case class DataprocProperties(
       bucket_name: String,
       subnet_uri: Option[String] = None,
       network_tags: List[String] = List.empty,
@@ -27,30 +27,36 @@ package object gcp extends ApplicationLogger {
       worker_boot_disk_size_gb: Int = 200,
       master_num_instance: Int = 1,
       worker_num_instance: Int = 3
-    )
+  )
 
   sealed trait BQInputType extends Serializable
   object BQInputType {
-    case class CSV(delimiter: String = ",", header_present: Boolean = true, parse_mode: String = "FAILFAST", quotechar: String = "\"") extends BQInputType {
-      override def toString: String = s"CSV with delimiter => $delimiter header_present => $header_present parse_mode => $parse_mode"
+    case class CSV(
+        delimiter: String = ",",
+        header_present: Boolean = true,
+        parse_mode: String = "FAILFAST",
+        quotechar: String = "\""
+    ) extends BQInputType {
+      override def toString: String =
+        s"CSV with delimiter => $delimiter header_present => $header_present parse_mode => $parse_mode"
     }
     case class JSON(multi_line: Boolean = false) extends BQInputType {
       override def toString: String = s"Json with multiline  => $multi_line"
     }
-    case object BQ extends BQInputType
+    case object BQ      extends BQInputType
     case object PARQUET extends BQInputType
-    case object ORC extends BQInputType
+    case object ORC     extends BQInputType
   }
 
   sealed trait FSType
   object FSType {
     case object LOCAL extends FSType
-    case object GCS extends FSType
+    case object GCS   extends FSType
   }
 
   sealed trait Location
   object Location {
-    case class LOCAL(path: String) extends Location
+    case class LOCAL(path: String)               extends Location
     case class GCS(bucket: String, path: String) extends Location
   }
 
@@ -66,9 +72,9 @@ package object gcp extends ApplicationLogger {
 
   }
 
-  def getBqSchema[T: Tag]: Option[Schema] = {
+  def getBqSchema[T: Tag]: Option[Schema] =
     Try {
-      val fields = new util.ArrayList[Field]
+      val fields   = new util.ArrayList[Field]
       val ccFields = GetFields[T]
       if (ccFields.isEmpty)
         throw new RuntimeException("Schema not provided")
@@ -77,5 +83,4 @@ package object gcp extends ApplicationLogger {
       logger.info(s"Schema provided: ${s.getFields.asScala.map(x => (x.getName, x.getType))}")
       s
     }.toOption
-  }
 }

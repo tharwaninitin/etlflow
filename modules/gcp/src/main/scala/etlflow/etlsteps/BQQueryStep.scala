@@ -1,34 +1,16 @@
 package etlflow.etlsteps
 
 import etlflow.gcp._
-import etlflow.schema.Credential.GCP
-import zio.Task
+import zio.RIO
 
-class BQQueryStep private[etlflow](
-                                    val name: String,
-                                    query: => String,
-                                    credentials: Option[GCP] = None
-                                  )
-  extends EtlStep[Unit, Unit] {
+case class BQQueryStep(name: String, query: String) extends EtlStep[BQEnv, Unit] {
 
-  final def process(input: =>Unit): Task[Unit] = {
-    logger.info("#"*100)
-    val env = BQ.live(credentials)
+  final def process: RIO[BQEnv, Unit] = {
+    logger.info("#" * 100)
     logger.info(s"Starting BQ Query Step: $name")
     logger.info(s"Query: $query")
-    BQApi.executeQuery(query).provideLayer(env)
+    BQApi.executeQuery(query)
   }
 
   override def getStepProperties: Map[String, String] = Map("query" -> query)
 }
-
-object BQQueryStep {
-  def apply(
-             name: String,
-             query: => String,
-             credentials: Option[GCP] = None
-           ): BQQueryStep =
-    new BQQueryStep(name, query, credentials)
-}
-
-

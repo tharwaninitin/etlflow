@@ -7,11 +7,22 @@ services:
         limits:
           memory: 512M
     environment:
-    - POSTGRES_USER=etlflow
-    - POSTGRES_PASSWORD=etlflow
-    - POSTGRES_DB=etlflow
+     POSTGRES_USER: etlflow
+     POSTGRES_PASSWORD: etlflow
+     POSTGRES_DB: etlflow
     ports:
     - '5432:5432'
+  mysql:
+    image: 'mysql:8'
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_USER: etlflow
+      MYSQL_PASSWORD: etlflow
+      MYSQL_DATABASE: etlflow
+      MYSQL_ROOT_PASSWORD: etlflow
+    ports:
+    - '3306:3306'
   pgadmin:
     image: 'dpage/pgadmin4'
     deploy:

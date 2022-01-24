@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
 import etlflow.TestSparkSession
-import etlflow.coretests.Schema.Rating
-import etlflow.schema.Credential.JDBC
+import etlflow.schema.Rating
+import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.{PARQUET, RDB}
 import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
 import etlflow.utils.ApplicationLogger
@@ -11,7 +11,7 @@ import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assertM}
+import zio.test.{assertM, DefaultRunnableSpec, ZSpec}
 
 object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF with ApplicationLogger {
 
@@ -27,13 +27,16 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     output_save_mode = SaveMode.Overwrite
   )
 
-  def getYearMonthData(spark: SparkSession, ip: Unit): Array[String] = {
+  def getYearMonthData(spark: SparkSession): Array[String] = {
     import spark.implicits._
     val ds = ReadApi.LoadDS[Rating](List("path/to/input"), PARQUET)(spark)
     val year_month = ds
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn("year_month", get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
-      .selectExpr("year_month").distinct().as[String].collect()
+      .selectExpr("year_month")
+      .distinct()
+      .as[String]
+      .collect()
     WriteApi.WriteDS[Rating](jdbc, "ratings")(ds, spark)
     year_month
   }
@@ -48,21 +51,20 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     logger.info(ip.toList.toString())
   }
 
-  val step3 = GenericETLStep(
+  def step3(ip: Array[String]) = GenericETLStep(
     name = "ProcessData",
-    transform_function = processData,
+    function = processData(ip)
   )
 
   val job =
     for {
-      _ <- step1.process(())
-      op1 <- step2.process(())
-      _ <- step3.process(op1)
+      _  <- step1.process
+      op <- step2.process
+      _  <- step3(op).process
     } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("Spark Steps")(
-      testM("Execute Spark steps") {
-        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      })
+    suite("Spark Steps")(testM("Execute Spark steps") {
+      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    })
 }

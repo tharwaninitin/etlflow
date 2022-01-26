@@ -1,12 +1,12 @@
 package etlflow.gcp
 
 import com.google.cloud.bigquery.{FieldValueList, JobInfo, Schema}
-import zio.{Task, ZIO}
+import zio.ZIO
 
 object BQApi {
-  trait Service {
-    def executeQuery(query: String): Task[Unit]
-    def getDataFromBQ(query: String): Task[Iterable[FieldValueList]]
+  trait Service[F[_]] {
+    def executeQuery(query: String): F[Unit]
+    def getDataFromBQ(query: String): F[Iterable[FieldValueList]]
     def loadIntoBQFromLocalFile(
         source_locations: Either[String, Seq[(String, String)]],
         source_format: BQInputType,
@@ -14,7 +14,7 @@ object BQApi {
         destination_table: String,
         write_disposition: JobInfo.WriteDisposition,
         create_disposition: JobInfo.CreateDisposition
-    ): Task[Unit]
+    ): F[Unit]
     def loadIntoBQTable(
         source_path: String,
         source_format: BQInputType,
@@ -24,7 +24,7 @@ object BQApi {
         write_disposition: JobInfo.WriteDisposition,
         create_disposition: JobInfo.CreateDisposition,
         schema: Option[Schema] = None
-    ): Task[Map[String, Long]]
+    ): F[Map[String, Long]]
     def loadIntoPartitionedBQTable(
         source_paths_partitions: Seq[(String, String)],
         source_format: BQInputType,
@@ -35,7 +35,7 @@ object BQApi {
         create_disposition: JobInfo.CreateDisposition,
         schema: Option[Schema],
         parallelism: Int
-    ): Task[Map[String, Long]]
+    ): F[Map[String, Long]]
     def exportFromBQTable(
         source_project: Option[String],
         source_dataset: String,
@@ -44,7 +44,7 @@ object BQApi {
         destination_file_name: Option[String],
         destination_format: BQInputType,
         destination_compression_type: String = "gzip"
-    ): Task[Unit]
+    ): F[Unit]
 
   }
   def getDataFromBQ(query: String): ZIO[BQEnv, Throwable, Iterable[FieldValueList]] =

@@ -2,16 +2,18 @@ package etlflow
 
 import com.google.cloud.bigquery.{Field, LegacySQLTypeName, Schema}
 import etlflow.utils.{ApplicationLogger, GetFields}
-import zio.{Has, Tag}
+import zio.{Has, Tag, Task}
 import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 package object gcp extends ApplicationLogger {
 
-  type GCSEnv = Has[GCSApi.Service]
-  type BQEnv  = Has[BQApi.Service]
-  type DPEnv  = Has[DPApi.Service]
+  type GCSEnv = Has[GCSApi.Service[Task]]
+  type BQEnv  = Has[BQApi.Service[Task]]
+  type DPEnv  = Has[DPApi.Service[Task]]
+
+  case class BQLoadException(msg: String) extends RuntimeException(msg)
 
   case class DataprocProperties(
       bucket_name: String,

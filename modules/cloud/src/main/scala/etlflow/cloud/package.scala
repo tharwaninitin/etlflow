@@ -1,5 +1,6 @@
 package etlflow
 
+import blobstore.url.Authority
 import etlflow.model.Credential
 
 package object cloud {
@@ -9,8 +10,11 @@ package object cloud {
   }
   object Location {
     case class LOCAL(override val location: String, override val bucket: String = "localhost") extends Location
-    case class GCS(override val bucket: String, override val location: String, credentials: Option[Credential.GCP] = None)
-        extends Location
+    case class GCS(
+        override val bucket: String,
+        override val location: String,
+        credentials: Option[Credential.GCP] = None
+    ) extends Location
     case class S3(
         override val bucket: String,
         override val location: String,
@@ -18,4 +22,6 @@ package object cloud {
         credentials: Option[Credential.AWS] = None
     ) extends Location
   }
+
+  def getBucketInfo(bucket: String): Authority = Authority.unsafe(bucket)
 }

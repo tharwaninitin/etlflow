@@ -1,48 +1,18 @@
 package etlflow.etlsteps
 
 import etlflow.aws._
-import etlflow.model.Credential.AWS
-import software.amazon.awssdk.regions.Region
-import zio.Task
+import zio.{RIO, UIO}
 
-class S3PutStep private[etlsteps] (
-    val name: String,
-    bucket: => String,
-    key: => String,
-    file: => String,
-    region: Region,
-    endpoint_override: Option[String] = None,
-    credentials: Option[AWS] = None
-) extends EtlStep[Any, Unit] {
+case class S3PutStep(name: String, bucket: String, key: String, file: String) extends EtlStep[S3Env, Unit] {
 
-  override def process: Task[Unit] = {
-    val program = S3Api.putObject(bucket, key, file)
-    val runnable = for {
-      _  <- Task.succeed(logger.info("#" * 100))
-      _  <- Task.succeed(logger.info(s"Input local path $file"))
-      _  <- Task.succeed(logger.info(s"Output S3 path s3://$bucket/$key"))
-      s3 <- S3Api.createClient(region, endpoint_override, credentials)
-      _ <- program
-        .provide(s3)
-        .foldM(
-          ex => Task.succeed(logger.error(ex.getMessage)) *> Task.fail(ex),
-          _ => Task.succeed(logger.info(s"Successfully uploaded file $file in location s3://$bucket/$key"))
-        )
-      _ <- Task.succeed(logger.info("#" * 100))
-    } yield ()
-    runnable
-  }
-}
-
-object S3PutStep {
-  def apply(
-      name: String,
-      bucket: => String,
-      key: => String,
-      file: => String,
-      region: Region,
-      endpoint_override: Option[String] = None,
-      credentials: Option[AWS] = None
-  ): S3PutStep =
-    new S3PutStep(name, bucket, key, file, region, endpoint_override, credentials)
+  override def process: RIO[S3Env, Unit] = for {
+    _ <- UIO(logger.info("#" * 100))
+    _ <- UIO(logger.info(s"Input local path $file"))
+    _ <- UIO(logger.info(s"Output S3 path s3://$bucket/$key"))
+    _ <- S3Api
+      .putObject(bucket, key, file)
+      .tapError(ex => UIO(logger.error(ex.getMessage)))
+    _ <- UIO(logger.info(s"Successfully uploaded file $file in location s3://$bucket/$key"))
+    _ <- UIO(logger.info("#" * 100))
+  } yield ()
 }

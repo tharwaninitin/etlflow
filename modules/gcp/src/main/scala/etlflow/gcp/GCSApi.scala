@@ -3,14 +3,14 @@ package etlflow.gcp
 import com.google.api.gax.paging.Page
 import com.google.cloud.storage.Blob
 import com.google.cloud.storage.Storage.BlobListOption
-import zio.{Task, ZIO}
+import zio.ZIO
 
 object GCSApi {
-  trait Service {
-    def putObject(bucket: String, prefix: String, file: String): Task[Blob]
-    def lookupObject(bucket: String, prefix: String, key: String): Task[Boolean]
-    def listObjects(bucket: String, options: List[BlobListOption]): Task[Page[Blob]]
-    def listObjects(bucket: String, prefix: String): Task[List[Blob]]
+  trait Service[F[_]] {
+    def putObject(bucket: String, prefix: String, file: String): F[Blob]
+    def lookupObject(bucket: String, prefix: String, key: String): F[Boolean]
+    def listObjects(bucket: String, options: List[BlobListOption]): F[Page[Blob]]
+    def listObjects(bucket: String, prefix: String): F[List[Blob]]
     def copyObjectsGCStoGCS(
         src_bucket: String,
         src_prefix: String,
@@ -18,15 +18,16 @@ object GCSApi {
         target_prefix: String,
         parallelism: Int,
         overwrite: Boolean
-    ): Task[Unit]
+    ): F[Unit]
     def copyObjectsLOCALtoGCS(
         src_path: String,
         target_bucket: String,
         target_prefix: String,
         parallelism: Int,
         overwrite: Boolean
-    ): Task[Unit]
+    ): F[Unit]
   }
+
   def putObject(bucket: String, prefix: String, file: String): ZIO[GCSEnv, Throwable, Blob] =
     ZIO.accessM(_.get.putObject(bucket, prefix, file))
   def lookupObject(bucket: String, prefix: String, key: String): ZIO[GCSEnv, Throwable, Boolean] =

@@ -88,7 +88,7 @@ lazy val emailSettings = Seq(
 lazy val awsSettings = Seq(
   name               := "etlflow-aws",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= awsLibs ++ zioTestLibs ++ cloudTestLibs
+  libraryDependencies ++= awsLibs ++ zioTestLibs ++ coreTestLibs
 )
 
 lazy val gcpSettings = Seq(

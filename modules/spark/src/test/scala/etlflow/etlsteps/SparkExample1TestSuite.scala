@@ -1,65 +1,62 @@
-//package etlflow.etlsteps
-//
-//import etlflow.TestSparkSession
-//import etlflow.coretests.Schema._
-//import etlflow.coretests.TestSuiteHelper
-//import etlflow.db.DBApi
-//import etlflow.model.Credential.JDBC
-//import etlflow.spark.IOType.{PARQUET, RDB}
-//import etlflow.spark.ReadApi
-//import org.apache.spark.sql.{Dataset, Row, SaveMode}
-//import zio.Runtime.default.unsafeRun
-//import zio.ZIO
-//import zio.test.Assertion.equalTo
-//import zio.test.{DefaultRunnableSpec, ZSpec, assert}
-//
-//object SparkExample1TestSuite extends DefaultRunnableSpec with TestSuiteHelper with TestSparkSession {
-//
-//  // STEP 1: Define step
-//  // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
-//  val input_path_parquet  = s"$canonical_path/modules/core/src/test/resources/input/movies/ratings_parquet"
-//  val output_table        = "ratings"
-//
-//  val step1 = SparkReadWriteStep[Rating](
-//    name             = "LoadRatingsParquetToJdbc",
-//    input_location   = Seq(input_path_parquet),
-//    input_type       = PARQUET,
-//    output_type      = RDB(JDBC(credentials.url, credentials.user, credentials.password, "org.postgresql.Driver")),
-//    output_location  = "ratings",
-//    output_save_mode = SaveMode.Overwrite
-//  )
-//
-//  val step2 = SparkReadStep[Rating](
-//    name             = "LoadRatingsParquet",
-//    input_location   = Seq(input_path_parquet),
-//    input_type       = PARQUET,
-//  )
-//
-//  // STEP 2: Run Step
-//  unsafeRun(step1.process(()))
-//  val op: Dataset[Rating] = unsafeRun(step2.process(()))
-//  op.show(10)
-//
-//  // STEP 3: Run Test
-//  val raw: Dataset[Rating] = ReadApi.LoadDS[Rating](Seq(input_path_parquet), PARQUET)(spark)
-//  val Row(sum_ratings: Double, count_ratings: Long) = raw.selectExpr("sum(rating)","count(*)").first()
-//  val query: String = s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table"
-//  val db_task: ZIO[zio.ZEnv, Throwable, List[RatingsMetrics]] =
-//    DBApi
-//      .executeQueryListOutput[RatingsMetrics](s"SELECT sum(rating) sum_ratings, count(*) as count FROM $output_table")(rs => RatingsMetrics(rs.double("sum_ratings"),rs.long("count_ratings")))
-//      .provideCustomLayer(etlflow.db.liveDB(credentials))
-//  val db_metrics: RatingsMetrics = unsafeRun(db_task).head
-//
-//  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = {
-//    suite("Spark Step Test Suite")(
-//      test("Record counts should be matching in transformed DF and DB table") {
-//        assert(count_ratings)(equalTo(db_metrics.count_ratings))
-//      },
-//      test("Sum of ratings should be matching in transformed DF and DB table ") {
-//        assert(sum_ratings)(equalTo(db_metrics.sum_ratings))
-//      }
-//    )
-//  }
-//}
-//
-//
+package etlflow.etlsteps
+
+import etlflow.model.Credential.JDBC
+import etlflow.schema.{Rating, RatingsMetrics}
+import etlflow.spark.IOType.{PARQUET, RDB}
+import etlflow.spark.SparkEnv
+import etlflow.utils.ApplicationLogger
+import org.apache.spark.sql.{Dataset, Encoders, SaveMode}
+import zio.test.Assertion.equalTo
+import zio.test._
+import zio.{RIO, ZIO}
+
+object SparkExample1TestSuite extends ApplicationLogger {
+
+  // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
+  val canonical_path: String = new java.io.File(".").getCanonicalPath
+  val input_path_parquet     = s"$canonical_path/modules/spark/src/test/resources/input/ratings_parquet"
+  val output_table           = "ratings"
+  val cred: JDBC             = JDBC("jdbc:postgresql://localhost:5432/etlflow", "etlflow", "etlflow", "org.postgresql.Driver")
+  val jdbc: RDB              = RDB(cred)
+
+  val step1: RIO[SparkEnv, Unit] = SparkReadWriteStep[Rating, Rating](
+    name = "LoadRatingsParquetToJdbc",
+    input_location = Seq(input_path_parquet),
+    input_type = PARQUET,
+    output_type = jdbc,
+    output_location = output_table,
+    output_save_mode = SaveMode.Overwrite
+  ).process
+
+  val step2: RIO[SparkEnv, Dataset[Rating]] = SparkReadStep[Rating, Rating](
+    name = "LoadRatingsParquet",
+    input_location = Seq(input_path_parquet),
+    input_type = PARQUET
+  ).process
+
+  def step3(query: String): RIO[SparkEnv, Dataset[RatingsMetrics]] = SparkReadStep[RatingsMetrics, RatingsMetrics](
+    name = "LoadRatingsDB",
+    input_location = Seq(query),
+    input_type = jdbc
+  ).process
+
+  val job: ZIO[SparkEnv, Throwable, Boolean] = for {
+    _     <- step1
+    ip_ds <- step2
+    enc   = Encoders.product[RatingsMetrics]
+    ip    = ip_ds.selectExpr("sum(rating) as sum_ratings", "count(*) as count_ratings").as[RatingsMetrics](enc).first()
+    query = s"(SELECT sum(rating) as sum_ratings, count(*) as count_ratings FROM $output_table) as T"
+    op_ds <- step3(query)
+    op   = op_ds.first()
+    _    = logger.info(s"IP => $ip")
+    _    = logger.info(s"OP => $op")
+    bool = ip == op
+  } yield bool
+
+  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+    suite("Spark Steps 1")(
+      testM("Record counts and Sum should be matching") {
+        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
+      }
+    )
+}

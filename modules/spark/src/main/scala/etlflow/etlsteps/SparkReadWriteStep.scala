@@ -1,14 +1,15 @@
 package etlflow.etlsteps
 
-import etlflow.spark.{IOType, ReadApi, SparkRuntimeConf, WriteApi}
+import etlflow.spark._
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
-import zio.Task
+import zio.{RIO, Task, UIO}
+
 import scala.reflect.runtime.universe.TypeTag
 
-class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
-    val name: String,
-    input_location: => Seq[String],
+case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
+    name: String,
+    input_location: Seq[String],
     input_type: IOType,
     input_filter: String = "1 = 1",
     output_location: String,
@@ -18,12 +19,12 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
     output_save_mode: SaveMode = SaveMode.Append,
     output_repartitioning: Boolean = false,
     output_repartitioning_num: Int = 1,
-    transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]]
-)(implicit spark: SparkSession)
-    extends EtlStep[Any, Unit] {
+    transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]] = None
+) extends EtlStep[SparkEnv, Unit] {
 
   private var recordsWrittenCount = 0L
   private var recordsReadCount    = 0L
+  private var sparkRuntimeConf    = Map.empty[String, String]
 
   output_filename match {
     case Some(_) =>
@@ -37,56 +38,64 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
     case None =>
   }
 
-  final def process: Task[Unit] = Task {
-    spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
-        synchronized {
-          recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
-        }
-    })
-    spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
-        synchronized {
-          recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
-        }
-    })
-    logger.info("#################################################################################################")
-    logger.info(s"Starting ETL Step : $name")
-    val ds = ReadApi.LoadDS[I](input_location, input_type, input_filter)(spark)
-
-    transform_function match {
-      case Some(transformFunc) =>
-        val output = transformFunc(spark, ds)
-        WriteApi.WriteDS[O](
-          output_type,
-          output_location,
-          output_partition_col,
-          output_save_mode,
-          output_filename,
-          repartition = output_repartitioning,
-          n = output_repartitioning_num
-        )(output, spark)
-        logger.info(s"recordsReadCount: $recordsReadCount")
-        logger.info(s"recordsWrittenCount: $recordsWrittenCount")
-        logger.info("#################################################################################################")
-      case None =>
-        WriteApi.WriteDS[I](
-          output_type,
-          output_location,
-          output_partition_col,
-          output_save_mode,
-          output_filename,
-          repartition = output_repartitioning,
-          n = output_repartitioning_num
-        )(ds, spark)
-        logger.info(s"recordsReadCount: $recordsReadCount")
-        logger.info(s"recordsWrittenCount: $recordsWrittenCount")
-        logger.info("#################################################################################################")
-    }
-  }
+  final def process: RIO[SparkEnv, Unit] =
+    for {
+      spark <- SparkApi.getSparkSession
+      _ = logger.info("#" * 50)
+      _ = logger.info(s"Starting Spark Read Step: $name")
+      _ = spark.sparkContext.addSparkListener(new SparkListener() {
+        override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
+          synchronized {
+            recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
+          }
+      })
+      _ = spark.sparkContext.addSparkListener(new SparkListener() {
+        override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
+          synchronized {
+            recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
+          }
+      })
+      ip <- SparkApi.ReadDS[I](input_location, input_type, input_filter)
+      op <- transform_function match {
+        case Some(transformFunc) =>
+          Task {
+            val output = transformFunc(spark, ip)
+            WriteApi.WriteDS[O](
+              output_type,
+              output_location,
+              output_partition_col,
+              output_save_mode,
+              output_filename,
+              repartition = output_repartitioning,
+              n = output_repartitioning_num
+            )(output, spark)
+          } *> UIO {
+            logger.info(s"recordsReadCount: $recordsReadCount")
+            logger.info(s"recordsWrittenCount: $recordsWrittenCount")
+            logger.info("#" * 50)
+          }
+        case None =>
+          Task {
+            WriteApi.WriteDS[I](
+              output_type,
+              output_location,
+              output_partition_col,
+              output_save_mode,
+              output_filename,
+              repartition = output_repartitioning,
+              n = output_repartitioning_num
+            )(ip, spark)
+          } *> UIO {
+            logger.info(s"recordsReadCount: $recordsReadCount")
+            logger.info(s"recordsWrittenCount: $recordsWrittenCount")
+            logger.info("#" * 50)
+          }
+      }
+      _ = sparkRuntimeConf = SparkRuntimeConf(spark)
+    } yield op
 
   override def getStepProperties: Map[String, String] = {
-    val in_map = ReadApi.LoadDSHelper[I](input_location, input_type)
+    val in_map = ReadApi.DSProps[I](input_location, input_type)
     val out_map = WriteApi.WriteDSHelper[O](
       output_type,
       output_location,
@@ -96,50 +105,15 @@ class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag] private[e
       recordsWrittenCount,
       repartition = output_repartitioning
     )
-    val spark_conf = SparkRuntimeConf(spark)
-
-    in_map ++ out_map ++ spark_conf
-  }
-
-  override def getExecutionMetrics: Map[String, String] =
-    Map(
+    in_map ++ out_map ++ sparkRuntimeConf ++ Map(
       "Number of records written" -> recordsWrittenCount.toString,
       "Number of records read"    -> recordsReadCount.toString
     )
-
-  def showCorruptedData(): Unit = {
-    logger.info(s"Corrupted data for job $name:")
-    val ds = ReadApi.LoadDS[O](input_location, input_type)(spark)
-    ds.filter("_corrupt_record is not null").show(100, truncate = false)
   }
-}
 
-object SparkReadWriteStep {
-  def apply[T <: Product: TypeTag](
-      name: String,
-      input_location: => Seq[String],
-      input_type: IOType,
-      input_filter: String = "1 = 1",
-      output_location: String,
-      output_type: IOType,
-      output_filename: Option[String] = None,
-      output_partition_col: Seq[String] = Seq.empty[String],
-      output_save_mode: SaveMode = SaveMode.Append,
-      output_repartitioning: Boolean = false,
-      output_repartitioning_num: Int = 1
-  )(implicit spark: SparkSession): SparkReadWriteStep[T, T] =
-    new SparkReadWriteStep[T, T](
-      name,
-      input_location,
-      input_type,
-      input_filter,
-      output_location,
-      output_type,
-      output_filename,
-      output_partition_col,
-      output_save_mode,
-      output_repartitioning,
-      output_repartitioning_num,
-      None
-    )
+  def showCorruptedData(numRows: Int = 100): RIO[SparkEnv, Unit] = {
+    logger.info(s"Corrupted data for job $name:")
+    val program = SparkApi.ReadDS[O](input_location, input_type)
+    program.map(_.filter("_corrupt_record is not null").show(numRows, truncate = false))
+  }
 }

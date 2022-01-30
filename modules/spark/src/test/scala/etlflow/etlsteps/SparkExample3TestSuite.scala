@@ -1,24 +1,23 @@
 package etlflow.etlsteps
 
-import etlflow.TestSparkSession
-import etlflow.schema.Rating
 import etlflow.model.Credential.JDBC
+import etlflow.schema.Rating
 import etlflow.spark.IOType.{PARQUET, RDB}
-import etlflow.spark.{ReadApi, SparkUDF, WriteApi}
+import etlflow.spark.{ReadApi, SparkEnv, SparkUDF, WriteApi}
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{assertM, DefaultRunnableSpec, ZSpec}
+import zio.test._
 
-object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession with SparkUDF with ApplicationLogger {
+object SparkExample3TestSuite extends SparkUDF with ApplicationLogger {
 
   val cred = JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))
   val jdbc = RDB(cred)
 
-  val step1 = SparkReadWriteStep[Rating](
+  val step1 = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     input_location = List("path/to/input"),
     input_type = PARQUET,
@@ -29,7 +28,7 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
 
   def getYearMonthData(spark: SparkSession): Array[String] = {
     import spark.implicits._
-    val ds = ReadApi.LoadDS[Rating](List("path/to/input"), PARQUET)(spark)
+    val ds = ReadApi.DS[Rating](List("path/to/input"), PARQUET)(spark)
     val year_month = ds
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn("year_month", get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
@@ -41,7 +40,7 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     year_month
   }
 
-  val step2 = SparkETLStep(
+  val step2 = SparkStep(
     name = "GenerateYearMonth",
     transform_function = getYearMonthData
   )
@@ -56,15 +55,14 @@ object SparkExample3TestSuite extends DefaultRunnableSpec with TestSparkSession 
     function = processData(ip)
   )
 
-  val job =
-    for {
-      _  <- step1.process
-      op <- step2.process
-      _  <- step3(op).process
-    } yield ()
+  val job: ZIO[SparkEnv, Throwable, Unit] = for {
+    _  <- step1.process
+    op <- step2.process
+    _  <- step3(op).process
+  } yield ()
 
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("Spark Steps")(testM("Execute Spark steps") {
+  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+    suite("Spark Steps 3")(testM("Execute Basic Spark steps") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     })
 }

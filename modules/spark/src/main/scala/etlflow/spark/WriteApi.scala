@@ -10,8 +10,6 @@ import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi extends ApplicationLogger {
 
-  logger.info(s"Loaded ${getClass.getName}")
-
   def WriteDSHelper[T <: Product: TypeTag](
       output_type: IOType,
       output_location: String,

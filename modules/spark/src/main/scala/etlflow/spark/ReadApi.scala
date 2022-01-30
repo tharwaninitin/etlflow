@@ -7,18 +7,12 @@ import org.apache.spark.sql.functions.{col, split}
 import scala.reflect.runtime.universe.TypeTag
 
 object ReadApi extends ApplicationLogger {
-
-  logger.info(s"Loaded ${getClass.getName}")
-
-  def LoadDF(
-      location: Seq[String],
-      input_type: IOType,
-      where_clause: String = "1 = 1",
-      select_clause: Seq[String] = Seq("*")
-  )(implicit spark: SparkSession): Dataset[Row] = {
+  def DF(location: Seq[String], input_type: IOType, where_clause: String = "1 = 1", select_clause: Seq[String] = Seq("*"))(
+      spark: SparkSession
+  ): Dataset[Row] = {
     val df_reader = spark.read
 
-    logger.info("Input file paths: " + location.toList)
+    logger.info("Input location: " + location.toList)
 
     val df_reader_options = input_type match {
       case CSV(delimiter, header_present, _, quotechar) =>
@@ -48,10 +42,7 @@ object ReadApi extends ApplicationLogger {
     df
   }
 
-  def LoadDSHelper[T <: Product: TypeTag](
-      location: Seq[String],
-      input_type: IOType
-  ): Map[String, String] = {
+  def DSProps[T <: Product: TypeTag](location: Seq[String], input_type: IOType): Map[String, String] = {
     val mapping = Encoders.product[T]
     Map(
       "input_location" -> location.mkString(","),
@@ -60,7 +51,7 @@ object ReadApi extends ApplicationLogger {
     )
   }
 
-  def LoadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(
+  def DS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(
       spark: SparkSession
   ): Dataset[T] = {
     val mapping = Encoders.product[T]
@@ -127,5 +118,4 @@ object ReadApi extends ApplicationLogger {
 
     df.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping)
   }
-
 }

@@ -1,12 +1,10 @@
 package etlflow
 
 import etlflow.model.Credential.JDBC
-import org.apache.spark.sql.{Dataset, Row, SparkSession}
-import zio.{Has, Task, ZIO, ZLayer}
-import scala.reflect.runtime.universe.TypeTag
+import zio.{Has, Task}
 
 package object spark {
-  type SparkApi = Has[Service]
+  type SparkEnv = Has[SparkApi.Service[Task]]
   sealed trait IOType extends Serializable
   object IOType {
     final case class CSV(
@@ -42,24 +40,5 @@ package object spark {
       override def toString: String = "****access_key****secret_key****"
     }
     case object LOCAL extends Environment
-  }
-
-  trait Service {
-    def LoadDSHelper[T <: Product: TypeTag](
-        location: Seq[String],
-        input_type: IOType,
-        where_clause: String = "1 = 1"
-    ): Task[Map[String, String]]
-    def LoadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1"): Task[Dataset[T]]
-    def LoadDF(location: Seq[String], input_type: IOType, where_clause: String = "1 = 1"): Task[Dataset[Row]]
-  }
-  object SparkApi {
-    lazy val env: ZLayer[SparkSession, Throwable, SparkApi] = SparkImpl.live
-    def LoadDS[T <: Product: TypeTag](
-        location: Seq[String],
-        input_type: IOType,
-        where_clause: String = "1 = 1"
-    ): ZIO[SparkSession, Throwable, Dataset[T]] =
-      ZIO.accessM[SparkApi](_.get.LoadDS[T](location, input_type, where_clause)).provideLayer(env)
   }
 }

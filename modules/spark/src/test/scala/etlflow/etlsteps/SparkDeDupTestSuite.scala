@@ -7,9 +7,9 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object SparkDeDupTestSuite extends DefaultRunnableSpec with TestSparkSession {
+object SparkDeDupTestSuite extends TestSparkSession {
 
-  override def spec: ZSpec[environment.TestEnvironment, Any] = {
+  val spec: ZSpec[environment.TestEnvironment, Any] = {
 
     val schema = new StructType()
       .add("userId", IntegerType)

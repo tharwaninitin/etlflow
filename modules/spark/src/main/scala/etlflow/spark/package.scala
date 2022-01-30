@@ -28,7 +28,6 @@ package object spark {
     final case object PARQUET                                                            extends IOType
     final case object ORC                                                                extends IOType
     final case object TEXT                                                               extends IOType
-    final case object EXCEL                                                              extends IOType
   }
 
   sealed trait Environment

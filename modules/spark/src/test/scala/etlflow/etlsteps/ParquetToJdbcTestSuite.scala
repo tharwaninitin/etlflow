@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.model.Credential.JDBC
+import etlflow.SparkTestSuiteHelper
 import etlflow.schema.{Rating, RatingsMetrics}
-import etlflow.spark.IOType.{PARQUET, RDB}
+import etlflow.spark.IOType.PARQUET
 import etlflow.spark.SparkEnv
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode}
@@ -10,15 +10,9 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, ZIO}
 
-object SparkExample1TestSuite extends ApplicationLogger {
+object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelper {
 
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
-  val canonical_path: String = new java.io.File(".").getCanonicalPath
-  val input_path_parquet     = s"$canonical_path/modules/spark/src/test/resources/input/ratings_parquet"
-  val output_table           = "ratings"
-  val cred: JDBC             = JDBC("jdbc:postgresql://localhost:5432/etlflow", "etlflow", "etlflow", "org.postgresql.Driver")
-  val jdbc: RDB              = RDB(cred)
-
   val step1: RIO[SparkEnv, Unit] = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     input_location = Seq(input_path_parquet),
@@ -54,7 +48,7 @@ object SparkExample1TestSuite extends ApplicationLogger {
   } yield bool
 
   val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
-    suite("Spark Steps 1")(
+    suite("LoadRatingsParquetToJdbc")(
       testM("Record counts and Sum should be matching") {
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
       }

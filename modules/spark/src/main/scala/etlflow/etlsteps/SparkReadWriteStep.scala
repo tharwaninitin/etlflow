@@ -3,8 +3,7 @@ package etlflow.etlsteps
 import etlflow.spark._
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
-import zio.{RIO, Task, UIO}
-
+import zio.{RIO, UIO}
 import scala.reflect.runtime.universe.TypeTag
 
 case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
@@ -14,9 +13,10 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
     input_filter: String = "1 = 1",
     output_location: String,
     output_type: IOType,
-    output_filename: Option[String] = None,
-    output_partition_col: Seq[String] = Seq.empty[String],
     output_save_mode: SaveMode = SaveMode.Append,
+    output_partition_col: Seq[String] = Seq.empty[String],
+    output_filename: Option[String] = None,
+    output_compression: String = "none", // ("gzip","snappy")
     output_repartitioning: Boolean = false,
     output_repartitioning_num: Int = 1,
     transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]] = None
@@ -58,34 +58,33 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
       ip <- SparkApi.ReadDS[I](input_location, input_type, input_filter)
       op <- transform_function match {
         case Some(transformFunc) =>
-          Task {
-            val output = transformFunc(spark, ip)
-            WriteApi.WriteDS[O](
-              output_type,
-              output_location,
-              output_partition_col,
-              output_save_mode,
-              output_filename,
-              repartition = output_repartitioning,
-              n = output_repartitioning_num
-            )(output, spark)
-          } *> UIO {
+          SparkApi.WriteDS[O](
+            transformFunc(spark, ip),
+            output_type,
+            output_location,
+            output_save_mode,
+            output_partition_col,
+            output_filename,
+            output_compression,
+            output_repartitioning,
+            output_repartitioning_num
+          )(spark) *> UIO {
             logger.info(s"recordsReadCount: $recordsReadCount")
             logger.info(s"recordsWrittenCount: $recordsWrittenCount")
             logger.info("#" * 50)
           }
         case None =>
-          Task {
-            WriteApi.WriteDS[I](
-              output_type,
-              output_location,
-              output_partition_col,
-              output_save_mode,
-              output_filename,
-              repartition = output_repartitioning,
-              n = output_repartitioning_num
-            )(ip, spark)
-          } *> UIO {
+          SparkApi.WriteDS[I](
+            ip,
+            output_type,
+            output_location,
+            output_save_mode,
+            output_partition_col,
+            output_filename,
+            output_compression,
+            output_repartitioning,
+            output_repartitioning_num
+          )(spark) *> UIO {
             logger.info(s"recordsReadCount: $recordsReadCount")
             logger.info(s"recordsWrittenCount: $recordsWrittenCount")
             logger.info("#" * 50)
@@ -96,14 +95,15 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
 
   override def getStepProperties: Map[String, String] = {
     val in_map = ReadApi.DSProps[I](input_location, input_type)
-    val out_map = WriteApi.WriteDSHelper[O](
+    val out_map = WriteApi.DSProps[O](
       output_type,
       output_location,
-      output_partition_col,
       output_save_mode,
+      output_partition_col,
       output_filename,
-      recordsWrittenCount,
-      repartition = output_repartitioning
+      output_compression,
+      output_repartitioning,
+      output_repartitioning_num
     )
     in_map ++ out_map ++ sparkRuntimeConf ++ Map(
       "Number of records written" -> recordsWrittenCount.toString,

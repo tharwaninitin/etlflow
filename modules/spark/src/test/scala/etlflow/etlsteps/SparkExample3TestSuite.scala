@@ -36,7 +36,7 @@ object SparkExample3TestSuite extends SparkUDF with ApplicationLogger {
       .distinct()
       .as[String]
       .collect()
-    WriteApi.WriteDS[Rating](jdbc, "ratings")(ds, spark)
+    WriteApi.DS[Rating](ds, jdbc, "ratings")(spark)
     year_month
   }
 

@@ -1,42 +1,32 @@
 package etlflow.etlsteps
 
 import etlflow.TestSparkSession
+import etlflow.schema.Rating
+import etlflow.spark.IOType.CSV
+import etlflow.spark.SparkEnv
 import org.apache.spark.sql.functions.{current_timestamp, lit}
-import org.apache.spark.sql.types._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object SparkDeDupTestSuite extends TestSparkSession {
 
-  val spec: ZSpec[environment.TestEnvironment, Any] = {
+  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] = {
 
-    val schema = new StructType()
-      .add("userId", IntegerType)
-      .add("movieId", IntegerType)
-      .add("rating", DoubleType)
-      .add("timestamp", LongType)
-    val df = spark.readStream
-      .schema(schema)
-      .option("header", "true")
-      .csv("modules/spark/src/test/resources/input/ratings/*")
-      .withColumn("watermark_ts", lit(current_timestamp()))
-    val step = SparkDeDupStep(
-      "Test",
-      df,
-      s"modules/spark/src/test/resources/checkpoint",
-      "watermark_ts",
-      "10 days",
-      Seq("userId", "movieId")
+    val step = SparkDeDupStep[Rating](
+      name = "LoadCsv",
+      input_type = CSV(),
+      input_location = "modules/spark/src/test/resources/input/ratings/*",
+      transformation = _.withColumn("watermark_ts", lit(current_timestamp())),
+      checkpointLocation = s"modules/spark/src/test/resources/checkpoint",
+      eventTimeCol = "watermark_ts",
+      delayThreshold = "10 days",
+      deDupCols = Seq("user_id", "movie_id")
     )
 
-    suite("Spark Steps")(
+    suite("Spark Streaming Step")(
       testM("Execute Batch") {
         assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      },
-      test("Stop Spark Session") {
-        spark.stop()
-        assertTrue(1 == 1)
       }
     ) @@ TestAspect.sequential
   }

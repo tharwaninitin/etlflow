@@ -1,7 +1,8 @@
 package etlflow.spark
 
+import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Row, SaveMode, SparkSession}
-import zio.{Managed, Task, TaskLayer}
+import zio.{Managed, Task, TaskLayer, UIO}
 
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe.TypeTag
@@ -16,6 +17,12 @@ case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
     Task(ReadApi.DSProps[T](location, input_type))
   override def ReadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String): Task[Dataset[T]] =
     Task(ReadApi.DS[T](location, input_type, where_clause)(spark))
+  override def ReadStreamingDS[T <: Product: TypeTag](
+      location: String,
+      input_type: IOType,
+      where_clause: String
+  ): Task[Dataset[T]] =
+    Task(ReadApi.StreamingDS[T](location, input_type, where_clause)(spark))
   override def ReadDF(
       location: Seq[String],
       input_type: IOType,
@@ -70,6 +77,14 @@ case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
     )(spark)
   )
 }
-object SparkImpl {
-  def live(spark: SparkSession): TaskLayer[SparkEnv] = Managed.fromAutoCloseable(Task(spark)).map(SparkImpl(_)).toLayer
+object SparkImpl extends ApplicationLogger {
+  def live(spark: SparkSession): TaskLayer[SparkEnv] = Managed
+    .make(Task(spark))(a =>
+      UIO {
+        logger.info("Stopping spark session")
+        a.close()
+      }
+    )
+    .map(SparkImpl(_))
+    .toLayer
 }

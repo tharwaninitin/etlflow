@@ -10,8 +10,8 @@ object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
       ParquetToJdbcTestSuite.spec,
       ParquetToJdbcGenericSparkStepTestSuite.spec,
       ParquetToJsonTestSuite.spec,
-      TransformationTestSuite.spec
-      // SparkDeDupTestSuite.spec,
+      TransformationTestSuite.spec,
+      SparkDeDupTestSuite.spec
       // BQtoGCStoGCSTestSuite.spec,
     ).provideCustomLayerShared(SparkImpl.live(spark).orDie) @@ TestAspect.sequential
 }

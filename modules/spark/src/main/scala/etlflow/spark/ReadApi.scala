@@ -1,9 +1,12 @@
 package etlflow.spark
 
+import etlflow.model.EtlFlowException.EtlJobException
 import etlflow.spark.IOType._
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, split}
+import org.apache.spark.sql.types.StructType
+
 import scala.reflect.runtime.universe.TypeTag
 
 object ReadApi extends ApplicationLogger {
@@ -51,7 +54,7 @@ object ReadApi extends ApplicationLogger {
             spark.conf.set("materializationDataset", temp_dataset)
             df_reader.format("bigquery").option("query", location.head)
         }
-      case _ => df_reader.format("text")
+      case TEXT | MCSV(_, _) => df_reader.format("text")
     }
   }
 
@@ -102,6 +105,54 @@ object ReadApi extends ApplicationLogger {
           .select(columns: _*)
       case TEXT => df_reader.load(location: _*).where(where_clause)
     }
+
+    logger.info("#" * 20 + " Actual Input Schema " + "#" * 20)
+    df.schema.printTreeString() // df.schema.foreach(x => read_logger.info(x.toString))
+    logger.info("#" * 20 + " Provided Input Case Class Schema " + "#" * 20)
+    mapping.schema.printTreeString()
+
+    // Selecting only those columns which are provided in type T
+    df.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping)
+  }
+
+  private def streamingDf(location: String, input_type: IOType, schema: StructType)(spark: SparkSession): DataFrame = {
+    val df_reader = spark.readStream
+    input_type match {
+      case CSV(delimiter, header_present, parse_mode, quotechar) =>
+        df_reader
+          .format("csv")
+          .option("columnNameOfCorruptRecord", "_corrupt_record")
+          .option("delimiter", delimiter)
+          .option("quote", quotechar)
+          .option("header", header_present)
+          .option("mode", parse_mode)
+          .schema(schema)
+          .load(location)
+      case JSON(multi_line) => df_reader.format("json").option("multiline", multi_line).schema(schema).load(location)
+      case PARQUET          => df_reader.format("parquet").schema(schema).load(location)
+      case ORC              => df_reader.format("orc").schema(schema).load(location)
+      case TEXT             => df_reader.format("text").schema(schema).load(location)
+      case MCSV(delimiter, column_count) =>
+        val columns: IndexedSeq[Column] = (0 to column_count).map(id => col(s"value")(id).as(s"value${id + 1}"))
+        df_reader
+          .format("text")
+          .schema(schema)
+          .load(location)
+          .withColumn("value", split(col("value"), delimiter))
+          .select(columns: _*)
+      case a => throw EtlJobException(s"Unsupported input format $a")
+    }
+  }
+
+  def StreamingDS[T <: Product: TypeTag](location: String, input_type: IOType, where_clause: String = "1 = 1")(
+      spark: SparkSession
+  ): Dataset[T] = {
+
+    logger.info(s"Input location: $location")
+
+    val mapping = Encoders.product[T]
+
+    val df = streamingDf(location, input_type, mapping.schema)(spark).where(where_clause)
 
     logger.info("#" * 20 + " Actual Input Schema " + "#" * 20)
     df.schema.printTreeString() // df.schema.foreach(x => read_logger.info(x.toString))

@@ -14,6 +14,7 @@ object SparkApi {
         where_clause: String
     ): F[Map[String, String]]
     def ReadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String): F[Dataset[T]]
+    def ReadStreamingDS[T <: Product: TypeTag](location: String, input_type: IOType, where_clause: String): F[Dataset[T]]
     def ReadDF(location: Seq[String], input_type: IOType, where_clause: String, select_clause: Seq[String]): F[Dataset[Row]]
     def WriteDSProps[T <: Product: TypeTag](
         output_type: IOType,
@@ -49,6 +50,11 @@ object SparkApi {
       input_type: IOType,
       where_clause: String = "1 = 1"
   ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.ReadDS[T](location, input_type, where_clause))
+  def ReadStreamingDS[T <: Product: TypeTag](
+      location: String,
+      input_type: IOType,
+      where_clause: String = "1 = 1"
+  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.ReadStreamingDS[T](location, input_type, where_clause))
   def ReadDF(
       location: Seq[String],
       input_type: IOType,

@@ -19,7 +19,7 @@ object TransformationTestSuite extends SparkUDF {
         assertTrue(get_24hr_formatted_from_12hr("12:12:12 PM").toList.contains("12:12:12"))
       },
       test("Case 5 : get_24hr_formatted_from_12hr ") {
-        assertTrue(get_24hr_formatted_from_12hr("12:12:12 PM").toList.contains("10:12:12"))
+        assertTrue(get_24hr_formatted_from_12hr("12:12:12 PM").toList.contains("12:12:12"))
       },
       test("Case 6 : get_24hr_formatted_from_12hr ") {
         assertTrue(get_24hr_formatted_from_12hr(null).isEmpty)
@@ -34,7 +34,7 @@ object TransformationTestSuite extends SparkUDF {
         assertTrue(get_24hr_formatted("121111").toList.contains("12:11:11"))
       },
       test("Case 4 : get_24hr_formatted ") {
-        assertTrue(get_24hr_formatted("121111").toList.contains("10:11:11"))
+        assertTrue(get_24hr_formatted("121111").toList.contains("12:11:11"))
       },
       test("Case 5 : get_24hr_formatted ") {
         assertTrue(get_24hr_formatted(null).isEmpty)

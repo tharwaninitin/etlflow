@@ -1,8 +1,8 @@
 package examples
 
-import etlflow.etlsteps.SparkReadTransformWriteStep
+import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.Environment.{GCP, LOCAL}
-import etlflow.spark.{IOType, SparkManager}
+import etlflow.spark.{IOType, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
 import Globals.default_ratings_input_path_csv
 import examples.Schema.{Rating, RatingOutput}
@@ -49,16 +49,16 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
     ratings_ds
   }
 
-  private val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
+  private val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatingsParquet",
     input_location = Seq(default_ratings_input_path_csv),
     input_type = IOType.CSV(),
-    transform_function = enrichRatingData,
+    transform_function = Some(enrichRatingData),
     output_type = IOType.CSV(),
     output_location = gcs_output_path,
     output_partition_col = Seq(f"$temp_date_col"),
     output_save_mode = SaveMode.Overwrite
-  )
+  ).process.provideLayer(SparkImpl.live(spark))
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.process.exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.exitCode
 }

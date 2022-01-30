@@ -3,7 +3,7 @@ package examples
 import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.RDB
-import etlflow.spark.{IOType, SparkManager}
+import etlflow.spark.{IOType, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
 import examples.Globals.default_ratings_input_path
 import examples.Schema.Rating
@@ -12,10 +12,10 @@ import zio.{ExitCode, UIO, URIO}
 
 object EtlJobParquetToJdbc extends zio.App with ApplicationLogger {
 
-  implicit private val spark: SparkSession =
+  private lazy val spark: SparkSession =
     SparkManager.createSparkSession(Set(etlflow.spark.Environment.LOCAL), hive_support = false)
 
-  private val step1 = SparkReadWriteStep[Rating](
+  private val step1 = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     input_location = List(default_ratings_input_path),
     input_type = IOType.PARQUET,
@@ -24,7 +24,7 @@ object EtlJobParquetToJdbc extends zio.App with ApplicationLogger {
     output_save_mode = SaveMode.Overwrite
   )
 
-  val job = step1.process *> UIO(spark.stop())
+  val job = step1.process.provideLayer(SparkImpl.live(spark))
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
 }

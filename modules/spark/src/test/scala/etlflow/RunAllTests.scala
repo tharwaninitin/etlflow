@@ -8,10 +8,10 @@ object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("All Spark Steps")(
       ParquetToJdbcTestSuite.spec,
+      ParquetToJdbcGenericSparkStepTestSuite.spec,
       ParquetToJsonTestSuite.spec,
       TransformationTestSuite.spec
       // SparkDeDupTestSuite.spec,
-      // SparkExample2TestSuite.spec,
-      // SparkExample3TestSuite.spec,
+      // BQtoGCStoGCSTestSuite.spec,
     ).provideCustomLayerShared(SparkImpl.live(spark).orDie) @@ TestAspect.sequential
 }

@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.model.Credential.JDBC
+import etlflow.SparkTestSuiteHelper
 import etlflow.schema.Rating
-import etlflow.spark.IOType.{PARQUET, RDB}
+import etlflow.spark.IOType.PARQUET
 import etlflow.spark.{ReadApi, SparkEnv, SparkUDF, WriteApi}
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.functions.{col, from_unixtime}
@@ -12,23 +12,11 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object SparkExample3TestSuite extends SparkUDF with ApplicationLogger {
-
-  val cred = JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))
-  val jdbc = RDB(cred)
-
-  val step1 = SparkReadWriteStep[Rating, Rating](
-    name = "LoadRatingsParquetToJdbc",
-    input_location = List("path/to/input"),
-    input_type = PARQUET,
-    output_type = jdbc,
-    output_location = "ratings",
-    output_save_mode = SaveMode.Overwrite
-  )
+object ParquetToJdbcGenericSparkStepTestSuite extends SparkUDF with ApplicationLogger with SparkTestSuiteHelper {
 
   def getYearMonthData(spark: SparkSession): Array[String] = {
     import spark.implicits._
-    val ds = ReadApi.DS[Rating](List("path/to/input"), PARQUET)(spark)
+    val ds = ReadApi.DS[Rating](List(input_path_parquet), PARQUET)(spark)
     val year_month = ds
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumn("year_month", get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
@@ -36,12 +24,12 @@ object SparkExample3TestSuite extends SparkUDF with ApplicationLogger {
       .distinct()
       .as[String]
       .collect()
-    WriteApi.DS[Rating](ds, jdbc, "ratings")(spark)
+    WriteApi.DS[Rating](ds, jdbc, output_table, SaveMode.Overwrite)(spark)
     year_month
   }
 
-  val step2 = SparkStep(
-    name = "GenerateYearMonth",
+  val step1: SparkStep[Array[String]] = SparkStep(
+    name = "LoadRatingsParquetToJdbc",
     transform_function = getYearMonthData
   )
 
@@ -50,19 +38,18 @@ object SparkExample3TestSuite extends SparkUDF with ApplicationLogger {
     logger.info(ip.toList.toString())
   }
 
-  def step3(ip: Array[String]) = GenericETLStep(
+  def step2(ip: Array[String]): GenericETLStep[Unit] = GenericETLStep(
     name = "ProcessData",
     function = processData(ip)
   )
 
   val job: ZIO[SparkEnv, Throwable, Unit] = for {
-    _  <- step1.process
-    op <- step2.process
-    _  <- step3(op).process
+    op <- step1.process
+    _  <- step2(op).process
   } yield ()
 
   val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
-    suite("Spark Steps 3")(testM("Execute Basic Spark steps") {
+    suite("ParquetToJdbcGenericSparkStepTestSuite")(testM("Execute ParquetToJdbc SparkStep") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     })
 }

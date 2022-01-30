@@ -11,7 +11,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object SparkExample2TestSuite extends TestSparkSession with SparkUDF {
+object BQtoGCStoGCSTestSuite extends TestSparkSession with SparkUDF {
 
   case class EtlJob6Props(
       ratings_input_dataset: String = "test",

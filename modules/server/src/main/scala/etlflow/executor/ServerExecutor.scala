@@ -2,7 +2,7 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.db.DBServerEnv
-import etlflow.gcp.{DP, DPApi}
+import etlflow.gcp.{DPJob, DPJobApi}
 import etlflow.json.JsonEnv
 import etlflow.model.Executor
 import etlflow.model.Config
@@ -72,7 +72,7 @@ case class ServerExecutor[T <: EJPMType: Tag](
           val dp_libs          = config.dataproc.map(_.deplibs).getOrElse(List.empty)
           val actual_props_str = actual_props.map(x => s"${x._1}=${x._2}").mkString(",")
           val dp_args          = List("run_job", "--job_name", args.name, "--props", actual_props_str)
-          DPApi.executeSparkJob(dp_args, main_class, dp_libs, dp).provideLayer(DP.live)
+          DPJobApi.executeSparkJob(dp_args, main_class, dp_libs, dp).provideLayer(DPJob.live(dp.endpoint))
         case LIVY(_) =>
           Task.fail(ExecutionError("Deploy mode LIVY not yet supported"))
         case KUBERNETES(_, _, _, _, _, _) =>

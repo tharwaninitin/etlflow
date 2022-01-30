@@ -2,8 +2,7 @@ package etlflow
 
 import com.google.cloud.bigquery.{LegacySQLTypeName, Schema}
 import etlflow.gcp.getBqSchema
-import zio.test.Assertion.equalTo
-import zio.test.{DefaultRunnableSpec, ZSpec, assert}
+import zio.test._
 import java.sql.Date
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
@@ -11,14 +10,14 @@ import scala.jdk.CollectionConverters._
 object BQSchemaMappingTestSuite extends DefaultRunnableSpec {
 
   case class RatingCSV(
-                        userId: String,
-                        movieId: Int,
-                        rating: Long,
-                        timestamp: Double,
-                        start_date: Date,
-                        end_date: java.util.Date,
-                        is_active: Boolean
-                      )
+      userId: String,
+      movieId: Int,
+      rating: Long,
+      timestamp: Double,
+      start_date: Date,
+      end_date: java.util.Date,
+      is_active: Boolean
+  )
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
     suite("getFields Test Suites")(
@@ -33,7 +32,7 @@ object BQSchemaMappingTestSuite extends DefaultRunnableSpec {
           ("end_date", LegacySQLTypeName.DATE),
           ("is_active", LegacySQLTypeName.BOOLEAN)
         )
-        assert(schema.get.getFields.asScala.map(x => (x.getName, x.getType)))(equalTo(op))
+        assertTrue(schema.get.getFields.asScala.map(x => (x.getName, x.getType)) == op)
       }
     )
 }

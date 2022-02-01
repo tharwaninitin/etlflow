@@ -1,11 +1,11 @@
 package etlflow.steps
 
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
-import etlflow.gcp.DP
+import etlflow.gcp.DPJob
 import etlflow.model.Executor.{DATAPROC, SPARK_CONF}
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{assertM, environment, DefaultRunnableSpec, TestAspect, ZSpec}
+import zio.test._
 
 object DPStepsTestSuite extends DefaultRunnableSpec {
 
@@ -17,13 +17,13 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
   )
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow Steps")(
+    (suite("EtlFlow DPJobSteps")(
       testM("Execute DPHiveJob step") {
         val step = DPHiveJobStep(
           name = "DPHiveJobStepExample",
           query = "SELECT 1 AS ONE",
           config = dpConfig
-        ).process.provideLayer(DP.live)
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
@@ -38,8 +38,8 @@ object DPStepsTestSuite extends DefaultRunnableSpec {
           config = dpConfig.copy(sp = spark_conf),
           main_class = "org.apache.spark.examples.SparkPi",
           libs = libs
-        ).process.provideLayer(DP.live)
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    ) @@ TestAspect.sequential
+    ) @@ TestAspect.sequential).provideCustomLayerShared(DPJob.live(dpConfig.endpoint).orDie)
 }

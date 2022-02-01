@@ -10,7 +10,7 @@ import zio.test.{assertM, environment, DefaultRunnableSpec, ZSpec}
 object DPCreateTestSuite extends DefaultRunnableSpec {
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow Steps")(
+    suite("EtlFlow DPCreateStep Step")(
       testM("Execute DPCreateStep") {
 
         val dpConfig = DATAPROC(
@@ -31,7 +31,8 @@ object DPCreateTestSuite extends DefaultRunnableSpec {
           name = "DPCreateStepExample",
           config = dpConfig,
           props = dpProps
-        ).process.provideLayer(DP.live)
+        ).process.provideLayer(DP.live(dpConfig.endpoint).orDie)
+
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     )

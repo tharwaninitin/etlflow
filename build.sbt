@@ -39,7 +39,7 @@ lazy val coreSettings = Seq(
 lazy val sparkSettings = Seq(
   name               := "etlflow-spark",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ sparkTestLibs
+  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
 )
 
 lazy val cloudSettings = Seq(
@@ -88,7 +88,7 @@ lazy val emailSettings = Seq(
 lazy val awsSettings = Seq(
   name               := "etlflow-aws",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= awsLibs ++ zioTestLibs ++ cloudTestLibs
+  libraryDependencies ++= awsLibs ++ zioTestLibs ++ coreTestLibs
 )
 
 lazy val gcpSettings = Seq(

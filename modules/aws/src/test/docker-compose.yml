@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./minio/data:/data
+    environment:
+      - MINIO_ROOT_USER=etlflow
+      - MINIO_ROOT_PASSWORD=etlflowpass
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+    command: server /data --console-address ":9001"

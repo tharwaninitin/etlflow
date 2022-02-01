@@ -4,7 +4,7 @@ import etlflow.spark.Environment._
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.SparkSession
 
-object SparkManager  extends  ApplicationLogger {
+object SparkManager extends ApplicationLogger {
   private def showSparkProperties(spark: SparkSession): Unit = {
     logger.info("spark.scheduler.mode = " + spark.sparkContext.getSchedulingMode)
     logger.info("spark.default.parallelism = " + spark.conf.getOption("spark.default.parallelism"))
@@ -19,26 +19,25 @@ object SparkManager  extends  ApplicationLogger {
   }
 
   def createSparkSession(
-                          env: Set[Environment] = Set(LOCAL),
-                          props: Map[String, String] = Map(
-                            "spark.scheduler.mode" -> "FAIR",
-                            "spark.sql.sources.partitionOverwriteMode" -> "dynamic",
-                            "spark.default.parallelism" -> "10",
-                            "spark.sql.shuffle.partitions" -> "10"
-                          ),
-                          hive_support: Boolean = true
-                        ): SparkSession =  {
+      env: Set[Environment] = Set(LOCAL),
+      props: Map[String, String] = Map(
+        "spark.scheduler.mode"                     -> "FAIR",
+        "spark.sql.sources.partitionOverwriteMode" -> "dynamic",
+        "spark.default.parallelism"                -> "10",
+        "spark.sql.shuffle.partitions"             -> "10"
+      ),
+      hive_support: Boolean = true
+  ): SparkSession =
     if (SparkSession.getActiveSession.isDefined) {
       val spark = SparkSession.getActiveSession.get
       logger.info(s"###### Using Already Created Spark Session with $env support ##########")
       spark
-    }
-    else {
+    } else {
       logger.info(s"###### Creating Spark Session with $env support ##########")
       var sparkBuilder = SparkSession.builder()
 
-      props.foreach{prop =>
-        sparkBuilder = sparkBuilder.config(prop._1,prop._2)
+      props.foreach { prop =>
+        sparkBuilder = sparkBuilder.config(prop._1, prop._2)
       }
 
       env.foreach {
@@ -67,5 +66,4 @@ object SparkManager  extends  ApplicationLogger {
       showSparkProperties(spark)
       spark
     }
-  }
 }

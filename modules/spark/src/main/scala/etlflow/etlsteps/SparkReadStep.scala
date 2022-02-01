@@ -1,64 +1,57 @@
 package etlflow.etlsteps
 
-import etlflow.spark.{IOType, _}
+import etlflow.spark._
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
-import zio.Task
+import zio.RIO
 import scala.reflect.runtime.universe.TypeTag
 
-class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag] private[etlsteps] (
-    val name: String,
-    input_location: => Seq[String],
+case class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag](
+    name: String,
+    input_location: Seq[String],
     input_type: IOType,
     input_filter: String = "1 = 1",
-    transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]]
-)(implicit spark: SparkSession)
-    extends EtlStep[Any, Dataset[O]] {
+    transform_function: Option[(SparkSession, Dataset[I]) => Dataset[O]] = None
+) extends EtlStep[SparkEnv, Dataset[O]] {
 
-  private var recordsReadCount = 0L
+  private var recordsWrittenCount = 0L
+  private var recordsReadCount    = 0L
+  private var sparkRuntimeConf    = Map.empty[String, String]
 
-  final def process: Task[Dataset[O]] = {
-    val program = SparkApi.LoadDS[I](input_location, input_type, input_filter)
-
-    spark.sparkContext.addSparkListener(new SparkListener() {
-      override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
-        synchronized {
-          recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
-        }
-    })
-    logger.info("#################################################################################################")
-    logger.info(s"Starting Spark Read Step : $name")
-
-    transform_function match {
-      case Some(transformFunc) =>
-        program.map(ds => transformFunc(spark, ds)).provide(spark)
-      case None =>
-        val mapping = Encoders.product[O]
-        program.map(ds => ds.as[O](mapping)).provide(spark)
-    }
-  }
+  final def process: RIO[SparkEnv, Dataset[O]] =
+    for {
+      spark <- SparkApi.getSparkSession
+      _ = logger.info("#" * 50)
+      _ = logger.info(s"Starting Spark Read Step: $name")
+      _ = spark.sparkContext.addSparkListener(new SparkListener() {
+        override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
+          synchronized {
+            recordsReadCount += taskEnd.taskMetrics.inputMetrics.recordsRead
+          }
+      })
+      _ = spark.sparkContext.addSparkListener(new SparkListener() {
+        override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
+          synchronized {
+            recordsWrittenCount += taskEnd.taskMetrics.outputMetrics.recordsWritten
+          }
+      })
+      ip <- SparkApi.ReadDS[I](input_location, input_type, input_filter)
+      op = transform_function match {
+        case Some(transformFunc) => transformFunc(spark, ip)
+        case None                => ip.as[O](Encoders.product[O])
+      }
+      _ = sparkRuntimeConf = SparkRuntimeConf(spark)
+    } yield op
 
   override def getStepProperties: Map[String, String] =
-    ReadApi.LoadDSHelper[I](input_location, input_type).toList.toMap
-
-  override def getExecutionMetrics: Map[String, String] =
-    Map(
-      "Number of records read" -> recordsReadCount.toString
+    ReadApi.DSProps[I](input_location, input_type).toList.toMap ++ sparkRuntimeConf ++ Map(
+      "Number of records written" -> recordsWrittenCount.toString,
+      "Number of records read"    -> recordsReadCount.toString
     )
 
-  def showCorruptedData(): Unit = {
+  def showCorruptedData(numRows: Int = 100): RIO[SparkEnv, Unit] = {
     logger.info(s"Corrupted data for job $name:")
-    val ds = ReadApi.LoadDS[O](input_location, input_type)(spark)
-    ds.filter("_corrupt_record is not null").show(100, truncate = false)
+    val program = SparkApi.ReadDS[O](input_location, input_type)
+    program.map(_.filter("_corrupt_record is not null").show(numRows, truncate = false))
   }
-}
-
-object SparkReadStep {
-  def apply[T <: Product: TypeTag](
-      name: String,
-      input_location: => Seq[String],
-      input_type: IOType,
-      input_filter: String = "1 = 1"
-  )(implicit spark: SparkSession): SparkReadStep[T, T] =
-    new SparkReadStep[T, T](name, input_location, input_type, input_filter, None)
 }

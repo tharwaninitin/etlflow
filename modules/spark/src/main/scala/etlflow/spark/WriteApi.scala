@@ -10,69 +10,65 @@ import scala.reflect.runtime.universe.TypeTag
 
 object WriteApi extends ApplicationLogger {
 
-  logger.info(s"Loaded ${getClass.getName}")
-
-  def WriteDSHelper[T <: Product: TypeTag](
+  def DSProps[T <: Product: TypeTag](
       output_type: IOType,
       output_location: String,
-      partition_by: Seq[String] = Seq.empty[String],
       save_mode: SaveMode = SaveMode.Append,
+      partition_by: Seq[String] = Seq.empty[String],
       output_filename: Option[String] = None,
-      recordsWrittenCount: Long,
-      compression: String = "none",
-      repartition: Boolean = false
-  ): Map[String, String] = {
-    val mapping = Encoders.product[T]
+      compression: String = "none", // ("compression", "gzip","snappy")
+      repartition: Boolean = false,
+      repartition_no: Int = 1
+  ): Map[String, String] =
     Map(
       "output_location" -> output_location,
-      "partition_by"    -> partition_by.toString,
       "save_mode"       -> save_mode.toString,
+      "partition_by"    -> partition_by.mkString(","),
       "compression"     -> compression,
       "repartition"     -> repartition.toString,
+      "repartition_no"  -> repartition_no.toString,
       "output_filename" -> output_filename.getOrElse("NA"),
       "output_type"     -> output_type.toString,
-      "output_class"    -> mapping.schema.toDDL,
-      "output_rows"     -> recordsWrittenCount.toString
+      "output_class"    -> Encoders.product[T].schema.toDDL
     )
 
-  }
-
-  def WriteDS[T <: Product: TypeTag](
+  def DS[T <: Product: TypeTag](
+      input: Dataset[T],
       output_type: IOType,
       output_location: String,
-      partition_by: Seq[String] = Seq.empty[String],
       save_mode: SaveMode = SaveMode.Append,
+      partition_by: Seq[String] = Seq.empty[String],
       output_filename: Option[String] = None,
-      n: Int = 1,
       compression: String = "none", // ("compression", "gzip","snappy")
-      repartition: Boolean = false
-  )(source: Dataset[T], spark: SparkSession): Unit = {
+      repartition: Boolean = false,
+      repartition_no: Int = 1
+  )(spark: SparkSession): Unit = {
     val mapping = Encoders.product[T]
 
     logger.info("#" * 20 + " Actual Output Schema " + "#" * 20)
-    source.schema.printTreeString()
+    input.schema.printTreeString()
     logger.info("#" * 20 + " Provided Output Case Class Schema " + "#" * 20)
     mapping.schema.printTreeString()
 
     val df_writer = partition_by match {
       case partition if partition.nonEmpty && repartition =>
-        logger.info(s"Will generate $n repartitioned output files inside partitions $partition_by")
-        source
+        logger.info(s"Will generate $repartition_no repartitioned output files inside partitions $partition_by")
+        input
           .select(mapping.schema.map(x => col(x.name)): _*)
           .as[T](mapping)
-          .repartition(n, partition.map(c => col(c)): _*)
+          .repartition(repartition_no, partition.map(c => col(c)): _*)
           .write
           .option("compression", compression)
       case partition if partition.isEmpty && repartition =>
-        logger.info(s"Will generate $n repartitioned output files")
-        source
+        logger.info(s"Will generate $repartition_no repartitioned output files")
+        input
           .select(mapping.schema.map(x => col(x.name)): _*)
           .as[T](mapping)
-          .repartition(n)
+          .repartition(repartition_no)
           .write
           .option("compression", compression)
       case _ =>
-        source.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping).write.option("compression", compression)
+        input.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping).write.option("compression", compression)
     }
 
     val df_writer_options = output_type match {
@@ -82,7 +78,6 @@ object WriteApi extends ApplicationLogger {
           .option("delimiter", delimiter)
           .option("quote", quotechar)
           .option("header", header_present)
-      case EXCEL            => df_writer.format("com.crealytics.spark.excel").option("useHeader", "true")
       case PARQUET          => df_writer.format("parquet")
       case ORC              => df_writer.format("orc")
       case JSON(multi_line) => df_writer.format("json").option("multiline", multi_line)

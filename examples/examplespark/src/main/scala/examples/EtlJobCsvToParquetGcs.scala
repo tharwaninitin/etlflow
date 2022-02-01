@@ -1,8 +1,8 @@
 package examples
 
-import etlflow.etlsteps.{SparkETLStep, SparkReadTransformWriteStep}
+import etlflow.etlsteps.{SparkReadWriteStep, SparkStep}
 import etlflow.spark.Environment.{GCP, LOCAL}
-import etlflow.spark.{IOType, ReadApi, SparkManager}
+import etlflow.spark.{IOType, ReadApi, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
 import Globals.default_ratings_input_path_csv
 import examples.Schema.{Rating, RatingOutput}
@@ -41,7 +41,7 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
   def addFilePaths()(spark: SparkSession): Unit = {
     import spark.implicits._
     output_date_paths = ReadApi
-      .LoadDS[RatingOutput](Seq(gcs_output_path), IOType.PARQUET)(spark)
+      .DS[RatingOutput](Seq(gcs_output_path), IOType.PARQUET)(spark)
       .select(f"$temp_date_col")
       .withColumn("filename", input_file_name)
       .distinct()
@@ -53,11 +53,11 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     output_date_paths.foreach(path => println(path))
   }
 
-  private val step1 = SparkReadTransformWriteStep[Rating, RatingOutput](
+  private val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatingsParquet",
     input_location = Seq(default_ratings_input_path_csv),
     input_type = IOType.CSV(",", true, "FAILFAST"),
-    transform_function = enrichRatingData,
+    transform_function = Some(enrichRatingData),
     output_type = IOType.PARQUET,
     output_location = gcs_output_path,
     output_save_mode = SaveMode.Overwrite,
@@ -65,7 +65,7 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     output_repartitioning = true
   )
 
-  private val step2 = SparkETLStep(
+  private val step2 = SparkStep(
     name = "GenerateFilePaths",
     transform_function = addFilePaths()
   )
@@ -75,5 +75,5 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     _ <- step2.process
   } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.provideLayer(SparkImpl.live(spark)).exitCode
 }

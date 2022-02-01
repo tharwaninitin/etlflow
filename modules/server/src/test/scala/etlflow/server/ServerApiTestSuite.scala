@@ -4,7 +4,7 @@ import etlflow.model.Credential.JDBC
 import etlflow.server.model._
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio.test.Assertion.equalTo
-import zio.test.{TestAspect, ZSpec, assertM, environment, suite, testM}
+import zio.test.{assertM, environment, suite, testM, TestAspect, ZSpec}
 
 case class ServerApiTestSuite(credential: JDBC) {
 
@@ -32,7 +32,7 @@ case class ServerApiTestSuite(credential: JDBC) {
       ),
       testM("getCurrentTime Test")(
         assertM(Service.getCurrentTime.map(x => x))(equalTo(CurrentTime(current_time = getCurrentTimestampAsString())))
-      ),
+      ) @@ TestAspect.flaky,
       testM("getJobLogs Test")(
         assertM(Service.getJobLogs(JobLogsArgs(None, Some(10L))).map(x => x.filter(_.job_name != "Job1").sortBy(_.job_name)))(
           equalTo(jobLogs)

@@ -1,17 +1,20 @@
 package etlflow
 
 import com.google.cloud.bigquery.{Field, LegacySQLTypeName, Schema}
-import etlflow.utils.{ApplicationLogger, GetFields}
-import zio.{Has, Tag}
+import etlflow.utils.ApplicationLogger
+import zio.{Has, Tag, Task}
 import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 package object gcp extends ApplicationLogger {
 
-  type GCSEnv = Has[GCSApi.Service]
-  type BQEnv  = Has[BQApi.Service]
-  type DPEnv  = Has[DPApi.Service]
+  type GCSEnv   = Has[GCSApi.Service[Task]]
+  type BQEnv    = Has[BQApi.Service[Task]]
+  type DPEnv    = Has[DPApi.Service[Task]]
+  type DPJobEnv = Has[DPJobApi.Service[Task]]
+
+  case class BQLoadException(msg: String) extends RuntimeException(msg)
 
   case class DataprocProperties(
       bucket_name: String,
@@ -72,10 +75,13 @@ package object gcp extends ApplicationLogger {
 
   }
 
+  def getFields[T: Tag]: Array[(String, String)] =
+    implicitly[Tag[T]].closestClass.getDeclaredFields.map(f => (f.getName, f.getType.getName))
+
   def getBqSchema[T: Tag]: Option[Schema] =
     Try {
       val fields   = new util.ArrayList[Field]
-      val ccFields = GetFields[T]
+      val ccFields = getFields[T]
       if (ccFields.isEmpty)
         throw new RuntimeException("Schema not provided")
       ccFields.map(x => fields.add(Field.of(x._1, getBQType(x._2))))

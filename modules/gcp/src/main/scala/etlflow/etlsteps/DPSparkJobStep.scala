@@ -1,16 +1,16 @@
 package etlflow.etlsteps
 
-import etlflow.gcp.{DPApi, DPEnv}
+import etlflow.gcp.{DPJobApi, DPJobEnv}
 import etlflow.model.Executor.DATAPROC
 import zio.RIO
 
 case class DPSparkJobStep(name: String, args: List[String], config: DATAPROC, main_class: String, libs: List[String])
-    extends EtlStep[DPEnv, Unit] {
+    extends EtlStep[DPJobEnv, Unit] {
 
-  final def process: RIO[DPEnv, Unit] = {
+  final def process: RIO[DPJobEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting Dataproc Spark Job")
-    DPApi.executeSparkJob(args, main_class, libs, config)
+    DPJobApi.executeSparkJob(args, main_class, libs, config)
   }
 
   override def getStepProperties: Map[String, String] = Map(

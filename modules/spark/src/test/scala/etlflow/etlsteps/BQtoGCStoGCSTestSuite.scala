@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.TestSparkSession
+import etlflow.SparkTestSuiteHelper
 import etlflow.schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.{SparkEnv, SparkUDF}
@@ -11,30 +11,18 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object BQtoGCStoGCSTestSuite extends TestSparkSession with SparkUDF {
-
-  case class EtlJob6Props(
-      ratings_input_dataset: String = "test",
-      ratings_input_table_name: String = "ratings",
-      ratings_intermediate_bucket: String = s"gs://${sys.env("GCS_BUCKET")}/intermediate/ratings",
-      ratings_output_bucket_1: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/csv",
-      ratings_output_bucket_2: String = s"s3a://${sys.env("S3_BUCKET")}/temp/output/ratings/parquet",
-      ratings_output_bucket_3: String = s"gs://${sys.env("GCS_BUCKET")}/output/ratings/json",
-      ratings_output_file_name: Option[String] = Some("ratings.csv")
-  )
-
-  val job_props: EtlJob6Props = EtlJob6Props()
+object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
 
   val partition_date_col = "date_int"
 
-  val query = s""" SELECT * FROM `${job_props.ratings_input_dataset}.${job_props.ratings_input_table_name}` """.stripMargin
+  val query = s""" SELECT * FROM $dataset_name.$table_name` """.stripMargin
 
   val step0 = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatings BQ(query) to GCS CSV",
     input_location = Seq(query),
-    input_type = BQ(temp_dataset = "test", operation_type = "query"),
+    input_type = BQ(temp_dataset = dataset_name, operation_type = "query"),
     output_type = CSV(),
-    output_location = job_props.ratings_intermediate_bucket,
+    output_location = ratings_intermediate_bucket,
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
     output_repartitioning_num = 3
@@ -42,10 +30,10 @@ object BQtoGCStoGCSTestSuite extends TestSparkSession with SparkUDF {
 
   val step1 = SparkReadWriteStep[RatingBQ, RatingBQ](
     name = "LoadRatings BQ(table) to GCS CSV",
-    input_location = Seq(job_props.ratings_input_dataset + "." + job_props.ratings_input_table_name),
+    input_location = Seq(dataset_name + "." + table_name),
     input_type = BQ(),
     output_type = CSV(),
-    output_location = job_props.ratings_intermediate_bucket,
+    output_location = ratings_intermediate_bucket,
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
     output_repartitioning_num = 3
@@ -68,15 +56,15 @@ object BQtoGCStoGCSTestSuite extends TestSparkSession with SparkUDF {
 
   val step21 = SparkReadWriteStep[Rating, RatingOutputCsv](
     name = "LoadRatings GCS Csv To GCS Csv",
-    input_location = Seq(job_props.ratings_intermediate_bucket),
+    input_location = Seq(ratings_intermediate_bucket),
     input_type = CSV(),
     transform_function = Some(enrichRatingCsvData),
     output_type = CSV(),
-    output_location = job_props.ratings_output_bucket_1,
+    output_location = ratings_output_bucket_1,
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
     output_repartitioning_num = 1,
-    output_filename = job_props.ratings_output_file_name
+    output_filename = Some("ratings.csv")
   )
 
   def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
@@ -92,22 +80,22 @@ object BQtoGCStoGCSTestSuite extends TestSparkSession with SparkUDF {
 
   val step22 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatings GCS Csv To S3 Parquet",
-    input_location = Seq(job_props.ratings_intermediate_bucket),
+    input_location = Seq(ratings_intermediate_bucket),
     input_type = CSV(),
     transform_function = Some(enrichRatingData),
     output_type = PARQUET,
-    output_location = job_props.ratings_output_bucket_2,
+    output_location = ratings_output_bucket_2,
     output_save_mode = SaveMode.Overwrite,
     output_partition_col = Seq(s"$partition_date_col")
   )
 
   val step3 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatings GCS Csv To GCS Json",
-    input_location = Seq(job_props.ratings_intermediate_bucket),
+    input_location = Seq(ratings_intermediate_bucket),
     input_type = CSV(),
     transform_function = Some(enrichRatingData),
     output_type = JSON(),
-    output_location = job_props.ratings_output_bucket_3,
+    output_location = ratings_output_bucket_3,
     output_save_mode = SaveMode.Overwrite,
     output_partition_col = Seq(s"$partition_date_col"),
     output_repartitioning = true,
@@ -120,8 +108,8 @@ object BQtoGCStoGCSTestSuite extends TestSparkSession with SparkUDF {
     _ <- step3.process
   } yield ()
 
-  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
-    suite("Spark Steps 2")(testM("Execute SparkReadWriteStep steps") {
+  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+    testM("Execute SparkReadWriteSteps with GCS and BQ") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    })
+    }
 }

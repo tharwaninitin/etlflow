@@ -24,7 +24,7 @@ object ParquetToJdbcGenericSparkStepTestSuite extends SparkUDF with ApplicationL
       .distinct()
       .as[String]
       .collect()
-    WriteApi.DS[Rating](ds, jdbc, output_table, SaveMode.Overwrite)(spark)
+    WriteApi.DS[Rating](ds, jdbc, table_name, SaveMode.Overwrite)(spark)
     year_month
   }
 
@@ -48,8 +48,8 @@ object ParquetToJdbcGenericSparkStepTestSuite extends SparkUDF with ApplicationL
     _  <- step2(op).process
   } yield ()
 
-  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
-    suite("ParquetToJdbcGenericSparkStepTestSuite")(testM("Execute ParquetToJdbc SparkStep") {
+  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+    testM("Execute ParquetToJdbcGenericSparkStepTestSuite step") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    })
+    }
 }

@@ -18,7 +18,7 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     input_location = Seq(input_path_parquet),
     input_type = PARQUET,
     output_type = jdbc,
-    output_location = output_table,
+    output_location = table_name,
     output_save_mode = SaveMode.Overwrite
   ).process
 
@@ -39,7 +39,7 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     ip_ds <- step2
     enc   = Encoders.product[RatingsMetrics]
     ip    = ip_ds.selectExpr("sum(rating) as sum_ratings", "count(*) as count_ratings").as[RatingsMetrics](enc).first()
-    query = s"(SELECT sum(rating) as sum_ratings, count(*) as count_ratings FROM $output_table) as T"
+    query = s"(SELECT sum(rating) as sum_ratings, count(*) as count_ratings FROM $table_name) as T"
     op_ds <- step3(query)
     op   = op_ds.first()
     _    = logger.info(s"IP => $ip")
@@ -47,10 +47,8 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     bool = ip == op
   } yield bool
 
-  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
-    suite("LoadRatingsParquetToJdbc")(
-      testM("Record counts and Sum should be matching") {
-        assertM(job.foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
-      }
+  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+    testM("Record counts and sum should be matching after step run LoadRatingsParquetToJdbc")(
+      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
     )
 }

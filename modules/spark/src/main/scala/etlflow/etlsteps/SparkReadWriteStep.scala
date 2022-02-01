@@ -68,7 +68,7 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
             output_compression,
             output_repartitioning,
             output_repartitioning_num
-          )(spark) *> UIO {
+          ) *> UIO {
             logger.info(s"recordsReadCount: $recordsReadCount")
             logger.info(s"recordsWrittenCount: $recordsWrittenCount")
             logger.info("#" * 50)
@@ -84,7 +84,7 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
             output_compression,
             output_repartitioning,
             output_repartitioning_num
-          )(spark) *> UIO {
+          ) *> UIO {
             logger.info(s"recordsReadCount: $recordsReadCount")
             logger.info(s"recordsWrittenCount: $recordsWrittenCount")
             logger.info("#" * 50)

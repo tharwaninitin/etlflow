@@ -154,9 +154,7 @@ object ReadApi extends ApplicationLogger {
 
     val df = streamingDf(location, input_type, mapping.schema)(spark).where(where_clause)
 
-    logger.info("#" * 20 + " Actual Input Schema " + "#" * 20)
-    df.schema.printTreeString() // df.schema.foreach(x => read_logger.info(x.toString))
-    logger.info("#" * 20 + " Provided Input Case Class Schema " + "#" * 20)
+    logger.info("#" * 20 + " Provided Input Schema " + "#" * 20)
     mapping.schema.printTreeString()
 
     // Selecting only those columns which are provided in type T

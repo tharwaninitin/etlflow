@@ -6,12 +6,12 @@ import zio.test._
 
 object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("All Spark Steps")(
-      ParquetToJdbcTestSuite.spec,
-      ParquetToJdbcGenericSparkStepTestSuite.spec,
-      ParquetToJsonTestSuite.spec,
+    suite("Spark Steps")(
+      ParquetToJsonTestSuite.test,
+      SparkDeDupTestSuite.test,
+      ParquetToJdbcTestSuite.test,
+      ParquetToJdbcGenericSparkStepTestSuite.test,
       TransformationTestSuite.spec,
-      SparkDeDupTestSuite.spec
-      // BQtoGCStoGCSTestSuite.spec,
+      BQtoGCStoGCSTestSuite.test @@ TestAspect.ignore
     ).provideCustomLayerShared(SparkImpl.live(spark).orDie) @@ TestAspect.sequential
 }

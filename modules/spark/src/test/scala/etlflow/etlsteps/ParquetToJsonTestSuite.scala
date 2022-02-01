@@ -25,10 +25,8 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     output_filename = Some("ratings.json")
   ).process
 
-  val spec: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
-    suite("ParquetToJsonTestSuite")(
-      testM("Job should run successfully") {
-        assertM(step1.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
-      }
+  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+    testM("ParquetToJsonTestSuite step should run successfully")(
+      assertM(step1.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
     )
 }

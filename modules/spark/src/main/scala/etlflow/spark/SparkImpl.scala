@@ -3,26 +3,30 @@ package etlflow.spark
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Row, SaveMode, SparkSession}
 import zio.{Managed, Task, TaskLayer, UIO}
-
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe.TypeTag
 
 case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
+
   override def getSparkSession: Task[SparkSession] = Task(spark)
+
   override def ReadDSProps[T <: Product: TypeTag](
       location: Seq[String],
       input_type: IOType,
       where_clause: String
   ): Task[Map[String, String]] =
     Task(ReadApi.DSProps[T](location, input_type))
+
   override def ReadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String): Task[Dataset[T]] =
     Task(ReadApi.DS[T](location, input_type, where_clause)(spark))
+
   override def ReadStreamingDS[T <: Product: TypeTag](
       location: String,
       input_type: IOType,
       where_clause: String
   ): Task[Dataset[T]] =
     Task(ReadApi.StreamingDS[T](location, input_type, where_clause)(spark))
+
   override def ReadDF(
       location: Seq[String],
       input_type: IOType,
@@ -63,7 +67,7 @@ case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
       compression: String,
       repartition: Boolean,
       repartition_no: Int
-  )(spark: SparkSession): Task[Unit] = Task(
+  ): Task[Unit] = Task(
     WriteApi.DS[T](
       input,
       output_type,
@@ -77,6 +81,7 @@ case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
     )(spark)
   )
 }
+
 object SparkImpl extends ApplicationLogger {
   def live(spark: SparkSession): TaskLayer[SparkEnv] = Managed
     .make(Task(spark))(a =>

@@ -36,7 +36,7 @@ object SparkApi {
         compression: String,
         repartition: Boolean,
         repartition_no: Int
-    )(spark: SparkSession): F[Unit]
+    ): F[Unit]
   }
 
   def getSparkSession: RIO[SparkEnv, SparkSession] = ZIO.accessM[SparkEnv](_.get.getSparkSession)
@@ -94,7 +94,7 @@ object SparkApi {
       compression: String = "none", // ("compression", "gzip","snappy")
       repartition: Boolean = false,
       repartition_no: Int = 1
-  )(spark: SparkSession): RIO[SparkEnv, Unit] = ZIO.accessM[SparkEnv](
+  ): RIO[SparkEnv, Unit] = ZIO.accessM[SparkEnv](
     _.get.WriteDS(
       input,
       output_type,
@@ -105,6 +105,6 @@ object SparkApi {
       compression,
       repartition,
       repartition_no
-    )(spark)
+    )
   )
 }

@@ -27,10 +27,8 @@ object Dependencies {
   )
 
   lazy val gcpLibs = List(
-    "dev.zio"         %% "zio"                   % ZioVersion,
-    "com.google.cloud" % "google-cloud-bigquery" % GcpBqVersion,
-    "com.google.cloud" % "google-cloud-dataproc" % GcpDpVersion,
-    "com.google.cloud" % "google-cloud-storage"  % GcpGcsVersion
+    "dev.zio"                  %% "zio"     % ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio" % Gcp4ZioVersion
   )
 
   lazy val dbLibs = List(

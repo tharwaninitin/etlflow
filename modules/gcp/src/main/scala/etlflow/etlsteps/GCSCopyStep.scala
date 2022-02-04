@@ -1,6 +1,7 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import etlflow.gcp.Location
+import gcp4zio._
 import zio.{RIO, Task}
 
 case class GCSCopyStep(
@@ -31,7 +32,6 @@ case class GCSCopyStep(
   }
 
   override def getStepProperties: Map[String, String] = Map(
-    "name"        -> name,
     "input"       -> input.toString,
     "output"      -> output.toString,
     "parallelism" -> parallelism.toString,

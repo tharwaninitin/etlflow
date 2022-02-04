@@ -15,6 +15,7 @@ object Versions {
   val Cron4zioVersion = "0.2.1"
   val Crypto4sVersion = "0.2.0"
   val Cache4sVersion  = "0.1.0"
+  val Gcp4ZioVersion  = "0.1.0"
 
   val CatsCoreVersion     = "2.7.0"
   val CatsEffectVersion   = "3.3.4"
@@ -26,10 +27,6 @@ object Versions {
   val PrettyTimeVersion = "5.0.2.Final"
   val SparkVersion      = "3.2.0"
   val SparkBQVersion    = "0.23.1"
-  val GcpBqVersion      = "2.7.1"
-  val GcpDpVersion      = "2.3.1"
-  val GcpGcsVersion     = "2.3.0"
-  val GcpPubSubVersion  = "1.113.3"
   val HadoopGCSVersion  = "1.9.4-hadoop3"
   val HadoopS3Version   = "3.3.1"
   val AwsS3Version      = "2.17.121"

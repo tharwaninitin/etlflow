@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import com.google.cloud.storage.Blob
-import etlflow.gcp._
+import gcp4zio._
 import zio.RIO
 
 case class GCSListStep(name: String, bucket: String, prefix: String) extends EtlStep[GCSEnv, List[Blob]] {
@@ -11,5 +11,5 @@ case class GCSListStep(name: String, bucket: String, prefix: String) extends Etl
     GCSApi.listObjects(bucket, prefix)
   }
 
-  override def getStepProperties: Map[String, String] = Map("name" -> name, "bucket" -> bucket, "prefix" -> prefix)
+  override def getStepProperties: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix)
 }

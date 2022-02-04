@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import gcp4zio._
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
 import zio.clock.Clock
@@ -38,4 +38,12 @@ case class GCSSensorStep(
 
     runnable
   }
+
+  override def getStepProperties: Map[String, String] = Map(
+    "bucket" -> bucket,
+    "prefix" -> prefix,
+    "key"    -> key,
+    "retry"  -> retry.toString,
+    "spaced" -> spaced.toString
+  )
 }

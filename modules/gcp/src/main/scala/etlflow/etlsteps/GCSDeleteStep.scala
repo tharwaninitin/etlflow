@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import gcp4zio._
 import zio.{RIO, Task, ZIO}
 
 case class GCSDeleteStep(
@@ -24,7 +24,6 @@ case class GCSDeleteStep(
   }
 
   override def getStepProperties: Map[String, String] = Map(
-    "name"        -> name,
     "bucket"      -> bucket,
     "prefix"      -> prefix,
     "parallelism" -> parallelism.toString

@@ -1,27 +1,26 @@
 package etlflow.steps
 
-import etlflow.GcpTestHelper
+import etlflow.TestHelper
 import etlflow.etlsteps.{GCSCopyStep, GCSPutStep, GCSSensorStep}
 import etlflow.gcp.Location.{GCS, LOCAL}
+import gcp4zio._
 import zio.ZIO
-import zio.clock.Clock
 import zio.test.Assertion.equalTo
 import zio.test._
-
 import scala.concurrent.duration._
 
-object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
+object GCSStepsTestSuite extends TestHelper {
   case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: ZSpec[environment.TestEnvironment with GCSEnv, Any] =
     suite("GCS Steps")(
       testM("Execute GCSPut PARQUET step") {
         val step = GCSPutStep(
           name = "S3PutStep",
           bucket = gcs_bucket,
           key = "temp/ratings.parquet",
-          file = file
-        ).process.provideLayer(etlflow.gcp.GCS.live())
+          file = file_path_parquet
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSPut CSV step") {
@@ -29,8 +28,8 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           name = "S3PutStep",
           bucket = gcs_bucket,
           key = "temp/ratings.csv",
-          file = file_csv
-        ).process.provideLayer(etlflow.gcp.GCS.live())
+          file = file_path_csv
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSSensor step") {
@@ -41,7 +40,7 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           key = "ratings.parquet",
           retry = 10,
           spaced = 5.second
-        ).process.provideLayer(etlflow.gcp.GCS.live() ++ Clock.live)
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy step GCS to GCS") {
@@ -50,7 +49,7 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           input = GCS(gcs_bucket, "temp"),
           output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
-        ).process.provideLayer(etlflow.gcp.GCS.live())
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy step LOCAL to GCS") {
@@ -59,7 +58,7 @@ object GCSStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
           input = LOCAL("/local/path"),
           output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
-        ).process.provideLayer(etlflow.gcp.GCS.live())
+        ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

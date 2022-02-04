@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import gcp4zio._
 import zio.RIO
 
 case class BQQueryStep(name: String, query: String) extends EtlStep[BQEnv, Unit] {

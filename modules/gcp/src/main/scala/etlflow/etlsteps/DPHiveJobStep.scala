@@ -1,16 +1,21 @@
 package etlflow.etlsteps
 
-import etlflow.gcp.{DPJobApi, DPJobEnv}
-import etlflow.model.Executor.DATAPROC
+import gcp4zio._
 import zio.RIO
 
-case class DPHiveJobStep(name: String, query: String, config: DATAPROC) extends EtlStep[DPJobEnv, Unit] {
+case class DPHiveJobStep(name: String, query: String, clusterName: String, project: String, region: String)
+    extends EtlStep[DPJobEnv, Unit] {
 
   final def process: RIO[DPJobEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting Hive Dataproc Job: $name")
-    DPJobApi.executeHiveJob(query, config)
+    DPJobApi.executeHiveJob(query, clusterName, project, region)
   }
 
-  override def getStepProperties: Map[String, String] = Map("query" -> query)
+  override def getStepProperties: Map[String, String] = Map(
+    "query"       -> query,
+    "clusterName" -> clusterName,
+    "project"     -> project,
+    "region"      -> region
+  )
 }

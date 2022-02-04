@@ -1,32 +1,21 @@
 package etlflow.steps
 
+import etlflow.TestHelper
 import etlflow.etlsteps.DPDeleteStep
-import etlflow.gcp.DP
-import etlflow.model.Executor.DATAPROC
+import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object DPDeleteTestSuite extends DefaultRunnableSpec {
-
-  def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("EtlFlow DPDeleteStep Step")(
-      testM("Execute DPDeleteStep") {
-
-        val dpConfig = DATAPROC(
-          sys.env("DP_PROJECT_ID"),
-          sys.env("DP_REGION"),
-          sys.env("DP_ENDPOINT"),
-          sys.env("DP_CLUSTER_NAME")
-        )
-
-        val step = DPDeleteStep(
-          name = "DPDeleteStepExample",
-          config = dpConfig
-        ).process.provideLayer(DP.live(dpConfig.endpoint).orDie)
-
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      }
-    )
-
+object DPDeleteTestSuite extends TestHelper {
+  val spec: ZSpec[environment.TestEnvironment with DPEnv, Any] =
+    testM("Execute DPDeleteStep") {
+      val step = DPDeleteStep(
+        name = "DPDeleteStepExample",
+        dp_cluster_name,
+        gcp_project_id.get,
+        gcp_region.get
+      ).process
+      assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    }
 }

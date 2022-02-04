@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import gcp4zio._
 import zio.{RIO, UIO}
 
 case class GCSPutStep(name: String, bucket: String, key: String, file: String) extends EtlStep[GCSEnv, Unit] {
@@ -20,7 +20,6 @@ case class GCSPutStep(name: String, bucket: String, key: String, file: String) e
   }
 
   override def getStepProperties: Map[String, String] = Map(
-    "name"   -> name,
     "bucket" -> bucket,
     "key"    -> key,
     "file"   -> file

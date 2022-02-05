@@ -9,8 +9,8 @@ import etlflow.model.Credential
 import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeFromTimestamp}
 import etlflow.utils.{ReflectAPI => RF, _}
 import etlflow.webserver.Authentication
-import etlflow.{EJPMType, BuildInfo => BI}
-import io.circe.generic.auto._
+import etlflow.{BuildInfo => BI, EJPMType}
+import etlflow.json.Implicits._
 import org.ocpsoft.prettytime.PrettyTime
 import zio._
 import zio.blocking.Blocking
@@ -79,23 +79,20 @@ private[etlflow] object Implementation extends ApplicationLogger {
               jdbc <- JsonApi.convertToObject[Credential.JDBC](value)
               encrypt_user     = crypto.encrypt(jdbc.user)
               encrypt_password = crypto.encrypt(jdbc.password)
-              json <- JsonApi.convertToString(
-                Credential.JDBC(jdbc.url, encrypt_user, encrypt_password, jdbc.driver),
-                List.empty
-              )
+              json <- JsonApi.convertToString(Credential.JDBC(jdbc.url, encrypt_user, encrypt_password, jdbc.driver))
             } yield json
           case "aws" =>
             for {
               aws <- JsonApi.convertToObject[Credential.AWS](value)
               encrypt_access_key = crypto.encrypt(aws.access_key)
               encrypt_secret_key = crypto.encrypt(aws.secret_key)
-              json <- JsonApi.convertToString(Credential.AWS(encrypt_access_key, encrypt_secret_key), List.empty)
+              json <- JsonApi.convertToString(Credential.AWS(encrypt_access_key, encrypt_secret_key))
             } yield json
         }
 
       override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.server.model.Credential] =
         for {
-          json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
+          json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap)
           cred_type = args.`type` match {
             case Creds.JDBC => "jdbc"
             case Creds.AWS  => "aws"
@@ -107,7 +104,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
 
       override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.server.model.Credential] =
         for {
-          json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap, List.empty)
+          json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap)
           cred_type = args.`type` match {
             case Creds.JDBC => "jdbc"
             case Creds.AWS  => "aws"

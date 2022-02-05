@@ -1,12 +1,13 @@
 object Versions {
   val scala212         = "2.12.15"
   val scala213         = "2.13.8"
-  val scala3           = "3.1.0"
+  val scala3           = "3.1.1"
   val scala2Versions   = List(scala212, scala213)
   val allScalaVersions = List(scala212, scala213, scala3)
-  val EtlFlowVersion   = "0.14.1"
+  val EtlFlowVersion   = "0.14.2"
 
   val ZioVersion            = "1.0.13"
+  val ZioJsonVersion        = "0.2.0-M3"
   val ZioCatsInteropVersion = "3.2.9.0"
   val ZioHttpVersion        = "1.0.0.0-RC21"
   val ZioConfig             = "1.0.10"

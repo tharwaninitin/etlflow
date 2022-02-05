@@ -35,11 +35,10 @@ lazy val examplespark = (project in file("examples/examplespark"))
     crossScalaVersions := scala2Versions,
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
-      ("org.apache.spark"        %% "spark-sql"     % SparkVersion)
-        .excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
-      "ch.qos.logback"              % "logback-classic" % LogbackVersion,
-      "com.google.cloud.bigdataoss" % "gcs-connector"   % HadoopGCSVersion
-      // "com.google.cloud.spark"     %% "spark-bigquery-with-dependencies" % SparkBQVersion
+      ("org.apache.spark" %% "spark-sql"       % SparkVersion).excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
+      "ch.qos.logback"     % "logback-classic" % LogbackVersion,
+      "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion
+      // "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
     ),
     excludeDependencies += "org.slf4j" % "slf4j-log4j12",
     Compile / mainClass               := Some("examples.LoadData"),
@@ -64,6 +63,7 @@ lazy val exampleserver = (project in file("examples/exampleserver"))
     crossScalaVersions := scala2Versions,
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-server"  % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-gcp"     % EtlFlowVersion,
       "ch.qos.logback"            % "logback-classic" % LogbackVersion
     ),
     Docker / packageName := "etlflow-server",

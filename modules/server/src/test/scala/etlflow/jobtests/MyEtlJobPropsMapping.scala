@@ -1,16 +1,21 @@
 package etlflow.jobtests
 
-import MyEtlJobProps._
+import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import etlflow.etljobs.EtlJob
+import etlflow.jobtests.MyEtlJobProps._
 import etlflow.jobtests.jobs._
 import etlflow.model.Executor
-import etlflow.model.Executor.{DATAPROC, KUBERNETES, LOCAL_SUBPROCESS}
-import etlflow.{EtlJobProps, EtlJobPropsMapping}
-import io.circe.generic.auto._
+import etlflow.model.Executor._
+import zio.json._
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP, EJ]
 
 object MyEtlJobPropsMapping {
+
+  implicit val enc1: JsonEncoder[EtlJob1Props] = DeriveJsonEncoder.gen[EtlJob1Props]
+  implicit val enc2: JsonEncoder[EtlJob2Props] = DeriveJsonEncoder.gen[EtlJob2Props]
+  implicit val enc4: JsonEncoder[EtlJob4Props] = DeriveJsonEncoder.gen[EtlJob4Props]
+  implicit val enc5: JsonEncoder[EtlJob5Props] = DeriveJsonEncoder.gen[EtlJob5Props]
 
   val kubernetes = KUBERNETES(
     "etlflow:0.10.0",
@@ -24,7 +29,7 @@ object MyEtlJobPropsMapping {
     )
   )
 
-  val dataproc = DATAPROC("project-name", "region", "endpoint", "cluster-name")
+  val dataproc = DATAPROC("project-name", "region", "endpoint", "cluster-name", Map.empty)
 
   // https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/index.html#
   val local_subprocess: LOCAL_SUBPROCESS = LOCAL_SUBPROCESS("examples/target/universal/stage/bin/etlflow-examples")

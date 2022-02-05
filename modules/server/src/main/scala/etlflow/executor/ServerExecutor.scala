@@ -2,7 +2,7 @@ package etlflow.executor
 
 import caliban.CalibanError.ExecutionError
 import etlflow.db.DBServerEnv
-import etlflow.gcp.{DPJob, DPJobApi}
+import gcp4zio.{DPJob, DPJobApi}
 import etlflow.json.JsonEnv
 import etlflow.model.Executor
 import etlflow.model.Config
@@ -15,12 +15,10 @@ import etlflow.EJPMType
 import zio._
 import zio.blocking.blocking
 import zio.duration.{Duration => ZDuration}
+
 import scala.concurrent.duration._
 
-case class ServerExecutor[T <: EJPMType: Tag](
-    sem: Map[String, Semaphore],
-    config: Config
-) extends ApplicationLogger {
+case class ServerExecutor[T <: EJPMType: Tag](sem: Map[String, Semaphore], config: Config) extends ApplicationLogger {
 
   final def runActiveEtlJob(
       args: EtlJobArgs,
@@ -72,7 +70,9 @@ case class ServerExecutor[T <: EJPMType: Tag](
           val dp_libs          = config.dataproc.map(_.deplibs).getOrElse(List.empty)
           val actual_props_str = actual_props.map(x => s"${x._1}=${x._2}").mkString(",")
           val dp_args          = List("run_job", "--job_name", args.name, "--props", actual_props_str)
-          DPJobApi.executeSparkJob(dp_args, main_class, dp_libs, dp).provideLayer(DPJob.live(dp.endpoint))
+          DPJobApi
+            .executeSparkJob(dp_args, main_class, dp_libs, dp.conf, dp.cluster, dp.project, dp.region)
+            .provideLayer(DPJob.live(dp.endpoint))
         case LIVY(_) =>
           Task.fail(ExecutionError("Deploy mode LIVY not yet supported"))
         case KUBERNETES(_, _, _, _, _, _) =>
@@ -85,8 +85,6 @@ case class ServerExecutor[T <: EJPMType: Tag](
         UIO(logger.error(ex.getMessage)) *> DBServerApi.updateFailedJob(args.name, getCurrentTimestamp)
       ) *> DBServerApi.updateSuccessJob(args.name, getCurrentTimestamp)
 
-    blocking(
-      if (fork) sem(args.name).withPermit(loggedJobRun).forkDaemon else sem(args.name).withPermit(loggedJobRun)
-    ).unit
+    blocking(if (fork) sem(args.name).withPermit(loggedJobRun).forkDaemon else sem(args.name).withPermit(loggedJobRun)).unit
   }
 }

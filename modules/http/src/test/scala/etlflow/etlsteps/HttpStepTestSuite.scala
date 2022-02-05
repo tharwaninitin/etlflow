@@ -1,65 +1,50 @@
 package etlflow.etlsteps
 
-import etlflow.schema.HttpBinResponse
 import etlflow.http.HttpMethod
 import etlflow.utils.ApplicationLogger
-import io.circe.generic.auto._
-import zio.ZIO
+import zio.{Task, ZIO}
 import zio.test.Assertion.equalTo
-import zio.test.{assertM, DefaultRunnableSpec, TestAspect, ZSpec}
+import zio.test._
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
 
-  val getStep1 = HttpRequestStep[Unit](
+  val getStep1 = HttpRequestStep(
     name = "HttpGetSimple",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
-    log = true,
     connection_timeout = 1200000
   )
 
-  val getStep2 = HttpRequestStep[String](
+  val getStep2 = HttpRequestStep(
     name = "HttpGetParams",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
-    params = Right(Map("param1" -> "value1")),
-    log = true
+    params = Right(Map("param1" -> "value1", "param2" -> "value2"))
   )
 
-  val getStep3 = HttpRequestStep[HttpBinResponse](
-    name = "HttpGetParamsParsedResponse",
-    url = "https://httpbin.org/get",
-    method = HttpMethod.GET,
-    params = Right(Map("param1" -> "value1", "param2" -> "value2")),
-    log = true
-  )
-
-  val postStep1 = HttpRequestStep[Unit](
+  val postStep1 = HttpRequestStep(
     name = "HttpPostJson",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
     params = Left("""{"key":"value"}"""),
-    headers = Map("X-Auth-Token" -> "abcd.xxx.123"),
-    log = true
+    headers = Map("X-Auth-Token" -> "abcd.xxx.123")
   )
 
-  val postStep2 = HttpRequestStep[String](
+  val postStep2 = HttpRequestStep(
     name = "HttpPostForm",
     url = "https://httpbin.org/post?signup=yes",
     method = HttpMethod.POST,
-    params = Right(Map("name" -> "John", "surname" -> "doe")),
-    log = true
+    params = Right(Map("name" -> "John", "surname" -> "doe"))
   )
 
-  val postStep3 = HttpRequestStep[Unit](
+  val postStep3 = HttpRequestStep(
     name = "HttpPostJsonParamsIncorrect",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
     params = Right(Map("param1" -> "value1")),
-    headers = Map("Content-Type" -> "application/json"), // content-type header is ignored
-    log = true
+    headers = Map("Content-Type" -> "application/json") // content-type header is ignored
   )
 
   val emailBody: String = {
@@ -70,43 +55,29 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
        |""".stripMargin
   }
 
-  def processData(ip: HttpBinResponse): Unit = {
-    logger.info("Processing Data")
-    logger.info(ip.toString)
-  }
-
-  def genericStep(ip: HttpBinResponse) = GenericETLStep(
-    name = "ProcessData",
-    function = processData(ip)
-  )
-
-  val putStep1 = HttpRequestStep[String](
+  val putStep1: HttpRequestStep = HttpRequestStep(
     name = "HttpPutJson",
     url = "https://httpbin.org/put",
     method = HttpMethod.PUT,
     params = Left("""{"key":"value"}"""),
-    headers = Map("content-type" -> "application/json"),
-    log = true
+    headers = Map("content-type" -> "application/json")
   )
 
-  val putStep2 = HttpRequestStep[Unit](
+  val putStep2: HttpRequestStep = HttpRequestStep(
     name = "HttpPutForm",
     url = "https://httpbin.org/put",
     method = HttpMethod.PUT,
-    params = Right(Map("param1" -> "value1")),
-    log = true
+    params = Right(Map("param1" -> "value1"))
   )
 
-  val job = for {
-    _   <- getStep1.process
-    _   <- getStep2.process
-    op3 <- getStep3.process
-    _   <- postStep1.process
-    _   <- postStep2.process
-    _   <- postStep3.process
-    _   <- genericStep(op3).process
-    _   <- putStep1.process
-    _   <- putStep2.process
+  val job: Task[Unit] = for {
+    _ <- getStep1.process
+    _ <- getStep2.process
+    _ <- postStep1.process
+    _ <- postStep2.process
+    _ <- postStep3.process
+    _ <- putStep1.process
+    _ <- putStep2.process
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =

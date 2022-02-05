@@ -13,7 +13,7 @@ object MyEtlJobProps {
     heap_max_memory = "-Xms100m"
   )
 
-  val dataproc = DATAPROC("project-name", "region", "endpoint", "cluster-name")
+  val dataproc = DATAPROC("project-name", "region", "endpoint", "cluster-name", Map.empty)
 
   val kubernetes = KUBERNETES(
     "etlflow:0.7.19",

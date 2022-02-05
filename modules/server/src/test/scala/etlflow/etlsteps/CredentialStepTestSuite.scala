@@ -4,7 +4,7 @@ import crypto4s.Crypto
 import etlflow.db.DBEnv
 import etlflow.model.Config
 import etlflow.model.Credential.JDBC
-import io.circe.generic.auto._
+import etlflow.json.Implicits._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._

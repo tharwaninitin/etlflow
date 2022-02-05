@@ -3,9 +3,9 @@ package examples.jobs
 import com.google.cloud.bigquery.JobInfo
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.BQLoadStep
-import etlflow.gcp.{BQ, BQInputType}
 import etlflow.log.LogEnv
 import examples.schema.MyEtlJobProps.EtlJob1Props
+import gcp4zio.{BQ, BQInputType}
 
 case class EtlJobBqLoadStep(job_properties: EtlJob1Props) extends EtlJob[EtlJob1Props] {
 

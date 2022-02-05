@@ -1,8 +1,8 @@
 # EtlFlow
 
 [![License](http://img.shields.io/:license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
-[![Core Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml)
-[![Server Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml)
+[![Core CI](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml)
+[![Server CI](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
@@ -35,11 +35,6 @@ You can use this library in different ways mentioned below.
 | -------------------|:--------------------:| -----------:| ----------:|
 | **Core**           | ✅                   | ✅          | ✅          |
 | **Server**         | ✅                   | ✅          | ❌          |
-
-### Server Internal Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
-| -------------------|:--------------------:| -----------:| ----------:|
-| Json               | ✅                   | ✅          | ✅          |
 
 ### Addon Modules For Core
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 

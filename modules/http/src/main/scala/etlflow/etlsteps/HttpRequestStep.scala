@@ -1,12 +1,10 @@
 package etlflow.etlsteps
 
 import etlflow.http.{HttpApi, HttpMethod}
-import etlflow.json.JsonApi
-import io.circe.Decoder
 import sttp.client3.Response
 import zio._
 
-case class HttpRequestStep[A: Tag: Decoder](
+case class HttpRequestStep(
     name: String,
     url: String,
     method: HttpMethod,
@@ -16,31 +14,15 @@ case class HttpRequestStep[A: Tag: Decoder](
     connection_timeout: Int = 10000,
     read_timeout: Int = 150000,
     allow_unsafe_ssl: Boolean = false
-) extends EtlStep[Any, A] {
+) extends EtlStep[Any, Response[String]] {
 
-  final def process: Task[A] = {
-    logger.info("#" * 100)
+  final def process: Task[Response[String]] = {
+    logger.info("#" * 50)
     logger.info(s"Starting HttpRequestStep: $name")
     logger.info(s"URL: $url")
     logger.info(s"ConnectionTimeOut: $connection_timeout")
     logger.info(s"ReadTimeOut: $read_timeout")
-
-    val output: Task[Response[String]] =
-      HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
-
-    Tag[A] match {
-      case t if t == Tag[Unit] =>
-        output.unit.asInstanceOf[Task[A]]
-      case t if t == Tag[String] =>
-        output.map(_.body).asInstanceOf[Task[A]]
-      case t if t == Tag[Nothing] =>
-        Task.fail(new RuntimeException("Need type parameter in HttpStep, if no output is required use HttpStep[Unit]"))
-      case _ =>
-        for {
-          op  <- output
-          obj <- JsonApi.convertToObject[A](op.body).provideLayer(etlflow.json.Implementation.live)
-        } yield obj
-    }
+    HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
   }
 
   override def getStepProperties: Map[String, String] = Map(

@@ -1,4 +1,4 @@
-name: Server Workflow
+name: Server CI
 on: [push]
 jobs:
   test:

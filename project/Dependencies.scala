@@ -51,6 +51,7 @@ object Dependencies {
     "dev.zio"                  %% "zio"                 % ZioVersion,
     "dev.zio"                  %% "zio-config"          % ZioConfig,
     "dev.zio"                  %% "zio-config-typesafe" % ZioConfig,
+    "dev.zio"                  %% "zio-json"            % ZioJsonVersion,
     "com.github.ghostdogpr"    %% "caliban"             % CalibanVersion,
     "com.github.ghostdogpr"    %% "caliban-zio-http"    % CalibanVersion,
     "io.d11"                   %% "zhttp"               % ZioHttpVersion,
@@ -58,6 +59,7 @@ object Dependencies {
     "org.ocpsoft.prettytime"    % "prettytime"          % PrettyTimeVersion,
     "com.github.scopt"         %% "scopt"               % ScoptVersion,
     "com.github.tharwaninitin" %% "cron4zio"            % Cron4zioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio"             % Gcp4ZioVersion,
     "com.github.tharwaninitin" %% "crypto4s"            % Crypto4sVersion,
     "com.github.tharwaninitin" %% "cache4s"             % Cache4sVersion
   )
@@ -67,27 +69,16 @@ object Dependencies {
     "org.apache.spark" %% "spark-sql" % SparkVersion % Provided
   )
 
-  lazy val jsonLibs = List(
-    "dev.zio"       %% "zio"           % ZioVersion,
-    "io.circe"      %% "circe-core"    % CirceVersion,
-    "io.circe"      %% "circe-generic" % CirceVersion,
-    "io.circe"      %% "circe-parser"  % CirceVersion,
-    "org.typelevel" %% "cats-core"     % CatsCoreVersion
-  )
-
   lazy val emailLibs = List(
     "dev.zio"     %% "zio"            % ZioVersion,
     "javax.mail"   % "javax.mail-api" % MailVersion,
     "com.sun.mail" % "javax.mail"     % MailVersion
   )
 
-  lazy val zioTestLibs = List(
-    "dev.zio" %% "zio-test"     % ZioVersion,
-    "dev.zio" %% "zio-test-sbt" % ZioVersion
-  ).map(_ % Test)
-
   lazy val coreTestLibs = List(
-    "ch.qos.logback" % "logback-classic" % LogbackVersion
+    "ch.qos.logback" % "logback-classic" % LogbackVersion,
+    "dev.zio"       %% "zio-test"        % ZioVersion,
+    "dev.zio"       %% "zio-test-sbt"    % ZioVersion
   ).map(_ % Test)
 
   lazy val dbTestLibs = List(
@@ -95,15 +86,11 @@ object Dependencies {
     "mysql"          % "mysql-connector-java" % MySqlVersion
   ).map(_ % Test)
 
-  lazy val cloudTestLibs = List(
+  lazy val sparkTestLibs = List(
+    "org.apache.spark"           %% "spark-sql"     % SparkVersion,
     "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
     "org.apache.hadoop"           % "hadoop-aws"    % HadoopS3Version,
     "org.apache.hadoop"           % "hadoop-common" % HadoopS3Version
-  ).map(_ % Test)
-
-  lazy val sparkTestLibs = List(
-    "org.apache.spark" %% "spark-sql" % SparkVersion
     // "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
-
 }

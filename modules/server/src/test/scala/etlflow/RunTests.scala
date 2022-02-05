@@ -1,8 +1,9 @@
 package etlflow
 
 import etlflow.etlsteps.{CredentialStepTestSuite, DBStepTestSuite, EtlFlowJobStepTestSuite}
-import etlflow.executor.{ServerExecutorTestSuite, LocalExecutorTestSuite, LocalSubProcessExecutorTestSuite}
+import etlflow.executor.{LocalExecutorTestSuite, LocalSubProcessExecutorTestSuite, ServerExecutorTestSuite}
 import etlflow.jobtests.jobs.JobsTestSuite
+import etlflow.json.JsonTestSuite
 import etlflow.scheduler.SchedulerTestSuite
 import etlflow.server.ServerApiTestSuite
 import etlflow.utils.{CorsConfigTestSuite, GetCronJobTestSuite, ReflectionTestSuite, SetTimeZoneTestSuite}
@@ -19,6 +20,7 @@ object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
 
   def spec: ZSpec[environment.TestEnvironment, Any] = {
     suite("Server Test Suites")(
+      JsonTestSuite.spec,
       JobsTestSuite(config).spec,
       CredentialStepTestSuite(config).spec,
       DBStepTestSuite(config).spec,

@@ -1,7 +1,7 @@
 import etlflow.etljobs.EtlJob
 import etlflow.json.{JsonApi, JsonEnv}
 import etlflow.model.Executor
-import io.circe.Encoder
+import zio.json.JsonEncoder
 import zio.{Tag, ZEnv, ZIO}
 
 package object etlflow {
@@ -14,7 +14,7 @@ package object etlflow {
   abstract class EtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]](implicit
       tag_EJ: Tag[EJ],
       tag_EJP: Tag[EJP],
-      encoder: Encoder[EJP]
+      encoder: JsonEncoder[EJP]
   ) {
     val job_description: String         = ""
     val job_schedule: String            = ""
@@ -34,7 +34,7 @@ package object etlflow {
     }
 
     final def getActualPropertiesAsJson(job_properties: Map[String, String]): ZIO[JsonEnv, Throwable, String] =
-      JsonApi.convertToString(getActualProperties(job_properties), List.empty)
+      JsonApi.convertToString(getActualProperties(job_properties))
 
     final def getProps: Map[String, String] = Map(
       "job_name"                   -> job_name,

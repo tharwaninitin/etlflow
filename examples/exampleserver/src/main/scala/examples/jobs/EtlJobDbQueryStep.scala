@@ -2,10 +2,10 @@ package examples.jobs
 
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.{BQQueryStep, DBQueryStep}
-import etlflow.gcp.BQ
 import etlflow.log.LogEnv
 import etlflow.utils.Configuration
 import examples.schema.MyEtlJobProps.EtlJob4Props
+import gcp4zio.BQ
 import zio.blocking.Blocking
 
 case class EtlJobDbQueryStep(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props] {

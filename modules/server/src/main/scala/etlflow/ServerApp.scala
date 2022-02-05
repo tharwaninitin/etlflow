@@ -41,7 +41,7 @@ abstract class ServerApp[T <: EJPMType: Tag] extends CliApp[T] with HttpServer w
        webserver     = etlFlowWebServer(auth, config.webserver)
        _ <- scheduler.zipPar(webserver).provideSomeLayer[JsonEnv with ZEnv](finalLayer).toManaged_
      } yield ()).useNow
-      .provideCustomLayer(json.Implementation.live)
+      .provideCustomLayer(etlflow.json.Implementation.live)
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] =
     Configuration.config.flatMap(cfg => cliRunner(args, cfg, serverRunner(cfg))).exitCode

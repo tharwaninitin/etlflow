@@ -4,7 +4,7 @@ import etlflow.{EtlJobProps, EtlJobPropsMapping}
 import etlflow.etljobs.EtlJob
 import examples.jobs._
 import examples.schema.MyEtlJobProps._
-import io.circe.generic.auto._
+import zio.json.{DeriveJsonEncoder, JsonEncoder}
 
 sealed trait MyEtlJobPropsMapping[EJP <: EtlJobProps, EJ <: EtlJob[EJP]] extends EtlJobPropsMapping[EJP, EJ]
 
@@ -13,6 +13,13 @@ object MyEtlJobPropsMapping {
   val default_ratings_intermediate_path = "exampleserver/src/main/data/movies/output"
   val default_ratings_input_path_csv    = "exampleserver/src/main/data/movies/ratings/*"
   val default_output_dataset            = "dev"
+
+  implicit val enc1: JsonEncoder[EtlJob1Props]     = DeriveJsonEncoder.gen[EtlJob1Props]
+  implicit val enc2: JsonEncoder[SampleProps]      = DeriveJsonEncoder.gen[SampleProps]
+  implicit val enc3: JsonEncoder[LocalSampleProps] = DeriveJsonEncoder.gen[LocalSampleProps]
+  implicit val enc4: JsonEncoder[EtlJob2Props]     = DeriveJsonEncoder.gen[EtlJob2Props]
+  implicit val enc5: JsonEncoder[EtlJob6Props]     = DeriveJsonEncoder.gen[EtlJob6Props]
+  implicit val enc6: JsonEncoder[EtlJob4Props]     = DeriveJsonEncoder.gen[EtlJob4Props]
 
   case object EtlJobBqLoadStep extends MyEtlJobPropsMapping[EtlJob1Props, EtlJobBqLoadStep] {
     def getActualProperties(job_properties: Map[String, String]): EtlJob1Props = EtlJob1Props(

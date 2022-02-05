@@ -33,68 +33,62 @@ lazy val commonSettings = Seq(
 lazy val coreSettings = Seq(
   name               := "etlflow-core",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= coreLibs ++ zioTestLibs ++ coreTestLibs
+  libraryDependencies ++= coreLibs ++ coreTestLibs
 )
 
 lazy val sparkSettings = Seq(
   name               := "etlflow-spark",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= sparkLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
-)
-
-lazy val cloudSettings = Seq(
-  name               := "etlflow-cloud",
-  crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= cloudLibs ++ zioTestLibs ++ cloudTestLibs
+  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
 )
 
 lazy val serverSettings = Seq(
   name                     := "etlflow-server",
   crossScalaVersions       := scala2Versions,
   coverageExcludedPackages := ".*ServerApp;.*HttpServer",
-  libraryDependencies ++= serverLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
+  libraryDependencies ++= serverLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val dbSettings = Seq(
   name               := "etlflow-db",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= dbLibs ++ zioTestLibs ++ coreTestLibs ++ dbTestLibs
+  libraryDependencies ++= dbLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val httpSettings = Seq(
   name               := "etlflow-http",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= httpLibs ++ zioTestLibs
+  libraryDependencies ++= httpLibs ++ coreTestLibs
 )
 
 lazy val redisSettings = Seq(
   name               := "etlflow-redis",
   crossScalaVersions := scala2Versions,
-  libraryDependencies ++= redisLibs ++ zioTestLibs
-)
-
-lazy val jsonSettings = Seq(
-  name               := "etlflow-json",
-  crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= jsonLibs ++ zioTestLibs
+  libraryDependencies ++= redisLibs ++ coreTestLibs
 )
 
 lazy val emailSettings = Seq(
   name               := "etlflow-email",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= emailLibs ++ zioTestLibs
+  libraryDependencies ++= emailLibs ++ coreTestLibs
 )
 
 lazy val awsSettings = Seq(
   name               := "etlflow-aws",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= awsLibs ++ zioTestLibs ++ coreTestLibs
+  libraryDependencies ++= awsLibs ++ coreTestLibs
 )
 
 lazy val gcpSettings = Seq(
   name               := "etlflow-gcp",
   crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= gcpLibs ++ zioTestLibs ++ cloudTestLibs
+  libraryDependencies ++= gcpLibs ++ coreTestLibs
+)
+
+lazy val cloudSettings = Seq(
+  name               := "etlflow-cloud",
+  crossScalaVersions := allScalaVersions,
+  libraryDependencies ++= gcpLibs ++ cloudLibs ++ coreTestLibs
 )
 
 lazy val etlflow = (project in file("."))
@@ -102,15 +96,11 @@ lazy val etlflow = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core, server, json, spark, cloud, db, http, redis, email, aws, gcp)
+  .aggregate(core, server, spark, cloud, db, http, redis, email, aws, gcp)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
-
-lazy val json = (project in file("modules/json"))
-  .settings(commonSettings)
-  .settings(jsonSettings)
 
 lazy val db = (project in file("modules/db"))
   .settings(commonSettings)
@@ -133,12 +123,12 @@ lazy val server = (project in file("modules/server"))
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "etlflow"
   )
-  .dependsOn(core, db, json, gcp)
+  .dependsOn(core, db)
 
 lazy val cloud = (project in file("modules/cloud"))
   .settings(commonSettings)
   .settings(cloudSettings)
-  .dependsOn(core, gcp, aws)
+  .dependsOn(core, aws)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)
@@ -148,7 +138,7 @@ lazy val spark = (project in file("modules/spark"))
 lazy val http = (project in file("modules/http"))
   .settings(commonSettings)
   .settings(httpSettings)
-  .dependsOn(core, json % "compile->compile;test->test")
+  .dependsOn(core)
 
 lazy val redis = (project in file("modules/redis"))
   .settings(commonSettings)

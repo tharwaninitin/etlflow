@@ -3,9 +3,9 @@ package examples.jobs
 import com.google.cloud.bigquery.JobInfo
 import etlflow.etljobs.EtlJob
 import etlflow.etlsteps.BQLoadStep
-import etlflow.gcp.BQInputType
 import etlflow.log.LogEnv
 import examples.schema.MyEtlJobProps.EtlJob6Props
+import gcp4zio.{BQ, BQInputType}
 
 case class EtlJobBqLoadStepWithQuery(job_properties: EtlJob6Props) extends EtlJob[EtlJob6Props] {
 
@@ -24,7 +24,7 @@ case class EtlJobBqLoadStepWithQuery(job_properties: EtlJob6Props) extends EtlJo
     output_dataset = "dev",
     output_table = "ratings_grouped",
     output_create_disposition = JobInfo.CreateDisposition.CREATE_IF_NEEDED
-  ).execute.provideSomeLayer[LogEnv](etlflow.gcp.BQ.live())
+  ).execute.provideSomeLayer[LogEnv](BQ.live())
 
   val job = step1
 }

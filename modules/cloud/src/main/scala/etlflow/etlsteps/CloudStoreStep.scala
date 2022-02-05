@@ -8,7 +8,7 @@ import blobstore.url.{Authority, FsObject, Path, Url}
 import cats.syntax.all._
 import etlflow.aws.S3Client
 import etlflow.cloud.{getBucketInfo, Location}
-import etlflow.gcp.GCSClient
+import gcp4zio._
 import fs2.{Pipe, Stream}
 import software.amazon.awssdk.regions.Region
 import zio.blocking.Blocking
@@ -36,7 +36,7 @@ case class CloudStoreStep[T](
 
     val inputStore: Store[Task, FsObject] = input_location match {
       case location: Location.GCS =>
-        val storage = GCSClient(location.credentials)
+        val storage = GCSClient(location.credentials.map(_.service_account_key_path))
         inputStorePath = Url("gs", inputBucket, Path(input_location.location))
         GcsStore[Task](storage, List.empty)
       case location: Location.S3 =>

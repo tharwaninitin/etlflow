@@ -10,7 +10,7 @@ import etlflow.utils.DateTimeApi.{getCurrentTimestampAsString, getLocalDateTimeF
 import etlflow.utils.{ReflectAPI => RF, _}
 import etlflow.webserver.Authentication
 import etlflow.{BuildInfo => BI, EJPMType}
-import etlflow.json.Implicits._
+import etlflow.json.CredentialImplicits._
 import org.ocpsoft.prettytime.PrettyTime
 import zio._
 import zio.blocking.Blocking

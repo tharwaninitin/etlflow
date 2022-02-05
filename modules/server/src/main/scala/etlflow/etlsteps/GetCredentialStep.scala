@@ -8,7 +8,7 @@ import etlflow.utils.Configuration
 import zio.blocking.Blocking
 import zio.json._
 import zio.{RIO, Tag}
-import etlflow.json.Implicits._
+import etlflow.json.CredentialImplicits._
 
 case class GetCredentialStep[T: Tag: JsonDecoder](name: String, credential_name: String) extends EtlStep[Blocking, T] {
 

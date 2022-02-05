@@ -1,13 +1,15 @@
 package etlflow.steps
 
 import etlflow.AwsTestHelper
-import etlflow.aws.{S3, S3Env}
+import etlflow.aws.{S3, S3Api, S3Env}
 import etlflow.etlsteps.{S3PutStep, S3SensorStep}
 import etlflow.model.Credential
 import zio.clock.Clock
+import zio.stream.ZTransducer
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{ULayer, ZIO}
+import zio.{UIO, ULayer, ZIO}
+
 import scala.concurrent.duration._
 
 object AWSStepsTestSuite extends DefaultRunnableSpec with AwsTestHelper {
@@ -21,7 +23,7 @@ object AWSStepsTestSuite extends DefaultRunnableSpec with AwsTestHelper {
         val step = S3PutStep(
           name = "S3PutStep",
           bucket = s3_bucket,
-          key = "temp/ratings.parquet",
+          key = "temp/ratings.csv",
           file = file
         ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
@@ -31,10 +33,19 @@ object AWSStepsTestSuite extends DefaultRunnableSpec with AwsTestHelper {
           name = "S3KeySensorStep",
           bucket = s3_bucket,
           prefix = "temp",
-          key = "ratings.parquet",
+          key = "ratings.csv",
           retry = 10,
           spaced = 5.second
         ).process
+        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      testM("Execute getStream step") {
+        val step = S3Api
+          .getObject(s3_bucket, "temp/ratings.csv")
+          .transduce(ZTransducer.utf8Decode)
+          .transduce(ZTransducer.splitLines)
+          .tap(op => UIO(println(op)))
+          .runCollect
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential).provideLayerShared(env ++ Clock.live)

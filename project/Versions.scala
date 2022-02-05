@@ -6,12 +6,13 @@ object Versions {
   val allScalaVersions = List(scala212, scala213, scala3)
   val EtlFlowVersion   = "0.14.2"
 
-  val ZioVersion            = "1.0.13"
-  val ZioJsonVersion        = "0.2.0-M3"
-  val ZioCatsInteropVersion = "3.2.9.0"
-  val ZioHttpVersion        = "1.0.0.0-RC21"
-  val ZioConfig             = "1.0.10"
-  val CalibanVersion        = "1.2.4"
+  val ZioVersion                = "1.0.13"
+  val ZioJsonVersion            = "0.2.0-M3"
+  val ZioReactiveStreamsVersion = "1.3.9"
+  val ZioCatsInteropVersion     = "3.2.9.0"
+  val ZioHttpVersion            = "1.0.0.0-RC21"
+  val ZioConfig                 = "1.0.10"
+  val CalibanVersion            = "1.2.4"
 
   val Cron4zioVersion = "0.2.1"
   val Crypto4sVersion = "0.2.0"

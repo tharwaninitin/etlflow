@@ -17,7 +17,7 @@ object Versions {
   val Cron4zioVersion = "0.2.1"
   val Crypto4sVersion = "0.2.0"
   val Cache4sVersion  = "0.1.0"
-  val Gcp4ZioVersion  = "0.1.0"
+  val Gcp4ZioVersion  = "0.1.1"
 
   val CatsCoreVersion     = "2.7.0"
   val CatsEffectVersion   = "3.3.4"

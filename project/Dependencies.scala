@@ -8,19 +8,6 @@ object Dependencies {
     "org.slf4j" % "slf4j-api" % Sl4jVersion
   )
 
-  lazy val cloudLibs = List(
-    "dev.zio"                  %% "zio"                % ZioVersion,
-    "dev.zio"                  %% "zio-interop-cats"   % ZioCatsInteropVersion,
-    "co.fs2"                   %% "fs2-core"           % Fs2Version,
-    "co.fs2"                   %% "fs2-io"             % Fs2Version,
-    "org.typelevel"            %% "cats-core"          % CatsCoreVersion,
-    "org.typelevel"            %% "cats-effect"        % CatsEffectVersion,
-    "org.typelevel"            %% "cats-effect-kernel" % CatsEffectVersion,
-    "org.typelevel"            %% "cats-effect-std"    % CatsEffectVersion,
-    "com.github.fs2-blobstore" %% "s3"                 % Fs2BlobStoreVersion,
-    "com.github.fs2-blobstore" %% "gcs"                % Fs2BlobStoreVersion
-  )
-
   lazy val awsLibs = List(
     "dev.zio"               %% "zio"                         % ZioVersion,
     "dev.zio"               %% "zio-streams"                 % ZioVersion,

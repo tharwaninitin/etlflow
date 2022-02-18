@@ -6,7 +6,6 @@ ThisBuild / version := EtlFlowVersion
 
 lazy val commonSettings = Seq(
   scalaVersion := scala212,
-  organization := "com.github.tharwaninitin",
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 12)) => s2copts ++ s212copts
@@ -85,18 +84,12 @@ lazy val gcpSettings = Seq(
   libraryDependencies ++= gcpLibs ++ coreTestLibs
 )
 
-lazy val cloudSettings = Seq(
-  name               := "etlflow-cloud",
-  crossScalaVersions := allScalaVersions,
-  libraryDependencies ++= gcpLibs ++ cloudLibs ++ coreTestLibs
-)
-
 lazy val etlflow = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core, server, spark, cloud, db, http, redis, email, aws, gcp)
+  .aggregate(core, server, spark, db, http, redis, email, aws, gcp)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
@@ -124,11 +117,6 @@ lazy val server = (project in file("modules/server"))
     buildInfoPackage := "etlflow"
   )
   .dependsOn(core, db)
-
-lazy val cloud = (project in file("modules/cloud"))
-  .settings(commonSettings)
-  .settings(cloudSettings)
-  .dependsOn(core, aws)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)

@@ -6,9 +6,9 @@ ThisBuild / publishTo := {
   else Some("releases".at(nexus + "service/local/staging/deploy/maven2"))
 }
 ThisBuild / publishMavenStyle := true
+ThisBuild / organization      := "com.github.tharwaninitin"
 
 // Optional Publish Settings
-ThisBuild / organization         := "com.github.tharwaninitin"
 ThisBuild / organizationName     := "github"
 ThisBuild / organizationHomepage := Some(url(s"https://github.com/tharwaninitin/${name.value}"))
 ThisBuild / homepage             := Some(url(s"https://github.com/tharwaninitin/${name.value}"))

@@ -29,26 +29,18 @@ abstract class HttpRunnableSpec(port: Int) {
       path: Path,
       headers: Headers = Headers.empty
   ): ZIO[EventLoopGroup with ChannelFactory, Throwable, Status] =
-    requestPathPost(path, headers).map(_.status)
+    Client.request(ClientRequest(url(path), Method.POST, headers)).map(_.status)
 
   def statusGet(path: Path): ZIO[EventLoopGroup with ChannelFactory, Throwable, Status] =
-    requestPathGet(path).map(_.status)
-
-  def requestPathPost(
-      path: Path,
-      headers: Headers
-  ): ZIO[EventLoopGroup with ChannelFactory, Throwable, Client.ClientResponse] =
-    Client.request(ClientRequest(url(path), Method.POST, headers))
-
-  def requestPathGet(path: Path): ZIO[EventLoopGroup with ChannelFactory, Throwable, Client.ClientResponse] =
-    Client.request(ClientRequest(url(path), Method.GET))
+    Client.request(ClientRequest(url(path), Method.GET)).map(_.status)
 
   def request(
       path: Path,
+      headers: Headers,
       method: Method,
       content: String
   ): ZIO[EventLoopGroup with ChannelFactory, Throwable, Client.ClientResponse] = {
     val data = HttpData.fromChunk(Chunk.fromArray(content.getBytes(HTTP_CHARSET)))
-    Client.request(ClientRequest(url(path), method, Headers.empty, data))
+    Client.request(ClientRequest(url(path), method, headers, data))
   }
 }

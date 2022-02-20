@@ -35,7 +35,7 @@ object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
       GetCronJobTestSuite.spec,
       SetTimeZoneTestSuite(config).spec,
       WebSocketApiTestSuite(auth).spec,
-      AuthenticationTestSuite(config.db.get, 8080).spec,
+      AuthenticatedRestTestSuite(config.db.get, 8080).spec,
       RestTestSuite(8081).spec,
       // WebSocketHttpTestSuite(8083).spec,
       ServerExecutorTestSuite.spec

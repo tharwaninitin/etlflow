@@ -34,31 +34,31 @@ case class AuthenticationTestSuite(credential: JDBC, port: Int) extends HttpRunn
               assertM(invalid_login.map(x => x.message))(equalTo("Invalid User/Password"))
             },
             testM("FORBIDDEN response when invalid Authorization header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1", Headers("Authorization", "12112112"))
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1", Headers("Authorization", "12112112"))
               assertM(actual)(equalTo(Status.FORBIDDEN))
             },
             testM("FORBIDDEN response when invalid X-Auth-Token header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1", Headers("X-Auth-Token", "12112112"))
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1", Headers("X-Auth-Token", "12112112"))
               assertM(actual)(equalTo(Status.FORBIDDEN))
             },
             testM("FORBIDDEN response when no header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1")
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1")
               assertM(actual)(equalTo(Status.FORBIDDEN))
             },
             testM("Expired Token response when X-Auth-Token header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1", Headers("X-Auth-Token", token))
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1", Headers("X-Auth-Token", token))
               assertM(actual)(equalTo(Status.FORBIDDEN))
             },
             testM("Expired Token response when Authorization header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1", Headers("Authorization", token))
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1", Headers("Authorization", token))
               assertM(actual)(equalTo(Status.FORBIDDEN))
             },
             testM("200 response when valid  X-Auth-Token header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1", Headers("X-Auth-Token", cachedToken))
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1", Headers("X-Auth-Token", cachedToken))
               assertM(actual)(equalTo(Status.OK))
             },
             testM("200 response when valid Authorization  header provided.") {
-              val actual = statusPost(!! / "restapi" / "runjob" / "Job1", Headers("Authorization", cachedToken))
+              val actual = statusPost(!! / "api" / "etlflow" / "runjob" / "Job1", Headers("Authorization", cachedToken))
               assertM(actual)(equalTo(Status.OK))
             }
           )

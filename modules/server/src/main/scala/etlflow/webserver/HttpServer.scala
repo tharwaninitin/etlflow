@@ -39,9 +39,9 @@ trait HttpServer {
           )
       }
       app2 = Http.route[Request] {
-        case _ -> !! / "api" / "login"       => RestAPI.live
-        case _ -> !! / "api" / "etlflow" / _ => auth.middleware(RestAPI.live) @@ cors(corsConfig)
-        case _ -> !! / "ws" / "etlflow" / _  => WebsocketsAPI(auth).webSocketApp @@ cors()
+        case _ -> !! / "api" / "login"                  => RestAPI.login
+        case _ -> !! / "api" / "etlflow" / "runjob" / _ => auth.middleware(RestAPI.live) @@ cors(corsConfig)
+        case _ -> !! / "ws" / "etlflow" / _             => WebsocketsAPI(auth).webSocketApp @@ cors()
       }
       app = app1 <> app2
       op <- Server.start(port, app)

@@ -38,8 +38,7 @@ object RunTests extends DefaultRunnableSpec with ServerSuiteHelper {
       AuthenticationTestSuite(config.db.get, 8080).spec,
       RestTestSuite(8081).spec,
       // WebSocketHttpTestSuite(8083).spec,
-      ServerExecutorTestSuite.spec,
-      GraphqlTestSuite.spec
+      ServerExecutorTestSuite.spec
     ) @@ TestAspect.sequential
   }.provideCustomLayerShared(httpenv ++ fullLayer.orDie)
 }

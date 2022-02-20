@@ -3,7 +3,7 @@ package etlflow.scheduler
 import com.cronutils.model.Cron
 import cron4zio._
 import etlflow.server.{ServerEnv, ServerTask}
-import etlflow.server.model.{EtlJob, EtlJobArgs}
+import etlflow.server.model.EtlJob
 import etlflow.server.{DBServerApi, Service}
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
@@ -23,7 +23,7 @@ private[etlflow] trait Scheduler extends ApplicationLogger {
               s"Scheduling job ${cj.name} with schedule ${cj.schedule.get.asString()} at ${getCurrentTimestampAsString()}"
             )
             Service
-              .runJob(EtlJobArgs(cj.name), "Scheduler")
+              .runJob(cj.name, Map.empty, "Scheduler")
               .map(Some(_))
               .catchAll(_ => UIO.none)
           },

@@ -41,8 +41,6 @@ object Dependencies {
     "dev.zio"                  %% "zio-config"          % ZioConfig,
     "dev.zio"                  %% "zio-config-typesafe" % ZioConfig,
     "dev.zio"                  %% "zio-json"            % ZioJsonVersion,
-    "com.github.ghostdogpr"    %% "caliban"             % CalibanVersion,
-    "com.github.ghostdogpr"    %% "caliban-zio-http"    % CalibanVersion,
     "io.d11"                   %% "zhttp"               % ZioHttpVersion,
     "com.github.jwt-scala"     %% "jwt-core"            % JwtCoreVersion,
     "org.ocpsoft.prettytime"    % "prettytime"          % PrettyTimeVersion,

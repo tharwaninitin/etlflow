@@ -28,10 +28,10 @@ case class ServerApiTestSuite(credential: JDBC) {
   val spec: ZSpec[environment.TestEnvironment with ServerEnv, Any] =
     suite("Server Api")(
       testM("getInfo Test")(
-        assertM(Service.getInfo.map(x => x.cron_jobs))(equalTo(0))
+        assertM(Service.getMetrics.map(x => x.cron_jobs))(equalTo(0))
       ),
       testM("getCurrentTime Test")(
-        assertM(Service.getCurrentTime.map(x => x))(equalTo(CurrentTime(current_time = getCurrentTimestampAsString())))
+        assertM(Service.getCurrentTime.map(x => x))(equalTo(getCurrentTimestampAsString()))
       ) @@ TestAspect.flaky,
       testM("getJobLogs Test")(
         assertM(Service.getJobLogs(JobLogsArgs(None, Some(10L))).map(x => x.filter(_.job_name != "Job1").sortBy(_.job_name)))(
@@ -44,7 +44,7 @@ case class ServerApiTestSuite(credential: JDBC) {
       testM("addCredential Test")(
         assertM(
           Service
-            .addCredentials(
+            .addCredential(
               CredentialsArgs("AWS1", Creds.AWS, List(Props("access_key", "1231242"), Props("secret_key", "1231242")))
             )
             .map(x => x)
@@ -53,7 +53,7 @@ case class ServerApiTestSuite(credential: JDBC) {
       testM("updateCredential Test")(
         assertM(
           Service
-            .updateCredentials(
+            .updateCredential(
               CredentialsArgs("AWS1", Creds.AWS, List(Props("access_key", "1231242"), Props("secret_key", "1231242")))
             )
             .map(x => x)

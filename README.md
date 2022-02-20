@@ -41,7 +41,6 @@ You can use this library in different ways mentioned below.
 | -------------------|:--------------------:| -----------:| ----------:|
 | Db                 | ✅                   | ✅          | ✅          |
 | Http               | ✅                   | ✅          | ✅          |
-| Cloud              | ✅                   | ✅          | ✅          |
 | Email              | ✅                   | ✅          | ✅          |
 | Aws                | ✅                   | ✅          | ✅          |
 | Gcp                | ✅                   | ✅          | ✅          |
@@ -49,7 +48,7 @@ You can use this library in different ways mentioned below.
 | Spark              | ✅                   | ✅          | ❌          |
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.15, 2.13.7, 3.1.0
+This project is compiled with scala versions 2.12.15, 2.13.8, 3.1.1
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the latest release as a dependency to your project
 

@@ -10,9 +10,8 @@ object Versions {
   val ZioJsonVersion            = "0.2.0-M3"
   val ZioReactiveStreamsVersion = "1.3.9"
   val ZioCatsInteropVersion     = "3.2.9.0"
-  val ZioHttpVersion            = "1.0.0.0-RC21"
+  val ZioHttpVersion            = "1.0.0.0-RC24"
   val ZioConfig                 = "1.0.10"
-  val CalibanVersion            = "1.2.4"
 
   val SttpVersion          = "3.3.18"
   val AwsS3Version         = "2.17.129"

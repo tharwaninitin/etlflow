@@ -27,38 +27,36 @@ private[etlflow] object Implementation extends ApplicationLogger {
 
       val pt = new PrettyTime()
 
-      override def getJobs: ZIO[ServerEnv, Throwable, List[Job]] =
-        for {
-          jobs <- DBServerApi.getJobs
-          etljobs <- ZIO.foreach(jobs)(x =>
-            RF.getJob[T](x.job_name).map { ejpm =>
-              val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
-              GetJob(x.schedule, x, lastRunTime, ejpm.getProps)
-            }
-          )
-        } yield etljobs
+      override def getJobs: RIO[DBServerEnv, List[Job]] = for {
+        jobs <- DBServerApi.getJobs
+        etljobs <- ZIO.foreach(jobs)(x =>
+          RF.getJob[T](x.job_name).map { ejpm =>
+            val lastRunTime = x.last_run_time.map(ts => pt.format(getLocalDateTimeFromTimestamp(ts))).getOrElse("")
+            GetJob(x.schedule, x, lastRunTime, ejpm.getProps)
+          }
+        )
+      } yield etljobs
 
-      override def getJobLogs(args: JobLogsArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobLogs]] =
-        DBServerApi.getJobLogs(args)
+      override def getJobLogs(args: JobLogsArgs): RIO[DBServerEnv, List[JobLogs]] = DBServerApi.getJobLogs(args)
 
-      override def getCredentials: ZIO[APIEnv with DBServerEnv, Throwable, List[GetCredential]] =
-        DBServerApi.getCredentials
+      override def getCredentials: RIO[DBServerEnv, List[GetCredential]] = DBServerApi.getCredentials
 
-      override def runJob(args: EtlJobArgs, submitter: String): RIO[ServerEnv, EtlJob] =
-        executor.runActiveEtlJob(args, submitter)
+      override def runJob(
+          name: String,
+          props: Map[String, String],
+          submitter: String
+      ): RIO[ZEnv with JsonEnv with DBServerEnv, EtlJob] =
+        executor.runActiveEtlJob(name, props, submitter)
 
-      override def getDbStepRuns(args: DbStepRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[StepRun]] =
-        DBServerApi.getStepRuns(args)
+      override def getStepRuns(args: DbStepRunArgs): RIO[DBServerEnv, List[StepRun]] = DBServerApi.getStepRuns(args)
 
-      override def getDbJobRuns(args: DbJobRunArgs): ZIO[APIEnv with DBServerEnv, Throwable, List[JobRun]] =
-        DBServerApi.getJobRuns(args)
+      override def getJobRuns(args: DbJobRunArgs): RIO[DBServerEnv, List[JobRun]] = DBServerApi.getJobRuns(args)
 
-      override def updateJobState(args: EtlJobStateArgs): ZIO[APIEnv with DBServerEnv, Throwable, Boolean] =
-        DBServerApi.updateJobState(args)
+      override def updateJobState(args: EtlJobStateArgs): RIO[DBServerEnv, Boolean] = DBServerApi.updateJobState(args)
 
-      override def login(args: UserArgs): ZIO[APIEnv with DBServerEnv, Throwable, UserAuth] = auth.login(args)
+      override def login(args: UserArgs): RIO[DBServerEnv, UserAuth] = auth.login(args)
 
-      override def getInfo: ZIO[APIEnv, Throwable, EtlFlowMetrics] = Task {
+      override def getMetrics: UIO[EtlFlowMetrics] = UIO {
         val dt = getLocalDateTimeFromTimestamp(BI.builtAtMillis)
         EtlFlowMetrics(
           0,
@@ -69,8 +67,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
         )
       }
 
-      override def getCurrentTime: ZIO[APIEnv, Throwable, CurrentTime] =
-        UIO(CurrentTime(current_time = getCurrentTimestampAsString()))
+      override def getCurrentTime: UIO[String] = UIO(getCurrentTimestampAsString())
 
       def encryptCredential(`type`: String, value: String): RIO[JsonEnv, String] =
         `type` match {
@@ -90,7 +87,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
             } yield json
         }
 
-      override def addCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.server.model.Credential] =
+      override def addCredential(args: CredentialsArgs): RIO[JsonEnv with DBServerEnv, etlflow.server.model.Credential] =
         for {
           json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap)
           cred_type = args.`type` match {
@@ -102,7 +99,7 @@ private[etlflow] object Implementation extends ApplicationLogger {
           addCredential <- DBServerApi.addCredential(cred)
         } yield addCredential
 
-      override def updateCredentials(args: CredentialsArgs): RIO[ServerEnv, etlflow.server.model.Credential] =
+      override def updateCredential(args: CredentialsArgs): RIO[JsonEnv with DBServerEnv, etlflow.server.model.Credential] =
         for {
           json <- JsonApi.convertToString(args.value.map(x => (x.key, x.value)).toMap)
           cred_type = args.`type` match {

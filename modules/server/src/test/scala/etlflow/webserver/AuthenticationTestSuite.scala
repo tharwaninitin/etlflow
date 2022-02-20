@@ -12,7 +12,7 @@ import zio.test._
 case class AuthenticationTestSuite(credential: JDBC, port: Int) extends HttpRunnableSpec(port) with ServerSuiteHelper {
 
   val newRestApi = serve {
-    auth.middleware(RestAPI())
+    auth.middleware(RestAPI.live)
   }
 
   val token: String       = Jwt.encode("""{"user":"test"}""", auth.secret, JwtAlgorithm.HS256)
@@ -21,7 +21,7 @@ case class AuthenticationTestSuite(credential: JDBC, port: Int) extends HttpRunn
   authCache.put(cachedToken, cachedToken, Some(default_ttl))
 
   val spec: ZSpec[environment.TestEnvironment with TestAuthEnv, Any] =
-    (suiteM("Authentication")(
+    suiteM("Authentication")(
       newRestApi
         .as(
           List(
@@ -64,5 +64,5 @@ case class AuthenticationTestSuite(credential: JDBC, port: Int) extends HttpRunn
           )
         )
         .useNow
-    ) @@ TestAspect.sequential)
+    ) @@ TestAspect.sequential
 }

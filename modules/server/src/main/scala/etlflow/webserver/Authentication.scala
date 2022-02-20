@@ -1,6 +1,6 @@
 package etlflow.webserver
 
-import cache4s.{Cache, default_ttl}
+import cache4s.{default_ttl, Cache}
 import etlflow.server.model.{UserArgs, UserAuth}
 import etlflow.db.DBServerEnv
 import etlflow.server.DBServerApi
@@ -20,14 +20,8 @@ case class Authentication(cache: Cache[String, String], secretKey: Option[String
 
   private[etlflow] def middleware[R, E](app: HttpApp[R, E]): HttpApp[R, E] = Http.flatten {
     Http.fromFunction[Request] { req =>
-      val headerValue =
-        if (req.getHeader("Authorization").isDefined)
-          req.getHeader("Authorization")
-        else
-          req.getHeader("X-Auth-Token")
-      headerValue match {
-        case Some(value) =>
-          val token = value._2.toString
+      req.headerValue("X-Auth-Token") match {
+        case Some(token) =>
           if (validateJwt(token)) {
             isCached(token) match {
               case Some(_) => app

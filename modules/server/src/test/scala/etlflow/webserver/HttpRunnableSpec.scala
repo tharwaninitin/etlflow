@@ -14,7 +14,7 @@ abstract class HttpRunnableSpec(port: Int) {
 
   type TestAuthEnv = EventLoopGroup
     with ChannelFactory
-    with zhttp.service.ServerChannelFactory
+    with ServerChannelFactory
     with APIEnv
     with DBServerEnv
     with LogEnv

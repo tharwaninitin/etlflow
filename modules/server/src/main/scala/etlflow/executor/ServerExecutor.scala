@@ -69,6 +69,7 @@ case class ServerExecutor[T <: EJPMType: Tag](sem: Map[String, Semaphore], confi
           DPJobApi
             .executeSparkJob(dp_args, main_class, dp_libs, dp.conf, dp.cluster, dp.project, dp.region)
             .provideLayer(DPJob.live(dp.endpoint))
+            .unit
         case LIVY(_) =>
           Task.fail(new RuntimeException("Deploy mode LIVY not yet supported"))
         case KUBERNETES(_, _, _, _, _, _) =>

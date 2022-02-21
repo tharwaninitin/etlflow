@@ -12,7 +12,7 @@ import etlflow.utils.{Configuration, ReflectAPI => RF, SetTimeZone}
 import etlflow.webserver.{Authentication, HttpServer}
 import zio._
 
-abstract class ServerApp[T <: EJPMType: Tag] extends CliApp[T] with HttpServer with Scheduler {
+abstract class ServerApp[T <: EJPMType: Tag] extends CliApp[T] {
 
   final private def createSemaphores(jobs: List[EtlJob]): Task[Map[String, Semaphore]] =
     for {
@@ -37,8 +37,8 @@ abstract class ServerApp[T <: EJPMType: Tag] extends CliApp[T] with HttpServer w
        dbServerLayer = db.liveServerDB(config.db.get, pool_size = 10)
        apiLayer      = Implementation.live[T](auth, executor, jobs, crypto)
        finalLayer    = apiLayer ++ dbServerLayer
-       scheduler     = etlFlowScheduler(jobs).supervised(supervisor)
-       webserver     = etlFlowWebServer(auth, config.webserver)
+       scheduler     = Scheduler(jobs).supervised(supervisor)
+       webserver     = HttpServer(auth, config.webserver)
        _ <- scheduler.zipPar(webserver).provideSomeLayer[JsonEnv with ZEnv](finalLayer).toManaged_
      } yield ()).useNow
       .provideCustomLayer(etlflow.json.Implementation.live)

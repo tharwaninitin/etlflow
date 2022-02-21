@@ -18,7 +18,7 @@ object GCSStepsTestSuite extends TestHelper {
         val step = GCSPutStep(
           name = "S3PutStep",
           bucket = gcs_bucket,
-          key = "temp/ratings.parquet",
+          prefix = "temp/ratings.parquet",
           file = file_path_parquet
         ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
@@ -27,7 +27,7 @@ object GCSStepsTestSuite extends TestHelper {
         val step = GCSPutStep(
           name = "S3PutStep",
           bucket = gcs_bucket,
-          key = "temp/ratings.csv",
+          prefix = "temp/ratings.csv",
           file = file_path_csv
         ).process
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
@@ -36,8 +36,7 @@ object GCSStepsTestSuite extends TestHelper {
         val step = GCSSensorStep(
           name = "GCSKeySensor",
           bucket = gcs_bucket,
-          prefix = "temp",
-          key = "ratings.parquet",
+          prefix = "temp/ratings.parquet",
           retry = 10,
           spaced = 5.second
         ).process
@@ -47,6 +46,7 @@ object GCSStepsTestSuite extends TestHelper {
         val step = GCSCopyStep(
           name = "CopyStep",
           input = GCS(gcs_bucket, "temp"),
+          inputRecursive = true,
           output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
         ).process
@@ -56,6 +56,7 @@ object GCSStepsTestSuite extends TestHelper {
         val step = GCSCopyStep(
           name = "CopyStep",
           input = LOCAL("/local/path"),
+          inputRecursive = true,
           output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
         ).process

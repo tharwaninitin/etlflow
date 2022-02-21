@@ -26,7 +26,7 @@ object DPStepsTestSuite extends TestHelper {
         val step = DPSparkJobStep(
           name = "DPSparkJobStepExample",
           args = List("1000"),
-          main_class = "org.apache.spark.examples.SparkPi",
+          mainClass = "org.apache.spark.examples.SparkPi",
           libs = libs,
           conf,
           dp_cluster_name,

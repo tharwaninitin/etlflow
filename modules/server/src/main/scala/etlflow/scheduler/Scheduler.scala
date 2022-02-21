@@ -9,7 +9,7 @@ import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.getCurrentTimestampAsString
 import zio._
 
-private[etlflow] trait Scheduler extends ApplicationLogger {
+object Scheduler extends ApplicationLogger {
 
   final def scheduleJobs(dbCronJobs: List[CronJob]): ServerTask[Unit] =
     if (dbCronJobs.isEmpty) {
@@ -41,7 +41,7 @@ private[etlflow] trait Scheduler extends ApplicationLogger {
         }
     }
 
-  final def etlFlowScheduler(jobs: List[EtlJob]): ServerTask[Unit] = for {
+  final def apply(jobs: List[EtlJob]): ServerTask[Unit] = for {
     dbJobs <- DBServerApi.refreshJobs(jobs)
     cronJobs = dbJobs.map(x => new CronJob(x.job_name, parse(x.schedule).toOption)).filter(_.schedule.isDefined)
     _ <- UIO(logger.info(s"Refreshed jobs in database \n${dbJobs.mkString("\n")}"))

@@ -7,7 +7,7 @@ import zio.blocking.Blocking
 case class DPDeleteStep(name: String, clusterName: String, project: String, region: String)
     extends EtlStep[DPEnv with Blocking, Unit] {
 
-  final def process: RIO[DPEnv with Blocking, Unit] = {
+  protected def process: RIO[DPEnv with Blocking, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting Delete Cluster Step: $name")
     logger.info(s"Cluster Name: $clusterName and Region: $region")

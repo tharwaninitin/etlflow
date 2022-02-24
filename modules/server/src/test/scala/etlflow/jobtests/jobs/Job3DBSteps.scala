@@ -29,12 +29,12 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
   private val deleteCredStep = DBQueryStep(
     name = "DeleteCredential",
     query = delete_credential_script
-  ).process
+  ).execute
 
   private val addCredStep = DBQueryStep(
     name = "AddCredential",
     query = insert_credential_script
-  ).process
+  ).execute
 
   private val creds = GetCredentialStep[JDBC](
     name = "GetCredential",
@@ -59,8 +59,8 @@ case class Job3DBSteps(job_properties: EtlJob4Props) extends EtlJob[EtlJob4Props
   )
 
   val job = for {
-    _    <- deleteCredStep.provideLayer(etlflow.db.liveDB(config.db.get))
-    _    <- addCredStep.provideLayer(etlflow.db.liveDB(config.db.get))
+    _    <- deleteCredStep.provideSomeLayer[Blocking with LogEnv](etlflow.db.liveDB(config.db.get))
+    _    <- addCredStep.provideSomeLayer[Blocking with LogEnv](etlflow.db.liveDB(config.db.get))
     cred <- creds.execute.provideSomeLayer[Blocking with LogEnv](etlflow.db.liveDB(config.db.get))
     op2  <- step1.execute.provideSomeLayer[Blocking with LogEnv](etlflow.db.liveDB(cred))
     _    <- step2(op2).execute

@@ -38,7 +38,7 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
     case None =>
   }
 
-  final def process: RIO[SparkEnv, Unit] =
+  protected def process: RIO[SparkEnv, Unit] =
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)

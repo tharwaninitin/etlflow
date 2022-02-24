@@ -6,7 +6,7 @@ import java.nio.file.Paths
 
 case class S3PutStep(name: String, bucket: String, key: String, file: String, overwrite: Boolean) extends EtlStep[S3Env, Unit] {
 
-  override def process: RIO[S3Env, Unit] = for {
+  protected def process: RIO[S3Env, Unit] = for {
     _    <- UIO(logger.info("#" * 50))
     _    <- UIO(logger.info(s"Input local path $file"))
     _    <- UIO(logger.info(s"Output S3 path s3://$bucket/$key"))

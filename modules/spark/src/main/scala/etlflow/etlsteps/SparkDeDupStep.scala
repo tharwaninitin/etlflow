@@ -18,7 +18,7 @@ case class SparkDeDupStep[I <: Product: TypeTag](
     deDupCols: Seq[String]
 ) extends EtlStep[SparkEnv, Unit] {
 
-  final def process: RIO[SparkEnv, Unit] = for {
+  protected def process: RIO[SparkEnv, Unit] = for {
     _ <- UIO {
       logger.info("#" * 50)
       logger.info(s"Starting SparkDeDupStep: $name")

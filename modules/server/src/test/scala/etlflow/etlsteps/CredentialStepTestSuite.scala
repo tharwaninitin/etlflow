@@ -5,6 +5,7 @@ import etlflow.db.DBEnv
 import etlflow.model.Config
 import etlflow.model.Credential.JDBC
 import etlflow.json.CredentialImplicits._
+import etlflow.log.LogEnv
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -27,7 +28,7 @@ case class CredentialStepTestSuite(config: Config) {
     credential_name = "etlflow"
   )
 
-  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with DBEnv with LogEnv, Any] =
     suite("GetCredential Step")(
       testM("Execute GetCredentialStep") {
         def step1(script: String) = DBQueryStep(
@@ -35,8 +36,8 @@ case class CredentialStepTestSuite(config: Config) {
           query = script
         )
         val job = for {
-          _ <- step1(insert_credential_script).process
-          _ <- cred_step.process
+          _ <- step1(insert_credential_script).execute
+          _ <- cred_step.execute
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

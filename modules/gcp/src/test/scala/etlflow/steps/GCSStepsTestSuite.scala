@@ -3,6 +3,7 @@ package etlflow.steps
 import etlflow.TestHelper
 import etlflow.etlsteps.{GCSCopyStep, GCSPutStep, GCSSensorStep}
 import etlflow.gcp.Location.{GCS, LOCAL}
+import etlflow.log.LogEnv
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo
@@ -12,7 +13,7 @@ import scala.concurrent.duration._
 object GCSStepsTestSuite extends TestHelper {
   case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
 
-  val spec: ZSpec[environment.TestEnvironment with GCSEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with GCSEnv with LogEnv, Any] =
     suite("GCS Steps")(
       testM("Execute GCSPut PARQUET step") {
         val step = GCSPutStep(
@@ -20,7 +21,7 @@ object GCSStepsTestSuite extends TestHelper {
           bucket = gcs_bucket,
           prefix = "temp/ratings.parquet",
           file = file_path_parquet
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSPut CSV step") {
@@ -29,7 +30,7 @@ object GCSStepsTestSuite extends TestHelper {
           bucket = gcs_bucket,
           prefix = "temp/ratings.csv",
           file = file_path_csv
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSSensor step") {
@@ -39,7 +40,7 @@ object GCSStepsTestSuite extends TestHelper {
           prefix = "temp/ratings.parquet",
           retry = 10,
           spaced = 5.second
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy step GCS to GCS") {
@@ -49,7 +50,7 @@ object GCSStepsTestSuite extends TestHelper {
           inputRecursive = true,
           output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy step LOCAL to GCS") {
@@ -59,7 +60,7 @@ object GCSStepsTestSuite extends TestHelper {
           inputRecursive = true,
           output = GCS(gcs_bucket, "temp2"),
           parallelism = 2
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

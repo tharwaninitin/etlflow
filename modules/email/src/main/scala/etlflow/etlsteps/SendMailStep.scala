@@ -13,7 +13,7 @@ case class SendMailStep(
     credentials: SMTP
 ) extends EtlStep[Any, Unit] {
 
-  final def process: Task[Unit] = Task {
+  protected def process: Task[Unit] = Task {
     logger.info("#" * 100)
     logger.info(s"Starting SendMailStep")
     MailClientApi.sendMail(sender, recipient_list, body, subject, credentials)

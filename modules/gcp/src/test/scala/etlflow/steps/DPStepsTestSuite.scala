@@ -2,13 +2,14 @@ package etlflow.steps
 
 import etlflow.TestHelper
 import etlflow.etlsteps.{DPHiveJobStep, DPSparkJobStep}
+import etlflow.log.LogEnv
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object DPStepsTestSuite extends TestHelper {
-  val spec: ZSpec[environment.TestEnvironment with DPJobEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with DPJobEnv with LogEnv, Any] =
     suite("EtlFlow DPJobSteps")(
       testM("Execute DPHiveJob step") {
         val step = DPHiveJobStep(
@@ -17,7 +18,7 @@ object DPStepsTestSuite extends TestHelper {
           dp_cluster_name,
           gcp_project_id.get,
           gcp_region.get
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob step") {
@@ -32,7 +33,7 @@ object DPStepsTestSuite extends TestHelper {
           dp_cluster_name,
           gcp_project_id.get,
           gcp_region.get
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

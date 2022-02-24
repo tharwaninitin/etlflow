@@ -7,7 +7,7 @@ import zio.RIO
 case class DPHiveJobStep(name: String, query: String, cluster: String, project: String, region: String)
     extends EtlStep[DPJobEnv, Job] {
 
-  final def process: RIO[DPJobEnv, Job] = {
+  protected def process: RIO[DPJobEnv, Job] = {
     logger.info("#" * 100)
     logger.info(s"Starting Hive Dataproc Job: $name")
     DPJobApi.executeHiveJob(query, cluster, project, region)

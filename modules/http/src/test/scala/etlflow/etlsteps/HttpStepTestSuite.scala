@@ -1,8 +1,9 @@
 package etlflow.etlsteps
 
 import etlflow.http.HttpMethod
+import etlflow.log.{nolog, LogEnv}
 import etlflow.utils.ApplicationLogger
-import zio.{Task, ZIO}
+import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
 import java.time.LocalDateTime
@@ -70,18 +71,18 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
     params = Right(Map("param1" -> "value1"))
   )
 
-  val job: Task[Unit] = for {
-    _ <- getStep1.process
-    _ <- getStep2.process
-    _ <- postStep1.process
-    _ <- postStep2.process
-    _ <- postStep3.process
-    _ <- putStep1.process
-    _ <- putStep2.process
+  val job: RIO[LogEnv, Unit] = for {
+    _ <- getStep1.execute
+    _ <- getStep2.execute
+    _ <- postStep1.execute
+    _ <- postStep2.execute
+    _ <- postStep3.execute
+    _ <- putStep1.execute
+    _ <- putStep2.execute
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("Http Steps")(testM("Execute Http steps") {
+    (suite("Http Steps")(testM("Execute Http steps") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky
+    }) @@ TestAspect.flaky).provideCustomLayerShared(nolog)
 }

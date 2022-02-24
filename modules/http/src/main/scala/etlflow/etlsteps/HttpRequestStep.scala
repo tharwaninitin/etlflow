@@ -16,7 +16,7 @@ case class HttpRequestStep(
     allow_unsafe_ssl: Boolean = false
 ) extends EtlStep[Any, Response[String]] {
 
-  final def process: Task[Response[String]] = {
+  protected def process: Task[Response[String]] = {
     logger.info("#" * 50)
     logger.info(s"Starting HttpRequestStep: $name")
     logger.info(s"URL: $url")

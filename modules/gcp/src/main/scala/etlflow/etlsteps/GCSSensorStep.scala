@@ -15,7 +15,7 @@ case class GCSSensorStep(
     spaced: Duration
 ) extends EtlStep[GCSEnv with Clock, Unit] {
 
-  override def process: RIO[GCSEnv with Clock, Unit] = {
+  protected def process: RIO[GCSEnv with Clock, Unit] = {
     val lookup = GCSApi.lookupObject(bucket, prefix)
 
     val program: RIO[GCSEnv with Clock, Unit] =

@@ -1,12 +1,14 @@
 package etlflow.aws
 
 import etlflow.model.Credential.AWS
+import etlflow.utils.ApplicationLogger
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.{S3AsyncClient, S3AsyncClientBuilder}
+
 import java.net.URI
 
-object S3Client {
+object S3Client extends ApplicationLogger {
   def apply(region: Region, credentials: Option[AWS] = None, endpointOverride: Option[String] = None): S3AsyncClient = {
     val ACCESS_KEY = sys.env.getOrElse("ACCESS_KEY", "NOT_SET_IN_ENV")
     val SECRET_KEY = sys.env.getOrElse("SECRET_KEY", "NOT_SET_IN_ENV")

@@ -1,13 +1,14 @@
 package etlflow.etlsteps
 
 import etlflow.SparkTestSuiteHelper
+import etlflow.log.LogEnv
 import etlflow.schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.{SparkEnv, SparkUDF}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
-import zio.ZIO
+import zio._
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -102,13 +103,13 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
     output_repartitioning_num = 1
   )
 
-  val job: ZIO[SparkEnv, Throwable, Unit] = for {
-    _ <- step1.process
-    _ <- step21.process.zipPar(step22.process)
-    _ <- step3.process
+  val job: RIO[SparkEnv with LogEnv, Unit] = for {
+    _ <- step1.execute
+    _ <- step21.execute.zipPar(step22.execute)
+    _ <- step3.execute
   } yield ()
 
-  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+  val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
     testM("Execute SparkReadWriteSteps with GCS and BQ") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

@@ -1,10 +1,11 @@
 package etlflow.etlsteps
 
 import etlflow.db.DBEnv
+import etlflow.log.LogEnv
 import etlflow.model.Config
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{assertM, assertTrue, environment, suite, test, testM, ZSpec}
+import zio.test._
 
 case class DBStepTestSuite(config: Config) {
 
@@ -15,7 +16,7 @@ case class DBStepTestSuite(config: Config) {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
+  val spec: ZSpec[environment.TestEnvironment with DBEnv with LogEnv, Any] =
     suite("DB Steps")(
       testM("Execute DB steps") {
         val create_table_script =
@@ -42,9 +43,9 @@ case class DBStepTestSuite(config: Config) {
         )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
 
         val job = for {
-          _ <- step1.process
-          _ <- step2.process
-          _ <- step3.process
+          _ <- step1.execute
+          _ <- step2.execute
+          _ <- step3.execute
         } yield ()
         assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

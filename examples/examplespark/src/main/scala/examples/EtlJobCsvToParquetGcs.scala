@@ -71,9 +71,10 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
   )
 
   val job = for {
-    _ <- step1.process
-    _ <- step2.process
+    _ <- step1.execute
+    _ <- step2.execute
   } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.provideLayer(SparkImpl.live(spark)).exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+    job.provideLayer(SparkImpl.live(spark) ++ etlflow.log.nolog).exitCode
 }

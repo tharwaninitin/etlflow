@@ -13,7 +13,7 @@ case class GCSCopyStep(
     overwrite: Boolean = true
 ) extends EtlStep[GCSEnv, Unit] {
 
-  override def process: RIO[GCSEnv, Unit] = {
+  protected def process: RIO[GCSEnv, Unit] = {
     val program = (input, output) match {
       case (src @ Location.GCS(_, _), tgt @ Location.GCS(_, _)) =>
         GCSApi.copyObjectsGCStoGCS(

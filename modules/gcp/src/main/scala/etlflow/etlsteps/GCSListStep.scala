@@ -7,7 +7,7 @@ import zio.{Chunk, RIO}
 case class GCSListStep(name: String, bucket: String, prefix: Option[String], recursive: Boolean)
     extends EtlStep[GCSEnv, Chunk[Blob]] {
 
-  override def process: RIO[GCSEnv, Chunk[Blob]] = {
+  protected def process: RIO[GCSEnv, Chunk[Blob]] = {
     logger.info(s"Listing files at $bucket/$prefix")
     GCSApi.listObjects(bucket, prefix, recursive).runCollect
   }

@@ -19,7 +19,7 @@ case class BQLoadStep(
 ) extends EtlStep[BQEnv, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  final def process: RIO[BQEnv, Unit] = {
+  protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Step : $name")
 

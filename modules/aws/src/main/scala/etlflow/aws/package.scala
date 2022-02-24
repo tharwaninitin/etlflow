@@ -1,6 +1,5 @@
 package etlflow
 
-import etlflow.utils.ApplicationLogger
 import software.amazon.awssdk.core.async.{AsyncResponseTransformer, SdkPublisher}
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import zio.interop.reactivestreams._
@@ -9,7 +8,7 @@ import zio.{Chunk, Has}
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 
-package object aws extends ApplicationLogger {
+package object aws {
   type StreamResponse = ZStream[Any, Throwable, Chunk[Byte]]
   type S3Env          = Has[S3Api.Service]
 

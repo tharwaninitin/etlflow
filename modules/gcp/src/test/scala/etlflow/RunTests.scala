@@ -6,7 +6,7 @@ import zio.test._
 
 object RunTests extends DefaultRunnableSpec with TestHelper {
 
-  val env = DPJob.live(dp_endpoint) ++ DP.live(dp_endpoint) ++ BQ.live() ++ GCS.live()
+  val env = DPJob.live(dp_endpoint) ++ DP.live(dp_endpoint) ++ BQ.live() ++ GCS.live() ++ log.nolog
 
   override def spec: ZSpec[environment.TestEnvironment, Any] = (suite("GCP Steps")(
     BQStepsTestSuite.spec,

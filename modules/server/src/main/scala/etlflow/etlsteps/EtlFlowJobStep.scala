@@ -10,7 +10,7 @@ class EtlFlowJobStep[EJP <: EtlJobProps] private (val name: String, job: => EtlJ
   lazy val job_instance = job
   var job_run_id        = java.util.UUID.randomUUID.toString
 
-  final def process: RIO[ZEnv, Unit] = {
+  protected def process: RIO[ZEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting EtlFlowJobStep for: $name")
     for {

@@ -12,7 +12,7 @@ import etlflow.json.CredentialImplicits._
 
 case class GetCredentialStep[T: Tag: JsonDecoder](name: String, credential_name: String) extends EtlStep[Blocking, T] {
 
-  override def process: RIO[Blocking, T] = {
+  protected def process: RIO[Blocking, T] = {
     val query = s"SELECT value FROM credential WHERE name='$credential_name' and valid_to is null;"
     val step = for {
       config <- Configuration.config

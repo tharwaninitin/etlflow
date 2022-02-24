@@ -9,7 +9,7 @@ case class GCSDeleteStep(
     prefix: String
 ) extends EtlStep[GCSEnv, Unit] {
 
-  override def process: RIO[GCSEnv, Unit] = {
+  protected def process: RIO[GCSEnv, Unit] = {
     logger.info(s"Deleting file at gs://$bucket/$prefix")
     GCSApi.deleteObject(bucket, prefix).unit
   }

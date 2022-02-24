@@ -29,7 +29,7 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
           key = s3_path,
           file = local_file,
           overwrite = true
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute S3Put step overwrite false") {
@@ -39,7 +39,7 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
           key = s3_path,
           file = local_file,
           overwrite = false
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.fail("ok")))(
           equalTo("File at path s3://test/temp/ratings.csv already exist")
         )
@@ -51,7 +51,7 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
           key = s3_path,
           retry = 3,
           spaced = 5.second
-        ).process
+        ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute getObject api") {
@@ -77,5 +77,5 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
           .runCollect
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    ) @@ TestAspect.sequential).provideLayerShared(env ++ Clock.live)
+    ) @@ TestAspect.sequential).provideLayerShared(env ++ Clock.live ++ log.nolog)
 }

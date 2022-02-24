@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 case class S3SensorStep(name: String, bucket: String, key: String, retry: Int, spaced: Duration)
     extends EtlStep[S3Env with Clock, Unit] {
 
-  override def process: RIO[S3Env with Clock, Unit] = for {
+  protected def process: RIO[S3Env with Clock, Unit] = for {
     _ <- UIO(logger.info("#" * 50))
     _ <- UIO(logger.info(s"Starting sensor for s3 location s3://$bucket/$key"))
     _ <- S3Api

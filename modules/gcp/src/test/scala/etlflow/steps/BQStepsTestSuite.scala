@@ -3,6 +3,7 @@ package etlflow.steps
 import com.google.cloud.bigquery.Schema
 import etlflow.TestHelper
 import etlflow.etlsteps.{BQExportStep, BQLoadStep}
+import etlflow.log.LogEnv
 import gcp4zio.BQInputType.{CSV, PARQUET}
 import gcp4zio._
 import utils.Encoder
@@ -20,7 +21,7 @@ object BQStepsTestSuite extends TestHelper {
   val output_table        = "ratings"
   val output_dataset      = "dev"
 
-  val spec: ZSpec[environment.TestEnvironment with BQEnv, Any] = suite("BQ Steps")(
+  val spec: ZSpec[environment.TestEnvironment with BQEnv with LogEnv, Any] = suite("BQ Steps")(
     testM("Execute BQLoad PARQUET step") {
       val step = BQLoadStep(
         name = "LoadRatingBQ",
@@ -29,7 +30,7 @@ object BQStepsTestSuite extends TestHelper {
         output_project = sys.env.get("GCP_PROJECT_ID"),
         output_dataset = output_dataset,
         output_table = output_table
-      ).process
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQLoad CSV step") {
@@ -42,7 +43,7 @@ object BQStepsTestSuite extends TestHelper {
         output_dataset = output_dataset,
         output_table = output_table,
         schema = schema
-      ).process
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQExport CSV step") {
@@ -54,7 +55,7 @@ object BQStepsTestSuite extends TestHelper {
         destination_path = bq_export_dest_path,
         destination_file_name = Some("sample.csv"),
         destination_format = BQInputType.CSV(",")
-      ).process
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQExport PARQUET step") {
@@ -67,7 +68,7 @@ object BQStepsTestSuite extends TestHelper {
         destination_file_name = Some("sample.parquet"),
         destination_format = BQInputType.PARQUET,
         destination_compression_type = "snappy"
-      ).process
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
   ) @@ TestAspect.sequential

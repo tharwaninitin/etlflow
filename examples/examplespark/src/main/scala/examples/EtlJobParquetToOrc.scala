@@ -25,7 +25,7 @@ object EtlJobParquetToOrc extends zio.App with ApplicationLogger {
     output_filename = Some("ratings.orc")
   )
 
-  val job = step1.process.provideLayer(SparkImpl.live(spark))
+  val job = step1.execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.nolog)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
 }

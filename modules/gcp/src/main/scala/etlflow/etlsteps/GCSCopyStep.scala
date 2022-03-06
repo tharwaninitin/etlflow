@@ -23,8 +23,7 @@ case class GCSCopyStep(
           List.empty,
           tgt.bucket,
           Some(tgt.path),
-          parallelism,
-          overwrite
+          parallelism
         )
       case (src @ Location.LOCAL(_), tgt @ Location.GCS(_, _)) =>
         GCSApi.copyObjectsLOCALtoGCS(src.path, tgt.bucket, tgt.path, parallelism, overwrite)

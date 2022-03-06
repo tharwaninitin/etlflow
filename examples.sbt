@@ -1,4 +1,3 @@
-import NativePackagerHelper._
 import ScalaCompileOptions._
 import Versions._
 
@@ -55,6 +54,7 @@ lazy val examplespark = (project in file("examples/examplespark"))
     )
   )
 
+// import NativePackagerHelper._
 //lazy val exampleserver = (project in file("examples/exampleserver"))
 //  .enablePlugins(JavaAppPackaging)
 //  .enablePlugins(DockerPlugin)

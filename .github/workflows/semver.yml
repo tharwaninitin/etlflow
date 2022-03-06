@@ -1,0 +1,14 @@
+name: Semantic Versioning Policy Check
+on: [push]
+jobs:
+  semvercheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: 11
+    - name: Run Semantic Versioning Policy Check
+      run: sbt versionPolicyCheck

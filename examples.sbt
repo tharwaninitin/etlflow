@@ -53,22 +53,3 @@ lazy val examplespark = (project in file("examples/examplespark"))
       ShadeRule.rename("shapeless.**" -> "shadeshapless.@1").inAll
     )
   )
-
-// import NativePackagerHelper._
-//lazy val exampleserver = (project in file("examples/exampleserver"))
-//  .enablePlugins(JavaAppPackaging)
-//  .enablePlugins(DockerPlugin)
-//  .settings(
-//    name               := "exampleserver",
-//    crossScalaVersions := scala2Versions,
-//    libraryDependencies ++= List(
-//      "com.github.tharwaninitin" %% "etlflow-server"  % EtlFlowVersion,
-//      "com.github.tharwaninitin" %% "etlflow-gcp"     % EtlFlowVersion,
-//      "ch.qos.logback"            % "logback-classic" % LogbackVersion
-//    ),
-//    Docker / packageName := "etlflow-server",
-//    dockerBaseImage      := "openjdk:jre",
-//    dockerExposedPorts ++= Seq(8080),
-//    maintainer := "tharwaninitin182@gmail.com",
-//    Universal / mappings ++= directory(sourceDirectory.value / "main" / "data")
-//  )

@@ -13,6 +13,7 @@ object DbTestSuite {
       testM("executeQuery Test") {
         val query =
           """BEGIN;
+               DROP TABLE IF EXISTS jobrun1;
                CREATE TABLE jobrun1 as SELECT * FROM jobrun;
              COMMIT;
           """.stripMargin

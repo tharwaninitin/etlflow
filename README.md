@@ -1,12 +1,12 @@
 # EtlFlow
 
 [![License](http://img.shields.io/:license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
-[![Core Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml)
-[![Server Workflow](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/server.yml)
+[![Core CI](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/core.yml)
+[![Semantic Versioning Policy Check](https://github.com/tharwaninitin/etlflow/actions/workflows/semver.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/semver.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
-**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different tasks, jobs, scheduling those jobs and monitoring those jobs using UI.
+**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different tasks, jobs on GCP and AWS.
 
 ## Documentation
 
@@ -22,31 +22,17 @@ You can use this library in different ways mentioned below.
   Using this addon module along with core you can use Apache Spark steps into your project.
 * [GCP Module (spark steps)](examplegcp):         
   Using this addon module along with core you can use GCP steps into your project.
-* [Server Module](exampleserver):         
-  Using this module along with job you can use additional features of Server API into your project.
 
 ## Modules Dependency Graph
 
 ![ModuleDepGraph](moduleDep.png)
 
 ## Scala Version Compatibility Matrix
-### Main Modules
 | Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
 | -------------------|:--------------------:| -----------:| ----------:|
-| **Core**           | ✅                   | ✅          | ✅          |
-| **Server**         | ✅                   | ✅          | ❌          |
-
-### Server Internal Modules
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
-| -------------------|:--------------------:| -----------:| ----------:|
-| Json               | ✅                   | ✅          | ✅          |
-
-### Addon Modules For Core
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
-| -------------------|:--------------------:| -----------:| ----------:|
+| Core               | ✅                   | ✅          | ✅          |
 | Db                 | ✅                   | ✅          | ✅          |
 | Http               | ✅                   | ✅          | ✅          |
-| Cloud              | ✅                   | ✅          | ✅          |
 | Email              | ✅                   | ✅          | ✅          |
 | Aws                | ✅                   | ✅          | ✅          |
 | Gcp                | ✅                   | ✅          | ✅          |
@@ -54,7 +40,7 @@ You can use this library in different ways mentioned below.
 | Spark              | ✅                   | ✅          | ❌          |
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.15, 2.13.7, 3.1.0
+This project is compiled with scala versions 2.12.15, 2.13.8, 3.1.1
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the latest release as a dependency to your project
 
@@ -63,7 +49,6 @@ Add the latest release as a dependency to your project
 __SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-server" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "x.x.x"

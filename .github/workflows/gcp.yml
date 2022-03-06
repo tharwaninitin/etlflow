@@ -14,4 +14,4 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
       - name: Compile Gcp Module
-        run: sbt ";project gcp; +Test/compile; testOnly etlflow.steps.gcp.BqSchemaMappingTestSuite"
+        run: sbt ";project gcp; +Test/compile"

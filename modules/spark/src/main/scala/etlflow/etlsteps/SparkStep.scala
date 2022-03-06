@@ -5,7 +5,7 @@ import org.apache.spark.sql.SparkSession
 import zio.{RIO, Task}
 
 case class SparkStep[OP](name: String, transform_function: SparkSession => OP) extends EtlStep[SparkEnv, OP] {
-  final def process: RIO[SparkEnv, OP] =
+  protected def process: RIO[SparkEnv, OP] =
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)

@@ -12,7 +12,7 @@ class RedisStep(
     val credentials: REDIS
 ) extends EtlStep[Any, Unit] {
 
-  final def process: Task[Unit] = Task {
+  protected def process: Task[Unit] = Task {
     logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
     logger.info(s"Starting Redis Query Step: $name")

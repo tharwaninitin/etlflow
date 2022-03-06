@@ -1,4 +1,3 @@
-import NativePackagerHelper._
 import ScalaCompileOptions._
 import Versions._
 
@@ -15,7 +14,7 @@ lazy val examples = (project in file("examples"))
       }
     }
   )
-  .aggregate(examplecore, examplespark, exampleserver)
+  .aggregate(examplecore, examplespark)
 
 lazy val examplecore = (project in file("examples/examplecore"))
   .settings(
@@ -35,11 +34,10 @@ lazy val examplespark = (project in file("examples/examplespark"))
     crossScalaVersions := scala2Versions,
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
-      ("org.apache.spark"        %% "spark-sql"     % SparkVersion)
-        .excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
-      "ch.qos.logback"              % "logback-classic" % LogbackVersion,
-      "com.google.cloud.bigdataoss" % "gcs-connector"   % HadoopGCSVersion
-      // "com.google.cloud.spark"     %% "spark-bigquery-with-dependencies" % SparkBQVersion
+      ("org.apache.spark" %% "spark-sql"       % SparkVersion).excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
+      "ch.qos.logback"     % "logback-classic" % LogbackVersion,
+      "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion
+      // "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
     ),
     excludeDependencies += "org.slf4j" % "slf4j-log4j12",
     Compile / mainClass               := Some("examples.LoadData"),
@@ -54,21 +52,4 @@ lazy val examplespark = (project in file("examples/examplespark"))
       ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll,
       ShadeRule.rename("shapeless.**" -> "shadeshapless.@1").inAll
     )
-  )
-
-lazy val exampleserver = (project in file("examples/exampleserver"))
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DockerPlugin)
-  .settings(
-    name               := "exampleserver",
-    crossScalaVersions := scala2Versions,
-    libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-server"  % EtlFlowVersion,
-      "ch.qos.logback"            % "logback-classic" % LogbackVersion
-    ),
-    Docker / packageName := "etlflow-server",
-    dockerBaseImage      := "openjdk:jre",
-    dockerExposedPorts ++= Seq(8080),
-    maintainer := "tharwaninitin182@gmail.com",
-    Universal / mappings ++= directory(sourceDirectory.value / "main" / "data")
   )

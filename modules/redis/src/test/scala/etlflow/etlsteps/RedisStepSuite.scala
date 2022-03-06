@@ -4,7 +4,7 @@ import etlflow.etlsteps.RedisStep.RedisCmd
 import etlflow.model.Credential.REDIS
 import zio.ZIO
 import zio.test.Assertion.equalTo
-import zio.test.{assertM, DefaultRunnableSpec, ZSpec}
+import zio.test._
 
 object RedisStepSuite extends DefaultRunnableSpec {
 
@@ -41,15 +41,15 @@ object RedisStepSuite extends DefaultRunnableSpec {
   )
 
   val job = for {
-    _ <- step1.process
-    _ <- step2.process
-    _ <- step3.process
-    _ <- step4.process
-    _ <- step5.process
+    _ <- step1.execute
+    _ <- step2.execute
+    _ <- step3.execute
+    _ <- step4.execute
+    _ <- step5.execute
   } yield ()
 
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
+  override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Redis Steps")(testM("Execute redis steps") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    })
+    }).provideCustomLayerShared(etlflow.log.nolog)
 }

@@ -13,5 +13,5 @@ object Job1 extends zio.App with ApplicationLogger {
     function = processData()
   )
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.process.exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.execute.provideCustomLayer(etlflow.log.nolog).exitCode
 }

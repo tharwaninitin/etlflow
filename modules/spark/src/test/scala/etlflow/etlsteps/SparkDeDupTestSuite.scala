@@ -1,6 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.TestSparkSession
+import etlflow.log.LogEnv
 import etlflow.schema.Rating
 import etlflow.spark.IOType.CSV
 import etlflow.spark.SparkEnv
@@ -22,8 +23,8 @@ object SparkDeDupTestSuite extends TestSparkSession {
     deDupCols = Seq("user_id", "movie_id")
   )
 
-  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+  val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
     testM("Spark Streaming Deduplication step should execute successfully")(
-      assertM(step.process.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      assertM(step.execute.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     )
 }

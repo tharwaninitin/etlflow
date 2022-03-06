@@ -1,6 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.SparkTestSuiteHelper
+import etlflow.log.LogEnv
 import etlflow.schema.Rating
 import etlflow.spark.IOType.PARQUET
 import etlflow.spark.{ReadApi, SparkEnv, SparkUDF, WriteApi}
@@ -43,12 +44,12 @@ object ParquetToJdbcGenericSparkStepTestSuite extends SparkUDF with ApplicationL
     function = processData(ip)
   )
 
-  val job: ZIO[SparkEnv, Throwable, Unit] = for {
-    op <- step1.process
-    _  <- step2(op).process
+  val job: ZIO[SparkEnv with LogEnv, Throwable, Unit] = for {
+    op <- step1.execute
+    _  <- step2(op).execute
   } yield ()
 
-  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+  val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
     testM("Execute ParquetToJdbcGenericSparkStepTestSuite step") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

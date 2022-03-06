@@ -4,10 +4,9 @@ import etlflow.db.{DBApi, DBEnv}
 import scalikejdbc.WrappedResultSet
 import zio.RIO
 
-class DBReadStep[T] private (val name: String, query: => String)(fn: WrappedResultSet => T)
-    extends EtlStep[DBEnv, List[T]] {
+class DBReadStep[T] private (val name: String, query: => String)(fn: WrappedResultSet => T) extends EtlStep[DBEnv, List[T]] {
 
-  final def process: RIO[DBEnv, List[T]] = {
+  protected def process: RIO[DBEnv, List[T]] = {
     logger.info("#" * 100)
     logger.info(s"Starting DB Query Result Step: $name")
     logger.info(s"Query: $query")

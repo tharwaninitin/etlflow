@@ -1,8 +1,10 @@
 package examples
 
 import etlflow.etlsteps.{DBReadStep, GenericETLStep}
+import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
 import etlflow.utils.ApplicationLogger
+import zio.blocking.Blocking
 import zio.{ExitCode, URIO}
 
 object Job3 extends zio.App with ApplicationLogger {
@@ -28,7 +30,7 @@ object Job3 extends zio.App with ApplicationLogger {
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
-       op <- step1.process.provideLayer(etlflow.db.liveDB(cred))
-       _  <- step2(op).process
-     } yield ()).exitCode
+       op <- step1.execute.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
+       _  <- step2(op).execute
+     } yield ()).provideCustomLayer(etlflow.log.nolog).exitCode
 }

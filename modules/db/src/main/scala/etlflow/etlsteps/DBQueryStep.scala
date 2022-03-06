@@ -5,7 +5,7 @@ import zio.RIO
 
 class DBQueryStep private (val name: String, query: => String) extends EtlStep[DBEnv, Unit] {
 
-  final def process: RIO[DBEnv, Unit] = {
+  protected def process: RIO[DBEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting DB Query Step: $name")
     logger.info(s"Query: $query")

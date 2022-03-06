@@ -1,6 +1,7 @@
 package examples
 
 import etlflow.etlsteps.GenericETLStep
+import etlflow.log.LogEnv
 import etlflow.utils.ApplicationLogger
 import zio.{ExitCode, URIO}
 
@@ -34,10 +35,10 @@ object Job2 extends zio.App with ApplicationLogger {
   )
 
   val job = for {
-    _ <- step1.process
-    _ <- step2.process
-    _ <- step3.process
+    _ <- step1.execute
+    _ <- step2.execute
+    _ <- step3.execute
   } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.provideCustomLayer(etlflow.log.nolog).exitCode
 }

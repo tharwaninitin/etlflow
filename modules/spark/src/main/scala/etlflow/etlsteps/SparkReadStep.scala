@@ -18,7 +18,7 @@ case class SparkReadStep[I <: Product: TypeTag, O <: Product: TypeTag](
   private var recordsReadCount    = 0L
   private var sparkRuntimeConf    = Map.empty[String, String]
 
-  final def process: RIO[SparkEnv, Dataset[O]] =
+  protected def process: RIO[SparkEnv, Dataset[O]] =
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)

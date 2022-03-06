@@ -9,7 +9,7 @@ trait EtlStep[R, OP] extends ApplicationLogger {
   val name: String
   val step_type: String = this.getClass.getSimpleName
 
-  def process: RIO[R, OP]
+  protected def process: RIO[R, OP]
   def getExecutionMetrics: Map[String, String] = Map()
   def getStepProperties: Map[String, String]   = Map()
 

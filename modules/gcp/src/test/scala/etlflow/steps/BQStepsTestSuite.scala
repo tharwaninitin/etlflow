@@ -1,15 +1,17 @@
 package etlflow.steps
 
 import com.google.cloud.bigquery.Schema
-import etlflow.GcpTestHelper
+import etlflow.TestHelper
 import etlflow.etlsteps.{BQExportStep, BQLoadStep}
-import etlflow.gcp.BQInputType.{CSV, PARQUET}
-import etlflow.gcp.{getBqSchema, BQ, BQInputType}
+import etlflow.log.LogEnv
+import gcp4zio.BQInputType.{CSV, PARQUET}
+import gcp4zio._
+import utils.Encoder
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object BQStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
+object BQStepsTestSuite extends TestHelper {
   case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
 
   // STEP 1: Define step
@@ -19,7 +21,7 @@ object BQStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
   val output_table        = "ratings"
   val output_dataset      = "dev"
 
-  def spec: ZSpec[environment.TestEnvironment, Any] = suite("BQ Steps")(
+  val spec: ZSpec[environment.TestEnvironment with BQEnv with LogEnv, Any] = suite("BQ Steps")(
     testM("Execute BQLoad PARQUET step") {
       val step = BQLoadStep(
         name = "LoadRatingBQ",
@@ -28,11 +30,11 @@ object BQStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         output_project = sys.env.get("GCP_PROJECT_ID"),
         output_dataset = output_dataset,
         output_table = output_table
-      ).process.provideLayer(BQ.live())
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQLoad CSV step") {
-      val schema: Option[Schema] = getBqSchema[RatingCSV]
+      val schema: Option[Schema] = Encoder[RatingCSV]
       val step = BQLoadStep(
         name = "LoadRatingCSV",
         input_location = Left(input_file_csv),
@@ -41,7 +43,7 @@ object BQStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         output_dataset = output_dataset,
         output_table = output_table,
         schema = schema
-      ).process.provideLayer(BQ.live())
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQExport CSV step") {
@@ -53,7 +55,7 @@ object BQStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         destination_path = bq_export_dest_path,
         destination_file_name = Some("sample.csv"),
         destination_format = BQInputType.CSV(",")
-      ).process.provideLayer(BQ.live())
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQExport PARQUET step") {
@@ -66,7 +68,7 @@ object BQStepsTestSuite extends DefaultRunnableSpec with GcpTestHelper {
         destination_file_name = Some("sample.parquet"),
         destination_format = BQInputType.PARQUET,
         destination_compression_type = "snappy"
-      ).process.provideLayer(BQ.live())
+      ).execute
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
   ) @@ TestAspect.sequential

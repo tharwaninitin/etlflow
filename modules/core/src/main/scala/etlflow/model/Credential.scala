@@ -2,7 +2,7 @@ package etlflow.model
 
 sealed trait Credential
 object Credential {
-  final case class GCP(service_account_key_path: String, project_id: String = "") extends Credential {
+  final case class GCP(service_account_key_path: String) extends Credential {
     override def toString: String = "****service_account_key_path****"
   }
 

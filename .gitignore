@@ -14,4 +14,4 @@ out
 .idea_modules
 .bsp
 .env
-.minio.sys
+minio

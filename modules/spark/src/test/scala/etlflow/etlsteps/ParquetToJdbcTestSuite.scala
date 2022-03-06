@@ -1,6 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.SparkTestSuiteHelper
+import etlflow.log.LogEnv
 import etlflow.schema.{Rating, RatingsMetrics}
 import etlflow.spark.IOType.PARQUET
 import etlflow.spark.SparkEnv
@@ -8,33 +9,33 @@ import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode}
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, ZIO}
+import zio._
 
 object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelper {
 
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
-  val step1: RIO[SparkEnv, Unit] = SparkReadWriteStep[Rating, Rating](
+  val step1: RIO[SparkEnv with LogEnv, Unit] = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     input_location = Seq(input_path_parquet),
     input_type = PARQUET,
     output_type = jdbc,
     output_location = table_name,
     output_save_mode = SaveMode.Overwrite
-  ).process
+  ).execute
 
-  val step2: RIO[SparkEnv, Dataset[Rating]] = SparkReadStep[Rating, Rating](
+  val step2: RIO[SparkEnv with LogEnv, Dataset[Rating]] = SparkReadStep[Rating, Rating](
     name = "LoadRatingsParquet",
     input_location = Seq(input_path_parquet),
     input_type = PARQUET
-  ).process
+  ).execute
 
-  def step3(query: String): RIO[SparkEnv, Dataset[RatingsMetrics]] = SparkReadStep[RatingsMetrics, RatingsMetrics](
+  def step3(query: String): RIO[SparkEnv with LogEnv, Dataset[RatingsMetrics]] = SparkReadStep[RatingsMetrics, RatingsMetrics](
     name = "LoadRatingsDB",
     input_location = Seq(query),
     input_type = jdbc
-  ).process
+  ).execute
 
-  val job: ZIO[SparkEnv, Throwable, Boolean] = for {
+  val job: RIO[SparkEnv with LogEnv, Boolean] = for {
     _     <- step1
     ip_ds <- step2
     enc   = Encoders.product[RatingsMetrics]
@@ -47,7 +48,7 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     bool = ip == op
   } yield bool
 
-  val test: ZSpec[environment.TestEnvironment with SparkEnv, Any] =
+  val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
     testM("Record counts and sum should be matching after step run LoadRatingsParquetToJdbc")(
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
     )

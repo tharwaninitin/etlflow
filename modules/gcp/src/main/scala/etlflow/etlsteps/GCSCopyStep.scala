@@ -1,20 +1,30 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import etlflow.gcp.Location
+import gcp4zio._
 import zio.{RIO, Task}
 
 case class GCSCopyStep(
     name: String,
     input: Location,
+    inputRecursive: Boolean,
     output: Location,
     parallelism: Int,
     overwrite: Boolean = true
 ) extends EtlStep[GCSEnv, Unit] {
 
-  override def process: RIO[GCSEnv, Unit] = {
+  protected def process: RIO[GCSEnv, Unit] = {
     val program = (input, output) match {
       case (src @ Location.GCS(_, _), tgt @ Location.GCS(_, _)) =>
-        GCSApi.copyObjectsGCStoGCS(src.bucket, src.path, tgt.bucket, tgt.path, parallelism, overwrite)
+        GCSApi.copyObjectsGCStoGCS(
+          src.bucket,
+          Some(src.path),
+          inputRecursive,
+          List.empty,
+          tgt.bucket,
+          Some(tgt.path),
+          parallelism
+        )
       case (src @ Location.LOCAL(_), tgt @ Location.GCS(_, _)) =>
         GCSApi.copyObjectsLOCALtoGCS(src.path, tgt.bucket, tgt.path, parallelism, overwrite)
       case (src, tgt) =>
@@ -31,7 +41,6 @@ case class GCSCopyStep(
   }
 
   override def getStepProperties: Map[String, String] = Map(
-    "name"        -> name,
     "input"       -> input.toString,
     "output"      -> output.toString,
     "parallelism" -> parallelism.toString,

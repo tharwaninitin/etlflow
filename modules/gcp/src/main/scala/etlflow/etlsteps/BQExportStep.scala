@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.gcp._
+import gcp4zio.{BQApi, BQEnv, BQInputType}
 import zio.{RIO, UIO}
 
 case class BQExportStep(
@@ -15,13 +15,13 @@ case class BQExportStep(
 ) extends EtlStep[BQEnv, Unit] {
   var row_count: Map[String, Long] = Map.empty
 
-  final def process: RIO[BQEnv, Unit] = {
+  protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Step: $name")
-    BQApi.exportFromBQTable(
-      source_project,
+    BQApi.exportTable(
       source_dataset,
       source_table,
+      source_project,
       destination_path,
       destination_file_name,
       destination_format,
@@ -34,12 +34,11 @@ case class BQExportStep(
       "total_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
     )
 
-  override def getStepProperties: Map[String, String] =
-    Map(
-      "input_project"   -> source_project.getOrElse(""),
-      "input_dataset"   -> source_dataset,
-      "input_table"     -> source_table,
-      "output_type"     -> destination_format.toString(),
-      "output_location" -> destination_path
-    )
+  override def getStepProperties: Map[String, String] = Map(
+    "input_project"   -> source_project.getOrElse(""),
+    "input_dataset"   -> source_dataset,
+    "input_table"     -> source_table,
+    "output_type"     -> destination_format.toString(),
+    "output_location" -> destination_path
+  )
 }

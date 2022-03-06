@@ -41,13 +41,6 @@ lazy val sparkSettings = Seq(
   libraryDependencies ++= sparkLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
 )
 
-lazy val serverSettings = Seq(
-  name                     := "etlflow-server",
-  crossScalaVersions       := scala2Versions,
-  coverageExcludedPackages := ".*ServerApp;.*HttpServer",
-  libraryDependencies ++= serverLibs ++ coreTestLibs ++ dbTestLibs
-)
-
 lazy val dbSettings = Seq(
   name               := "etlflow-db",
   crossScalaVersions := allScalaVersions,
@@ -89,7 +82,7 @@ lazy val etlflow = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core, server, spark, db, http, redis, email, aws, gcp)
+  .aggregate(core, spark, db, http, redis, email, aws, gcp)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
@@ -99,24 +92,6 @@ lazy val db = (project in file("modules/db"))
   .settings(commonSettings)
   .settings(dbSettings)
   .dependsOn(core)
-
-lazy val server = (project in file("modules/server"))
-  .settings(commonSettings)
-  .settings(serverSettings)
-  .enablePlugins(BuildInfoPlugin)
-  .settings(
-    buildInfoKeys := Seq[BuildInfoKey](
-      resolvers,
-      Compile / libraryDependencies,
-      name,
-      version,
-      scalaVersion,
-      sbtVersion
-    ),
-    buildInfoOptions += BuildInfoOption.BuildTime,
-    buildInfoPackage := "etlflow"
-  )
-  .dependsOn(core, db)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)

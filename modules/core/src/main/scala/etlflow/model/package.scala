@@ -2,15 +2,13 @@ package etlflow
 
 package object model {
   case class Config(
-      db: Option[Credential.JDBC],
-      timezone: Option[String],
-      slack: Option[Slack],
-      dataproc: Option[DataprocSpark],
-      token: Option[List[String]],
-      webserver: Option[WebServer],
-      secretkey: Option[String]
+      db: Option[Credential.JDBC] = None,
+      timezone: Option[String] = None,
+      slack: Option[Slack] = None,
+      token: Option[List[String]] = None,
+      webserver: Option[WebServer] = None,
+      secretkey: Option[String] = None
   )
-  case class DataprocSpark(mainclass: String, deplibs: List[String])
   case class Slack(url: String, env: String, host: String)
-  case class WebServer(ip_address: Option[String], port: Option[Int], allowedOrigins: Option[Set[String]])
+  case class WebServer(ipAddress: Option[String], port: Option[Int], allowedOrigins: Option[Set[String]])
 }

@@ -36,21 +36,6 @@ object Dependencies {
     "net.debasishg" %% "redisclient" % RedisVersion
   )
 
-  lazy val serverLibs = List(
-    "dev.zio"                  %% "zio"                 % ZioVersion,
-    "dev.zio"                  %% "zio-config"          % ZioConfig,
-    "dev.zio"                  %% "zio-config-typesafe" % ZioConfig,
-    "dev.zio"                  %% "zio-json"            % ZioJsonVersion,
-    "io.d11"                   %% "zhttp"               % ZioHttpVersion,
-    "com.github.jwt-scala"     %% "jwt-core"            % JwtCoreVersion,
-    "org.ocpsoft.prettytime"    % "prettytime"          % PrettyTimeVersion,
-    "com.github.scopt"         %% "scopt"               % ScoptVersion,
-    "com.github.tharwaninitin" %% "cron4zio"            % Cron4zioVersion,
-    "com.github.tharwaninitin" %% "gcp4zio"             % Gcp4ZioVersion,
-    "com.github.tharwaninitin" %% "crypto4s"            % Crypto4sVersion,
-    "com.github.tharwaninitin" %% "cache4s"             % Cache4sVersion
-  )
-
   lazy val sparkLibs = List(
     "dev.zio"          %% "zio"       % ZioVersion,
     "org.apache.spark" %% "spark-sql" % SparkVersion % Provided

@@ -7,32 +7,21 @@ object Versions {
   val EtlFlowVersion   = "0.14.2"
 
   val ZioVersion                = "1.0.13"
-  val ZioJsonVersion            = "0.2.0-M3"
   val ZioReactiveStreamsVersion = "1.3.9"
-  val ZioCatsInteropVersion     = "3.2.9.0"
-  val ZioHttpVersion            = "1.0.0.0-RC24"
-  val ZioConfig                 = "1.0.10"
 
   val SttpVersion          = "3.3.18"
-  val AwsS3Version         = "2.17.129"
-  val PrettyTimeVersion    = "5.0.2.Final"
-  val ScoptVersion         = "4.0.1"
+  val AwsS3Version         = "2.17.136"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
-  val JwtCoreVersion       = "9.0.3"
   val ScalaLikeJdbcVersion = "4.0.0"
-
-  val Cron4zioVersion = "0.2.1"
-  val Crypto4sVersion = "0.2.0"
-  val Cache4sVersion  = "0.1.0"
-  val Gcp4ZioVersion  = "0.2.0"
+  val Gcp4ZioVersion       = "0.2.0"
 
   val SparkVersion     = "3.2.0"
   val SparkBQVersion   = "0.23.1"
   val HadoopGCSVersion = "hadoop3-2.2.5"
   val HadoopS3Version  = "3.3.1"
 
-  val PgVersion    = "42.3.2"
+  val PgVersion    = "42.3.3"
   val MySqlVersion = "8.0.28"
 
   val Sl4jVersion    = "1.7.36"

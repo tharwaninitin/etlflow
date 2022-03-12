@@ -4,6 +4,7 @@ import etlflow.http.{HttpApi, HttpMethod}
 import sttp.client3.Response
 import zio._
 
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 case class HttpRequestStep(
     name: String,
     url: String,

@@ -14,8 +14,8 @@ object SparkDeDupTestSuite extends TestSparkSession {
 
   private val step = SparkDeDupStep[Rating](
     name = "LoadCsv",
-    input_type = CSV(),
-    input_location = "modules/spark/src/test/resources/input/ratings/*",
+    inputType = CSV(),
+    inputLocation = "modules/spark/src/test/resources/input/ratings/*",
     transformation = _.withColumn("watermark_ts", lit(current_timestamp())),
     checkpointLocation = s"modules/spark/src/test/resources/checkpoint",
     eventTimeCol = "watermark_ts",

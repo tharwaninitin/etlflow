@@ -10,5 +10,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: Check scalastyle
-        run: sbt "Test/scalastyle"
+      - name: Check scalastyle on etlflow
+        run: sbt "project etlflow; Test/scalastyle"
+      - name: Check scalastyle on examples
+        run: sbt "project examples; Test/scalastyle"

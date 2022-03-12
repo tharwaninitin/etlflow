@@ -11,18 +11,19 @@ import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql._
 import zio.{ExitCode, URIO}
 
+@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.NonUnitStatements"))
 object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
 
-  private val gcs_output_path                  = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
-  var output_date_paths: Seq[(String, String)] = Seq()
-  private val temp_date_col                    = "temp_date_col"
+  private val gcsOutputPath                  = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
+  var outputDatePaths: Seq[(String, String)] = Seq()
+  private val tempDateCol                    = "temp_date_col"
 
   implicit private val spark: SparkSession = SparkManager.createSparkSession(
     Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))),
-    hive_support = false
+    hiveSupport = false
   )
 
-  val get_formatted_date: (String, String, String) => Column =
+  val getFormattedDate: (String, String, String) => Column =
     (ColumnName: String, ExistingFormat: String, NewFormat: String) =>
       from_unixtime(unix_timestamp(col(ColumnName), ExistingFormat), NewFormat)
 
@@ -30,35 +31,34 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
 
     import spark.implicits._
 
-    val ratings_df = in
+    val ratingsDf = in
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
-      .withColumn(temp_date_col, get_formatted_date("date", "yyyy-MM-dd", "yyyyMMdd"))
-      .where(f"$temp_date_col in ('20160101', '20160102')")
+      .withColumn(tempDateCol, getFormattedDate("date", "yyyy-MM-dd", "yyyyMMdd"))
+      .where(f"$tempDateCol in ('20160101', '20160102')")
 
-    output_date_paths = ratings_df
-      .select(f"$temp_date_col")
+    outputDatePaths = ratingsDf
+      .select(f"$tempDateCol")
       .distinct()
       .as[String]
       .collect()
-      .map(date => (gcs_output_path + f"/$temp_date_col=" + date + "/part*", date))
+      .map(date => (gcsOutputPath + f"/$tempDateCol=" + date + "/part*", date))
 
-    ratings_df.drop(f"$temp_date_col")
+    ratingsDf.drop(f"$tempDateCol")
 
-    val mapping    = Encoders.product[RatingOutput]
-    val ratings_ds = ratings_df.as[RatingOutput](mapping)
-    ratings_ds
+    val mapping = Encoders.product[RatingOutput]
+    ratingsDf.as[RatingOutput](mapping)
   }
 
   private val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatingsParquet",
-    input_location = Seq(default_ratings_input_path_csv),
-    input_type = IOType.CSV(),
-    transform_function = Some(enrichRatingData),
-    output_type = IOType.CSV(),
-    output_location = gcs_output_path,
-    output_partition_col = Seq(f"$temp_date_col"),
-    output_save_mode = SaveMode.Overwrite
-  ).execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.nolog)
+    inputLocation = List(default_ratings_input_path_csv),
+    inputType = IOType.CSV(),
+    transformFunction = Some(enrichRatingData),
+    outputType = IOType.CSV(),
+    outputLocation = gcsOutputPath,
+    outputPartitionCol = Seq(f"$tempDateCol"),
+    outputSaveMode = SaveMode.Overwrite
+  ).execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.exitCode
 }

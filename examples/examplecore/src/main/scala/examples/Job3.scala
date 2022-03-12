@@ -11,7 +11,7 @@ object Job3 extends zio.App with ApplicationLogger {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
+  private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
 
   val step1: DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name = "FetchEtlJobRun",
@@ -20,7 +20,7 @@ object Job3 extends zio.App with ApplicationLogger {
 
   private def processData(ip: List[EtlJobRun]): Unit = {
     logger.info("Processing Data")
-    ip.foreach(jr => logger.info(jr.toString))
+    ip.foreach(jr => logger.info(s"$jr"))
   }
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
@@ -32,5 +32,5 @@ object Job3 extends zio.App with ApplicationLogger {
     (for {
        op <- step1.execute.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
        _  <- step2(op).execute
-     } yield ()).provideCustomLayer(etlflow.log.nolog).exitCode
+     } yield ()).provideCustomLayer(etlflow.log.noLog).exitCode
 }

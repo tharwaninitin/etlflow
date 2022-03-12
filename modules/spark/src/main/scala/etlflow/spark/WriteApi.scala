@@ -8,7 +8,9 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions.col
 import scala.reflect.runtime.universe.TypeTag
 
-@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.NonUnitStatements"))
+@SuppressWarnings(
+  Array("org.wartremover.warts.Throw", "org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.ToString")
+)
 object WriteApi extends ApplicationLogger {
 
   def dSProps[T <: Product: TypeTag](

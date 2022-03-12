@@ -1,8 +1,6 @@
 package etlflow.http
 
-sealed trait HttpMethod {
-  override def toString: String = this.getClass.getSimpleName
-}
+sealed trait HttpMethod
 object HttpMethod {
   case object GET  extends HttpMethod
   case object POST extends HttpMethod

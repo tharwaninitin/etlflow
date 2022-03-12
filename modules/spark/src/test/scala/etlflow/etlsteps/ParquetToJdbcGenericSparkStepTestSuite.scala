@@ -31,7 +31,7 @@ object ParquetToJdbcGenericSparkStepTestSuite extends SparkUDF with ApplicationL
 
   val step1: SparkStep[Array[String]] = SparkStep(
     name = "LoadRatingsParquetToJdbc",
-    transform_function = getYearMonthData
+    transformFunction = getYearMonthData
   )
 
   def processData(ip: Array[String]): Unit = {

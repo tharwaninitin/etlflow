@@ -4,11 +4,11 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
+@SuppressWarnings(Array("org.wartremover.warts.JavaSerializable", "org.wartremover.warts.Serializable"))
 object DbTestSuite {
 
   case class TestDb(name: String)
 
-  @SuppressWarnings(Array("org.wartremover.warts.JavaSerializable"))
   val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
     suite("DB Suite")(
       testM("executeQuery Test") {

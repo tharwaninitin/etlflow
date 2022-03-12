@@ -5,9 +5,7 @@ import zio.{Has, Task}
 
 package object spark {
   type SparkEnv = Has[SparkApi.Service[Task]]
-  sealed trait IOType {
-    override def toString: String = this.getClass.getSimpleName
-  }
+  sealed trait IOType
   object IOType {
     final case class CSV(
         delimiter: String = ",",

@@ -1,4 +1,4 @@
-name: Aws Workflow
+name: Aws CI
 on: [push]
 jobs:
   test:

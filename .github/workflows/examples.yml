@@ -1,4 +1,4 @@
-name: Examples Workflow
+name: Examples CI
 on: [push]
 jobs:
   test:

@@ -1,4 +1,4 @@
-name: Lint CI
+name: Scala Coding Style Check
 on: [push]
 jobs:
   test:

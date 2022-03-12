@@ -1,4 +1,4 @@
-name: Db Workflow
+name: Db CI
 on: [push]
 jobs:
   test:

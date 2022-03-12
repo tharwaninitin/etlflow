@@ -1,4 +1,4 @@
-name: Spark Workflow
+name: Spark CI
 on: [push]
 jobs:
   test:

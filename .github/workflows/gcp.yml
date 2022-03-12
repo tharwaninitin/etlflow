@@ -1,4 +1,4 @@
-name: Gcp Workflow
+name: Gcp CI
 on: [push]
 jobs:
   test:

@@ -1,4 +1,4 @@
-name: Http Workflow
+name: Http CI
 on: [push]
 jobs:
   test:

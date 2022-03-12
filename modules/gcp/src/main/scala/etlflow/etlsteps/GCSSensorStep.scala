@@ -38,6 +38,7 @@ case class GCSSensorStep(
     runnable
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getStepProperties: Map[String, String] =
     Map("bucket" -> bucket, "prefix" -> prefix, "retry" -> retry.toString, "spaced" -> spaced.toString)
 }

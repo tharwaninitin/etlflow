@@ -16,10 +16,10 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
   val step1: RIO[SparkEnv with LogEnv, Unit] = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
-    input_location = Seq(input_path_parquet),
+    input_location = List(inputPathParquet),
     input_type = IOType.PARQUET,
     output_type = IOType.JSON(),
-    output_location = output_path,
+    output_location = outputPath,
     output_save_mode = SaveMode.Overwrite,
     output_repartitioning = true,
     output_repartitioning_num = 1,

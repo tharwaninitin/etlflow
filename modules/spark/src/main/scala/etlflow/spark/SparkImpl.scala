@@ -6,78 +6,78 @@ import zio.{Managed, Task, TaskLayer, UIO}
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe.TypeTag
 
-case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
+final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
 
   override def getSparkSession: Task[SparkSession] = Task(spark)
 
-  override def ReadDSProps[T <: Product: TypeTag](
-      location: Seq[String],
-      input_type: IOType,
-      where_clause: String
+  override def readDSProps[T <: Product: TypeTag](
+      location: List[String],
+      inputType: IOType,
+      whereClause: String
   ): Task[Map[String, String]] =
-    Task(ReadApi.DSProps[T](location, input_type))
+    Task(ReadApi.dSProps[T](location, inputType))
 
-  override def ReadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String): Task[Dataset[T]] =
-    Task(ReadApi.DS[T](location, input_type, where_clause)(spark))
+  override def readDS[T <: Product: TypeTag](location: List[String], inputType: IOType, whereClause: String): Task[Dataset[T]] =
+    Task(ReadApi.ds[T](location, inputType, whereClause)(spark))
 
-  override def ReadStreamingDS[T <: Product: TypeTag](
+  override def readStreamingDS[T <: Product: TypeTag](
       location: String,
-      input_type: IOType,
-      where_clause: String
+      inputType: IOType,
+      whereClause: String
   ): Task[Dataset[T]] =
-    Task(ReadApi.StreamingDS[T](location, input_type, where_clause)(spark))
+    Task(ReadApi.streamingDS[T](location, inputType, whereClause)(spark))
 
-  override def ReadDF(
-      location: Seq[String],
-      input_type: IOType,
-      where_clause: String,
-      select_clause: Seq[String]
+  override def readDF(
+      location: List[String],
+      inputType: IOType,
+      whereClause: String,
+      selectClause: Seq[String]
   ): Task[Dataset[Row]] =
-    Task(ReadApi.DF(location, input_type, where_clause, select_clause)(spark))
+    Task(ReadApi.df(location, inputType, whereClause, selectClause)(spark))
 
-  override def WriteDSProps[T <: Product: universe.TypeTag](
-      output_type: IOType,
-      output_location: String,
-      save_mode: SaveMode,
-      partition_by: Seq[String],
-      output_filename: Option[String],
+  override def writeDSProps[T <: Product: universe.TypeTag](
+      outputType: IOType,
+      outputLocation: String,
+      saveMode: SaveMode,
+      partitionBy: Seq[String],
+      outputFilename: Option[String],
       compression: String,
       repartition: Boolean,
-      repartition_no: Int
+      repartitionNo: Int
   ): Task[Map[String, String]] = Task(
-    WriteApi.DSProps[T](
-      output_type,
-      output_location,
-      save_mode,
-      partition_by,
-      output_filename,
+    WriteApi.dSProps[T](
+      outputType,
+      outputLocation,
+      saveMode,
+      partitionBy,
+      outputFilename,
       compression,
       repartition,
-      repartition_no
+      repartitionNo
     )
   )
 
-  override def WriteDS[T <: Product: universe.TypeTag](
+  override def writeDS[T <: Product: universe.TypeTag](
       input: Dataset[T],
-      output_type: IOType,
-      output_location: String,
-      save_mode: SaveMode,
-      partition_by: Seq[String],
-      output_filename: Option[String],
+      outputType: IOType,
+      outputLocation: String,
+      saveMode: SaveMode,
+      partitionBy: Seq[String],
+      outputFilename: Option[String],
       compression: String,
       repartition: Boolean,
-      repartition_no: Int
+      repartitionNo: Int
   ): Task[Unit] = Task(
-    WriteApi.DS[T](
+    WriteApi.ds[T](
       input,
-      output_type,
-      output_location,
-      save_mode,
-      partition_by,
-      output_filename,
+      outputType,
+      outputLocation,
+      saveMode,
+      partitionBy,
+      outputFilename,
       compression,
       repartition,
-      repartition_no
+      repartitionNo
     )(spark)
   )
 }

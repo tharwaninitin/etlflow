@@ -23,7 +23,7 @@ case class SparkDeDupStep[I <: Product: TypeTag](
       logger.info("#" * 50)
       logger.info(s"Starting SparkDeDupStep: $name")
     }
-    ip <- SparkApi.ReadStreamingDS[I](input_location, input_type, input_filter)
+    ip <- SparkApi.readStreamingDS[I](input_location, input_type, input_filter)
     _ <- Task {
       ip.transform(transformation)
         .withWatermark(eventTimeCol, delayThreshold)

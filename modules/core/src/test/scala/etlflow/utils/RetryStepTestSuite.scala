@@ -12,6 +12,7 @@ import zio.{RIO, ZIO}
 
 import scala.concurrent.duration._
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 object RetryStepTestSuite extends ApplicationLogger {
   val spec: ZSpec[environment.TestEnvironment with LogEnv, Any] =
     suite("Retry Step")(

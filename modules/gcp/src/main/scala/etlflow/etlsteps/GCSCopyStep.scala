@@ -4,6 +4,7 @@ import etlflow.gcp.Location
 import gcp4zio._
 import zio.{RIO, Task}
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 case class GCSCopyStep(
     name: String,
     input: Location,

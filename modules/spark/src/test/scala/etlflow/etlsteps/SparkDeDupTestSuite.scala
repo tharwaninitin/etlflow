@@ -12,7 +12,7 @@ import zio.test._
 
 object SparkDeDupTestSuite extends TestSparkSession {
 
-  val step = SparkDeDupStep[Rating](
+  private val step = SparkDeDupStep[Rating](
     name = "LoadCsv",
     input_type = CSV(),
     input_location = "modules/spark/src/test/resources/input/ratings/*",

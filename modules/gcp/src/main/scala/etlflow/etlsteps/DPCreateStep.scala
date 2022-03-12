@@ -5,18 +5,19 @@ import gcp4zio._
 import zio.RIO
 import zio.blocking.Blocking
 
-case class DPCreateStep(name: String, clusterName: String, project: String, region: String, props: DataprocProperties)
+case class DPCreateStep(name: String, cluster: String, project: String, region: String, props: DataprocProperties)
     extends EtlStep[DPEnv with Blocking, Cluster] {
 
   protected def process: RIO[DPEnv with Blocking, Cluster] = {
     logger.info("#" * 100)
     logger.info(s"Starting Create Cluster Step: $name")
-    logger.info(s"Cluster Name: $clusterName and Region: $region")
-    DPApi.createDataproc(clusterName, project, region, props)
+    logger.info(s"Cluster: $cluster and Region: $region")
+    DPApi.createDataproc(cluster, project, region, props)
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getStepProperties: Map[String, String] = Map(
-    "cluster"    -> clusterName,
+    "cluster"    -> cluster,
     "project"    -> project,
     "region"     -> region,
     "properties" -> props.toString

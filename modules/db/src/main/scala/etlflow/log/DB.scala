@@ -7,63 +7,65 @@ import zio.blocking.Blocking
 import zio.{Has, Task, UIO, ZLayer}
 
 object DB extends ApplicationLogger {
-  case class DBLogger(job_run_id: String, pool_name: String) extends etlflow.log.Service {
+  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.log.Service {
     override def logStepStart(
-        step_run_id: String,
-        step_name: String,
+        stepRunId: String,
+        stepName: String,
         props: Map[String, String],
-        step_type: String,
-        start_time: Long
+        stepType: String,
+        startTime: Long
     ): UIO[Unit] =
-      Task(NamedDB(pool_name).localTx { implicit s =>
+      Task(NamedDB(poolName).localTx { implicit s =>
         Sql
-          .insertStepRun(step_run_id, step_name, MapToJson(props), step_type, job_run_id, start_time)
+          .insertStepRun(stepRunId, stepName, MapToJson(props), stepType, jobRunId, startTime)
           .update
           .apply()
       }).fold(e => logger.error(e.getMessage), _ => ())
 
     override def logStepEnd(
-        step_run_id: String,
-        step_name: String,
+        stepRunId: String,
+        stepName: String,
         props: Map[String, String],
-        step_type: String,
-        end_time: Long,
+        stepType: String,
+        endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] =
-      Task(NamedDB(pool_name).localTx { implicit s =>
-        val status       = if (error.isEmpty) "pass" else "failed with error: " + error.get.getMessage
-        val elapsed_time = DateTimeApi.getTimeDifferenceAsString(end_time, DateTimeApi.getCurrentTimestamp)
+      Task(NamedDB(poolName).localTx { implicit s =>
+        val status      = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
+        val elapsedTime = DateTimeApi.getTimeDifferenceAsString(endTime, DateTimeApi.getCurrentTimestamp)
         Sql
-          .updateStepRun(step_run_id, MapToJson(props), status, elapsed_time)
+          .updateStepRun(stepRunId, MapToJson(props), status, elapsedTime)
           .update
           .apply()
       }).fold(e => logger.error(e.getMessage), _ => ())
-    override def logJobStart(job_name: String, args: String, start_time: Long): UIO[Unit] =
-      Task(NamedDB(pool_name).localTx { implicit s =>
+
+    override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =
+      Task(NamedDB(poolName).localTx { implicit s =>
         Sql
-          .insertJobRun(job_run_id, job_name, args, start_time)
+          .insertJobRun(jobRunId, jobName, args, startTime)
           .update
           .apply()
       }).fold(e => logger.error(e.getMessage), _ => ())
-    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] =
-      Task(NamedDB(pool_name).localTx { implicit s =>
-        val status       = if (error.isEmpty) "pass" else "failed with error: " + error.get.getMessage
-        val elapsed_time = DateTimeApi.getTimeDifferenceAsString(end_time, DateTimeApi.getCurrentTimestamp)
+
+    override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
+      Task(NamedDB(poolName).localTx { implicit s =>
+        val status      = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
+        val elapsedTime = DateTimeApi.getTimeDifferenceAsString(endTime, DateTimeApi.getCurrentTimestamp)
         Sql
-          .updateJobRun(job_run_id, status, elapsed_time)
+          .updateJobRun(jobRunId, status, elapsedTime)
           .update
           .apply()
       }).fold(e => logger.error(e.getMessage), _ => ())
   }
 
-  private[etlflow] def live(job_run_id: String): ZLayer[Has[String], Throwable, LogEnv] =
-    ZLayer.fromService(pool_name => DBLogger(job_run_id, pool_name))
+  private[etlflow] def live(jobRunId: String): ZLayer[Has[String], Throwable, LogEnv] =
+    ZLayer.fromService(poolName => DBLogger(jobRunId, poolName))
 
   def apply(
       db: JDBC,
-      job_run_id: String,
-      pool_name: String = "Job-Pool",
-      pool_size: Int = 2
+      jobRunId: String,
+      poolName: String = "Job-Pool",
+      poolSize: Int = 2
   ): ZLayer[Blocking, Throwable, LogEnv] =
-    etlflow.db.CP.layer(db, pool_name, pool_size) >>> live(job_run_id)
+    etlflow.db.CP.layer(db, poolName, poolSize) >>> live(jobRunId)
 }

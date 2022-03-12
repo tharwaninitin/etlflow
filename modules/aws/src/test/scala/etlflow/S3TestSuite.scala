@@ -14,20 +14,20 @@ import scala.concurrent.duration._
 object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationLogger {
 
   val env: ULayer[S3Env] =
-    S3.live(s3_region, Some(Credential.AWS("etlflow", "etlflowpass")), Some("http://localhost:9000")).orDie
+    S3.live(s3Region, Some(Credential.AWS("etlflow", "etlflowpass")), Some("http://localhost:9000")).orDie
 
   def spec: ZSpec[environment.TestEnvironment, Any] =
     (suite("S3 Steps")(
       testM("Execute createBucket step") {
-        val step = S3Api.createBucket(s3_bucket).fold(_ => "ok", _ => "ok")
+        val step = S3Api.createBucket(s3Bucket).fold(_ => "ok", _ => "ok")
         assertM(step)(equalTo("ok"))
       },
       testM("Execute S3Put step") {
         val step = S3PutStep(
           name = "S3PutStep",
-          bucket = s3_bucket,
-          key = s3_path,
-          file = local_file,
+          bucket = s3Bucket,
+          key = s3Path,
+          file = localFile,
           overwrite = true
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
@@ -35,9 +35,9 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
       testM("Execute S3Put step overwrite false") {
         val step = S3PutStep(
           name = "S3PutStep",
-          bucket = s3_bucket,
-          key = s3_path,
-          file = local_file,
+          bucket = s3Bucket,
+          key = s3Path,
+          file = localFile,
           overwrite = false
         ).execute
         assertM(step.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.fail("ok")))(
@@ -47,8 +47,8 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
       testM("Execute S3Sensor step") {
         val step = S3SensorStep(
           name = "S3KeySensorStep",
-          bucket = s3_bucket,
-          key = s3_path,
+          bucket = s3Bucket,
+          key = s3Path,
           retry = 3,
           spaced = 5.second
         ).execute
@@ -56,7 +56,7 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
       },
       testM("Execute getObject api") {
         val step = S3Api
-          .getObject(s3_bucket, s3_path)
+          .getObject(s3Bucket, s3Path)
           .transduce(ZTransducer.utf8Decode)
           .transduce(ZTransducer.splitLines)
           .tap(op => UIO(logger.info(op)))
@@ -64,18 +64,18 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute getObject to putObject stream") {
-        val in = S3Api.getObject(s3_bucket, s3_path)
-        val op = S3Api.putObject(s3_bucket, "temp/ratings2.csv", in, 124)
+        val in = S3Api.getObject(s3Bucket, s3Path)
+        val op = S3Api.putObject(s3Bucket, "temp/ratings2.csv", in, 124)
         assertM(op.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute getObject api") {
         val step = S3Api
-          .getObject(s3_bucket, "temp/ratings2.csv")
+          .getObject(s3Bucket, "temp/ratings2.csv")
           .transduce(ZTransducer.utf8Decode)
           .transduce(ZTransducer.splitLines)
           .tap(op => UIO(logger.info(op)))
           .runCollect
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
-    ) @@ TestAspect.sequential).provideLayerShared(env ++ Clock.live ++ log.nolog)
+    ) @@ TestAspect.sequential).provideLayerShared(env ++ Clock.live ++ log.noLog)
 }

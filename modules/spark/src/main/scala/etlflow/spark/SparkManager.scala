@@ -6,15 +6,15 @@ import org.apache.spark.sql.SparkSession
 
 object SparkManager extends ApplicationLogger {
   private def showSparkProperties(spark: SparkSession): Unit = {
-    logger.info("spark.scheduler.mode = " + spark.sparkContext.getSchedulingMode)
-    logger.info("spark.default.parallelism = " + spark.conf.getOption("spark.default.parallelism"))
-    logger.info("spark.sql.shuffle.partitions = " + spark.conf.getOption("spark.sql.shuffle.partitions"))
-    logger.info("spark.sql.sources.partitionOverwriteMode = " + spark.conf.getOption("spark.sql.sources.partitionOverwriteMode"))
-    logger.info("spark.sparkContext.uiWebUrl = " + spark.sparkContext.uiWebUrl)
-    logger.info("spark.sparkContext.applicationId = " + spark.sparkContext.applicationId)
-    logger.info("spark.sparkContext.sparkUser = " + spark.sparkContext.sparkUser)
-    logger.info("spark.eventLog.dir = " + spark.conf.getOption("spark.eventLog.dir"))
-    logger.info("spark.eventLog.enabled = " + spark.conf.getOption("spark.eventLog.enabled"))
+    logger.info(s"spark.scheduler.mode = ${spark.sparkContext.getSchedulingMode}")
+    logger.info(s"spark.default.parallelism = ${spark.conf.getOption("spark.default.parallelism")}")
+    logger.info(s"spark.sql.shuffle.partitions = ${spark.conf.getOption("spark.sql.shuffle.partitions")}")
+    logger.info(s"spark.sql.sources.partitionOverwriteMode = ${spark.conf.getOption("spark.sql.sources.partitionOverwriteMode")}")
+    logger.info(s"spark.sparkContext.uiWebUrl = ${spark.sparkContext.uiWebUrl}")
+    logger.info(s"spark.sparkContext.applicationId = ${spark.sparkContext.applicationId}")
+    logger.info(s"spark.sparkContext.sparkUser = ${spark.sparkContext.sparkUser}")
+    logger.info(s"spark.eventLog.dir = ${spark.conf.getOption("spark.eventLog.dir")}")
+    logger.info(s"spark.eventLog.enabled = ${spark.conf.getOption("spark.eventLog.enabled")}")
     spark.conf.getAll.filter(m1 => m1._1.contains("yarn")).foreach(kv => logger.info(kv._1 + " = " + kv._2))
   }
 
@@ -26,14 +26,11 @@ object SparkManager extends ApplicationLogger {
         "spark.default.parallelism"                -> "10",
         "spark.sql.shuffle.partitions"             -> "10"
       ),
-      hive_support: Boolean = true
+      hiveSupport: Boolean = true
   ): SparkSession =
-    if (SparkSession.getActiveSession.isDefined) {
-      val spark = SparkSession.getActiveSession.get
-      logger.info(s"###### Using Already Created Spark Session with $env support ##########")
-      spark
-    } else {
+    SparkSession.getActiveSession.fold {
       logger.info(s"###### Creating Spark Session with $env support ##########")
+      @SuppressWarnings(Array("org.wartremover.warts.Var"))
       var sparkBuilder = SparkSession.builder()
 
       props.foreach { prop =>
@@ -60,10 +57,13 @@ object SparkManager extends ApplicationLogger {
             .master("local[*]")
       }
 
-      if (hive_support) sparkBuilder = sparkBuilder.enableHiveSupport()
+      if (hiveSupport) sparkBuilder = sparkBuilder.enableHiveSupport()
 
       val spark = sparkBuilder.getOrCreate()
       showSparkProperties(spark)
+      spark
+    } { spark =>
+      logger.info(s"###### Using Already Created Spark Session with $env support ##########")
       spark
     }
 }

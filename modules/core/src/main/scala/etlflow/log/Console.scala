@@ -6,25 +6,27 @@ import zio.{UIO, ULayer, ZLayer}
 object Console extends ApplicationLogger {
 
   object ConsoleLogger extends Service {
-    override val job_run_id: String = ""
+    override val jobRunId: String = ""
     // format: off
-    override def logStepStart(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, start_time: Long): UIO[Unit] =
-      UIO(logger.info(s"Step $step_name started"))
-    def logStepEnd(step_run_id: String, step_name: String, props: Map[String,String], step_type: String, end_time: Long, error: Option[Throwable]): UIO[Unit] =
+    override def logStepStart(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, startTime: Long): UIO[Unit] =
+      UIO(logger.info(s"Step $stepName started"))
+    override def logStepEnd(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
       UIO {
-        if (error.isEmpty)
-          logger.info(s"Step $step_name completed successfully")
-        else
-          logger.error(s"Step $step_name failed, Error StackTrace:" + "\n" + error.get.getStackTrace.mkString("\n"))
+        error.fold{
+          logger.info(s"Step $stepName completed successfully")
+        } { ex => 
+          logger.error(s"Step $stepName failed, Error StackTrace:" + "\n" + ex.getStackTrace.mkString("\n"))
+        }
       }
-    override def logJobStart(job_name: String, args: String, start_time: Long): UIO[Unit] =
-      UIO(logger.info(s"Job  started"))
-    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] =
+    override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =
+      UIO(logger.info(s"Job started"))
+    override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
       UIO {
-        if (error.isEmpty)
+        error.fold {
           logger.info(s"Job completed with success")
-        else
-          logger.info(s"Job completed with failure ${error.get.getMessage}")
+        } { ex =>
+          logger.info(s"Job completed with failure ${ex.getMessage}")
+        }
       }
     // format: on
   }

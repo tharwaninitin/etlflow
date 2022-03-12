@@ -3,6 +3,7 @@ package etlflow.utils
 import zio.test._
 import zio.{UIO, ZIO}
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 object ErrorHandlingTestSuite {
 
   def funcArithmeticEx: Int            = throw new ArithmeticException()

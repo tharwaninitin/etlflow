@@ -1,7 +1,7 @@
 package etlflow.etlsteps
 
 import etlflow.http.HttpMethod
-import etlflow.log.{nolog, LogEnv}
+import etlflow.log.{noLog, LogEnv}
 import etlflow.utils.ApplicationLogger
 import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
@@ -11,21 +11,21 @@ import java.time.format.DateTimeFormatter
 
 object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
 
-  val getStep1 = HttpRequestStep(
+  private val getStep1 = HttpRequestStep(
     name = "HttpGetSimple",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
     connection_timeout = 1200000
   )
 
-  val getStep2 = HttpRequestStep(
+  private val getStep2 = HttpRequestStep(
     name = "HttpGetParams",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
     params = Right(Map("param1" -> "value1", "param2" -> "value2"))
   )
 
-  val postStep1 = HttpRequestStep(
+  private val postStep1 = HttpRequestStep(
     name = "HttpPostJson",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
@@ -33,14 +33,14 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
     headers = Map("X-Auth-Token" -> "abcd.xxx.123")
   )
 
-  val postStep2 = HttpRequestStep(
+  private val postStep2 = HttpRequestStep(
     name = "HttpPostForm",
     url = "https://httpbin.org/post?signup=yes",
     method = HttpMethod.POST,
     params = Right(Map("name" -> "John", "surname" -> "doe"))
   )
 
-  val postStep3 = HttpRequestStep(
+  private val postStep3 = HttpRequestStep(
     name = "HttpPostJsonParamsIncorrect",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
@@ -84,5 +84,5 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
     (suite("Http Steps")(testM("Execute Http steps") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky).provideCustomLayerShared(nolog)
+    }) @@ TestAspect.flaky).provideCustomLayerShared(noLog)
 }

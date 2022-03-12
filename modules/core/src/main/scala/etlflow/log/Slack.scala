@@ -10,44 +10,45 @@ import scala.util.Try
 
 object Slack extends ApplicationLogger {
 
-  case class SlackLogger(job_run_id: String, slack: Option[model.Slack]) extends Service {
-    var final_step_message: String = ""
-    var final_message: String      = ""
-    val slack_env: String          = slack.map(_.env).getOrElse("")
-    val slack_url: String          = slack.map(_.url).getOrElse("")
-    val host_url: String           = slack.map(_.host).getOrElse("http://localhost:8080/#") + "/JobRunDetails/"
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+  final case class SlackLogger(jobRunId: String, slack: Option[model.Slack]) extends Service {
+    var finalStepMessage: String = ""
+    var finalMessage: String     = ""
+
+    val slackEnv: String = slack.map(_.env).getOrElse("")
+    val slackUrl: String = slack.map(_.url).getOrElse("")
+    val hostUrl: String  = slack.map(_.host).getOrElse("http://localhost:8080/#") + "/JobRunDetails/"
 
     private def finalMessageTemplate(
-        job_name: String,
-        exec_date: String,
+        jobName: String,
+        execDate: String,
         message: String,
         url: String,
         error: Option[Throwable]
     ): String =
       if (error.isEmpty) {
 
-        final_message = final_message.concat(f"""
-            :large_blue_circle: $slack_env - $job_name Process *Success!*
-            *Time of Execution*: $exec_date
+        finalMessage = finalMessage.concat(f"""
+            :large_blue_circle: $slackEnv - $jobName Process *Success!*
+            *Time of Execution*: $execDate
             *Details Available at*: $url
             *Steps (Task - Duration)*: $message
             """)
-        final_message
+        finalMessage
       } else {
 
-        final_message = final_message.concat(f"""
-            :red_circle: $slack_env - $job_name Process *Failed!*
-            *Time of Execution*: $exec_date
+        finalMessage = finalMessage.concat(f"""
+            :red_circle: $slackEnv - $jobName Process *Failed!*
+            *Time of Execution*: $execDate
             *Details Available at*: $url
             *Steps (Task - Duration)*: $message
             """)
-        final_message
+        finalMessage
       }
     private def sendSlackNotification(data: String): Try[Unit] =
       Try {
-        val conn = new URL(slack_url)
-          .openConnection()
-          .asInstanceOf[HttpURLConnection]
+        @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+        val conn = new URL(slackUrl).openConnection().asInstanceOf[HttpURLConnection]
         conn.setRequestMethod("POST")
         conn.setRequestProperty("Content-Type", "application/json")
         conn.setDoOutput(true)
@@ -57,52 +58,54 @@ object Slack extends ApplicationLogger {
         out.flush()
         out.close()
         conn.connect()
-        logger.info("Sent slack notification. Status code :" + conn.getResponseCode)
+        logger.info("Sent slack notification. Status code :" + conn.getResponseCode.toString)
       }
 
     override def logStepStart(
-        step_run_id: String,
-        step_name: String,
+        stepRunId: String,
+        stepName: String,
         props: Map[String, String],
-        step_type: String,
-        start_time: Long
+        stepType: String,
+        startTime: Long
     ): UIO[Unit] = ZIO.unit
     override def logStepEnd(
-        step_run_id: String,
-        step_name: String,
+        stepRunId: String,
+        stepName: String,
         props: Map[String, String],
-        step_type: String,
-        end_time: Long,
+        stepType: String,
+        endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] = UIO {
       var slackMessageForSteps = ""
-      val elapsedTime          = getTimeDifferenceAsString(end_time, getCurrentTimestamp)
-      val step_icon            = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
+
+      val elapsedTime = getTimeDifferenceAsString(endTime, getCurrentTimestamp)
+
+      val stepIcon = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
 
       // Update the slackMessageForSteps variable and get the information of step name and its execution time
-      slackMessageForSteps = step_icon + "*" + step_name + "*" + " - (" + elapsedTime + ")"
+      slackMessageForSteps = stepIcon + "*" + stepName + "*" + " - (" + elapsedTime + ")"
 
       // Update the slackMessageForSteps variable and get the information of etl steps properties
-      val error_message = error.map(msg => f"error -> ${msg.getMessage}").getOrElse("")
+      val errorMessage = error.map(msg => f"error -> ${msg.getMessage}").getOrElse("")
 
       if (error.isEmpty)
         slackMessageForSteps = slackMessageForSteps
       else
-        slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + error_message)
+        slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + errorMessage)
 
       // Concatenate all the messages with finalSlackMessage
-      final_step_message = final_step_message.concat(slackMessageForSteps)
+      finalStepMessage = finalStepMessage.concat(slackMessageForSteps)
     }
-    override def logJobStart(job_name: String, args: String, start_time: Long): UIO[Unit] = ZIO.unit
-    override def logJobEnd(job_name: String, args: String, end_time: Long, error: Option[Throwable]): UIO[Unit] =
+    override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] = ZIO.unit
+    override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
       Task.fromTry {
-        val execution_date_time = getTimestampAsString(end_time) // Add time difference in this expression
+        val executionDateTime = getTimestampAsString(endTime) // Add time difference in this expression
 
         val data = finalMessageTemplate(
-          job_name,
-          execution_date_time,
-          final_step_message,
-          host_url + job_run_id,
+          jobName,
+          executionDateTime,
+          finalStepMessage,
+          hostUrl + jobRunId,
           error
         )
 
@@ -111,8 +114,5 @@ object Slack extends ApplicationLogger {
   }
 
   def live(slack: Option[model.Slack], jri: String): ULayer[LogEnv] =
-    if (slack.isEmpty)
-      nolog
-    else
-      ZLayer.succeed(SlackLogger(jri, slack))
+    if (slack.isEmpty) noLog else ZLayer.succeed(SlackLogger(jri, slack))
 }

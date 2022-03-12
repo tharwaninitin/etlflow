@@ -18,25 +18,25 @@ object GCSStepsTestSuite extends TestHelper {
       testM("Execute GCSPut PARQUET step") {
         val step = GCSPutStep(
           name = "S3PutStep",
-          bucket = gcs_bucket,
+          bucket = gcsBucket,
           prefix = "temp/ratings.parquet",
-          file = file_path_parquet
+          file = filePathParquet
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSPut CSV step") {
         val step = GCSPutStep(
           name = "S3PutStep",
-          bucket = gcs_bucket,
+          bucket = gcsBucket,
           prefix = "temp/ratings.csv",
-          file = file_path_csv
+          file = filePathCsv
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSSensor step") {
         val step = GCSSensorStep(
           name = "GCSKeySensor",
-          bucket = gcs_bucket,
+          bucket = gcsBucket,
           prefix = "temp/ratings.parquet",
           retry = 10,
           spaced = 5.second
@@ -46,9 +46,9 @@ object GCSStepsTestSuite extends TestHelper {
       testM("Execute GCSCopy step GCS to GCS") {
         val step = GCSCopyStep(
           name = "CopyStep",
-          input = GCS(gcs_bucket, "temp"),
+          input = GCS(gcsBucket, "temp"),
           inputRecursive = true,
-          output = GCS(gcs_bucket, "temp2"),
+          output = GCS(gcsBucket, "temp2"),
           parallelism = 2
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
@@ -58,7 +58,7 @@ object GCSStepsTestSuite extends TestHelper {
           name = "CopyStep",
           input = LOCAL("/local/path"),
           inputRecursive = true,
-          output = GCS(gcs_bucket, "temp2"),
+          output = GCS(gcsBucket, "temp2"),
           parallelism = 2
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

@@ -9,101 +9,102 @@ import org.apache.spark.sql.types.StructType
 
 import scala.reflect.runtime.universe.TypeTag
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.TraversableOps"))
 object ReadApi extends ApplicationLogger {
-  private def dfReader(location: Seq[String], input_type: IOType)(spark: SparkSession): DataFrameReader = {
-    val df_reader = spark.read
-    input_type match {
+  private def dfRead(location: List[String], inputType: IOType)(spark: SparkSession): DataFrameReader = {
+    val dfReader = spark.read
+    inputType match {
       case CSV(delimiter, header_present, parse_mode, quotechar) =>
-        df_reader
+        dfReader
           .format("csv")
           .option("columnNameOfCorruptRecord", "_corrupt_record")
           .option("delimiter", delimiter)
           .option("quote", quotechar)
           .option("header", header_present)
           .option("mode", parse_mode)
-      case JSON(multi_line) => df_reader.format("json").option("multiline", multi_line)
-      case PARQUET          => df_reader.format("parquet")
-      case ORC              => df_reader.format("orc")
+      case JSON(multi_line) => dfReader.format("json").option("multiline", multi_line)
+      case PARQUET          => dfReader.format("parquet")
+      case ORC              => dfReader.format("orc")
       case RDB(jdbc, partition) =>
-        if (partition.isDefined) {
-          df_reader
+        partition.fold {
+          dfReader
             .format("jdbc")
             .option("url", jdbc.url)
             .option("dbtable", location.mkString)
             .option("user", jdbc.user)
             .option("password", jdbc.password)
             .option("driver", jdbc.driver)
-            .option("numPartitions", partition.get.num_partition.toLong)
-            .option("partitionColumn", partition.get.partition_column)
-            .option("lowerBound", partition.get.lower_bound)
-            .option("upperBound", partition.get.upper_bound)
-        } else {
-          df_reader
+        } { p =>
+          dfReader
             .format("jdbc")
             .option("url", jdbc.url)
             .option("dbtable", location.mkString)
             .option("user", jdbc.user)
             .option("password", jdbc.password)
             .option("driver", jdbc.driver)
+            .option("numPartitions", p.num_partition.toLong)
+            .option("partitionColumn", p.partition_column)
+            .option("lowerBound", p.lower_bound)
+            .option("upperBound", p.upper_bound)
         }
       case BQ(temp_dataset, operation_type) =>
         operation_type match {
-          case "table" => df_reader.format("bigquery").option("table", location.head)
+          case "table" => dfReader.format("bigquery").option("table", location.head)
           case "query" =>
             spark.conf.set("viewsEnabled", "true")
             spark.conf.set("materializationDataset", temp_dataset)
-            df_reader.format("bigquery").option("query", location.head)
+            dfReader.format("bigquery").option("query", location.head)
         }
-      case TEXT | MCSV(_, _) => df_reader.format("text")
+      case TEXT | MCSV(_, _) => dfReader.format("text")
     }
   }
 
-  def DF(location: Seq[String], input_type: IOType, where_clause: String = "1 = 1", select_clause: Seq[String] = Seq("*"))(
+  def df(location: List[String], inputType: IOType, whereClause: String = "1 = 1", selectClause: Seq[String] = Seq("*"))(
       spark: SparkSession
   ): Dataset[Row] = {
-    logger.info("Input location: " + location.toList)
+    logger.info(s"Input location: $location")
 
-    val df_reader = dfReader(location, input_type)(spark)
+    val dfReader = dfRead(location, inputType)(spark)
 
-    val df = input_type match {
+    val df = inputType match {
       case MCSV(delimiter, column_count) =>
         val columns: IndexedSeq[Column] = (0 to column_count).map(id => col(s"value")(id).as(s"value${id + 1}"))
-        df_reader
+        dfReader
           .load(location: _*)
           .withColumn("value", split(col("value"), delimiter))
           .select(columns: _*)
-      case _ => df_reader.load(location: _*).where(where_clause).selectExpr(select_clause: _*)
+      case _ => dfReader.load(location: _*).where(whereClause).selectExpr(selectClause: _*)
     }
     df
   }
 
-  def DSProps[T <: Product: TypeTag](location: Seq[String], input_type: IOType): Map[String, String] = Map(
+  def dSProps[T <: Product: TypeTag](location: List[String], inputType: IOType): Map[String, String] = Map(
     "input_location" -> location.mkString(","),
-    "input_type"     -> input_type.toString,
+    "input_type"     -> inputType.toString,
     "input_class"    -> Encoders.product[T].schema.toDDL
   )
 
-  def DS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String = "1 = 1")(
+  def ds[T <: Product: TypeTag](location: List[String], inputType: IOType, whereClause: String = "1 = 1")(
       spark: SparkSession
   ): Dataset[T] = {
 
-    logger.info("Input location: " + location.toList)
+    logger.info(s"Input location: $location")
 
-    val df_reader = dfReader(location, input_type)(spark)
+    val dfReader = dfRead(location, inputType)(spark)
 
     val mapping = Encoders.product[T]
 
-    val df = input_type match {
-      case RDB(_, _) | BQ(_, _)      => df_reader.load().where(where_clause)
-      case CSV(_, _, _, _) | JSON(_) => df_reader.schema(mapping.schema).load(location: _*).where(where_clause)
-      case PARQUET | ORC             => df_reader.load(location: _*).where(where_clause)
+    val df = inputType match {
+      case RDB(_, _) | BQ(_, _)      => dfReader.load().where(whereClause)
+      case CSV(_, _, _, _) | JSON(_) => dfReader.schema(mapping.schema).load(location: _*).where(whereClause)
+      case PARQUET | ORC             => dfReader.load(location: _*).where(whereClause)
       case MCSV(delimiter, column_count) =>
         val columns: IndexedSeq[Column] = (0 to column_count).map(id => col(s"value")(id).as(s"value${id + 1}"))
-        df_reader
+        dfReader
           .load(location: _*)
           .withColumn("value", split(col("value"), delimiter))
           .select(columns: _*)
-      case TEXT => df_reader.load(location: _*).where(where_clause)
+      case TEXT => dfReader.load(location: _*).where(whereClause)
     }
 
     logger.info("#" * 20 + " Actual Input Schema " + "#" * 20)
@@ -115,11 +116,11 @@ object ReadApi extends ApplicationLogger {
     df.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping)
   }
 
-  private def streamingDf(location: String, input_type: IOType, schema: StructType)(spark: SparkSession): DataFrame = {
-    val df_reader = spark.readStream
-    input_type match {
+  private def streamingDf(location: String, inputType: IOType, schema: StructType)(spark: SparkSession): DataFrame = {
+    val dfReader = spark.readStream
+    inputType match {
       case CSV(delimiter, header_present, parse_mode, quotechar) =>
-        df_reader
+        dfReader
           .format("csv")
           .option("columnNameOfCorruptRecord", "_corrupt_record")
           .option("delimiter", delimiter)
@@ -128,13 +129,13 @@ object ReadApi extends ApplicationLogger {
           .option("mode", parse_mode)
           .schema(schema)
           .load(location)
-      case JSON(multi_line) => df_reader.format("json").option("multiline", multi_line).schema(schema).load(location)
-      case PARQUET          => df_reader.format("parquet").schema(schema).load(location)
-      case ORC              => df_reader.format("orc").schema(schema).load(location)
-      case TEXT             => df_reader.format("text").schema(schema).load(location)
+      case JSON(multi_line) => dfReader.format("json").option("multiline", multi_line).schema(schema).load(location)
+      case PARQUET          => dfReader.format("parquet").schema(schema).load(location)
+      case ORC              => dfReader.format("orc").schema(schema).load(location)
+      case TEXT             => dfReader.format("text").schema(schema).load(location)
       case MCSV(delimiter, column_count) =>
         val columns: IndexedSeq[Column] = (0 to column_count).map(id => col(s"value")(id).as(s"value${id + 1}"))
-        df_reader
+        dfReader
           .format("text")
           .schema(schema)
           .load(location)
@@ -144,7 +145,7 @@ object ReadApi extends ApplicationLogger {
     }
   }
 
-  def StreamingDS[T <: Product: TypeTag](location: String, input_type: IOType, where_clause: String = "1 = 1")(
+  def streamingDS[T <: Product: TypeTag](location: String, inputType: IOType, whereClause: String = "1 = 1")(
       spark: SparkSession
   ): Dataset[T] = {
 
@@ -152,7 +153,7 @@ object ReadApi extends ApplicationLogger {
 
     val mapping = Encoders.product[T]
 
-    val df = streamingDf(location, input_type, mapping.schema)(spark).where(where_clause)
+    val df = streamingDf(location, inputType, mapping.schema)(spark).where(whereClause)
 
     logger.info("#" * 20 + " Provided Input Schema " + "#" * 20)
     mapping.schema.printTreeString()

@@ -13,10 +13,11 @@ private[etlflow] object DB extends ApplicationLogger {
           scalikejdbc
             .SQL(query)
             .update()
-        }).mapError({ e =>
+        }).mapError { e =>
           logger.error(e.getMessage)
           DBException(e.getMessage)
-        }).unit
+        }.unit
+      @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
       override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, T] =
         Task(NamedDB(pool_name).localTx { implicit s =>
           scalikejdbc
@@ -24,20 +25,20 @@ private[etlflow] object DB extends ApplicationLogger {
             .map(fn)
             .single()
             .get
-        }).mapError({ e =>
+        }).mapError { e =>
           logger.error(e.getMessage)
           DBException(e.getMessage)
-        })
+        }
       override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, List[T]] =
         Task(NamedDB(pool_name).localTx { implicit s =>
           scalikejdbc
             .SQL(query)
             .map(fn)
             .list()
-        }).mapError({ e =>
+        }).mapError { e =>
           logger.error(e.getMessage)
           DBException(e.getMessage)
-        })
+        }
     }
   }
 }

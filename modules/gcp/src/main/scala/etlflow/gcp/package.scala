@@ -8,9 +8,11 @@ package object gcp {
     case object GCS   extends FSType
   }
 
-  sealed trait Location
+  sealed trait Location {
+    override def toString: String = this.getClass.getSimpleName
+  }
   object Location {
-    case class LOCAL(path: String)               extends Location
-    case class GCS(bucket: String, path: String) extends Location
+    final case class LOCAL(path: String)               extends Location
+    final case class GCS(bucket: String, path: String) extends Location
   }
 }

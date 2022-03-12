@@ -1,6 +1,6 @@
 package etlflow.etlsteps
 
-import etlflow.log.nolog
+import etlflow.log.noLog
 import etlflow.model.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
@@ -18,14 +18,14 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
        |""".stripMargin
   }
 
-  val smtp = SMTP(
+  private val smtp = SMTP(
     sys.env.getOrElse("SMTP_PORT", "587"),
     sys.env.getOrElse("SMTP_HOST", "..."),
     sys.env.getOrElse("SMTP_USER", "..."),
     sys.env.getOrElse("SMTP_PASS", "...")
   )
 
-  val step = SendMailStep(
+  private val step = SendMailStep(
     name = "SendSMTPEmail",
     body = emailBody,
     subject = "SendMailStep Test Ran Successfully",
@@ -56,5 +56,5 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
         val props = step.getStepProperties
         assertTrue(props == Map("subject" -> "SendMailStep Test Ran Successfully", "recipient_list" -> "abcd@abcd.com"))
       }
-    ).provideCustomLayerShared(nolog)
+    ).provideCustomLayerShared(noLog)
 }

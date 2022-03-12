@@ -8,6 +8,7 @@ object DbTestSuite {
 
   case class TestDb(name: String)
 
+  @SuppressWarnings(Array("org.wartremover.warts.JavaSerializable"))
   val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
     suite("DB Suite")(
       testM("executeQuery Test") {
@@ -27,8 +28,9 @@ object DbTestSuite {
         )(equalTo("EtlJobDownload"))
       ),
       testM("executeQueryListOutput Test") {
-        val res: ZIO[DBEnv, Throwable, List[TestDb]] =
-          DBApi.executeQueryListOutput[TestDb]("SELECT job_name FROM jobrun")(rs => TestDb(rs.string("job_name")))
+        val res = DBApi
+          .executeQueryListOutput[TestDb]("SELECT job_name FROM jobrun")(rs => TestDb(rs.string("job_name")))
+          .foldM(_ => ZIO.fail(List.empty[TestDb]), op => ZIO.succeed(op))
         assertM(res)(equalTo(List(TestDb("EtlJobDownload"), TestDb("EtlJobSpr"))))
       }
     ) @@ TestAspect.sequential

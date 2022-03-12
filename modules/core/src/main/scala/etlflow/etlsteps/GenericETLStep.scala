@@ -14,5 +14,5 @@ class GenericETLStep[OP](val name: String, function: => OP) extends EtlStep[Any,
 }
 
 object GenericETLStep {
-  def apply[OP](name: String, function: => OP) = new GenericETLStep(name, function)
+  def apply[OP](name: String, function: => OP): GenericETLStep[OP] = new GenericETLStep(name, function)
 }

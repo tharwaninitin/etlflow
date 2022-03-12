@@ -8,6 +8,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
+@SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 object DPStepsTestSuite extends TestHelper {
   val spec: ZSpec[environment.TestEnvironment with DPJobEnv with LogEnv, Any] =
     suite("EtlFlow DPJobSteps")(
@@ -15,9 +16,9 @@ object DPStepsTestSuite extends TestHelper {
         val step = DPHiveJobStep(
           name = "DPHiveJobStepExample",
           "SELECT 1 AS ONE",
-          dp_cluster_name,
-          gcp_project_id.get,
-          gcp_region.get
+          dpCluster,
+          gcpProjectId.get,
+          gcpRegion.get
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
@@ -30,9 +31,9 @@ object DPStepsTestSuite extends TestHelper {
           mainClass = "org.apache.spark.examples.SparkPi",
           libs = libs,
           conf,
-          dp_cluster_name,
-          gcp_project_id.get,
-          gcp_region.get
+          dpCluster,
+          gcpProjectId.get,
+          gcpRegion.get
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

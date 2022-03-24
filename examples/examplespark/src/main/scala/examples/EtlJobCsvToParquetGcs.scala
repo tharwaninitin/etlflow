@@ -4,7 +4,7 @@ import etlflow.etlsteps.{SparkReadWriteStep, SparkStep}
 import etlflow.spark.Environment.{GCP, LOCAL}
 import etlflow.spark.{IOType, ReadApi, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
-import Globals.default_ratings_input_path_csv
+import Globals.defaultRatingsInputPathCsv
 import examples.Schema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name, unix_timestamp}
 import org.apache.spark.sql.types.DateType
@@ -56,7 +56,7 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
 
   private val step1 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatingsParquet",
-    inputLocation = List(default_ratings_input_path_csv),
+    inputLocation = List(defaultRatingsInputPathCsv),
     inputType = IOType.CSV(",", true, "FAILFAST"),
     transformFunction = Some(enrichRatingData),
     outputType = IOType.PARQUET,

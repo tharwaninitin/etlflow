@@ -5,7 +5,7 @@ import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.RDB
 import etlflow.spark.{IOType, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
-import examples.Globals.default_ratings_input_path
+import examples.Globals.defaultRatingsInputPath
 import examples.Schema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.{ExitCode, UIO, URIO}
@@ -17,7 +17,7 @@ object EtlJobParquetToJdbc extends zio.App with ApplicationLogger {
 
   private val step1 = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
-    inputLocation = List(default_ratings_input_path),
+    inputLocation = List(defaultRatingsInputPath),
     inputType = IOType.PARQUET,
     outputType = RDB(JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))),
     outputLocation = "ratings",

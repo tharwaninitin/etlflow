@@ -4,7 +4,7 @@ import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.Environment.LOCAL
 import etlflow.spark.{IOType, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
-import Globals.{default_ratings_input_path, default_ratings_output_path}
+import Globals.{defaultRatingsInputPath, defaultRatingsOutputPath}
 import examples.Schema.Rating
 import org.apache.spark.sql.SaveMode
 import zio.{ExitCode, UIO, URIO}
@@ -15,11 +15,11 @@ object EtlJobParquetToOrc extends zio.App with ApplicationLogger {
 
   private val step1 = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquet",
-    inputLocation = List(default_ratings_input_path),
+    inputLocation = List(defaultRatingsInputPath),
     inputType = IOType.PARQUET,
     outputType = IOType.ORC,
     outputSaveMode = SaveMode.Overwrite,
-    outputLocation = default_ratings_output_path,
+    outputLocation = defaultRatingsOutputPath,
     outputRepartitioning = true,
     outputRepartitioningNum = 1,
     outputFilename = Some("ratings.orc")

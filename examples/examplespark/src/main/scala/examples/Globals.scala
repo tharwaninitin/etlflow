@@ -1,8 +1,8 @@
 package examples
 
 object Globals {
-  val default_ratings_input_path = "examplespark/src/main/data/movies/ratings_parquet/ratings.parquet"
-  val default_ratings_input_path_csv = "examplespark/src/main/data/movies/ratings/*"
-  val default_ratings_output_path = "examplespark/src/main/data/movies/output"
-  val default_output_dataset = "dev"
+  val defaultRatingsInputPath    = "examplespark/src/main/data/movies/ratings_parquet/ratings.parquet"
+  val defaultRatingsInputPathCsv = "examplespark/src/main/data/movies/ratings/*"
+  val defaultRatingsOutputPath   = "examplespark/src/main/data/movies/output"
+  val defaultOutputDataset       = "dev"
 }

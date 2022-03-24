@@ -2,10 +2,14 @@ import Dependencies._
 import Versions._
 import ScalaCompileOptions._
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 ThisBuild / version := EtlFlowVersion
 
 lazy val commonSettings = Seq(
-  scalaVersion := scala212,
+  scalaVersion               := scala212,
+  dependencyUpdatesFailBuild := true,
+  dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang"),
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 12)) => s2copts ++ s212copts
@@ -15,7 +19,7 @@ lazy val commonSettings = Seq(
     }
   },
   Test / parallelExecution := false,
-  libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0") ++
+  libraryDependencies ++= Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0") ++
     (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 12)) =>
         Seq(
@@ -36,8 +40,9 @@ lazy val coreSettings = Seq(
 )
 
 lazy val sparkSettings = Seq(
-  name               := "etlflow-spark",
-  crossScalaVersions := scala2Versions,
+  name                       := "etlflow-spark",
+  crossScalaVersions         := scala2Versions,
+  dependencyUpdatesFailBuild := false,
   libraryDependencies ++= sparkLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
 )
 
@@ -48,8 +53,9 @@ lazy val dbSettings = Seq(
 )
 
 lazy val httpSettings = Seq(
-  name               := "etlflow-http",
-  crossScalaVersions := allScalaVersions,
+  name                       := "etlflow-http",
+  crossScalaVersions         := allScalaVersions,
+  dependencyUpdatesFailBuild := false,
   libraryDependencies ++= httpLibs ++ coreTestLibs
 )
 

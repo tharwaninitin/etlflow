@@ -10,8 +10,8 @@ import java.net.URI
 
 object S3Client extends ApplicationLogger {
   def apply(region: Region, credentials: Option[AWS] = None, endpointOverride: Option[String] = None): S3AsyncClient = {
-    val ACCESS_KEY = sys.env.getOrElse("ACCESS_KEY", "NOT_SET_IN_ENV")
-    val SECRET_KEY = sys.env.getOrElse("SECRET_KEY", "NOT_SET_IN_ENV")
+    val accessKey = sys.env.getOrElse("ACCESS_KEY", "NOT_SET_IN_ENV")
+    val secretKey = sys.env.getOrElse("SECRET_KEY", "NOT_SET_IN_ENV")
 
     val initBuilder: S3AsyncClientBuilder = credentials match {
       case Some(creds) =>
@@ -20,7 +20,7 @@ object S3Client extends ApplicationLogger {
           StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.access_key, creds.secret_key))
         S3AsyncClient.builder.region(region).credentialsProvider(credentials)
       case None =>
-        (ACCESS_KEY, SECRET_KEY) match {
+        (accessKey, secretKey) match {
           case (access_key, secret_key) if access_key == "NOT_SET_IN_ENV" || secret_key == "NOT_SET_IN_ENV" =>
             logger.info("Using AWS credentials from local sdk")
             S3AsyncClient.builder.region(region)

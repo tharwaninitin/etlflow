@@ -1,0 +1,168 @@
+name: EtlFlow CI
+on: [push]
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Run Core Tests
+        run: sbt ";project core; +test;"
+  db:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    services:
+      # Label used to access the service container
+      postgres:
+        image: postgres:11
+        env:
+          POSTGRES_PASSWORD: etlflow
+          POSTGRES_USER: etlflow
+          POSTGRES_DB: etlflow
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Run DB Tests
+        run: sbt ";project db; +test; +Test/runMain etlflow.SampleJobWithDbLogging"
+        env:
+          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
+          LOG_DB_USER: etlflow
+          LOG_DB_PWD: etlflow
+          LOG_DB_DRIVER: org.postgresql.Driver
+  gcp:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Compile Gcp Module
+        run: sbt ";project gcp; +Test/compile"
+  spark:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    services:
+      # Label used to access the service container
+      postgres:
+        image: postgres:11
+        env:
+          POSTGRES_PASSWORD: etlflow
+          POSTGRES_USER: etlflow
+          POSTGRES_DB: etlflow
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Compile Spark Module
+        run: sbt ";project spark; +test"
+  http:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Run Http Tests For All Modules
+        run: sbt ";project http; +test"
+  redis:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 6379:6379
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Run Redis Tests
+        run: sbt ";project redis; +test"
+  aws:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Compile Aws Module
+        run: sbt ";project aws; +Test/compile"
+  email:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 14 ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Compile Email Module
+        run: sbt ";project email; +Test/compile"

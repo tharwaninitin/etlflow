@@ -1,7 +1,7 @@
-name: Scala Dependency Updates
+name: Scala Dependency Updates Check
 on: [push]
 jobs:
-  test:
+  updates:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

@@ -16,7 +16,7 @@ object Versions {
   val ScalaLikeJdbcVersion = "4.0.0"
   val Gcp4ZioVersion       = "0.3.0"
 
-  val SparkVersion     = "3.2.1"
+  val SparkVersion     = "3.2.0"
   val SparkBQVersion   = "0.23.1"
   val HadoopGCSVersion = "hadoop3-2.2.5"
   val HadoopS3Version  = "3.3.2"

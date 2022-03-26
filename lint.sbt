@@ -6,9 +6,4 @@ ThisBuild / wartremoverErrors ++= Warts.allBut(
   Wart.FinalCaseClass,
   Wart.Overloading,
   Wart.StringPlusAny
-  //  Wart.Serializable,
-  //  Wart.Throw,
-  //  Wart.Var,
-  //  Wart.MutableDataStructures,
-  //  Wart.AsInstanceOf
 )

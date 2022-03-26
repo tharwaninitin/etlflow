@@ -14,7 +14,7 @@ object Versions {
   val RedisVersion                 = "3.42"
   val MailVersion                  = "1.6.2"
   val ScalaLikeJdbcVersion         = "4.0.0"
-  val Gcp4ZioVersion               = "0.3.0"
+  val Gcp4ZioVersion               = "0.4.0"
 
   val SparkVersion     = "3.2.1"
   val SparkBQVersion   = "0.23.1"

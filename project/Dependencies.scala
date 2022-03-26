@@ -59,10 +59,10 @@ object Dependencies {
   ).map(_ % Test)
 
   lazy val sparkTestLibs = List(
-    "org.apache.spark"           %% "spark-sql"     % SparkVersion,
-    "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
-    "org.apache.hadoop"           % "hadoop-aws"    % HadoopS3Version,
-    "org.apache.hadoop"           % "hadoop-common" % HadoopS3Version
-    // "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
+    "org.apache.spark" %% "spark-sql" % SparkVersion
+//    "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
+//    "org.apache.hadoop"           % "hadoop-aws"    % HadoopS3Version,
+//    "org.apache.hadoop"           % "hadoop-common" % HadoopS3Version
+//    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 }

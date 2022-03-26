@@ -10,13 +10,13 @@ object Versions {
   val ZioReactiveStreamsVersion = "1.3.9"
 
   val SttpVersion          = "3.3.18"
-  val AwsS3Version         = "2.17.156"
+  val AwsS3Version         = "2.17.157"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
   val ScalaLikeJdbcVersion = "4.0.0"
   val Gcp4ZioVersion       = "0.3.0"
 
-  val SparkVersion     = "3.2.0"
+  val SparkVersion     = "3.2.1"
   val SparkBQVersion   = "0.23.1"
   val HadoopGCSVersion = "hadoop3-2.2.5"
   val HadoopS3Version  = "3.3.2"

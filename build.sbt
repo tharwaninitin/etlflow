@@ -40,9 +40,8 @@ lazy val coreSettings = Seq(
 )
 
 lazy val sparkSettings = Seq(
-  name                       := "etlflow-spark",
-  crossScalaVersions         := scala2Versions,
-  dependencyUpdatesFailBuild := false,
+  name               := "etlflow-spark",
+  crossScalaVersions := scala2Versions,
   libraryDependencies ++= sparkLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
 )
 

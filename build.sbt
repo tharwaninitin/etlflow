@@ -19,16 +19,6 @@ lazy val commonSettings = Seq(
     }
   },
   Test / parallelExecution := false,
-  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 12)) =>
-      Seq(
-        compilerPlugin(("org.typelevel"  %% "kind-projector" % "0.13.2").cross(CrossVersion.full)),
-        compilerPlugin(("org.scalamacros" % "paradise"       % "2.1.1").cross(CrossVersion.full))
-      )
-    case Some((2, 13)) => Seq()
-    case Some((3, 0))  => Seq()
-    case _             => Seq()
-  }),
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
 

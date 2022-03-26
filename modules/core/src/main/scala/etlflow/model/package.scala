@@ -1,7 +1,7 @@
 package etlflow
 
 package object model {
-  case class Config(
+  final case class Config(
       db: Option[Credential.JDBC] = None,
       timezone: Option[String] = None,
       slack: Option[Slack] = None,
@@ -9,6 +9,6 @@ package object model {
       webserver: Option[WebServer] = None,
       secretkey: Option[String] = None
   )
-  case class Slack(url: String, env: String, host: String)
-  case class WebServer(ipAddress: Option[String], port: Option[Int], allowedOrigins: Option[Set[String]])
+  final case class Slack(url: String, env: String, host: String)
+  final case class WebServer(ipAddress: Option[String], port: Option[Int], allowedOrigins: Option[Set[String]])
 }

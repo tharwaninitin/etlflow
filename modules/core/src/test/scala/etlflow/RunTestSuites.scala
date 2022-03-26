@@ -8,5 +8,5 @@ object RunTestSuites extends DefaultRunnableSpec {
     DateTimeAPITestSuite.spec,
     RetryStepTestSuite.spec,
     ErrorHandlingTestSuite.spec
-  ) @@ TestAspect.sequential).provideCustomLayerShared(log.nolog)
+  ) @@ TestAspect.sequential).provideCustomLayerShared(log.noLog)
 }

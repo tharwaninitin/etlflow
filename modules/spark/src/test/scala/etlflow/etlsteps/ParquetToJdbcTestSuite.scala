@@ -16,23 +16,23 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
   val step1: RIO[SparkEnv with LogEnv, Unit] = SparkReadWriteStep[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
-    input_location = Seq(input_path_parquet),
-    input_type = PARQUET,
-    output_type = jdbc,
-    output_location = table_name,
-    output_save_mode = SaveMode.Overwrite
+    inputLocation = List(inputPathParquet),
+    inputType = PARQUET,
+    outputType = jdbc,
+    outputLocation = tableName,
+    outputSaveMode = SaveMode.Overwrite
   ).execute
 
   val step2: RIO[SparkEnv with LogEnv, Dataset[Rating]] = SparkReadStep[Rating, Rating](
     name = "LoadRatingsParquet",
-    input_location = Seq(input_path_parquet),
-    input_type = PARQUET
+    inputLocation = List(inputPathParquet),
+    inputType = PARQUET
   ).execute
 
   def step3(query: String): RIO[SparkEnv with LogEnv, Dataset[RatingsMetrics]] = SparkReadStep[RatingsMetrics, RatingsMetrics](
     name = "LoadRatingsDB",
-    input_location = Seq(query),
-    input_type = jdbc
+    inputLocation = List(query),
+    inputType = jdbc
   ).execute
 
   val job: RIO[SparkEnv with LogEnv, Boolean] = for {
@@ -40,7 +40,7 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     ip_ds <- step2
     enc   = Encoders.product[RatingsMetrics]
     ip    = ip_ds.selectExpr("sum(rating) as sum_ratings", "count(*) as count_ratings").as[RatingsMetrics](enc).first()
-    query = s"(SELECT sum(rating) as sum_ratings, count(*) as count_ratings FROM $table_name) as T"
+    query = s"(SELECT sum(rating) as sum_ratings, count(*) as count_ratings FROM $tableName) as T"
     op_ds <- step3(query)
     op   = op_ds.first()
     _    = logger.info(s"IP => $ip")

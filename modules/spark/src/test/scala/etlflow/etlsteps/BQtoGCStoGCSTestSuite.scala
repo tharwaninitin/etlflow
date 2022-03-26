@@ -14,30 +14,29 @@ import zio.test._
 
 object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
 
-  val partition_date_col = "date_int"
+  val partitionDateCol = "date_int"
 
-  val query = s""" SELECT * FROM $dataset_name.$table_name` """.stripMargin
+//  private val query = s""" SELECT * FROM $datasetName.$tableName` """.stripMargin
+//  private val step0 = SparkReadWriteStep[Rating, Rating](
+//    name = "LoadRatings BQ(query) to GCS CSV",
+//    input_location = List(query),
+//    input_type = BQ(temp_dataset = datasetName, operation_type = "query"),
+//    output_type = CSV(),
+//    output_location = ratingsIntermediateBucket,
+//    output_save_mode = SaveMode.Overwrite,
+//    output_repartitioning = true,
+//    output_repartitioning_num = 3
+//  )
 
-  val step0 = SparkReadWriteStep[Rating, Rating](
-    name = "LoadRatings BQ(query) to GCS CSV",
-    input_location = Seq(query),
-    input_type = BQ(temp_dataset = dataset_name, operation_type = "query"),
-    output_type = CSV(),
-    output_location = ratings_intermediate_bucket,
-    output_save_mode = SaveMode.Overwrite,
-    output_repartitioning = true,
-    output_repartitioning_num = 3
-  )
-
-  val step1 = SparkReadWriteStep[RatingBQ, RatingBQ](
+  private val step1 = SparkReadWriteStep[RatingBQ, RatingBQ](
     name = "LoadRatings BQ(table) to GCS CSV",
-    input_location = Seq(dataset_name + "." + table_name),
-    input_type = BQ(),
-    output_type = CSV(),
-    output_location = ratings_intermediate_bucket,
-    output_save_mode = SaveMode.Overwrite,
-    output_repartitioning = true,
-    output_repartitioning_num = 3
+    inputLocation = List(datasetName + "." + tableName),
+    inputType = BQ(),
+    outputType = CSV(),
+    outputLocation = ratingsIntermediateBucket,
+    outputSaveMode = SaveMode.Overwrite,
+    outputRepartitioning = true,
+    outputRepartitioningNum = 3
   )
 
   def enrichRatingCsvData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutputCsv] = {
@@ -45,62 +44,62 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
 
     // val mapping = Encoders.product[RatingOutputCsv]
 
-    val ratings_df = in
+    val ratingsDf = in
       .withColumnRenamed("user_id", "User Id")
       .withColumnRenamed("movie_id", "Movie Id")
       .withColumnRenamed("rating", "Ratings")
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
       .withColumnRenamed("date", "Movie Date")
 
-    ratings_df.as[RatingOutputCsv]
+    ratingsDf.as[RatingOutputCsv]
   }
 
-  val step21 = SparkReadWriteStep[Rating, RatingOutputCsv](
+  private val step21 = SparkReadWriteStep[Rating, RatingOutputCsv](
     name = "LoadRatings GCS Csv To GCS Csv",
-    input_location = Seq(ratings_intermediate_bucket),
-    input_type = CSV(),
-    transform_function = Some(enrichRatingCsvData),
-    output_type = CSV(),
-    output_location = ratings_output_bucket_1,
-    output_save_mode = SaveMode.Overwrite,
-    output_repartitioning = true,
-    output_repartitioning_num = 1,
-    output_filename = Some("ratings.csv")
+    inputLocation = List(ratingsIntermediateBucket),
+    inputType = CSV(),
+    transformFunction = Some(enrichRatingCsvData),
+    outputType = CSV(),
+    outputLocation = ratingsOutputBucket1,
+    outputSaveMode = SaveMode.Overwrite,
+    outputRepartitioning = true,
+    outputRepartitioningNum = 1,
+    outputFilename = Some("ratings.csv")
   )
 
   def enrichRatingData(spark: SparkSession, in: Dataset[Rating]): Dataset[RatingOutput] = {
     import spark.implicits._
 
-    val ratings_df = in
+    val ratingsDf = in
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
-      .withColumn(partition_date_col, get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
-      .where(f"$partition_date_col in ('201601', '201512', '201510')")
+      .withColumn(partitionDateCol, getFormattedDate("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
+      .where(f"$partitionDateCol in ('201601', '201512', '201510')")
 
-    ratings_df.as[RatingOutput]
+    ratingsDf.as[RatingOutput]
   }
 
-  val step22 = SparkReadWriteStep[Rating, RatingOutput](
+  private val step22 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatings GCS Csv To S3 Parquet",
-    input_location = Seq(ratings_intermediate_bucket),
-    input_type = CSV(),
-    transform_function = Some(enrichRatingData),
-    output_type = PARQUET,
-    output_location = ratings_output_bucket_2,
-    output_save_mode = SaveMode.Overwrite,
-    output_partition_col = Seq(s"$partition_date_col")
+    inputLocation = List(ratingsIntermediateBucket),
+    inputType = CSV(),
+    transformFunction = Some(enrichRatingData),
+    outputType = PARQUET,
+    outputLocation = ratingsOutputBucket2,
+    outputSaveMode = SaveMode.Overwrite,
+    outputPartitionCol = Seq(s"$partitionDateCol")
   )
 
-  val step3 = SparkReadWriteStep[Rating, RatingOutput](
+  private val step3 = SparkReadWriteStep[Rating, RatingOutput](
     name = "LoadRatings GCS Csv To GCS Json",
-    input_location = Seq(ratings_intermediate_bucket),
-    input_type = CSV(),
-    transform_function = Some(enrichRatingData),
-    output_type = JSON(),
-    output_location = ratings_output_bucket_3,
-    output_save_mode = SaveMode.Overwrite,
-    output_partition_col = Seq(s"$partition_date_col"),
-    output_repartitioning = true,
-    output_repartitioning_num = 1
+    inputLocation = List(ratingsIntermediateBucket),
+    inputType = CSV(),
+    transformFunction = Some(enrichRatingData),
+    outputType = JSON(),
+    outputLocation = ratingsOutputBucket3,
+    outputSaveMode = SaveMode.Overwrite,
+    outputPartitionCol = Seq(s"$partitionDateCol"),
+    outputRepartitioning = true,
+    outputRepartitioningNum = 1
   )
 
   val job: RIO[SparkEnv with LogEnv, Unit] = for {

@@ -5,7 +5,7 @@ import zio.{Has, Task}
 
 package object spark {
   type SparkEnv = Has[SparkApi.Service[Task]]
-  sealed trait IOType extends Serializable
+  sealed trait IOType
   object IOType {
     final case class CSV(
         delimiter: String = ",",

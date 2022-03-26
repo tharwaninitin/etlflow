@@ -12,6 +12,7 @@ package object aws {
   type StreamResponse = ZStream[Any, Throwable, Chunk[Byte]]
   type S3Env          = Has[S3Api.Service]
 
+  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   final private[aws] case class StreamAsyncResponseTransformer(cf: CompletableFuture[StreamResponse])
       extends AsyncResponseTransformer[GetObjectResponse, StreamResponse] {
     override def prepare(): CompletableFuture[StreamResponse] = cf

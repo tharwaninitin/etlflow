@@ -13,5 +13,5 @@ object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
       ParquetToJdbcGenericSparkStepTestSuite.test,
       TransformationTestSuite.spec,
       BQtoGCStoGCSTestSuite.test @@ TestAspect.ignore
-    ).provideCustomLayerShared((SparkImpl.live(spark) ++ log.nolog).orDie) @@ TestAspect.sequential
+    ).provideCustomLayerShared((SparkImpl.live(spark) ++ log.noLog).orDie) @@ TestAspect.sequential
 }

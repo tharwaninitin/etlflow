@@ -8,103 +8,99 @@ object SparkApi {
 
   trait Service[F[_]] {
     def getSparkSession: F[SparkSession]
-    def ReadDSProps[T <: Product: TypeTag](
-        location: Seq[String],
-        input_type: IOType,
-        where_clause: String
-    ): F[Map[String, String]]
-    def ReadDS[T <: Product: TypeTag](location: Seq[String], input_type: IOType, where_clause: String): F[Dataset[T]]
-    def ReadStreamingDS[T <: Product: TypeTag](location: String, input_type: IOType, where_clause: String): F[Dataset[T]]
-    def ReadDF(location: Seq[String], input_type: IOType, where_clause: String, select_clause: Seq[String]): F[Dataset[Row]]
-    def WriteDSProps[T <: Product: TypeTag](
-        output_type: IOType,
-        output_location: String,
-        save_mode: SaveMode,
-        partition_by: Seq[String],
-        output_filename: Option[String],
+    def readDSProps[T <: Product: TypeTag](location: List[String], inputType: IOType, whereClause: String): F[Map[String, String]]
+    def readDS[T <: Product: TypeTag](location: List[String], inputType: IOType, whereClause: String): F[Dataset[T]]
+    def readStreamingDS[T <: Product: TypeTag](location: String, inputType: IOType, whereClause: String): F[Dataset[T]]
+    def readDF(location: List[String], inputType: IOType, whereClause: String, selectClause: Seq[String]): F[Dataset[Row]]
+    def writeDSProps[T <: Product: TypeTag](
+        outputType: IOType,
+        outputLocation: String,
+        saveMode: SaveMode,
+        partitionBy: Seq[String],
+        outputFilename: Option[String],
         compression: String,
         repartition: Boolean,
-        repartition_no: Int
+        repartitionNo: Int
     ): F[Map[String, String]]
-    def WriteDS[T <: Product: TypeTag](
+    def writeDS[T <: Product: TypeTag](
         input: Dataset[T],
-        output_type: IOType,
-        output_location: String,
-        save_mode: SaveMode,
-        partition_by: Seq[String],
-        output_filename: Option[String],
+        outputType: IOType,
+        outputLocation: String,
+        saveMode: SaveMode,
+        partitionBy: Seq[String],
+        outputFilename: Option[String],
         compression: String,
         repartition: Boolean,
-        repartition_no: Int
+        repartitionNo: Int
     ): F[Unit]
   }
 
   def getSparkSession: RIO[SparkEnv, SparkSession] = ZIO.accessM[SparkEnv](_.get.getSparkSession)
-  def ReadDSProps[T <: Product: TypeTag](
-      location: Seq[String],
-      input_type: IOType,
-      where_clause: String
-  ): RIO[SparkEnv, Map[String, String]] = ZIO.accessM[SparkEnv](_.get.ReadDSProps[T](location, input_type, where_clause))
-  def ReadDS[T <: Product: TypeTag](
-      location: Seq[String],
-      input_type: IOType,
-      where_clause: String = "1 = 1"
-  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.ReadDS[T](location, input_type, where_clause))
-  def ReadStreamingDS[T <: Product: TypeTag](
+  def readDSProps[T <: Product: TypeTag](
+      location: List[String],
+      inputType: IOType,
+      whereClause: String
+  ): RIO[SparkEnv, Map[String, String]] = ZIO.accessM[SparkEnv](_.get.readDSProps[T](location, inputType, whereClause))
+  def readDS[T <: Product: TypeTag](
+      location: List[String],
+      inputType: IOType,
+      whereClause: String = "1 = 1"
+  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.readDS[T](location, inputType, whereClause))
+  def readStreamingDS[T <: Product: TypeTag](
       location: String,
-      input_type: IOType,
-      where_clause: String = "1 = 1"
-  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.ReadStreamingDS[T](location, input_type, where_clause))
-  def ReadDF(
-      location: Seq[String],
-      input_type: IOType,
-      where_clause: String = "1 = 1",
-      select_clause: Seq[String] = Seq("*")
+      inputType: IOType,
+      whereClause: String = "1 = 1"
+  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.readStreamingDS[T](location, inputType, whereClause))
+  def readDF(
+      location: List[String],
+      inputType: IOType,
+      whereClause: String = "1 = 1",
+      selectClause: Seq[String] = Seq("*")
   ): RIO[SparkEnv, Dataset[Row]] =
-    ZIO.accessM[SparkEnv](_.get.ReadDF(location, input_type, where_clause, select_clause))
-  def WriteDSProps[T <: Product: TypeTag](
-      output_type: IOType,
-      output_location: String,
-      save_mode: SaveMode = SaveMode.Append,
-      partition_by: Seq[String] = Seq.empty[String],
-      output_filename: Option[String] = None,
+    ZIO.accessM[SparkEnv](_.get.readDF(location, inputType, whereClause, selectClause))
+  def writeDSProps[T <: Product: TypeTag](
+      outputType: IOType,
+      outputLocation: String,
+      saveMode: SaveMode = SaveMode.Append,
+      partitionBy: Seq[String] = Seq.empty[String],
+      outputFilename: Option[String] = None,
       compression: String = "none",
       repartition: Boolean = false,
-      repartition_no: Int = 1
+      repartitionNo: Int = 1
   ): RIO[SparkEnv, Map[String, String]] =
     ZIO.accessM[SparkEnv](
-      _.get.WriteDSProps(
-        output_type,
-        output_location,
-        save_mode,
-        partition_by,
-        output_filename,
+      _.get.writeDSProps(
+        outputType,
+        outputLocation,
+        saveMode,
+        partitionBy,
+        outputFilename,
         compression,
         repartition,
-        repartition_no
+        repartitionNo
       )
     )
-  def WriteDS[T <: Product: TypeTag](
+  def writeDS[T <: Product: TypeTag](
       input: Dataset[T],
-      output_type: IOType,
-      output_location: String,
-      save_mode: SaveMode = SaveMode.Append,
-      partition_by: Seq[String] = Seq.empty[String],
-      output_filename: Option[String] = None,
-      compression: String = "none", // ("compression", "gzip","snappy")
+      outputType: IOType,
+      outputLocation: String,
+      saveMode: SaveMode = SaveMode.Append,
+      partitionBy: Seq[String] = Seq.empty[String],
+      outputFilename: Option[String] = None,
+      compression: String = "none",
       repartition: Boolean = false,
-      repartition_no: Int = 1
+      repartitionNo: Int = 1
   ): RIO[SparkEnv, Unit] = ZIO.accessM[SparkEnv](
-    _.get.WriteDS(
+    _.get.writeDS(
       input,
-      output_type,
-      output_location,
-      save_mode,
-      partition_by,
-      output_filename,
+      outputType,
+      outputLocation,
+      saveMode,
+      partitionBy,
+      outputFilename,
       compression,
       repartition,
-      repartition_no
+      repartitionNo
     )
   )
 }

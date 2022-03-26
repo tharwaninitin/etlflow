@@ -17,21 +17,21 @@ object ParquetToJdbcGenericSparkStepTestSuite extends SparkUDF with ApplicationL
 
   def getYearMonthData(spark: SparkSession): Array[String] = {
     import spark.implicits._
-    val ds = ReadApi.DS[Rating](List(input_path_parquet), PARQUET)(spark)
-    val year_month = ds
+    val ds = ReadApi.ds[Rating](List(inputPathParquet), PARQUET)(spark)
+    val yearMonth = ds
       .withColumn("date", from_unixtime(col("timestamp"), "yyyy-MM-dd").cast(DateType))
-      .withColumn("year_month", get_formatted_date("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
+      .withColumn("year_month", getFormattedDate("date", "yyyy-MM-dd", "yyyyMM").cast(IntegerType))
       .selectExpr("year_month")
       .distinct()
       .as[String]
       .collect()
-    WriteApi.DS[Rating](ds, jdbc, table_name, SaveMode.Overwrite)(spark)
-    year_month
+    WriteApi.ds[Rating](ds, jdbc, tableName, SaveMode.Overwrite)(spark)
+    yearMonth
   }
 
   val step1: SparkStep[Array[String]] = SparkStep(
     name = "LoadRatingsParquetToJdbc",
-    transform_function = getYearMonthData
+    transformFunction = getYearMonthData
   )
 
   def processData(ip: Array[String]): Unit = {

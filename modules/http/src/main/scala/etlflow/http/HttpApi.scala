@@ -32,27 +32,28 @@ private[etlflow] object HttpApi extends ApplicationLogger {
 
   private def getBackend(
       allowUnsafeSSL: Boolean,
-      connection_timeout: Int
+      connectionTimeout: Int
   ): TaskManaged[SttpBackend[Task, ZioStreams with capabilities.WebSockets]] =
     if (allowUnsafeSSL) {
       val sslContext: SslContext =
         SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
       val config: AsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
         .setSslContext(sslContext)
-        .setConnectTimeout(connection_timeout)
+        .setConnectTimeout(connectionTimeout)
         .build()
       AsyncHttpClientZioBackend.usingConfig(config).toManaged_
     } else {
-      AsyncHttpClientZioBackend.managed(options(connection_timeout))
+      AsyncHttpClientZioBackend.managed(options(connectionTimeout))
     }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   private def logAndParseResponse(
       req: RequestT[Identity, String, Any],
       log: Boolean,
-      connection_timeout: Int,
-      allow_unsafe_ssl: Boolean
+      connectionTimeout: Int,
+      allowUnsafeSsl: Boolean
   ): Task[Response[String]] =
-    getBackend(allow_unsafe_ssl: Boolean, connection_timeout: Int)
+    getBackend(allowUnsafeSsl: Boolean, connectionTimeout: Int)
       .use(backend => if (log) req.send(logBackend(backend)) else req.send(backend))
       .map { res =>
         logger.info("#" * 50)
@@ -74,16 +75,16 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       params: Either[String, Map[String, String]],
       headers: Map[String, String],
       log: Boolean,
-      connection_timeout: Int,
-      read_timeout: Int,
-      allow_unsafe_ssl: Boolean = false
+      connectionTimeout: Int,
+      readTimeout: Int,
+      allowUnsafeSsl: Boolean = false
   ): Task[Response[String]] = {
     val hdrs = headers -- List("content-type", "Content-Type")
 
     val request: RequestT[Empty, String, Any] = method match {
       case HttpMethod.GET =>
         basicRequest
-          .readTimeout(Duration(read_timeout.toLong, MILLISECONDS))
+          .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
           .headers(headers)
           .response(asStringAlways)
       case HttpMethod.POST | HttpMethod.PUT =>
@@ -91,13 +92,13 @@ private[etlflow] object HttpApi extends ApplicationLogger {
           case Left(str) =>
             basicRequest
               .body(stringAsJson(str)) // Always encoded as JSON
-              .readTimeout(Duration(read_timeout.toLong, MILLISECONDS))
+              .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
               .headers(hdrs)
               .response(asStringAlways)
           case Right(map) =>
             basicRequest
               .body(map) // Always encoded as FORM
-              .readTimeout(Duration(read_timeout.toLong, MILLISECONDS))
+              .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
               .headers(hdrs)
               .response(asStringAlways)
         }
@@ -107,10 +108,10 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       case HttpMethod.GET =>
         params match {
           case Left(_)    => Task.fail(new RuntimeException("params for get request as Left(..) is not supported"))
-          case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connection_timeout, allow_unsafe_ssl)
+          case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connectionTimeout, allowUnsafeSsl)
         }
-      case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connection_timeout, allow_unsafe_ssl)
-      case HttpMethod.PUT  => logAndParseResponse(request.put(uri"$url"), log, connection_timeout, allow_unsafe_ssl)
+      case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
+      case HttpMethod.PUT  => logAndParseResponse(request.put(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
     }
   }
 }

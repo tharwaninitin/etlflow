@@ -1,0 +1,15 @@
+name: Scala Dependency Updates Check
+on: [push]
+jobs:
+  updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Check Dependency Updates
+        run: sbt dependencyUpdates

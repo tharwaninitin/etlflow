@@ -12,6 +12,7 @@ class RedisStep(
     val credentials: REDIS
 ) extends EtlStep[Any, Unit] {
 
+  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   protected def process: Task[Unit] = Task {
     logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
@@ -24,15 +25,16 @@ class RedisStep(
     }
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getStepProperties: Map[String, String] = Map("operation_type" -> command.toString)
 }
 
 object RedisStep {
   sealed trait RedisCmd
   object RedisCmd {
-    case class SET(kv: Map[String, String]) extends RedisCmd
-    case object FLUSHALL                    extends RedisCmd
-    case class DELETE(prefix: List[String]) extends RedisCmd
+    final case class SET(kv: Map[String, String]) extends RedisCmd
+    final case object FLUSHALL                    extends RedisCmd
+    final case class DELETE(prefix: List[String]) extends RedisCmd
   }
 
   def apply(name: String, command: RedisCmd, credentials: REDIS): RedisStep = new RedisStep(name, command, credentials)

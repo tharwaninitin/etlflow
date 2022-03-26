@@ -8,9 +8,9 @@ import zio.{RIO, ZEnv, ZLayer}
 
 object SampleJobWithDbLogging extends JobApp {
 
-  val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
+  private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
 
-  override val log_layer: ZLayer[ZEnv, Throwable, LogEnv] = log.DB(cred, java.util.UUID.randomUUID.toString)
+  override val logLayer: ZLayer[ZEnv, Throwable, LogEnv] = log.DB(cred, java.util.UUID.randomUUID.toString)
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -21,7 +21,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   private def processData(ip: List[EtlJobRun]): Unit = {
     logger.info("Processing Data")
-    ip.foreach(jr => logger.info(jr.toString))
+    ip.foreach(jr => logger.info(s"$jr"))
   }
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(

@@ -35,11 +35,12 @@ object DateTimeApi {
       .getDisplayName(false, TimeZone.SHORT)
 
   def roundAt(p: Int)(n: Double): Double = {
-    val s = math.pow(10, p.toDouble); (math.round(n * s)) / s
+    val s = math.pow(10.toDouble, p.toDouble)
+    math.round(n * s) / s
   }
 
-  def getTimeDifferenceAsString(start_ts: Long, end_ts: Long): String =
-    Try((end_ts - start_ts) / 1000.0).map { value =>
+  def getTimeDifferenceAsString(startTs: Long, endTs: Long): String =
+    Try((endTs - startTs) / 1000.0).map { value =>
       if (value > 86400) {
         val diff = value % 86400
         s"${roundAt(2)(value / 86400).toInt} days ${roundAt(2)(diff / 3600.0)} hrs"
@@ -48,7 +49,7 @@ object DateTimeApi {
       else s"${roundAt(2)(value)} secs"
     } match {
       case Success(value) => value
-      case Failure(_)     => (end_ts - start_ts).toString
+      case Failure(_)     => (endTs - startTs).toString
     }
 
 }

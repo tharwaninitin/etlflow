@@ -1,7 +1,7 @@
-name: Examples Workflow
+name: Examples CI
 on: [push]
 jobs:
-  test:
+  examples:
     runs-on: ubuntu-latest
     strategy:
       matrix:

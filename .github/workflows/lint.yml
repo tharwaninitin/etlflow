@@ -1,0 +1,29 @@
+name: Scala Code Linting Check
+on: [push]
+jobs:
+  scalafmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Check scalafmt on etlflow
+        run: sbt "project etlflow; scalafmtCheckAll"
+  scalastyle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Check scalastyle on etlflow
+        run: sbt "project etlflow; scalastyle; Test/scalastyle"
+      - name: Check scalastyle on examples
+        run: sbt "project examples; scalastyle; Test/scalastyle"

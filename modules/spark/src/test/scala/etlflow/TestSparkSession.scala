@@ -6,7 +6,7 @@ import org.apache.spark.sql.SparkSession
 
 trait TestSparkSession {
   lazy val spark: SparkSession = SparkManager.createSparkSession(
-    hive_support = false,
+    hiveSupport = false,
     env = Set(
       LOCAL,
       GCP(

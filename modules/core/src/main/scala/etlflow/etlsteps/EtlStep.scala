@@ -7,7 +7,7 @@ import zio.{RIO, UIO}
 
 trait EtlStep[R, OP] extends ApplicationLogger {
   val name: String
-  val step_type: String = this.getClass.getSimpleName
+  val stepType: String = this.getClass.getSimpleName
 
   protected def process: RIO[R, OP]
   def getExecutionMetrics: Map[String, String] = Map()
@@ -16,11 +16,11 @@ trait EtlStep[R, OP] extends ApplicationLogger {
   final def execute: RIO[R with LogEnv, OP] =
     for {
       sri <- UIO(java.util.UUID.randomUUID.toString)
-      _   <- LogApi.logStepStart(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
+      _   <- LogApi.logStepStart(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp)
       op <- process.tapError { ex =>
-        LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp, Some(ex))
+        LogApi.logStepEnd(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp, Some(ex))
       }
-      _ <- LogApi.logStepEnd(sri, name, getStepProperties, step_type, DateTimeApi.getCurrentTimestamp)
+      _ <- LogApi.logStepEnd(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp)
     } yield op
 }
 

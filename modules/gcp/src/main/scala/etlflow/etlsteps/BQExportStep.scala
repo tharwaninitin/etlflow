@@ -5,40 +5,42 @@ import zio.{RIO, UIO}
 
 case class BQExportStep(
     name: String,
-    source_project: Option[String] = None,
-    source_dataset: String,
-    source_table: String,
-    destination_path: String,
-    destination_file_name: Option[String] = None,
-    destination_format: BQInputType,
-    destination_compression_type: String = "gzip"
+    sourceProject: Option[String] = None,
+    sourceDataset: String,
+    sourceTable: String,
+    destinationPath: String,
+    destinationFileName: Option[String] = None,
+    destinationFormat: BQInputType,
+    destinationCompressionType: String = "gzip"
 ) extends EtlStep[BQEnv, Unit] {
-  var row_count: Map[String, Long] = Map.empty
+
+  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+  var rowCount: Map[String, Long] = Map.empty
 
   protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Step: $name")
     BQApi.exportTable(
-      source_dataset,
-      source_table,
-      source_project,
-      destination_path,
-      destination_file_name,
-      destination_format,
-      destination_compression_type
+      sourceDataset,
+      sourceTable,
+      sourceProject,
+      destinationPath,
+      destinationFileName,
+      destinationFormat,
+      destinationCompressionType
     ) *> UIO(logger.info("#" * 50))
   }
 
   override def getExecutionMetrics: Map[String, String] =
     Map(
-      "total_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+      "total_rows" -> rowCount.foldLeft(0L)((a, b) => a + b._2).toString
     )
-
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getStepProperties: Map[String, String] = Map(
-    "input_project"   -> source_project.getOrElse(""),
-    "input_dataset"   -> source_dataset,
-    "input_table"     -> source_table,
-    "output_type"     -> destination_format.toString(),
-    "output_location" -> destination_path
+    "input_project"   -> sourceProject.getOrElse(""),
+    "input_dataset"   -> sourceDataset,
+    "input_table"     -> sourceTable,
+    "output_type"     -> destinationFormat.toString,
+    "output_location" -> destinationPath
   )
 }

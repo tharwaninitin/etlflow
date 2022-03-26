@@ -11,9 +11,9 @@ object Job4 extends JobApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
+  private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
 
-  override val log_layer: ZLayer[zio.ZEnv, Throwable, LogEnv] = etlflow.log.DB(cred, java.util.UUID.randomUUID.toString)
+  override val logLayer: ZLayer[zio.ZEnv, Throwable, LogEnv] = etlflow.log.DB(cred, java.util.UUID.randomUUID.toString)
 
   val step1: DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
     name = "FetchEtlJobRun",
@@ -22,7 +22,7 @@ object Job4 extends JobApp {
 
   private def processData(ip: List[EtlJobRun]): Unit = {
     logger.info("Processing Data")
-    ip.foreach(jr => logger.info(jr.toString))
+    ip.foreach(jr => logger.info(s"$jr"))
   }
 
   private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(

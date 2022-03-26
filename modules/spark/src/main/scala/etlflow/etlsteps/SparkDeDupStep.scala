@@ -8,9 +8,9 @@ import scala.reflect.runtime.universe.TypeTag
 
 case class SparkDeDupStep[I <: Product: TypeTag](
     name: String,
-    input_location: String,
-    input_type: IOType,
-    input_filter: String = "1 = 1",
+    inputLocation: String,
+    inputType: IOType,
+    inputFilter: String = "1 = 1",
     transformation: Dataset[I] => Dataset[Row],
     checkpointLocation: String,
     eventTimeCol: String,
@@ -23,7 +23,7 @@ case class SparkDeDupStep[I <: Product: TypeTag](
       logger.info("#" * 50)
       logger.info(s"Starting SparkDeDupStep: $name")
     }
-    ip <- SparkApi.ReadStreamingDS[I](input_location, input_type, input_filter)
+    ip <- SparkApi.readStreamingDS[I](inputLocation, inputType, inputFilter)
     _ <- Task {
       ip.transform(transformation)
         .withWatermark(eventTimeCol, delayThreshold)

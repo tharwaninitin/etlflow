@@ -9,10 +9,11 @@ object Dependencies {
   )
 
   lazy val awsLibs = List(
-    "dev.zio"               %% "zio"                         % ZioVersion,
-    "dev.zio"               %% "zio-streams"                 % ZioVersion,
-    "dev.zio"               %% "zio-interop-reactivestreams" % ZioReactiveStreamsVersion,
-    "software.amazon.awssdk" % "s3"                          % AwsS3Version
+    "dev.zio"                %% "zio"                         % ZioVersion,
+    "dev.zio"                %% "zio-streams"                 % ZioVersion,
+    "dev.zio"                %% "zio-interop-reactivestreams" % ZioReactiveStreamsVersion,
+    "org.scala-lang.modules" %% "scala-collection-compat"     % ScalaCollectionCompatVersion,
+    "software.amazon.awssdk"  % "s3"                          % AwsS3Version
   )
 
   lazy val gcpLibs = List(

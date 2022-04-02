@@ -7,7 +7,7 @@ import zio.blocking.Blocking
 import zio.{Has, Task, UIO, ZLayer}
 
 object DB extends ApplicationLogger {
-  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.log.Service {
+  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.log.Service[UIO] {
     override def logStepStart(
         stepRunId: String,
         stepName: String,
@@ -61,11 +61,6 @@ object DB extends ApplicationLogger {
   private[etlflow] def live(jobRunId: String): ZLayer[Has[String], Throwable, LogEnv] =
     ZLayer.fromService(poolName => DBLogger(jobRunId, poolName))
 
-  def apply(
-      db: JDBC,
-      jobRunId: String,
-      poolName: String = "Job-Pool",
-      poolSize: Int = 2
-  ): ZLayer[Blocking, Throwable, LogEnv] =
+  def apply(db: JDBC, jobRunId: String, poolName: String = "Job-Pool", poolSize: Int = 2): ZLayer[Blocking, Throwable, LogEnv] =
     etlflow.db.CP.layer(db, poolName, poolSize) >>> live(jobRunId)
 }

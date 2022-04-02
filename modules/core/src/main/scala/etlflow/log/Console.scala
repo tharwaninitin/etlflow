@@ -5,7 +5,7 @@ import zio.{UIO, ULayer, ZLayer}
 
 object Console extends ApplicationLogger {
 
-  object ConsoleLogger extends Service {
+  object ConsoleLogger extends Service[UIO] {
     override val jobRunId: String = ""
     // format: off
     override def logStepStart(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, startTime: Long): UIO[Unit] =

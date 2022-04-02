@@ -11,7 +11,7 @@ import scala.util.Try
 object Slack extends ApplicationLogger {
 
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
-  final case class SlackLogger(jobRunId: String, slack: Option[model.Slack]) extends Service {
+  final case class SlackLogger(jobRunId: String, slack: Option[model.Slack]) extends Service[UIO] {
     var finalStepMessage: String = ""
     var finalMessage: String     = ""
 

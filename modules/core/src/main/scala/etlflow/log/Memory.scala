@@ -19,7 +19,7 @@ object Memory extends ApplicationLogger {
 
   @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
   val state: UIO[Ref[mutable.Map[String, State]]] = Ref.make(mutable.Map.empty[String, State])
-  final case class MemoryLogger(jobRunId: String) extends Service {
+  final case class MemoryLogger(jobRunId: String) extends Service[UIO] {
     override def logStepStart(
         stepRunId: String,
         stepName: String,

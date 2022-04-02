@@ -21,7 +21,8 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
     outputRepartitioning: Boolean = false,
     outputRepartitioningNum: Int = 1,
     transformFunction: Option[(SparkSession, Dataset[I]) => Dataset[O]] = None
-) extends EtlStep[SparkEnv, Unit] {
+) extends EtlStep[Unit] {
+  override protected type R = SparkEnv
 
   private var recordsWrittenCount = 0L
   private var recordsReadCount    = 0L
@@ -39,7 +40,7 @@ case class SparkReadWriteStep[I <: Product: TypeTag, O <: Product: TypeTag](
     case None =>
   }
 
-  protected def process: RIO[SparkEnv, Unit] =
+  override protected def process: RIO[SparkEnv, Unit] =
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)

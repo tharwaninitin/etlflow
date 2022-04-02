@@ -12,12 +12,13 @@ case class BQExportStep(
     destinationFileName: Option[String] = None,
     destinationFormat: BQInputType,
     destinationCompressionType: String = "gzip"
-) extends EtlStep[BQEnv, Unit] {
+) extends EtlStep[Unit] {
+  override protected type R = BQEnv
 
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   var rowCount: Map[String, Long] = Map.empty
 
-  protected def process: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Step: $name")
     BQApi.exportTable(

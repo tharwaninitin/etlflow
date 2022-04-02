@@ -4,10 +4,10 @@ import com.google.cloud.storage.Blob
 import gcp4zio._
 import zio.{Chunk, RIO}
 
-case class GCSListStep(name: String, bucket: String, prefix: Option[String], recursive: Boolean)
-    extends EtlStep[GCSEnv, Chunk[Blob]] {
+case class GCSListStep(name: String, bucket: String, prefix: Option[String], recursive: Boolean) extends EtlStep[Chunk[Blob]] {
+  override protected type R = GCSEnv
 
-  protected def process: RIO[GCSEnv, Chunk[Blob]] = {
+  override protected def process: RIO[GCSEnv, Chunk[Blob]] = {
     logger.info(s"Listing files at $bucket/$prefix")
     GCSApi.listObjects(bucket, prefix, recursive).runCollect
   }

@@ -16,9 +16,10 @@ case class SparkDeDupStep[I <: Product: TypeTag](
     eventTimeCol: String,
     delayThreshold: String,
     deDupCols: Seq[String]
-) extends EtlStep[SparkEnv, Unit] {
+) extends EtlStep[Unit] {
+  override protected type R = SparkEnv
 
-  protected def process: RIO[SparkEnv, Unit] = for {
+  override protected def process: RIO[SparkEnv, Unit] = for {
     _ <- UIO {
       logger.info("#" * 50)
       logger.info(s"Starting SparkDeDupStep: $name")

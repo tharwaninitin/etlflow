@@ -3,15 +3,14 @@ package etlflow.etlsteps
 import etlflow.db.{DBApi, DBEnv}
 import zio.RIO
 
-class DBQueryStep private (val name: String, query: => String) extends EtlStep[DBEnv, Unit] {
-
-  protected def process: RIO[DBEnv, Unit] = {
+class DBQueryStep private (val name: String, query: => String) extends EtlStep[Unit] {
+  override protected type R = DBEnv
+  override protected def process: RIO[DBEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting DB Query Step: $name")
     logger.info(s"Query: $query")
     DBApi.executeQuery(query)
   }
-
   override def getStepProperties: Map[String, String] = Map("query" -> query)
 }
 

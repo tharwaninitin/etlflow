@@ -3,9 +3,10 @@ package etlflow.etlsteps
 import gcp4zio._
 import zio.RIO
 
-case class BQQueryStep(name: String, query: String) extends EtlStep[BQEnv, Unit] {
+case class BQQueryStep(name: String, query: String) extends EtlStep[Unit] {
+  override protected type R = BQEnv
 
-  protected def process: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting BQ Query Step: $name")
     logger.info(s"Query: $query")

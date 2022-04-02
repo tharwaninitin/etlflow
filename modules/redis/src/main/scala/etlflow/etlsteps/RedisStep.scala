@@ -6,14 +6,11 @@ import etlflow.redis.RedisApi
 import etlflow.model.Credential.REDIS
 import zio.Task
 
-class RedisStep(
-    val name: String,
-    val command: RedisCmd,
-    val credentials: REDIS
-) extends EtlStep[Any, Unit] {
+case class RedisStep(name: String, command: RedisCmd, credentials: REDIS) extends EtlStep[Unit] {
+  override protected type R = Any
 
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
-  protected def process: Task[Unit] = Task {
+  override protected def process: Task[Unit] = Task {
     logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
     logger.info(s"Starting Redis Query Step: $name")
@@ -36,6 +33,4 @@ object RedisStep {
     final case object FLUSHALL                    extends RedisCmd
     final case class DELETE(prefix: List[String]) extends RedisCmd
   }
-
-  def apply(name: String, command: RedisCmd, credentials: REDIS): RedisStep = new RedisStep(name, command, credentials)
 }

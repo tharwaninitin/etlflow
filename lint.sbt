@@ -4,6 +4,5 @@ ThisBuild / wartremoverErrors ++= Warts.allBut(
   Wart.Nothing,
   Wart.Equals,
   Wart.FinalCaseClass,
-  Wart.Overloading,
-  Wart.StringPlusAny
+  Wart.Overloading
 )

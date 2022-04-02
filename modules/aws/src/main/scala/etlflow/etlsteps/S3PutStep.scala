@@ -4,9 +4,9 @@ import etlflow.aws._
 import zio.{RIO, Task, UIO}
 import java.nio.file.Paths
 
-case class S3PutStep(name: String, bucket: String, key: String, file: String, overwrite: Boolean) extends EtlStep[S3Env, Unit] {
-
-  protected def process: RIO[S3Env, Unit] = for {
+case class S3PutStep(name: String, bucket: String, key: String, file: String, overwrite: Boolean) extends EtlStep[Unit] {
+  override protected type R = S3Env
+  override protected def process: RIO[S3Env, Unit] = for {
     _    <- UIO(logger.info("#" * 50))
     _    <- UIO(logger.info(s"Input local path $file"))
     _    <- UIO(logger.info(s"Output S3 path s3://$bucket/$key"))

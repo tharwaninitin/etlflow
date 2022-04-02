@@ -15,9 +15,10 @@ case class HttpRequestStep(
     connection_timeout: Int = 10000,
     read_timeout: Int = 150000,
     allow_unsafe_ssl: Boolean = false
-) extends EtlStep[Any, Response[String]] {
+) extends EtlStep[Response[String]] {
+  override protected type R = Any
 
-  protected def process: Task[Response[String]] = {
+  override protected def process: Task[Response[String]] = {
     logger.info("#" * 50)
     logger.info(s"Starting HttpRequestStep: $name")
     logger.info(s"URL: $url")

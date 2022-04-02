@@ -7,15 +7,10 @@ import zio.clock.Clock
 import zio._
 import scala.concurrent.duration.Duration
 
-case class GCSSensorStep(
-    name: String,
-    bucket: String,
-    prefix: String,
-    retry: Int,
-    spaced: Duration
-) extends EtlStep[GCSEnv with Clock, Unit] {
+case class GCSSensorStep(name: String, bucket: String, prefix: String, retry: Int, spaced: Duration) extends EtlStep[Unit] {
+  override protected type R = GCSEnv with Clock
 
-  protected def process: RIO[GCSEnv with Clock, Unit] = {
+  override protected def process: RIO[GCSEnv with Clock, Unit] = {
     val lookup = GCSApi.lookupObject(bucket, prefix)
 
     val program: RIO[GCSEnv with Clock, Unit] =

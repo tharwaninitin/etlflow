@@ -4,9 +4,11 @@ import gcp4zio._
 import zio.{RIO, Task, UIO}
 import java.nio.file.Paths
 
-case class GCSPutStep(name: String, bucket: String, prefix: String, file: String) extends EtlStep[GCSEnv, Unit] {
+case class GCSPutStep(name: String, bucket: String, prefix: String, file: String) extends EtlStep[Unit] {
 
-  protected def process: RIO[GCSEnv, Unit] = for {
+  override protected type R = GCSEnv
+
+  override protected def process: RIO[GCSEnv, Unit] = for {
     _    <- UIO(logger.info("#" * 100))
     _    <- UIO(logger.info(s"Input local path $file"))
     path <- Task(Paths.get(file))

@@ -8,17 +8,17 @@ case class SendMailStep(
     name: String,
     body: String,
     subject: String,
-    sender: Option[String] = None,
-    recipient_list: List[String] = List(""),
-    credentials: SMTP
-) extends EtlStep[Any, Unit] {
+    recipientList: List[String],
+    credentials: SMTP,
+    sender: Option[String] = None
+) extends EtlStep[Unit] {
+  override protected type R = Any
 
-  protected def process: Task[Unit] = Task {
+  override protected def process: Task[Unit] = Task {
     logger.info("#" * 100)
     logger.info(s"Starting SendMailStep")
-    MailClientApi.sendMail(sender, recipient_list, body, subject, credentials)
+    MailClientApi.sendMail(sender, recipientList, body, subject, credentials)
   }
 
-  override def getStepProperties: Map[String, String] =
-    Map("subject" -> subject, "recipient_list" -> recipient_list.mkString(","))
+  override def getStepProperties: Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipientList.mkString(","))
 }

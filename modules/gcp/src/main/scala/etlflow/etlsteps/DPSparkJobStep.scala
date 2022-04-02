@@ -13,9 +13,10 @@ case class DPSparkJobStep(
     cluster: String,
     project: String,
     region: String
-) extends EtlStep[DPJobEnv, Job] {
+) extends EtlStep[Job] {
+  override protected type R = DPJobEnv
 
-  protected def process: RIO[DPJobEnv, Job] = {
+  override protected def process: RIO[DPJobEnv, Job] = {
     logger.info("#" * 100)
     logger.info(s"Starting Dataproc Spark Job")
     DPJobApi.executeSparkJob(args, mainClass, libs, conf, cluster, project, region)

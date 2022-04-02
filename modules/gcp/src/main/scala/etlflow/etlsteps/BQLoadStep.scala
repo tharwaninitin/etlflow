@@ -16,11 +16,13 @@ case class BQLoadStep(
     outputWriteDisposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE,
     outputCreateDisposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
     schema: Option[Schema] = None
-) extends EtlStep[BQEnv, Unit] {
+) extends EtlStep[Unit] {
+  override protected type R = BQEnv
+
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   var rowCount: Map[String, Long] = Map.empty
 
-  protected def process: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Step : $name")
 

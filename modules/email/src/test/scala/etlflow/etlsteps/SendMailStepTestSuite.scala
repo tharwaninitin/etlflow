@@ -30,7 +30,7 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
     body = emailBody,
     subject = "SendMailStep Test Ran Successfully",
     sender = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
-    recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
+    recipientList = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
     credentials = SMTP(
       sys.env.getOrElse("SMTP_PORT", "587"),
       sys.env.getOrElse("SMTP_HOST", "..."),
@@ -47,7 +47,7 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
           body = emailBody,
           subject = "SendMailStep Test Ran Successfully",
           sender = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
-          recipient_list = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
+          recipientList = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
           credentials = smtp
         ).execute
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

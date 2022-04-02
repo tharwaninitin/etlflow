@@ -6,9 +6,10 @@ import zio.RIO
 import zio.blocking.Blocking
 
 case class DPCreateStep(name: String, cluster: String, project: String, region: String, props: DataprocProperties)
-    extends EtlStep[DPEnv with Blocking, Cluster] {
+    extends EtlStep[Cluster] {
+  override protected type R = DPEnv with Blocking
 
-  protected def process: RIO[DPEnv with Blocking, Cluster] = {
+  override protected def process: RIO[DPEnv with Blocking, Cluster] = {
     logger.info("#" * 100)
     logger.info(s"Starting Create Cluster Step: $name")
     logger.info(s"Cluster: $cluster and Region: $region")

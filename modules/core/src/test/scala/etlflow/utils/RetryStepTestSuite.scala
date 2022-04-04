@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.etlsteps.GenericETLStep
+import etlflow.etltask.GenericTask
 import etlflow.log.LogEnv
 import etlflow.model.EtlFlowException.RetryException
 import zio.clock.Clock
@@ -9,7 +9,6 @@ import zio.test.Assertion.equalTo
 import zio.test.environment.TestClock
 import zio.test.{assertM, environment, suite, testM, ZSpec}
 import zio.{RIO, ZIO}
-
 import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
@@ -22,10 +21,10 @@ object RetryStepTestSuite extends ApplicationLogger {
           throw RetryException("Failed in processing data")
         }
 
-        val step: RIO[Clock with LogEnv, Unit] = GenericETLStep(
+        val step: RIO[Clock with LogEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
-        ).execute.retry(RetrySchedule(2, 5.second))
+        ).executeZio.retry(RetrySchedule(2, 5.second))
 
         val program = for {
           s <- step.fork

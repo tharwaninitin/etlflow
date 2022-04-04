@@ -1,10 +1,10 @@
 package examples
 
 import etlflow.JobApp
-import etlflow.etlsteps.{DBReadStep, GenericETLStep}
+import etlflow.etltask.{DBReadTask, GenericTask}
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
-import zio.ZLayer
+import zio.{RIO, ZEnv, ZLayer}
 import zio.blocking.Blocking
 
 object Job4 extends JobApp {
@@ -15,7 +15,7 @@ object Job4 extends JobApp {
 
   override val logLayer: ZLayer[zio.ZEnv, Throwable, LogEnv] = etlflow.log.DB(cred, java.util.UUID.randomUUID.toString)
 
-  val step1: DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
+  val step1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
     name = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
@@ -25,14 +25,14 @@ object Job4 extends JobApp {
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
+  private def step2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )
 
-  def job(args: List[String]) =
+  def job(args: List[String]): RIO[ZEnv with LogEnv, Unit] =
     for {
-      op <- step1.execute.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
-      _  <- step2(op).execute
+      op <- step1.executeZio.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
+      _  <- step2(op).executeZio
     } yield ()
 }

@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.etlsteps.GenericETLStep
+import etlflow.etltask.GenericTask
 import etlflow.utils.ApplicationLogger
 import zio.test._
 import scala.util.Try
@@ -17,14 +17,14 @@ object GenericStepTestSuite extends ApplicationLogger {
   def spec(log: etlflow.log.Service[Try]): ZSpec[environment.TestEnvironment, Any] =
     suite("Generic Step")(
       test("Execute GenericETLStep with error") {
-        val task: Try[Unit] = GenericETLStep(
+        val task: Try[Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
         ).executeTry(log)
         assertTrue(task.isFailure)
       },
       test("Execute GenericETLStep with success") {
-        val task: Try[Unit] = GenericETLStep(
+        val task: Try[Unit] = GenericTask(
           name = "ProcessData",
           function = processData()
         ).executeTry(log)

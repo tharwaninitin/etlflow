@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.etlsteps.{DBReadStep, GenericETLStep}
+import etlflow.etltask.{DBReadTask, GenericTask}
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
 import zio.blocking.Blocking
@@ -14,7 +14,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  private val step1: DBReadStep[EtlJobRun] = DBReadStep[EtlJobRun](
+  private val step1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
     name = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
@@ -24,14 +24,14 @@ object SampleJobWithDbLogging extends JobApp {
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def step2(ip: List[EtlJobRun]): GenericETLStep[Unit] = GenericETLStep(
+  private def step2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )
 
   def job(args: List[String]): RIO[Blocking with LogEnv, Unit] =
     for {
-      op1 <- step1.execute.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
-      _   <- step2(op1).execute
+      op1 <- step1.executeZio.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
+      _   <- step2(op1).executeZio
     } yield ()
 }

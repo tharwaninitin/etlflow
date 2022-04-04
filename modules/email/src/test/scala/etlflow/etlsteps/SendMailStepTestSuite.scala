@@ -1,5 +1,6 @@
 package etlflow.etlsteps
 
+import etlflow.etltask.SendMailTask
 import etlflow.log.noLog
 import etlflow.model.Credential.SMTP
 import zio.ZIO
@@ -25,7 +26,7 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
     sys.env.getOrElse("SMTP_PASS", "...")
   )
 
-  private val step = SendMailStep(
+  private val step = SendMailTask(
     name = "SendSMTPEmail",
     body = emailBody,
     subject = "SendMailStep Test Ran Successfully",
@@ -42,14 +43,14 @@ object SendMailStepTestSuite extends DefaultRunnableSpec {
   def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("SendMailStepTestSuite")(
       testM("Execute SendMailStep") {
-        val step = SendMailStep(
+        val step = SendMailTask(
           name = "SendSMTPEmail",
           body = emailBody,
           subject = "SendMailStep Test Ran Successfully",
           sender = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
           recipientList = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
           credentials = smtp
-        ).execute
+        ).executeZio
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getStepProperties") {

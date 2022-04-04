@@ -1,7 +1,7 @@
 package etlflow.steps
 
 import etlflow.TestHelper
-import etlflow.etlsteps.DPCreateStep
+import etlflow.etltask.DPCreateTask
 import etlflow.log.LogEnv
 import gcp4zio._
 import zio.ZIO
@@ -18,7 +18,7 @@ object DPCreateTestSuite extends TestHelper {
         network_tags = dpNetworkTags,
         service_account = dpServiceAccount
       )
-      val step = DPCreateStep("DPCreateStepExample", dpCluster, gcpProjectId.get, gcpRegion.get, dpProps).execute
+      val step = DPCreateTask("DPCreateStepExample", dpCluster, gcpProjectId.get, gcpRegion.get, dpProps).executeZio
       assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

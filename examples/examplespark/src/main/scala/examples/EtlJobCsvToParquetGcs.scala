@@ -1,10 +1,10 @@
 package examples
 
-import etlflow.etlsteps.{SparkReadWriteStep, SparkStep}
 import etlflow.spark.Environment.{GCP, LOCAL}
 import etlflow.spark.{IOType, ReadApi, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
 import Globals.defaultRatingsInputPathCsv
+import etlflow.etltask.{SparkReadWriteTask, SparkTask}
 import examples.Schema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name, unix_timestamp}
 import org.apache.spark.sql.types.DateType
@@ -54,7 +54,7 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     outputDatePaths.foreach(path => println(path))
   }
 
-  private val step1 = SparkReadWriteStep[Rating, RatingOutput](
+  private val step1 = SparkReadWriteTask[Rating, RatingOutput](
     name = "LoadRatingsParquet",
     inputLocation = List(defaultRatingsInputPathCsv),
     inputType = IOType.CSV(",", true, "FAILFAST"),
@@ -66,11 +66,11 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     outputRepartitioning = true
   )
 
-  private val step2 = SparkStep(name = "GenerateFilePaths", transformFunction = addFilePaths())
+  private val step2 = SparkTask(name = "GenerateFilePaths", transformFunction = addFilePaths())
 
   private val job = for {
-    _ <- step1.execute
-    _ <- step2.execute
+    _ <- step1.executeZio
+    _ <- step2.executeZio
   } yield ()
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =

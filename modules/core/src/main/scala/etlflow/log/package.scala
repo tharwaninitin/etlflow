@@ -5,7 +5,9 @@ import zio.{Has, UIO, ULayer, URIO, ZIO, ZLayer}
 import scala.util.Try
 
 package object log {
-  type LogEnv = Has[Service[UIO]]
+  type LogEnv    = Has[Service[UIO]]
+  type LogEnvTry = Service[Try]
+  
   // format: off
   trait Service[F[_]] {
     val jobRunId: String
@@ -36,7 +38,7 @@ package object log {
     }
   )
   
-  val noLogTry: Service[Try] = new Service[Try] {
+  val noLogTry: LogEnvTry = new LogEnvTry {
       override val jobRunId: String = ""
       override def logStepStart(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, startTime: Long): Try[Unit] = Try(())
       override def logStepEnd(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, endTime: Long, error: Option[Throwable]): Try[Unit] = Try(())

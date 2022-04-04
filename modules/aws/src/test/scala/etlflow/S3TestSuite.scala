@@ -1,7 +1,7 @@
 package etlflow
 
 import etlflow.aws.{S3, S3Api, S3Env}
-import etlflow.etlsteps.{S3PutStep, S3SensorStep}
+import etlflow.etltask.{S3PutTask, S3SensorTask}
 import etlflow.model.Credential
 import etlflow.utils.ApplicationLogger
 import zio.clock.Clock
@@ -23,35 +23,35 @@ object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationL
         assertM(step)(equalTo("ok"))
       },
       testM("Execute S3Put step") {
-        val step = S3PutStep(
+        val step = S3PutTask(
           name = "S3PutStep",
           bucket = s3Bucket,
           key = s3Path,
           file = localFile,
           overwrite = true
-        ).execute
+        ).executeZio
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute S3Put step overwrite false") {
-        val step = S3PutStep(
+        val step = S3PutTask(
           name = "S3PutStep",
           bucket = s3Bucket,
           key = s3Path,
           file = localFile,
           overwrite = false
-        ).execute
+        ).executeZio
         assertM(step.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.fail("ok")))(
           equalTo("File at path s3://test/temp/ratings.csv already exist")
         )
       },
       testM("Execute S3Sensor step") {
-        val step = S3SensorStep(
+        val step = S3SensorTask(
           name = "S3KeySensorStep",
           bucket = s3Bucket,
           key = s3Path,
           retry = 3,
           spaced = 5.second
-        ).execute
+        ).executeZio
         assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute getObject api") {

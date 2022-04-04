@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.etlsteps.GenericETLStep
+import etlflow.etltask.GenericTask
 import etlflow.log.LogEnv
 import zio.{RIO, ZEnv, ZLayer}
 
@@ -14,7 +14,7 @@ object SampleJobApp extends JobApp {
     "Hello World"
   }
 
-  private val step1 = GenericETLStep(
+  private val step1 = GenericTask(
     name = "Step_1",
     function = processData1()
   )
@@ -22,7 +22,7 @@ object SampleJobApp extends JobApp {
   def processData2(): Unit =
     logger.info("Hello World")
 
-  private val step2 = GenericETLStep(
+  private val step2 = GenericTask(
     name = "Step_2",
     function = processData2()
   )
@@ -31,15 +31,15 @@ object SampleJobApp extends JobApp {
     logger.info("Hello World")
   // throw new RuntimeException("Error123")
 
-  private val step3 = GenericETLStep(
+  private val step3 = GenericTask(
     name = "Step_3",
     function = processData3()
   )
 
   private val job = for {
-    _ <- step1.execute
-    _ <- step2.execute
-    _ <- step3.execute
+    _ <- step1.executeZio
+    _ <- step2.executeZio
+    _ <- step3.executeZio
   } yield ()
 
   override def job(args: List[String]): RIO[LogEnv, Unit] = job

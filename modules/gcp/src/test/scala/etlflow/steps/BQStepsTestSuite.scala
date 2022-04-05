@@ -2,8 +2,8 @@ package etlflow.steps
 
 import com.google.cloud.bigquery.Schema
 import etlflow.TestHelper
-import etlflow.etltask.{BQExportTask, BQLoadTask}
 import etlflow.log.LogEnv
+import etlflow.task.{BQExportTask, BQLoadTask}
 import gcp4zio.BQInputType.{CSV, PARQUET}
 import gcp4zio._
 import utils.Encoder

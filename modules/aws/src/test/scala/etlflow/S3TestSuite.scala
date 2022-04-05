@@ -1,8 +1,8 @@
 package etlflow
 
 import etlflow.aws.{S3, S3Api, S3Env}
-import etlflow.etltask.{S3PutTask, S3SensorTask}
 import etlflow.model.Credential
+import etlflow.task.{S3PutTask, S3SensorTask}
 import etlflow.utils.ApplicationLogger
 import zio.clock.Clock
 import zio.stream.ZTransducer

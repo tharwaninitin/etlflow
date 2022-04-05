@@ -1,6 +1,6 @@
 package examples
 
-import etlflow.etltask.SparkReadWriteTask
+import etlflow.task.SparkReadWriteTask
 import etlflow.spark.Environment.LOCAL
 import etlflow.spark.{IOType, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger

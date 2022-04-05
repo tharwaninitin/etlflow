@@ -1,6 +1,6 @@
 package examples
 
-import etlflow.etltask.SparkReadWriteTask
+import etlflow.task.SparkReadWriteTask
 import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.RDB
 import etlflow.spark.{IOType, SparkImpl, SparkManager}

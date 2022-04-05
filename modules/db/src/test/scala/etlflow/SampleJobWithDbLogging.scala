@@ -1,8 +1,8 @@
 package etlflow
 
-import etlflow.etltask.{DBReadTask, GenericTask}
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
+import etlflow.task.{DBReadTask, GenericTask}
 import zio.blocking.Blocking
 import zio.{RIO, ZEnv, ZLayer}
 

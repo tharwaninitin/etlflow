@@ -1,6 +1,6 @@
 package examples
 
-import etlflow.etltask.GenericTask
+import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
 import zio.{ExitCode, URIO}
 

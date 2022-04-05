@@ -4,7 +4,7 @@ import etlflow.spark.Environment.{GCP, LOCAL}
 import etlflow.spark.{IOType, SparkImpl, SparkManager}
 import etlflow.utils.ApplicationLogger
 import Globals.defaultRatingsInputPathCsv
-import etlflow.etltask.SparkReadWriteTask
+import etlflow.task.SparkReadWriteTask
 import examples.Schema.{Rating, RatingOutput}
 import org.apache.spark.sql.functions.{col, from_unixtime, unix_timestamp}
 import org.apache.spark.sql.types.DateType

@@ -1,8 +1,8 @@
 package etlflow.utils
 
-import etlflow.etltask.GenericTask
 import etlflow.log.LogEnv
 import etlflow.model.EtlFlowException.RetryException
+import etlflow.task.GenericTask
 import zio.clock.Clock
 import zio.duration.{Duration => ZDuration}
 import zio.test.Assertion.equalTo

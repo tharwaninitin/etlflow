@@ -1,7 +1,7 @@
 package etlflow
 
-import etlflow.etltask.GenericTask
 import etlflow.log.LogEnv
+import etlflow.task.GenericTask
 import zio.{RIO, ZEnv, ZLayer}
 
 object SampleJobApp extends JobApp {

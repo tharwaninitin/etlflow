@@ -1,8 +1,8 @@
 package etlflow.steps
 
 import etlflow.TestHelper
-import etlflow.etltask.DPDeleteTask
 import etlflow.log.LogEnv
+import etlflow.task.DPDeleteTask
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo

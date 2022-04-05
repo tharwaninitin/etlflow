@@ -1,8 +1,8 @@
 package etlflow.steps
 
 import etlflow.TestHelper
-import etlflow.etltask.{DPHiveJobTask, DPSparkJobTask}
 import etlflow.log.LogEnv
+import etlflow.task.{DPHiveJobTask, DPSparkJobTask}
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo

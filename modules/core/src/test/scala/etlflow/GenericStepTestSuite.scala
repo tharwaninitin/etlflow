@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.etltask.GenericTask
+import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
 import zio.test._
 import scala.util.Try

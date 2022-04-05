@@ -1,8 +1,8 @@
 package etlflow.etlsteps
 
-import etlflow.etltask.SendMailTask
 import etlflow.log.noLog
 import etlflow.model.Credential.SMTP
+import etlflow.task.SendMailTask
 import zio.ZIO
 import zio.test.Assertion._
 import zio.test._

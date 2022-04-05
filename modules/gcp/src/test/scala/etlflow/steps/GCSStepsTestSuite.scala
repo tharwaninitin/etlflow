@@ -1,9 +1,9 @@
 package etlflow.steps
 
 import etlflow.TestHelper
-import etlflow.etltask.{GCSCopyTask, GCSPutTask, GCSSensorTask}
 import etlflow.gcp.Location.{GCS, LOCAL}
 import etlflow.log.LogEnv
+import etlflow.task.{GCSCopyTask, GCSPutTask, GCSSensorTask}
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo

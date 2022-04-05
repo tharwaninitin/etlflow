@@ -1,7 +1,7 @@
 package etlflow
 
-import etlflow.etltask._
 import etlflow.spark.SparkImpl
+import etlflow.task._
 import zio.test._
 
 object RunAllTests extends DefaultRunnableSpec with TestSparkSession {

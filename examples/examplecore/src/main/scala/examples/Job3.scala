@@ -1,6 +1,6 @@
 package examples
 
-import etlflow.etltask.{DBReadTask, GenericTask}
+import etlflow.task.{DBReadTask, GenericTask}
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
 import etlflow.utils.ApplicationLogger

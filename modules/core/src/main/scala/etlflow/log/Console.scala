@@ -8,14 +8,14 @@ object Console extends ApplicationLogger {
   object ConsoleLogger extends Service[UIO] {
     override val jobRunId: String = ""
     // format: off
-    override def logStepStart(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, startTime: Long): UIO[Unit] =
-      UIO(logger.info(s"Step $stepName started"))
-    override def logStepEnd(stepRunId: String, stepName: String, props: Map[String,String], stepType: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
+    override def logTaskStart(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, startTime: Long): UIO[Unit] =
+      UIO(logger.info(s"Task $taskName started"))
+    override def logTaskEnd(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
       UIO {
         error.fold{
-          logger.info(s"Step $stepName completed successfully")
+          logger.info(s"Task $taskName completed successfully")
         } { ex => 
-          logger.error(s"Step $stepName failed, Error StackTrace:" + "\n" + ex.getStackTrace.mkString("\n"))
+          logger.error(s"Task $taskName failed, Error StackTrace:" + "\n" + ex.getStackTrace.mkString("\n"))
         }
       }
     override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =

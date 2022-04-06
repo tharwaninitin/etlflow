@@ -1,5 +1,5 @@
 ## Without database logging
-STEP 1) To list commands available to run use below:
+Task 1) To list commands available to run use below:
 ```shell
 sbt
 project examplecore
@@ -9,9 +9,9 @@ runMain examples.Job3
 ```
 
 ## With database logging
-To be able to use this library with database logging of job and steps you need postgres instance up and running, then create new database in pg (for e.g. etlflow)
+To be able to use this library with database logging of job and tasks you need postgres instance up and running, then create new database in pg (for e.g. etlflow)
 
-STEP 1) Create the application.conf file at location examplecore/src/main/resources and set the below variables:
+Task 1) Create the application.conf file at location examplecore/src/main/resources and set the below variables:
 ```shell
   db.url      = ${LOG_DB_URL},
   db.user     = ${LOG_DB_USER},
@@ -19,7 +19,7 @@ STEP 1) Create the application.conf file at location examplecore/src/main/resour
   db.driver   = ${LOG_DB_DRIVER}
 ```
 
-STEP 2) set below environment variables in your shell.
+TASK 2) set below environment variables in your shell.
 ```shell
  export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
  export LOG_DB_USER=<...>
@@ -27,14 +27,14 @@ STEP 2) set below environment variables in your shell.
  export LOG_DB_DRIVER=org.postgresql.Driver
 ```
 
-STEP 3) Now to create database tables used in this library run below commands from repo root folder:
+TASK 3) Now to create database tables used in this library run below commands from repo root folder:
 ```shell
 sbt
 project examplecore
 runMain etlflow.InitDB
 ```
 
-STEP 6) Now to run sample job use below command:
+TASK 6) Now to run sample job use below command:
 ```shell
 sbt
 project examplejob

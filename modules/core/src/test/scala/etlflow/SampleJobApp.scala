@@ -14,16 +14,16 @@ object SampleJobApp extends JobApp {
     "Hello World"
   }
 
-  private val step1 = GenericTask(
-    name = "Step_1",
+  private val task1 = GenericTask(
+    name = "Task_1",
     function = processData1()
   )
 
   def processData2(): Unit =
     logger.info("Hello World")
 
-  private val step2 = GenericTask(
-    name = "Step_2",
+  private val task2 = GenericTask(
+    name = "Task_2",
     function = processData2()
   )
 
@@ -31,15 +31,15 @@ object SampleJobApp extends JobApp {
     logger.info("Hello World")
   // throw new RuntimeException("Error123")
 
-  private val step3 = GenericTask(
-    name = "Step_3",
+  private val task3 = GenericTask(
+    name = "Task_3",
     function = processData3()
   )
 
   private val job = for {
-    _ <- step1.executeZio
-    _ <- step2.executeZio
-    _ <- step3.executeZio
+    _ <- task1.executeZio
+    _ <- task2.executeZio
+    _ <- task3.executeZio
   } yield ()
 
   override def job(args: List[String]): RIO[LogEnv, Unit] = job

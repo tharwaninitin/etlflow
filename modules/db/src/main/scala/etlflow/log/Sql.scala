@@ -5,32 +5,32 @@ import scalikejdbc._
 
 private[etlflow] object Sql extends ApplicationLogger {
 
-  def updateStepRun(stepRunId: String, props: String, status: String, elapsedTime: String): SQL[Nothing, NoExtractor] =
-    sql"""UPDATE StepRun
+  def updateTaskRun(taskRunId: String, props: String, status: String, elapsedTime: String): SQL[Nothing, NoExtractor] =
+    sql"""UPDATE TaskRun
             SET status = $status,
                 properties = $props::jsonb,
                 elapsed_time = $elapsedTime
-          WHERE step_run_id = $stepRunId"""
+          WHERE task_run_id = $taskRunId"""
 
-  def insertStepRun(
-      stepRunId: String,
+  def insertTaskRun(
+      taskRunId: String,
       name: String,
       props: String,
-      stepType: String,
+      taskType: String,
       jobRunId: String,
       startTime: Long
   ): SQL[Nothing, NoExtractor] =
-    sql"""INSERT INTO StepRun (
-           step_run_id,
-           step_name,
+    sql"""INSERT INTO TaskRun (
+           task_run_id,
+           task_name,
            properties,
            status,
            elapsed_time,
-           step_type,
+           task_type,
            job_run_id,
            inserted_at
            )
-         VALUES ($stepRunId, $name, $props::jsonb, 'started', '...', $stepType, $jobRunId, $startTime)"""
+         VALUES ($taskRunId, $name, $props::jsonb, 'started', '...', $taskType, $jobRunId, $startTime)"""
 
   def updateJobRun(jobRunId: String, status: String, elapsedTime: String): SQL[Nothing, NoExtractor] =
     sql""" UPDATE JobRun

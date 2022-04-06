@@ -1,6 +1,6 @@
 ## Without database logging
 
-STEP 1) set below environment variables in your shell.
+TASK 1) set below environment variables in your shell.
 ```shell
  export DB_URL=jdbc:postgresql://localhost:5432/etlflow
  export DB_USER=etlflow
@@ -8,20 +8,20 @@ STEP 1) set below environment variables in your shell.
  export DB_DRIVER=org.postgresql.Driver
 ```
 
-STEP 2) To run examples use below commands:
+TASK 2) To run examples use below commands:
 ```shell
 sbt ";project examplespark; runMain examples.EtlJobParquetToJdbc;"
 sbt ";project examplespark; runMain examples.EtlJobParquetToOrc;"
 ```
 
-STEP 3) To interact with GCP services set below environment variables in your shell
+TASK 3) To interact with GCP services set below environment variables in your shell
 ```shell
  export GCS_BUCKET=<..>
  export GOOGLE_APPLICATION_CREDENTIALS=<..>
  export GCP_PROJECT_ID=<..>
 ```
 
-STEP 4) To run examples use below commands:
+TASK 4) To run examples use below commands:
 ```shell
 sbt ";project examplespark; runMain examples.EtlJobCsvToCsvGcs;"
 sbt ";project examplespark; runMain examples.EtlJobCsvToParquetGcs;"

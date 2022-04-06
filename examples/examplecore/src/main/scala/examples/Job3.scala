@@ -13,7 +13,7 @@ object Job3 extends zio.App with ApplicationLogger {
 
   private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
 
-  val step1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
+  val task1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
     name = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
@@ -23,14 +23,14 @@ object Job3 extends zio.App with ApplicationLogger {
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def step2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
+  private def task2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
-       op <- step1.executeZio.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
-       _  <- step2(op).executeZio
+       op <- task1.executeZio.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
+       _  <- task2(op).executeZio
      } yield ()).provideCustomLayer(etlflow.log.noLog).exitCode
 }

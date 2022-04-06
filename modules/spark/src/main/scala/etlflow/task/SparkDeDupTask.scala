@@ -21,7 +21,7 @@ case class SparkDeDupTask[I <: Product: TypeTag](
   override protected def processZio: RIO[SparkEnv, Unit] = for {
     _ <- ZIO.succeed {
       logger.info("#" * 50)
-      logger.info(s"Starting SparkDeDupStep: $name")
+      logger.info(s"Starting SparkDeDupTask: $name")
     }
     ip <- SparkApi.readStreamingDS[I](inputLocation, inputType, inputFilter)
     _ <- Task {

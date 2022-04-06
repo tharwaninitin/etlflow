@@ -7,7 +7,7 @@ class GenericTask[OP](val name: String, function: => OP) extends EtlTaskTRY[OP] 
 
   override protected def processTry: Try[OP] = Try {
     logger.info("#################################################################################################")
-    logger.info(s"Starting Generic ETL Step: $name")
+    logger.info(s"Starting Generic ETL Task: $name")
     val op = function
     logger.info("#################################################################################################")
     op

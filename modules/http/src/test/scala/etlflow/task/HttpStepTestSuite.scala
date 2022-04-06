@@ -9,23 +9,23 @@ import zio.test._
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
+object HttpTaskTestSuite extends DefaultRunnableSpec with ApplicationLogger {
 
-  private val getStep1 = HttpRequestTask(
+  private val getTask1 = HttpRequestTask(
     name = "HttpGetSimple",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
     connection_timeout = 1200000
   )
 
-  private val getStep2 = HttpRequestTask(
+  private val getTask2 = HttpRequestTask(
     name = "HttpGetParams",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
     params = Right(Map("param1" -> "value1", "param2" -> "value2"))
   )
 
-  private val postStep1 = HttpRequestTask(
+  private val postTask1 = HttpRequestTask(
     name = "HttpPostJson",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
@@ -33,14 +33,14 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
     headers = Map("X-Auth-Token" -> "abcd.xxx.123")
   )
 
-  private val postStep2 = HttpRequestTask(
+  private val postTask2 = HttpRequestTask(
     name = "HttpPostForm",
     url = "https://httpbin.org/post?signup=yes",
     method = HttpMethod.POST,
     params = Right(Map("name" -> "John", "surname" -> "doe"))
   )
 
-  private val postStep3 = HttpRequestTask(
+  private val postTask3 = HttpRequestTask(
     name = "HttpPostJsonParamsIncorrect",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
@@ -56,7 +56,7 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
        |""".stripMargin
   }
 
-  val putStep1: HttpRequestTask = HttpRequestTask(
+  val putTask1: HttpRequestTask = HttpRequestTask(
     name = "HttpPutJson",
     url = "https://httpbin.org/put",
     method = HttpMethod.PUT,
@@ -64,7 +64,7 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
     headers = Map("content-type" -> "application/json")
   )
 
-  val putStep2: HttpRequestTask = HttpRequestTask(
+  val putTask2: HttpRequestTask = HttpRequestTask(
     name = "HttpPutForm",
     url = "https://httpbin.org/put",
     method = HttpMethod.PUT,
@@ -72,17 +72,17 @@ object HttpStepTestSuite extends DefaultRunnableSpec with ApplicationLogger {
   )
 
   val job: RIO[LogEnv, Unit] = for {
-    _ <- getStep1.executeZio
-    _ <- getStep2.executeZio
-    _ <- postStep1.executeZio
-    _ <- postStep2.executeZio
-    _ <- postStep3.executeZio
-    _ <- putStep1.executeZio
-    _ <- putStep2.executeZio
+    _ <- getTask1.executeZio
+    _ <- getTask2.executeZio
+    _ <- postTask1.executeZio
+    _ <- postTask2.executeZio
+    _ <- postTask3.executeZio
+    _ <- putTask1.executeZio
+    _ <- putTask2.executeZio
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    (suite("Http Steps")(testM("Execute Http steps") {
+    (suite("Http Tasks")(testM("Execute Http tasks") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }) @@ TestAspect.flaky).provideCustomLayerShared(noLog)
 }

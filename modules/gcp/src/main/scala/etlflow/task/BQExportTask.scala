@@ -18,7 +18,7 @@ case class BQExportTask(
 
   override protected def processZio: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
-    logger.info(s"Starting BQ Data Export Step: $name")
+    logger.info(s"Starting BQ Data Export Task: $name")
     BQApi.exportTable(
       sourceDataset,
       sourceTable,
@@ -35,7 +35,7 @@ case class BQExportTask(
       "total_rows" -> rowCount.foldLeft(0L)((a, b) => a + b._2).toString
     )
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "input_project"   -> sourceProject.getOrElse(""),
     "input_dataset"   -> sourceDataset,
     "input_table"     -> sourceTable,

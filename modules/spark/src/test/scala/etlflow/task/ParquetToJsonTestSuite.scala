@@ -14,7 +14,7 @@ import zio.{RIO, ZIO}
 object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelper {
 
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
-  val step1: RIO[SparkEnv with LogEnv, Unit] = SparkReadWriteTask[Rating, Rating](
+  val task1: RIO[SparkEnv with LogEnv, Unit] = SparkReadWriteTask[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     inputLocation = List(inputPathParquet),
     inputType = IOType.PARQUET,
@@ -27,7 +27,7 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
   ).executeZio
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("ParquetToJsonTestSuite step should run successfully")(
-      assertM(step1.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
+    testM("ParquetToJsonTestSuite task should run successfully")(
+      assertM(task1.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
     )
 }

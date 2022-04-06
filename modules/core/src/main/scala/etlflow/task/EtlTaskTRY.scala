@@ -11,11 +11,11 @@ trait EtlTaskTRY[OP] extends EtlTask {
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   final def executeTry(log: LogEnvTry): Try[OP] = for {
     sri <- Try(java.util.UUID.randomUUID.toString)
-    _   <- log.logStepStart(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp)
+    _   <- log.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
     op <- processTry.recoverWith { case e: Throwable =>
-      log.logStepEnd(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp, Some(e))
+      log.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, Some(e))
       Failure(e)
     }
-    _ <- log.logStepEnd(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp, None)
+    _ <- log.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, None)
   } yield op
 }

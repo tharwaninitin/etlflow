@@ -12,22 +12,22 @@ import zio.{RIO, ZIO}
 import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
-object RetryStepTestSuite extends ApplicationLogger {
+object RetryTaskTestSuite extends ApplicationLogger {
   val spec: ZSpec[environment.TestEnvironment with LogEnv, Any] =
-    suite("Retry Step")(
-      testM("Execute GenericETLStep with retry") {
+    suite("Retry Task")(
+      testM("Execute GenericETLTask with retry") {
         def processDataFail(): Unit = {
           logger.info("Hello World")
           throw RetryException("Failed in processing data")
         }
 
-        val step: RIO[Clock with LogEnv, Unit] = GenericTask(
+        val task: RIO[Clock with LogEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
         ).executeZio.retry(RetrySchedule(2, 5.second))
 
         val program = for {
-          s <- step.fork
+          s <- task.fork
           _ <- TestClock.adjust(ZDuration.fromScala(15.second))
           _ <- s.join
         } yield ()

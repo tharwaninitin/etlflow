@@ -1,32 +1,31 @@
-package etlflow.steps
+package etlflow.task
 
 import etlflow.TestHelper
 import etlflow.log.LogEnv
-import etlflow.task.{DPHiveJobTask, DPSparkJobTask}
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-object DPStepsTestSuite extends TestHelper {
+object DPTasksTestSuite extends TestHelper {
   val spec: ZSpec[environment.TestEnvironment with DPJobEnv with LogEnv, Any] =
-    suite("EtlFlow DPJobSteps")(
-      testM("Execute DPHiveJob step") {
-        val step = DPHiveJobTask(
-          name = "DPHiveJobStepExample",
+    suite("EtlFlow DPJobTasks")(
+      testM("Execute DPHiveJob task") {
+        val task = DPHiveJobTask(
+          name = "DPHiveJobTaskExample",
           "SELECT 1 AS ONE",
           dpCluster,
           gcpProjectId.get,
           gcpRegion.get
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute DPSparkJob step") {
+      testM("Execute DPSparkJob task") {
         val libs = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
         val conf = Map("spark.executor.memory" -> "1g", "spark.driver.memory" -> "1g")
-        val step = DPSparkJobTask(
-          name = "DPSparkJobStepExample",
+        val task = DPSparkJobTask(
+          name = "DPSparkJobTaskExample",
           args = List("1000"),
           mainClass = "org.apache.spark.examples.SparkPi",
           libs = libs,
@@ -35,7 +34,7 @@ object DPStepsTestSuite extends TestHelper {
           gcpProjectId.get,
           gcpRegion.get
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

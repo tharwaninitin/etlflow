@@ -28,27 +28,27 @@ object SqlTestSuite {
          VALUES (?, ?, ?::jsonb, 'started', '...', '', 'true', ?)"""
         assertTrue(ip == op)
       },
-      test("insertStepRun Sql") {
-        val ip = Sql.insertStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123", 0L).statement
-        val op = """INSERT INTO StepRun (
-           step_run_id,
-           step_name,
+      test("insertTaskRun Sql") {
+        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123", 0L).statement
+        val op = """INSERT INTO TaskRun (
+           task_run_id,
+           task_name,
            properties,
            status,
            elapsed_time,
-           step_type,
+           task_type,
            job_run_id,
            inserted_at
            )
          VALUES (?, ?, ?::jsonb, 'started', '...', ?, ?, ?)"""
         assertTrue(ip == op)
       },
-      test("updateStepRun Sql") {
+      test("updateTaskRun Sql") {
         val ip = etlflow.log.Sql
-          .updateStepRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123")
+          .updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123")
           .statement
           .replaceAll("\\s+", " ")
-        val op = """UPDATE StepRun SET status = ?, properties = ?::jsonb, elapsed_time = ? WHERE step_run_id = ?"""
+        val op = """UPDATE TaskRun SET status = ?, properties = ?::jsonb, elapsed_time = ? WHERE task_run_id = ?"""
         assertTrue(ip == op)
       }
     )

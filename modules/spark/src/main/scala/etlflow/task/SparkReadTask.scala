@@ -23,7 +23,7 @@ case class SparkReadTask[I <: Product: TypeTag, O <: Product: TypeTag](
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)
-      _ = logger.info(s"Starting Spark Read Step: $name")
+      _ = logger.info(s"Starting Spark Read Task: $name")
       _ = spark.sparkContext.addSparkListener(new SparkListener() {
         override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
           synchronized {
@@ -44,7 +44,7 @@ case class SparkReadTask[I <: Product: TypeTag, O <: Product: TypeTag](
       _ = sparkRuntimeConf = SparkRuntimeConf(spark)
     } yield op
 
-  override def getStepProperties: Map[String, String] =
+  override def getTaskProperties: Map[String, String] =
     ReadApi.dSProps[I](inputLocation, inputType).toList.toMap ++ sparkRuntimeConf ++ Map(
       "Number of records written" -> recordsWrittenCount.toString,
       "Number of records read"    -> recordsReadCount.toString

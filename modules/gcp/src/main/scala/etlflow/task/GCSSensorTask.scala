@@ -34,6 +34,6 @@ case class GCSSensorTask(name: String, bucket: String, prefix: String, retry: In
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getStepProperties: Map[String, String] =
+  override def getTaskProperties: Map[String, String] =
     Map("bucket" -> bucket, "prefix" -> prefix, "retry" -> retry.toString, "spaced" -> spaced.toString)
 }

@@ -12,7 +12,7 @@ case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extend
   override protected def processZio: Task[Unit] = Task {
     logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
-    logger.info(s"Starting Redis Query Step: $name")
+    logger.info(s"Starting Redis Query Task: $name")
     logger.info(s"Query to perform: $command")
     command match {
       case RedisCmd.SET(kv)        => RedisApi.setKeys(kv, redisClient)
@@ -22,7 +22,7 @@ case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extend
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getStepProperties: Map[String, String] = Map("operation_type" -> command.toString)
+  override def getTaskProperties: Map[String, String] = Map("operation_type" -> command.toString)
 }
 
 object RedisTask {

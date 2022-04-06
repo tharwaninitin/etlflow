@@ -14,7 +14,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
-  private val step1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
+  private val task1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
     name = "FetchEtlJobRun",
     query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
@@ -24,14 +24,14 @@ object SampleJobWithDbLogging extends JobApp {
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def step2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
+  private def task2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )
 
   def job(args: List[String]): RIO[Blocking with LogEnv, Unit] =
     for {
-      op1 <- step1.executeZio.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
-      _   <- step2(op1).executeZio
+      op1 <- task1.executeZio.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
+      _   <- task2(op1).executeZio
     } yield ()
 }

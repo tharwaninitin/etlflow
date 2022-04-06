@@ -24,22 +24,22 @@ object CreateDB extends ApplicationLogger {
                     |    is_master varchar(100) NOT NULL,
                     |    inserted_at bigint NOT NULL
                     |);""".stripMargin
-    val steprun = s"""
-                     |${createTable("steprun")} (
-                     |    step_run_id varchar(100) PRIMARY KEY,
+    val taskrun = s"""
+                     |${createTable("taskrun")} (
+                     |    task_run_id varchar(100) PRIMARY KEY,
                      |    job_run_id varchar(100) NOT NULL,
-                     |    step_name text NOT NULL,
+                     |    task_name text NOT NULL,
                      |    properties json NOT NULL,
                      |    status text NOT NULL,
                      |    elapsed_time varchar(100) NOT NULL,
-                     |    step_type varchar(100) NOT NULL,
+                     |    task_type varchar(100) NOT NULL,
                      |    inserted_at bigint NOT NULL,
                      |    FOREIGN KEY (job_run_id) REFERENCES jobrun (job_run_id)
                      |);""".stripMargin
 
     for {
       _ <- DBApi.executeQuery(jobrun).as(logger.info(jobrun))
-      _ <- DBApi.executeQuery(steprun).as(logger.info(steprun))
+      _ <- DBApi.executeQuery(taskrun).as(logger.info(taskrun))
     } yield ()
   }
 }

@@ -6,7 +6,7 @@ import zio.test._
 
 object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Spark Steps")(
+    suite("Spark Tasks")(
       ParquetToJsonTestSuite.test,
       SparkDeDupTestSuite.test,
       ParquetToJdbcTestSuite.test,

@@ -12,33 +12,33 @@ object Memory extends ApplicationLogger {
     final case object Succeed                 extends Status
     final case class Failed(error: Throwable) extends Status
   }
-  final case class State(step_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
+  final case class State(task_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
     override def toString: String =
-      s"$step_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
+      s"$task_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
   val state: UIO[Ref[mutable.Map[String, State]]] = Ref.make(mutable.Map.empty[String, State])
   final case class MemoryLogger(jobRunId: String) extends Service[UIO] {
-    override def logStepStart(
-        stepRunId: String,
-        stepName: String,
+    override def logTaskStart(
+        taskRunId: String,
+        taskName: String,
         props: Map[String, String],
-        stepType: String,
+        taskType: String,
         startTime: Long
     ): UIO[Unit] =
       for {
         stateRef <- state
         _ <- stateRef.update { st =>
-          st.update(stepRunId, State(stepName, Status.Running, DateTimeApi.getCurrentTimestamp, None))
+          st.update(taskRunId, State(taskName, Status.Running, DateTimeApi.getCurrentTimestamp, None))
           st
         }
       } yield ()
-    override def logStepEnd(
-        stepRunId: String,
-        stepName: String,
+    override def logTaskEnd(
+        taskRunId: String,
+        taskName: String,
         props: Map[String, String],
-        stepType: String,
+        taskType: String,
         endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] =
@@ -46,9 +46,9 @@ object Memory extends ApplicationLogger {
         stateRef <- state
         _ <- stateRef.update { st =>
           error.fold {
-            st.update(stepRunId, st(stepRunId).copy(status = Status.Succeed, end_time = Some(DateTimeApi.getCurrentTimestamp)))
+            st.update(taskRunId, st(taskRunId).copy(status = Status.Succeed, end_time = Some(DateTimeApi.getCurrentTimestamp)))
           } { ex =>
-            st.update(stepRunId, st(stepRunId).copy(status = Status.Failed(ex), end_time = Some(DateTimeApi.getCurrentTimestamp)))
+            st.update(taskRunId, st(taskRunId).copy(status = Status.Failed(ex), end_time = Some(DateTimeApi.getCurrentTimestamp)))
           }
           st
         }

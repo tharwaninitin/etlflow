@@ -9,7 +9,7 @@ case class SparkTask[OP](name: String, transformFunction: SparkSession => OP) ex
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)
-      _ = logger.info(s"Starting Spark ETL Step: $name")
+      _ = logger.info(s"Starting Spark ETL Task: $name")
       op <- Task(transformFunction(spark))
       _ = logger.info("#" * 50)
     } yield op

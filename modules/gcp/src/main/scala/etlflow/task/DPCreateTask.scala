@@ -10,13 +10,13 @@ case class DPCreateTask(name: String, cluster: String, project: String, region: 
 
   override protected def processZio: RIO[DPEnv with Blocking, Cluster] = {
     logger.info("#" * 100)
-    logger.info(s"Starting Create Cluster Step: $name")
+    logger.info(s"Starting Create Cluster Task: $name")
     logger.info(s"Cluster: $cluster and Region: $region")
     DPApi.createDataproc(cluster, project, region, props)
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "cluster"    -> cluster,
     "project"    -> project,
     "region"     -> region,

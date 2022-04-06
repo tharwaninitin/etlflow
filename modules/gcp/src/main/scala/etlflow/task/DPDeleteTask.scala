@@ -9,12 +9,12 @@ case class DPDeleteTask(name: String, cluster: String, project: String, region: 
 
   override protected def processZio: RIO[DPEnv with Blocking, Unit] = {
     logger.info("#" * 100)
-    logger.info(s"Starting Delete Cluster Step: $name")
+    logger.info(s"Starting Delete Cluster Task: $name")
     logger.info(s"Cluster Name: $cluster and Region: $region")
     DPApi.deleteDataproc(cluster, project, region)
   }
 
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "cluster" -> cluster,
     "project" -> project,
     "region"  -> region

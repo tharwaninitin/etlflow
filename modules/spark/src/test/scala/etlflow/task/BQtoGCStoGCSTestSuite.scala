@@ -17,7 +17,7 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
   val partitionDateCol = "date_int"
 
 //  private val query = s""" SELECT * FROM $datasetName.$tableName` """.stripMargin
-//  private val step0 = SparkReadWriteStep[Rating, Rating](
+//  private val task0 = SparkReadWriteTask[Rating, Rating](
 //    name = "LoadRatings BQ(query) to GCS CSV",
 //    input_location = List(query),
 //    input_type = BQ(temp_dataset = datasetName, operation_type = "query"),
@@ -28,7 +28,7 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
 //    output_repartitioning_num = 3
 //  )
 
-  private val step1 = SparkReadWriteTask[RatingBQ, RatingBQ](
+  private val task1 = SparkReadWriteTask[RatingBQ, RatingBQ](
     name = "LoadRatings BQ(table) to GCS CSV",
     inputLocation = List(datasetName + "." + tableName),
     inputType = BQ(),
@@ -54,7 +54,7 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
     ratingsDf.as[RatingOutputCsv]
   }
 
-  private val step21 = SparkReadWriteTask[Rating, RatingOutputCsv](
+  private val task21 = SparkReadWriteTask[Rating, RatingOutputCsv](
     name = "LoadRatings GCS Csv To GCS Csv",
     inputLocation = List(ratingsIntermediateBucket),
     inputType = CSV(),
@@ -78,7 +78,7 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
     ratingsDf.as[RatingOutput]
   }
 
-  private val step22 = SparkReadWriteTask[Rating, RatingOutput](
+  private val task22 = SparkReadWriteTask[Rating, RatingOutput](
     name = "LoadRatings GCS Csv To S3 Parquet",
     inputLocation = List(ratingsIntermediateBucket),
     inputType = CSV(),
@@ -89,7 +89,7 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
     outputPartitionCol = Seq(s"$partitionDateCol")
   )
 
-  private val step3 = SparkReadWriteTask[Rating, RatingOutput](
+  private val task3 = SparkReadWriteTask[Rating, RatingOutput](
     name = "LoadRatings GCS Csv To GCS Json",
     inputLocation = List(ratingsIntermediateBucket),
     inputType = CSV(),
@@ -103,13 +103,13 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
   )
 
   val job: RIO[SparkEnv with LogEnv, Unit] = for {
-    _ <- step1.executeZio
-    _ <- step21.executeZio.zipPar(step22.executeZio)
-    _ <- step3.executeZio
+    _ <- task1.executeZio
+    _ <- task21.executeZio.zipPar(task22.executeZio)
+    _ <- task3.executeZio
   } yield ()
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("Execute SparkReadWriteSteps with GCS and BQ") {
+    testM("Execute SparkReadWriteTasks with GCS and BQ") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

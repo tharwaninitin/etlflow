@@ -9,11 +9,11 @@ object DbTestSuite {
       testM("logJobStart Test")(
         LogApi.logJobStart("Job1", "{}", 0L).as(assertCompletes)
       ),
-      testM("logStepStart Test")(
-        LogApi.logStepStart(sri, "Step1", Map.empty, "GenericStep", 0L).as(assertCompletes)
+      testM("logTaskStart Test")(
+        LogApi.logTaskStart(sri, "Task1", Map.empty, "GenericTask", 0L).as(assertCompletes)
       ),
-      testM("logStepEnd Test")(
-        LogApi.logStepEnd(sri, "Step1", Map.empty, "GenericStep", 0L).as(assertCompletes)
+      testM("logTaskEnd Test")(
+        LogApi.logTaskEnd(sri, "Task1", Map.empty, "GenericTask", 0L).as(assertCompletes)
       ),
       testM("logJobEnd Test")(
         LogApi.logJobEnd("Job1", "{}", 0L).as(assertCompletes)

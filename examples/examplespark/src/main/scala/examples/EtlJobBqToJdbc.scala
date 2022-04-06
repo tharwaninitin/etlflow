@@ -14,7 +14,7 @@ object EtlJobBqToJdbc extends zio.App with ApplicationLogger {
   implicit private val spark: SparkSession =
     SparkManager.createSparkSession(Set(etlflow.spark.Environment.LOCAL), hiveSupport = false)
 
-  private val step1 = SparkReadWriteTask[RatingBQ, RatingBQ](
+  private val task1 = SparkReadWriteTask[RatingBQ, RatingBQ](
     name = "LoadRatingsBqToJdbc",
     inputLocation = List("dev.ratings"),
     inputType = IOType.BQ(),
@@ -23,5 +23,5 @@ object EtlJobBqToJdbc extends zio.App with ApplicationLogger {
     outputSaveMode = SaveMode.Overwrite
   ).executeZio.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = task1.exitCode
 }

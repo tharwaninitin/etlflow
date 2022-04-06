@@ -75,7 +75,7 @@ case class BQLoadTask(
     )
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "input_type" -> inputType.toString,
     "input_location" -> inputLocation.fold(
       source_path => source_path,

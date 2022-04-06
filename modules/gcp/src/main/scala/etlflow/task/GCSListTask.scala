@@ -12,6 +12,6 @@ case class GCSListTask(name: String, bucket: String, prefix: Option[String], rec
     GCSApi.listObjects(bucket, prefix, recursive).runCollect
   }
 
-  override def getStepProperties: Map[String, String] =
+  override def getTaskProperties: Map[String, String] =
     Map("bucket" -> bucket, "prefix" -> prefix.getOrElse(""), "recursive" -> recursive.toString)
 }

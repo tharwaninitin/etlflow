@@ -10,10 +10,10 @@ trait EtlTaskZIO[R, OP] extends EtlTask {
 
   final def executeZio: RIO[R with LogEnv, OP] = for {
     sri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
-    _   <- LogApi.logStepStart(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp)
+    _   <- LogApi.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
     op <- processZio.tapError { ex =>
-      LogApi.logStepEnd(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp, Some(ex))
+      LogApi.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, Some(ex))
     }
-    _ <- LogApi.logStepEnd(sri, name, getStepProperties, stepType, DateTimeApi.getCurrentTimestamp, None)
+    _ <- LogApi.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, None)
   } yield op
 }

@@ -12,7 +12,7 @@ object Slack extends ApplicationLogger {
 
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   final case class SlackLogger(jobRunId: String, slack: Option[model.Slack]) extends Service[UIO] {
-    var finalStepMessage: String = ""
+    var finalTaskMessage: String = ""
     var finalMessage: String     = ""
 
     val slackEnv: String = slack.map(_.env).getOrElse("")
@@ -32,7 +32,7 @@ object Slack extends ApplicationLogger {
             :large_blue_circle: $slackEnv - $jobName Process *Success!*
             *Time of Execution*: $execDate
             *Details Available at*: $url
-            *Steps (Task - Duration)*: $message
+            *Tasks (Task - Duration)*: $message
             """)
         finalMessage
       } else {
@@ -41,7 +41,7 @@ object Slack extends ApplicationLogger {
             :red_circle: $slackEnv - $jobName Process *Failed!*
             *Time of Execution*: $execDate
             *Details Available at*: $url
-            *Steps (Task - Duration)*: $message
+            *Tasks (Task - Duration)*: $message
             """)
         finalMessage
       }
@@ -61,40 +61,40 @@ object Slack extends ApplicationLogger {
         logger.info("Sent slack notification. Status code :" + conn.getResponseCode.toString)
       }
 
-    override def logStepStart(
-        stepRunId: String,
-        stepName: String,
+    override def logTaskStart(
+        taskRunId: String,
+        taskName: String,
         props: Map[String, String],
-        stepType: String,
+        taskType: String,
         startTime: Long
     ): UIO[Unit] = ZIO.unit
-    override def logStepEnd(
-        stepRunId: String,
-        stepName: String,
+    override def logTaskEnd(
+        taskRunId: String,
+        taskName: String,
         props: Map[String, String],
-        stepType: String,
+        taskType: String,
         endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] = UIO {
-      var slackMessageForSteps = ""
+      var slackMessageForTasks = ""
 
       val elapsedTime = getTimeDifferenceAsString(endTime, getCurrentTimestamp)
 
-      val stepIcon = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
+      val taskIcon = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
 
-      // Update the slackMessageForSteps variable and get the information of step name and its execution time
-      slackMessageForSteps = stepIcon + "*" + stepName + "*" + " - (" + elapsedTime + ")"
+      // Update the slackMessageForTasks variable and get the information of task name and its execution time
+      slackMessageForTasks = taskIcon + "*" + taskName + "*" + " - (" + elapsedTime + ")"
 
-      // Update the slackMessageForSteps variable and get the information of etl steps properties
+      // Update the slackMessageForTasks variable and get the information of etl tasks properties
       val errorMessage = error.map(msg => f"error -> ${msg.getMessage}").getOrElse("")
 
       if (error.isEmpty)
-        slackMessageForSteps = slackMessageForSteps
+        slackMessageForTasks = slackMessageForTasks
       else
-        slackMessageForSteps = slackMessageForSteps.concat("\n\t\t\t " + errorMessage)
+        slackMessageForTasks = slackMessageForTasks.concat("\n\t\t\t " + errorMessage)
 
       // Concatenate all the messages with finalSlackMessage
-      finalStepMessage = finalStepMessage.concat(slackMessageForSteps)
+      finalTaskMessage = finalTaskMessage.concat(slackMessageForTasks)
     }
     override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] = ZIO.unit
     override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
@@ -104,7 +104,7 @@ object Slack extends ApplicationLogger {
         val data = finalMessageTemplate(
           jobName,
           executionDateTime,
-          finalStepMessage,
+          finalTaskMessage,
           hostUrl + jobRunId,
           error
         )

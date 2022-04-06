@@ -15,5 +15,5 @@
     export MASTER_NUM_INSTANCE=<...>
     export WORKER_NUM_INSTANCE=<...>
 	
-	sbt "project cloud" testOnly etlflow.steps.cloud.GCPDataprocCreateTestSuite
-	sbt "project cloud" testOnly etlflow.steps.cloud.GCPDataprocDeleteTestSuite
+	sbt "project cloud" testOnly etlflow.task.cloud.GCPDataprocCreateTestSuite
+	sbt "project cloud" testOnly etlflow.task.cloud.GCPDataprocDeleteTestSuite

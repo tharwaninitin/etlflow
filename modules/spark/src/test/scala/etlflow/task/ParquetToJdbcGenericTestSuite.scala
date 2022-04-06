@@ -29,7 +29,7 @@ object ParquetToJdbcGenericTestSuite extends SparkUDF with ApplicationLogger wit
     yearMonth
   }
 
-  val step1: SparkTask[Array[String]] = SparkTask(
+  val task1: SparkTask[Array[String]] = SparkTask(
     name = "LoadRatingsParquetToJdbc",
     transformFunction = getYearMonthData
   )
@@ -39,18 +39,18 @@ object ParquetToJdbcGenericTestSuite extends SparkUDF with ApplicationLogger wit
     logger.info(ip.toList.toString())
   }
 
-  def step2(ip: Array[String]): GenericTask[Unit] = GenericTask(
+  def task2(ip: Array[String]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )
 
   val job: ZIO[SparkEnv with LogEnv, Throwable, Unit] = for {
-    op <- step1.executeZio
-    _  <- step2(op).executeZio
+    op <- task1.executeZio
+    _  <- task2(op).executeZio
   } yield ()
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("Execute ParquetToJdbcGenericSparkStepTestSuite step") {
+    testM("Execute ParquetToJdbcGenericSparkTaskTestSuite task") {
       assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

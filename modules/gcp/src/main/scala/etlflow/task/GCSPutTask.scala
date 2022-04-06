@@ -18,5 +18,5 @@ case class GCSPutTask(name: String, bucket: String, prefix: String, file: String
     _ <- UIO(logger.info("#" * 100))
   } yield ()
 
-  override def getStepProperties: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix, "file" -> file)
+  override def getTaskProperties: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix, "file" -> file)
 }

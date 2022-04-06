@@ -17,11 +17,11 @@ __Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
 ## Examples
 You can use this library in different ways mentioned below.
 * [Core Module](examplecore):         
-  Using this module you can use features of Step API into your project.
-* [Spark Module (spark steps)](examplespark):         
-  Using this addon module along with core you can use Apache Spark steps into your project.
-* [GCP Module (spark steps)](examplegcp):         
-  Using this addon module along with core you can use GCP steps into your project.
+  Using this module you can use features of Task API into your project.
+* [Spark Module (spark tasks)](examplespark):         
+  Using this addon module along with core you can use Apache Spark tasks into your project.
+* [GCP Module (spark tasks)](examplegcp):         
+  Using this addon module along with core you can use GCP tasks into your project.
 
 ## Modules Dependency Graph
 

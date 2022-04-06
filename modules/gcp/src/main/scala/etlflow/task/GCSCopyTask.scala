@@ -41,7 +41,7 @@ case class GCSCopyTask(
     runnable
   }
 
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "input"       -> input.toString,
     "output"      -> output.toString,
     "parallelism" -> parallelism.toString,

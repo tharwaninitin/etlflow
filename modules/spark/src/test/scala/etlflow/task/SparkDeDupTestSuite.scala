@@ -12,7 +12,7 @@ import zio.test._
 
 object SparkDeDupTestSuite extends TestSparkSession {
 
-  private val step = SparkDeDupTask[Rating](
+  private val task = SparkDeDupTask[Rating](
     name = "LoadCsv",
     inputType = CSV(),
     inputLocation = "modules/spark/src/test/resources/input/ratings/*",
@@ -24,7 +24,7 @@ object SparkDeDupTestSuite extends TestSparkSession {
   )
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("Spark Streaming Deduplication step should execute successfully")(
-      assertM(step.executeZio.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    testM("Spark Streaming Deduplication task should execute successfully")(
+      assertM(task.executeZio.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     )
 }

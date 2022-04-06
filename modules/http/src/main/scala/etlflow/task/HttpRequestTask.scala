@@ -19,14 +19,14 @@ case class HttpRequestTask(
 
   override protected def processZio: Task[Response[String]] = {
     logger.info("#" * 50)
-    logger.info(s"Starting HttpRequestStep: $name")
+    logger.info(s"Starting HttpRequestTask: $name")
     logger.info(s"URL: $url")
     logger.info(s"ConnectionTimeOut: $connection_timeout")
     logger.info(s"ReadTimeOut: $read_timeout")
     HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
   }
 
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "url"         -> url,
     "http_method" -> method.toString
   )

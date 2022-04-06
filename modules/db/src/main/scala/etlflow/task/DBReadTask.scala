@@ -7,11 +7,11 @@ import zio.RIO
 class DBReadTask[T] private (val name: String, query: => String)(fn: WrappedResultSet => T) extends EtlTaskZIO[DBEnv, List[T]] {
   override protected def processZio: RIO[DBEnv, List[T]] = {
     logger.info("#" * 100)
-    logger.info(s"Starting DB Query Result Step: $name")
+    logger.info(s"Starting DB Query Result Task: $name")
     logger.info(s"Query: $query")
     DBApi.executeQueryListOutput[T](query)(fn)
   }
-  override def getStepProperties: Map[String, String] = Map("query" -> query)
+  override def getTaskProperties: Map[String, String] = Map("query" -> query)
 }
 
 object DBReadTask {

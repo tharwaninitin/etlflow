@@ -19,9 +19,9 @@ case class SendMailTask(
 
   override protected def processTry: Try[Unit] = Try {
     logger.info("#" * 100)
-    logger.info(s"Starting SendMailStep")
+    logger.info(s"Starting SendMailTask")
     MailClientApi.sendMail(sender, recipientList, body, subject, credentials)
   }
 
-  override def getStepProperties: Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipientList.mkString(","))
+  override def getTaskProperties: Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipientList.mkString(","))
 }

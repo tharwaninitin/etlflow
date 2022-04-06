@@ -15,7 +15,7 @@ object EtlJobParquetToJdbc extends zio.App with ApplicationLogger {
   private lazy val spark: SparkSession =
     SparkManager.createSparkSession(Set(etlflow.spark.Environment.LOCAL), hiveSupport = false)
 
-  private val step1 = SparkReadWriteTask[Rating, Rating](
+  private val task1 = SparkReadWriteTask[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     inputLocation = List(defaultRatingsInputPath),
     inputType = IOType.PARQUET,
@@ -24,7 +24,7 @@ object EtlJobParquetToJdbc extends zio.App with ApplicationLogger {
     outputSaveMode = SaveMode.Overwrite
   )
 
-  private val job = step1.executeZio.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
+  private val job = task1.executeZio.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
 }

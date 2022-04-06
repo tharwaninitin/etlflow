@@ -1,67 +1,66 @@
-package etlflow.steps
+package etlflow.task
 
 import etlflow.TestHelper
 import etlflow.gcp.Location.{GCS, LOCAL}
 import etlflow.log.LogEnv
-import etlflow.task.{GCSCopyTask, GCSPutTask, GCSSensorTask}
 import gcp4zio._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 import scala.concurrent.duration._
 
-object GCSStepsTestSuite extends TestHelper {
+object GCSTasksTestSuite extends TestHelper {
   case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
 
   val spec: ZSpec[environment.TestEnvironment with GCSEnv with LogEnv, Any] =
-    suite("GCS Steps")(
-      testM("Execute GCSPut PARQUET step") {
-        val step = GCSPutTask(
-          name = "S3PutStep",
+    suite("GCS Tasks")(
+      testM("Execute GCSPut PARQUET task") {
+        val task = GCSPutTask(
+          name = "S3PutTask",
           bucket = gcsBucket,
           prefix = "temp/ratings.parquet",
           file = filePathParquet
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute GCSPut CSV step") {
-        val step = GCSPutTask(
-          name = "S3PutStep",
+      testM("Execute GCSPut CSV task") {
+        val task = GCSPutTask(
+          name = "S3PutTask",
           bucket = gcsBucket,
           prefix = "temp/ratings.csv",
           file = filePathCsv
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute GCSSensor step") {
-        val step = GCSSensorTask(
+      testM("Execute GCSSensor task") {
+        val task = GCSSensorTask(
           name = "GCSKeySensor",
           bucket = gcsBucket,
           prefix = "temp/ratings.parquet",
           retry = 10,
           spaced = 5.second
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute GCSCopy step GCS to GCS") {
-        val step = GCSCopyTask(
-          name = "CopyStep",
+      testM("Execute GCSCopy task GCS to GCS") {
+        val task = GCSCopyTask(
+          name = "CopyTask",
           input = GCS(gcsBucket, "temp"),
           inputRecursive = true,
           output = GCS(gcsBucket, "temp2"),
           parallelism = 2
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute GCSCopy step LOCAL to GCS") {
-        val step = GCSCopyTask(
-          name = "CopyStep",
+      testM("Execute GCSCopy task LOCAL to GCS") {
+        val task = GCSCopyTask(
+          name = "CopyTask",
           input = LOCAL("/local/path"),
           inputRecursive = true,
           output = GCS(gcsBucket, "temp2"),
           parallelism = 2
         ).executeZio
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

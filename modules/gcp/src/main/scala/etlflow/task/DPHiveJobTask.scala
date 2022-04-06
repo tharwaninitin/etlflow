@@ -13,7 +13,7 @@ case class DPHiveJobTask(name: String, query: String, cluster: String, project: 
     DPJobApi.executeHiveJob(query, cluster, project, region)
   }
 
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "query"   -> query,
     "cluster" -> cluster,
     "project" -> project,

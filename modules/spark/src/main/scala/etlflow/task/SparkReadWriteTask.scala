@@ -31,7 +31,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
     case Some(_) =>
       if (outputRepartitioningNum != 1 || !outputRepartitioning || outputPartitionCol.nonEmpty)
         throw new RuntimeException(
-          s"""Error in step $name, output_filename option can only be used when
+          s"""Error in task $name, output_filename option can only be used when
              |output_repartitioning is set to true and
              |output_repartitioning_num is set to 1
              |output_partition_col is empty""".stripMargin
@@ -43,7 +43,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)
-      _ = logger.info(s"Starting Spark Read Step: $name")
+      _ = logger.info(s"Starting Spark Read Task: $name")
       _ = spark.sparkContext.addSparkListener(new SparkListener() {
         override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit =
           synchronized {
@@ -94,7 +94,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
       _ = sparkRuntimeConf = SparkRuntimeConf(spark)
     } yield op
 
-  override def getStepProperties: Map[String, String] = {
+  override def getTaskProperties: Map[String, String] = {
     val inMap = ReadApi.dSProps[I](inputLocation, inputType)
     val outMap = WriteApi.dSProps[O](
       outputType,

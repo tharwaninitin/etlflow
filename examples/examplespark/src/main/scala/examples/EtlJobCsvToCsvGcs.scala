@@ -49,7 +49,7 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
     ratingsDf.as[RatingOutput](mapping)
   }
 
-  private val step1 = SparkReadWriteTask[Rating, RatingOutput](
+  private val task1 = SparkReadWriteTask[Rating, RatingOutput](
     name = "LoadRatingsParquet",
     inputLocation = List(defaultRatingsInputPathCsv),
     inputType = IOType.CSV(),
@@ -60,5 +60,5 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
     outputSaveMode = SaveMode.Overwrite
   ).executeZio.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = step1.exitCode
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = task1.exitCode
 }

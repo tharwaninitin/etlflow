@@ -54,7 +54,7 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     outputDatePaths.foreach(path => println(path))
   }
 
-  private val step1 = SparkReadWriteTask[Rating, RatingOutput](
+  private val task1 = SparkReadWriteTask[Rating, RatingOutput](
     name = "LoadRatingsParquet",
     inputLocation = List(defaultRatingsInputPathCsv),
     inputType = IOType.CSV(",", true, "FAILFAST"),
@@ -66,11 +66,11 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     outputRepartitioning = true
   )
 
-  private val step2 = SparkTask(name = "GenerateFilePaths", transformFunction = addFilePaths())
+  private val task2 = SparkTask(name = "GenerateFilePaths", transformFunction = addFilePaths())
 
   private val job = for {
-    _ <- step1.executeZio
-    _ <- step2.executeZio
+    _ <- task1.executeZio
+    _ <- task2.executeZio
   } yield ()
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =

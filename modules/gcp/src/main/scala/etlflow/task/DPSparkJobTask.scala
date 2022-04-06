@@ -21,7 +21,7 @@ case class DPSparkJobTask(
     DPJobApi.executeSparkJob(args, mainClass, libs, conf, cluster, project, region)
   }
 
-  override def getStepProperties: Map[String, String] = Map(
+  override def getTaskProperties: Map[String, String] = Map(
     "args"      -> args.mkString(" "),
     "mainClass" -> mainClass,
     "libs"      -> libs.mkString(","),

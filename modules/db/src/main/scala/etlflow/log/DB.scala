@@ -8,25 +8,25 @@ import zio.{Has, Task, UIO, ZLayer}
 
 object DB extends ApplicationLogger {
   case class DBLogger(jobRunId: String, poolName: String) extends etlflow.log.Service[UIO] {
-    override def logStepStart(
-        stepRunId: String,
-        stepName: String,
+    override def logTaskStart(
+        taskRunId: String,
+        taskName: String,
         props: Map[String, String],
-        stepType: String,
+        taskType: String,
         startTime: Long
     ): UIO[Unit] =
       Task(NamedDB(poolName).localTx { implicit s =>
         Sql
-          .insertStepRun(stepRunId, stepName, MapToJson(props), stepType, jobRunId, startTime)
+          .insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId, startTime)
           .update
           .apply()
       }).fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logStepEnd(
-        stepRunId: String,
-        stepName: String,
+    override def logTaskEnd(
+        taskRunId: String,
+        taskName: String,
         props: Map[String, String],
-        stepType: String,
+        taskType: String,
         endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] =
@@ -34,7 +34,7 @@ object DB extends ApplicationLogger {
         val status      = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
         val elapsedTime = DateTimeApi.getTimeDifferenceAsString(endTime, DateTimeApi.getCurrentTimestamp)
         Sql
-          .updateStepRun(stepRunId, MapToJson(props), status, elapsedTime)
+          .updateTaskRun(taskRunId, MapToJson(props), status, elapsedTime)
           .update
           .apply()
       }).fold(e => logger.error(e.getMessage), _ => ())

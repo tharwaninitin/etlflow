@@ -32,7 +32,7 @@ object Job4 extends JobApp {
 
   def job(args: List[String]): RIO[ZEnv with LogEnv, Unit] =
     for {
-      op <- task1.executeZio.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
-      _  <- task2(op).executeZio
+      op <- task1.execute.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
+      _  <- task2(op).execute
     } yield ()
 }

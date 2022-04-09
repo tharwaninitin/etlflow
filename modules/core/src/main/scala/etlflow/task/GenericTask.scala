@@ -3,7 +3,7 @@ package etlflow.task
 import zio.{Task, ZIO}
 import scala.util.Try
 
-class GenericTask[OP](val name: String, function: => OP) extends EtlTaskTRY[OP] with EtlTaskZIO[Any, OP] {
+class GenericTask[OP](val name: String, function: => OP) extends EtlTask[Any, OP] {
 
   override protected def processTry: Try[OP] = Try {
     logger.info("#################################################################################################")
@@ -13,7 +13,7 @@ class GenericTask[OP](val name: String, function: => OP) extends EtlTaskTRY[OP] 
     op
   }
 
-  override protected def processZio: Task[OP] = ZIO.fromTry(processTry)
+  override protected def process: Task[OP] = ZIO.fromTry(processTry)
 }
 
 object GenericTask {

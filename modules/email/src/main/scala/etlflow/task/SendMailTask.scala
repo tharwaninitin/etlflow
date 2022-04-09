@@ -12,10 +12,9 @@ case class SendMailTask(
     recipientList: List[String],
     credentials: SMTP,
     sender: Option[String] = None
-) extends EtlTaskZIO[Any, Unit]
-    with EtlTaskTRY[Unit] {
+) extends EtlTask[Any, Unit] {
 
-  override protected def processZio: Task[Unit] = ZIO.fromTry(processTry)
+  override protected def process: Task[Unit] = ZIO.fromTry(processTry)
 
   override protected def processTry: Try[Unit] = Try {
     logger.info("#" * 100)

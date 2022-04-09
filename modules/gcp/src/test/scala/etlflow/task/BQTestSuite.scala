@@ -29,7 +29,7 @@ object BQTestSuite extends TestHelper {
         outputProject = sys.env.get("GCP_PROJECT_ID"),
         outputDataset = outputDataset,
         outputTable = outputTable
-      ).executeZio
+      ).execute
       assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQLoad CSV task") {
@@ -42,7 +42,7 @@ object BQTestSuite extends TestHelper {
         outputDataset = outputDataset,
         outputTable = outputTable,
         schema = schema
-      ).executeZio
+      ).execute
       assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQExport CSV task") {
@@ -54,7 +54,7 @@ object BQTestSuite extends TestHelper {
         destinationPath = bqExportDestPath,
         destinationFileName = Some("sample.csv"),
         destinationFormat = BQInputType.CSV(",")
-      ).executeZio
+      ).execute
       assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     testM("Execute BQExport PARQUET task") {
@@ -67,7 +67,7 @@ object BQTestSuite extends TestHelper {
         destinationFileName = Some("sample.parquet"),
         destinationFormat = BQInputType.PARQUET,
         destinationCompressionType = "snappy"
-      ).executeZio
+      ).execute
       assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
   ) @@ TestAspect.sequential

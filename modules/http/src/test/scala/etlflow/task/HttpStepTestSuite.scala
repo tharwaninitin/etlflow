@@ -72,13 +72,13 @@ object HttpTaskTestSuite extends DefaultRunnableSpec with ApplicationLogger {
   )
 
   val job: RIO[LogEnv, Unit] = for {
-    _ <- getTask1.executeZio
-    _ <- getTask2.executeZio
-    _ <- postTask1.executeZio
-    _ <- postTask2.executeZio
-    _ <- postTask3.executeZio
-    _ <- putTask1.executeZio
-    _ <- putTask2.executeZio
+    _ <- getTask1.execute
+    _ <- getTask2.execute
+    _ <- postTask1.execute
+    _ <- postTask2.execute
+    _ <- postTask3.execute
+    _ <- putTask1.execute
+    _ <- putTask2.execute
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =

@@ -15,9 +15,9 @@ case class HttpRequestTask(
     connection_timeout: Int = 10000,
     read_timeout: Int = 150000,
     allow_unsafe_ssl: Boolean = false
-) extends EtlTaskZIO[Any, Response[String]] {
+) extends EtlTask[Any, Response[String]] {
 
-  override protected def processZio: Task[Response[String]] = {
+  override protected def process: Task[Response[String]] = {
     logger.info("#" * 50)
     logger.info(s"Starting HttpRequestTask: $name")
     logger.info(s"URL: $url")

@@ -3,8 +3,8 @@ package etlflow.task
 import etlflow.db.{DBApi, DBEnv}
 import zio.RIO
 
-class DBQueryTask private (val name: String, query: => String) extends EtlTaskZIO[DBEnv, Unit] {
-  override protected def processZio: RIO[DBEnv, Unit] = {
+class DBQueryTask private (val name: String, query: => String) extends EtlTask[DBEnv, Unit] {
+  override protected def process: RIO[DBEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting DB Query Task: $name")
     logger.info(s"Query: $query")

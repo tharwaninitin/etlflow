@@ -37,9 +37,9 @@ object SampleJobApp extends JobApp {
   )
 
   private val job = for {
-    _ <- task1.executeZio
-    _ <- task2.executeZio
-    _ <- task3.executeZio
+    _ <- task1.execute
+    _ <- task2.execute
+    _ <- task3.execute
   } yield ()
 
   override def job(args: List[String]): RIO[LogEnv, Unit] = job

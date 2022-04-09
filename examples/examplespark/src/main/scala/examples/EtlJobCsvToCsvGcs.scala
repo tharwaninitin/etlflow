@@ -58,7 +58,7 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
     outputLocation = gcsOutputPath,
     outputPartitionCol = Seq(f"$tempDateCol"),
     outputSaveMode = SaveMode.Overwrite
-  ).executeZio.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
+  ).execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = task1.exitCode
 }

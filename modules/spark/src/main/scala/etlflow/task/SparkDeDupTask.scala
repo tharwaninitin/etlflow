@@ -16,9 +16,9 @@ case class SparkDeDupTask[I <: Product: TypeTag](
     eventTimeCol: String,
     delayThreshold: String,
     deDupCols: Seq[String]
-) extends EtlTaskZIO[SparkEnv, Unit] {
+) extends EtlTask[SparkEnv, Unit] {
 
-  override protected def processZio: RIO[SparkEnv, Unit] = for {
+  override protected def process: RIO[SparkEnv, Unit] = for {
     _ <- ZIO.succeed {
       logger.info("#" * 50)
       logger.info(s"Starting SparkDeDupTask: $name")

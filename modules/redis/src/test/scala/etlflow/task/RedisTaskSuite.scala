@@ -41,11 +41,11 @@ object RedisTaskSuite extends DefaultRunnableSpec {
   )
 
   private val job = for {
-    _ <- task1.executeZio
-    _ <- task2.executeZio
-    _ <- task3.executeZio
-    _ <- task4.executeZio
-    _ <- task5.executeZio
+    _ <- task1.execute
+    _ <- task2.execute
+    _ <- task3.execute
+    _ <- task4.execute
+    _ <- task5.execute
   } yield ()
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =

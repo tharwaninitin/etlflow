@@ -21,7 +21,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
     outputRepartitioning: Boolean = false,
     outputRepartitioningNum: Int = 1,
     transformFunction: Option[(SparkSession, Dataset[I]) => Dataset[O]] = None
-) extends EtlTaskZIO[SparkEnv, Unit] {
+) extends EtlTask[SparkEnv, Unit] {
 
   private var recordsWrittenCount = 0L
   private var recordsReadCount    = 0L
@@ -39,7 +39,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
     case None =>
   }
 
-  override protected def processZio: RIO[SparkEnv, Unit] =
+  override protected def process: RIO[SparkEnv, Unit] =
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)

@@ -8,9 +8,9 @@ import zio._
 import scala.concurrent.duration.Duration
 
 case class GCSSensorTask(name: String, bucket: String, prefix: String, retry: Int, spaced: Duration)
-    extends EtlTaskZIO[GCSEnv with Clock, Unit] {
+    extends EtlTask[GCSEnv with Clock, Unit] {
 
-  override protected def processZio: RIO[GCSEnv with Clock, Unit] = {
+  override protected def process: RIO[GCSEnv with Clock, Unit] = {
     val lookup = GCSApi.lookupObject(bucket, prefix)
 
     val program: RIO[GCSEnv with Clock, Unit] =

@@ -69,8 +69,8 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
   private val task2 = SparkTask(name = "GenerateFilePaths", transformFunction = addFilePaths())
 
   private val job = for {
-    _ <- task1.executeZio
-    _ <- task2.executeZio
+    _ <- task1.execute
+    _ <- task2.execute
   } yield ()
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =

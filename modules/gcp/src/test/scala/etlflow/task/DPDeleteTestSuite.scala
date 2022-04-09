@@ -16,7 +16,7 @@ object DPDeleteTestSuite extends TestHelper {
         dpCluster,
         gcpProjectId.get,
         gcpRegion.get
-      ).executeZio
+      ).execute
       assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

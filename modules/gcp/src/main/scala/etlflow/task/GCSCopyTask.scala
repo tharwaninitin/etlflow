@@ -12,9 +12,9 @@ case class GCSCopyTask(
     output: Location,
     parallelism: Int,
     overwrite: Boolean = true
-) extends EtlTaskZIO[GCSEnv, Unit] {
+) extends EtlTask[GCSEnv, Unit] {
 
-  override protected def processZio: RIO[GCSEnv, Unit] = {
+  override protected def process: RIO[GCSEnv, Unit] = {
     val program = (input, output) match {
       case (src @ Location.GCS(_, _), tgt @ Location.GCS(_, _)) =>
         GCSApi.copyObjectsGCStoGCS(

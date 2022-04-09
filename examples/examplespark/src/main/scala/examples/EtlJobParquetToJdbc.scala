@@ -24,7 +24,7 @@ object EtlJobParquetToJdbc extends zio.App with ApplicationLogger {
     outputSaveMode = SaveMode.Overwrite
   )
 
-  private val job = task1.executeZio.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
+  private val job = task1.execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
 }

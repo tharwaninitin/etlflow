@@ -12,11 +12,11 @@ case class BQExportTask(
     destinationFileName: Option[String] = None,
     destinationFormat: BQInputType,
     destinationCompressionType: String = "gzip"
-) extends EtlTaskZIO[BQEnv, Unit] {
+) extends EtlTask[BQEnv, Unit] {
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   var rowCount: Map[String, Long] = Map.empty
 
-  override protected def processZio: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Task: $name")
     BQApi.exportTable(

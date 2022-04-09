@@ -20,7 +20,7 @@ object GCSTasksTestSuite extends TestHelper {
           bucket = gcsBucket,
           prefix = "temp/ratings.parquet",
           file = filePathParquet
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSPut CSV task") {
@@ -29,7 +29,7 @@ object GCSTasksTestSuite extends TestHelper {
           bucket = gcsBucket,
           prefix = "temp/ratings.csv",
           file = filePathCsv
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSSensor task") {
@@ -39,7 +39,7 @@ object GCSTasksTestSuite extends TestHelper {
           prefix = "temp/ratings.parquet",
           retry = 10,
           spaced = 5.second
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy task GCS to GCS") {
@@ -49,7 +49,7 @@ object GCSTasksTestSuite extends TestHelper {
           inputRecursive = true,
           output = GCS(gcsBucket, "temp2"),
           parallelism = 2
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute GCSCopy task LOCAL to GCS") {
@@ -59,7 +59,7 @@ object GCSTasksTestSuite extends TestHelper {
           inputRecursive = true,
           output = GCS(gcsBucket, "temp2"),
           parallelism = 2
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

@@ -5,10 +5,10 @@ import gcp4zio._
 import zio.RIO
 import zio.blocking.Blocking
 
-case class DPCreateTask(name: String, cluster: String, project: String, region: String, props: DataprocProperties)
-    extends EtlTaskZIO[DPEnv with Blocking, Cluster] {
+case class DPCreateTask(name: String, cluster: String, project: String, region: String, props: ClusterProps)
+    extends EtlTask[DPEnv with Blocking, Cluster] {
 
-  override protected def processZio: RIO[DPEnv with Blocking, Cluster] = {
+  override protected def process: RIO[DPEnv with Blocking, Cluster] = {
     logger.info("#" * 100)
     logger.info(s"Starting Create Cluster Task: $name")
     logger.info(s"Cluster: $cluster and Region: $region")

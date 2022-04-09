@@ -24,7 +24,7 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     outputRepartitioning = true,
     outputRepartitioningNum = 1,
     outputFilename = Some("ratings.json")
-  ).executeZio
+  ).execute
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
     testM("ParquetToJsonTestSuite task should run successfully")(

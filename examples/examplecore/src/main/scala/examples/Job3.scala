@@ -30,7 +30,7 @@ object Job3 extends zio.App with ApplicationLogger {
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
-       op <- task1.executeZio.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
-       _  <- task2(op).executeZio
+       op <- task1.execute.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
+       _  <- task2(op).execute
      } yield ()).provideCustomLayer(etlflow.log.noLog).exitCode
 }

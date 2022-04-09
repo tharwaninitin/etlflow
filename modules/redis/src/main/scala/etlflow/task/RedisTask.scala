@@ -6,10 +6,10 @@ import etlflow.redis.RedisApi
 import etlflow.model.Credential.REDIS
 import zio.Task
 
-case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extends EtlTaskZIO[Any, Unit] {
+case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extends EtlTask[Any, Unit] {
 
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
-  override protected def processZio: Task[Unit] = Task {
+  override protected def process: Task[Unit] = Task {
     logger.info("#" * 100)
     val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
     logger.info(s"Starting Redis Query Task: $name")

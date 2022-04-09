@@ -31,7 +31,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   def job(args: List[String]): RIO[Blocking with LogEnv, Unit] =
     for {
-      op1 <- task1.executeZio.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
-      _   <- task2(op1).executeZio
+      op1 <- task1.execute.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
+      _   <- task2(op1).execute
     } yield ()
 }

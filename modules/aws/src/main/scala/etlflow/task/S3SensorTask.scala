@@ -8,8 +8,8 @@ import zio.{IO, RIO, UIO}
 import scala.concurrent.duration._
 
 case class S3SensorTask(name: String, bucket: String, key: String, retry: Int, spaced: Duration)
-    extends EtlTaskZIO[S3Env with Clock, Unit] {
-  override protected def processZio: RIO[S3Env with Clock, Unit] = for {
+    extends EtlTask[S3Env with Clock, Unit] {
+  override protected def process: RIO[S3Env with Clock, Unit] = for {
     _ <- UIO(logger.info("#" * 50))
     _ <- UIO(logger.info(s"Starting sensor for s3 location s3://$bucket/$key"))
     _ <- S3Api

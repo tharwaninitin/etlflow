@@ -18,7 +18,7 @@ object DPTasksTestSuite extends TestHelper {
           dpCluster,
           gcpProjectId.get,
           gcpRegion.get
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       testM("Execute DPSparkJob task") {
@@ -33,7 +33,7 @@ object DPTasksTestSuite extends TestHelper {
           dpCluster,
           gcpProjectId.get,
           gcpRegion.get
-        ).executeZio
+        ).execute
         assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

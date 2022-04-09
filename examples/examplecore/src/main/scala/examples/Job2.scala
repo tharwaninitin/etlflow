@@ -35,9 +35,9 @@ object Job2 extends zio.App with ApplicationLogger {
   )
 
   private val job = for {
-    _ <- task1.executeZio
-    _ <- task2.executeZio
-    _ <- task3.executeZio
+    _ <- task1.execute
+    _ <- task2.execute
+    _ <- task3.execute
   } yield ()
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.provideCustomLayer(etlflow.log.noLog).exitCode

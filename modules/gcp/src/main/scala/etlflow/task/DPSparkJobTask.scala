@@ -13,9 +13,9 @@ case class DPSparkJobTask(
     cluster: String,
     project: String,
     region: String
-) extends EtlTaskZIO[DPJobEnv, Job] {
+) extends EtlTask[DPJobEnv, Job] {
 
-  override protected def processZio: RIO[DPJobEnv, Job] = {
+  override protected def process: RIO[DPJobEnv, Job] = {
     logger.info("#" * 100)
     logger.info(s"Starting Dataproc Spark Job")
     DPJobApi.executeSparkJob(args, mainClass, libs, conf, cluster, project, region)

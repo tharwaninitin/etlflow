@@ -13,13 +13,13 @@ case class SparkReadTask[I <: Product: TypeTag, O <: Product: TypeTag](
     inputType: IOType,
     inputFilter: String = "1 = 1",
     transformFunction: Option[(SparkSession, Dataset[I]) => Dataset[O]] = None
-) extends EtlTaskZIO[SparkEnv, Dataset[O]] {
+) extends EtlTask[SparkEnv, Dataset[O]] {
 
   private var recordsWrittenCount = 0L
   private var recordsReadCount    = 0L
   private var sparkRuntimeConf    = Map.empty[String, String]
 
-  override protected def processZio: RIO[SparkEnv, Dataset[O]] =
+  override protected def process: RIO[SparkEnv, Dataset[O]] =
     for {
       spark <- SparkApi.getSparkSession
       _ = logger.info("#" * 50)

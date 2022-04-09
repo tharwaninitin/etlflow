@@ -16,11 +16,11 @@ case class BQLoadTask(
     outputWriteDisposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE,
     outputCreateDisposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
     schema: Option[Schema] = None
-) extends EtlTaskZIO[BQEnv, Unit] {
+) extends EtlTask[BQEnv, Unit] {
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   var rowCount: Map[String, Long] = Map.empty
 
-  override protected def processZio: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Task: $name")
 

@@ -24,7 +24,7 @@ object RetryTaskTestSuite extends ApplicationLogger {
         val task: RIO[Clock with LogEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
-        ).executeZio.retry(RetrySchedule(2, 5.second))
+        ).execute.retry(RetrySchedule(2, 5.second))
 
         val program = for {
           s <- task.fork

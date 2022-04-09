@@ -45,8 +45,8 @@ object ParquetToJdbcGenericTestSuite extends SparkUDF with ApplicationLogger wit
   )
 
   val job: ZIO[SparkEnv with LogEnv, Throwable, Unit] = for {
-    op <- task1.executeZio
-    _  <- task2(op).executeZio
+    op <- task1.execute
+    _  <- task2(op).execute
   } yield ()
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =

@@ -1,11 +1,11 @@
 package etlflow.task
 
 import etlflow.log.{LogApi, LogEnv, LogEnvTry}
-import etlflow.utils.DateTimeApi
+import etlflow.utils.{ApplicationLogger, DateTimeApi}
 import zio.{RIO, ZIO}
 import scala.util.{Failure, Try}
 
-trait EtlTask[R, OP] {
+trait EtlTask[R, OP] extends ApplicationLogger {
   val name: String
   val taskType: String = this.getClass.getSimpleName
 

@@ -16,7 +16,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
       - name: Run Core Tests
         run: sbt ";project core; +test; Test/runMain etlflow.SampleJobApp"
-  db:
+  dbpg:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -73,7 +73,7 @@ jobs:
           distribution: adopt
           java-version: 11
       - name: Run DB Tests
-        run: sbt ";project db; test; +Test/runMain etlflow.SampleJobWithDbLogging"
+        run: sbt ";project db; test; Test/runMain etlflow.SampleJobWithDbLogging"
         env:
           LOG_DB_URL: jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
           LOG_DB_USER: etlflow

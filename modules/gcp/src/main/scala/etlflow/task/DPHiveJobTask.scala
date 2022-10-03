@@ -10,7 +10,11 @@ case class DPHiveJobTask(name: String, query: String, cluster: String, project: 
   override protected def process: RIO[DPJobEnv, Job] = {
     logger.info("#" * 100)
     logger.info(s"Starting Hive Dataproc Job: $name")
-    DPJobApi.executeHiveJob(query, cluster, project, region)
+    for {
+      job <- DPJobApi.submitHiveJob(query, cluster, project, region)
+      _   <- DPJobApi.trackJobProgress(project, region, job)
+    } yield job
+
   }
 
   override def getTaskProperties: Map[String, String] = Map(

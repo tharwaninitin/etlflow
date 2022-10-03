@@ -19,5 +19,5 @@ object RunTests extends ZIOSpecDefault with TestHelper {
     DPCreateTestSuite.spec,
     DPTasksTestSuite.spec,
     DPDeleteTestSuite.spec
-  ) @@ TestAspect.sequential).provideCustomLayerShared(env.orDie)
+  ) @@ TestAspect.sequential).provideCustomShared(env.orDie)
 }

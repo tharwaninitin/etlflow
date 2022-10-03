@@ -7,7 +7,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 ThisBuild / version := EtlFlowVersion
 
 lazy val commonSettings = Seq(
-  scalaVersion               := scala212,
+  scalaVersion               := Scala212,
   dependencyUpdatesFailBuild := true,
   dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang"),
   scalacOptions ++= {
@@ -24,50 +24,50 @@ lazy val commonSettings = Seq(
 
 lazy val coreSettings = Seq(
   name               := "etlflow-core",
-  crossScalaVersions := allScalaVersions,
+  crossScalaVersions := AllScalaVersions,
   libraryDependencies ++= coreLibs ++ coreTestLibs
 )
 
 lazy val sparkSettings = Seq(
   name               := "etlflow-spark",
-  crossScalaVersions := scala2Versions,
+  crossScalaVersions := Scala2Versions,
   libraryDependencies ++= sparkLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
 )
 
 lazy val dbSettings = Seq(
   name               := "etlflow-db",
-  crossScalaVersions := allScalaVersions,
+  crossScalaVersions := AllScalaVersions,
   libraryDependencies ++= dbLibs ++ coreTestLibs ++ dbTestLibs
 )
 
 lazy val httpSettings = Seq(
   name                       := "etlflow-http",
-  crossScalaVersions         := allScalaVersions,
+  crossScalaVersions         := AllScalaVersions,
   dependencyUpdatesFailBuild := false,
   libraryDependencies ++= httpLibs ++ coreTestLibs
 )
 
 lazy val redisSettings = Seq(
   name               := "etlflow-redis",
-  crossScalaVersions := scala2Versions,
+  crossScalaVersions := Scala2Versions,
   libraryDependencies ++= redisLibs ++ coreTestLibs
 )
 
 lazy val emailSettings = Seq(
   name               := "etlflow-email",
-  crossScalaVersions := allScalaVersions,
+  crossScalaVersions := AllScalaVersions,
   libraryDependencies ++= emailLibs ++ coreTestLibs
 )
 
 lazy val awsSettings = Seq(
   name               := "etlflow-aws",
-  crossScalaVersions := allScalaVersions,
+  crossScalaVersions := AllScalaVersions,
   libraryDependencies ++= awsLibs ++ coreTestLibs
 )
 
 lazy val gcpSettings = Seq(
   name               := "etlflow-gcp",
-  crossScalaVersions := allScalaVersions,
+  crossScalaVersions := AllScalaVersions,
   libraryDependencies ++= gcpLibs ++ coreTestLibs
 )
 

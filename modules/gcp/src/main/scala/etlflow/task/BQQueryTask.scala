@@ -1,6 +1,6 @@
 package etlflow.task
 
-import gcp4zio._
+import gcp4zio.bq._
 import zio.RIO
 
 case class BQQueryTask(name: String, query: String) extends EtlTask[BQEnv, Unit] {

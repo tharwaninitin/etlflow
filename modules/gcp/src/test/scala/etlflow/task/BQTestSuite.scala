@@ -3,9 +3,8 @@ package etlflow.task
 import com.google.cloud.bigquery.Schema
 import etlflow.TestHelper
 import etlflow.log.LogEnv
-import gcp4zio.BQInputType.{CSV, PARQUET}
-import gcp4zio._
-import utils.Encoder
+import gcp4zio.bq.BQInputType.{CSV, PARQUET}
+import gcp4zio.bq._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
@@ -20,8 +19,8 @@ object BQTestSuite extends TestHelper {
   private val outputTable      = "ratings"
   private val outputDataset    = "dev"
 
-  val spec: ZSpec[environment.TestEnvironment with BQEnv with LogEnv, Any] = suite("BQ Tasks")(
-    testM("Execute BQLoad PARQUET task") {
+  val spec: Spec[TestEnvironment with BQEnv with LogEnv, Any] = suite("BQ Tasks")(
+    test("Execute BQLoad PARQUET task") {
       val task = BQLoadTask(
         name = "LoadRatingBQ",
         inputLocation = Left(inputFileParquet),
@@ -30,9 +29,9 @@ object BQTestSuite extends TestHelper {
         outputDataset = outputDataset,
         outputTable = outputTable
       ).execute
-      assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
-    testM("Execute BQLoad CSV task") {
+    test("Execute BQLoad CSV task") {
       val schema: Option[Schema] = Encoder[RatingCSV]
       val task = BQLoadTask(
         name = "LoadRatingCSV",
@@ -43,9 +42,9 @@ object BQTestSuite extends TestHelper {
         outputTable = outputTable,
         schema = schema
       ).execute
-      assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
-    testM("Execute BQExport CSV task") {
+    test("Execute BQExport CSV task") {
       val task = BQExportTask(
         name = "ExportRatingBQPARQUETCSV",
         sourceProject = sys.env.get("GCP_PROJECT_ID"),
@@ -55,9 +54,9 @@ object BQTestSuite extends TestHelper {
         destinationFileName = Some("sample.csv"),
         destinationFormat = BQInputType.CSV(",")
       ).execute
-      assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
-    testM("Execute BQExport PARQUET task") {
+    test("Execute BQExport PARQUET task") {
       val task = BQExportTask(
         name = "ExportRatingBQPARQUET",
         sourceProject = sys.env.get("GCP_PROJECT_ID"),
@@ -68,7 +67,7 @@ object BQTestSuite extends TestHelper {
         destinationFormat = BQInputType.PARQUET,
         destinationCompressionType = "snappy"
       ).execute
-      assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
   ) @@ TestAspect.sequential
 }

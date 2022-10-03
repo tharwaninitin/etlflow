@@ -3,14 +3,14 @@ package etlflow
 import etlflow.log.LogEnv
 import etlflow.model.Credential.JDBC
 import etlflow.task.{DBReadTask, GenericTask}
-import zio.blocking.Blocking
-import zio.{RIO, ZEnv, ZLayer}
+import etlflow.utils.ApplicationLogger
+import zio.{Chunk, RIO, ZLayer}
 
-object SampleJobWithDbLogging extends JobApp {
+object SampleJobWithDbLogging extends JobApp with ApplicationLogger {
 
-  private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), "org.postgresql.Driver")
+  private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
 
-  override val logLayer: ZLayer[ZEnv, Throwable, LogEnv] = log.DB(cred, java.util.UUID.randomUUID.toString)
+  override val logLayer: ZLayer[Any, Throwable, LogEnv] = log.DB(cred, java.util.UUID.randomUUID.toString)
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -29,9 +29,9 @@ object SampleJobWithDbLogging extends JobApp {
     function = processData(ip)
   )
 
-  def job(args: List[String]): RIO[Blocking with LogEnv, Unit] =
+  def job(args: Chunk[String]): RIO[LogEnv, Unit] =
     for {
-      op1 <- task1.execute.provideSomeLayer[Blocking with LogEnv](db.liveDB(cred))
+      op1 <- task1.execute.provideSomeLayer[LogEnv](db.liveDB(cred))
       _   <- task2(op1).execute
     } yield ()
 }

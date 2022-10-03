@@ -1,7 +1,7 @@
 package etlflow.task
 
-import gcp4zio.{BQApi, BQEnv, BQInputType}
-import zio.{RIO, UIO}
+import gcp4zio.bq.{BQApi, BQEnv, BQInputType}
+import zio.{RIO, ZIO}
 
 case class BQExportTask(
     name: String,
@@ -27,7 +27,7 @@ case class BQExportTask(
       destinationFileName,
       destinationFormat,
       destinationCompressionType
-    ) *> UIO(logger.info("#" * 50))
+    ) *> ZIO.succeed(logger.info("#" * 50))
   }
 
   override def getExecutionMetrics: Map[String, String] =

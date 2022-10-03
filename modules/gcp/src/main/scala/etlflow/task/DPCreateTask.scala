@@ -1,14 +1,13 @@
 package etlflow.task
 
 import com.google.cloud.dataproc.v1.Cluster
-import gcp4zio._
+import gcp4zio.dp._
 import zio.RIO
-import zio.blocking.Blocking
 
 case class DPCreateTask(name: String, cluster: String, project: String, region: String, props: ClusterProps)
-    extends EtlTask[DPEnv with Blocking, Cluster] {
+    extends EtlTask[DPEnv, Cluster] {
 
-  override protected def process: RIO[DPEnv with Blocking, Cluster] = {
+  override protected def process: RIO[DPEnv, Cluster] = {
     logger.info("#" * 100)
     logger.info(s"Starting Create Cluster Task: $name")
     logger.info(s"Cluster: $cluster and Region: $region")

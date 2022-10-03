@@ -1,9 +1,9 @@
 package etlflow.task
 
-import gcp4zio._
+import gcp4zio.gcs._
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
-import zio.clock.Clock
+import zio.Clock
 import zio._
 import scala.concurrent.duration.Duration
 
@@ -18,15 +18,15 @@ case class GCSSensorTask(name: String, bucket: String, prefix: String, retry: In
          out <- lookup
          _ <-
            if (out)
-             UIO(logger.info(s"Found key gs://$bucket/$prefix in GCS"))
+             ZIO.succeed(logger.info(s"Found key gs://$bucket/$prefix in GCS"))
            else
-             IO.fail(
+             ZIO.fail(
                RetryException(s"Key gs://$bucket/$prefix not found in GCS")
              )
        } yield ()).retry(RetrySchedule(retry, spaced))
 
     val runnable = for {
-      _ <- Task.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix"))
+      _ <- ZIO.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix"))
       _ <- program
     } yield ()
 

@@ -3,7 +3,7 @@ package etlflow.log
 import etlflow.model
 import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
-import zio.{Task, UIO, ULayer, ZIO, ZLayer}
+import zio.{UIO, ULayer, ZIO, ZLayer}
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
@@ -75,7 +75,7 @@ object Slack extends ApplicationLogger {
         taskType: String,
         endTime: Long,
         error: Option[Throwable]
-    ): UIO[Unit] = UIO {
+    ): UIO[Unit] = ZIO.succeed {
       var slackMessageForTasks = ""
 
       val elapsedTime = getTimeDifferenceAsString(endTime, getCurrentTimestamp)
@@ -98,7 +98,7 @@ object Slack extends ApplicationLogger {
     }
     override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] = ZIO.unit
     override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
-      Task.fromTry {
+      ZIO.fromTry {
         val executionDateTime = getTimestampAsString(endTime) // Add time difference in this expression
 
         val data = finalMessageTemplate(

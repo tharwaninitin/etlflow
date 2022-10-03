@@ -2,11 +2,12 @@ package etlflow
 
 import etlflow.log.LogEnv
 import etlflow.task.GenericTask
-import zio.{RIO, ZEnv, ZLayer}
+import etlflow.utils.ApplicationLogger
+import zio.{Chunk, RIO, ZLayer}
 
-object SampleJobApp extends JobApp {
+object SampleJobApp extends JobApp with ApplicationLogger {
 
-  override val logLayer: ZLayer[ZEnv, Throwable, LogEnv] = log.Memory.live(java.util.UUID.randomUUID.toString)
+  override val logLayer: ZLayer[Any, Throwable, LogEnv] = log.Memory.live(java.util.UUID.randomUUID.toString)
 
   def processData1(): String = {
     logger.info("Hello World")
@@ -42,5 +43,5 @@ object SampleJobApp extends JobApp {
     _ <- task3.execute
   } yield ()
 
-  override def job(args: List[String]): RIO[LogEnv, Unit] = job
+  override def job(args: Chunk[String]): RIO[LogEnv, Unit] = job
 }

@@ -50,7 +50,7 @@ object ParquetToJdbcGenericTestSuite extends SparkUDF with ApplicationLogger wit
   } yield ()
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("Execute ParquetToJdbcGenericSparkTaskTestSuite task") {
-      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    test("Execute ParquetToJdbcGenericSparkTaskTestSuite task") {
+      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

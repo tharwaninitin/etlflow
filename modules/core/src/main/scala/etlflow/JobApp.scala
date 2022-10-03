@@ -1,20 +1,24 @@
 package etlflow
 
 import etlflow.log.{LogApi, LogEnv}
-import etlflow.utils.{ApplicationLogger, DateTimeApi, MapToJson}
-import zio.{App, ExitCode, RIO, UIO, URIO, ZEnv, ZIO, ZLayer}
+import etlflow.utils.{DateTimeApi, MapToJson}
+import zio._
+//import zio.logging.LogFormat
+//import zio.logging.backend.SLF4J
 
-trait JobApp extends ApplicationLogger with App {
+trait JobApp extends ZIOAppDefault {
 
-  def job(args: List[String]): RIO[ZEnv with LogEnv, Unit]
+  def job(args: Chunk[String]): RIO[LogEnv, Unit]
 
-  val logLayer: ZLayer[ZEnv, Throwable, LogEnv] = log.noLog
+  val logLayer: ZLayer[Any, Throwable, LogEnv] = log.noLog
+
+  // override val bootstrap = SLF4J.slf4j(LogLevel.Info, LogFormat.colored)
 
   val name: String = this.getClass.getSimpleName.replace('$', ' ').trim
 
-  final def execute(cliArgs: List[String]): ZIO[ZEnv with LogEnv, Throwable, Unit] =
+  final def execute(cliArgs: Chunk[String]): RIO[LogEnv, Unit] =
     for {
-      args <- UIO(MapToJson(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
+      args <- ZIO.succeed(MapToJson(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
       _    <- LogApi.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
       _ <- job(cliArgs).tapError { ex =>
         LogApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
@@ -22,5 +26,8 @@ trait JobApp extends ApplicationLogger with App {
       _ <- LogApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
     } yield ()
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = execute(args).provideSomeLayer[ZEnv](logLayer).exitCode
+  override def run: ZIO[ZIOAppArgs with Scope, Any, Any] = for {
+    arguments <- getArgs
+    _         <- execute(arguments).provideLayer(logLayer)
+  } yield ()
 }

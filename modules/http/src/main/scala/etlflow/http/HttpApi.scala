@@ -41,7 +41,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
         .setSslContext(sslContext)
         .setConnectTimeout(connectionTimeout)
         .build()
-      AsyncHttpClientZioBackend.usingConfig(config).toManaged_
+      AsyncHttpClientZioBackend.usingConfig(config).toManaged
     } else {
       AsyncHttpClientZioBackend.managed(options(connectionTimeout))
     }
@@ -107,7 +107,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
     method match {
       case HttpMethod.GET =>
         params match {
-          case Left(_)    => Task.fail(new RuntimeException("params for get request as Left(..) is not supported"))
+          case Left(_)    => ZIO.fail(new RuntimeException("params for get request as Left(..) is not supported"))
           case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connectionTimeout, allowUnsafeSsl)
         }
       case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connectionTimeout, allowUnsafeSsl)

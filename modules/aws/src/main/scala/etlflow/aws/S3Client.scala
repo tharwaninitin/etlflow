@@ -5,7 +5,6 @@ import etlflow.utils.ApplicationLogger
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.{S3AsyncClient, S3AsyncClientBuilder}
-
 import java.net.URI
 
 object S3Client extends ApplicationLogger {

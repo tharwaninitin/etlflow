@@ -1,7 +1,7 @@
 package etlflow.task
 
 import com.google.cloud.dataproc.v1.Job
-import gcp4zio._
+import gcp4zio.dp._
 import zio.RIO
 
 case class DPHiveJobTask(name: String, query: String, cluster: String, project: String, region: String)

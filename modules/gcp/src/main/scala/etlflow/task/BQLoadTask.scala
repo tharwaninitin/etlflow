@@ -2,8 +2,8 @@ package etlflow.task
 
 import com.google.cloud.bigquery.{JobInfo, Schema}
 import etlflow.gcp._
-import gcp4zio.{BQApi, BQEnv, BQInputType}
-import zio.{RIO, UIO}
+import gcp4zio.bq.{BQApi, BQEnv, BQInputType}
+import zio.{RIO, ZIO}
 
 case class BQLoadTask(
     name: String,
@@ -65,7 +65,7 @@ case class BQLoadTask(
               }
         }
     }
-    program *> UIO(logger.info("#" * 50))
+    program *> ZIO.succeed(logger.info("#" * 50))
   }
 
   override def getExecutionMetrics: Map[String, String] =

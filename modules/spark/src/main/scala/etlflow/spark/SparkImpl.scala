@@ -8,24 +8,24 @@ import scala.reflect.runtime.universe.TypeTag
 
 final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
 
-  override def getSparkSession: Task[SparkSession] = Task(spark)
+  override def getSparkSession: Task[SparkSession] = ZIO.attempt(spark)
 
   override def readDSProps[T <: Product: TypeTag](
       location: List[String],
       inputType: IOType,
       whereClause: String
   ): Task[Map[String, String]] =
-    Task(ReadApi.dSProps[T](location, inputType))
+    ZIO.attempt(ReadApi.dSProps[T](location, inputType))
 
   override def readDS[T <: Product: TypeTag](location: List[String], inputType: IOType, whereClause: String): Task[Dataset[T]] =
-    Task(ReadApi.ds[T](location, inputType, whereClause)(spark))
+    ZIO.attempt(ReadApi.ds[T](location, inputType, whereClause)(spark))
 
   override def readStreamingDS[T <: Product: TypeTag](
       location: String,
       inputType: IOType,
       whereClause: String
   ): Task[Dataset[T]] =
-    Task(ReadApi.streamingDS[T](location, inputType, whereClause)(spark))
+    ZIO.attempt(ReadApi.streamingDS[T](location, inputType, whereClause)(spark))
 
   override def readDF(
       location: List[String],
@@ -33,7 +33,7 @@ final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
       whereClause: String,
       selectClause: Seq[String]
   ): Task[Dataset[Row]] =
-    Task(ReadApi.df(location, inputType, whereClause, selectClause)(spark))
+    ZIO.attempt(ReadApi.df(location, inputType, whereClause, selectClause)(spark))
 
   override def writeDSProps[T <: Product: universe.TypeTag](
       outputType: IOType,
@@ -44,7 +44,7 @@ final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
       compression: String,
       repartition: Boolean,
       repartitionNo: Int
-  ): Task[Map[String, String]] = Task(
+  ): Task[Map[String, String]] = ZIO.attempt(
     WriteApi.dSProps[T](
       outputType,
       outputLocation,
@@ -67,7 +67,7 @@ final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
       compression: String,
       repartition: Boolean,
       repartitionNo: Int
-  ): Task[Unit] = Task(
+  ): Task[Unit] = ZIO.attempt(
     WriteApi.ds[T](
       input,
       outputType,
@@ -84,8 +84,8 @@ final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
 
 object SparkImpl extends ApplicationLogger {
   def live(spark: SparkSession): TaskLayer[SparkEnv] = Managed
-    .make(Task(spark))(a =>
-      UIO {
+    .acquireReleaseWith(ZIO.attempt(spark))(a =>
+      ZIO.succeed {
         logger.info("Stopping spark session")
         a.close()
       }

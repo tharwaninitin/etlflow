@@ -1,6 +1,5 @@
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <withJansi>true</withJansi>
     <encoder>
       <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss,SSS"} [%thread] %highlight(%-5level) %cyan(%logger{50}) - %msg %n</pattern>
     </encoder>

@@ -6,9 +6,9 @@ import scalikejdbc._
 private[etlflow] object Sql extends ApplicationLogger {
 
   def updateTaskRun(taskRunId: String, props: String, status: String, elapsedTime: String): SQL[Nothing, NoExtractor] =
-    sql"""UPDATE TaskRun
+    sql"""UPDATE taskrun
             SET status = $status,
-                properties = $props::jsonb,
+                properties = CAST($props as JSON),
                 elapsed_time = $elapsedTime
           WHERE task_run_id = $taskRunId"""
 
@@ -20,7 +20,7 @@ private[etlflow] object Sql extends ApplicationLogger {
       jobRunId: String,
       startTime: Long
   ): SQL[Nothing, NoExtractor] =
-    sql"""INSERT INTO TaskRun (
+    sql"""INSERT INTO taskrun (
            task_run_id,
            task_name,
            properties,
@@ -30,16 +30,16 @@ private[etlflow] object Sql extends ApplicationLogger {
            job_run_id,
            inserted_at
            )
-         VALUES ($taskRunId, $name, $props::jsonb, 'started', '...', $taskType, $jobRunId, $startTime)"""
+         VALUES ($taskRunId, $name, CAST($props as JSON), 'started', '...', $taskType, $jobRunId, $startTime)"""
 
   def updateJobRun(jobRunId: String, status: String, elapsedTime: String): SQL[Nothing, NoExtractor] =
-    sql""" UPDATE JobRun
+    sql""" UPDATE jobrun
               SET status = $status,
                   elapsed_time = $elapsedTime
            WHERE job_run_id = $jobRunId"""
 
   def insertJobRun(jobRunId: String, name: String, props: String, startTime: Long): SQL[Nothing, NoExtractor] =
-    sql"""INSERT INTO JobRun(
+    sql"""INSERT INTO jobrun(
             job_run_id,
             job_name,
             properties,
@@ -49,6 +49,6 @@ private[etlflow] object Sql extends ApplicationLogger {
             is_master,
             inserted_at
             )
-         VALUES ($jobRunId, $name, $props::jsonb, 'started', '...', '', 'true', $startTime)"""
+         VALUES ($jobRunId, $name, CAST($props as JSON), 'started', '...', '', 'true', $startTime)"""
 
 }

@@ -8,8 +8,9 @@ import zio.test.Assertion.equalTo
 import zio.test._
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import zio.test.ZIOSpecDefault
 
-object HttpTaskTestSuite extends DefaultRunnableSpec with ApplicationLogger {
+object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
 
   private val getTask1 = HttpRequestTask(
     name = "HttpGetSimple",
@@ -82,7 +83,7 @@ object HttpTaskTestSuite extends DefaultRunnableSpec with ApplicationLogger {
   } yield ()
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    (suite("Http Tasks")(testM("Execute Http tasks") {
-      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    (suite("Http Tasks")(test("Execute Http tasks") {
+      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }) @@ TestAspect.flaky).provideCustomLayerShared(noLog)
 }

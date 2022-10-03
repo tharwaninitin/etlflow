@@ -49,7 +49,7 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
   } yield bool
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("Record counts and sum should be matching after task run LoadRatingsParquetToJdbc")(
-      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
+    test("Record counts and sum should be matching after task run LoadRatingsParquetToJdbc")(
+      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
     )
 }

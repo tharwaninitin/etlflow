@@ -10,7 +10,7 @@ object ErrorHandlingTestSuite {
   def funcArrayIndexOutOfBoundsEx: Int = Array(0, 1, 2, 3, 4)(9)
   def funcFatalError: Int              = throw new StackOverflowError()
 
-  val spec: ZSpec[environment.TestEnvironment, Any] =
+  val spec: Spec[TestEnvironment, Any] =
     suite("Error Handling")(
       test("logTry 1") {
         val logTry = LoggedTry(funcArithmeticEx)
@@ -32,11 +32,11 @@ object ErrorHandlingTestSuite {
         val logEither = LoggedEither[ArithmeticException, Int](funcArithmeticEx)
         assertTrue(logEither.isLeft)
       },
-      testM("logEither with incorrect narrow Type") {
+      test("logEither with incorrect narrow Type") {
         def logEither = LoggedEither[ArithmeticException, Int](funcArrayIndexOutOfBoundsEx)
         val effect: UIO[String] =
-          ZIO.fromEither(logEither).foldCauseM(ex => ZIO.succeed(ex.squash.toString), _ => ZIO.succeed("OK"))
-        assertM(effect)(Assertion.containsString("java.lang.ArrayIndexOutOfBoundsException"))
+          ZIO.fromEither(logEither).foldCauseZIO(ex => ZIO.succeed(ex.squash.toString), _ => ZIO.succeed("OK"))
+        assertZIO(effect)(Assertion.containsString("java.lang.ArrayIndexOutOfBoundsException"))
       }
     ) @@ TestAspect.sequential
 }

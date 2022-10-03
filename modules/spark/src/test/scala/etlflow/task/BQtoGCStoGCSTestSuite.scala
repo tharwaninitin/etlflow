@@ -109,7 +109,7 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
   } yield ()
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("Execute SparkReadWriteTasks with GCS and BQ") {
-      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    test("Execute SparkReadWriteTasks with GCS and BQ") {
+      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

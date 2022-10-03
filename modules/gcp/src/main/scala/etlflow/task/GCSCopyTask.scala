@@ -1,8 +1,8 @@
 package etlflow.task
 
 import etlflow.gcp.Location
-import gcp4zio._
-import zio.{RIO, Task}
+import gcp4zio.gcs._
+import zio.{RIO, ZIO}
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.ToString"))
 case class GCSCopyTask(
@@ -29,14 +29,14 @@ case class GCSCopyTask(
       case (src @ Location.LOCAL(_), tgt @ Location.GCS(_, _)) =>
         GCSApi.copyObjectsLOCALtoGCS(src.path, tgt.bucket, tgt.path, parallelism, overwrite)
       case (src, tgt) =>
-        Task(throw new RuntimeException(s"Copying data between source $src to target $tgt is not implemented yet"))
+        ZIO.attempt(throw new RuntimeException(s"Copying data between source $src to target $tgt is not implemented yet"))
     }
     val runnable = for {
-      _ <- Task.succeed(logger.info("#" * 100))
-      _ <- Task.succeed(logger.info(s"Source Filesystem $input"))
-      _ <- Task.succeed(logger.info(s"Target Filesystem $output"))
-      _ <- program.tapError(ex => Task.succeed(logger.error(ex.getMessage)))
-      _ <- Task.succeed(logger.info(s"Successfully copied objects" + "\n" + "#" * 100))
+      _ <- ZIO.succeed(logger.info("#" * 100))
+      _ <- ZIO.succeed(logger.info(s"Source Filesystem $input"))
+      _ <- ZIO.succeed(logger.info(s"Target Filesystem $output"))
+      _ <- program.tapError(ex => ZIO.succeed(logger.error(ex.getMessage)))
+      _ <- ZIO.succeed(logger.info(s"Successfully copied objects" + "\n" + "#" * 100))
     } yield ()
     runnable
   }

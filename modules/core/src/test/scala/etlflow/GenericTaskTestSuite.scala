@@ -1,9 +1,11 @@
 package etlflow
 
+import etlflow.log.LogEnv
 import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
+import zio.test.Assertion.equalTo
 import zio.test._
-import scala.util.Try
+import zio.{RIO, ZIO}
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
 object GenericTaskTestSuite extends ApplicationLogger {
@@ -11,25 +13,27 @@ object GenericTaskTestSuite extends ApplicationLogger {
     logger.info("Hello World")
     throw new RuntimeException("Failed in processing data")
   }
-  def processData(): Unit =
-    logger.info("Hello World")
+  def processData(): Unit = logger.info("Hello World")
 
-  def spec(log: etlflow.log.Service[Try]): ZSpec[environment.TestEnvironment, Any] =
+  val spec: Spec[TestEnvironment with LogEnv, Any] =
     suite("Generic Task")(
       test("Execute GenericETLTask with error") {
-        val task: Try[Unit] = GenericTask(
+        val task: RIO[LogEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
-        ).executeTry(log)
-        assertTrue(task.isFailure)
+        ).execute
+        assertZIO(task.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(
+          equalTo("Failed in processing data")
+        )
       },
       test("Execute GenericETLTask with success") {
-        val task: Try[Unit] = GenericTask(
+        val task: RIO[LogEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processData()
-        ).executeTry(log)
-
-        assertTrue(task.isSuccess)
+        ).execute
+        assertZIO(task.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(
+          equalTo("ok")
+        )
       }
     )
 }

@@ -1,13 +1,11 @@
 package etlflow.task
 
-import gcp4zio._
+import gcp4zio.dp._
 import zio.RIO
-import zio.blocking.Blocking
 
-case class DPDeleteTask(name: String, cluster: String, project: String, region: String)
-    extends EtlTask[DPEnv with Blocking, Unit] {
+case class DPDeleteTask(name: String, cluster: String, project: String, region: String) extends EtlTask[DPEnv, Unit] {
 
-  override protected def process: RIO[DPEnv with Blocking, Unit] = {
+  override protected def process: RIO[DPEnv, Unit] = {
     logger.info("#" * 100)
     logger.info(s"Starting Delete Cluster Task: $name")
     logger.info(s"Cluster Name: $cluster and Region: $region")

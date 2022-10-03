@@ -1,7 +1,7 @@
 package etlflow.log
 
 import etlflow.utils.ApplicationLogger
-import zio.{UIO, ULayer, ZLayer}
+import zio.{UIO, ULayer, ZIO, ZLayer}
 
 object Console extends ApplicationLogger {
 
@@ -9,9 +9,9 @@ object Console extends ApplicationLogger {
     override val jobRunId: String = ""
     // format: off
     override def logTaskStart(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, startTime: Long): UIO[Unit] =
-      UIO(logger.info(s"Task $taskName started"))
+      ZIO.succeed(logger.info(s"Task $taskName started"))
     override def logTaskEnd(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
-      UIO {
+      ZIO.succeed {
         error.fold{
           logger.info(s"Task $taskName completed successfully")
         } { ex => 
@@ -19,9 +19,9 @@ object Console extends ApplicationLogger {
         }
       }
     override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =
-      UIO(logger.info(s"Job started"))
+      ZIO.succeed(logger.info(s"Job started"))
     override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
-      UIO {
+      ZIO.succeed {
         error.fold {
           logger.info(s"Job completed with success")
         } { ex =>

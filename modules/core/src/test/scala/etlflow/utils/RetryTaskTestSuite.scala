@@ -3,19 +3,18 @@ package etlflow.utils
 import etlflow.log.LogEnv
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.task.GenericTask
-import zio.clock.Clock
-import zio.duration.{Duration => ZDuration}
+import zio.Clock
+import zio.{Duration => ZDuration}
 import zio.test.Assertion.equalTo
-import zio.test.environment.TestClock
-import zio.test.{assertM, environment, suite, testM, ZSpec}
+import zio.test._
 import zio.{RIO, ZIO}
 import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
 object RetryTaskTestSuite extends ApplicationLogger {
-  val spec: ZSpec[environment.TestEnvironment with LogEnv, Any] =
+  val spec: Spec[Clock with TestEnvironment with LogEnv, Any] =
     suite("Retry Task")(
-      testM("Execute GenericETLTask with retry") {
+      test("Execute GenericETLTask with retry") {
         def processDataFail(): Unit = {
           logger.info("Hello World")
           throw RetryException("Failed in processing data")
@@ -32,7 +31,7 @@ object RetryTaskTestSuite extends ApplicationLogger {
           _ <- s.join
         } yield ()
 
-        assertM(program.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(
+        assertZIO(program.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(
           equalTo("Failed in processing data")
         )
       }

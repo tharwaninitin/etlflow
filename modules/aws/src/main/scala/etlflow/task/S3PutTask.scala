@@ -6,14 +6,14 @@ import java.nio.file.Paths
 
 case class S3PutTask(name: String, bucket: String, key: String, file: String, overwrite: Boolean) extends EtlTask[S3Env, Unit] {
   override protected def process: RIO[S3Env, Unit] = for {
-    _    <- ZIO.succeed(logger.info("#" * 50))
-    _    <- ZIO.succeed(logger.info(s"Input local path $file"))
-    _    <- ZIO.succeed(logger.info(s"Output S3 path s3://$bucket/$key"))
-    path <- ZIO.effect(Paths.get(file))
+    _    <- ZIO.logInfo("#" * 50)
+    _    <- ZIO.logInfo(s"Input local path $file")
+    _    <- ZIO.logInfo(s"Output S3 path s3://$bucket/$key")
+    path <- ZIO.attempt(Paths.get(file))
     _ <- S3Api
       .putObject(bucket, key, path, overwrite)
-      .tapError(ex => ZIO.succeed(logger.error(ex.getMessage)))
-    _ <- ZIO.succeed(logger.info(s"Successfully uploaded file $file in location s3://$bucket/$key"))
-    _ <- ZIO.succeed(logger.info("#" * 100))
+      .tapError(ex => ZIO.logError(ex.getMessage))
+    _ <- ZIO.logInfo(s"Successfully uploaded file $file in location s3://$bucket/$key")
+    _ <- ZIO.logInfo("#" * 100)
   } yield ()
 }

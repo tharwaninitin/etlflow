@@ -17,15 +17,15 @@ object InitDBSuite extends DbSuiteHelper {
       |VALUES ('123','a27a7415-57b2-4b53-8f9b-5254e847a301','download_spr','{}','pass','1.6 mins','GenericEtlTask',1234567);
       |""".stripMargin
 
-  val program: ZIO[DBEnv, Throwable, Unit] = for {
-    _ <- CreateDB(true)
+  def program(reset: Boolean): ZIO[DBEnv, Throwable, Unit] = for {
+    _ <- CreateDB(reset)
     _ <- DBApi.executeQuery(sql)
   } yield ()
 
-  val spec: ZSpec[environment.TestEnvironment with DBEnv, Any] =
+  def spec(reset: Boolean): Spec[TestEnvironment with DBEnv, Any] =
     suite("InitTestDB")(
-      testM("InitTestDB") {
-        assertM(program.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
+      test("InitTestDB") {
+        assertZIO(program(reset).foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       }
     )
 }

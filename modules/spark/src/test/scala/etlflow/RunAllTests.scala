@@ -3,8 +3,9 @@ package etlflow
 import etlflow.spark.SparkImpl
 import etlflow.task._
 import zio.test._
+import zio.test.ZIOSpecDefault
 
-object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
+object RunAllTests extends ZIOSpecDefault with TestSparkSession {
   override def spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Spark Tasks")(
       ParquetToJsonTestSuite.test,

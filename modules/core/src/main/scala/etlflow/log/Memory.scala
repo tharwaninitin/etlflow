@@ -1,7 +1,7 @@
 package etlflow.log
 
 import etlflow.utils.{ApplicationLogger, DateTimeApi}
-import zio.{Ref, UIO, ULayer, ZLayer}
+import zio.{Ref, UIO, ULayer, ZIO, ZLayer}
 import scala.collection.mutable
 
 object Memory extends ApplicationLogger {
@@ -54,7 +54,7 @@ object Memory extends ApplicationLogger {
         }
       } yield ()
     override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =
-      UIO(logger.info(s"Job $jobName started"))
+      ZIO.succeed(logger.info(s"Job $jobName started"))
     override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
       for {
         stateRef <- state

@@ -27,7 +27,7 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
   ).execute
 
   val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
-    testM("ParquetToJsonTestSuite task should run successfully")(
-      assertM(task1.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
+    test("ParquetToJsonTestSuite task should run successfully")(
+      assertM(task1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
     )
 }

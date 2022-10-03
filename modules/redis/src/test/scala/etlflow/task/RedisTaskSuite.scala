@@ -5,8 +5,9 @@ import etlflow.model.Credential.REDIS
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.test.ZIOSpecDefault
 
-object RedisTaskSuite extends DefaultRunnableSpec {
+object RedisTaskSuite extends ZIOSpecDefault {
 
   val redisConfig: REDIS = REDIS("localhost")
 
@@ -49,7 +50,7 @@ object RedisTaskSuite extends DefaultRunnableSpec {
   } yield ()
 
   override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Redis Tasks")(testM("Execute redis tasks") {
-      assertM(job.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    suite("Redis Tasks")(test("Execute redis tasks") {
+      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }).provideCustomLayerShared(etlflow.log.noLog)
 }

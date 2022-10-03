@@ -24,7 +24,7 @@ case class SparkDeDupTask[I <: Product: TypeTag](
       logger.info(s"Starting SparkDeDupTask: $name")
     }
     ip <- SparkApi.readStreamingDS[I](inputLocation, inputType, inputFilter)
-    _ <- Task {
+    _ <- ZIO.attempt {
       ip.transform(transformation)
         .withWatermark(eventTimeCol, delayThreshold)
         .dropDuplicates(deDupCols)

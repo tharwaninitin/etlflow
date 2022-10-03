@@ -1,6 +1,6 @@
 package etlflow.task
 
-import gcp4zio._
+import gcp4zio.gcs._
 import zio.RIO
 
 case class GCSDeleteTask(name: String, bucket: String, prefix: String) extends EtlTask[GCSEnv, Unit] {

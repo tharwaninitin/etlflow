@@ -2,16 +2,16 @@ package etlflow.task
 
 import etlflow.TestHelper
 import etlflow.log.LogEnv
-import gcp4zio._
+import gcp4zio.dp._
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 object DPTasksTestSuite extends TestHelper {
-  val spec: ZSpec[environment.TestEnvironment with DPJobEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with DPJobEnv with LogEnv, Any] =
     suite("EtlFlow DPJobTasks")(
-      testM("Execute DPHiveJob task") {
+      test("Execute DPHiveJob task") {
         val task = DPHiveJobTask(
           name = "DPHiveJobTaskExample",
           "SELECT 1 AS ONE",
@@ -19,9 +19,9 @@ object DPTasksTestSuite extends TestHelper {
           gcpProjectId.get,
           gcpRegion.get
         ).execute
-        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
-      testM("Execute DPSparkJob task") {
+      test("Execute DPSparkJob task") {
         val libs = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
         val conf = Map("spark.executor.memory" -> "1g", "spark.driver.memory" -> "1g")
         val task = DPSparkJobTask(
@@ -34,7 +34,7 @@ object DPTasksTestSuite extends TestHelper {
           gcpProjectId.get,
           gcpRegion.get
         ).execute
-        assertM(task.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential
 }

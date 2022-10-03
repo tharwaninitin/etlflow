@@ -52,6 +52,33 @@ jobs:
           LOG_DB_USER: etlflow
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: org.postgresql.Driver
+  dbmysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_USER: etlflow
+          MYSQL_PASSWORD: etlflow
+          MYSQL_DATABASE: etlflow
+          MYSQL_ROOT_PASSWORD: etlflow
+        ports:
+          - 3306:3306
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
+      - name: Run DB Tests
+        run: sbt ";project db; test; +Test/runMain etlflow.SampleJobWithDbLogging"
+        env:
+          LOG_DB_URL: jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
+          LOG_DB_USER: etlflow
+          LOG_DB_PWD: etlflow
+          LOG_DB_DRIVER: com.mysql.cj.jdbc.Driver
   gcp:
     runs-on: ubuntu-latest
     strategy:

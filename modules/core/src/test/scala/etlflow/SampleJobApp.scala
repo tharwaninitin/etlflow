@@ -5,6 +5,7 @@ import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
 import zio.{Chunk, RIO, ZLayer}
 
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object SampleJobApp extends JobApp with ApplicationLogger {
 
   override val logLayer: ZLayer[Any, Throwable, LogEnv] = log.Memory.live(java.util.UUID.randomUUID.toString)

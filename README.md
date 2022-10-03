@@ -28,19 +28,19 @@ You can use this library in different ways mentioned below.
 ![ModuleDepGraph](moduleDep.png)
 
 ## Scala Version Compatibility Matrix
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
-| -------------------|:--------------------:| -----------:| ----------:|
-| Core               | ✅                   | ✅          | ✅          |
-| Db                 | ✅                   | ✅          | ✅          |
-| Http               | ✅                   | ✅          | ✅          |
-| Email              | ✅                   | ✅          | ✅          |
-| Aws                | ✅                   | ✅          | ✅          |
-| Gcp                | ✅                   | ✅          | ✅          |
-| Redis              | ✅                   | ✅          | ❌          |
-| Spark              | ✅                   | ✅          | ❌          |
+|  Module Name  | Scala 2.12 | Scala 2.13  | Scala 3.2  | 
+|:-------------:|:----------:|:-----------:|:----------:|
+|     Core      |     ✅      |      ✅      |     ✅      |
+|      Db       |     ✅      |      ✅      |     ✅      |
+|     Http      |     ✅      |      ✅      |     ✅      |
+|     Email     |     ✅      |      ✅      |     ✅      |
+|      Aws      |     ✅      |      ✅      |     ✅      |
+|      Gcp      |     ✅      |      ✅      |     ✅      |
+|     Redis     |     ✅      |      ✅      |     ❌      |
+|     Spark     |     ✅      |      ✅      |     ❌      |
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.15, 2.13.8, 3.1.1
+This project is compiled with scala versions 2.12.17, 2.13.9, 3.2.0
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the latest release as a dependency to your project
 

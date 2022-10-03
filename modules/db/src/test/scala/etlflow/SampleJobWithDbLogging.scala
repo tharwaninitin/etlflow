@@ -6,6 +6,7 @@ import etlflow.task.{DBReadTask, GenericTask}
 import etlflow.utils.ApplicationLogger
 import zio.{Chunk, RIO, ZLayer}
 
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object SampleJobWithDbLogging extends JobApp with ApplicationLogger {
 
   private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))

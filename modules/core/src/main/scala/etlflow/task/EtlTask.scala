@@ -14,6 +14,7 @@ trait EtlTask[R, OP] {
 
   protected def process: RIO[R, OP]
 
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   final def execute: RIO[R with LogEnv, OP] = for {
     sri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
     _   <- LogApi.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
@@ -25,7 +26,7 @@ trait EtlTask[R, OP] {
 
   protected def processTry: Try[OP] = ???
 
-  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
+  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.ToString"))
   final def executeTry(log: LogEnvTry): Try[OP] = for {
     sri <- Try(java.util.UUID.randomUUID.toString)
     _   <- log.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)

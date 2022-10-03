@@ -4,6 +4,7 @@ import etlflow.utils.{ApplicationLogger, DateTimeApi}
 import zio.{Ref, UIO, ULayer, ZIO, ZLayer}
 import scala.collection.mutable
 
+@SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
 object Memory extends ApplicationLogger {
 
   sealed trait Status
@@ -17,7 +18,6 @@ object Memory extends ApplicationLogger {
       s"$task_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
   }
 
-  @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
   val state: UIO[Ref[mutable.Map[String, State]]] = Ref.make(mutable.Map.empty[String, State])
   final case class MemoryLogger(jobRunId: String) extends Service[UIO] {
     override def logTaskStart(

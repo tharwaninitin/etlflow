@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.http.HttpMethod
-import etlflow.audit.{noLog, LogEnv}
+import etlflow.audit.{noLog, AuditEnv}
 import etlflow.utils.ApplicationLogger
 import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
@@ -72,7 +72,7 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     params = Right(Map("param1" -> "value1"))
   )
 
-  val job: RIO[LogEnv, Unit] = for {
+  val job: RIO[AuditEnv, Unit] = for {
     _ <- getTask1.execute
     _ <- getTask2.execute
     _ <- postTask1.execute

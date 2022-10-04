@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
-import etlflow.audit.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.schema.Rating
 import etlflow.spark.IOType
 import etlflow.spark.SparkEnv
@@ -14,7 +14,7 @@ import zio.{RIO, ZIO}
 object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelper {
 
   // Note: Here Parquet file has 6 columns and Rating Case Class has 4 out of those 6 columns so only 4 will be selected
-  val task1: RIO[SparkEnv with LogEnv, Unit] = SparkReadWriteTask[Rating, Rating](
+  val task1: RIO[SparkEnv with AuditEnv, Unit] = SparkReadWriteTask[Rating, Rating](
     name = "LoadRatingsParquetToJdbc",
     inputLocation = List(inputPathParquet),
     inputType = IOType.PARQUET,
@@ -26,7 +26,7 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     outputFilename = Some("ratings.json")
   ).execute
 
-  val spec: Spec[TestEnvironment with SparkEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with SparkEnv with AuditEnv, Any] =
     test("ParquetToJsonTestSuite task should run successfully")(
       assertZIO(task1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
     )

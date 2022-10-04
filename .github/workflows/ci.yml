@@ -174,14 +174,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 14 ]
+        java-version: [ 8, 11, 17 ]
       fail-fast: false
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
+      - name: Setup minio
+        run: |
+          docker run -d -p 9000:9000 -p 9001:9001 --name minio \
+                     -e "MINIO_ROOT_USER=etlflow" \
+                     -e "MINIO_ROOT_PASSWORD=etlflowpass" \
+                     -v /tmp/data:/data \
+                     -v /tmp/config:/root/.minio \
+                     minio/minio server /data --console-address ":9001"
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
+          distribution: adopt
           java-version: ${{ matrix.java-version }}
       - name: Compile Aws Module
         run: sbt ";project aws; +Test/compile"

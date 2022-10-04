@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
-import etlflow.audit.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.{SparkEnv, SparkUDF}
@@ -102,13 +102,13 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
     outputRepartitioningNum = 1
   )
 
-  val job: RIO[SparkEnv with LogEnv, Unit] = for {
+  val job: RIO[SparkEnv with AuditEnv, Unit] = for {
     _ <- task1.execute
     _ <- task21.execute.zipPar(task22.execute)
     _ <- task3.execute
   } yield ()
 
-  val spec: Spec[TestEnvironment with SparkEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with SparkEnv with AuditEnv, Any] =
     test("Execute SparkReadWriteTasks with GCS and BQ") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

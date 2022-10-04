@@ -2,7 +2,7 @@ package etlflow.task
 
 import etlflow.TestHelper
 import etlflow.gcp.Location.{GCS, LOCAL}
-import etlflow.audit.LogEnv
+import etlflow.audit.AuditEnv
 import gcp4zio.gcs._
 import zio.{Clock, ZIO}
 import zio.test.Assertion.equalTo
@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 object GCSTasksTestSuite extends TestHelper {
   case class RatingCSV(userId: Long, movieId: Long, rating: Double, timestamp: Long)
 
-  val spec: Spec[TestEnvironment with Clock with GCSEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with Clock with GCSEnv with AuditEnv, Any] =
     suite("GCS Tasks")(
       test("Execute GCSPut PARQUET task") {
         val task = GCSPutTask(

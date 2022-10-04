@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
-import etlflow.audit.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.schema.Rating
 import etlflow.spark.IOType.PARQUET
 import etlflow.spark.{ReadApi, SparkEnv, SparkUDF, WriteApi}
@@ -44,12 +44,12 @@ object ParquetToJdbcGenericTestSuite extends SparkUDF with ApplicationLogger wit
     function = processData(ip)
   )
 
-  val job: ZIO[SparkEnv with LogEnv, Throwable, Unit] = for {
+  val job: ZIO[SparkEnv with AuditEnv, Throwable, Unit] = for {
     op <- task1.execute
     _  <- task2(op).execute
   } yield ()
 
-  val spec: Spec[TestEnvironment with SparkEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with SparkEnv with AuditEnv, Any] =
     test("Execute ParquetToJdbcGenericSparkTaskTestSuite task") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

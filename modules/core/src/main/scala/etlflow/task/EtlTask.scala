@@ -1,6 +1,6 @@
 package etlflow.task
 
-import etlflow.audit.{LogApi, LogEnv}
+import etlflow.audit.{AuditApi, AuditEnv}
 import etlflow.utils.{ApplicationLogger, DateTimeApi}
 import zio.{RIO, ZIO}
 
@@ -13,12 +13,12 @@ trait EtlTask[R, OP] extends ApplicationLogger {
   protected def process: RIO[R, OP]
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  final def execute: RIO[R with LogEnv, OP] = for {
+  final def execute: RIO[R with AuditEnv, OP] = for {
     sri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
-    _   <- LogApi.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
+    _   <- AuditApi.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
     op <- process.tapError { ex =>
-      LogApi.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, Some(ex))
+      AuditApi.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, Some(ex))
     }
-    _ <- LogApi.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, None)
+    _ <- AuditApi.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, None)
   } yield op
 }

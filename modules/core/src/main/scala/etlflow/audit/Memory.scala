@@ -9,8 +9,8 @@ object Memory extends ApplicationLogger {
 
   sealed trait Status
   object Status {
-    final case object Running                 extends Status
-    final case object Succeed                 extends Status
+    case object Running                       extends Status
+    case object Succeed                       extends Status
     final case class Failed(error: Throwable) extends Status
   }
   final case class State(task_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
@@ -69,5 +69,5 @@ object Memory extends ApplicationLogger {
       } yield ()
   }
 
-  def live(jobRunId: String): ULayer[LogEnv] = ZLayer.succeed(MemoryLogger(jobRunId))
+  def live(jobRunId: String): ULayer[AuditEnv] = ZLayer.succeed(MemoryLogger(jobRunId))
 }

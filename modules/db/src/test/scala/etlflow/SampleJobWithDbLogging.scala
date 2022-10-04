@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.audit.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.model.Credential.JDBC
 import etlflow.task.{DBReadTask, GenericTask}
 import etlflow.utils.ApplicationLogger
@@ -11,7 +11,7 @@ object SampleJobWithDbLogging extends JobApp with ApplicationLogger {
 
   private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
 
-  override val logLayer: ZLayer[Any, Throwable, LogEnv] = audit.DB(cred, java.util.UUID.randomUUID.toString)
+  override val logLayer: ZLayer[Any, Throwable, AuditEnv] = audit.DB(cred, java.util.UUID.randomUUID.toString)
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -30,9 +30,9 @@ object SampleJobWithDbLogging extends JobApp with ApplicationLogger {
     function = processData(ip)
   )
 
-  def job(args: Chunk[String]): RIO[LogEnv, Unit] =
+  def job(args: Chunk[String]): RIO[AuditEnv, Unit] =
     for {
-      op1 <- task1.execute.provideSomeLayer[LogEnv](db.liveDB(cred))
+      op1 <- task1.execute.provideSomeLayer[AuditEnv](db.liveDB(cred))
       _   <- task2(op1).execute
     } yield ()
 }

@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.audit.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
 import zio.test.Assertion.equalTo
@@ -15,10 +15,10 @@ object GenericTaskTestSuite extends ApplicationLogger {
   }
   def processData(): Unit = logger.info("Hello World")
 
-  val spec: Spec[TestEnvironment with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with AuditEnv, Any] =
     suite("Generic Task")(
       test("Execute GenericETLTask with error") {
-        val task: RIO[LogEnv, Unit] = GenericTask(
+        val task: RIO[AuditEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
         ).execute
@@ -27,7 +27,7 @@ object GenericTaskTestSuite extends ApplicationLogger {
         )
       },
       test("Execute GenericETLTask with success") {
-        val task: RIO[LogEnv, Unit] = GenericTask(
+        val task: RIO[AuditEnv, Unit] = GenericTask(
           name = "ProcessData",
           function = processData()
         ).execute

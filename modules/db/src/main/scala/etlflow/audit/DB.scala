@@ -65,12 +65,12 @@ object DB extends ApplicationLogger {
         .fold(e => logger.error(e.getMessage), _ => ())
   }
 
-  private[etlflow] def live(jobRunId: String): ZLayer[String, Throwable, LogEnv] = ZLayer {
+  private[etlflow] def live(jobRunId: String): ZLayer[String, Throwable, AuditEnv] = ZLayer {
     for {
       poolName <- ZIO.service[String]
     } yield DBLogger(jobRunId, poolName)
   }
 
-  def apply(db: JDBC, jobRunId: String, poolName: String = "Job-Pool", poolSize: Int = 2): TaskLayer[LogEnv] =
+  def apply(db: JDBC, jobRunId: String, poolName: String = "Job-Pool", poolSize: Int = 2): TaskLayer[AuditEnv] =
     etlflow.db.CP.layer(db, poolName, poolSize) >>> live(jobRunId)
 }

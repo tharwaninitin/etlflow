@@ -31,5 +31,5 @@ object Console extends ApplicationLogger {
     // format: on
   }
 
-  val live: ULayer[LogEnv] = ZLayer.succeed(ConsoleLogger)
+  val live: ULayer[AuditEnv] = ZLayer.succeed(ConsoleLogger)
 }

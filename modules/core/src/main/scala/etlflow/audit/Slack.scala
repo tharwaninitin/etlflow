@@ -113,6 +113,6 @@ object Slack extends ApplicationLogger {
       }.orDie
   }
 
-  def live(slack: Option[model.Slack], jri: String): ULayer[LogEnv] =
+  def live(slack: Option[model.Slack], jri: String): ULayer[AuditEnv] =
     if (slack.isEmpty) noLog else ZLayer.succeed(SlackLogger(jri, slack))
 }

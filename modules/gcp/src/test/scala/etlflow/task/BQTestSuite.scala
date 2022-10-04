@@ -2,7 +2,7 @@ package etlflow.task
 
 import com.google.cloud.bigquery.Schema
 import etlflow.TestHelper
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import gcp4zio.bq.BQInputType.{CSV, PARQUET}
 import gcp4zio.bq._
 import zio.ZIO

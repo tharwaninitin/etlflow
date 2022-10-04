@@ -11,7 +11,7 @@ import sttp.client3.logging.LogLevel
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3._
 import sttp.model.MediaType
-import zio.{Task, TaskManaged}
+import zio.{Task, TaskManaged, ZIO}
 import scala.concurrent.duration._
 
 private[etlflow] object HttpApi extends ApplicationLogger {

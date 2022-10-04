@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.http.HttpMethod
-import etlflow.log.{noLog, LogEnv}
+import etlflow.audit.{noLog, LogEnv}
 import etlflow.utils.ApplicationLogger
 import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
@@ -82,8 +82,8 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     _ <- putTask2.execute
   } yield ()
 
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
+  override def spec: Spec[TestEnvironment, Any] =
     (suite("Http Tasks")(test("Execute Http tasks") {
-      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky).provideCustomLayerShared(noLog)
+      assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    }) @@ TestAspect.flaky).provideShared(noLog)
 }

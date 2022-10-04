@@ -3,7 +3,7 @@ package etlflow.task
 import etlflow.spark.{IOType, SparkApi, SparkEnv}
 import org.apache.spark.sql.streaming.Trigger
 import org.apache.spark.sql.{Dataset, Row}
-import zio.{RIO, Task, ZIO}
+import zio.{RIO, ZIO}
 import scala.reflect.runtime.universe.TypeTag
 
 case class SparkDeDupTask[I <: Product: TypeTag](

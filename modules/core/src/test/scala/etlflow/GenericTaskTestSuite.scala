@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
 import zio.test.Assertion.equalTo

@@ -1,6 +1,6 @@
 package etlflow.task
 
-import etlflow.log.noLog
+import etlflow.audit.noLog
 import etlflow.model.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
@@ -40,7 +40,7 @@ object SendMailTestSuite extends ZIOSpecDefault {
     )
   )
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
+  def spec: Spec[TestEnvironment, Any] =
     suite("SendMailTaskTestSuite")(
       test("Execute SendMailTask") {
         val task = SendMailTask(
@@ -51,11 +51,11 @@ object SendMailTestSuite extends ZIOSpecDefault {
           recipientList = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
           credentials = smtp
         ).execute
-        assertM(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+        assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getTaskProperties") {
         val props = task.getTaskProperties
         assertTrue(props == Map("subject" -> "SendMailTask Test Ran Successfully", "recipient_list" -> "abcd@abcd.com"))
       }
-    ).provideCustomLayerShared(noLog)
+    ).provideShared(noLog)
 }

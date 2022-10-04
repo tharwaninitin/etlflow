@@ -1,6 +1,6 @@
 package etlflow.utils
 
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.task.GenericTask
 import zio.{Duration => ZDuration}

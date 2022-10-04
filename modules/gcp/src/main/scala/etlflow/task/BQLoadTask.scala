@@ -68,12 +68,6 @@ case class BQLoadTask(
     program *> ZIO.succeed(logger.info("#" * 50))
   }
 
-  override def getExecutionMetrics: Map[String, String] =
-    Map(
-      "total_rows" -> rowCount.foldLeft(0L)((a, b) => a + b._2).toString
-      // "total_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
-    )
-
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getTaskProperties: Map[String, String] = Map(
     "input_type" -> inputType.toString,
@@ -86,6 +80,7 @@ case class BQLoadTask(
     "output_table_write_disposition"  -> outputWriteDisposition.toString,
     "output_table_create_disposition" -> outputCreateDisposition.toString
     // ,"output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+    // "output_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
     ,
     "output_rows" -> rowCount.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
   )

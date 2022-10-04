@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.TestHelper
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import gcp4zio.dp._
 import zio.ZIO
 import zio.test.Assertion.equalTo

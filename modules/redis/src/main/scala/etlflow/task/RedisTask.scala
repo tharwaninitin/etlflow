@@ -4,7 +4,7 @@ import com.redis._
 import RedisTask.RedisCmd
 import etlflow.redis.RedisApi
 import etlflow.model.Credential.REDIS
-import zio.Task
+import zio.{Task, ZIO}
 
 case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extends EtlTask[Any, Unit] {
 

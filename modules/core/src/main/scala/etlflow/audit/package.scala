@@ -1,11 +1,9 @@
 package etlflow
 
 import zio.{UIO, ULayer, URIO, ZIO, ZLayer}
-import scala.util.Try
 
-package object log {
-  type LogEnv    = Service[UIO]
-  type LogEnvTry = Service[Try]
+package object audit {
+  type LogEnv = Service[UIO]
   
   // format: off
   trait Service[F[_]] {
@@ -36,13 +34,5 @@ package object log {
       override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] = ZIO.unit
     }
   )
-  
-  val noLogTry: LogEnvTry = new LogEnvTry {
-      override val jobRunId: String = ""
-      override def logTaskStart(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, startTime: Long): Try[Unit] = Try(())
-      override def logTaskEnd(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, endTime: Long, error: Option[Throwable]): Try[Unit] = Try(())
-      override def logJobStart(jobName: String, args: String, startTime: Long): Try[Unit] = Try(())
-      override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): Try[Unit] = Try(())
-    }
   // format: on
 }

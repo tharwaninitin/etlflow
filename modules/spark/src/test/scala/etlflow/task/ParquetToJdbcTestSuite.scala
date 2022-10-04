@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import etlflow.schema.{Rating, RatingsMetrics}
 import etlflow.spark.IOType.PARQUET
 import etlflow.spark.SparkEnv
@@ -9,7 +9,7 @@ import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Encoders, SaveMode}
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio._
+import zio.{RIO, ZIO}
 
 object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelper {
 
@@ -48,8 +48,8 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     bool = ip == op
   } yield bool
 
-  val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with SparkEnv with LogEnv, Any] =
     test("Record counts and sum should be matching after task run LoadRatingsParquetToJdbc")(
-      assertM(job.foldZIO(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
+      assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op)))(equalTo(true))
     )
 }

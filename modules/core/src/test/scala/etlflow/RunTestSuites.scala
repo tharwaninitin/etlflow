@@ -10,5 +10,5 @@ object RunTestSuites extends ZIOSpecDefault {
     RetryTaskTestSuite.spec,
     GenericTaskTestSuite.spec,
     ErrorHandlingTestSuite.spec
-  ) @@ TestAspect.sequential).provideCustomShared(log.noLog ++ Runtime.removeDefaultLoggers)
+  ) @@ TestAspect.sequential).provideCustomShared(audit.noLog ++ Runtime.removeDefaultLoggers)
 }

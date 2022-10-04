@@ -13,8 +13,6 @@ case class BQExportTask(
     destinationFormat: BQInputType,
     destinationCompressionType: String = "gzip"
 ) extends EtlTask[BQEnv, Unit] {
-  @SuppressWarnings(Array("org.wartremover.warts.Var"))
-  var rowCount: Map[String, Long] = Map.empty
 
   override protected def process: RIO[BQEnv, Unit] = {
     logger.info("#" * 50)
@@ -30,10 +28,6 @@ case class BQExportTask(
     ) *> ZIO.succeed(logger.info("#" * 50))
   }
 
-  override def getExecutionMetrics: Map[String, String] =
-    Map(
-      "total_rows" -> rowCount.foldLeft(0L)((a, b) => a + b._2).toString
-    )
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getTaskProperties: Map[String, String] = Map(
     "input_project"   -> sourceProject.getOrElse(""),

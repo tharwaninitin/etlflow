@@ -3,7 +3,7 @@ package etlflow.task
 import etlflow.spark._
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
-import zio.{RIO, UIO}
+import zio.{RIO, ZIO}
 import scala.reflect.runtime.universe.TypeTag
 
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Throw"))

@@ -1,4 +1,4 @@
-package etlflow.log
+package etlflow.audit
 
 import zio.test._
 

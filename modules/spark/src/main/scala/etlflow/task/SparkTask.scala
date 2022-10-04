@@ -2,7 +2,7 @@ package etlflow.task
 
 import etlflow.spark.{SparkApi, SparkEnv}
 import org.apache.spark.sql.SparkSession
-import zio.{RIO, Task}
+import zio.{RIO, ZIO}
 
 case class SparkTask[OP](name: String, transformFunction: SparkSession => OP) extends EtlTask[SparkEnv, OP] {
   override protected def process: RIO[SparkEnv, OP] =

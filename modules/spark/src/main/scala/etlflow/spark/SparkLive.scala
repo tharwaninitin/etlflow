@@ -2,11 +2,11 @@ package etlflow.spark
 
 import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Row, SaveMode, SparkSession}
-import zio.{Managed, Task, TaskLayer, UIO}
+import zio.{Task, TaskLayer, ZIO, ZLayer}
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe.TypeTag
 
-final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
+final case class SparkLive(spark: SparkSession) extends SparkApi.Service[Task] {
 
   override def getSparkSession: Task[SparkSession] = ZIO.attempt(spark)
 
@@ -82,14 +82,15 @@ final case class SparkImpl(spark: SparkSession) extends SparkApi.Service[Task] {
   )
 }
 
-object SparkImpl extends ApplicationLogger {
-  def live(spark: SparkSession): TaskLayer[SparkEnv] = Managed
-    .acquireReleaseWith(ZIO.attempt(spark))(a =>
-      ZIO.succeed {
-        logger.info("Stopping spark session")
-        a.close()
-      }
-    )
-    .map(SparkImpl(_))
-    .toLayer
+object SparkLive extends ApplicationLogger {
+  def live(spark: SparkSession): TaskLayer[SparkEnv] = ZLayer.scoped {
+    ZIO
+      .acquireRelease(ZIO.attempt(spark))(a =>
+        ZIO.succeed {
+          logger.info("Stopping spark session")
+          a.close()
+        }
+      )
+      .map(SparkLive(_))
+  }
 }

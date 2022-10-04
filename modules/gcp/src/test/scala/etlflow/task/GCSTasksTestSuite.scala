@@ -2,7 +2,7 @@ package etlflow.task
 
 import etlflow.TestHelper
 import etlflow.gcp.Location.{GCS, LOCAL}
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import gcp4zio.gcs._
 import zio.{Clock, ZIO}
 import zio.test.Assertion.equalTo

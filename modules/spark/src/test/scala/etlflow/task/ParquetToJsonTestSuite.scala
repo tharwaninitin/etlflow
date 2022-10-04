@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import etlflow.schema.Rating
 import etlflow.spark.IOType
 import etlflow.spark.SparkEnv
@@ -26,8 +26,8 @@ object ParquetToJsonTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     outputFilename = Some("ratings.json")
   ).execute
 
-  val test: ZSpec[environment.TestEnvironment with SparkEnv with LogEnv, Any] =
+  val spec: Spec[TestEnvironment with SparkEnv with LogEnv, Any] =
     test("ParquetToJsonTestSuite task should run successfully")(
-      assertM(task1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
+      assertZIO(task1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Ok")))(equalTo("Ok"))
     )
 }

@@ -9,7 +9,14 @@ import org.apache.spark.sql.types.StructType
 
 import scala.reflect.runtime.universe.TypeTag
 
-@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.TraversableOps", "org.wartremover.warts.ToString"))
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Throw",
+    "org.wartremover.warts.TraversableOps",
+    "org.wartremover.warts.ToString",
+    "org.wartremover.warts.IterableOps"
+  )
+)
 object ReadApi extends ApplicationLogger {
   private def dfRead(location: List[String], inputType: IOType)(spark: SparkSession): DataFrameReader = {
     val dfReader = spark.read

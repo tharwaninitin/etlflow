@@ -1,4 +1,4 @@
-package etlflow.log
+package etlflow.audit
 
 import etlflow.model.Credential.JDBC
 import etlflow.utils.{ApplicationLogger, DateTimeApi, MapToJson}
@@ -6,7 +6,7 @@ import scalikejdbc.NamedDB
 import zio.{TaskLayer, UIO, ZIO, ZLayer}
 
 object DB extends ApplicationLogger {
-  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.log.Service[UIO] {
+  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.audit.Service[UIO] {
     override def logTaskStart(
         taskRunId: String,
         taskName: String,

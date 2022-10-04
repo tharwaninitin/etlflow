@@ -11,7 +11,8 @@ import zio.test.ZIOSpecDefault
 
 object RunTests extends ZIOSpecDefault with TestHelper {
 
-  private val env = DPJobLive(dpEndpoint) ++ DPLive(dpEndpoint) ++ BQLive() ++ GCSLive() ++ log.noLog ++ ZLayer.succeed(ClockLive)
+  private val env =
+    DPJobLive(dpEndpoint) ++ DPLive(dpEndpoint) ++ BQLive() ++ GCSLive() ++ audit.noLog ++ ZLayer.succeed(ClockLive)
 
   override def spec: Spec[TestEnvironment, Any] = (suite("GCP Tasks")(
     BQTestSuite.spec,

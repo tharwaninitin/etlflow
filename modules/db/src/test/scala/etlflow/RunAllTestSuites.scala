@@ -9,7 +9,7 @@ object RunAllTestSuites extends ZIOSpecDefault with DbSuiteHelper {
   def spec: Spec[TestEnvironment, Any] = (suite("DB Test Suites")(
     InitDBSuite.spec(reset), // Will initialize db
     db.DbTestSuite.spec,     // Will execute actual DB queries
-    log.DbTestSuite.spec,    // Will execute actual DB queries
-    log.SqlTestSuite.spec
+    audit.DbTestSuite.spec,  // Will execute actual DB queries
+    audit.SqlTestSuite.spec
   ) @@ TestAspect.sequential).provideCustomShared(db.liveDBWithLog(credentials, jri).orDie)
 }

@@ -5,7 +5,7 @@ import zio.test._
 
 @SuppressWarnings(Array("org.wartremover.warts.Null"))
 object TransformationTestSuite extends SparkUDF {
-  val spec: ZSpec[zio.test.environment.TestEnvironment, Any] =
+  val spec: Spec[TestEnvironment, Any] =
     suite("Transformation Test Suite")(
       test("Case 1 : get_24hr_formatted_from_12hr ") {
         assertTrue(get24hrFrom12hr("01:39:40 PM").toList.contains("13:39:40"))

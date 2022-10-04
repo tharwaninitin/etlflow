@@ -1,4 +1,4 @@
-package etlflow.log
+package etlflow.audit
 
 import etlflow.db.utils
 import zio.test._
@@ -44,7 +44,7 @@ object SqlTestSuite {
         assertTrue(ip == op)
       },
       test("updateTaskRun Sql") {
-        val ip = etlflow.log.Sql
+        val ip = Sql
           .updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123")
           .statement
           .replaceAll("\\s+", " ")

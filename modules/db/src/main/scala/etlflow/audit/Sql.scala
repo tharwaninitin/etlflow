@@ -1,4 +1,4 @@
-package etlflow.log
+package etlflow.audit
 
 import etlflow.utils.ApplicationLogger
 import scalikejdbc._

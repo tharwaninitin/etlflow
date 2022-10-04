@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.log.{LogApi, LogEnv}
+import etlflow.audit.{LogApi, LogEnv}
 import etlflow.utils.{DateTimeApi, MapToJson}
 import zio._
 //import zio.logging.LogFormat
@@ -10,7 +10,7 @@ trait JobApp extends ZIOAppDefault {
 
   def job(args: Chunk[String]): RIO[LogEnv, Unit]
 
-  val logLayer: ZLayer[Any, Throwable, LogEnv] = log.noLog
+  val logLayer: ZLayer[Any, Throwable, LogEnv] = audit.noLog
 
   // override val bootstrap = SLF4J.slf4j(LogLevel.Info, LogFormat.colored)
 

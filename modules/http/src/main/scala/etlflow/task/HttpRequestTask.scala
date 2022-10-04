@@ -26,8 +26,5 @@ case class HttpRequestTask(
     HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
   }
 
-  override def getTaskProperties: Map[String, String] = Map(
-    "url"         -> url,
-    "http_method" -> method.toString
-  )
+  override def getTaskProperties: Map[String, String] = Map("url" -> url, "http_method" -> method.toString)
 }

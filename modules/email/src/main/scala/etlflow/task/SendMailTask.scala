@@ -3,7 +3,6 @@ package etlflow.task
 import etlflow.email.MailClientApi
 import etlflow.model.Credential.SMTP
 import zio.{Task, ZIO}
-import scala.util.Try
 
 case class SendMailTask(
     name: String,
@@ -14,9 +13,7 @@ case class SendMailTask(
     sender: Option[String] = None
 ) extends EtlTask[Any, Unit] {
 
-  override protected def process: Task[Unit] = ZIO.fromTry(processTry)
-
-  override protected def processTry: Try[Unit] = Try {
+  override protected def process: Task[Unit] = ZIO.attempt {
     logger.info("#" * 100)
     logger.info(s"Starting SendMailTask")
     MailClientApi.sendMail(sender, recipientList, body, subject, credentials)

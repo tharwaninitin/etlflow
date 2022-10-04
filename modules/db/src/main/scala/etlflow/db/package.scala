@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.log.LogEnv
+import etlflow.audit.LogEnv
 import etlflow.model.Credential.JDBC
 import zio.TaskLayer
 
@@ -17,5 +17,5 @@ package object db {
       poolName: String = "EtlFlow-Pool",
       poolSize: Int = 2
   ): TaskLayer[DBEnv with LogEnv] =
-    CP.layer(db, poolName, poolSize) >>> (DB.live ++ log.DB.live(jobRunId))
+    CP.layer(db, poolName, poolSize) >>> (DB.live ++ audit.DB.live(jobRunId))
 }

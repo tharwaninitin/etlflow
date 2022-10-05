@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 17 ]
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     steps:
       - name: Checkout Code
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 17 ]
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     services:
       postgres:
@@ -79,26 +79,11 @@ jobs:
           LOG_DB_USER: etlflow
           LOG_DB_PWD: etlflow
           LOG_DB_DRIVER: com.mysql.cj.jdbc.Driver
-  gcp:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java-version: [ 8, 11, 17 ]
-      fail-fast: false
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java-version }}
-      - name: Compile Gcp Module
-        run: sbt ";project gcp; +Test/compile"
   spark:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 14 ]
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     services:
       # Label used to access the service container
@@ -124,13 +109,13 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Compile Spark Module
+      - name: Run Spark Tests
         run: sbt ";project spark; +test"
   http:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 14 ]
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     steps:
       - name: Checkout Code
@@ -139,13 +124,13 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java-version }}
-      - name: Run Http Tests For All Modules
+      - name: Run Http Tests
         run: sbt ";project http; +test"
   redis:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 14 ]
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     services:
       # Label used to access the service container
@@ -174,7 +159,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 17 ]
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     steps:
       - name: Checkout Code
@@ -192,13 +177,13 @@ jobs:
         with:
           distribution: adopt
           java-version: ${{ matrix.java-version }}
-      - name: Compile Aws Module
+      - name: Run AWS Tests
         run: sbt ";project aws; +test"
   email:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 14 ]
+        java-version: [ 8, 11, 17 ]
       fail-fast: false
     steps:
       - name: Checkout Code
@@ -209,3 +194,18 @@ jobs:
           java-version: ${{ matrix.java-version }}
       - name: Compile Email Module
         run: sbt ";project email; +Test/compile"
+  gcp:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8, 11, 17 ]
+      fail-fast: false
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Compile Gcp Module
+        run: sbt ";project gcp; +Test/compile"

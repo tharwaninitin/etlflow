@@ -2,9 +2,9 @@ package examples
 
 import etlflow.task.GenericTask
 import etlflow.utils.ApplicationLogger
-import zio.{ExitCode, URIO}
+import zio.Task
 
-object Job1 extends zio.App with ApplicationLogger {
+object Job1 extends zio.ZIOAppDefault with ApplicationLogger {
 
   def processData(): Unit = logger.info(s"Hello World")
 
@@ -13,5 +13,5 @@ object Job1 extends zio.App with ApplicationLogger {
     function = processData()
   )
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = task1.execute.provideCustomLayer(etlflow.log.noLog).exitCode
+  override def run: Task[Unit] = task1.execute.provideLayer(etlflow.audit.noLog)
 }

@@ -1,13 +1,12 @@
 package examples
 
-import etlflow.task.{DBReadTask, GenericTask}
-import etlflow.log.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.model.Credential.JDBC
+import etlflow.task.{DBReadTask, GenericTask}
 import etlflow.utils.ApplicationLogger
-import zio.blocking.Blocking
-import zio.{ExitCode, URIO}
+import zio.Task
 
-object Job3 extends zio.App with ApplicationLogger {
+object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -28,9 +27,10 @@ object Job3 extends zio.App with ApplicationLogger {
     function = processData(ip)
   )
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    (for {
-       op <- task1.execute.provideSomeLayer[LogEnv with Blocking](etlflow.db.liveDB(cred))
-       _  <- task2(op).execute
-     } yield ()).provideCustomLayer(etlflow.log.noLog).exitCode
+  private val job = for {
+    op <- task1.execute.provideSomeLayer[AuditEnv](etlflow.db.liveDB(cred))
+    _  <- task2(op).execute
+  } yield ()
+
+  override def run: Task[Unit] = job.provideLayer(etlflow.audit.noLog)
 }

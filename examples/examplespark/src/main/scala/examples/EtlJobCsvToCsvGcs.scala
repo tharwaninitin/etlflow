@@ -1,24 +1,24 @@
 package examples
 
 import etlflow.spark.Environment.{GCP, LOCAL}
-import etlflow.spark.{IOType, SparkImpl, SparkManager}
-import etlflow.utils.ApplicationLogger
-import Globals.defaultRatingsInputPathCsv
+import etlflow.spark.{IOType, SparkLive, SparkManager}
 import etlflow.task.SparkReadWriteTask
+import etlflow.utils.ApplicationLogger
+import examples.Globals.defaultRatingsInputPathCsv
 import examples.Schema.{Rating, RatingOutput}
+import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, from_unixtime, unix_timestamp}
 import org.apache.spark.sql.types.DateType
-import org.apache.spark.sql._
-import zio.{ExitCode, URIO}
+import zio.Task
 
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.NonUnitStatements"))
-object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
+object EtlJobCsvToCsvGcs extends zio.ZIOAppDefault with ApplicationLogger {
 
   private val gcsOutputPath                  = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
   var outputDatePaths: Seq[(String, String)] = Seq()
   private val tempDateCol                    = "temp_date_col"
 
-  implicit private val spark: SparkSession = SparkManager.createSparkSession(
+  val spark: SparkSession = SparkManager.createSparkSession(
     Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))),
     hiveSupport = false
   )
@@ -58,7 +58,7 @@ object EtlJobCsvToCsvGcs extends zio.App with ApplicationLogger {
     outputLocation = gcsOutputPath,
     outputPartitionCol = Seq(f"$tempDateCol"),
     outputSaveMode = SaveMode.Overwrite
-  ).execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
+  ).execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = task1.exitCode
+  override def run: Task[Unit] = task1
 }

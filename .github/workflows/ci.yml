@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
+        java-version: [ 11, 14 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     services:
       # Label used to access the service container

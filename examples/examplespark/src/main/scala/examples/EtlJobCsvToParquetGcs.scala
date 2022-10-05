@@ -1,24 +1,24 @@
 package examples
 
 import etlflow.spark.Environment.{GCP, LOCAL}
-import etlflow.spark.{IOType, ReadApi, SparkImpl, SparkManager}
-import etlflow.utils.ApplicationLogger
-import Globals.defaultRatingsInputPathCsv
+import etlflow.spark.{IOType, ReadApi, SparkLive, SparkManager}
 import etlflow.task.{SparkReadWriteTask, SparkTask}
+import etlflow.utils.ApplicationLogger
+import examples.Globals.defaultRatingsInputPathCsv
 import examples.Schema.{Rating, RatingOutput}
+import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, from_unixtime, input_file_name, unix_timestamp}
 import org.apache.spark.sql.types.DateType
-import org.apache.spark.sql._
-import zio.{ExitCode, URIO}
+import zio.Task
 
 @SuppressWarnings(Array("org.wartremover.warts.Var"))
-object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
+object EtlJobCsvToParquetGcs extends zio.ZIOAppDefault with ApplicationLogger {
 
   private val gcsOutputPath                          = f"gs://${sys.env("GCS_BUCKET")}/output/ratings1"
   private var outputDatePaths: Seq[(String, String)] = Seq()
   private val tempDateCol                            = "temp_date_col"
 
-  implicit private val spark: SparkSession = SparkManager.createSparkSession(
+  val spark: SparkSession = SparkManager.createSparkSession(
     Set(LOCAL, GCP(sys.env("GOOGLE_APPLICATION_CREDENTIALS"), sys.env("GCP_PROJECT_ID"))),
     hiveSupport = false
   )
@@ -73,6 +73,5 @@ object EtlJobCsvToParquetGcs extends zio.App with ApplicationLogger {
     _ <- task2.execute
   } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    job.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog).exitCode
+  override def run: Task[Unit] = job.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
 }

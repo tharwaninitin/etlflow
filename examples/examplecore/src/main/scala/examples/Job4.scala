@@ -7,6 +7,7 @@ import etlflow.model.Credential.JDBC
 import etlflow.utils.ApplicationLogger
 import zio.{Chunk, RIO, ZLayer}
 
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object Job4 extends JobApp with ApplicationLogger {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)

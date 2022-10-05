@@ -8,19 +8,19 @@
 
 **EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different tasks, jobs on GCP and AWS.
 
-## Documentation
+[//]: # (## Documentation)
 
-__Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
+[//]: # ()
+[//]: # (__Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs)
 
-[comment]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
+[//]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
 
 ## Examples
-You can use this library in different ways mentioned below.
-* [Core Module](examplecore):         
+* [Core Module](examples/examplecore):         
   Using this module you can use features of Task API into your project.
-* [Spark Module (spark tasks)](examplespark):         
+* [Spark Module (spark tasks)](examples/examplespark):         
   Using this addon module along with core you can use Apache Spark tasks into your project.
-* [GCP Module (spark tasks)](examplegcp):         
+* [GCP Module (spark tasks)](examples/examplegcp):         
   Using this addon module along with core you can use GCP tasks into your project.
 
 ## Modules Dependency Graph

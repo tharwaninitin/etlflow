@@ -17,11 +17,11 @@
 
 ## Examples
 * [Core Module](examples/examplecore):         
-  Using this module you can use features of Task API into your project.
-* [Spark Module (spark tasks)](examples/examplespark):         
-  Using this addon module along with core you can use Apache Spark tasks into your project.
-* [GCP Module (spark tasks)](examples/examplegcp):         
-  Using this addon module along with core you can use GCP tasks into your project.
+  In this example project, you can explore core features of etlflow, Task and Audit API.
+* [Spark Module (Spark tasks)](examples/examplespark):         
+  In this example project, you can explore Apache Spark tasks.
+* [GCP Module (GCS, DataProc, BigQuery tasks)](examples/examplegcp):         
+  In this example project, you can explore GCP tasks.
 
 ## Modules Dependency Graph
 
@@ -41,8 +41,9 @@
 
 ## Requirements and Installation
 This project is compiled with scala versions 2.12.17, 2.13.9, 3.2.0
+
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
-Add the latest release as a dependency to your project
+Add the below latest release as a dependency to your project
 
 [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 
@@ -50,7 +51,6 @@ __SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "x.x.x"

@@ -1,8 +1,8 @@
 package etlflow.spark
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.EtlJobException
 import etlflow.spark.IOType._
-import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, split}
 import org.apache.spark.sql.types.StructType

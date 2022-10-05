@@ -1,7 +1,7 @@
 package etlflow.db
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
-import etlflow.utils.ApplicationLogger
 import scalikejdbc.{ConnectionPool, ConnectionPoolSettings}
 import zio._
 

@@ -1,11 +1,13 @@
 package examples
 
 import etlflow.task.GenericTask
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import zio.Task
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
 object Job2 extends zio.ZIOAppDefault with ApplicationLogger {
+
+  override val bootstrap = zioSlf4jLogger
 
   def processData1(): String = {
     logger.info(s"Hello World")

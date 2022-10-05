@@ -1,6 +1,7 @@
 package etlflow.audit
 
-import etlflow.utils.{ApplicationLogger, DateTimeApi}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.DateTimeApi
 import zio.{Ref, UIO, ULayer, ZIO, ZLayer}
 import scala.collection.mutable
 

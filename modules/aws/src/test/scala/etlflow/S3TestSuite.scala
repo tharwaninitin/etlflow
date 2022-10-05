@@ -1,9 +1,9 @@
 package etlflow
 
 import etlflow.aws.{S3, S3Api, S3Env}
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential
 import etlflow.task._
-import etlflow.utils.ApplicationLogger
 import zio.stream.ZPipeline
 import zio.test.Assertion.equalTo
 import zio.test._

@@ -1,7 +1,8 @@
 package etlflow.audit
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
-import etlflow.utils.{ApplicationLogger, DateTimeApi, MapToJson}
+import etlflow.utils.{DateTimeApi, MapToJson}
 import scalikejdbc.NamedDB
 import zio.{TaskLayer, UIO, ZIO, ZLayer}
 

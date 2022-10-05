@@ -4,7 +4,7 @@ import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.RDB
 import etlflow.spark.{IOType, SparkLive, SparkManager}
 import etlflow.task.SparkReadWriteTask
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import examples.Schema.RatingBQ
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import zio.Task

@@ -1,5 +1,6 @@
 package etlflow.utils
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import zio.Schedule.Decision
 import zio.{Duration => ZDuration, Schedule, ZIO}

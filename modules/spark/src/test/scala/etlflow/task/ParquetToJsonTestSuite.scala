@@ -2,10 +2,10 @@ package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
 import etlflow.audit.AuditEnv
+import etlflow.log.ApplicationLogger
 import etlflow.schema.Rating
 import etlflow.spark.IOType
 import etlflow.spark.SparkEnv
-import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.SaveMode
 import zio.test.Assertion.equalTo
 import zio.test._

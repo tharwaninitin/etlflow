@@ -2,10 +2,10 @@ package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
 import etlflow.audit.AuditEnv
+import etlflow.log.ApplicationLogger
 import etlflow.schema.Rating
 import etlflow.spark.IOType.PARQUET
 import etlflow.spark.{ReadApi, SparkEnv, SparkUDF, WriteApi}
-import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}

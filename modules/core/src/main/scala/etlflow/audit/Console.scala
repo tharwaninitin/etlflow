@@ -1,6 +1,6 @@
 package etlflow.audit
 
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import zio.{UIO, ULayer, ZIO, ZLayer}
 
 object Console extends ApplicationLogger {

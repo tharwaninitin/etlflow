@@ -3,10 +3,12 @@ package examples
 import etlflow.audit.AuditEnv
 import etlflow.model.Credential.JDBC
 import etlflow.task.{DBReadTask, GenericTask}
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import zio.Task
 
 object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
+
+  override val bootstrap = zioSlf4jLogger
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 

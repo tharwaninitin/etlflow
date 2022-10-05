@@ -1,6 +1,6 @@
 package etlflow.http
 
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}
@@ -12,6 +12,7 @@ import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3._
 import sttp.model.MediaType
 import zio.{Scope, Task, ZIO}
+
 import scala.concurrent.duration._
 
 private[etlflow] object HttpApi extends ApplicationLogger {

@@ -1,7 +1,8 @@
 package etlflow.task
 
 import etlflow.audit.{AuditApi, AuditEnv}
-import etlflow.utils.{ApplicationLogger, DateTimeApi}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.DateTimeApi
 import zio.{RIO, ZIO}
 
 trait EtlTask[R, OP] extends ApplicationLogger {

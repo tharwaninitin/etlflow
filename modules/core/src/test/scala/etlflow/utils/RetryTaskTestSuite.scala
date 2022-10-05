@@ -1,12 +1,14 @@
 package etlflow.utils
 
 import etlflow.audit.AuditEnv
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.task.GenericTask
 import zio.{Duration => ZDuration}
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, ZIO}
+
 import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))

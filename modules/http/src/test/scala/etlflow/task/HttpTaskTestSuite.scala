@@ -2,10 +2,11 @@ package etlflow.task
 
 import etlflow.http.HttpMethod
 import etlflow.audit.{noLog, AuditEnv}
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
+
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import zio.test.ZIOSpecDefault

@@ -1,7 +1,7 @@
 package etlflow.audit
 
+import etlflow.log.ApplicationLogger
 import etlflow.model
-import etlflow.utils.ApplicationLogger
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 import zio.{UIO, ULayer, ZIO, ZLayer}
 import java.io.{BufferedWriter, OutputStreamWriter}

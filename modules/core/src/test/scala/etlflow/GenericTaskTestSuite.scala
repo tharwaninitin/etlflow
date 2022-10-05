@@ -1,8 +1,8 @@
 package etlflow
 
 import etlflow.audit.AuditEnv
+import etlflow.log.ApplicationLogger
 import etlflow.task.GenericTask
-import etlflow.utils.ApplicationLogger
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, ZIO}

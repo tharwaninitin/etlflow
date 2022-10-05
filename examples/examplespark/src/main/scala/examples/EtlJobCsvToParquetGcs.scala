@@ -3,7 +3,7 @@ package examples
 import etlflow.spark.Environment.{GCP, LOCAL}
 import etlflow.spark.{IOType, ReadApi, SparkLive, SparkManager}
 import etlflow.task.{SparkReadWriteTask, SparkTask}
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import examples.Globals.defaultRatingsInputPathCsv
 import examples.Schema.{Rating, RatingOutput}
 import org.apache.spark.sql._

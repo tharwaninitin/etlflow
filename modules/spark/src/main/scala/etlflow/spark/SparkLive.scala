@@ -1,6 +1,6 @@
 package etlflow.spark
 
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import org.apache.spark.sql.{Dataset, Row, SaveMode, SparkSession}
 import zio.{Task, TaskLayer, ZIO, ZLayer}
 import scala.reflect.runtime.universe

@@ -1,6 +1,6 @@
 package etlflow.audit
 
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import scalikejdbc._
 
 private[etlflow] object Sql extends ApplicationLogger {

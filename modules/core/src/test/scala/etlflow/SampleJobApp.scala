@@ -2,13 +2,12 @@ package etlflow
 
 import etlflow.audit.AuditEnv
 import etlflow.task.GenericTask
-import etlflow.utils.ApplicationLogger
 import zio.{Chunk, RIO, ZLayer}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-object SampleJobApp extends JobApp with ApplicationLogger {
+object SampleJobApp extends JobApp {
 
-  override val logLayer: ZLayer[Any, Throwable, AuditEnv] = audit.Memory.live(java.util.UUID.randomUUID.toString)
+  override val auditLayer: ZLayer[Any, Throwable, AuditEnv] = audit.Memory.live(java.util.UUID.randomUUID.toString)
 
   def processData1(): String = {
     logger.info("Hello World")

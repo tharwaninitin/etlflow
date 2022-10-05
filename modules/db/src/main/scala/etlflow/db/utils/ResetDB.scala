@@ -1,8 +1,8 @@
 package etlflow.db.utils
 
 import etlflow.db.liveDB
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
-import etlflow.utils.ApplicationLogger
 import zio.{Task, ZIO}
 
 object ResetDB extends zio.ZIOAppDefault with ApplicationLogger {

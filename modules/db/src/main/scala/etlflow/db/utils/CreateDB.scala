@@ -1,7 +1,7 @@
 package etlflow.db.utils
 
 import etlflow.db.{DBApi, DBEnv}
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import zio.ZIO
 
 object CreateDB extends ApplicationLogger {

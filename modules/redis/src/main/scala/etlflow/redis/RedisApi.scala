@@ -1,7 +1,7 @@
 package etlflow.redis
 
 import com.redis.RedisClient
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 
 private[etlflow] object RedisApi extends ApplicationLogger {
 

@@ -20,7 +20,7 @@ package object aws {
     override def onResponse(response: GetObjectResponse): Unit = ()
 
     override def onStream(publisher: SdkPublisher[ByteBuffer]): Unit = {
-      cf.complete(publisher.toStream().map(Chunk.fromByteBuffer))
+      cf.complete(publisher.toZIOStream().map(Chunk.fromByteBuffer))
       ()
     }
 
@@ -29,4 +29,5 @@ package object aws {
       ()
     }
   }
+
 }

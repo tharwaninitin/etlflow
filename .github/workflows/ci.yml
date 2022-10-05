@@ -193,7 +193,7 @@ jobs:
           distribution: adopt
           java-version: ${{ matrix.java-version }}
       - name: Compile Aws Module
-        run: sbt ";project aws; +Test/compile"
+        run: sbt ";project aws; +test"
   email:
     runs-on: ubuntu-latest
     strategy:

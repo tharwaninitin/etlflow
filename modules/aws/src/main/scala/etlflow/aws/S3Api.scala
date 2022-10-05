@@ -30,7 +30,7 @@ object S3Api {
       content: ZStream[R, Throwable, Byte],
       contentLength: Long
   ): RIO[R with S3Env, Unit] =
-    ZIO.environmentWithZIO[R with S3Env](_.get.putObject[R](bucket, key, content, contentLength))
+    ZIO.environmentWithZIO[S3Env](_.get.putObject[R](bucket, key, content, contentLength))
   def putObject(bucket: String, key: String, file: Path, overwrite: Boolean): RIO[S3Env, PutObjectResponse] =
     ZIO.environmentWithZIO[S3Env](_.get.putObject(bucket, key, file, overwrite))
   def getObject(bucket: String, key: String, file: Path): RIO[S3Env, GetObjectResponse] =

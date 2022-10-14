@@ -40,7 +40,7 @@
 |     Spark     |     ✅      |      ✅      |     ❌      |
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.17, 2.13.9, 3.2.0
+This project is compiled with scala versions 2.12.17, 2.13.10, 3.2.0
 
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the below latest release as a dependency to your project

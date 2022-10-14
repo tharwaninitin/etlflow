@@ -7,16 +7,17 @@ object Versions {
   val EtlFlowVersion   = "1.0.0"
 
   val ZioVersion                = "2.0.2"
-  val ZioLogVersion             = "2.1.1"
+  val ZioLogVersion             = "2.1.2"
   val ZioReactiveStreamsVersion = "2.0.0"
 
   val ScalaCollectionCompatVersion = "2.8.1"
-  val SttpVersion                  = "3.8.2"
-  val AwsS3Version                 = "2.17.287"
-  val RedisVersion                 = "3.42"
-  val MailVersion                  = "1.6.2"
-  val ScalaLikeJdbcVersion         = "4.0.0"
-  val Gcp4ZioVersion               = "1.0.0"
+
+  val SttpVersion          = "3.8.2"
+  val AwsS3Version         = "2.17.291"
+  val RedisVersion         = "3.42"
+  val MailVersion          = "1.6.2"
+  val ScalaLikeJdbcVersion = "4.0.0"
+  val Gcp4ZioVersion       = "1.0.0"
 
   val SparkVersion     = "3.3.0"
   val SparkBQVersion   = "0.23.1"
@@ -27,5 +28,5 @@ object Versions {
   val MySqlVersion = "8.0.30"
 
   val Sl4jVersion    = "1.7.36"
-  val LogbackVersion = "1.4.3"
+  val LogbackVersion = "1.4.4"
 }

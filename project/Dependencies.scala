@@ -4,20 +4,23 @@ import Versions._
 object Dependencies {
 
   lazy val coreLibs = List(
-    "dev.zio"  %% "zio"       % ZioVersion,
-    "org.slf4j" % "slf4j-api" % Sl4jVersion
+    "dev.zio" %% "zio"               % ZioVersion,
+    "dev.zio" %% "zio-logging-slf4j" % ZioLogVersion
   )
 
   lazy val awsLibs = List(
-    "dev.zio"               %% "zio"                         % ZioVersion,
-    "dev.zio"               %% "zio-streams"                 % ZioVersion,
-    "dev.zio"               %% "zio-interop-reactivestreams" % ZioReactiveStreamsVersion,
-    "software.amazon.awssdk" % "s3"                          % AwsS3Version
+    "dev.zio"                %% "zio"                         % ZioVersion,
+    "dev.zio"                %% "zio-streams"                 % ZioVersion,
+    "dev.zio"                %% "zio-interop-reactivestreams" % ZioReactiveStreamsVersion,
+    "org.scala-lang.modules" %% "scala-collection-compat"     % ScalaCollectionCompatVersion,
+    "software.amazon.awssdk"  % "s3"                          % AwsS3Version
   )
 
   lazy val gcpLibs = List(
-    "dev.zio"                  %% "zio"     % ZioVersion,
-    "com.github.tharwaninitin" %% "gcp4zio" % Gcp4ZioVersion
+    "dev.zio"                  %% "zio"         % ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-gcs" % Gcp4ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-dp"  % Gcp4ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-bq"  % Gcp4ZioVersion
   )
 
   lazy val dbLibs = List(

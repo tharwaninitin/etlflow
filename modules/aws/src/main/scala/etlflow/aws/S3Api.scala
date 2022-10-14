@@ -18,25 +18,25 @@ object S3Api {
     def delObject(bucket: String, key: String): Task[DeleteObjectResponse]
   }
 
-  def createBucket(name: String): RIO[S3Env, CreateBucketResponse] = ZIO.accessM[S3Env](_.get.createBucket(name))
-  def listBuckets: RIO[S3Env, List[Bucket]]                        = ZIO.accessM[S3Env](_.get.listBuckets)
+  def createBucket(name: String): RIO[S3Env, CreateBucketResponse] = ZIO.environmentWithZIO[S3Env](_.get.createBucket(name))
+  def listBuckets: RIO[S3Env, List[Bucket]]                        = ZIO.environmentWithZIO[S3Env](_.get.listBuckets)
   def lookupObject(bucket: String, key: String): RIO[S3Env, Boolean] =
-    ZIO.accessM[S3Env](_.get.lookupObject(bucket, key))
+    ZIO.environmentWithZIO[S3Env](_.get.lookupObject(bucket, key))
   def listObjects(bucket: String, key: String, maxKeys: Int): RIO[S3Env, ListObjectsV2Response] =
-    ZIO.accessM[S3Env](_.get.listObjects(bucket, key, maxKeys))
+    ZIO.environmentWithZIO[S3Env](_.get.listObjects(bucket, key, maxKeys))
   def putObject[R](
       bucket: String,
       key: String,
       content: ZStream[R, Throwable, Byte],
       contentLength: Long
   ): RIO[R with S3Env, Unit] =
-    ZIO.accessM[R with S3Env](_.get.putObject[R](bucket, key, content, contentLength))
+    ZIO.environmentWithZIO[S3Env](_.get.putObject[R](bucket, key, content, contentLength))
   def putObject(bucket: String, key: String, file: Path, overwrite: Boolean): RIO[S3Env, PutObjectResponse] =
-    ZIO.accessM[S3Env](_.get.putObject(bucket, key, file, overwrite))
+    ZIO.environmentWithZIO[S3Env](_.get.putObject(bucket, key, file, overwrite))
   def getObject(bucket: String, key: String, file: Path): RIO[S3Env, GetObjectResponse] =
-    ZIO.accessM[S3Env](_.get.getObject(bucket, key, file))
+    ZIO.environmentWithZIO[S3Env](_.get.getObject(bucket, key, file))
   def getObject(bucket: String, key: String): ZStream[S3Env, Throwable, Byte] =
-    ZStream.accessStream[S3Env](_.get.getObject(bucket, key))
+    ZStream.environmentWithStream[S3Env](_.get.getObject(bucket, key))
   def delObject(bucket: String, key: String): RIO[S3Env, DeleteObjectResponse] =
-    ZIO.accessM[S3Env](_.get.delObject(bucket, key))
+    ZIO.environmentWithZIO[S3Env](_.get.delObject(bucket, key))
 }

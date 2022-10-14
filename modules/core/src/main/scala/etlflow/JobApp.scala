@@ -1,26 +1,62 @@
 package etlflow
 
-import etlflow.log.{LogApi, LogEnv}
-import etlflow.utils.{ApplicationLogger, DateTimeApi, MapToJson}
-import zio.{App, ExitCode, RIO, UIO, URIO, ZEnv, ZIO, ZLayer}
+import etlflow.audit.{AuditApi, AuditEnv}
+import etlflow.log.ApplicationLogger
+import etlflow.utils.{DateTimeApi, MapToJson}
+import zio._
 
-trait JobApp extends ApplicationLogger with App {
+/** This is the entry point for a EtlFlow Job application (See below sample).
+  *
+  * {{{
+  * import etlflow._
+  * import etlflow.task._
+  * import zio._
+  *
+  * object MyJobApp extends JobApp {
+  *
+  *   def executeTask(): Unit = logger.info(s"Hello EtlFlow Task")
+  *
+  *   val task1: GenericTask[Unit] = GenericTask(
+  *       name = "Task_1",
+  *       function = executeTask()
+  *   )
+  *
+  *   def job(args: Chunk[String]): RIO[audit.AuditEnv, Unit] = task1.execute
+  * }
+  * }}}
+  */
+trait JobApp extends ZIOAppDefault with ApplicationLogger {
 
-  def job(args: List[String]): RIO[ZEnv with LogEnv, Unit]
+  def job(args: Chunk[String]): RIO[AuditEnv, Unit]
 
-  val logLayer: ZLayer[ZEnv, Throwable, LogEnv] = log.noLog
+  val auditLayer: ZLayer[Any, Throwable, AuditEnv] = audit.noLog
+
+  override val bootstrap = zioSlf4jLogger
 
   val name: String = this.getClass.getSimpleName.replace('$', ' ').trim
 
-  final def execute(cliArgs: List[String]): ZIO[ZEnv with LogEnv, Throwable, Unit] =
+  /** This is the core function which runs the job with auditing (start and end).
+    *
+    * It also converts command-line arguments passed to application into json key value pair. For e.g. if you run application with
+    * args "arg0 arg1 arg2 arg3" it will parse and convert these args to "{"0":"arg0", "1":"arg1", "2":"arg2", "3":"arg3"}"
+    *
+    * @param cliArgs
+    *   command-line arguments
+    */
+  final def execute(cliArgs: Chunk[String]): RIO[AuditEnv, Unit] =
     for {
-      args <- UIO(MapToJson(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
-      _    <- LogApi.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
+      args <- ZIO.succeed(MapToJson(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
+      _    <- AuditApi.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
       _ <- job(cliArgs).tapError { ex =>
-        LogApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
+        AuditApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
       }
-      _ <- LogApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
+      _ <- AuditApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
     } yield ()
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = execute(args).provideSomeLayer[ZEnv](logLayer).exitCode
+  /** This is just a wrapper around default run method available with ZIOAppDefault to call [[execute execute(Chunk[String])]]
+    */
+  final override def run: ZIO[ZIOAppArgs with Scope, Any, Any] = for {
+    arguments <- getArgs
+    _         <- execute(arguments).provideLayer(auditLayer)
+  } yield ()
 }

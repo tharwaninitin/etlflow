@@ -1,6 +1,6 @@
 object ScalaCompileOptions {
   val s212copts: Seq[String] = Seq(
-    "-Yno-adapted-args", // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
+    "-Yno-adapted-args",     // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
     "-Ypartial-unification", // Enable partial unification in type constructor inference
 
     "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
@@ -29,12 +29,12 @@ object ScalaCompileOptions {
     "-language:implicitConversions", // Allow definition of implicit functions called views
 
     // "-Xlint:package-object-classes",    // Class or object defined in package object.
-    "-Xlint:adapted-args",           // Warn if an argument list is modified to match the receiver.
-    "-Xlint:constant",               // Evaluation of a constant arithmetic expression results in an error.
-    "-Xlint:delayedinit-select",     // Selecting member of DelayedInit.
-    "-Xlint:doc-detached",           // A Scaladoc comment appears to be detached from its element.
-    "-Xlint:inaccessible",           // Warn about inaccessible types in method signatures.
-    "-Xlint:infer-any",              // Warn when a type argument is inferred to be `Any`.
+    "-Xlint:adapted-args",       // Warn if an argument list is modified to match the receiver.
+    "-Xlint:constant",           // Evaluation of a constant arithmetic expression results in an error.
+    "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
+    "-Xlint:doc-detached",       // A Scaladoc comment appears to be detached from its element.
+    "-Xlint:inaccessible",       // Warn about inaccessible types in method signatures.
+    // "-Xlint:infer-any",              // Warn when a type argument is inferred to be `Any`.
     "-Xlint:missing-interpolator",   // A string literal appears to be missing an interpolator id.
     "-Xlint:nullary-unit",           // Warn when nullary methods return Unit.
     "-Xlint:option-implicit",        // Option.apply used implicit view.

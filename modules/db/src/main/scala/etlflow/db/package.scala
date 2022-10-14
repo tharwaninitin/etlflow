@@ -1,15 +1,14 @@
 package etlflow
 
-import etlflow.log.LogEnv
+import etlflow.audit.AuditEnv
 import etlflow.model.Credential.JDBC
-import zio.blocking.Blocking
-import zio.{Has, ZLayer}
+import zio.TaskLayer
 
 package object db {
 
-  type DBEnv = Has[DBApi.Service]
+  type DBEnv = DBApi.Service
 
-  def liveDB(db: JDBC, poolName: String = "EtlFlow-Pool", poolSize: Int = 2): ZLayer[Blocking, Throwable, DBEnv] =
+  def liveDB(db: JDBC, poolName: String = "EtlFlow-Pool", poolSize: Int = 2): TaskLayer[DBEnv] =
     CP.layer(db, poolName, poolSize) >>> DB.live
 
   def liveDBWithLog(
@@ -17,6 +16,6 @@ package object db {
       jobRunId: String,
       poolName: String = "EtlFlow-Pool",
       poolSize: Int = 2
-  ): ZLayer[Blocking, Throwable, DBEnv with LogEnv] =
-    CP.layer(db, poolName, poolSize) >>> (DB.live ++ log.DB.live(jobRunId))
+  ): TaskLayer[DBEnv with AuditEnv] =
+    CP.layer(db, poolName, poolSize) >>> (DB.live ++ audit.DB.live(jobRunId))
 }

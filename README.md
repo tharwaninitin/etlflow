@@ -8,41 +8,42 @@
 
 **EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different tasks, jobs on GCP and AWS.
 
-## Documentation
+[//]: # (## Documentation)
 
-__Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs
+[//]: # ()
+[//]: # (__Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs)
 
-[comment]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
+[//]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
 
 ## Examples
-You can use this library in different ways mentioned below.
-* [Core Module](examplecore):         
-  Using this module you can use features of Step API into your project.
-* [Spark Module (spark steps)](examplespark):         
-  Using this addon module along with core you can use Apache Spark steps into your project.
-* [GCP Module (spark steps)](examplegcp):         
-  Using this addon module along with core you can use GCP steps into your project.
+* [Core Module](examples/examplecore):         
+  In this example project, you can explore core features of etlflow, Task and Audit API.
+* [Spark Module (Spark tasks)](examples/examplespark):         
+  In this example project, you can explore Apache Spark tasks.
+* [GCP Module (GCS, DataProc, BigQuery tasks)](examples/examplegcp):         
+  In this example project, you can explore GCP tasks.
 
 ## Modules Dependency Graph
 
 ![ModuleDepGraph](moduleDep.png)
 
 ## Scala Version Compatibility Matrix
-| Module Name        | Scala 2.12           | Scala 2.13  | Scala 3.1  | 
-| -------------------|:--------------------:| -----------:| ----------:|
-| Core               | ✅                   | ✅          | ✅          |
-| Db                 | ✅                   | ✅          | ✅          |
-| Http               | ✅                   | ✅          | ✅          |
-| Email              | ✅                   | ✅          | ✅          |
-| Aws                | ✅                   | ✅          | ✅          |
-| Gcp                | ✅                   | ✅          | ✅          |
-| Redis              | ✅                   | ✅          | ❌          |
-| Spark              | ✅                   | ✅          | ❌          |
+|  Module Name  | Scala 2.12 | Scala 2.13  | Scala 3.2  | 
+|:-------------:|:----------:|:-----------:|:----------:|
+|     Core      |     ✅      |      ✅      |     ✅      |
+|      Db       |     ✅      |      ✅      |     ✅      |
+|     Http      |     ✅      |      ✅      |     ✅      |
+|     Email     |     ✅      |      ✅      |     ✅      |
+|      Aws      |     ✅      |      ✅      |     ✅      |
+|      Gcp      |     ✅      |      ✅      |     ✅      |
+|     Redis     |     ✅      |      ✅      |     ❌      |
+|     Spark     |     ✅      |      ✅      |     ❌      |
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.15, 2.13.8, 3.1.1
+This project is compiled with scala versions 2.12.17, 2.13.10, 3.2.0
+
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
-Add the latest release as a dependency to your project
+Add the below latest release as a dependency to your project
 
 [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 
@@ -50,7 +51,6 @@ __SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-cloud" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "x.x.x"

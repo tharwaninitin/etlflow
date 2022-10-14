@@ -1,5 +1,6 @@
 package etlflow.utils
 
+import etlflow.log.ApplicationLogger
 import scala.reflect.ClassTag
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))

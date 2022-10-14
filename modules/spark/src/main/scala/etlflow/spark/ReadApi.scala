@@ -1,15 +1,22 @@
 package etlflow.spark
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.EtlJobException
 import etlflow.spark.IOType._
-import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.{col, split}
 import org.apache.spark.sql.types.StructType
 
 import scala.reflect.runtime.universe.TypeTag
 
-@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.TraversableOps", "org.wartremover.warts.ToString"))
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Throw",
+    "org.wartremover.warts.TraversableOps",
+    "org.wartremover.warts.ToString",
+    "org.wartremover.warts.IterableOps"
+  )
+)
 object ReadApi extends ApplicationLogger {
   private def dfRead(location: List[String], inputType: IOType)(spark: SparkSession): DataFrameReader = {
     val dfReader = spark.read

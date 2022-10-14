@@ -1,6 +1,6 @@
 package etlflow.http
 
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}
@@ -11,7 +11,8 @@ import sttp.client3.logging.LogLevel
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3._
 import sttp.model.MediaType
-import zio.{Task, TaskManaged}
+import zio.{Scope, Task, ZIO}
+
 import scala.concurrent.duration._
 
 private[etlflow] object HttpApi extends ApplicationLogger {
@@ -33,7 +34,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
   private def getBackend(
       allowUnsafeSSL: Boolean,
       connectionTimeout: Int
-  ): TaskManaged[SttpBackend[Task, ZioStreams with capabilities.WebSockets]] =
+  ): ZIO[Scope, Throwable, SttpBackend[Task, ZioStreams with capabilities.WebSockets]] =
     if (allowUnsafeSSL) {
       val sslContext: SslContext =
         SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
@@ -41,9 +42,9 @@ private[etlflow] object HttpApi extends ApplicationLogger {
         .setSslContext(sslContext)
         .setConnectTimeout(connectionTimeout)
         .build()
-      AsyncHttpClientZioBackend.usingConfig(config).toManaged_
+      AsyncHttpClientZioBackend.scopedUsingConfig(config)
     } else {
-      AsyncHttpClientZioBackend.managed(options(connectionTimeout))
+      AsyncHttpClientZioBackend.scoped(options(connectionTimeout))
     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
@@ -52,9 +53,9 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       log: Boolean,
       connectionTimeout: Int,
       allowUnsafeSsl: Boolean
-  ): Task[Response[String]] =
+  ): ZIO[Scope, Throwable, Response[String]] =
     getBackend(allowUnsafeSsl: Boolean, connectionTimeout: Int)
-      .use(backend => if (log) req.send(logBackend(backend)) else req.send(backend))
+      .flatMap(backend => if (log) req.send(logBackend(backend)) else req.send(backend))
       .map { res =>
         logger.info("#" * 50)
         if (res.code.code == 204 || res.code.code == 200 || res.code.code == 201) {
@@ -104,14 +105,16 @@ private[etlflow] object HttpApi extends ApplicationLogger {
         }
     }
 
-    method match {
-      case HttpMethod.GET =>
-        params match {
-          case Left(_)    => Task.fail(new RuntimeException("params for get request as Left(..) is not supported"))
-          case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connectionTimeout, allowUnsafeSsl)
-        }
-      case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
-      case HttpMethod.PUT  => logAndParseResponse(request.put(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
+    ZIO.scoped {
+      method match {
+        case HttpMethod.GET =>
+          params match {
+            case Left(_)    => ZIO.fail(new RuntimeException("params for get request as Left(..) is not supported"))
+            case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connectionTimeout, allowUnsafeSsl)
+          }
+        case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
+        case HttpMethod.PUT  => logAndParseResponse(request.put(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
+      }
     }
   }
 }

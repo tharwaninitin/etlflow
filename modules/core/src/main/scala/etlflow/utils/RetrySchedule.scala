@@ -1,26 +1,25 @@
 package etlflow.utils
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import zio.Schedule.Decision
-import zio.clock.Clock
-import zio.{Schedule, UIO}
+import zio.{Duration => ZDuration, Schedule, ZIO}
 import scala.concurrent.duration.Duration
-import zio.duration.{Duration => ZDuration}
 
 object RetrySchedule extends ApplicationLogger {
 
-  private val noThrowable: Schedule[Any, Throwable, Throwable] = Schedule.recurWhile {
+  private val noThrowable: Schedule[Any, Throwable, Throwable] = Schedule.recurWhile[Throwable] {
     case _: RetryException => true
     case _                 => false
   }
 
-  def apply[A](retry: Int, spaced: Duration): Schedule[Clock, Throwable, ((Throwable, Long), Long)] =
+  def apply[A](retry: Int, spaced: Duration): Schedule[Any, Throwable, (Throwable, Long, Long)] =
     (noThrowable && Schedule.recurs(retry) && Schedule.spaced(ZDuration.fromScala(spaced))).onDecision {
-      case Decision.Done(out) => UIO(logger.error(s"Exception occurred => ${out._1._1}"))
-      case Decision.Continue(out, _, _) =>
-        UIO {
-          logger.error(s"Exception occurred => ${out._1._1}")
-          logger.error(s"Retrying attempt #${out._1._2 + 1}")
+      case (_, out, Decision.Done) => ZIO.succeed(logger.error(s"Exception occurred => ${out._1}"))
+      case (_, out, Decision.Continue(_)) =>
+        ZIO.succeed {
+          logger.error(s"Exception occurred => ${out._1}")
+          logger.error(s"Retrying attempt #${out._2 + 1}")
         }
     }
 }

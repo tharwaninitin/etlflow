@@ -36,12 +36,12 @@ case class S3(client: S3AsyncClient) extends S3Api.Service {
       client.headObject(HeadObjectRequest.builder().bucket(bucket).key(key).build())
     )
     .as(true)
-    .catchSome { case _: NoSuchKeyException => UIO(false) }
+    .catchSome { case _: NoSuchKeyException => ZIO.succeed(false) }
 
   def putObject(bucket: String, key: String, file: Path, overwrite: Boolean): Task[PutObjectResponse] =
     lookupObject(bucket, key)
       .flatMap { out =>
-        if (out && !overwrite) IO.fail(new IllegalArgumentException(s"File at path s3://$bucket/$key already exist"))
+        if (out && !overwrite) ZIO.fail(new IllegalArgumentException(s"File at path s3://$bucket/$key already exist"))
         else ZIO.fromCompletableFuture(client.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, file))
       }
 
@@ -68,8 +68,8 @@ case class S3(client: S3AsyncClient) extends S3Api.Service {
   )
 
   def getObject(bucketName: String, key: String): Stream[Throwable, Byte] =
-    Stream
-      .fromEffect(
+    ZStream
+      .fromZIO(
         ZIO.fromCompletableFuture(
           client.getObject[StreamResponse](
             GetObjectRequest.builder().bucket(bucketName).key(key).build(),
@@ -88,5 +88,5 @@ case class S3(client: S3AsyncClient) extends S3Api.Service {
 
 object S3 {
   def live(region: Region, credentials: Option[AWS] = None, endpointOverride: Option[String] = None): TaskLayer[S3Env] =
-    Managed.fromAutoCloseable(Task(S3Client(region, credentials, endpointOverride))).map(s3 => S3(s3)).toLayer
+    ZLayer.scoped(ZIO.attempt(S3Client(region, credentials, endpointOverride)).map(s3 => S3(s3)))
 }

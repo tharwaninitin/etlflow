@@ -1,17 +1,18 @@
 package etlflow
 
-import etlflow.etlsteps._
-import etlflow.spark.SparkImpl
+import etlflow.spark.SparkLive
+import etlflow.task._
 import zio.test._
+import zio.test.ZIOSpecDefault
 
-object RunAllTests extends DefaultRunnableSpec with TestSparkSession {
-  override def spec: ZSpec[environment.TestEnvironment, Any] =
-    suite("Spark Steps")(
-      ParquetToJsonTestSuite.test,
-      SparkDeDupTestSuite.test,
-      ParquetToJdbcTestSuite.test,
-      ParquetToJdbcGenericSparkStepTestSuite.test,
-      TransformationTestSuite.spec,
-      BQtoGCStoGCSTestSuite.test @@ TestAspect.ignore
-    ).provideCustomLayerShared((SparkImpl.live(spark) ++ log.noLog).orDie) @@ TestAspect.sequential
+object RunAllTests extends ZIOSpecDefault with TestSparkSession {
+  override def spec: Spec[TestEnvironment, Any] =
+    suite("Spark Tasks")(
+      ParquetToJsonTestSuite.spec,
+      SparkDeDupTestSuite.spec,
+      ParquetToJdbcTestSuite.spec,
+      ParquetToJdbcGenericTestSuite.spec,
+      TransformationTestSuite.spec
+      // BQtoGCStoGCSTestSuite.spec @@ TestAspect.ignore
+    ).provideCustomShared((SparkLive.live(spark) ++ audit.noLog).orDie) @@ TestAspect.sequential
 }

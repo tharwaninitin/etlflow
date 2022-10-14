@@ -1,10 +1,10 @@
 package etlflow
 
 import etlflow.model.Credential.JDBC
-import zio.{Has, Task}
+import zio.Task
 
 package object spark {
-  type SparkEnv = Has[SparkApi.Service[Task]]
+  type SparkEnv = SparkApi.Service[Task]
   sealed trait IOType
   object IOType {
     final case class CSV(

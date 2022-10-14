@@ -1,27 +1,28 @@
 package examples
 
-import etlflow.etlsteps.GenericETLStep
-import etlflow.log.LogEnv
-import etlflow.utils.ApplicationLogger
-import zio.{ExitCode, URIO}
+import etlflow.task.GenericTask
+import etlflow.log.ApplicationLogger
+import zio.Task
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
-object Job2 extends zio.App with ApplicationLogger {
+object Job2 extends zio.ZIOAppDefault with ApplicationLogger {
+
+  override val bootstrap = zioSlf4jLogger
 
   def processData1(): String = {
     logger.info(s"Hello World")
     "Hello World"
   }
 
-  private val step1 = GenericETLStep(
-    name = "Step_1",
+  private val task1 = GenericTask(
+    name = "Task_1",
     function = processData1()
   )
 
   def processData2(): Unit = logger.info("Hello World")
 
-  private val step2 = GenericETLStep(
-    name = "Step_2",
+  private val task2 = GenericTask(
+    name = "Task_2",
     function = processData2()
   )
 
@@ -30,16 +31,16 @@ object Job2 extends zio.App with ApplicationLogger {
     throw new RuntimeException("Error123")
   }
 
-  private val step3 = GenericETLStep(
-    name = "Step_3",
+  private val task3 = GenericTask(
+    name = "Task_3",
     function = processData3()
   )
 
   private val job = for {
-    _ <- step1.execute
-    _ <- step2.execute
-    _ <- step3.execute
+    _ <- task1.execute
+    _ <- task2.execute
+    _ <- task3.execute
   } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.provideCustomLayer(etlflow.log.noLog).exitCode
+  override def run: Task[Unit] = job.provideLayer(etlflow.audit.noLog)
 }

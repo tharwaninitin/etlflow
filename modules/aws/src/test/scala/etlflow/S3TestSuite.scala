@@ -1,81 +1,78 @@
 package etlflow
 
 import etlflow.aws.{S3, S3Api, S3Env}
-import etlflow.etlsteps.{S3PutStep, S3SensorStep}
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential
-import etlflow.utils.ApplicationLogger
-import zio.clock.Clock
-import zio.stream.ZTransducer
+import etlflow.task._
+import zio.stream.ZPipeline
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{UIO, ULayer, ZIO}
-import scala.concurrent.duration._
+import zio.{ULayer, ZIO}
+//import scala.concurrent.duration._
 
-object S3TestSuite extends DefaultRunnableSpec with TestHelper with ApplicationLogger {
+object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger {
 
-  val env: ULayer[S3Env] =
-    S3.live(s3Region, Some(Credential.AWS("etlflow", "etlflowpass")), Some("http://localhost:9000")).orDie
+  val env: ULayer[S3Env] = S3.live(s3Region, Some(Credential.AWS("etlflow", "etlflowpass")), Some("http://localhost:9000")).orDie
 
-  def spec: ZSpec[environment.TestEnvironment, Any] =
-    (suite("S3 Steps")(
-      testM("Execute createBucket step") {
-        val step = S3Api.createBucket(s3Bucket).fold(_ => "ok", _ => "ok")
-        assertM(step)(equalTo("ok"))
-      },
-      testM("Execute S3Put step") {
-        val step = S3PutStep(
-          name = "S3PutStep",
-          bucket = s3Bucket,
-          key = s3Path,
-          file = localFile,
-          overwrite = true
-        ).execute
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      },
-      testM("Execute S3Put step overwrite false") {
-        val step = S3PutStep(
-          name = "S3PutStep",
-          bucket = s3Bucket,
-          key = s3Path,
-          file = localFile,
-          overwrite = false
-        ).execute
-        assertM(step.foldM(ex => ZIO.succeed(ex.getMessage), _ => ZIO.fail("ok")))(
-          equalTo("File at path s3://test/temp/ratings.csv already exist")
-        )
-      },
-      testM("Execute S3Sensor step") {
-        val step = S3SensorStep(
-          name = "S3KeySensorStep",
-          bucket = s3Bucket,
-          key = s3Path,
-          retry = 3,
-          spaced = 5.second
-        ).execute
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      },
-      testM("Execute getObject api") {
-        val step = S3Api
-          .getObject(s3Bucket, s3Path)
-          .transduce(ZTransducer.utf8Decode)
-          .transduce(ZTransducer.splitLines)
-          .tap(op => UIO(logger.info(op)))
-          .runCollect
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      },
-      testM("Execute getObject to putObject stream") {
-        val in = S3Api.getObject(s3Bucket, s3Path)
-        val op = S3Api.putObject(s3Bucket, "temp/ratings2.csv", in, 124)
-        assertM(op.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      },
-      testM("Execute getObject api") {
-        val step = S3Api
-          .getObject(s3Bucket, "temp/ratings2.csv")
-          .transduce(ZTransducer.utf8Decode)
-          .transduce(ZTransducer.splitLines)
-          .tap(op => UIO(logger.info(op)))
-          .runCollect
-        assertM(step.foldM(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-      }
-    ) @@ TestAspect.sequential).provideLayerShared(env ++ Clock.live ++ log.noLog)
+  def spec: Spec[TestEnvironment, Any] = (suite("S3 Tasks")(
+    test("Execute createBucket task") {
+      val task = S3Api.createBucket(s3Bucket).fold(_ => "ok", _ => "ok")
+      assertZIO(task)(equalTo("ok"))
+    },
+    test("Execute S3Put task") {
+      val task = S3PutTask(
+        name = "S3PutTask",
+        bucket = s3Bucket,
+        key = s3Path,
+        file = localFile,
+        overwrite = true
+      ).execute
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    },
+    test("Execute S3Put task overwrite false") {
+      val task = S3PutTask(
+        name = "S3PutTask",
+        bucket = s3Bucket,
+        key = s3Path,
+        file = localFile,
+        overwrite = false
+      ).execute
+      assertZIO(task.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.fail("ok")))(
+        equalTo("File at path s3://test/temp/ratings.csv already exist")
+      )
+    },
+//    test("Execute S3Sensor task") {
+//      val task = S3SensorTask(
+//        name = "S3KeySensorTask",
+//        bucket = s3Bucket,
+//        key = s3Path,
+//        retry = 3,
+//        spaced = 5.second
+//      ).execute
+//      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+//    },
+    test("Execute getObject api") {
+      val task = S3Api
+        .getObject(s3Bucket, s3Path)
+        .via(ZPipeline.utf8Decode)
+        .via(ZPipeline.splitLines)
+        .tap(op => ZIO.succeed(logger.info(op)))
+        .runCollect
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    },
+    test("Execute getObject to putObject stream") {
+      val in = S3Api.getObject(s3Bucket, s3Path)
+      val op = S3Api.putObject(s3Bucket, "temp/ratings2.csv", in, 124)
+      assertZIO(op.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    },
+    test("Execute getObject api") {
+      val task = S3Api
+        .getObject(s3Bucket, "temp/ratings2.csv")
+        .via(ZPipeline.utf8Decode)
+        .via(ZPipeline.splitLines)
+        .tap(op => ZIO.succeed(logger.info(op)))
+        .runCollect
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    }
+  ) @@ TestAspect.sequential).provideLayerShared(env ++ audit.noLog)
 }

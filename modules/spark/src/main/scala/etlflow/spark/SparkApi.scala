@@ -35,29 +35,29 @@ object SparkApi {
     ): F[Unit]
   }
 
-  def getSparkSession: RIO[SparkEnv, SparkSession] = ZIO.accessM[SparkEnv](_.get.getSparkSession)
+  def getSparkSession: RIO[SparkEnv, SparkSession] = ZIO.environmentWithZIO[SparkEnv](_.get.getSparkSession)
   def readDSProps[T <: Product: TypeTag](
       location: List[String],
       inputType: IOType,
       whereClause: String
-  ): RIO[SparkEnv, Map[String, String]] = ZIO.accessM[SparkEnv](_.get.readDSProps[T](location, inputType, whereClause))
+  ): RIO[SparkEnv, Map[String, String]] = ZIO.environmentWithZIO[SparkEnv](_.get.readDSProps[T](location, inputType, whereClause))
   def readDS[T <: Product: TypeTag](
       location: List[String],
       inputType: IOType,
       whereClause: String = "1 = 1"
-  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.readDS[T](location, inputType, whereClause))
+  ): RIO[SparkEnv, Dataset[T]] = ZIO.environmentWithZIO[SparkEnv](_.get.readDS[T](location, inputType, whereClause))
   def readStreamingDS[T <: Product: TypeTag](
       location: String,
       inputType: IOType,
       whereClause: String = "1 = 1"
-  ): RIO[SparkEnv, Dataset[T]] = ZIO.accessM[SparkEnv](_.get.readStreamingDS[T](location, inputType, whereClause))
+  ): RIO[SparkEnv, Dataset[T]] = ZIO.environmentWithZIO[SparkEnv](_.get.readStreamingDS[T](location, inputType, whereClause))
   def readDF(
       location: List[String],
       inputType: IOType,
       whereClause: String = "1 = 1",
       selectClause: Seq[String] = Seq("*")
   ): RIO[SparkEnv, Dataset[Row]] =
-    ZIO.accessM[SparkEnv](_.get.readDF(location, inputType, whereClause, selectClause))
+    ZIO.environmentWithZIO[SparkEnv](_.get.readDF(location, inputType, whereClause, selectClause))
   def writeDSProps[T <: Product: TypeTag](
       outputType: IOType,
       outputLocation: String,
@@ -68,7 +68,7 @@ object SparkApi {
       repartition: Boolean = false,
       repartitionNo: Int = 1
   ): RIO[SparkEnv, Map[String, String]] =
-    ZIO.accessM[SparkEnv](
+    ZIO.environmentWithZIO[SparkEnv](
       _.get.writeDSProps(
         outputType,
         outputLocation,
@@ -90,7 +90,7 @@ object SparkApi {
       compression: String = "none",
       repartition: Boolean = false,
       repartitionNo: Int = 1
-  ): RIO[SparkEnv, Unit] = ZIO.accessM[SparkEnv](
+  ): RIO[SparkEnv, Unit] = ZIO.environmentWithZIO[SparkEnv](
     _.get.writeDS(
       input,
       outputType,

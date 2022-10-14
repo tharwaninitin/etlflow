@@ -19,7 +19,7 @@ lazy val examples = (project in file("examples"))
 lazy val examplecore = (project in file("examples/examplecore"))
   .settings(
     name               := "examplecore",
-    crossScalaVersions := allScalaVersions,
+    crossScalaVersions := AllScalaVersions,
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-core"    % EtlFlowVersion,
       "com.github.tharwaninitin" %% "etlflow-db"      % EtlFlowVersion,
@@ -31,7 +31,7 @@ lazy val examplecore = (project in file("examples/examplecore"))
 lazy val examplespark = (project in file("examples/examplespark"))
   .settings(
     name               := "examplespark",
-    crossScalaVersions := scala2Versions,
+    crossScalaVersions := Scala2Versions,
     libraryDependencies ++= List(
       "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
       ("org.apache.spark" %% "spark-sql"       % SparkVersion).excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),

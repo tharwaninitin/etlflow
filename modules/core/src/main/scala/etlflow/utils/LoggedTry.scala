@@ -1,5 +1,6 @@
 package etlflow.utils
 
+import etlflow.log.ApplicationLogger
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 

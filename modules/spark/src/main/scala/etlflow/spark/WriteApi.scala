@@ -1,11 +1,12 @@
 package etlflow.spark
 
+import etlflow.log.ApplicationLogger
 import etlflow.spark.IOType._
-import etlflow.utils.ApplicationLogger
 import etlflow.model.EtlFlowException.EtlJobException
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.col
+
 import scala.reflect.runtime.universe.TypeTag
 
 @SuppressWarnings(

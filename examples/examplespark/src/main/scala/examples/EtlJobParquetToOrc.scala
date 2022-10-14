@@ -1,19 +1,19 @@
 package examples
 
-import etlflow.etlsteps.SparkReadWriteStep
 import etlflow.spark.Environment.LOCAL
-import etlflow.spark.{IOType, SparkImpl, SparkManager}
-import etlflow.utils.ApplicationLogger
-import Globals.{defaultRatingsInputPath, defaultRatingsOutputPath}
+import etlflow.spark.{IOType, SparkLive, SparkManager}
+import etlflow.task.SparkReadWriteTask
+import etlflow.log.ApplicationLogger
+import examples.Globals.{defaultRatingsInputPath, defaultRatingsOutputPath}
 import examples.Schema.Rating
-import org.apache.spark.sql.SaveMode
-import zio.{ExitCode, UIO, URIO}
+import org.apache.spark.sql.{SaveMode, SparkSession}
+import zio.Task
 
-object EtlJobParquetToOrc extends zio.App with ApplicationLogger {
+object EtlJobParquetToOrc extends zio.ZIOAppDefault with ApplicationLogger {
 
-  private lazy val spark = SparkManager.createSparkSession(Set(LOCAL), hiveSupport = false)
+  val spark: SparkSession = SparkManager.createSparkSession(Set(LOCAL), hiveSupport = false)
 
-  private val step1 = SparkReadWriteStep[Rating, Rating](
+  private val task1 = SparkReadWriteTask[Rating, Rating](
     name = "LoadRatingsParquet",
     inputLocation = List(defaultRatingsInputPath),
     inputType = IOType.PARQUET,
@@ -25,7 +25,7 @@ object EtlJobParquetToOrc extends zio.App with ApplicationLogger {
     outputFilename = Some("ratings.orc")
   )
 
-  private val job = step1.execute.provideLayer(SparkImpl.live(spark) ++ etlflow.log.noLog)
+  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = job.exitCode
+  override def run: Task[Unit] = job
 }

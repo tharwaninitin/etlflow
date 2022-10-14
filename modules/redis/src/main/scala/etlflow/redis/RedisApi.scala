@@ -1,7 +1,7 @@
 package etlflow.redis
 
 import com.redis.RedisClient
-import etlflow.utils.ApplicationLogger
+import etlflow.log.ApplicationLogger
 
 private[etlflow] object RedisApi extends ApplicationLogger {
 
@@ -22,7 +22,9 @@ private[etlflow] object RedisApi extends ApplicationLogger {
       case None        => List.empty
     }
 
-  @SuppressWarnings(Array("org.wartremover.warts.TraversableOps", "org.wartremover.warts.NonUnitStatements"))
+  @SuppressWarnings(
+    Array("org.wartremover.warts.TraversableOps", "org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.IterableOps")
+  )
   def deleteKeysOfPreFix(prefix: List[String], redisClient: RedisClient): Unit =
     prefix.foreach { value =>
       val keys         = getKeysFromPreFix(value, redisClient)

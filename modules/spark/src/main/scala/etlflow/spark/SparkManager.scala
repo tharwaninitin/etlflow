@@ -1,7 +1,7 @@
 package etlflow.spark
 
+import etlflow.log.ApplicationLogger
 import etlflow.spark.Environment._
-import etlflow.utils.ApplicationLogger
 import org.apache.spark.sql.SparkSession
 
 object SparkManager extends ApplicationLogger {

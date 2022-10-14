@@ -1,12 +1,14 @@
 package etlflow
 
 import etlflow.utils._
+import zio.Runtime
 import zio.test._
 
-object RunTestSuites extends DefaultRunnableSpec {
-  def spec: ZSpec[environment.TestEnvironment, Any] = (suite("Utils Test Suites")(
+object RunTestSuites extends ZIOSpecDefault {
+  def spec: Spec[TestEnvironment, Any] = (suite("Core Test Suites")(
     DateTimeAPITestSuite.spec,
-    RetryStepTestSuite.spec,
+    RetryTaskTestSuite.spec,
+    GenericTaskTestSuite.spec,
     ErrorHandlingTestSuite.spec
-  ) @@ TestAspect.sequential).provideCustomLayerShared(log.noLog)
+  ) @@ TestAspect.sequential).provideCustomShared(audit.noLog ++ Runtime.removeDefaultLoggers)
 }

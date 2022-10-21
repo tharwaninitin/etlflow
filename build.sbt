@@ -127,3 +127,5 @@ lazy val k8s = (project in file("modules/k8s"))
   .settings(commonSettings)
   .settings(k8sSettings)
   .dependsOn(core)
+
+addCommandAlias("cd", "project")

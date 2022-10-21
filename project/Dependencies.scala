@@ -29,9 +29,9 @@ object Dependencies {
   )
 
   lazy val httpLibs = List(
-    "dev.zio"                       %% "zio"                           % ZioVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
-    "com.softwaremill.sttp.client3" %% "slf4j-backend"                 % SttpVersion
+    "dev.zio"                       %% "zio"           % ZioVersion,
+    "com.softwaremill.sttp.client3" %% "zio"           % SttpVersion,
+    "com.softwaremill.sttp.client3" %% "slf4j-backend" % SttpVersion
   )
 
   lazy val redisLibs = List(

@@ -6,7 +6,6 @@ import etlflow.log.ApplicationLogger
 import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
-
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import zio.test.ZIOSpecDefault
@@ -17,14 +16,16 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     name = "HttpGetSimple",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
-    connection_timeout = 1200000
+    connectionTimeout = 1200000
   )
 
   private val getTask2 = HttpRequestTask(
     name = "HttpGetParams",
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
-    params = Right(Map("param1" -> "value1", "param2" -> "value2"))
+    params = Right(Map("param1" -> "value1", "param2" -> "value2")),
+    allowUnsafeSSL = true,
+    log = true
   )
 
   private val postTask1 = HttpRequestTask(

@@ -7,7 +7,7 @@ ThisBuild / publishTo := {
 }
 ThisBuild / publishMavenStyle      := true
 ThisBuild / organization           := "com.github.tharwaninitin"
-ThisBuild / versionScheme          := Some("early-semver")
+ThisBuild / versionScheme          := Some("semver-spec")
 ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 
 // Optional Publish Settings

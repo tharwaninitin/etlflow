@@ -4,7 +4,7 @@ object Versions {
   val Scala3           = "3.2.0"
   val AllScalaVersions = List(Scala212, Scala213, Scala3)
   val Scala2Versions   = List(Scala212, Scala213)
-  val EtlFlowVersion   = "1.0.0"
+  val EtlFlowVersion   = "1.1.0"
 
   val ZioVersion                = "2.0.2"
   val ZioLogVersion             = "2.1.2"
@@ -12,12 +12,13 @@ object Versions {
 
   val ScalaCollectionCompatVersion = "2.8.1"
 
-  val SttpVersion          = "3.8.2"
-  val AwsS3Version         = "2.17.291"
+  val SttpVersion          = "3.8.3"
+  val AwsS3Version         = "2.17.295"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
   val ScalaLikeJdbcVersion = "4.0.0"
   val Gcp4ZioVersion       = "1.0.0"
+  val K8sVersion           = "2.0.1"
 
   val SparkVersion     = "3.3.0"
   val SparkBQVersion   = "0.23.1"
@@ -25,7 +26,7 @@ object Versions {
   val HadoopS3Version  = "3.3.2"
 
   val PgVersion    = "42.5.0"
-  val MySqlVersion = "8.0.30"
+  val MySqlVersion = "8.0.31"
 
   val Sl4jVersion    = "1.7.36"
   val LogbackVersion = "1.4.4"

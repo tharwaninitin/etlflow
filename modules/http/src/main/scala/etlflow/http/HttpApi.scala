@@ -1,23 +1,23 @@
 package etlflow.http
 
 import etlflow.log.ApplicationLogger
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory
-import io.netty.handler.ssl.{SslContext, SslContextBuilder}
-import org.asynchttpclient.{AsyncHttpClientConfig, DefaultAsyncHttpClientConfig}
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
-import sttp.client3.asynchttpclient.zio._
+import sttp.client3.httpclient.zio._
 import sttp.client3.logging.LogLevel
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3._
 import sttp.model.MediaType
 import zio.{Scope, Task, ZIO}
-
+import java.net.http.HttpClient
+import java.security.SecureRandom
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
 import scala.concurrent.duration._
 
 private[etlflow] object HttpApi extends ApplicationLogger {
-
-  private def options(ms: Int) = SttpBackendOptions.connectionTimeout(ms.millisecond)
 
   private def logBackend(
       backend: SttpBackend[Task, ZioStreams with capabilities.WebSockets]
@@ -31,20 +31,33 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       responseLogLevel = _ => LogLevel.Info
     )
 
+  @SuppressWarnings(Array("org.wartremover.warts.Null", "org.wartremover.warts.NonUnitStatements"))
   private def getBackend(
       allowUnsafeSSL: Boolean,
       connectionTimeout: Int
   ): ZIO[Scope, Throwable, SttpBackend[Task, ZioStreams with capabilities.WebSockets]] =
     if (allowUnsafeSSL) {
-      val sslContext: SslContext =
-        SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build()
-      val config: AsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
-        .setSslContext(sslContext)
-        .setConnectTimeout(connectionTimeout)
+      val trustAllCerts = Array[TrustManager](new X509TrustManager() {
+        override def getAcceptedIssuers: Array[X509Certificate] = null
+
+        override def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+        override def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+      })
+
+      val sslContext: SSLContext = SSLContext.getInstance("ssl")
+      sslContext.init(null, trustAllCerts, new SecureRandom())
+
+      val client: HttpClient = HttpClient
+        .newBuilder()
+        .connectTimeout(java.time.Duration.ofMillis(connectionTimeout.toLong))
+        .sslContext(sslContext)
         .build()
-      AsyncHttpClientZioBackend.scopedUsingConfig(config)
+
+      val backend = HttpClientZioBackend.usingClient(client)
+      ZIO.acquireRelease(ZIO.attempt(backend))(a => a.close().ignore)
     } else {
-      AsyncHttpClientZioBackend.scoped(options(connectionTimeout))
+      val options = SttpBackendOptions.connectionTimeout(connectionTimeout.millisecond)
+      HttpClientZioBackend.scoped(options)
     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))

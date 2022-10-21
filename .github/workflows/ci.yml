@@ -8,12 +8,13 @@ jobs:
         java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run Core Tests
         run: sbt ";project core; +test; Test/runMain etlflow.SampleJobApp"
   dbpg:
@@ -39,12 +40,13 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run DB Tests
         run: sbt ";project db; +test; +Test/runMain etlflow.SampleJobWithDbLogging"
         env:
@@ -65,13 +67,13 @@ jobs:
         ports:
           - 3306:3306
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
-          distribution: adopt
           java-version: 11
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run DB Tests
         run: sbt ";project db; test; Test/runMain etlflow.SampleJobWithDbLogging"
         env:
@@ -103,27 +105,29 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run Spark Tests
         run: sbt ";project spark; +test"
   http:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
+        java-version: [ 11, 17 ]
       fail-fast: false
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run Http Tests
         run: sbt ";project http; +test"
   redis:
@@ -147,12 +151,13 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 6379:6379
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run Redis Tests
         run: sbt ";project redis; +test"
   aws:
@@ -173,12 +178,29 @@ jobs:
                      -v /tmp/config:/root/.minio \
                      minio/minio server /data --console-address ":9001"
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
-          distribution: adopt
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Run AWS Tests
         run: sbt ";project aws; +test"
+  k8s:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 11, 17 ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
+      - name: Run K8S Test
+        run: sbt ";project k8s; +test"
   email:
     runs-on: ubuntu-latest
     strategy:
@@ -186,12 +208,13 @@ jobs:
         java-version: [ 8, 11, 17 ]
       fail-fast: false
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Compile Email Module
         run: sbt ";project email; +Test/compile"
   gcp:
@@ -201,11 +224,12 @@ jobs:
         java-version: [ 8, 11, 17 ]
       fail-fast: false
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
       - name: Compile Gcp Module
         run: sbt ";project gcp; +Test/compile"

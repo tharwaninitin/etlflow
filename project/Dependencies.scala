@@ -29,9 +29,9 @@ object Dependencies {
   )
 
   lazy val httpLibs = List(
-    "dev.zio"                       %% "zio"                           % ZioVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
-    "com.softwaremill.sttp.client3" %% "slf4j-backend"                 % SttpVersion
+    "dev.zio"                       %% "zio"           % ZioVersion,
+    "com.softwaremill.sttp.client3" %% "zio"           % SttpVersion,
+    "com.softwaremill.sttp.client3" %% "slf4j-backend" % SttpVersion
   )
 
   lazy val redisLibs = List(
@@ -48,6 +48,13 @@ object Dependencies {
     "dev.zio"     %% "zio"            % ZioVersion,
     "javax.mail"   % "javax.mail-api" % MailVersion,
     "com.sun.mail" % "javax.mail"     % MailVersion
+  )
+
+  lazy val k8sLibs = List(
+    "dev.zio"                       %% "zio"                           % ZioVersion,
+    "com.coralogix"                 %% "zio-k8s-client"                % K8sVersion,
+    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
+    "com.softwaremill.sttp.client3" %% "slf4j-backend"                 % SttpVersion
   )
 
   lazy val coreTestLibs = List(

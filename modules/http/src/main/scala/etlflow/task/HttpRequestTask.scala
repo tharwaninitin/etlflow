@@ -12,18 +12,19 @@ case class HttpRequestTask(
     params: Either[String, Map[String, String]] = Right(Map.empty),
     headers: Map[String, String] = Map.empty,
     log: Boolean = false,
-    connection_timeout: Int = 10000,
-    read_timeout: Int = 150000,
-    allow_unsafe_ssl: Boolean = false
+    connectionTimeout: Int = 10000,
+    readTimeout: Int = 150000,
+    allowUnsafeSSL: Boolean = false
 ) extends EtlTask[Any, Response[String]] {
 
   override protected def process: Task[Response[String]] = {
     logger.info("#" * 50)
     logger.info(s"Starting HttpRequestTask: $name")
     logger.info(s"URL: $url")
-    logger.info(s"ConnectionTimeOut: $connection_timeout")
-    logger.info(s"ReadTimeOut: $read_timeout")
-    HttpApi.execute(method, url, params, headers, log, connection_timeout, read_timeout, allow_unsafe_ssl)
+    logger.info(s"ConnectionTimeOut: $connectionTimeout")
+    logger.info(s"ReadTimeOut: $readTimeout")
+    logger.info(s"AllowUnsafeSSL: $allowUnsafeSSL")
+    HttpApi.execute(method, url, params, headers, log, connectionTimeout, readTimeout, allowUnsafeSSL)
   }
 
   override def getTaskProperties: Map[String, String] = Map("url" -> url, "http_method" -> method.toString)

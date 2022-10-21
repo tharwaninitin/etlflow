@@ -50,6 +50,13 @@ object Dependencies {
     "com.sun.mail" % "javax.mail"     % MailVersion
   )
 
+  lazy val k8sLibs = List(
+    "dev.zio"                       %% "zio"                           % ZioVersion,
+    "com.coralogix"                 %% "zio-k8s-client"                % K8sVersion,
+    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
+    "com.softwaremill.sttp.client3" %% "slf4j-backend"                 % SttpVersion
+  )
+
   lazy val coreTestLibs = List(
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "dev.zio"       %% "zio-test"        % ZioVersion,

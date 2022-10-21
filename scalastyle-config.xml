@@ -13,7 +13,7 @@
  </check>
  <check level="error" class="org.scalastyle.scalariform.PackageObjectNamesChecker" enabled="true">
   <parameters>
-   <parameter name="regex"><![CDATA[^[a-z][A-Za-z]*$]]></parameter>
+   <parameter name="regex"><![CDATA[^[a-z][A-Za-z1-9]*$]]></parameter>
   </parameters>
  </check>
  <check level="error" class="org.scalastyle.scalariform.MethodNamesChecker" enabled="true">

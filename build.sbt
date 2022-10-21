@@ -71,12 +71,18 @@ lazy val gcpSettings = Seq(
   libraryDependencies ++= gcpLibs ++ coreTestLibs
 )
 
+lazy val k8sSettings = Seq(
+  name               := "etlflow-k8s",
+  crossScalaVersions := AllScalaVersions,
+  libraryDependencies ++= k8sLibs ++ coreTestLibs
+)
+
 lazy val etlflow = (project in file("."))
   .settings(
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core, spark, db, http, redis, email, aws, gcp)
+  .aggregate(core, spark, db, http, redis, email, aws, gcp, k8s)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
@@ -115,4 +121,9 @@ lazy val aws = (project in file("modules/aws"))
 lazy val gcp = (project in file("modules/gcp"))
   .settings(commonSettings)
   .settings(gcpSettings)
+  .dependsOn(core)
+
+lazy val k8s = (project in file("modules/k8s"))
+  .settings(commonSettings)
+  .settings(k8sSettings)
   .dependsOn(core)

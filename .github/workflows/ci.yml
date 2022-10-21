@@ -179,6 +179,21 @@ jobs:
           java-version: ${{ matrix.java-version }}
       - name: Run AWS Tests
         run: sbt ";project aws; +test"
+  k8s:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 11, 17 ]
+      fail-fast: false
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Run K8S Test
+        run: sbt ";project k8s; +test"
   email:
     runs-on: ubuntu-latest
     strategy:

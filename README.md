@@ -28,16 +28,17 @@
 ![ModuleDepGraph](moduleDep.png)
 
 ## Scala Version Compatibility Matrix
-|  Module Name  | Scala 2.12 | Scala 2.13  | Scala 3.2  | 
-|:-------------:|:----------:|:-----------:|:----------:|
-|     Core      |     ✅      |      ✅      |     ✅      |
-|      Db       |     ✅      |      ✅      |     ✅      |
-|     Http      |     ✅      |      ✅      |     ✅      |
-|     Email     |     ✅      |      ✅      |     ✅      |
-|      Aws      |     ✅      |      ✅      |     ✅      |
-|      Gcp      |     ✅      |      ✅      |     ✅      |
-|     Redis     |     ✅      |      ✅      |     ❌      |
-|     Spark     |     ✅      |      ✅      |     ❌      |
+| Module Name | Scala 2.12 | Scala 2.13  | Scala 3.2  | 
+|:-----------:|:----------:|:-----------:|:----------:|
+|    Core     |     ✅      |      ✅      |     ✅      |
+|     Gcp     |     ✅      |      ✅      |     ✅      |
+|     Db      |     ✅      |      ✅      |     ✅      |
+|     K8S     |     ✅      |      ✅      |     ✅      |
+|    Http     |     ✅      |      ✅      |     ✅      |
+|    Email    |     ✅      |      ✅      |     ✅      |
+|     Aws     |     ✅      |      ✅      |     ✅      |
+|    Redis    |     ✅      |      ✅      |     ❌      |
+|    Spark    |     ✅      |      ✅      |     ❌      |
 
 ## Requirements and Installation
 This project is compiled with scala versions 2.12.17, 2.13.10, 3.2.0
@@ -51,10 +52,11 @@ __SBT__
 ```
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "x.x.x"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "x.x.x"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "x.x.x"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "x.x.x"
 ```
 __Maven__

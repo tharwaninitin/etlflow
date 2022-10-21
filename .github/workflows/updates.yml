@@ -4,12 +4,26 @@ jobs:
   updates:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
           java-version: 11
-      - name: Check Dependency Updates
-        run: sbt dependencyUpdates
+          distribution: 'adopt'
+          cache: 'sbt'
+      - name: Check Dependency Updates for core
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for db
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for email
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for gcp
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for http
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for k8s
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for redis
+        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for spark
+        run: sbt core/dependencyUpdates

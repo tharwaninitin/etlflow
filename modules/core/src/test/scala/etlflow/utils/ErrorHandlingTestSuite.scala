@@ -10,7 +10,7 @@ object ErrorHandlingTestSuite {
   def funcArrayIndexOutOfBoundsEx: Int = Array(0, 1, 2, 3, 4)(9)
   def funcFatalError: Int              = throw new StackOverflowError()
 
-  val spec: Spec[TestEnvironment, Any] =
+  val spec: Spec[Any, Any] =
     suite("Error Handling")(
       test("logTry 1") {
         val logTry = LoggedTry(funcArithmeticEx)

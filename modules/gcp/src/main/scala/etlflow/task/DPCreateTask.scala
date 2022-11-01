@@ -5,13 +5,13 @@ import gcp4zio.dp._
 import zio.RIO
 
 case class DPCreateTask(name: String, cluster: String, project: String, region: String, props: ClusterProps)
-    extends EtlTask[DPEnv, Cluster] {
+    extends EtlTask[DPCluster, Cluster] {
 
-  override protected def process: RIO[DPEnv, Cluster] = {
+  override protected def process: RIO[DPCluster, Cluster] = {
     logger.info("#" * 100)
     logger.info(s"Starting Create Cluster Task: $name")
     logger.info(s"Cluster: $cluster and Region: $region")
-    DPApi.createDataproc(cluster, project, region, props)
+    DPCluster.createDataproc(cluster, project, region, props)
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))

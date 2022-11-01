@@ -2,7 +2,7 @@ package etlflow.task
 
 import com.google.cloud.bigquery.Schema
 import etlflow.TestHelper
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import gcp4zio.bq.BQInputType.{CSV, PARQUET}
 import gcp4zio.bq._
 import zio.ZIO
@@ -19,7 +19,7 @@ object BQTestSuite extends TestHelper {
   private val outputTable      = "ratings"
   private val outputDataset    = "dev"
 
-  val spec: Spec[TestEnvironment with BQEnv with AuditEnv, Any] = suite("BQ Tasks")(
+  val spec: Spec[BQ with Audit, Any] = suite("BQ Tasks")(
     test("Execute BQLoad PARQUET task") {
       val task = BQLoadTask(
         name = "LoadRatingBQ",

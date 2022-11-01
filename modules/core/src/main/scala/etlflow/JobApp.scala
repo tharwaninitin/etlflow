@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.audit.{AuditApi, AuditEnv}
+import etlflow.audit.Audit
 import etlflow.log.ApplicationLogger
 import etlflow.utils.{DateTimeApi, MapToJson}
 import zio._
@@ -21,15 +21,15 @@ import zio._
   *       function = executeTask()
   *   )
   *
-  *   def job(args: Chunk[String]): RIO[audit.AuditEnv, Unit] = task1.execute
+  *   def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.execute
   * }
   * }}}
   */
 trait JobApp extends ZIOAppDefault with ApplicationLogger {
 
-  def job(args: Chunk[String]): RIO[AuditEnv, Unit]
+  def job(args: Chunk[String]): RIO[Audit, Unit]
 
-  val auditLayer: ZLayer[Any, Throwable, AuditEnv] = audit.noLog
+  val auditLayer: ZLayer[Any, Throwable, Audit] = audit.console
 
   override val bootstrap = zioSlf4jLogger
 
@@ -43,19 +43,19 @@ trait JobApp extends ZIOAppDefault with ApplicationLogger {
     * @param cliArgs
     *   command-line arguments
     */
-  final def execute(cliArgs: Chunk[String]): RIO[AuditEnv, Unit] =
+  final def execute(cliArgs: Chunk[String]): RIO[Audit, Unit] =
     for {
       args <- ZIO.succeed(MapToJson(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
-      _    <- AuditApi.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
+      _    <- Audit.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
       _ <- job(cliArgs).tapError { ex =>
-        AuditApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
+        Audit.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
       }
-      _ <- AuditApi.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
+      _ <- Audit.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
     } yield ()
 
   /** This is just a wrapper around default run method available with ZIOAppDefault to call [[execute execute(Chunk[String])]]
     */
-  final override def run: ZIO[ZIOAppArgs with Scope, Any, Any] = for {
+  final override def run: ZIO[ZIOAppArgs, Any, Any] = for {
     arguments <- getArgs
     _         <- execute(arguments).provideLayer(auditLayer)
   } yield ()

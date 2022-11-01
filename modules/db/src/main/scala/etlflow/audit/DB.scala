@@ -7,7 +7,7 @@ import scalikejdbc.NamedDB
 import zio.{TaskLayer, UIO, ZIO, ZLayer}
 
 object DB extends ApplicationLogger {
-  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.audit.Service[UIO] {
+  case class DBLogger(jobRunId: String, poolName: String) extends etlflow.audit.Audit {
     override def logTaskStart(
         taskRunId: String,
         taskName: String,
@@ -66,12 +66,12 @@ object DB extends ApplicationLogger {
         .fold(e => logger.error(e.getMessage), _ => ())
   }
 
-  private[etlflow] def live(jobRunId: String): ZLayer[String, Throwable, AuditEnv] = ZLayer {
+  private[etlflow] def live(jobRunId: String): ZLayer[String, Throwable, Audit] = ZLayer {
     for {
       poolName <- ZIO.service[String]
     } yield DBLogger(jobRunId, poolName)
   }
 
-  def apply(db: JDBC, jobRunId: String, poolName: String = "Job-Pool", poolSize: Int = 2): TaskLayer[AuditEnv] =
+  def apply(db: JDBC, jobRunId: String, poolName: String = "Job-Pool", poolSize: Int = 2): TaskLayer[Audit] =
     etlflow.db.CP.layer(db, poolName, poolSize) >>> live(jobRunId)
 }

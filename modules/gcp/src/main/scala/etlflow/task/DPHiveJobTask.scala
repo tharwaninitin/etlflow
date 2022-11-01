@@ -5,14 +5,14 @@ import gcp4zio.dp._
 import zio.RIO
 
 case class DPHiveJobTask(name: String, query: String, cluster: String, project: String, region: String)
-    extends EtlTask[DPJobEnv, Job] {
+    extends EtlTask[DPJob, Job] {
 
-  override protected def process: RIO[DPJobEnv, Job] = {
+  override protected def process: RIO[DPJob, Job] = {
     logger.info("#" * 100)
     logger.info(s"Starting Hive Dataproc Job: $name")
     for {
-      job <- DPJobApi.submitHiveJob(query, cluster, project, region)
-      _   <- DPJobApi.trackJobProgress(project, region, job)
+      job <- DPJob.submitHiveJob(query, cluster, project, region)
+      _   <- DPJob.trackJobProgress(project, region, job)
     } yield job
 
   }

@@ -5,7 +5,7 @@ import com.coralogix.zio.k8s.client.config.httpclient.k8sDefault
 import com.coralogix.zio.k8s.client.model.K8sNamespace
 import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
 import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.ObjectMeta
-import zio.{RIO, TaskLayer, ZIO, ZLayer}
+import zio.{RIO, TaskLayer, ULayer, ZIO, ZLayer}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 case class K8S() extends K8SApi.Service {
@@ -42,4 +42,5 @@ case class K8S() extends K8SApi.Service {
 
 object K8S {
   val live: TaskLayer[K8sEnv] = (k8sDefault >>> Jobs.live) ++ ZLayer.succeed(K8S())
+  val test: ULayer[K8sEnv]    = Jobs.test ++ ZLayer.succeed(K8S())
 }

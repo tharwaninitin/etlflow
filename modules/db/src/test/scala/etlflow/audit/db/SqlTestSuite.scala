@@ -1,10 +1,11 @@
 package etlflow.audit
+package db
 
 import etlflow.db.utils
 import zio.test._
 
 object SqlTestSuite {
-  val spec: Spec[TestEnvironment, Any] =
+  val spec: Spec[Any, Any] =
     suite("SQL(log) Suite")(
       test("updateJobRun Sql") {
         val ipsql = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "2 mins")

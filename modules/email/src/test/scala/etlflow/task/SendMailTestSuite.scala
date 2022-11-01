@@ -1,6 +1,6 @@
 package etlflow.task
 
-import etlflow.audit.noLog
+import etlflow.audit
 import etlflow.model.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
@@ -57,5 +57,5 @@ object SendMailTestSuite extends ZIOSpecDefault {
         val props = task.getTaskProperties
         assertTrue(props == Map("subject" -> "SendMailTask Test Ran Successfully", "recipient_list" -> "abcd@abcd.com"))
       }
-    ).provideShared(noLog)
+    ).provideShared(audit.test)
 }

@@ -5,11 +5,11 @@ import gcp4zio.gcs._
 import zio.{Chunk, RIO}
 
 case class GCSListTask(name: String, bucket: String, prefix: Option[String], recursive: Boolean)
-    extends EtlTask[GCSEnv, Chunk[Blob]] {
+    extends EtlTask[GCS, Chunk[Blob]] {
 
-  override protected def process: RIO[GCSEnv, Chunk[Blob]] = {
+  override protected def process: RIO[GCS, Chunk[Blob]] = {
     logger.info(s"Listing files at $bucket/$prefix")
-    GCSApi.listObjects(bucket, prefix, recursive).runCollect
+    GCS.listObjects(bucket, prefix, recursive).runCollect
   }
 
   override def getTaskProperties: Map[String, String] =

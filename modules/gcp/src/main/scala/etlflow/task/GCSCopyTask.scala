@@ -12,12 +12,12 @@ case class GCSCopyTask(
     output: Location,
     parallelism: Int,
     overwrite: Boolean = true
-) extends EtlTask[GCSEnv, Unit] {
+) extends EtlTask[GCS, Unit] {
 
-  override protected def process: RIO[GCSEnv, Unit] = {
+  override protected def process: RIO[GCS, Unit] = {
     val program = (input, output) match {
       case (src @ Location.GCS(_, _), tgt @ Location.GCS(_, _)) =>
-        GCSApi.copyObjectsGCStoGCS(
+        GCS.copyObjectsGCStoGCS(
           src.bucket,
           Some(src.path),
           inputRecursive,
@@ -27,7 +27,7 @@ case class GCSCopyTask(
           parallelism
         )
       case (src @ Location.LOCAL(_), tgt @ Location.GCS(_, _)) =>
-        GCSApi.copyObjectsLOCALtoGCS(src.path, tgt.bucket, tgt.path, parallelism, overwrite)
+        GCS.copyObjectsLOCALtoGCS(src.path, tgt.bucket, tgt.path, parallelism, overwrite)
       case (src, tgt) =>
         ZIO.attempt(throw new RuntimeException(s"Copying data between source $src to target $tgt is not implemented yet"))
     }

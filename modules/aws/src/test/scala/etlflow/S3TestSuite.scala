@@ -74,5 +74,5 @@ object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger
         .runCollect
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
-  ) @@ TestAspect.sequential).provideLayerShared(env ++ audit.noLog)
+  ) @@ TestAspect.sequential).provideLayerShared(env ++ audit.test)
 }

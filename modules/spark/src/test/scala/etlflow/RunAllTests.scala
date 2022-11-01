@@ -14,5 +14,5 @@ object RunAllTests extends ZIOSpecDefault with TestSparkSession {
       ParquetToJdbcGenericTestSuite.spec,
       TransformationTestSuite.spec
       // BQtoGCStoGCSTestSuite.spec @@ TestAspect.ignore
-    ).provideCustomShared((SparkLive.live(spark) ++ audit.noLog).orDie) @@ TestAspect.sequential
+    ).provideShared((SparkLive.live(spark) ++ audit.test).orDie) @@ TestAspect.sequential
 }

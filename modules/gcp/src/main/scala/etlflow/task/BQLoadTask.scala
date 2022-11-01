@@ -2,7 +2,7 @@ package etlflow.task
 
 import com.google.cloud.bigquery.{JobInfo, Schema}
 import etlflow.gcp._
-import gcp4zio.bq.{BQApi, BQEnv, BQInputType}
+import gcp4zio.bq.{BQ, BQInputType}
 import zio.{RIO, ZIO}
 
 case class BQLoadTask(
@@ -16,23 +16,23 @@ case class BQLoadTask(
     outputWriteDisposition: JobInfo.WriteDisposition = JobInfo.WriteDisposition.WRITE_TRUNCATE,
     outputCreateDisposition: JobInfo.CreateDisposition = JobInfo.CreateDisposition.CREATE_NEVER,
     schema: Option[Schema] = None
-) extends EtlTask[BQEnv, Unit] {
+) extends EtlTask[BQ, Unit] {
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   var rowCount: Map[String, Long] = Map.empty
 
-  override protected def process: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQ, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Task: $name")
 
-    val program: RIO[BQEnv, Unit] = inputFileSystem match {
+    val program: RIO[BQ, Unit] = inputFileSystem match {
       case FSType.LOCAL =>
         logger.info(s"FileSystem: $inputFileSystem")
-        BQApi.loadTableFromLocalFile(inputLocation, inputType, outputDataset, outputTable)
+        BQ.loadTableFromLocalFile(inputLocation, inputType, outputDataset, outputTable)
       case FSType.GCS =>
         inputLocation match {
           case Left(value) =>
             logger.info(s"FileSystem: $inputFileSystem")
-            BQApi
+            BQ
               .loadTable(
                 value,
                 inputType,
@@ -48,7 +48,7 @@ case class BQLoadTask(
               }
           case Right(value) =>
             logger.info(s"FileSystem: $inputFileSystem")
-            BQApi
+            BQ
               .loadPartitionedTable(
                 value,
                 inputType,

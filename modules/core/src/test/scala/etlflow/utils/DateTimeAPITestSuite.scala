@@ -25,7 +25,7 @@ object DateTimeAPITestSuite {
   private val actualOutputHrs   = getTimeDifferenceAsString(startTimeHrs, endTimeHrs)
   private val expectedOutputHrs = "4.43 hrs"
 
-  val spec: Spec[TestEnvironment, Any] =
+  val spec: Spec[Any, Any] =
     suite("DateTime Api")(
       test("GetTimeDifferenceAsString should  should run successfully for days") {
         assertTrue(actualDaysOutput == expectedDaysOutput)

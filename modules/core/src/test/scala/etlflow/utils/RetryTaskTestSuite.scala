@@ -1,19 +1,17 @@
 package etlflow.utils
 
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.task.GenericTask
-import zio.{Duration => ZDuration}
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, ZIO}
-
+import zio.{Duration => ZDuration, RIO, ZIO}
 import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
 object RetryTaskTestSuite extends ApplicationLogger {
-  val spec: Spec[TestEnvironment with AuditEnv, Any] =
+  val spec: Spec[Audit, Any] =
     suite("Retry Task")(
       test("Execute GenericETLTask with retry") {
         def processDataFail(): Unit = {
@@ -21,7 +19,7 @@ object RetryTaskTestSuite extends ApplicationLogger {
           throw RetryException("Failed in processing data")
         }
 
-        val task: RIO[AuditEnv, Unit] = GenericTask(
+        val task: RIO[Audit, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
         ).execute.retry(RetrySchedule(2, 5.second))

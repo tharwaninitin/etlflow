@@ -22,7 +22,7 @@ object InitDBSuite extends DbSuiteHelper {
     _ <- DBApi.executeQuery(sql)
   } yield ()
 
-  def spec(reset: Boolean): Spec[TestEnvironment with DBEnv, Any] =
+  def spec(reset: Boolean): Spec[DBEnv, Any] =
     suite("InitTestDB")(
       test("InitTestDB") {
         assertZIO(program(reset).foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))

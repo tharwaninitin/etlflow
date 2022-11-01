@@ -1,14 +1,14 @@
 package etlflow.task
 
+import etlflow.audit
+import etlflow.audit.Audit
 import etlflow.http.HttpMethod
-import etlflow.audit.{noLog, AuditEnv}
 import etlflow.log.ApplicationLogger
-import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.{RIO, ZIO}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import zio.test.ZIOSpecDefault
 
 object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
 
@@ -74,7 +74,7 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     params = Right(Map("param1" -> "value1"))
   )
 
-  val job: RIO[AuditEnv, Unit] = for {
+  val job: RIO[Audit, Unit] = for {
     _ <- getTask1.execute
     _ <- getTask2.execute
     _ <- postTask1.execute
@@ -87,5 +87,5 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
   override def spec: Spec[TestEnvironment, Any] =
     (suite("Http Tasks")(test("Execute Http tasks") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky).provideShared(noLog)
+    }) @@ TestAspect.flaky).provideShared(audit.test)
 }

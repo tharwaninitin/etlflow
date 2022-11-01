@@ -9,7 +9,7 @@ object DbTestSuite {
 
   case class TestDb(name: String)
 
-  val spec: Spec[TestEnvironment with DBEnv, Any] =
+  val spec: Spec[DBEnv, Any] =
     suite("DB Suite")(
       test("executeQuery Test") {
         val query =

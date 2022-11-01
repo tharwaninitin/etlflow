@@ -1,9 +1,9 @@
 package examples
 
+import etlflow.log.ApplicationLogger
 import etlflow.spark.Environment.{GCP, LOCAL}
 import etlflow.spark.{IOType, ReadApi, SparkLive, SparkManager}
 import etlflow.task.{SparkReadWriteTask, SparkTask}
-import etlflow.log.ApplicationLogger
 import examples.Globals.defaultRatingsInputPathCsv
 import examples.Schema.{Rating, RatingOutput}
 import org.apache.spark.sql._
@@ -73,5 +73,5 @@ object EtlJobCsvToParquetGcs extends zio.ZIOAppDefault with ApplicationLogger {
     _ <- task2.execute
   } yield ()
 
-  override def run: Task[Unit] = job.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
+  override def run: Task[Unit] = job.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
 }

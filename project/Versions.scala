@@ -4,7 +4,7 @@ object Versions {
   val Scala3           = "3.2.1"
   val AllScalaVersions = List(Scala212, Scala213, Scala3)
   val Scala2Versions   = List(Scala212, Scala213)
-  val EtlFlowVersion   = "1.1.0"
+  val EtlFlowVersion   = "1.2.0"
 
   val ZioVersion                = "2.0.3"
   val ZioLogVersion             = "2.1.3"
@@ -13,7 +13,7 @@ object Versions {
   val ScalaCollectionCompatVersion = "2.8.1"
 
   val SttpVersion          = "3.8.3"
-  val AwsS3Version         = "2.18.7"
+  val AwsS3Version         = "2.18.295"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
   val ScalaLikeJdbcVersion = "4.0.0"

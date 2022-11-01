@@ -1,9 +1,9 @@
 package examples
 
+import etlflow.log.ApplicationLogger
 import etlflow.spark.Environment.{GCP, LOCAL}
 import etlflow.spark.{IOType, SparkLive, SparkManager}
 import etlflow.task.SparkReadWriteTask
-import etlflow.log.ApplicationLogger
 import examples.Globals.defaultRatingsInputPathCsv
 import examples.Schema.{Rating, RatingOutput}
 import org.apache.spark.sql._
@@ -58,7 +58,7 @@ object EtlJobCsvToCsvGcs extends zio.ZIOAppDefault with ApplicationLogger {
     outputLocation = gcsOutputPath,
     outputPartitionCol = Seq(f"$tempDateCol"),
     outputSaveMode = SaveMode.Overwrite
-  ).execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
+  ).execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
 
   override def run: Task[Unit] = task1
 }

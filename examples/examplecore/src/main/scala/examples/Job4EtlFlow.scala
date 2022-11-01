@@ -1,9 +1,9 @@
 package examples
 
 import etlflow.JobApp
-import etlflow.task.{DBReadTask, GenericTask}
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import etlflow.model.Credential.JDBC
+import etlflow.task.{DBReadTask, GenericTask}
 import zio.{Chunk, RIO, ZLayer}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
@@ -13,7 +13,7 @@ object Job4EtlFlow extends JobApp {
 
   private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
 
-  override val auditLayer: ZLayer[Any, Throwable, AuditEnv] = etlflow.audit.DB(cred, java.util.UUID.randomUUID.toString)
+  override val auditLayer: ZLayer[Any, Throwable, Audit] = etlflow.audit.DB(cred, java.util.UUID.randomUUID.toString)
 
   val task1: DBReadTask[EtlJobRun] = DBReadTask[EtlJobRun](
     name = "FetchEtlJobRun",
@@ -30,9 +30,9 @@ object Job4EtlFlow extends JobApp {
     function = processData(ip)
   )
 
-  def job(args: Chunk[String]): RIO[AuditEnv, Unit] =
+  def job(args: Chunk[String]): RIO[Audit, Unit] =
     for {
-      op <- task1.execute.provideSomeLayer[AuditEnv](etlflow.db.liveDB(cred))
+      op <- task1.execute.provideSomeLayer[Audit](etlflow.db.liveDB(cred))
       _  <- task2(op).execute
     } yield ()
 }

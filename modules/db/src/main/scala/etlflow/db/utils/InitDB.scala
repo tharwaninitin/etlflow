@@ -1,6 +1,6 @@
 package etlflow.db.utils
 
-import etlflow.db.liveDB
+import etlflow.db.DB
 import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
 import zio.{Task, ZIO}
@@ -14,7 +14,7 @@ object InitDB extends zio.ZIOAppDefault with ApplicationLogger {
                                               | LOG_DB_PWD
                                               | LOG_DB_DRIVER
                                               |""".stripMargin)))
-    .flatMap(cred => CreateDB().provideLayer(liveDB(cred)))
+    .flatMap(cred => CreateDB().provideLayer(DB.live(cred)))
 
   override def run: Task[Unit] = program
 }

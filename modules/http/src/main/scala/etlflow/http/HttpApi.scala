@@ -93,7 +93,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
   ): Task[Response[String]] = {
     val hdrs = headers -- List("content-type", "Content-Type")
 
-    val request: RequestT[Empty, String, Any] = method match {
+    val request: PartialRequest[String, Any] = method match {
       case HttpMethod.GET =>
         basicRequest
           .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))

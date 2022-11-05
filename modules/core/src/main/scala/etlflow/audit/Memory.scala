@@ -5,19 +5,9 @@ import etlflow.utils.DateTimeApi
 import zio.{Ref, UIO, ZIO}
 import scala.collection.mutable
 
-sealed trait Status
-object Status {
-  case object Running                       extends Status
-  case object Succeed                       extends Status
-  final case class Failed(error: Throwable) extends Status
-}
-final case class State(task_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
-  override def toString: String =
-    s"$task_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
-}
-
 @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
 case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
+  import Memory._
 
   val state: UIO[Ref[mutable.Map[String, State]]] = Ref.make(mutable.Map.empty[String, State])
 
@@ -72,4 +62,17 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
       }
     } yield ()
 
+}
+
+object Memory {
+  sealed trait Status
+  object Status {
+    case object Running                       extends Status
+    case object Succeed                       extends Status
+    final case class Failed(error: Throwable) extends Status
+  }
+  final case class State(task_name: String, status: Status, start_time: Long, end_time: Option[Long]) {
+    override def toString: String =
+      s"$task_name,$status,${DateTimeApi.getTimestampAsString(start_time)},${DateTimeApi.getTimestampAsString(end_time.getOrElse(0L))}"
+  }
 }

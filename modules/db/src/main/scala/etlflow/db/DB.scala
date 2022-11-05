@@ -1,55 +1,35 @@
 package etlflow.db
 
-import etlflow.log.ApplicationLogger
-import etlflow.model.EtlFlowException.DBException
-import scalikejdbc.{NamedDB, WrappedResultSet}
-import zio._
+import etlflow.audit.Audit
+import etlflow.model.Credential.JDBC
+import scalikejdbc.WrappedResultSet
+import zio.{RIO, Task, TaskLayer, URLayer, ZIO, ZLayer}
 
-private[etlflow] object DB extends ApplicationLogger {
-  case class DBLive(poolName: String) extends DBApi.Service {
-    override def executeQuery(query: String): IO[DBException, Unit] =
-      ZIO
-        .attempt(NamedDB(poolName).localTx { implicit s =>
-          scalikejdbc
-            .SQL(query)
-            .update()
-        })
-        .mapError { e =>
-          logger.error(e.getMessage)
-          DBException(e.getMessage)
-        }
-        .unit
-    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-    override def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, T] =
-      ZIO
-        .attempt(NamedDB(poolName).localTx { implicit s =>
-          scalikejdbc
-            .SQL(query)
-            .map(fn)
-            .single()
-            .get
-        })
-        .mapError { e =>
-          logger.error(e.getMessage)
-          DBException(e.getMessage)
-        }
-    override def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): IO[DBException, List[T]] =
-      ZIO
-        .attempt(NamedDB(poolName).localTx { implicit s =>
-          scalikejdbc
-            .SQL(query)
-            .map(fn)
-            .list()
-        })
-        .mapError { e =>
-          logger.error(e.getMessage)
-          DBException(e.getMessage)
-        }
-  }
+trait DB {
+  def executeQuery(query: String): Task[Unit]
+  def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): Task[T]
+  def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): Task[List[T]]
+}
 
-  val live: URLayer[String, DBLive] = ZLayer {
-    for {
-      poolName <- ZIO.service[String]
-    } yield DBLive(poolName)
-  }
+object DB {
+  def executeQuery(query: String): RIO[DB, Unit] = ZIO.environmentWithZIO(_.get.executeQuery(query))
+
+  def executeQuerySingleOutput[T](query: String)(fn: WrappedResultSet => T): RIO[DB, T] =
+    ZIO.environmentWithZIO(_.get.executeQuerySingleOutput(query)(fn))
+
+  def executeQueryListOutput[T](query: String)(fn: WrappedResultSet => T): RIO[DB, List[T]] =
+    ZIO.environmentWithZIO(_.get.executeQueryListOutput(query)(fn))
+
+  val layer: URLayer[String, DB] = ZLayer(ZIO.service[String].map(pool => DBImpl(pool)))
+
+  def live(db: JDBC, poolName: String = "EtlFlow-DB-Pool", poolSize: Int = 2): TaskLayer[DB] =
+    CP.layer(db, poolName, poolSize) >>> layer
+
+  def liveAudit(
+      db: JDBC,
+      jobRunId: String,
+      poolName: String = "EtlFlow-DB-Audit-Pool",
+      poolSize: Int = 2
+  ): TaskLayer[DB with Audit] =
+    CP.layer(db, poolName, poolSize) >>> (DB.layer ++ etlflow.audit.DB.layer(jobRunId))
 }

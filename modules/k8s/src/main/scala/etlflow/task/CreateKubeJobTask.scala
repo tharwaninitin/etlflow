@@ -2,10 +2,10 @@ package etlflow.task
 
 import com.coralogix.zio.k8s.client.model.K8sNamespace
 import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
-import com.coralogix.zio.k8s.model.core.v1.{Container, PodSpec, PodTemplateSpec}
+import com.coralogix.zio.k8s.model.core.v1.{Container, EnvVar, PodSpec, PodTemplateSpec}
 import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.ObjectMeta
 import etlflow.k8s._
-import zio.RIO
+import zio.{RIO, ZIO}
 
 /** Submit a job to kubernetes cluster using give job configuration
   * @param name
@@ -14,6 +14,8 @@ import zio.RIO
   *   docker image name
   * @param imagePullPolicy
   *   docker image pull policy, default to 'IfNotPresent'
+  * @param envVars
+  *   Environment variables to pass to container, default to empty map
   * @param podRestartPolicy
   *   pod restart policy, default to 'OnFailure'
   * @param command
@@ -25,6 +27,7 @@ case class CreateKubeJobTask(
     name: String,
     image: String,
     imagePullPolicy: String = "IfNotPresent",
+    envVars: Map[String, String] = Map.empty[String, String],
     podRestartPolicy: String = "OnFailure",
     command: Option[Vector[String]] = None,
     namespace: K8sNamespace = K8sNamespace.default
@@ -34,15 +37,25 @@ case class CreateKubeJobTask(
     logger.info("#" * 50)
     logger.info(s"Creating K8S Job: $name")
 
-    val metadata        = ObjectMeta(name = Some(name))
-    val container       = Container(name = name, image = Some(image), imagePullPolicy = Some(imagePullPolicy), command = command)
-    val podSpec         = PodSpec(containers = Some(Vector(container)), restartPolicy = Some(podRestartPolicy))
+    val metadata = ObjectMeta(name = name)
+
+    val container = Container(
+      name = name,
+      image = image,
+      imagePullPolicy = imagePullPolicy,
+      command = command,
+      env = envVars.map { case (key, value) => EnvVar(name = key, value = value) }.toVector
+    )
+
+    val podSpec = PodSpec(containers = Some(Vector(container)), restartPolicy = Some(podRestartPolicy))
+
     val podTemplateSpec = PodTemplateSpec(metadata = Some(metadata), spec = Some(podSpec))
 
-    val job = K8SApi.createJob(metadata, JobSpec(template = podTemplateSpec), namespace)
-    logger.info(s"K8S Job submitted successfully: $name")
-    logger.info("#" * 50)
-    job
+    K8SApi
+      .createJob(metadata, JobSpec(template = podTemplateSpec), namespace)
+      .tapError(e => ZIO.logError(e.getMessage))
+      .zipLeft(ZIO.logInfo(s"K8S Job $name submitted successfully"))
+      .zipLeft(ZIO.logInfo("#" * 50))
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
@@ -50,6 +63,7 @@ case class CreateKubeJobTask(
     "name"             -> name,
     "image"            -> image,
     "imagePullPolicy"  -> imagePullPolicy,
+    "envVars"          -> envVars.mkString(","),
     "podRestartPolicy" -> podRestartPolicy,
     "command"          -> command.toString
   )

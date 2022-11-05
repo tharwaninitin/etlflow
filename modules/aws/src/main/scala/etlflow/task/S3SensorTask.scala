@@ -17,6 +17,6 @@ case class S3SensorTask(name: String, bucket: String, key: String, retry: Int, s
         if (out) ZIO.logInfo(s"Found key $key in s3 bucket s3://$bucket")
         else ZIO.fail(RetryException(s"key $key not found in s3 bucket s3://$bucket"))
       }
-      .retry(RetrySchedule(retry, spaced))
+      .retry(RetrySchedule.recurs(retry, spaced))
   } yield ()
 }

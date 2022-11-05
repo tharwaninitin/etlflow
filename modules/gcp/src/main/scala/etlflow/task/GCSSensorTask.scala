@@ -14,17 +14,13 @@ case class GCSSensorTask(name: String, bucket: String, prefix: String, retry: In
     val program: RIO[GCS, Unit] = for {
       out <- lookup
       _ <-
-        if (out)
-          ZIO.succeed(logger.info(s"Found key gs://$bucket/$prefix in GCS"))
-        else
-          ZIO.fail(
-            RetryException(s"Key gs://$bucket/$prefix not found in GCS")
-          )
+        if (out) ZIO.succeed(logger.info(s"Found key gs://$bucket/$prefix in GCS"))
+        else ZIO.fail(RetryException(s"Key gs://$bucket/$prefix not found in GCS"))
     } yield ()
 
     val runnable: RIO[GCS, Unit] = for {
       _ <- ZIO.succeed(logger.info(s"Starting sensor for GCS location gs://$bucket/$prefix"))
-      _ <- program.retry(RetrySchedule(retry, spaced))
+      _ <- program.retry(RetrySchedule.recurs(retry, spaced))
     } yield ()
 
     runnable

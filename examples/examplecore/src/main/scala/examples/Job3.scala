@@ -30,7 +30,7 @@ object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
   )
 
   private val job = for {
-    op <- task1.execute.provideSomeLayer[Audit](etlflow.db.liveDB(cred))
+    op <- task1.execute.provideSomeLayer[Audit](etlflow.db.DB.live(cred))
     _  <- task2(op).execute
   } yield ()
 

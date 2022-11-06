@@ -1,5 +1,6 @@
 package etlflow.task
 
+import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
 import com.coralogix.zio.k8s.client.model.K8sNamespace
 import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
 import com.coralogix.zio.k8s.model.core.v1.{Container, EnvVar, PodSpec, PodTemplateSpec}
@@ -31,9 +32,9 @@ case class CreateKubeJobTask(
     podRestartPolicy: String = "OnFailure",
     command: Option[Vector[String]] = None,
     namespace: K8sNamespace = K8sNamespace.default
-) extends EtlTask[K8sEnv, Job] {
+) extends EtlTask[K8S with Jobs, Job] {
 
-  override protected def process: RIO[K8sEnv, Job] = {
+  override protected def process: RIO[K8S with Jobs, Job] = {
     logger.info("#" * 50)
     logger.info(s"Creating K8S Job: $name")
 
@@ -51,7 +52,7 @@ case class CreateKubeJobTask(
 
     val podTemplateSpec = PodTemplateSpec(metadata = Some(metadata), spec = Some(podSpec))
 
-    K8SApi
+    K8S
       .createJob(metadata, JobSpec(template = podTemplateSpec), namespace)
       .tapError(e => ZIO.logError(e.getMessage))
       .zipLeft(ZIO.logInfo(s"K8S Job $name submitted successfully"))

@@ -1,14 +1,15 @@
 package etlflow.task
 
+import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
 import etlflow.audit.Audit
-import etlflow.k8s.K8sEnv
+import etlflow.k8s.K8S
 import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
 object CreateKubeJobTestSuite {
 
-  val spec: Spec[K8sEnv with Audit, Any] = test("Execute CreateKubeJobTask") {
+  val spec: Spec[K8S with Jobs with Audit, Any] = test("Execute CreateKubeJobTask") {
     val task = CreateKubeJobTask(
       name = "KubeJobTaskExample",
       image = "busybox:1.28",

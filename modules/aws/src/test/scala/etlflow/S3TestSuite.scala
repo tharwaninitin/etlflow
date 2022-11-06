@@ -1,6 +1,6 @@
 package etlflow
 
-import etlflow.aws.{S3, S3Api, S3Env}
+import etlflow.aws.S3
 import etlflow.log.ApplicationLogger
 import etlflow.model.Credential
 import etlflow.task._
@@ -12,11 +12,12 @@ import zio.{ULayer, ZIO}
 
 object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger {
 
-  val env: ULayer[S3Env] = S3.live(s3Region, Some(Credential.AWS("etlflow", "etlflowpass")), Some("http://localhost:9000")).orDie
+  val env: ULayer[S3] =
+    S3.live(s3Region, Some(Credential.AWS("etlflow", "etlflowpass")), Some("http://localhost:9000")).orDie
 
   def spec: Spec[TestEnvironment, Any] = (suite("S3 Tasks")(
     test("Execute createBucket task") {
-      val task = S3Api.createBucket(s3Bucket).fold(_ => "ok", _ => "ok")
+      val task = S3.createBucket(s3Bucket).fold(_ => "ok", _ => "ok")
       assertZIO(task)(equalTo("ok"))
     },
     test("Execute S3Put task") {
@@ -52,7 +53,7 @@ object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger
 //      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
 //    },
     test("Execute getObject api") {
-      val task = S3Api
+      val task = S3
         .getObject(s3Bucket, s3Path)
         .via(ZPipeline.utf8Decode)
         .via(ZPipeline.splitLines)
@@ -61,12 +62,12 @@ object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute getObject to putObject stream") {
-      val in = S3Api.getObject(s3Bucket, s3Path)
-      val op = S3Api.putObject(s3Bucket, "temp/ratings2.csv", in, 124)
+      val in = S3.getObject(s3Bucket, s3Path)
+      val op = S3.putObject(s3Bucket, "temp/ratings2.csv", in, 124)
       assertZIO(op.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute getObject api") {
-      val task = S3Api
+      val task = S3
         .getObject(s3Bucket, "temp/ratings2.csv")
         .via(ZPipeline.utf8Decode)
         .via(ZPipeline.splitLines)

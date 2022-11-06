@@ -2,15 +2,14 @@ package etlflow
 
 import software.amazon.awssdk.core.async.{AsyncResponseTransformer, SdkPublisher}
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
+import zio.Chunk
 import zio.interop.reactivestreams._
 import zio.stream.ZStream
-import zio.Chunk
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 
 package object aws {
   type StreamResponse = ZStream[Any, Throwable, Chunk[Byte]]
-  type S3Env          = S3Api.Service
 
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   final private[aws] case class StreamAsyncResponseTransformer(cf: CompletableFuture[StreamResponse])

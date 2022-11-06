@@ -12,11 +12,11 @@ import scala.concurrent.duration.Duration
   * @param name
   *   Name for the task
   * @param project
-  *   GCP Project id
+  *   GCP Project ID
   * @param subscription
   *   PubSub Subscription ID
   * @param interval
-  *   Cloud Monitoring Interval with start time and end time. Check [[com.google.monitoring.v3.TimeInterval]] for additional docs
+  *   Cloud Monitoring Interval with start time and end time.
   * @param spaced
   *   Check continuously with every repetition spaced by the specified duration from the last run.
   */

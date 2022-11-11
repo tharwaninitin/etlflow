@@ -33,7 +33,11 @@ case class PollKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace.
 
     val runnable: RIO[K8S, Unit] = for {
       _ <- ZIO.succeed(logger.info("Started Polling Job"))
-      _ <- program.retry(RetrySchedule.forever(1.minute))
+      _ <- program.retry(RetrySchedule.forever(1.minute)) // To Do -> Getting error ->
+
+      // Type mismatch. Required: Schedule[NotInferredR1, Object, NotInferredS], found: Schedule[Any, Throwable, (Throwable, Long, Long)]
+
+
     } yield ()
 
     runnable

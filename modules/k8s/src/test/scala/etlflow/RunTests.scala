@@ -3,7 +3,7 @@ package etlflow
 import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
 import etlflow.audit.Audit
 import etlflow.k8s.K8S
-import etlflow.task.{CreateKubeJobTestSuite, GetKubeJobTestSuite, PollKubeJobTestSuite}
+import etlflow.task._
 import zio.ULayer
 import zio.test._
 
@@ -14,6 +14,6 @@ object RunTests extends ZIOSpecDefault {
   override def spec: Spec[TestEnvironment, Any] = (suite("Kube Tasks")(
     CreateKubeJobTestSuite.spec,
     GetKubeJobTestSuite.spec @@ TestAspect.ignore,
-    PollKubeJobTestSuite.spec @@ TestAspect.ignore,
+    TrackKubeJobTestSuite.spec @@ TestAspect.ignore
   ) @@ TestAspect.sequential).provide(env)
 }

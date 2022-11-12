@@ -9,29 +9,30 @@ import etlflow.utils.RetrySchedule
 import zio.{RIO, ZIO}
 import scala.concurrent.duration._
 
-/** Get kubernetes job details and waits for success for given job name
+/** Track kubernetes job and waits for successful execution of pod for given job name
   * @param name
   *   kubernetes job name
   * @param namespace
   *   kubernetes cluster namespace defaults to default namespace
   */
-case class PollKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace.default) extends EtlTask[K8S with Jobs, Unit] {
+case class TrackKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace.default) extends EtlTask[K8S with Jobs, Unit] {
 
   override protected def process: RIO[K8S with Jobs, Unit] = {
     val program: RIO[K8S with Jobs, Unit] =
       for {
-        _           <- ZIO.succeed(logger.info("Polling Job"))
-        jobMetadata <- getJob(name = name)
-        jobStatus   <- jobMetadata.getStatus.mapError(e => new RuntimeException(s"Error: $e"))
+        job <- getJob(name)
+        podSucceeded = job.status.flatMap(_.succeeded).getOrElse(-1)
         _ <-
-          if (jobStatus.active.getOrElse(999) == jobStatus.succeeded.getOrElse(998))
-            ZIO.succeed(logger.info("Job Completed"))
-          else ZIO.fail(RetryException(s"Job Running ${jobMetadata.getStatus}"))
+          if (podSucceeded == 1) ZIO.logInfo("Job Completed")
+          else
+            ZIO.fail(RetryException(s"Pods Succeeded $podSucceeded"))
       } yield ()
 
     val runnable: RIO[K8S with Jobs, Unit] = for {
-      _ <- ZIO.succeed(logger.info("Started Polling Job"))
-      _ <- program.retry(RetrySchedule.forever(1.minute)) // To Do -> Getting error ->
+      _ <- ZIO.logInfo("#" * 50)
+      _ <- ZIO.logInfo("Started Polling Job Status")
+      _ <- program.retry(RetrySchedule.forever(5.seconds))
+      _ <- ZIO.logInfo("#" * 50)
     } yield ()
 
     runnable

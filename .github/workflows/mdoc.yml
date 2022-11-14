@@ -1,0 +1,15 @@
+name: Scala Documentation Check
+on: [push]
+jobs:
+  mdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Check Documentation
+        run: sbt "docs/mdoc --check"

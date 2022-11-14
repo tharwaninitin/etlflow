@@ -7,7 +7,7 @@ object Versions {
   val EtlFlowVersion   = "1.2.0"
 
   val ZioVersion                = "2.0.3"
-  val ZioLogVersion             = "2.1.3"
+  val ZioLogVersion             = "2.1.4"
   val ZioReactiveStreamsVersion = "2.0.0"
 
   val ScalaCollectionCompatVersion = "2.8.1"

@@ -35,6 +35,6 @@ package object audit {
 
   val console: ULayer[Audit] = ZLayer.succeed(Console)
   def memory(jobRunId: String): ULayer[Audit] = ZLayer.succeed(Memory(jobRunId))
-  def live(slack: Option[model.Slack], jri: String): ULayer[Audit] = if (slack.isEmpty) test else ZLayer.succeed(Slack(jri, slack))
+  def slack(slack: Option[model.Slack], jri: String): ULayer[Audit] = if (slack.isEmpty) test else ZLayer.succeed(Slack(jri, slack))
   // format: on
 }

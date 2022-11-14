@@ -49,21 +49,21 @@ Add the below latest release as a dependency to your project
 
 __SBT__
 ```scala
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.2.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "@VERSION@"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>1.2.0</version>
+    <version>@VERSION@</version>
 </dependency>
 ```
 
@@ -82,39 +82,39 @@ __Maven__
 <!-- /TOC -->
 
 ## Core
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## GCP
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## DB
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## K8s
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## Http
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## Email
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## AWS
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## Redis
-```scala
+```scala mdoc:silent
 // Todo
 ```
 ## Spark
-```scala
+```scala mdoc:silent
 // Todo
 ```
 

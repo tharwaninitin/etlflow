@@ -1,6 +1,6 @@
 import Dependencies._
-import Versions._
 import ScalaCompileOptions._
+import Versions._
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -128,4 +128,14 @@ lazy val k8s = (project in file("modules/k8s"))
   .settings(k8sSettings)
   .dependsOn(core)
 
-addCommandAlias("cd", "project")
+lazy val docs = project
+  .in(file("modules/docs")) // important: it must not be docs/
+  .dependsOn(core, spark, db, http, redis, email, aws, gcp, k8s)
+  .settings(
+    name           := "gcp4zio-docs",
+    publish / skip := true,
+    mdocVariables  := Map("VERSION" -> version.value),
+    mdocIn         := new File("docs/readme.template.md"),
+    mdocOut        := new File("README.md")
+  )
+  .enablePlugins(MdocPlugin)

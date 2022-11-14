@@ -1,10 +1,10 @@
 package examples
 
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
 import etlflow.spark.IOType.RDB
 import etlflow.spark.{IOType, SparkLive, SparkManager}
 import etlflow.task.SparkReadWriteTask
-import etlflow.log.ApplicationLogger
 import examples.Globals.defaultRatingsInputPath
 import examples.Schema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -23,7 +23,7 @@ object EtlJobParquetToJdbc extends zio.ZIOAppDefault with ApplicationLogger {
     outputSaveMode = SaveMode.Overwrite
   )
 
-  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
+  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
 
   override def run: Task[Unit] = job
 }

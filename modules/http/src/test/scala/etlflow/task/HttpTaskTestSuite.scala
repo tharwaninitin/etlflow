@@ -1,14 +1,12 @@
 package etlflow.task
 
+import etlflow.audit
+import etlflow.audit.Audit
 import etlflow.http.HttpMethod
-import etlflow.audit.{noLog, AuditEnv}
 import etlflow.log.ApplicationLogger
-import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import zio.test.ZIOSpecDefault
+import zio.{RIO, ZIO}
 
 object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
 
@@ -24,6 +22,15 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     url = "https://httpbin.org/get",
     method = HttpMethod.GET,
     params = Right(Map("param1" -> "value1", "param2" -> "value2")),
+    allowUnsafeSSL = true,
+    log = true
+  )
+
+  private val getTask3 = HttpRequestTask(
+    name = "HttpGetParams",
+    url = "https://httpbin.org/get",
+    method = HttpMethod.GET,
+    params = Left("something"),
     allowUnsafeSSL = true,
     log = true
   )
@@ -44,20 +51,15 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
   )
 
   private val postTask3 = HttpRequestTask(
-    name = "HttpPostJsonParamsIncorrect",
+    name = "HttpPostFormIncorrectHeader",
     url = "https://httpbin.org/post",
     method = HttpMethod.POST,
     params = Right(Map("param1" -> "value1")),
-    headers = Map("Content-Type" -> "application/json") // content-type header is ignored
+    headers = Map(
+      "Content-Type" -> "application/json"
+    ), // content-type header is ignored as we are sending Right(Map[String,String]) which encodes it as form
+    log = true
   )
-
-  val emailBody: String = {
-    val exec_time = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm").format(LocalDateTime.now)
-    s"""
-       | SMTP Email Test
-       | Time of Execution: $exec_time
-       |""".stripMargin
-  }
 
   val putTask1: HttpRequestTask = HttpRequestTask(
     name = "HttpPutJson",
@@ -74,9 +76,10 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     params = Right(Map("param1" -> "value1"))
   )
 
-  val job: RIO[AuditEnv, Unit] = for {
+  val job: RIO[Audit, Unit] = for {
     _ <- getTask1.execute
     _ <- getTask2.execute
+    _ <- getTask3.execute.tapError(e => ZIO.succeed(logger.error(s"${e.getMessage}"))).ignore
     _ <- postTask1.execute
     _ <- postTask2.execute
     _ <- postTask3.execute
@@ -87,5 +90,5 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
   override def spec: Spec[TestEnvironment, Any] =
     (suite("Http Tasks")(test("Execute Http tasks") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky).provideShared(noLog)
+    }) @@ TestAspect.flaky).provideShared(audit.test)
 }

@@ -1,9 +1,8 @@
 package etlflow.audit
 
-import etlflow.log.ApplicationLogger
 import scalikejdbc._
 
-private[etlflow] object Sql extends ApplicationLogger {
+private[etlflow] object Sql {
 
   def updateTaskRun(taskRunId: String, props: String, status: String, elapsedTime: String): SQL[Nothing, NoExtractor] =
     sql"""UPDATE taskrun

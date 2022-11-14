@@ -200,7 +200,7 @@ jobs:
           distribution: 'adopt'
           cache: 'sbt'
       - name: Run K8S Test
-        run: sbt ";project k8s; +test"
+        run: sbt ";project k8s; ++2.12.17 test; ++2.13.10 test;"
   email:
     runs-on: ubuntu-latest
     strategy:

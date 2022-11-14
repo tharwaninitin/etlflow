@@ -1,11 +1,11 @@
 package etlflow.db.utils
 
-import etlflow.db.{DBApi, DBEnv}
+import etlflow.db.DB
 import etlflow.log.ApplicationLogger
-import zio.ZIO
+import zio.RIO
 
 object CreateDB extends ApplicationLogger {
-  def apply(reset: Boolean = false): ZIO[DBEnv, Throwable, Unit] = {
+  def apply(reset: Boolean = false): RIO[DB, Unit] = {
     def createTable(name: String): String =
       if (reset)
         s"""
@@ -38,8 +38,8 @@ object CreateDB extends ApplicationLogger {
                      |);""".stripMargin
 
     for {
-      _ <- DBApi.executeQuery(jobrun).as(logger.info(jobrun))
-      _ <- DBApi.executeQuery(taskrun).as(logger.info(taskrun))
+      _ <- DB.executeQuery(jobrun).as(logger.info(jobrun))
+      _ <- DB.executeQuery(taskrun).as(logger.info(taskrun))
     } yield ()
   }
 }

@@ -1,7 +1,7 @@
 package examples
 
-import etlflow.task.GenericTask
 import etlflow.log.ApplicationLogger
+import etlflow.task.GenericTask
 import zio._
 
 object Job1 extends zio.ZIOAppDefault with ApplicationLogger {
@@ -15,5 +15,5 @@ object Job1 extends zio.ZIOAppDefault with ApplicationLogger {
     function = executeTask()
   )
 
-  override def run: Task[Unit] = task1.execute.provideLayer(etlflow.audit.noLog)
+  override def run: Task[Unit] = task1.execute.provideLayer(etlflow.audit.test)
 }

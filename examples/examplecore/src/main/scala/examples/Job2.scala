@@ -1,7 +1,7 @@
 package examples
 
-import etlflow.task.GenericTask
 import etlflow.log.ApplicationLogger
+import etlflow.task.GenericTask
 import zio.Task
 
 @SuppressWarnings(Array("org.wartremover.warts.Throw"))
@@ -42,5 +42,5 @@ object Job2 extends zio.ZIOAppDefault with ApplicationLogger {
     _ <- task3.execute
   } yield ()
 
-  override def run: Task[Unit] = job.provideLayer(etlflow.audit.noLog)
+  override def run: Task[Unit] = job.provideLayer(etlflow.audit.test)
 }

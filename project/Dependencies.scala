@@ -1,5 +1,5 @@
-import sbt._
 import Versions._
+import sbt._
 
 object Dependencies {
 
@@ -17,10 +17,12 @@ object Dependencies {
   )
 
   lazy val gcpLibs = List(
-    "dev.zio"                  %% "zio"         % ZioVersion,
-    "com.github.tharwaninitin" %% "gcp4zio-gcs" % Gcp4ZioVersion,
-    "com.github.tharwaninitin" %% "gcp4zio-dp"  % Gcp4ZioVersion,
-    "com.github.tharwaninitin" %% "gcp4zio-bq"  % Gcp4ZioVersion
+    "dev.zio"                  %% "zio"                % ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-gcs"        % Gcp4ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-dp"         % Gcp4ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-bq"         % Gcp4ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-pubsub"     % Gcp4ZioVersion,
+    "com.github.tharwaninitin" %% "gcp4zio-monitoring" % Gcp4ZioVersion
   )
 
   lazy val dbLibs = List(

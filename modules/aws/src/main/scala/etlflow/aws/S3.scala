@@ -1,92 +1,46 @@
 package etlflow.aws
 
 import etlflow.model.Credential.AWS
-import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
-import zio._
-import zio.stream._
-import java.nio.ByteBuffer
+import zio.stream.{Stream, ZStream}
+import zio.{RIO, Task, TaskLayer, ZIO, ZLayer}
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
-import zio.interop.reactivestreams._
-import scala.jdk.CollectionConverters._
 
-case class S3(client: S3AsyncClient) extends S3Api.Service {
-
-  def createBucket(name: String): Task[CreateBucketResponse] =
-    ZIO.fromCompletableFuture(client.createBucket(CreateBucketRequest.builder.bucket(name).build))
-
-  def listBuckets: Task[List[Bucket]] = ZIO.fromCompletableFuture(client.listBuckets).map(_.buckets().asScala.toList)
-
-  def listObjects(bucket: String, prefix: String, maxKeys: Int): Task[ListObjectsV2Response] =
-    ZIO.fromCompletableFuture(
-      client.listObjectsV2(
-        ListObjectsV2Request.builder
-          .bucket(bucket)
-          .maxKeys(maxKeys)
-          .prefix(prefix)
-          .build
-      )
-    )
-
-  def lookupObject(bucket: String, key: String): Task[Boolean] = ZIO
-    .fromCompletableFuture(
-      client.headObject(HeadObjectRequest.builder().bucket(bucket).key(key).build())
-    )
-    .as(true)
-    .catchSome { case _: NoSuchKeyException => ZIO.succeed(false) }
-
-  def putObject(bucket: String, key: String, file: Path, overwrite: Boolean): Task[PutObjectResponse] =
-    lookupObject(bucket, key)
-      .flatMap { out =>
-        if (out && !overwrite) ZIO.fail(new IllegalArgumentException(s"File at path s3://$bucket/$key already exist"))
-        else ZIO.fromCompletableFuture(client.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, file))
-      }
-
-  def putObject[R](bucket: String, key: String, content: ZStream[R, Throwable, Byte], contentLength: Long): RIO[R, Unit] =
-    content
-      .mapChunks(c => Chunk(ByteBuffer.wrap(c.toArray)))
-      .toPublisher
-      .flatMap { publisher =>
-        ZIO.fromCompletableFuture(
-          client.putObject(
-            PutObjectRequest.builder
-              .bucket(bucket)
-              .key(key)
-              .contentLength(contentLength)
-              .build,
-            AsyncRequestBody.fromPublisher(publisher)
-          )
-        )
-      }
-      .unit
-
-  def getObject(bucket: String, key: String, file: Path): Task[GetObjectResponse] = ZIO.fromCompletableFuture(
-    client.getObject(GetObjectRequest.builder.bucket(bucket).key(key).build, file)
-  )
-
-  def getObject(bucketName: String, key: String): Stream[Throwable, Byte] =
-    ZStream
-      .fromZIO(
-        ZIO.fromCompletableFuture(
-          client.getObject[StreamResponse](
-            GetObjectRequest.builder().bucket(bucketName).key(key).build(),
-            StreamAsyncResponseTransformer(new CompletableFuture[StreamResponse]())
-          )
-        )
-      )
-      .flatMap(identity)
-      .flattenChunks
-      .mapError(e => S3Exception.builder().message(e.getMessage).cause(e).build())
-
-  def delObject(bucket: String, key: String): Task[DeleteObjectResponse] = ZIO.fromCompletableFuture(
-    client.deleteObject(DeleteObjectRequest.builder.bucket(bucket).key(key).build)
-  )
+trait S3 {
+  def createBucket(name: String): Task[CreateBucketResponse]
+  def listBuckets: Task[List[Bucket]]
+  def listObjects(bucket: String, key: String, maxKeys: Int): Task[ListObjectsV2Response]
+  def lookupObject(bucket: String, key: String): Task[Boolean]
+  def putObject(bucket: String, key: String, file: Path, overwrite: Boolean): Task[PutObjectResponse]
+  def putObject[R](bucket: String, key: String, content: ZStream[R, Throwable, Byte], contentLength: Long): RIO[R, Unit]
+  def getObject(bucket: String, key: String, file: Path): Task[GetObjectResponse]
+  def getObject(bucket: String, key: String): Stream[Throwable, Byte]
+  def delObject(bucket: String, key: String): Task[DeleteObjectResponse]
 }
 
 object S3 {
-  def live(region: Region, credentials: Option[AWS] = None, endpointOverride: Option[String] = None): TaskLayer[S3Env] =
-    ZLayer.scoped(ZIO.attempt(S3Client(region, credentials, endpointOverride)).map(s3 => S3(s3)))
+  def createBucket(name: String): RIO[S3, CreateBucketResponse] = ZIO.environmentWithZIO[S3](_.get.createBucket(name))
+  def listBuckets: RIO[S3, List[Bucket]]                        = ZIO.environmentWithZIO[S3](_.get.listBuckets)
+  def lookupObject(bucket: String, key: String): RIO[S3, Boolean] =
+    ZIO.environmentWithZIO[S3](_.get.lookupObject(bucket, key))
+  def listObjects(bucket: String, key: String, maxKeys: Int): RIO[S3, ListObjectsV2Response] =
+    ZIO.environmentWithZIO[S3](_.get.listObjects(bucket, key, maxKeys))
+  def putObject[R](
+      bucket: String,
+      key: String,
+      content: ZStream[R, Throwable, Byte],
+      contentLength: Long
+  ): RIO[R with S3, Unit] =
+    ZIO.environmentWithZIO[S3](_.get.putObject[R](bucket, key, content, contentLength))
+  def putObject(bucket: String, key: String, file: Path, overwrite: Boolean): RIO[S3, PutObjectResponse] =
+    ZIO.environmentWithZIO[S3](_.get.putObject(bucket, key, file, overwrite))
+  def getObject(bucket: String, key: String, file: Path): RIO[S3, GetObjectResponse] =
+    ZIO.environmentWithZIO[S3](_.get.getObject(bucket, key, file))
+  def getObject(bucket: String, key: String): ZStream[S3, Throwable, Byte] =
+    ZStream.environmentWithStream[S3](_.get.getObject(bucket, key))
+  def delObject(bucket: String, key: String): RIO[S3, DeleteObjectResponse] =
+    ZIO.environmentWithZIO[S3](_.get.delObject(bucket, key))
+  def live(region: Region, credentials: Option[AWS] = None, endpointOverride: Option[String] = None): TaskLayer[S3] =
+    ZLayer.scoped(ZIO.attempt(S3Client(region, credentials, endpointOverride)).map(s3 => S3Impl(s3)))
 }

@@ -1,9 +1,9 @@
 package examples
 
+import etlflow.log.ApplicationLogger
 import etlflow.spark.Environment.LOCAL
 import etlflow.spark.{IOType, SparkLive, SparkManager}
 import etlflow.task.SparkReadWriteTask
-import etlflow.log.ApplicationLogger
 import examples.Globals.{defaultRatingsInputPath, defaultRatingsOutputPath}
 import examples.Schema.Rating
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -25,7 +25,7 @@ object EtlJobParquetToOrc extends zio.ZIOAppDefault with ApplicationLogger {
     outputFilename = Some("ratings.orc")
   )
 
-  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noLog)
+  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
 
   override def run: Task[Unit] = job
 }

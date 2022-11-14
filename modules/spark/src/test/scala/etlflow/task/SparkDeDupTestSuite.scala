@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.TestSparkSession
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import etlflow.schema.Rating
 import etlflow.spark.IOType.CSV
 import etlflow.spark.SparkEnv
@@ -23,7 +23,7 @@ object SparkDeDupTestSuite extends TestSparkSession {
     deDupCols = Seq("user_id", "movie_id")
   )
 
-  val spec: Spec[TestEnvironment with SparkEnv with AuditEnv, Any] =
+  val spec: Spec[SparkEnv with Audit, Any] =
     test("Spark Streaming Deduplication task should execute successfully")(
       assertZIO(task.execute.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     )

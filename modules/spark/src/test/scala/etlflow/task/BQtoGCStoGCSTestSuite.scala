@@ -1,16 +1,16 @@
 package etlflow.task
 
 import etlflow.SparkTestSuiteHelper
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import etlflow.schema.{Rating, RatingBQ, RatingOutput, RatingOutputCsv}
 import etlflow.spark.IOType.{BQ, CSV, JSON, PARQUET}
 import etlflow.spark.{SparkEnv, SparkUDF}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
-import zio.{RIO, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.{RIO, ZIO}
 
 object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
 
@@ -102,13 +102,13 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
     outputRepartitioningNum = 1
   )
 
-  val job: RIO[SparkEnv with AuditEnv, Unit] = for {
+  val job: RIO[SparkEnv with Audit, Unit] = for {
     _ <- task1.execute
     _ <- task21.execute.zipPar(task22.execute)
     _ <- task3.execute
   } yield ()
 
-  val spec: Spec[TestEnvironment with SparkEnv with AuditEnv, Any] =
+  val spec: Spec[TestEnvironment with SparkEnv with Audit, Any] =
     test("Execute SparkReadWriteTasks with GCS and BQ") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

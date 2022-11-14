@@ -1,10 +1,10 @@
 package etlflow
 
+import etlflow.db.DB
 import etlflow.db.utils.CreateDB
-import etlflow.db.{DBApi, DBEnv}
-import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.{RIO, ZIO}
 
 object InitDBSuite extends DbSuiteHelper {
   val sql: String =
@@ -17,12 +17,12 @@ object InitDBSuite extends DbSuiteHelper {
       |VALUES ('123','a27a7415-57b2-4b53-8f9b-5254e847a301','download_spr','{}','pass','1.6 mins','GenericEtlTask',1234567);
       |""".stripMargin
 
-  def program(reset: Boolean): ZIO[DBEnv, Throwable, Unit] = for {
+  def program(reset: Boolean): RIO[DB, Unit] = for {
     _ <- CreateDB(reset)
-    _ <- DBApi.executeQuery(sql)
+    _ <- DB.executeQuery(sql)
   } yield ()
 
-  def spec(reset: Boolean): Spec[TestEnvironment with DBEnv, Any] =
+  def spec(reset: Boolean): Spec[DB, Any] =
     suite("InitTestDB")(
       test("InitTestDB") {
         assertZIO(program(reset).foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))

@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.TestHelper
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import gcp4zio.dp._
 import zio.ZIO
 import zio.test.Assertion.equalTo
@@ -9,7 +9,7 @@ import zio.test._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 object DPTasksTestSuite extends TestHelper {
-  val spec: Spec[TestEnvironment with DPJobEnv with AuditEnv, Any] =
+  val spec: Spec[DPJob with Audit, Any] =
     suite("EtlFlow DPJobTasks")(
       test("Execute DPHiveJob task") {
         val task = DPHiveJobTask(

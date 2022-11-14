@@ -3,18 +3,16 @@ package etlflow.http
 import etlflow.log.ApplicationLogger
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
+import sttp.client3._
 import sttp.client3.httpclient.zio._
 import sttp.client3.logging.LogLevel
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
-import sttp.client3._
 import sttp.model.MediaType
 import zio.{Scope, Task, ZIO}
 import java.net.http.HttpClient
 import java.security.SecureRandom
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import java.security.cert.X509Certificate
-import javax.net.ssl.SSLContext
+import javax.net.ssl.{SSLContext, TrustManager, X509TrustManager}
 import scala.concurrent.duration._
 
 private[etlflow] object HttpApi extends ApplicationLogger {
@@ -67,7 +65,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       connectionTimeout: Int,
       allowUnsafeSsl: Boolean
   ): ZIO[Scope, Throwable, Response[String]] =
-    getBackend(allowUnsafeSsl: Boolean, connectionTimeout: Int)
+    getBackend(allowUnsafeSsl, connectionTimeout)
       .flatMap(backend => if (log) req.send(logBackend(backend)) else req.send(backend))
       .map { res =>
         logger.info("#" * 50)
@@ -95,7 +93,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
   ): Task[Response[String]] = {
     val hdrs = headers -- List("content-type", "Content-Type")
 
-    val request: RequestT[Empty, String, Any] = method match {
+    val request: PartialRequest[String, Any] = method match {
       case HttpMethod.GET =>
         basicRequest
           .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
@@ -122,7 +120,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       method match {
         case HttpMethod.GET =>
           params match {
-            case Left(_)    => ZIO.fail(new RuntimeException("params for get request as Left(..) is not supported"))
+            case Left(_)    => ZIO.fail(new RuntimeException("params passed for GET Request as Left(..) is not available"))
             case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connectionTimeout, allowUnsafeSsl)
           }
         case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connectionTimeout, allowUnsafeSsl)

@@ -4,16 +4,16 @@ import etlflow.db.utils
 import zio.test._
 
 object SqlTestSuite {
-  val spec: Spec[TestEnvironment, Any] =
+  val spec: Spec[Any, Any] =
     suite("SQL(log) Suite")(
-      test("updateJobRun Sql") {
+      zio.test.test("updateJobRun Sql") {
         val ipsql = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "2 mins")
         val ip    = utils.getSqlQueryAsString(ipsql).replaceAll("\\s+", " ").trim
         val op =
           """UPDATE jobrun SET status = success, elapsed_time = 2 mins WHERE job_run_id = a27a7415-57b2-4b53-8f9b-5254e847a301"""
         assertTrue(ip == op)
       },
-      test("insertJobRun Sql") {
+      zio.test.test("insertJobRun Sql") {
         val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", 0L).statement
         val op = """INSERT INTO jobrun(
             job_run_id,
@@ -28,7 +28,7 @@ object SqlTestSuite {
          VALUES (?, ?, CAST(? as JSON), 'started', '...', '', 'true', ?)"""
         assertTrue(ip == op)
       },
-      test("insertTaskRun Sql") {
+      zio.test.test("insertTaskRun Sql") {
         val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123", 0L).statement
         val op = """INSERT INTO taskrun (
            task_run_id,
@@ -43,7 +43,7 @@ object SqlTestSuite {
          VALUES (?, ?, CAST(? as JSON), 'started', '...', ?, ?, ?)"""
         assertTrue(ip == op)
       },
-      test("updateTaskRun Sql") {
+      zio.test.test("updateTaskRun Sql") {
         val ip = Sql
           .updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123")
           .statement

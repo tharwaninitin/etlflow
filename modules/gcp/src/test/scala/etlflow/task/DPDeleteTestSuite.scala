@@ -1,7 +1,7 @@
 package etlflow.task
 
 import etlflow.TestHelper
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
 import gcp4zio.dp._
 import zio.ZIO
 import zio.test.Assertion.equalTo
@@ -9,7 +9,7 @@ import zio.test._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 object DPDeleteTestSuite extends TestHelper {
-  val spec: Spec[TestEnvironment with DPEnv with AuditEnv, Any] =
+  val spec: Spec[DPCluster with Audit, Any] =
     test("Execute DPDeleteTask") {
       val task = DPDeleteTask(
         name = "DPDeleteTaskExample",

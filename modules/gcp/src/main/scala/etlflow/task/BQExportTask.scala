@@ -1,6 +1,6 @@
 package etlflow.task
 
-import gcp4zio.bq.{BQApi, BQEnv, BQInputType}
+import gcp4zio.bq.{BQ, BQInputType}
 import zio.{RIO, ZIO}
 
 case class BQExportTask(
@@ -12,12 +12,12 @@ case class BQExportTask(
     destinationFileName: Option[String] = None,
     destinationFormat: BQInputType,
     destinationCompressionType: String = "gzip"
-) extends EtlTask[BQEnv, Unit] {
+) extends EtlTask[BQ, Unit] {
 
-  override protected def process: RIO[BQEnv, Unit] = {
+  override protected def process: RIO[BQ, Unit] = {
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Export Task: $name")
-    BQApi.exportTable(
+    BQ.exportTable(
       sourceDataset,
       sourceTable,
       sourceProject,

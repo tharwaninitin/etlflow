@@ -4,6 +4,31 @@ import etlflow.http.{HttpApi, HttpMethod}
 import sttp.client3.Response
 import zio._
 
+/** Describes a HTTP request
+  *
+  * @param name
+  *   Name of the Task
+  * @param url
+  *   Http Request URL
+  * @param method
+  *   Supported Http method are GET, POST, PUT
+  * @param params
+  *
+  * For POST/PUT Requests: To encode http request body as JSON use Left(String), To encode http request body as FORM use
+  * Right(Map[String, String])
+  *
+  * For GET Requests: To send params in URL use Right(Map[String, String]), Left(String) is not available for GET
+  * @param headers
+  *   Http request headers
+  * @param log
+  *   Prints request(as curl command) and responses
+  * @param connectionTimeout
+  *   Http request connection timeout in MILLISECONDS
+  * @param readTimeout
+  *   Http request read timeout in MILLISECONDS
+  * @param allowUnsafeSSL
+  *   Allow sending unsafe SSL requests
+  */
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 case class HttpRequestTask(
     name: String,

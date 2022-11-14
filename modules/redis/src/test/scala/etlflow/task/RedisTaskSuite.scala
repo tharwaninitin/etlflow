@@ -52,5 +52,5 @@ object RedisTaskSuite extends ZIOSpecDefault {
   override def spec: Spec[TestEnvironment, Any] =
     suite("Redis Tasks")(test("Execute redis tasks") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }).provideLayerShared(etlflow.audit.noLog)
+    }).provideLayerShared(etlflow.audit.test)
 }

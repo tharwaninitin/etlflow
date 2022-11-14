@@ -1,9 +1,9 @@
 package examples
 
-import etlflow.audit.AuditEnv
+import etlflow.audit.Audit
+import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
 import etlflow.task.{DBReadTask, GenericTask}
-import etlflow.log.ApplicationLogger
 import zio.Task
 
 object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
@@ -30,9 +30,9 @@ object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
   )
 
   private val job = for {
-    op <- task1.execute.provideSomeLayer[AuditEnv](etlflow.db.liveDB(cred))
+    op <- task1.execute.provideSomeLayer[Audit](etlflow.db.DB.live(cred))
     _  <- task2(op).execute
   } yield ()
 
-  override def run: Task[Unit] = job.provideLayer(etlflow.audit.noLog)
+  override def run: Task[Unit] = job.provideLayer(etlflow.audit.test)
 }

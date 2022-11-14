@@ -11,5 +11,5 @@ object RunAllTestSuites extends ZIOSpecDefault with DbSuiteHelper {
     db.DbTestSuite.spec,     // Will execute actual DB queries
     audit.DbTestSuite.spec,  // Will execute actual DB queries
     audit.SqlTestSuite.spec
-  ) @@ TestAspect.sequential).provideCustomShared(db.liveDBWithLog(credentials, jri).orDie)
+  ) @@ TestAspect.sequential).provideShared(db.DB.liveAudit(credentials, jri).orDie)
 }

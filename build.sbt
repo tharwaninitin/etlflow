@@ -132,9 +132,9 @@ lazy val docs = project
   .in(file("modules/docs")) // important: it must not be docs/
   .dependsOn(core, spark, db, http, redis, email, aws, gcp, k8s)
   .settings(
-    name           := "gcp4zio-docs",
+    name           := "etlflow-docs",
     publish / skip := true,
-    mdocVariables  := Map("VERSION" -> version.value),
+    mdocVariables  := Map("VERSION" -> version.value, "Scala212" -> Scala212, "Scala213" -> Scala213, "Scala3" -> Scala3),
     mdocIn         := new File("docs/readme.template.md"),
     mdocOut        := new File("README.md")
   )

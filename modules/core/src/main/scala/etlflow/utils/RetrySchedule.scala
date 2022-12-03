@@ -16,13 +16,13 @@ object RetrySchedule {
     (noThrowable && Schedule.recurs(retry) && Schedule.spaced(ZDuration.fromScala(spaced))).onDecision {
       case (_, out, Decision.Done) => ZIO.logError(s"Exception occurred => ${out._1}")
       case (_, out, Decision.Continue(_)) =>
-        ZIO.logError(s"Exception occurred => ${out._1}") *> ZIO.logError(s"Retrying attempt #${out._2 + 1}")
+        ZIO.logInfo(s"Retry condition encountered => ${out._1}") *> ZIO.logInfo(s"Retrying attempt #${out._2 + 1}")
     }
 
   def forever[A](spaced: Duration): Schedule[Any, Throwable, (Throwable, Long, Long)] =
     (noThrowable && Schedule.forever && Schedule.spaced(ZDuration.fromScala(spaced))).onDecision {
       case (_, out, Decision.Done) => ZIO.logError(s"Exception occurred => ${out._1}")
       case (_, out, Decision.Continue(_)) =>
-        ZIO.logError(s"Exception occurred => ${out._1}") *> ZIO.logError(s"Retrying attempt #${out._2 + 1}")
+        ZIO.logInfo(s"Retry condition encountered => ${out._1}") *> ZIO.logInfo(s"Retrying attempt #${out._2 + 1}")
     }
 }

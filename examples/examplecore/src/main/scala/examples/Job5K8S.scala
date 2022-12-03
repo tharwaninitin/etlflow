@@ -13,7 +13,7 @@ object Job5K8S extends ZIOAppDefault with ApplicationLogger {
 
   private val program = for {
     _ <- DeleteKubeJobTask(jobName).execute.ignore
-    job <- CreateKubeJobTask(
+    _ <- CreateKubeJobTask(
       name = jobName,
       image = "busybox:1.28",
       command = Some(Vector("/bin/sh", "-c", "date; echo Hello from the Kubernetes cluster"))

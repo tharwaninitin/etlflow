@@ -6,11 +6,11 @@ object Versions {
   val Scala2Versions   = List(Scala212, Scala213)
   val EtlFlowVersion   = "1.2.0"
 
-  val ZioVersion                = "2.0.3"
-  val ZioLogVersion             = "2.1.4"
+  val ZioVersion                = "2.0.4"
+  val ZioLogVersion             = "2.1.5"
   val ZioReactiveStreamsVersion = "2.0.0"
 
-  val ScalaCollectionCompatVersion = "2.8.1"
+  val ScalaCollectionCompatVersion = "2.9.0"
 
   val SttpVersion          = "3.8.3"
   val AwsS3Version         = "2.17.295"
@@ -18,16 +18,16 @@ object Versions {
   val MailVersion          = "1.6.2"
   val ScalaLikeJdbcVersion = "4.0.0"
   val Gcp4ZioVersion       = "1.2.0"
-  val K8sVersion           = "2.0.1"
+  val K8SVersion           = "2.0.1"
 
   val SparkVersion     = "3.3.1"
   val SparkBQVersion   = "0.23.1"
   val HadoopGCSVersion = "hadoop3-2.2.5"
   val HadoopS3Version  = "3.3.2"
 
-  val PgVersion    = "42.5.0"
+  val PgVersion    = "42.5.1"
   val MySqlVersion = "8.0.31"
 
   val Sl4jVersion    = "1.7.36"
-  val LogbackVersion = "1.4.4"
+  val LogbackVersion = "1.4.5"
 }

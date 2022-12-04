@@ -16,28 +16,40 @@ import javax.net.ssl.{SSLContext, TrustManager, X509TrustManager}
 import scala.concurrent.duration._
 
 private[etlflow] object HttpApi extends ApplicationLogger {
+  type EtlFlowSttpBackend = SttpBackend[Task, ZioStreams with capabilities.WebSockets]
 
-  private def logBackend(
-      backend: SttpBackend[Task, ZioStreams with capabilities.WebSockets]
-  ): SttpBackend[Task, ZioStreams with capabilities.WebSockets] =
-    Slf4jLoggingBackend(
-      backend,
-      beforeCurlInsteadOfShow = true,
-      logRequestBody = true,
-      logResponseBody = true,
-      beforeRequestSendLogLevel = LogLevel.Info,
-      responseLogLevel = _ => LogLevel.Info
-    )
+  def logBackend(backend: EtlFlowSttpBackend, logDetails: Boolean): EtlFlowSttpBackend = Slf4jLoggingBackend(
+    backend,
+    logRequestBody = logDetails,
+    logRequestHeaders = logDetails,
+    logResponseBody = logDetails,
+    logResponseHeaders = logDetails,
+    beforeCurlInsteadOfShow = logDetails,
+    beforeRequestSendLogLevel = LogLevel.Info,
+    responseLogLevel = c => if (c.isClientError || c.isServerError) LogLevel.Error else LogLevel.Info
+  )
+
+  def getBackendWithSSLContext(
+      connectionTimeout: Long,
+      sslContext: SSLContext,
+      followRedirects: HttpClient.Redirect = HttpClient.Redirect.NORMAL
+  ): ZIO[Scope, Throwable, EtlFlowSttpBackend] = {
+    val client: HttpClient = HttpClient
+      .newBuilder()
+      .connectTimeout(java.time.Duration.ofMillis(connectionTimeout))
+      .followRedirects(followRedirects)
+      .sslContext(sslContext)
+      .build()
+
+    val backend = HttpClientZioBackend.usingClient(client)
+    ZIO.acquireRelease(ZIO.attempt(backend))(a => a.close().ignore)
+  }
 
   @SuppressWarnings(Array("org.wartremover.warts.Null", "org.wartremover.warts.NonUnitStatements"))
-  private def getBackend(
-      allowUnsafeSSL: Boolean,
-      connectionTimeout: Int
-  ): ZIO[Scope, Throwable, SttpBackend[Task, ZioStreams with capabilities.WebSockets]] =
+  def getBackend(connectionTimeout: Long, allowUnsafeSSL: Boolean = false): ZIO[Scope, Throwable, EtlFlowSttpBackend] =
     if (allowUnsafeSSL) {
       val trustAllCerts = Array[TrustManager](new X509TrustManager() {
-        override def getAcceptedIssuers: Array[X509Certificate] = null
-
+        override def getAcceptedIssuers: Array[X509Certificate]                                = null
         override def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
         override def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
       })
@@ -45,28 +57,21 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       val sslContext: SSLContext = SSLContext.getInstance("ssl")
       sslContext.init(null, trustAllCerts, new SecureRandom())
 
-      val client: HttpClient = HttpClient
-        .newBuilder()
-        .connectTimeout(java.time.Duration.ofMillis(connectionTimeout.toLong))
-        .sslContext(sslContext)
-        .build()
-
-      val backend = HttpClientZioBackend.usingClient(client)
-      ZIO.acquireRelease(ZIO.attempt(backend))(a => a.close().ignore)
+      getBackendWithSSLContext(connectionTimeout, sslContext)
     } else {
       val options = SttpBackendOptions.connectionTimeout(connectionTimeout.millisecond)
       HttpClientZioBackend.scoped(options)
     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
-  private def logAndParseResponse(
+  def logAndParseResponse(
       req: RequestT[Identity, String, Any],
-      log: Boolean,
-      connectionTimeout: Int,
+      logDetails: Boolean,
+      connectionTimeout: Long,
       allowUnsafeSsl: Boolean
   ): ZIO[Scope, Throwable, Response[String]] =
-    getBackend(allowUnsafeSsl, connectionTimeout)
-      .flatMap(backend => if (log) req.send(logBackend(backend)) else req.send(backend))
+    getBackend(connectionTimeout, allowUnsafeSsl)
+      .flatMap(backend => if (logDetails) req.send(logBackend(backend, logDetails)) else req.send(backend))
       .map { res =>
         logger.info("#" * 50)
         if (res.code.code == 204 || res.code.code == 200 || res.code.code == 201) {
@@ -86,9 +91,9 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       url: String,
       params: Either[String, Map[String, String]],
       headers: Map[String, String],
-      log: Boolean,
-      connectionTimeout: Int,
-      readTimeout: Int,
+      logDetails: Boolean,
+      connectionTimeout: Long,
+      readTimeout: Long,
       allowUnsafeSsl: Boolean = false
   ): Task[Response[String]] = {
     val hdrs = headers -- List("content-type", "Content-Type")
@@ -96,7 +101,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
     val request: PartialRequest[String, Any] = method match {
       case HttpMethod.GET =>
         basicRequest
-          .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
+          .readTimeout(Duration(readTimeout, MILLISECONDS))
           .headers(headers)
           .response(asStringAlways)
       case HttpMethod.POST | HttpMethod.PUT =>
@@ -104,13 +109,13 @@ private[etlflow] object HttpApi extends ApplicationLogger {
           case Left(str) =>
             basicRequest
               .body(stringAsJson(str)) // Always encoded as JSON
-              .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
+              .readTimeout(Duration(readTimeout, MILLISECONDS))
               .headers(hdrs)
               .response(asStringAlways)
           case Right(map) =>
             basicRequest
               .body(map) // Always encoded as FORM
-              .readTimeout(Duration(readTimeout.toLong, MILLISECONDS))
+              .readTimeout(Duration(readTimeout, MILLISECONDS))
               .headers(hdrs)
               .response(asStringAlways)
         }
@@ -121,10 +126,10 @@ private[etlflow] object HttpApi extends ApplicationLogger {
         case HttpMethod.GET =>
           params match {
             case Left(_)    => ZIO.fail(new RuntimeException("params passed for GET Request as Left(..) is not available"))
-            case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), log, connectionTimeout, allowUnsafeSsl)
+            case Right(map) => logAndParseResponse(request.get(uri"$url?$map"), logDetails, connectionTimeout, allowUnsafeSsl)
           }
-        case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
-        case HttpMethod.PUT  => logAndParseResponse(request.put(uri"$url"), log, connectionTimeout, allowUnsafeSsl)
+        case HttpMethod.POST => logAndParseResponse(request.post(uri"$url"), logDetails, connectionTimeout, allowUnsafeSsl)
+        case HttpMethod.PUT  => logAndParseResponse(request.put(uri"$url"), logDetails, connectionTimeout, allowUnsafeSsl)
       }
     }
   }

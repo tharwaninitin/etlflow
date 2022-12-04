@@ -5,7 +5,7 @@ import etlflow.log.ApplicationLogger
 import etlflow.task._
 import zio._
 
-object Job5K8S extends ZIOAppDefault with ApplicationLogger {
+object Job1K8S extends ZIOAppDefault with ApplicationLogger {
 
   override val bootstrap = zioSlf4jLogger
 
@@ -16,10 +16,10 @@ object Job5K8S extends ZIOAppDefault with ApplicationLogger {
     _ <- CreateKubeJobTask(
       name = jobName,
       image = "busybox:1.28",
-      command = Some(Vector("/bin/sh", "-c", "date; echo Hello from the Kubernetes cluster"))
+      command = Some(Vector("/bin/sh", "-c", "sleep 5; date; echo Hello from the Kubernetes cluster"))
     ).execute
     _ <- TrackKubeJobTask(jobName).execute
   } yield ()
 
-  override def run: Task[Unit] = program.provide(K8S.live ++ etlflow.audit.test)
+  override def run: Task[Unit] = program.provide(K8S.live(logRequestResponse = true) ++ etlflow.audit.test)
 }

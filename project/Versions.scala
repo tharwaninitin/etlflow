@@ -12,7 +12,7 @@ object Versions {
 
   val ScalaCollectionCompatVersion = "2.9.0"
 
-  val SttpVersion          = "3.8.3"
+  val SttpVersion          = "3.8.5"
   val AwsS3Version         = "2.17.295"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"

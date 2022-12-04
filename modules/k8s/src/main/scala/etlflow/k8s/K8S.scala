@@ -1,7 +1,6 @@
 package etlflow.k8s
 
 import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
-import com.coralogix.zio.k8s.client.config.httpclient.k8sDefault
 import com.coralogix.zio.k8s.client.model.K8sNamespace
 import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
 import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.{DeleteOptions, ObjectMeta, Status}
@@ -84,7 +83,15 @@ object K8S {
   ): RIO[K8S with Jobs, Status] =
     ZIO.environmentWithZIO[K8S](_.get.deleteJob(name, deleteOptions, namespace))
 
-  val live: TaskLayer[K8S with Jobs] = (k8sDefault >>> Jobs.live) ++ ZLayer.succeed(K8SImpl())
+  /** Method: live - Provides layer to execute K8S APIs
+    * @param connectionTimeout
+    *   Http request connection timeout in MILLISECONDS
+    * @param logRequestResponse
+    *   Boolean flag to enable/disable detailed logging of HTTP requests to Kubernetes API Server
+    * @return
+    */
+  def live(connectionTimeout: Long = 100000, logRequestResponse: Boolean = false): TaskLayer[K8S with Jobs] =
+    (K8SClient(connectionTimeout, logRequestResponse) >>> Jobs.live) ++ ZLayer.succeed(K8SImpl())
 
   val test: ULayer[K8S with Jobs] = Jobs.test ++ ZLayer.succeed(K8SImpl())
 }

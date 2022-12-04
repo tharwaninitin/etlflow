@@ -14,8 +14,17 @@ import scala.concurrent.duration._
   *   kubernetes job name
   * @param namespace
   *   kubernetes cluster namespace defaults to default namespace
+  * @param retry
+  *   Number of times we need to check for status of kube job before this effect terminates
+  * @param spaced
+  *   Specifies duration each repetition should be spaced from the last run
   */
-case class TrackKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace.default) extends EtlTask[K8S with Jobs, Unit] {
+case class TrackKubeJobTask(
+    name: String,
+    namespace: K8sNamespace = K8sNamespace.default,
+    retry: Option[Int] = None,
+    spaced: Duration = 5.seconds
+) extends EtlTask[K8S with Jobs, Unit] {
 
   override protected def process: RIO[K8S with Jobs, Unit] = {
     val program: RIO[K8S with Jobs, Unit] =
@@ -23,7 +32,7 @@ case class TrackKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace
         job <- getJob(name)
         podSucceeded = job.status.flatMap(_.succeeded).getOrElse(-1)
         _ <-
-          if (podSucceeded == 1) ZIO.logInfo("Job Completed")
+          if (podSucceeded == 1) ZIO.logInfo(s"Job Completed, Pods Succeeded $podSucceeded")
           else
             ZIO.fail(RetryException(s"Pods Succeeded $podSucceeded"))
       } yield ()
@@ -31,7 +40,7 @@ case class TrackKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace
     val runnable: RIO[K8S with Jobs, Unit] = for {
       _ <- ZIO.logInfo("#" * 50)
       _ <- ZIO.logInfo("Started Polling Job Status")
-      _ <- program.retry(RetrySchedule.forever(5.seconds))
+      _ <- retry.map(r => program.retry(RetrySchedule.recurs(r, spaced))).getOrElse(program.retry(RetrySchedule.forever(spaced)))
       _ <- ZIO.logInfo("#" * 50)
     } yield ()
 

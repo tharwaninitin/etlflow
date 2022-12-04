@@ -126,7 +126,7 @@ lazy val gcp = (project in file("modules/gcp"))
 lazy val k8s = (project in file("modules/k8s"))
   .settings(commonSettings)
   .settings(k8sSettings)
-  .dependsOn(core)
+  .dependsOn(core, http)
 
 lazy val docs = project
   .in(file("modules/docs")) // important: it must not be docs/

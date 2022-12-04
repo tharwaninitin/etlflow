@@ -53,10 +53,8 @@ object Dependencies {
   )
 
   lazy val k8sLibs = List(
-    "dev.zio"                       %% "zio"                           % ZioVersion,
-    "com.coralogix"                 %% "zio-k8s-client"                % K8SVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % SttpVersion,
-    "com.softwaremill.sttp.client3" %% "slf4j-backend"                 % SttpVersion
+    "dev.zio"       %% "zio"            % ZioVersion,
+    "com.coralogix" %% "zio-k8s-client" % K8SVersion
   )
 
   lazy val coreTestLibs = List(

@@ -4,17 +4,20 @@ import com.coralogix.zio.k8s.client.config.httpclient.getHostnameVerificationDis
 import com.coralogix.zio.k8s.client.config.{defaultConfigChain, k8sCluster, K8sClusterConfig, SSL}
 import com.coralogix.zio.k8s.client.model.K8sCluster
 import etlflow.http.HttpApi
+import etlflow.log.ApplicationLogger
 import sttp.capabilities.WebSockets
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.SttpBackend
 import zio.{Task, TaskLayer, ZIO, ZLayer}
 
-object K8SClient {
+object K8SClient extends ApplicationLogger {
   def apply(
       connectionTimeout: Long = 10000,
       logDetails: Boolean = false
   ): TaskLayer[K8sCluster with SttpBackend[Task, ZioStreams with WebSockets]] =
-    defaultConfigChain >>> (k8sCluster ++ sttpClient(connectionTimeout, logDetails))
+    (defaultConfigChain >>> (k8sCluster ++ sttpClient(connectionTimeout, logDetails))).tapError(e =>
+      ZIO.logError(s"Error ${e.getMessage}")
+    )
 
   private def sttpClient(
       connectionTimeout: Long,

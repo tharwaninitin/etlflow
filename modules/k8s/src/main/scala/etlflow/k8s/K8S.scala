@@ -1,6 +1,7 @@
 package etlflow.k8s
 
 import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
+import com.coralogix.zio.k8s.client.config.httpclient.k8sDefault
 import com.coralogix.zio.k8s.client.model.K8sNamespace
 import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
 import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.{DeleteOptions, ObjectMeta, Status}
@@ -92,6 +93,8 @@ object K8S {
     */
   def live(connectionTimeout: Long = 100000, logRequestResponse: Boolean = false): TaskLayer[K8S with Jobs] =
     (K8SClient(connectionTimeout, logRequestResponse) >>> Jobs.live) ++ ZLayer.succeed(K8SImpl())
+
+  val default: TaskLayer[K8S with Jobs] = (k8sDefault >>> Jobs.live) ++ ZLayer.succeed(K8SImpl())
 
   val test: ULayer[K8S with Jobs] = Jobs.test ++ ZLayer.succeed(K8SImpl())
 }

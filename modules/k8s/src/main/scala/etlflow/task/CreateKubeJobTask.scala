@@ -18,7 +18,7 @@ import zio.{RIO, ZIO}
   * @param envVars
   *   Environment variables to pass to container, defaults to empty map
   * @param secret
-  *   Secret name(secretName) which will get mounted to /etc/secretName, defaults to None
+  *   Secret which will get mounted to specified path, defaults to None
   * @param podRestartPolicy
   *   pod restart policy, defaults to 'OnFailure'
   * @param command
@@ -32,7 +32,7 @@ case class CreateKubeJobTask(
     image: String,
     imagePullPolicy: String = "IfNotPresent",
     envVars: Map[String, String] = Map.empty[String, String],
-    secret: Option[String] = None,
+    secret: Option[etlflow.k8s.Secret] = None,
     podRestartPolicy: String = "OnFailure",
     command: Option[Vector[String]] = None,
     namespace: K8sNamespace = K8sNamespace.default
@@ -45,11 +45,11 @@ case class CreateKubeJobTask(
     val metadata = ObjectMeta(name = name)
 
     val (volumeMounts, volumes) = if (secret.isDefined) {
-      val secretName           = secret.get
-      val serviceAccountSecret = SecretVolumeSource(secretName = secretName, optional = false)
-      val secretVolume         = Volume(name = secretName, secret = serviceAccountSecret)
+      val etlflow.k8s.Secret(secretName, mountPath) = secret.get
+      val serviceVolumeSource                       = SecretVolumeSource(secretName = secretName, optional = false)
+      val secretVolume                              = Volume(name = secretName, secret = serviceVolumeSource)
       val volumeMounts: Option[Vector[VolumeMount]] = Some(
-        Vector(VolumeMount(mountPath = s"/etc/$secretName", name = secretName, readOnly = true))
+        Vector(VolumeMount(mountPath = mountPath, name = secretName, readOnly = true))
       )
       val volumes: Option[Vector[Volume]] = Some(Vector(secretVolume))
       (volumeMounts, volumes)
@@ -80,7 +80,7 @@ case class CreateKubeJobTask(
     "name"             -> name,
     "image"            -> image,
     "imagePullPolicy"  -> imagePullPolicy,
-    "secrets"          -> secret.getOrElse(""),
+    "secrets"          -> secret.toString,
     "envVars"          -> envVars.mkString(","),
     "podRestartPolicy" -> podRestartPolicy,
     "command"          -> command.toString

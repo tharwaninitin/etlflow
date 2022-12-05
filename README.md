@@ -49,21 +49,21 @@ Add the below latest release as a dependency to your project
 
 __SBT__
 ```scala
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.2.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.2.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.3.0"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 

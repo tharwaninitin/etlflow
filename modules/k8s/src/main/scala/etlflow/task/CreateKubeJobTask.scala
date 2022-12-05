@@ -3,7 +3,7 @@ package etlflow.task
 import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
 import com.coralogix.zio.k8s.client.model.K8sNamespace
 import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
-import com.coralogix.zio.k8s.model.core.v1.{Container, EnvVar, PodSpec, PodTemplateSpec}
+import com.coralogix.zio.k8s.model.core.v1._
 import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.ObjectMeta
 import etlflow.k8s._
 import zio.{RIO, ZIO}
@@ -16,19 +16,23 @@ import zio.{RIO, ZIO}
   * @param imagePullPolicy
   *   docker image pull policy, default to 'IfNotPresent'
   * @param envVars
-  *   Environment variables to pass to container, default to empty map
+  *   Environment variables to pass to container, defaults to empty map
+  * @param secret
+  *   Secret which will get mounted to specified path, defaults to None
   * @param podRestartPolicy
-  *   pod restart policy, default to 'OnFailure'
+  *   pod restart policy, defaults to 'OnFailure'
   * @param command
-  *   entrypoint array, default to docker image's ENTRYPOINT
+  *   entrypoint array, defaults to docker image's ENTRYPOINT
   * @param namespace
   *   kubernetes cluster namespace, defaults to default namespace
   */
+@SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 case class CreateKubeJobTask(
     name: String,
     image: String,
     imagePullPolicy: String = "IfNotPresent",
     envVars: Map[String, String] = Map.empty[String, String],
+    secret: Option[etlflow.k8s.Secret] = None,
     podRestartPolicy: String = "OnFailure",
     command: Option[Vector[String]] = None,
     namespace: K8sNamespace = K8sNamespace.default
@@ -40,15 +44,27 @@ case class CreateKubeJobTask(
 
     val metadata = ObjectMeta(name = name)
 
+    val (volumeMounts, volumes) = if (secret.isDefined) {
+      val etlflow.k8s.Secret(secretName, mountPath) = secret.get
+      val serviceVolumeSource                       = SecretVolumeSource(secretName = secretName, optional = false)
+      val secretVolume                              = Volume(name = secretName, secret = serviceVolumeSource)
+      val volumeMounts: Option[Vector[VolumeMount]] = Some(
+        Vector(VolumeMount(mountPath = mountPath, name = secretName, readOnly = true))
+      )
+      val volumes: Option[Vector[Volume]] = Some(Vector(secretVolume))
+      (volumeMounts, volumes)
+    } else { (None, None) }
+
     val container = Container(
       name = name,
       image = image,
       imagePullPolicy = imagePullPolicy,
       command = command,
-      env = envVars.map { case (key, value) => EnvVar(name = key, value = value) }.toVector
+      env = envVars.map { case (key, value) => EnvVar(name = key, value = value) }.toVector,
+      volumeMounts = volumeMounts
     )
 
-    val podSpec = PodSpec(containers = Some(Vector(container)), restartPolicy = Some(podRestartPolicy))
+    val podSpec = PodSpec(containers = Some(Vector(container)), restartPolicy = Some(podRestartPolicy), volumes = volumes)
 
     val podTemplateSpec = PodTemplateSpec(metadata = Some(metadata), spec = Some(podSpec))
 
@@ -64,6 +80,7 @@ case class CreateKubeJobTask(
     "name"             -> name,
     "image"            -> image,
     "imagePullPolicy"  -> imagePullPolicy,
+    "secrets"          -> secret.toString,
     "envVars"          -> envVars.mkString(","),
     "podRestartPolicy" -> podRestartPolicy,
     "command"          -> command.toString

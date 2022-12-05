@@ -14,15 +14,13 @@ lazy val examples = (project in file("examples"))
       }
     }
   )
-  .aggregate(examplecore, examplespark)
+  .aggregate(examplecore, examplespark, examplegcp)
 
 lazy val examplecore = (project in file("examples/examplecore"))
   .settings(
     name               := "examplecore",
     crossScalaVersions := AllScalaVersions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-core"    % EtlFlowVersion,
-      "com.github.tharwaninitin" %% "etlflow-k8s"     % EtlFlowVersion,
       "com.github.tharwaninitin" %% "etlflow-db"      % EtlFlowVersion,
       "ch.qos.logback"            % "logback-classic" % LogbackVersion,
       "org.postgresql"            % "postgresql"      % PgVersion
@@ -52,5 +50,15 @@ lazy val examplespark = (project in file("examples/examplespark"))
       ShadeRule.rename("com.google.common.**" -> "repackaged.com.google.common.@1").inAll,
       ShadeRule.rename("io.grpc.**" -> "repackaged.io.grpc.@1").inAll,
       ShadeRule.rename("shapeless.**" -> "shadeshapless.@1").inAll
+    )
+  )
+
+lazy val examplegcp = (project in file("examples/examplegcp"))
+  .settings(
+    name               := "examplegcp",
+    crossScalaVersions := Scala2Versions,
+    libraryDependencies ++= List(
+      "com.github.tharwaninitin" %% "etlflow-k8s"     % EtlFlowVersion,
+      "ch.qos.logback"            % "logback-classic" % LogbackVersion
     )
   )

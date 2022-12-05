@@ -26,10 +26,10 @@ object SparkManager extends ApplicationLogger {
         "spark.default.parallelism"                -> "10",
         "spark.sql.shuffle.partitions"             -> "10"
       ),
-      hiveSupport: Boolean = true
+      hiveSupport: Boolean = false
   ): SparkSession =
     SparkSession.getActiveSession.fold {
-      logger.info(s"###### Creating Spark Session with $env support ##########")
+      logger.info(s"################## Creating Spark Session with $env support ##################")
       @SuppressWarnings(Array("org.wartremover.warts.Var"))
       var sparkBuilder = SparkSession.builder()
 
@@ -61,9 +61,10 @@ object SparkManager extends ApplicationLogger {
 
       val spark = sparkBuilder.getOrCreate()
       showSparkProperties(spark)
+      logger.info(s"################## Created Spark Session ##################")
       spark
     } { spark =>
-      logger.info(s"###### Using Already Created Spark Session with $env support ##########")
+      logger.info(s"################## Using Already Created Spark Session with $env support ##################")
       spark
     }
 }

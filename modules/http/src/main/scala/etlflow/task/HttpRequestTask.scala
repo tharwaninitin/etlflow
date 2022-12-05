@@ -21,7 +21,7 @@ import zio._
   * @param headers
   *   Http request headers
   * @param log
-  *   Prints request(as curl command) and responses
+  *   Boolean flag to enable/disable detailed logging of HTTP requests
   * @param connectionTimeout
   *   Http request connection timeout in MILLISECONDS
   * @param readTimeout
@@ -37,8 +37,8 @@ case class HttpRequestTask(
     params: Either[String, Map[String, String]] = Right(Map.empty),
     headers: Map[String, String] = Map.empty,
     log: Boolean = false,
-    connectionTimeout: Int = 10000,
-    readTimeout: Int = 150000,
+    connectionTimeout: Long = 10000,
+    readTimeout: Long = 150000,
     allowUnsafeSSL: Boolean = false
 ) extends EtlTask[Any, Response[String]] {
 

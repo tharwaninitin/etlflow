@@ -10,23 +10,25 @@ postgres:13-alpine
 
 #Set environment variables for PG
 ```shell
-export LOG_DB_URL=jdbc:postgresql://localhost:5432/etlflow
-export LOG_DB_USER=etlflow
-export LOG_DB_PWD=etlflow
-export LOG_DB_DRIVER=org.postgresql.Driver
+export DB_URL=jdbc:postgresql://localhost:5432/etlflow
+export DB_USER=etlflow
+export DB_PWD=etlflow
+export DB_DRIVER=org.postgresql.Driver
+export INIT=true
 ```
 
 #Set environment variables for MYSQL
 ```shell
-export LOG_DB_URL=jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
-export LOG_DB_USER=etlflow
-export LOG_DB_PWD=etlflow
-export LOG_DB_DRIVER=com.mysql.cj.jdbc.Driver
+export DB_URL=jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
+export DB_USER=etlflow
+export DB_PWD=etlflow
+export DB_DRIVER=com.mysql.cj.jdbc.Driver
+export INIT=true
 ```
 
 #Run Sample Test Job
 ```shell
-sbt ";project db; Test/runMain etlflow.db.utils.InitDB"
+sbt ";project db; Test/runMain etlflow.audit.CreateDB"
 sbt ";project db; Test/runMain etlflow.SampleJobWithDbLogging"
 ```
 

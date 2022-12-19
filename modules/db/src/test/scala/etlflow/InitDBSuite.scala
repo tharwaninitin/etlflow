@@ -1,7 +1,7 @@
 package etlflow
 
+import etlflow.audit.CreateDB
 import etlflow.db.DB
-import etlflow.db.utils.CreateDB
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio.{RIO, ZIO}
@@ -18,7 +18,7 @@ object InitDBSuite extends DbSuiteHelper {
       |""".stripMargin
 
   def program(reset: Boolean): RIO[DB, Unit] = for {
-    _ <- CreateDB(reset)
+    _ <- CreateDB.execute(reset)
     _ <- DB.executeQuery(sql)
   } yield ()
 

@@ -50,10 +50,10 @@ jobs:
       - name: Run DB Tests
         run: sbt ";project db; +test; +Test/runMain etlflow.SampleJobWithDbLogging"
         env:
-          LOG_DB_URL: jdbc:postgresql://localhost:5432/etlflow
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: org.postgresql.Driver
+          DB_URL: jdbc:postgresql://localhost:5432/etlflow
+          DB_USER: etlflow
+          DB_PWD: etlflow
+          DB_DRIVER: org.postgresql.Driver
   dbmysql:
     runs-on: ubuntu-latest
     services:
@@ -77,10 +77,10 @@ jobs:
       - name: Run DB Tests
         run: sbt ";project db; test; Test/runMain etlflow.SampleJobWithDbLogging"
         env:
-          LOG_DB_URL: jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
-          LOG_DB_USER: etlflow
-          LOG_DB_PWD: etlflow
-          LOG_DB_DRIVER: com.mysql.cj.jdbc.Driver
+          DB_URL: jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
+          DB_USER: etlflow
+          DB_PWD: etlflow
+          DB_DRIVER: com.mysql.cj.jdbc.Driver
   spark:
     runs-on: ubuntu-latest
     strategy:

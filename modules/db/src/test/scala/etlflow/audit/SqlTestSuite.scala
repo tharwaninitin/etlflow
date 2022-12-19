@@ -1,14 +1,14 @@
 package etlflow.audit
 
-import etlflow.db.utils
+import etlflow.DbSuiteHelper
 import zio.test._
 
-object SqlTestSuite {
+object SqlTestSuite extends DbSuiteHelper {
   val spec: Spec[Any, Any] =
     suite("SQL(log) Suite")(
       zio.test.test("updateJobRun Sql") {
         val ipsql = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "2 mins")
-        val ip    = utils.getSqlQueryAsString(ipsql).replaceAll("\\s+", " ").trim
+        val ip    = getSqlQueryAsString(ipsql).replaceAll("\\s+", " ").trim
         val op =
           """UPDATE jobrun SET status = success, elapsed_time = 2 mins WHERE job_run_id = a27a7415-57b2-4b53-8f9b-5254e847a301"""
         assertTrue(ip == op)

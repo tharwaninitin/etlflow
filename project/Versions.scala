@@ -6,7 +6,7 @@ object Versions {
   val Scala2Versions   = List(Scala212, Scala213)
   val EtlFlowVersion   = "1.3.0"
 
-  val ZioVersion                = "2.0.4"
+  val ZioVersion                = "2.0.5"
   val ZioLogVersion             = "2.1.5"
   val ZioReactiveStreamsVersion = "2.0.0"
 

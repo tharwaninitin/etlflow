@@ -1,12 +1,11 @@
 package etlflow.audit
 
 import etlflow.log.ApplicationLogger
-import etlflow.model.Credential.JDBC
-import zio.{RIO, Task, ZIO}
+import zio.{RIO, Task}
 
-object CreateDB extends ApplicationLogger with zio.ZIOAppDefault {
+object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
 
-  def execute(reset: Boolean = false): RIO[etlflow.db.DB, Unit] = {
+  def execute(reset: Boolean = false): RIO[gcp4zio.bq.BQ, Unit] = {
     def createTable(name: String): String =
       if (reset)
         s"""
@@ -39,21 +38,12 @@ object CreateDB extends ApplicationLogger with zio.ZIOAppDefault {
                      |);""".stripMargin
 
     for {
-      _ <- etlflow.db.DB.executeQuery(jobrun).as(logger.info(jobrun))
-      _ <- etlflow.db.DB.executeQuery(taskrun).as(logger.info(taskrun))
+      _ <- gcp4zio.bq.BQ.executeQuery(jobrun).as(logger.info(jobrun))
+      _ <- gcp4zio.bq.BQ.executeQuery(taskrun).as(logger.info(taskrun))
     } yield ()
   }
 
-  val program: Task[Unit] = ZIO
-    .attempt(JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER")))
-    .tapError(_ => ZIO.logInfo("""Set environment variables to continue
-                                 | DB_URL
-                                 | DB_USER
-                                 | DB_PWD
-                                 | DB_DRIVER
-                                 | INIT
-                                 |""".stripMargin))
-    .flatMap(cred => CreateDB.execute(sys.env("INIT").toBoolean).provideLayer(etlflow.db.DB.live(cred)))
+  val program: Task[Unit] = execute(sys.env("INIT").toBoolean).provideLayer(gcp4zio.bq.BQ.live())
 
   override def run: Task[Unit] = program
 }

@@ -15,11 +15,11 @@ trait EtlTask[R, OP] extends ApplicationLogger {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   final def execute: RIO[R with Audit, OP] = for {
-    sri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
-    _   <- Audit.logTaskStart(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
+    tri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
+    _   <- Audit.logTaskStart(tri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp)
     op <- process.tapError { ex =>
-      Audit.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, Some(ex))
+      Audit.logTaskEnd(tri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, Some(ex))
     }
-    _ <- Audit.logTaskEnd(sri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, None)
+    _ <- Audit.logTaskEnd(tri, name, getTaskProperties, taskType, DateTimeApi.getCurrentTimestamp, None)
   } yield op
 }

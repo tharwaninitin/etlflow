@@ -3,7 +3,7 @@ package etlflow.task
 import com.google.cloud.bigquery.Schema
 import etlflow.TestHelper
 import etlflow.audit.Audit
-import gcp4zio.bq.BQInputType.{CSV, PARQUET}
+import gcp4zio.bq.FileType.{CSV, PARQUET}
 import gcp4zio.bq._
 import zio.ZIO
 import zio.test.Assertion.equalTo
@@ -52,7 +52,7 @@ object BQTestSuite extends TestHelper {
         sourceTable = outputTable,
         destinationPath = bqExportDestPath,
         destinationFileName = Some("sample.csv"),
-        destinationFormat = BQInputType.CSV(",")
+        destinationFormat = CSV(",")
       ).execute
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
@@ -64,7 +64,7 @@ object BQTestSuite extends TestHelper {
         sourceTable = outputTable,
         destinationPath = bqExportDestPath,
         destinationFileName = Some("sample.parquet"),
-        destinationFormat = BQInputType.PARQUET,
+        destinationFormat = PARQUET,
         destinationCompressionType = "snappy"
       ).execute
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

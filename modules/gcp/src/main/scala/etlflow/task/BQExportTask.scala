@@ -1,6 +1,6 @@
 package etlflow.task
 
-import gcp4zio.bq.{BQ, BQInputType}
+import gcp4zio.bq.{BQ, FileType}
 import zio.{RIO, ZIO}
 
 case class BQExportTask(
@@ -9,8 +9,8 @@ case class BQExportTask(
     sourceDataset: String,
     sourceTable: String,
     destinationPath: String,
+    destinationFormat: FileType,
     destinationFileName: Option[String] = None,
-    destinationFormat: BQInputType,
     destinationCompressionType: String = "gzip"
 ) extends EtlTask[BQ, Unit] {
 
@@ -22,8 +22,8 @@ case class BQExportTask(
       sourceTable,
       sourceProject,
       destinationPath,
-      destinationFileName,
       destinationFormat,
+      destinationFileName,
       destinationCompressionType
     ) *> ZIO.succeed(logger.info("#" * 50))
   }

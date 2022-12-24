@@ -79,7 +79,7 @@ object DB extends ApplicationLogger {
               rs.string("job_run_id"),
               rs.string("job_name"),
               rs.string("args"),
-              rs.string("properties"),
+              rs.string("props"),
               rs.string("status"),
               rs.zonedDateTime("created_at"),
               rs.zonedDateTime("updated_at")

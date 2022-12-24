@@ -20,10 +20,16 @@ object DbTestSuite {
         Audit.logJobEnd("Job1", Map.empty, Map.empty).as(assertCompletes)
       ),
       zio.test.test("getJobRuns Test")(
-        Audit.getJobRuns("SELECT * FROM jobrun").tap(op => ZIO.logInfo(op.mkString(","))).as(assertCompletes)
+        Audit
+          .getJobRuns("SELECT * FROM jobrun")
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
+          .as(assertCompletes)
       ),
       zio.test.test("getTaskRuns Test")(
-        Audit.getTaskRuns("SELECT * FROM taskrun").tap(op => ZIO.logInfo(op.mkString(","))).as(assertCompletes)
+        Audit
+          .getTaskRuns("SELECT * FROM taskrun")
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
+          .as(assertCompletes)
       )
     ) @@ TestAspect.sequential
 }

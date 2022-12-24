@@ -5,7 +5,7 @@ import zio.test._
 
 object SqlTestSuite extends DbSuiteHelper {
   val spec: Spec[Any, Any] =
-    suite("SQL(log) Suite")(
+    suite("Audit SQL Suite")(
       zio.test.test("updateJobRun Sql") {
         val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "{}").statement.replaceAll("\\s+", " ")
         val op =

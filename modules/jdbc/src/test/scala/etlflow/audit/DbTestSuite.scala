@@ -1,11 +1,12 @@
 package etlflow.audit
 
+import zio.ZIO
 import zio.test._
 
 object DbTestSuite {
   val sri = "a27a7415-57b2-4b53-8f9b-5254e847a4123"
   val spec: Spec[Audit, Any] =
-    suite("DB(log) Suite")(
+    suite("Audit DB Suite")(
       zio.test.test("logJobStart Test")(
         Audit.logJobStart("Job1", Map.empty, Map.empty).as(assertCompletes)
       ),
@@ -17,6 +18,12 @@ object DbTestSuite {
       ),
       zio.test.test("logJobEnd Test")(
         Audit.logJobEnd("Job1", Map.empty, Map.empty).as(assertCompletes)
+      ),
+      zio.test.test("getJobRuns Test")(
+        Audit.getJobRuns("SELECT * FROM jobrun").tap(op => ZIO.logInfo(op.mkString(","))).as(assertCompletes)
+      ),
+      zio.test.test("getTaskRuns Test")(
+        Audit.getTaskRuns("SELECT * FROM taskrun").tap(op => ZIO.logInfo(op.mkString(","))).as(assertCompletes)
       )
     ) @@ TestAspect.sequential
 }

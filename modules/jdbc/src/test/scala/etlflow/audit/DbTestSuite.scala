@@ -3,6 +3,7 @@ package etlflow.audit
 import zio.ZIO
 import zio.test._
 
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object DbTestSuite {
   val sri = "a27a7415-57b2-4b53-8f9b-5254e847a4123"
   val spec: Spec[Audit, Any] =

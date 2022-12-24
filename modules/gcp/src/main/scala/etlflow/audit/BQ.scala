@@ -2,6 +2,7 @@ package etlflow.audit
 
 import com.google.cloud.bigquery.{BigQuery, JobId, JobInfo, QueryJobConfiguration}
 import etlflow.log.ApplicationLogger
+import etlflow.model.{JobRun, TaskRun}
 import gcp4zio.bq.BQClient
 import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
 import java.util.UUID
@@ -37,8 +38,7 @@ object BQ extends ApplicationLogger {
         taskRunId: String,
         taskName: String,
         props: Map[String, String],
-        taskType: String,
-        startTime: Long
+        taskType: String
     ): UIO[Unit] = executeQuery("INSERT").ignore
 
     override def logTaskEnd(
@@ -46,21 +46,23 @@ object BQ extends ApplicationLogger {
         taskName: String,
         props: Map[String, String],
         taskType: String,
-        endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] = executeQuery("INSERT").ignore
 
-    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String], startTime: Long): UIO[Unit] =
+    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String]): UIO[Unit] =
       executeQuery("INSERT").ignore
 
     override def logJobEnd(
         jobName: String,
         args: Map[String, String],
         props: Map[String, String],
-        endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] =
       executeQuery("INSERT").ignore
+
+    override def getJobRuns(query: String): UIO[Iterable[JobRun]] = ???
+
+    override def getTaskRuns(query: String): UIO[Iterable[TaskRun]] = ???
   }
 
   def apply(jri: String, credentials: Option[String] = None): TaskLayer[Audit] =

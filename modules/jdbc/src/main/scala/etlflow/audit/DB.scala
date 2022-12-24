@@ -2,7 +2,8 @@ package etlflow.audit
 
 import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
-import etlflow.utils.{DateTimeApi, MapToJson}
+import etlflow.model.{JobRun, TaskRun}
+import etlflow.utils.MapToJson
 import scalikejdbc.NamedDB
 import zio.{TaskLayer, UIO, ZIO, ZLayer}
 
@@ -12,13 +13,12 @@ object DB extends ApplicationLogger {
         taskRunId: String,
         taskName: String,
         props: Map[String, String],
-        taskType: String,
-        startTime: Long
+        taskType: String
     ): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
           Sql
-            .insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId, startTime)
+            .insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId)
             .update
             .apply()
         })
@@ -29,27 +29,25 @@ object DB extends ApplicationLogger {
         taskName: String,
         props: Map[String, String],
         taskType: String,
-        endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
-          val status      = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
-          val elapsedTime = DateTimeApi.getTimeDifferenceAsString(endTime, DateTimeApi.getCurrentTimestamp)
+          val status = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
           Sql
-            .updateTaskRun(taskRunId, MapToJson(props), status, elapsedTime)
+            .updateTaskRun(taskRunId, MapToJson(props), status)
             .update
             .apply()
         })
         .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String], startTime: Long): UIO[Unit] =
+    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String]): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
           val arguments  = MapToJson(args)
           val properties = MapToJson(props)
           Sql
-            .insertJobRun(jobRunId, jobName, arguments, properties, startTime)
+            .insertJobRun(jobRunId, jobName, arguments, properties)
             .update
             .apply()
         })
@@ -59,20 +57,69 @@ object DB extends ApplicationLogger {
         jobName: String,
         args: Map[String, String],
         props: Map[String, String],
-        endTime: Long,
         error: Option[Throwable]
     ): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
-          val status      = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
-          val elapsedTime = DateTimeApi.getTimeDifferenceAsString(endTime, DateTimeApi.getCurrentTimestamp)
-          val properties  = MapToJson(props)
+          val status     = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
+          val properties = MapToJson(props)
           Sql
-            .updateJobRun(jobRunId, status, properties, elapsedTime)
+            .updateJobRun(jobRunId, status, properties)
             .update
             .apply()
         })
         .fold(e => logger.error(e.getMessage), _ => ())
+
+    override def getJobRuns(query: String): UIO[Iterable[JobRun]] = ZIO
+      .attempt(NamedDB(poolName).localTx { implicit s =>
+        scalikejdbc
+          .SQL(query)
+          .map(rs =>
+            JobRun(
+              rs.string("job_run_id"),
+              rs.string("job_name"),
+              rs.string("args"),
+              rs.string("properties"),
+              rs.string("status"),
+              rs.zonedDateTime("created_at"),
+              rs.zonedDateTime("updated_at")
+            )
+          )
+          .list()
+      })
+      .fold(
+        { e =>
+          logger.error(e.getMessage)
+          List.empty
+        },
+        op => op
+      )
+
+    override def getTaskRuns(query: String): UIO[Iterable[TaskRun]] = ZIO
+      .attempt(NamedDB(poolName).localTx { implicit s =>
+        scalikejdbc
+          .SQL(query)
+          .map(rs =>
+            TaskRun(
+              rs.string("task_run_id"),
+              rs.string("job_run_id"),
+              rs.string("task_name"),
+              rs.string("task_type"),
+              rs.string("props"),
+              rs.string("status"),
+              rs.zonedDateTime("created_at"),
+              rs.zonedDateTime("updated_at")
+            )
+          )
+          .list()
+      })
+      .fold(
+        { e =>
+          logger.error(e.getMessage)
+          List.empty
+        },
+        op => op
+      )
   }
 
   private[etlflow] def layer(jobRunId: String): ZLayer[String, Throwable, Audit] =

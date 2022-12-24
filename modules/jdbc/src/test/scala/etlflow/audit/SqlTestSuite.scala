@@ -7,47 +7,46 @@ object SqlTestSuite extends DbSuiteHelper {
   val spec: Spec[Any, Any] =
     suite("SQL(log) Suite")(
       zio.test.test("updateJobRun Sql") {
-        val ipsql = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "{}", "2 mins")
-        val ip    = getSqlQueryAsString(ipsql).replaceAll("\\s+", " ").trim
+        val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "{}").statement
         val op =
-          """UPDATE jobrun SET status = success, properties = CAST({} as JSON), elapsed_time = 2 mins WHERE job_run_id = a27a7415-57b2-4b53-8f9b-5254e847a301"""
+          """UPDATE jobrun SET status = ?, props = CAST(? as JSON), updated_at = ? WHERE job_run_id = ?"""
         assertTrue(ip == op)
       },
       zio.test.test("insertJobRun Sql") {
-        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", "", 0L).statement
+        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", "").statement
         val op = """INSERT INTO jobrun(
             job_run_id,
             job_name,
             args,
-            properties,
+            props,
             status,
-            elapsed_time,
-            inserted_at
+            created_at,
+            updated_at
             )
-         VALUES (?, ?, CAST(? as JSON), CAST(? as JSON), 'started', '...', ?)"""
+         VALUES (?, ?, CAST(? as JSON), CAST(? as JSON), 'started', ?, ?)"""
         assertTrue(ip == op)
       },
       zio.test.test("insertTaskRun Sql") {
-        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123", 0L).statement
+        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123").statement
         val op = """INSERT INTO taskrun (
            task_run_id,
-           task_name,
-           properties,
-           status,
-           elapsed_time,
-           task_type,
            job_run_id,
-           inserted_at
+           task_name,
+           task_type,
+           props,
+           status,
+           created_at,
+           updated_at
            )
-         VALUES (?, ?, CAST(? as JSON), 'started', '...', ?, ?, ?)"""
+         VALUES (?, ?, ?, ?, CAST(? as JSON), 'started', ?, ?)"""
         assertTrue(ip == op)
       },
       zio.test.test("updateTaskRun Sql") {
         val ip = Sql
-          .updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success", "123")
+          .updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success")
           .statement
           .replaceAll("\\s+", " ")
-        val op = """UPDATE taskrun SET status = ?, properties = CAST(? as JSON), elapsed_time = ? WHERE task_run_id = ?"""
+        val op = """UPDATE taskrun SET status = ?, props = CAST(? as JSON), updated_at = ? WHERE task_run_id = ?"""
         assertTrue(ip == op)
       }
     )

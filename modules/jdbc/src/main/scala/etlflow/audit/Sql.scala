@@ -31,7 +31,7 @@ private[etlflow] object Sql {
          VALUES ($taskRunId, $jobRunId, $name, $taskType, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
   def updateJobRun(jobRunId: String, status: String, props: String): SQL[Nothing, NoExtractor] =
-    sql""" UPDATE jobrun
+    sql"""UPDATE jobrun
               SET status = $status,
                   props = CAST($props as JSON),
                   updated_at = CURRENT_TIMESTAMP()

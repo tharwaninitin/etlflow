@@ -18,14 +18,13 @@ object SqlTestSuite extends DbSuiteHelper {
         val op = """INSERT INTO jobrun(
             job_run_id,
             job_name,
+            args,
             properties,
             status,
             elapsed_time,
-            job_type,
-            is_master,
             inserted_at
             )
-         VALUES (?, ?, CAST(? as JSON), 'started', '...', '', 'true', ?)"""
+         VALUES (?, ?, CAST(? as JSON), CAST(? as JSON), 'started', '...', ?)"""
         assertTrue(ip == op)
       },
       zio.test.test("insertTaskRun Sql") {

@@ -31,7 +31,7 @@
 |--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|
 | Core   | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)   |   [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12) | [![etlflow-core Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-core/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-core)    | Java 8 +     |
 | Gcp    | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-gcp_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-gcp)     |     [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-gcp_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-gcp_2.12) | [![etlflow-gcp Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-gcp/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-gcp)       | Java 8 +     |
-| Db     | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-db_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-db)       |       [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-db_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-db_2.12) | [![etlflow-db Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-db/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-db)          | Java 8 +     |
+| JDBC   | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-jdbc_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-jdbc)   |   [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-jdbc_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-jdbc_2.12) | [![etlflow-jdbc Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-jdbc/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-jdbc)    | Java 8 +     |
 | Http   | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-http_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-http)   |   [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-http_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-http_2.12) | [![etlflow-http Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-http/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-http)    | Java 11 +    |
 | K8S    | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-k8s_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-k8s)     |     [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-k8s_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-k8s_2.12) | [![etlflow-k8s Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-k8s/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-k8s)       | Java 11 +    |
 | Email  | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-email_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-email) | [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-email_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-email_2.12) | [![etlflow-email Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-email/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-email) | Java 8 +     |
@@ -50,8 +50,9 @@ Add the below latest release as a dependency to your project
 __SBT__
 ```scala
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.3.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.3.0"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.3.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.3.0"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.3.0"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.3.0"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.3.0"
@@ -72,7 +73,7 @@ __Maven__
 - [Etlflow Modules](#etlflow-modules)
   - [Core](#core)
   - [Gcp](#gcp)
-  - [Db](#db)
+  - [JDBC](#jdbc)
   - [K8S](#k8s)
   - [Http](#http)
   - [Email](#email)
@@ -89,7 +90,7 @@ __Maven__
 ```scala
 // Todo
 ```
-## DB
+## JDBC
 ```scala
 // Todo
 ```

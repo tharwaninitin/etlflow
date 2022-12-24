@@ -20,16 +20,15 @@ private[etlflow] object Sql {
   ): SQL[Nothing, NoExtractor] =
     sql"""INSERT INTO taskrun (
            task_run_id,
+           job_run_id,
            task_name,
+           task_type,
            props,
            status,
-           elapsed_time,
-           task_type,
-           job_run_id,
            created_at,
            updated_at
            )
-         VALUES ($taskRunId, $name, CAST($props as JSON), 'started', '...', $taskType, $jobRunId, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ($taskRunId, $jobRunId, $name, $taskType, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
   def updateJobRun(jobRunId: String, status: String, props: String): SQL[Nothing, NoExtractor] =
     sql""" UPDATE jobrun
@@ -45,10 +44,9 @@ private[etlflow] object Sql {
             args,
             props,
             status,
-            elapsed_time,
             created_at,
             updated_at
             )
-         VALUES ($jobRunId, $name, CAST($args as JSON), CAST($props as JSON), 'started', '...', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ($jobRunId, $name, CAST($args as JSON), CAST($props as JSON), 'started', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
 }

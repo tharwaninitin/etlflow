@@ -50,12 +50,19 @@ object BQ extends ApplicationLogger {
         error: Option[Throwable]
     ): UIO[Unit] = executeQuery("INSERT").ignore
 
-    override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] = executeQuery("INSERT").ignore
+    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String], startTime: Long): UIO[Unit] =
+      executeQuery("INSERT").ignore
 
-    override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
+    override def logJobEnd(
+        jobName: String,
+        args: Map[String, String],
+        props: Map[String, String],
+        endTime: Long,
+        error: Option[Throwable]
+    ): UIO[Unit] =
       executeQuery("INSERT").ignore
   }
 
-  def apply(credentials: Option[String] = None, jri: String): TaskLayer[Audit] =
+  def apply(jri: String, credentials: Option[String] = None): TaskLayer[Audit] =
     ZLayer.fromZIO(BQClient(credentials).map(bq => BQAudit(jri, bq)))
 }

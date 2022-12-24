@@ -17,11 +17,10 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
                     |${createTable("jobrun")} (
                     |    job_run_id varchar(100) PRIMARY KEY,
                     |    job_name text NOT NULL,
+                    |    args json NOT NULL,
                     |    properties json NOT NULL,
                     |    status text NOT NULL,
                     |    elapsed_time varchar(100) NOT NULL,
-                    |    job_type varchar(100) NOT NULL,
-                    |    is_master varchar(100) NOT NULL,
                     |    inserted_at bigint NOT NULL
                     |);""".stripMargin
     val taskrun = s"""

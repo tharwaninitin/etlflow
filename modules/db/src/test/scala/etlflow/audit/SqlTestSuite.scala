@@ -7,14 +7,14 @@ object SqlTestSuite extends DbSuiteHelper {
   val spec: Spec[Any, Any] =
     suite("SQL(log) Suite")(
       zio.test.test("updateJobRun Sql") {
-        val ipsql = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "2 mins")
+        val ipsql = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "{}", "2 mins")
         val ip    = getSqlQueryAsString(ipsql).replaceAll("\\s+", " ").trim
         val op =
-          """UPDATE jobrun SET status = success, elapsed_time = 2 mins WHERE job_run_id = a27a7415-57b2-4b53-8f9b-5254e847a301"""
+          """UPDATE jobrun SET status = success, properties = CAST({} as JSON), elapsed_time = 2 mins WHERE job_run_id = a27a7415-57b2-4b53-8f9b-5254e847a301"""
         assertTrue(ip == op)
       },
       zio.test.test("insertJobRun Sql") {
-        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", 0L).statement
+        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", "", 0L).statement
         val op = """INSERT INTO jobrun(
             job_run_id,
             job_name,

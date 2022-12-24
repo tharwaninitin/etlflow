@@ -27,9 +27,16 @@ object Console extends Audit {
     ZIO.logError(s"Task $taskName failed, Error StackTrace:" + "\n" + ex.getStackTrace.mkString("\n"))
   }
 
-  override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] = ZIO.logInfo(s"Job started")
+  override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String], startTime: Long): UIO[Unit] =
+    ZIO.logInfo(s"Job started")
 
-  override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] = error.fold {
+  override def logJobEnd(
+      jobName: String,
+      args: Map[String, String],
+      props: Map[String, String],
+      endTime: Long,
+      error: Option[Throwable]
+  ): UIO[Unit] = error.fold {
     ZIO.logInfo(s"Job completed with success")
   } { ex =>
     ZIO.logError(s"Job completed with failure ${ex.getMessage}")

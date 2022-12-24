@@ -43,23 +43,32 @@ object DB extends ApplicationLogger {
         })
         .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =
+    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String], startTime: Long): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
+          val arguments  = MapToJson(args)
+          val properties = MapToJson(props)
           Sql
-            .insertJobRun(jobRunId, jobName, args, startTime)
+            .insertJobRun(jobRunId, jobName, arguments, properties, startTime)
             .update
             .apply()
         })
         .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
+    override def logJobEnd(
+        jobName: String,
+        args: Map[String, String],
+        props: Map[String, String],
+        endTime: Long,
+        error: Option[Throwable]
+    ): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
           val status      = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
           val elapsedTime = DateTimeApi.getTimeDifferenceAsString(endTime, DateTimeApi.getCurrentTimestamp)
+          val properties  = MapToJson(props)
           Sql
-            .updateJobRun(jobRunId, status, elapsedTime)
+            .updateJobRun(jobRunId, status, properties, elapsedTime)
             .update
             .apply()
         })

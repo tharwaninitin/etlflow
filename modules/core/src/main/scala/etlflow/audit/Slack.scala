@@ -1,7 +1,6 @@
 package etlflow.audit
 
 import etlflow.log.ApplicationLogger
-import etlflow.model
 import etlflow.utils.DateTimeApi.{getCurrentTimestamp, getTimeDifferenceAsString, getTimestampAsString}
 import zio.{UIO, ZIO}
 import java.io.{BufferedWriter, OutputStreamWriter}
@@ -9,41 +8,38 @@ import java.net.{HttpURLConnection, URL}
 import scala.util.Try
 
 @SuppressWarnings(Array("org.wartremover.warts.Var"))
-case class Slack(jobRunId: String, slack: Option[model.Slack]) extends Audit with ApplicationLogger {
+case class Slack(jobRunId: String, slackUrl: String) extends Audit with ApplicationLogger {
 
   var finalTaskMessage: String = ""
   var finalMessage: String     = ""
-
-  val slackEnv: String = slack.map(_.env).getOrElse("")
-  val slackUrl: String = slack.map(_.url).getOrElse("")
-  val hostUrl: String  = slack.map(_.host).getOrElse("http://localhost:8080/#") + "/JobRunDetails/"
 
   private def finalMessageTemplate(
       jobName: String,
       execDate: String,
       message: String,
-      url: String,
+      jobRunId: String,
       error: Option[Throwable]
   ): String =
     if (error.isEmpty) {
 
       finalMessage = finalMessage.concat(f"""
-            :large_blue_circle: $slackEnv - $jobName Process *Success!*
+            :large_blue_circle: $jobName *Success!*
             *Time of Execution*: $execDate
-            *Details Available at*: $url
+            *Job Run ID*: $jobRunId
             *Tasks (Task - Duration)*: $message
             """)
       finalMessage
     } else {
 
       finalMessage = finalMessage.concat(f"""
-            :red_circle: $slackEnv - $jobName Process *Failed!*
+            :red_circle: $jobName *Failed!*
             *Time of Execution*: $execDate
-            *Details Available at*: $url
+            *Job Run ID*: $jobRunId
             *Tasks (Task - Duration)*: $message
             """)
       finalMessage
     }
+
   private def sendSlackNotification(data: String): Try[Unit] =
     Try {
       @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
@@ -67,6 +63,7 @@ case class Slack(jobRunId: String, slack: Option[model.Slack]) extends Audit wit
       taskType: String,
       startTime: Long
   ): UIO[Unit] = ZIO.unit
+
   override def logTaskEnd(
       taskRunId: String,
       taskName: String,
@@ -95,8 +92,17 @@ case class Slack(jobRunId: String, slack: Option[model.Slack]) extends Audit wit
     // Concatenate all the messages with finalSlackMessage
     finalTaskMessage = finalTaskMessage.concat(slackMessageForTasks)
   }
-  override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] = ZIO.unit
-  override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
+
+  override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String], startTime: Long): UIO[Unit] =
+    ZIO.unit
+
+  override def logJobEnd(
+      jobName: String,
+      args: Map[String, String],
+      props: Map[String, String],
+      endTime: Long,
+      error: Option[Throwable]
+  ): UIO[Unit] =
     ZIO.fromTry {
       val executionDateTime = getTimestampAsString(endTime) // Add time difference in this expression
 
@@ -104,7 +110,7 @@ case class Slack(jobRunId: String, slack: Option[model.Slack]) extends Audit wit
         jobName,
         executionDateTime,
         finalTaskMessage,
-        hostUrl + jobRunId,
+        jobRunId,
         error
       )
 

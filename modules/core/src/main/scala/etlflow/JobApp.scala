@@ -2,7 +2,7 @@ package etlflow
 
 import etlflow.audit.Audit
 import etlflow.log.ApplicationLogger
-import etlflow.utils.{DateTimeApi, MapToJson}
+import etlflow.utils.DateTimeApi
 import zio._
 
 /** This is the entry point for a EtlFlow Job application (See below sample).
@@ -45,12 +45,12 @@ trait JobApp extends ZIOAppDefault with ApplicationLogger {
     */
   final def execute(cliArgs: Chunk[String]): RIO[Audit, Unit] =
     for {
-      args <- ZIO.succeed(MapToJson(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap))
-      _    <- Audit.logJobStart(name, args, DateTimeApi.getCurrentTimestamp)
+      args <- ZIO.succeed(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap)
+      _    <- Audit.logJobStart(name, args, Map.empty, DateTimeApi.getCurrentTimestamp)
       _ <- job(cliArgs).tapError { ex =>
-        Audit.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp, Some(ex))
+        Audit.logJobEnd(name, args, Map.empty, DateTimeApi.getCurrentTimestamp, Some(ex))
       }
-      _ <- Audit.logJobEnd(name, args, DateTimeApi.getCurrentTimestamp)
+      _ <- Audit.logJobEnd(name, args, Map.empty, DateTimeApi.getCurrentTimestamp)
     } yield ()
 
   /** This is just a wrapper around default run method available with ZIOAppDefault to call [[execute execute(Chunk[String])]]

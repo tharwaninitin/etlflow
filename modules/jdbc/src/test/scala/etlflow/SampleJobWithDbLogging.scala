@@ -8,7 +8,7 @@ import zio.{Chunk, RIO, ZLayer}
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object SampleJobWithDbLogging extends JobApp {
 
-  private val cred = JDBC(sys.env("LOG_DB_URL"), sys.env("LOG_DB_USER"), sys.env("LOG_DB_PWD"), sys.env("LOG_DB_DRIVER"))
+  private val cred = JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))
 
   override val auditLayer: ZLayer[Any, Throwable, Audit] = audit.DB(cred, java.util.UUID.randomUUID.toString)
 

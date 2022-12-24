@@ -21,8 +21,8 @@ object CreateDB extends ApplicationLogger with zio.ZIOAppDefault {
                     |    args json NOT NULL,
                     |    props json NOT NULL,
                     |    status text NOT NULL,
-                    |    created_at timestamp NOT NULL,
-                    |    updated_at timestamp NOT NULL
+                    |    created_at timestamp(6) NOT NULL,
+                    |    updated_at timestamp(6) NOT NULL
                     |);""".stripMargin
     val taskrun = s"""
                      |${createTable("taskrun")} (
@@ -32,8 +32,8 @@ object CreateDB extends ApplicationLogger with zio.ZIOAppDefault {
                      |    task_type varchar(100) NOT NULL,
                      |    props json NOT NULL,
                      |    status text NOT NULL,
-                     |    created_at timestamp NOT NULL,
-                     |    updated_at timestamp NOT NULL,
+                     |    created_at timestamp(6) NOT NULL,
+                     |    updated_at timestamp(6) NOT NULL,
                      |    FOREIGN KEY (job_run_id) REFERENCES jobrun (job_run_id)
                      |);""".stripMargin
 

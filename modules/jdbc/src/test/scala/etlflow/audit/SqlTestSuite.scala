@@ -7,7 +7,7 @@ object SqlTestSuite extends DbSuiteHelper {
   val spec: Spec[Any, Any] =
     suite("SQL(log) Suite")(
       zio.test.test("updateJobRun Sql") {
-        val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "{}").statement
+        val ip = Sql.updateJobRun("a27a7415-57b2-4b53-8f9b-5254e847a301", "success", "{}").statement.replaceAll("\\s+", " ")
         val op =
           """UPDATE jobrun SET status = ?, props = CAST(? as JSON), updated_at = CURRENT_TIMESTAMP() WHERE job_run_id = ?"""
         assertTrue(ip == op)
@@ -42,10 +42,7 @@ object SqlTestSuite extends DbSuiteHelper {
         assertTrue(ip == op)
       },
       zio.test.test("updateTaskRun Sql") {
-        val ip = Sql
-          .updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success")
-          .statement
-          .replaceAll("\\s+", " ")
+        val ip = Sql.updateTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "{}", "success").statement.replaceAll("\\s+", " ")
         val op =
           """UPDATE taskrun SET status = ?, props = CAST(? as JSON), updated_at = CURRENT_TIMESTAMP() WHERE task_run_id = ?"""
         assertTrue(ip == op)

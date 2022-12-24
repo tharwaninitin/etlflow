@@ -25,7 +25,7 @@ object Dependencies {
     "com.github.tharwaninitin" %% "gcp4zio-monitoring" % Gcp4ZioVersion
   )
 
-  lazy val dbLibs = List(
+  lazy val jdbcLibs = List(
     "dev.zio"         %% "zio"         % ZioVersion,
     "org.scalikejdbc" %% "scalikejdbc" % ScalaLikeJdbcVersion
   )
@@ -63,7 +63,7 @@ object Dependencies {
     "dev.zio"       %% "zio-test-sbt"    % ZioVersion
   ).map(_ % Test)
 
-  lazy val dbTestLibs = List(
+  lazy val jdbcTestLibs = List(
     "org.postgresql" % "postgresql"           % PgVersion,
     "mysql"          % "mysql-connector-java" % MySqlVersion
   ).map(_ % Test)

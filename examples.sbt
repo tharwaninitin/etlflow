@@ -21,7 +21,7 @@ lazy val examplecore = (project in file("examples/examplecore"))
     name               := "examplecore",
     crossScalaVersions := AllScalaVersions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-db"      % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-jdbc"    % EtlFlowVersion,
       "ch.qos.logback"            % "logback-classic" % LogbackVersion,
       "org.postgresql"            % "postgresql"      % PgVersion
     )

@@ -13,17 +13,17 @@ jobs:
           cache: 'sbt'
       - name: Check Dependency Updates for core
         run: sbt core/dependencyUpdates
-      - name: Check Dependency Updates for db
-        run: sbt core/dependencyUpdates
+      - name: Check Dependency Updates for jdbc
+        run: sbt jdbc/dependencyUpdates
       - name: Check Dependency Updates for email
-        run: sbt core/dependencyUpdates
+        run: sbt email/dependencyUpdates
       - name: Check Dependency Updates for gcp
-        run: sbt core/dependencyUpdates
+        run: sbt gcp/dependencyUpdates
       - name: Check Dependency Updates for http
-        run: sbt core/dependencyUpdates
+        run: sbt http/dependencyUpdates
       - name: Check Dependency Updates for k8s
-        run: sbt core/dependencyUpdates
+        run: sbt k8s/dependencyUpdates
       - name: Check Dependency Updates for redis
-        run: sbt core/dependencyUpdates
+        run: sbt redis/dependencyUpdates
       - name: Check Dependency Updates for spark
-        run: sbt core/dependencyUpdates
+        run: sbt spark/dependencyUpdates

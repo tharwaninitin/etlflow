@@ -1,6 +1,6 @@
 package etlflow.task
 
-import com.google.cloud.bigquery.Schema
+import com.google.cloud.bigquery.{FieldValueList, Schema}
 import etlflow.TestHelper
 import etlflow.audit.Audit
 import gcp4zio.bq.FileType.{CSV, PARQUET}
@@ -66,6 +66,16 @@ object BQTestSuite extends TestHelper {
         destinationFileName = Some("sample.parquet"),
         destinationFormat = PARQUET,
         destinationCompressionType = "snappy"
+      ).execute
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    },
+    test("Execute BQSensorTask") {
+      def sensor(rows: Iterable[FieldValueList]): Boolean =
+        rows.headOption.fold(-1)(res => res.get(0).getLongValue.toInt) == 0
+      val task = BQSensorTask(
+        name = "PollTask",
+        query = s"SELECT count(*) FROM `$bqDataset.$bqDataset`",
+        sensor
       ).execute
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

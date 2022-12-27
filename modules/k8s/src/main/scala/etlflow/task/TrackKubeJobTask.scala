@@ -2,11 +2,13 @@ package etlflow.task
 
 import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
 import com.coralogix.zio.k8s.client.model.K8sNamespace
+import com.coralogix.zio.k8s.model.batch.v1.JobStatus
 import etlflow.k8s.K8S.getJob
 import etlflow.k8s._
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
 import zio.{RIO, ZIO}
+
 import scala.concurrent.duration._
 
 /** Track kubernetes job and waits for successful execution of pod for given job name
@@ -29,12 +31,15 @@ case class TrackKubeJobTask(
   override protected def process: RIO[K8S with Jobs, Unit] = {
     val program: RIO[K8S with Jobs, Unit] =
       for {
-        job <- getJob(name)
-        podSucceeded = job.status.flatMap(_.succeeded).getOrElse(-1)
+        job       <- getJob(name)
+        jobStatus <- job.getStatus.fold(_ => JobStatus(failed = -1), identity)
         _ <-
-          if (podSucceeded == 1) ZIO.logInfo(s"Job Completed, Pods Succeeded $podSucceeded")
+          if (jobStatus.completionTime.isDefined && jobStatus.failed.isEmpty)
+            ZIO.logInfo(s"Job Completed, Pods Succeeded ${jobStatus.succeeded}")
+          else if (jobStatus.failed.isDefined)
+            ZIO.fail(new Exception(s"Job Failed: $name, Pods count: ${jobStatus.failed}"))
           else
-            ZIO.fail(RetryException(s"Pods Succeeded $podSucceeded"))
+            ZIO.fail(RetryException(s"Job Running, Active Pods: ${jobStatus.active}"))
       } yield ()
 
     val runnable: RIO[K8S with Jobs, Unit] = for {

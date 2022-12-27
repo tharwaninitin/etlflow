@@ -7,13 +7,13 @@ import gcp4zio.bq.BQ
 import zio.{RIO, ZIO}
 import scala.concurrent.duration.{Duration, DurationInt}
 
-/** Track BQ Table by querying and applying condition on result
+/** BQ Sensor on SQL query based on output rows satisfying condition defined by sensor function
   * @param name
   *   Task name
   * @param query
-  *   BQ DQL(Select) query
+  *   BigQuery SQL query
   * @param sensor
-  *   Function which takes Iterable[FieldValueList] and return bool, which on true exits the poll task
+  *   Function which takes Iterable[FieldValueList] and return bool, which on returning true exits the poll
   * @param spaced
   *   Specifies duration each repetition should be spaced from the last run
   * @param retry
@@ -29,21 +29,18 @@ case class BQSensorTask(
 
   override protected def process: RIO[BQ, Unit] = {
     val program: RIO[BQ, Unit] = for {
-      _    <- ZIO.logInfo(s"Polling BQ Table")
       rows <- BQ.getData(query)(identity)
       bool <- ZIO.attempt(sensor(rows))
       _    <- ZIO.when(!bool)(ZIO.fail(RetryException("Condition not satisfied. Polling again")))
       _    <- ZIO.logInfo("Condition satisfied. Finished Polling")
     } yield ()
 
-    val runnable: RIO[BQ, Unit] = for {
+    for {
       _ <- ZIO.logInfo("#" * 50)
       _ <- ZIO.logInfo("Started Polling BQ Table")
       _ <- retry.map(r => program.retry(RetrySchedule.recurs(r, spaced))).getOrElse(program.retry(RetrySchedule.forever(spaced)))
       _ <- ZIO.logInfo("#" * 50)
     } yield ()
-
-    runnable
   }
 
   override def getTaskProperties: Map[String, String] = Map("query" -> query)

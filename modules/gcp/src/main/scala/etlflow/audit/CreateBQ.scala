@@ -15,25 +15,24 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
 
     val jobrun = s"""
                     |${createTable("jobrun")} (
-                    |    job_run_id varchar(100) PRIMARY KEY,
-                    |    job_name text NOT NULL,
-                    |    args json NOT NULL,
-                    |    properties json NOT NULL,
-                    |    status text NOT NULL,
-                    |    elapsed_time varchar(100) NOT NULL,
-                    |    inserted_at bigint NOT NULL
+                    |    job_run_id STRING(100) NOT NULL,
+                    |    job_name STRING NOT NULL,
+                    |    args JSON NOT NULL,
+                    |    props JSON NOT NULL,
+                    |    status STRING NOT NULL,
+                    |    created_at TIMESTAMP NOT NULL,
+                    |    updated_at TIMESTAMP NOT NULL
                     |);""".stripMargin
     val taskrun = s"""
                      |${createTable("taskrun")} (
-                     |    task_run_id varchar(100) PRIMARY KEY,
-                     |    job_run_id varchar(100) NOT NULL,
-                     |    task_name text NOT NULL,
-                     |    properties json NOT NULL,
-                     |    status text NOT NULL,
-                     |    elapsed_time varchar(100) NOT NULL,
-                     |    task_type varchar(100) NOT NULL,
-                     |    inserted_at bigint NOT NULL,
-                     |    FOREIGN KEY (job_run_id) REFERENCES jobrun (job_run_id)
+                     |    task_run_id STRING(100) NOT NULL,
+                     |    job_run_id STRING(100) NOT NULL,
+                     |    task_name STRING NOT NULL,
+                     |    task_type STRING(100) NOT NULL,
+                     |    props JSON NOT NULL,
+                     |    status STRING NOT NULL,
+                     |    created_at TIMESTAMP NOT NULL,
+                     |    updated_at TIMESTAMP NOT NULL
                      |);""".stripMargin
 
     for {

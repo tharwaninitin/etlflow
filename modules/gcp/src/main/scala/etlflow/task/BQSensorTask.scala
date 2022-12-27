@@ -30,7 +30,7 @@ case class BQSensorTask(
   override protected def process: RIO[BQ, Unit] = {
     val program: RIO[BQ, Unit] = for {
       _    <- ZIO.logInfo(s"Polling BQ Table")
-      rows <- BQ.getData(query)
+      rows <- BQ.getData(query)(identity)
       bool <- ZIO.attempt(sensor(rows))
       _    <- ZIO.when(!bool)(ZIO.fail(RetryException("Condition not satisfied. Polling again")))
       _    <- ZIO.logInfo("Condition satisfied. Finished Polling")

@@ -74,7 +74,7 @@ object BQTestSuite extends TestHelper {
         rows.headOption.fold(-1)(res => res.get(0).getLongValue.toInt) == 0
       val task = BQSensorTask(
         name = "PollTask",
-        query = s"SELECT count(*) FROM `$bqDataset.$bqDataset`",
+        query = s"SELECT count(*) FROM `$bqDataset.$bqTable`",
         sensor
       ).execute
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))

@@ -41,13 +41,12 @@ object DB extends ApplicationLogger {
         })
         .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String]): UIO[Unit] =
+    override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] =
       ZIO
         .attempt(NamedDB(poolName).localTx { implicit s =>
-          val arguments  = MapToJson(args)
           val properties = MapToJson(props)
           Sql
-            .insertJobRun(jobRunId, jobName, arguments, properties)
+            .insertJobRun(jobRunId, jobName, properties)
             .update
             .apply()
         })
@@ -55,7 +54,6 @@ object DB extends ApplicationLogger {
 
     override def logJobEnd(
         jobName: String,
-        args: Map[String, String],
         props: Map[String, String],
         error: Option[Throwable]
     ): UIO[Unit] =
@@ -78,7 +76,6 @@ object DB extends ApplicationLogger {
             JobRun(
               rs.string("job_run_id"),
               rs.string("job_name"),
-              rs.string("args"),
               rs.string("props"),
               rs.string("status"),
               rs.zonedDateTime("created_at"),

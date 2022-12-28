@@ -34,16 +34,15 @@ object Sql {
                   updated_at = CURRENT_TIMESTAMP()
            WHERE job_run_id = "$jobRunId""""
 
-  def insertJobRun(jobRunId: String, name: String, args: String, props: String): String =
+  def insertJobRun(jobRunId: String, name: String, props: String): String =
     s"""INSERT INTO etlflow.jobrun(
             job_run_id,
             job_name,
-            args,
             props,
             status,
             created_at,
             updated_at
             )
-         VALUES ("$jobRunId", "$name", JSON '$args', JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ("$jobRunId", "$name", JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
 }

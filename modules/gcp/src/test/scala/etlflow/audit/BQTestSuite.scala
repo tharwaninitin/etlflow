@@ -6,14 +6,13 @@ import zio.test._
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object BQTestSuite {
   private val sri       = "a27a7415-57b2-4b53-8f9b-5254e847a4123"
-  private val args      = Map("0" -> "arg0", "1" -> "arg1")
   private val jobProps  = Map("key1" -> "value1", "key2" -> "value2")
   private val taskProps = Map("key3" -> "value3", "key4" -> "value4")
 
   val spec: Spec[Audit, Any] =
     suite("Audit BQ Suite")(
       zio.test.test("logJobStart Test")(
-        Audit.logJobStart("Job1", args, jobProps).as(assertCompletes)
+        Audit.logJobStart("Job1", jobProps).as(assertCompletes)
       ),
       zio.test.test("logTaskStart Test")(
         Audit.logTaskStart(sri, "Task1", taskProps, "GenericTask").as(assertCompletes)
@@ -22,7 +21,7 @@ object BQTestSuite {
         Audit.logTaskEnd(sri, "Task1", taskProps, "GenericTask").as(assertCompletes)
       ),
       zio.test.test("logJobEnd Test")(
-        Audit.logJobEnd("Job1", args, jobProps).as(assertCompletes)
+        Audit.logJobEnd("Job1", jobProps).as(assertCompletes)
       ),
       zio.test.test("getJobRuns Test")(
         Audit

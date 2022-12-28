@@ -37,16 +37,15 @@ private[etlflow] object Sql {
                   updated_at = CURRENT_TIMESTAMP(6)
            WHERE job_run_id = $jobRunId"""
 
-  def insertJobRun(jobRunId: String, name: String, args: String, props: String): SQL[Nothing, NoExtractor] =
+  def insertJobRun(jobRunId: String, name: String, props: String): SQL[Nothing, NoExtractor] =
     sql"""INSERT INTO jobrun(
             job_run_id,
             job_name,
-            args,
             props,
             status,
             created_at,
             updated_at
             )
-         VALUES ($jobRunId, $name, CAST($args as JSON), CAST($props as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
+         VALUES ($jobRunId, $name, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
 
 }

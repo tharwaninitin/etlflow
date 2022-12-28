@@ -9,10 +9,10 @@ import zio.{RIO, ZIO}
 object InitDBSuite extends DbSuiteHelper {
   val sql: String =
     """
-      |INSERT INTO jobrun (job_run_id,job_name,args,props,status,created_at,updated_at)
-      |VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','EtlJobDownload','{}','{}','pass',current_timestamp(6),current_timestamp(6));
-      |INSERT INTO jobrun (job_run_id,job_name,args,props,status,created_at,updated_at)
-      |VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a302','EtlJobSpr','{}','{}','pass',current_timestamp(6),current_timestamp(6));
+      |INSERT INTO jobrun (job_run_id,job_name,props,status,created_at,updated_at)
+      |VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a301','EtlJobDownload','{}','pass',current_timestamp(6),current_timestamp(6));
+      |INSERT INTO jobrun (job_run_id,job_name,props,status,created_at,updated_at)
+      |VALUES ('a27a7415-57b2-4b53-8f9b-5254e847a302','EtlJobSpr','{}','pass',current_timestamp(6),current_timestamp(6));
       |INSERT INTO taskrun (task_run_id,job_run_id,task_name,task_type,props,status,created_at,updated_at)
       |VALUES ('123','a27a7415-57b2-4b53-8f9b-5254e847a301','download_spr','GenericEtlTask','{}','pass',current_timestamp(6),current_timestamp(6));
       |""".stripMargin

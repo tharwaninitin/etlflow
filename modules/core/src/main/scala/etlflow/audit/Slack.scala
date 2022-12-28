@@ -86,11 +86,10 @@ case class Slack(jobRunId: String, slackUrl: String) extends Audit with Applicat
     finalTaskMessage = finalTaskMessage.concat(slackMessageForTasks)
   }
 
-  override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String]): UIO[Unit] = ZIO.unit
+  override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = ZIO.unit
 
   override def logJobEnd(
       jobName: String,
-      args: Map[String, String],
       props: Map[String, String],
       error: Option[Throwable]
   ): UIO[Unit] =

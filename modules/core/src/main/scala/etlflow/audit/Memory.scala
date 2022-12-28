@@ -45,12 +45,11 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
       }
     } yield ()
 
-  override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String]): UIO[Unit] =
+  override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] =
     ZIO.succeed(logger.info(s"Job $jobName started"))
 
   override def logJobEnd(
       jobName: String,
-      args: Map[String, String],
       props: Map[String, String],
       error: Option[Throwable]
   ): UIO[Unit] =

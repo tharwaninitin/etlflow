@@ -39,8 +39,8 @@ object BQ extends ApplicationLogger {
         op => op
       )
 
-    override def logJobStart(jobName: String, args: Map[String, String], props: Map[String, String]): UIO[Unit] = client
-      .executeQuery(Sql.insertJobRun(jobRunId, jobName, MapToJson(args), MapToJson(props)))
+    override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = client
+      .executeQuery(Sql.insertJobRun(jobRunId, jobName, MapToJson(props)))
       .fold(
         e => logger.error(e.getMessage),
         op => op
@@ -48,7 +48,6 @@ object BQ extends ApplicationLogger {
 
     override def logJobEnd(
         jobName: String,
-        args: Map[String, String],
         props: Map[String, String],
         error: Option[Throwable]
     ): UIO[Unit] = client
@@ -65,7 +64,6 @@ object BQ extends ApplicationLogger {
         JobRun(
           fl.get("job_run_id").getStringValue,
           fl.get("job_name").getStringValue,
-          fl.get("args").getStringValue,
           fl.get("props").getStringValue,
           fl.get("status").getStringValue,
           fl.get("created_at").getTimestampInstant.atZone(ZoneId.systemDefault()),

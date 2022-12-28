@@ -45,11 +45,11 @@ trait JobApp extends ZIOAppDefault with ApplicationLogger {
   final def execute(cliArgs: Chunk[String]): RIO[Audit, Unit] =
     for {
       args <- ZIO.succeed(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap)
-      _    <- Audit.logJobStart(name, args, Map.empty)
+      _    <- Audit.logJobStart(name, args)
       _ <- job(cliArgs).tapError { ex =>
-        Audit.logJobEnd(name, args, Map.empty, Some(ex))
+        Audit.logJobEnd(name, args, Some(ex))
       }
-      _ <- Audit.logJobEnd(name, args, Map.empty)
+      _ <- Audit.logJobEnd(name, args)
     } yield ()
 
   /** This is just a wrapper around default run method available with ZIOAppDefault to call [[execute execute(Chunk[String])]]

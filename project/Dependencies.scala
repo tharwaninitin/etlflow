@@ -53,8 +53,8 @@ object Dependencies {
   )
 
   lazy val k8sLibs = List(
-    "dev.zio"       %% "zio"            % ZioVersion,
-    "com.coralogix" %% "zio-k8s-client" % K8SVersion
+    "dev.zio"      %% "zio"         % ZioVersion,
+    "io.kubernetes" % "client-java" % K8SVersion
   )
 
   lazy val coreTestLibs = List(

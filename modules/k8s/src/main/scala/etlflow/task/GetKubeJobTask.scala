@@ -1,23 +1,25 @@
 package etlflow.task
 
-import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
-import com.coralogix.zio.k8s.client.model.K8sNamespace
-import com.coralogix.zio.k8s.model.batch.v1.Job
 import etlflow.k8s._
-import zio.RIO
+import io.kubernetes.client.openapi.models.V1Job
+import zio.{RIO, ZIO}
 
-/** Get a kubernetes job details for given job name
-  * @param name
-  *   kubernetes job name
-  * @param namespace
-  *   kubernetes cluster namespace defaults to default namespace
-  */
-case class GetKubeJobTask(name: String, namespace: K8sNamespace = K8sNamespace.default) extends EtlTask[K8S with Jobs, Job] {
+case class GetKubeJobTask(name: String, namespace: String = "default", debug: Boolean = false) extends EtlTask[Jobs, V1Job] {
 
-  override protected def process: RIO[K8S with Jobs, Job] = {
-    logger.info(s"Getting K8S $name Job Details")
-    K8S.getJob(name, namespace)
-  }
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"      -> name,
+    "namespace" -> namespace,
+    "debug"     -> debug.toString
+  )
 
-  override def getTaskProperties: Map[String, String] = Map("name" -> name)
+  override protected def process: RIO[Jobs, V1Job] = for {
+    _ <- ZIO.logInfo("#" * 50)
+    _ <- ZIO.logInfo(s"Getting Job Details for $name")
+    job <- K8S
+      .getJob(name, namespace, debug)
+      .tapBoth(
+        ex => ZIO.logError(ex.getMessage),
+        _ => ZIO.logInfo(s"Got Job Details for $name") *> ZIO.logInfo("#" * 50)
+      )
+  } yield job
 }

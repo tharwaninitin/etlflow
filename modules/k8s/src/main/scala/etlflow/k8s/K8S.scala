@@ -1,88 +1,132 @@
 package etlflow.k8s
 
-import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
-import com.coralogix.zio.k8s.client.config.httpclient.k8sDefault
-import com.coralogix.zio.k8s.client.model.K8sNamespace
-import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
-import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.{DeleteOptions, ObjectMeta, Status}
-import zio.{RIO, TaskLayer, ULayer, ZIO, ZLayer}
+import io.kubernetes.client.openapi.models.V1Job
+import zio.{RIO, Task, TaskLayer, ZIO, ZLayer}
 
-trait K8S {
+/** API for managing resources on Kubernetes Cluster
+  *
+  * @tparam T
+  *   The Job Datatype
+  */
+trait K8S[T] {
 
-  /** Method: createJob - Submit a job to kubernetes cluster using given job configuration
-    * @param metadata
-    *   kubernetes job metadata
-    * @param spec
-    *   kubernetes job spec
-    * @param namespace
-    *   kubernetes cluster namespace
-    * @return
-    *   Job
-    */
-  def createJob(metadata: ObjectMeta, spec: JobSpec, namespace: K8sNamespace): RIO[Jobs, Job]
-
-  /** Method: getJob - Get a kubernetes job details for given job name
+  /** Create a Job in a new Container for running an image.
+    *
     * @param name
-    *   kubernetes job name
+    *   Name of the Job
+    * @param container
+    *   Name of the Container
+    * @param image
+    *   image descriptor
     * @param namespace
-    *   kubernetes cluster namespace
-    * @return
-    *   Job
+    *   namespace, optional. Defaults to 'default'
+    * @param envs
+    *   Environment Variables to set for the container. Optional
+    * @param volumeMounts
+    *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second
+    *   the path to mount inside the container. It is recommended to use [[scala.Predef.ArrowAssoc.->]] for readability. Optional
+    * @param command
+    *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
+    * @param podRestartPolicy
+    *   Restart policy for the container. One of Always, OnFailure, Never. Default to Never. More info:
+    *   https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy
+    * @param apiVersion
+    *   API Version, Optional, defaults to batch/v1
+    * @param debug
+    *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
+    * @param awaitCompletion
+    *   boolean flag which indicates whether control should await for the job's completion before returning
+    * @param pollingFrequencyInMillis
+    *   Duration(in milliseconds) to poll for status of the Job. Optional, only used when awaitCompletion is true or
+    *   deletionPolicy is not [[DeletionPolicy.Never]]
+    * @param deletionPolicy
+    *   The deletion policy for this Job. One of: <ul> <li>[[DeletionPolicy.OnComplete]]: Deletes the job when it completes,
+    *   regardless for status</li> <li>[[DeletionPolicy.OnSuccess]]: Deletes the Job only if it ran successfully</li>
+    *   <li>[[DeletionPolicy.OnFailure]]: Deletes the Job only if it failed</li> <li>[[DeletionPolicy.Never]]: Does not delete the
+    *   job</li> </ul> if this is not [[DeletionPolicy.Never]], then control will wait for job completion, regardless of
+    *   awaitCompletion
+    * @param deletionGraceInSeconds
+    *   The duration in seconds before the Job should be deleted. Value must be non-negative integer. The value zero indicates
+    *   delete immediately. Optional, defaults to 0
     */
-  def getJob(name: String, namespace: K8sNamespace): RIO[Jobs, Job]
+  // noinspection ScalaStyle
+  def createJob(
+      name: String,
+      container: String,
+      image: String,
+      namespace: String = "default",
+      imagePullPolicy: String = "IfNotPresent",
+      envs: Map[String, String] = Map.empty[String, String],
+      volumeMounts: List[(String, String)] = Nil,
+      command: List[String] = Nil,
+      podRestartPolicy: String = "Never",
+      apiVersion: String = "batch/v1",
+      debug: Boolean = false,
+      awaitCompletion: Boolean = false,
+      pollingFrequencyInMillis: Long = 10000,
+      deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
+      deletionGraceInSeconds: Int = 0
+  ): Task[T]
 
-  /** Method: deleteJob - Delete a kubernetes job for given job name
+  /** Deletes the Job after specified time
+    *
     * @param name
-    *   kubernetes job name
-    * @param deleteOptions
-    *   delete options
+    *   Name of the Job
     * @param namespace
-    *   kubernetes cluster namespace
-    * @return
-    *   Job
-    */
-  def deleteJob(name: String, deleteOptions: DeleteOptions, namespace: K8sNamespace): RIO[Jobs, Status]
-}
-object K8S {
-
-  /** Method: createJob - Submit a job to kubernetes cluster using given job configuration
-    * @param metadata
-    *   kubernetes job metadata
-    * @param spec
-    *   kubernetes job spec
-    * @param namespace
-    *   kubernetes cluster namespace, defaults to default namespace
-    * @return
-    *   Job
-    */
-  def createJob(metadata: ObjectMeta, spec: JobSpec, namespace: K8sNamespace = K8sNamespace.default): RIO[K8S with Jobs, Job] =
-    ZIO.environmentWithZIO[K8S](_.get.createJob(metadata, spec, namespace))
-
-  /** Method: getJob - Get a kubernetes job details for given job name
-    * @param name
-    *   kubernetes job name
-    * @param namespace
-    *   kubernetes cluster namespace, defaults to default namespace
-    * @return
-    *   Job
-    */
-  def getJob(name: String, namespace: K8sNamespace = K8sNamespace.default): RIO[K8S with Jobs, Job] =
-    ZIO.environmentWithZIO[K8S](_.get.getJob(name, namespace))
-
-  /** Method: deleteJob - Delete a kubernetes job for given job name
-    * @param name
-    *   kubernetes job name
-    * @param namespace
-    *   kubernetes cluster namespace
-    * @return
-    *   Status
+    *   namespace, optional. Defaults to 'default'
+    * @param gracePeriodInSeconds
+    *   The duration in seconds before the Job should be deleted. Value must be non-negative integer. The value zero indicates
+    *   delete immediately. Optional, defaults to 0
+    * @param debug
+    *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     */
   def deleteJob(
       name: String,
-      deleteOptions: DeleteOptions = DeleteOptions(),
-      namespace: K8sNamespace = K8sNamespace.default
-  ): RIO[K8S with Jobs, Status] =
-    ZIO.environmentWithZIO[K8S](_.get.deleteJob(name, deleteOptions, namespace))
+      namespace: String = "default",
+      gracePeriodInSeconds: Int = 0,
+      debug: Boolean = false
+  ): Task[Unit]
+
+  /** Returns a list of all the job running in the provided namespace
+    *
+    * @param namespace
+    *   namespace, optional. Defaults to 'default'
+    * @return
+    *   A list of Job names
+    */
+  def getJobs(namespace: String = "default"): Task[List[String]]
+
+  /** Returns the job running in the provided namespace
+    *
+    * @param namespace
+    *   namespace, optional. Defaults to 'default'
+    * @return
+    *   A Job, as an instance of T
+    */
+  def getJob(
+      name: String,
+      namespace: String = "default",
+      debug: Boolean = false
+  ): Task[T]
+
+  /** @param name
+    *   Name of the Job
+    * @param namespace
+    *   namespace, optional. Defaults to 'default'
+    * @param debug
+    *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
+    * @return
+    */
+  def getStatus(
+      name: String,
+      namespace: String = "default",
+      debug: Boolean = false
+  ): Task[JobStatus]
+
+  def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus]
+}
+
+object K8S {
 
   /** Method: live - Provides layer to execute K8S APIs
     * @param connectionTimeout
@@ -91,10 +135,75 @@ object K8S {
     *   Boolean flag to enable/disable detailed logging of HTTP requests to Kubernetes API Server
     * @return
     */
-  def live(connectionTimeout: Long = 100000, logRequestResponse: Boolean = false): TaskLayer[K8S with Jobs] =
-    (K8SClient(connectionTimeout, logRequestResponse) >>> Jobs.live) ++ ZLayer.succeed(K8SImpl())
+  def batchClient(connectionTimeout: Long = 100000, logRequestResponse: Boolean = false): TaskLayer[Jobs] = ZLayer.fromZIO {
+    ZIO
+      .attempt(K8SClient.batchClient(connectionTimeout, logRequestResponse))
+      .map(K8SJobImpl)
+  }
 
-  val default: TaskLayer[K8S with Jobs] = (k8sDefault >>> Jobs.live) ++ ZLayer.succeed(K8SImpl())
+  // noinspection ScalaStyle
+  def createJob(
+      name: String,
+      container: String,
+      image: String,
+      namespace: String = "default",
+      imagePullPolicy: String = "IfNotPresent",
+      envs: Map[String, String] = Map.empty[String, String],
+      volumeMounts: List[(String, String)] = Nil,
+      command: List[String] = Nil,
+      podRestartPolicy: String = "Never",
+      apiVersion: String = "batch/v1",
+      debug: Boolean = false,
+      awaitCompletion: Boolean = true,
+      pollingFrequencyInMillis: Long = 10000,
+      deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
+      deletionGraceInSeconds: Int = 0
+  ): RIO[Jobs, V1Job] =
+    ZIO.environmentWithZIO[Jobs](
+      _.get.createJob(
+        name,
+        container,
+        image,
+        namespace,
+        imagePullPolicy,
+        envs,
+        volumeMounts,
+        command,
+        podRestartPolicy,
+        apiVersion,
+        debug,
+        awaitCompletion,
+        pollingFrequencyInMillis,
+        deletionPolicy,
+        deletionGraceInSeconds
+      )
+    )
 
-  val test: ULayer[K8S with Jobs] = Jobs.test ++ ZLayer.succeed(K8SImpl())
+  def deleteJob(
+      name: String,
+      namespace: String = "default",
+      gracePeriodInSeconds: Int = 0,
+      debug: Boolean = false
+  ): RIO[Jobs, Unit] =
+    ZIO.environmentWithZIO[Jobs](_.get.deleteJob(name, namespace, gracePeriodInSeconds, debug))
+
+  def getJobs(namespace: String = "default"): RIO[Jobs, List[String]] =
+    ZIO.environmentWithZIO[Jobs](_.get.getJobs(namespace))
+
+  def getJob(
+      name: String,
+      namespace: String = "default",
+      debug: Boolean = false
+  ): RIO[Jobs, V1Job] =
+    ZIO.environmentWithZIO[Jobs](_.get.getJob(name, namespace, debug))
+
+  def getStatus(
+      name: String,
+      namespace: String = "default",
+      debug: Boolean = false
+  ): RIO[Jobs, JobStatus] =
+    ZIO.environmentWithZIO[Jobs](_.get.getStatus(name, namespace, debug))
+
+  def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): RIO[Jobs, JobStatus] =
+    ZIO.environmentWithZIO[Jobs](_.get.poll(name, namespace, pollingFrequencyInMillis))
 }

@@ -53,8 +53,9 @@ object Dependencies {
   )
 
   lazy val k8sLibs = List(
-    "dev.zio"      %% "zio"         % ZioVersion,
-    "io.kubernetes" % "client-java" % K8SVersion
+    "dev.zio"                %% "zio"                     % ZioVersion,
+    "org.scala-lang.modules" %% "scala-collection-compat" % ScalaCollectionCompatVersion,
+    "io.kubernetes"           % "client-java"             % K8SVersion
   )
 
   lazy val coreTestLibs = List(

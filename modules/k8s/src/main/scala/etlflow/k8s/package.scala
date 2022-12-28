@@ -19,15 +19,15 @@ package object k8s {
   }
 
   object DeletionPolicy {
-    final case object OnComplete extends DeletionPolicy
-    final case object OnSuccess  extends DeletionPolicy
-    final case object OnFailure  extends DeletionPolicy
-    final case object Never      extends DeletionPolicy
+    case object OnComplete extends DeletionPolicy
+    case object OnSuccess  extends DeletionPolicy
+    case object OnFailure  extends DeletionPolicy
+    case object Never      extends DeletionPolicy
   }
 
   object JobStatus {
-    final case object Running extends JobStatus
-    final case object Succeed extends JobStatus
-    final case object Failure extends JobStatus
+    case object Running extends JobStatus
+    case object Succeed extends JobStatus
+    case object Failure extends JobStatus
   }
 }

@@ -24,7 +24,7 @@ trait K8S[T] {
     *   Environment Variables to set for the container. Optional
     * @param volumeMounts
     *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second
-    *   the path to mount inside the container. It is recommended to use [[scala.Predef.ArrowAssoc.->]] for readability. Optional
+    *   the path to mount inside the container. Optional
     * @param command
     *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
     * @param podRestartPolicy
@@ -138,7 +138,7 @@ object K8S {
   def batchClient(connectionTimeout: Long = 100000, logRequestResponse: Boolean = false): TaskLayer[Jobs] = ZLayer.fromZIO {
     ZIO
       .attempt(K8SClient.batchClient(connectionTimeout, logRequestResponse))
-      .map(K8SJobImpl)
+      .map(bc => K8SJobImpl(bc))
   }
 
   // noinspection ScalaStyle

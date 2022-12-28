@@ -10,9 +10,8 @@ import zio.{RIO, ZIO}
   * @return
   *   A list of Job names
   */
-case class GetKubeJobs(namespace: String = "default") extends EtlTask[Jobs, List[String]] {
-  override val name: String                           = namespace
-  override def getTaskProperties: Map[String, String] = Map("namespace" -> namespace)
+case class GetKubeJobsTask(name: String, namespace: String = "default") extends EtlTask[Jobs, List[String]] {
+
   override def process: RIO[Jobs, List[String]] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Getting jobs in $namespace")
@@ -24,4 +23,6 @@ case class GetKubeJobs(namespace: String = "default") extends EtlTask[Jobs, List
       )
 
   } yield jobs
+
+  override def getTaskProperties: Map[String, String] = Map("namespace" -> namespace)
 }

@@ -3,17 +3,8 @@ package etlflow.task
 import etlflow.k8s._
 import zio.{RIO, ZIO}
 
-case class TrackKubeJobTask(
-    name: String,
-    namespace: String = "default",
-    pollingFrequencyInMillis: Long = 10000
-) extends EtlTask[Jobs, JobStatus] {
-
-  override def getTaskProperties: Map[String, String] = Map(
-    "name"                     -> name,
-    "namespace"                -> namespace,
-    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString
-  )
+case class TrackKubeJobTask(name: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000)
+    extends EtlTask[Jobs, JobStatus] {
 
   override protected def process: RIO[Jobs, JobStatus] = for {
     _ <- ZIO.logInfo("#" * 50)
@@ -26,4 +17,10 @@ case class TrackKubeJobTask(
       )
 
   } yield status
+
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"                     -> name,
+    "namespace"                -> namespace,
+    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString
+  )
 }

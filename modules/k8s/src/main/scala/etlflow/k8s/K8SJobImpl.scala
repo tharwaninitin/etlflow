@@ -8,14 +8,14 @@ import io.kubernetes.client.openapi.ApiException
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.models._
 import zio.{Task, ZIO}
-
-import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationLong
+import scala.jdk.CollectionConverters._
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.AutoUnboxing",
-    "org.wartremover.warts.Null"
+    "org.wartremover.warts.Null",
+    "org.wartremover.warts.ToString"
   )
 )
 case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
@@ -35,7 +35,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
     *   Environment Variables to set for the container. Optional
     * @param volumeMounts
     *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second
-    *   the path to mount inside the container. It is recommended to use [[scala.Predef.ArrowAssoc.->]] for readability. Optional
+    *   the path to mount inside the container. Optional
     * @param command
     *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
     * @param podRestartPolicy
@@ -240,7 +240,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
 
   private def logJobs(namespace: String): Task[Unit] = for {
     jobs <- getJobs(namespace)
-    _    <- ZIO.foreach(jobs)(x => ZIO.logInfo(x))
+    _    <- ZIO.foreachDiscard(jobs)(x => ZIO.logInfo(x))
   } yield ()
 
   /** Returns a list of all the job running in the provided namespace
@@ -248,7 +248,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
     * @param namespace
     *   namespace, optional. Defaults to 'default'
     * @return
-    *   A list of Jobs, as instances of [[V1Job]]
+    *   A list of Jobs, as instances of V1Job
     */
   override def getJobs(namespace: String): Task[List[String]] = ZIO.attempt {
     // noinspection ScalaStyle
@@ -265,7 +265,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
     * @param namespace
     *   namespace, optional. Defaults to 'default'
     * @return
-    *   A [[V1Job]]
+    *   V1Job
     */
   override def getJob(name: String, namespace: String, debug: Boolean): Task[V1Job] = ZIO
     .attempt {

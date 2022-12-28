@@ -128,16 +128,15 @@ trait K8S[T] {
 
 object K8S {
 
-  /** Method: live - Provides layer to execute K8S APIs
-    * @param connectionTimeout
-    *   Http request connection timeout in MILLISECONDS
-    * @param logRequestResponse
-    *   Boolean flag to enable/disable detailed logging of HTTP requests to Kubernetes API Server
+  /** Method: batchClient - Provides layer to execute K8S Job APIs
+    * @param httpConnectionTimeout
+    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
     * @return
+    *   TaskLayer[Jobs]
     */
-  def batchClient(connectionTimeout: Long = 100000, logRequestResponse: Boolean = false): TaskLayer[Jobs] = ZLayer.fromZIO {
+  def batchClient(httpConnectionTimeout: Int = 100000): TaskLayer[Jobs] = ZLayer.fromZIO {
     ZIO
-      .attempt(K8SClient.batchClient(connectionTimeout, logRequestResponse))
+      .attempt(K8SClient.batchClient(httpConnectionTimeout))
       .map(bc => K8SJobImpl(bc))
   }
 

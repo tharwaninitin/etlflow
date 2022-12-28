@@ -2,11 +2,11 @@ package etlflow.audit
 
 object Sql {
   def updateTaskRun(taskRunId: String, props: String, status: String): String =
-    s"""UPDATE taskrun
-            SET status = $status,
-                props = CAST($props as JSON),
+    s"""UPDATE etlflow.taskrun
+            SET status = "$status",
+                props = JSON '$props',
                 updated_at = CURRENT_TIMESTAMP()
-          WHERE task_run_id = $taskRunId"""
+          WHERE task_run_id = "$taskRunId""""
 
   def insertTaskRun(
       taskRunId: String,
@@ -15,7 +15,7 @@ object Sql {
       taskType: String,
       jobRunId: String
   ): String =
-    s"""INSERT INTO taskrun (
+    s"""INSERT INTO etlflow.taskrun (
            task_run_id,
            job_run_id,
            task_name,
@@ -25,17 +25,17 @@ object Sql {
            created_at,
            updated_at
            )
-         VALUES ($taskRunId, $jobRunId, $name, $taskType, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ("$taskRunId", "$jobRunId", "$name", "$taskType", JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
   def updateJobRun(jobRunId: String, status: String, props: String): String =
-    s"""UPDATE jobrun
-              SET status = $status,
-                  props = CAST($props as JSON),
-                  updated_at = CURRENT_TIMESTAMP(6)
-           WHERE job_run_id = $jobRunId"""
+    s"""UPDATE etlflow.jobrun
+              SET status = "$status",
+                  props = JSON '$props',
+                  updated_at = CURRENT_TIMESTAMP()
+           WHERE job_run_id = "$jobRunId""""
 
   def insertJobRun(jobRunId: String, name: String, args: String, props: String): String =
-    s"""INSERT INTO jobrun(
+    s"""INSERT INTO etlflow.jobrun(
             job_run_id,
             job_name,
             args,
@@ -44,6 +44,6 @@ object Sql {
             created_at,
             updated_at
             )
-         VALUES ($jobRunId, $name, CAST($args as JSON), CAST($props as JSON), 'started', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ("$jobRunId", "$name", JSON '$args', JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
 }

@@ -5,7 +5,7 @@ import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.MapToJson
 import gcp4zio.bq.{BQClient, BQImpl}
 import zio.{TaskLayer, UIO, ZLayer}
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import java.time.ZoneId
 
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Throw", "org.wartremover.warts.ToString"))
 object BQ extends ApplicationLogger {
@@ -89,8 +89,8 @@ object BQ extends ApplicationLogger {
           fl.get("task_type").getStringValue,
           fl.get("props").getStringValue,
           fl.get("status").getStringValue,
-          ZonedDateTime.of(LocalDateTime.parse(fl.get("created_at").getStringValue), ZoneId.systemDefault()),
-          ZonedDateTime.of(LocalDateTime.parse(fl.get("updated_at").getStringValue), ZoneId.systemDefault())
+          fl.get("created_at").getTimestampInstant.atZone(ZoneId.systemDefault()),
+          fl.get("updated_at").getTimestampInstant.atZone(ZoneId.systemDefault())
         )
       )
       .fold(

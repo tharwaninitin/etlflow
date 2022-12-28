@@ -9,9 +9,9 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
     def createTable(name: String): String =
       if (reset)
         s"""
-           |DROP TABLE IF EXISTS $name CASCADE;
-           |CREATE TABLE $name""".stripMargin
-      else s"CREATE TABLE IF NOT EXISTS $name"
+           |DROP TABLE IF EXISTS etlflow.$name;
+           |CREATE TABLE etlflow.$name""".stripMargin
+      else s"CREATE TABLE IF NOT EXISTS etlflow.$name"
 
     val jobrun = s"""
                     |${createTable("jobrun")} (
@@ -41,7 +41,7 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
     } yield ()
   }
 
-  val program: Task[Unit] = execute(sys.env("INIT").toBoolean).provideLayer(gcp4zio.bq.BQ.live())
+  val program: Task[Unit] = execute(true).provideLayer(gcp4zio.bq.BQ.live())
 
   override def run: Task[Unit] = program
 }

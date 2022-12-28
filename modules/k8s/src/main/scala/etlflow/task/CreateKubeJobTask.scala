@@ -49,7 +49,7 @@ case class CreateKubeJobTask(
     image: String,
     imagePullPolicy: String = "IfNotPresent",
     envs: Map[String, String] = Map.empty[String, String],
-    volumeMounts: List[(String, String)],
+    volumeMounts: List[(String, String)] = List.empty[(String, String)],
     podRestartPolicy: String = "OnFailure",
     command: List[String] = Nil,
     namespace: String = "default",

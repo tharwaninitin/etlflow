@@ -1,6 +1,7 @@
 package etlflow.audit
 
 import etlflow.log.ApplicationLogger
+import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.DateTimeApi
 import zio.{Ref, UIO, ZIO}
 import scala.collection.mutable
@@ -15,8 +16,7 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
       taskRunId: String,
       taskName: String,
       props: Map[String, String],
-      taskType: String,
-      startTime: Long
+      taskType: String
   ): UIO[Unit] =
     for {
       stateRef <- state
@@ -31,7 +31,6 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
       taskName: String,
       props: Map[String, String],
       taskType: String,
-      endTime: Long,
       error: Option[Throwable]
   ): UIO[Unit] =
     for {
@@ -46,10 +45,14 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
       }
     } yield ()
 
-  override def logJobStart(jobName: String, args: String, startTime: Long): UIO[Unit] =
+  override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] =
     ZIO.succeed(logger.info(s"Job $jobName started"))
 
-  override def logJobEnd(jobName: String, args: String, endTime: Long, error: Option[Throwable]): UIO[Unit] =
+  override def logJobEnd(
+      jobName: String,
+      props: Map[String, String],
+      error: Option[Throwable]
+  ): UIO[Unit] =
     for {
       stateRef <- state
       value    <- stateRef.get
@@ -61,6 +64,10 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
         value.values.toList.sortBy(_.start_time).foreach(x => logger.info(x.toString()))
       }
     } yield ()
+
+  override def getJobRuns(query: String): UIO[Iterable[JobRun]] = ZIO.succeed(List.empty[JobRun])
+
+  override def getTaskRuns(query: String): UIO[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
 
 }
 

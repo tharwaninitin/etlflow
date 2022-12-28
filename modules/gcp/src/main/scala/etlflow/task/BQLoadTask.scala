@@ -1,15 +1,13 @@
 package etlflow.task
 
 import com.google.cloud.bigquery.{JobInfo, Schema}
-import etlflow.gcp._
-import gcp4zio.bq.{BQ, BQInputType}
+import gcp4zio.bq.{BQ, FileType}
 import zio.{RIO, ZIO}
 
 case class BQLoadTask(
     name: String,
     inputLocation: Either[String, Seq[(String, String)]],
-    inputType: BQInputType,
-    inputFileSystem: FSType = FSType.GCS,
+    inputType: FileType,
     outputProject: Option[String] = None,
     outputDataset: String,
     outputTable: String,
@@ -24,46 +22,38 @@ case class BQLoadTask(
     logger.info("#" * 50)
     logger.info(s"Starting BQ Data Load Task: $name")
 
-    val program: RIO[BQ, Unit] = inputFileSystem match {
-      case FSType.LOCAL =>
-        logger.info(s"FileSystem: $inputFileSystem")
-        BQ.loadTableFromLocalFile(inputLocation, inputType, outputDataset, outputTable)
-      case FSType.GCS =>
-        inputLocation match {
-          case Left(value) =>
-            logger.info(s"FileSystem: $inputFileSystem")
-            BQ
-              .loadTable(
-                value,
-                inputType,
-                outputProject,
-                outputDataset,
-                outputTable,
-                outputWriteDisposition,
-                outputCreateDisposition,
-                schema
-              )
-              .map { x =>
-                rowCount = x
-              }
-          case Right(value) =>
-            logger.info(s"FileSystem: $inputFileSystem")
-            BQ
-              .loadPartitionedTable(
-                value,
-                inputType,
-                outputProject,
-                outputDataset,
-                outputTable,
-                outputWriteDisposition,
-                outputCreateDisposition,
-                schema,
-                10
-              )
-              .map { x =>
-                rowCount = x
-              }
-        }
+    val program: RIO[BQ, Unit] = inputLocation match {
+      case Left(value) =>
+        BQ
+          .loadTable(
+            value,
+            inputType,
+            outputProject,
+            outputDataset,
+            outputTable,
+            outputWriteDisposition,
+            outputCreateDisposition,
+            schema
+          )
+          .map { x =>
+            rowCount = x
+          }
+      case Right(value) =>
+        BQ
+          .loadPartitionedTable(
+            value,
+            inputType,
+            outputProject,
+            outputDataset,
+            outputTable,
+            outputWriteDisposition,
+            outputCreateDisposition,
+            schema,
+            10
+          )
+          .map { x =>
+            rowCount = x
+          }
     }
     program *> ZIO.succeed(logger.info("#" * 50))
   }

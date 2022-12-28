@@ -31,13 +31,13 @@ lazy val coreSettings = Seq(
 lazy val sparkSettings = Seq(
   name               := "etlflow-spark",
   crossScalaVersions := Scala2Versions,
-  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ dbTestLibs ++ sparkTestLibs
+  libraryDependencies ++= sparkLibs ++ coreTestLibs ++ jdbcTestLibs ++ sparkTestLibs
 )
 
-lazy val dbSettings = Seq(
-  name               := "etlflow-db",
+lazy val jdbcSettings = Seq(
+  name               := "etlflow-jdbc",
   crossScalaVersions := AllScalaVersions,
-  libraryDependencies ++= dbLibs ++ coreTestLibs ++ dbTestLibs
+  libraryDependencies ++= jdbcLibs ++ coreTestLibs ++ jdbcTestLibs
 )
 
 lazy val httpSettings = Seq(
@@ -82,15 +82,15 @@ lazy val etlflow = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core, spark, db, http, redis, email, aws, gcp, k8s)
+  .aggregate(core, spark, jdbc, http, redis, email, aws, gcp, k8s)
 
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(coreSettings)
 
-lazy val db = (project in file("modules/db"))
+lazy val jdbc = (project in file("modules/jdbc"))
   .settings(commonSettings)
-  .settings(dbSettings)
+  .settings(jdbcSettings)
   .dependsOn(core)
 
 lazy val spark = (project in file("modules/spark"))
@@ -130,7 +130,7 @@ lazy val k8s = (project in file("modules/k8s"))
 
 lazy val docs = project
   .in(file("modules/docs")) // important: it must not be docs/
-  .dependsOn(core, spark, db, http, redis, email, aws, gcp, k8s)
+  .dependsOn(core, spark, jdbc, http, redis, email, aws, gcp, k8s)
   .settings(
     name           := "etlflow-docs",
     publish / skip := true,

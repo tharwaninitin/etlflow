@@ -15,12 +15,13 @@ object Job1K8S extends ZIOAppDefault with ApplicationLogger {
     _ <- DeleteKubeJobTask(jobName).execute.ignore
     _ <- CreateKubeJobTask(
       name = jobName,
+      container = jobName,
       image = "busybox:1.28",
-      command = Some(Vector("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster")),
-      secret = Some(Secret("secrets", "/etc/key"))
+      command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster"),
+      volumeMounts = List(("secrets", "/etc/key"))
     ).execute
     _ <- TrackKubeJobTask(jobName).execute
   } yield ()
 
-  override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.live() ++ etlflow.audit.test)
+  override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.batchClient() ++ etlflow.audit.test)
 }

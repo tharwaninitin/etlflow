@@ -1,39 +1,21 @@
 package etlflow.k8s
 
-import com.coralogix.zio.k8s.client.config.httpclient.getHostnameVerificationDisabled
-import com.coralogix.zio.k8s.client.config.{defaultConfigChain, k8sCluster, K8sClusterConfig, SSL}
-import com.coralogix.zio.k8s.client.model.K8sCluster
-import etlflow.http.HttpApi
 import etlflow.log.ApplicationLogger
-import sttp.capabilities.WebSockets
-import sttp.capabilities.zio.ZioStreams
-import sttp.client3.SttpBackend
-import zio.{Task, TaskLayer, ZIO, ZLayer}
+import io.kubernetes.client.openapi.Configuration
+import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.util.Config
 
 object K8SClient extends ApplicationLogger {
-  def apply(
-      connectionTimeout: Long = 10000,
-      logDetails: Boolean = false
-  ): TaskLayer[K8sCluster with SttpBackend[Task, ZioStreams with WebSockets]] =
-    (defaultConfigChain >>> (k8sCluster ++ sttpClient(connectionTimeout, logDetails))).tapError(e =>
-      ZIO.logError(s"Error ${e.getMessage}")
-    )
 
-  private def sttpClient(
-      connectionTimeout: Long,
-      logDetails: Boolean
-  ): ZLayer[K8sClusterConfig, Throwable, SttpBackend[Task, ZioStreams with WebSockets]] =
-    ZLayer.scoped {
-      for {
-        config                      <- ZIO.service[K8sClusterConfig]
-        disableHostnameVerification <- ZIO.succeed(getHostnameVerificationDisabled(config))
-        _ <- ZIO
-          .attempt(java.lang.System.setProperty("jdk.internal.httpclient.disableHostnameVerification", "true"))
-          .when(disableHostnameVerification)
-        sslContext <- SSL(config.client.serverCertificate, config.authentication)
-        client <- HttpApi
-          .getBackendWithSSLContext(connectionTimeout, sslContext)
-          .map(backend => HttpApi.logBackend(backend, logDetails))
-      } yield client
-    }
+  /** Method: batchClient - Provides BatchV1Api
+    * @param httpConnectionTimeout
+    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
+    * @return
+    *   BatchV1Api
+    */
+  def batchClient(httpConnectionTimeout: Int): BatchV1Api = {
+    logger.info(s"HTTP Connection timeout is set to $httpConnectionTimeout")
+    Configuration.setDefaultApiClient(Config.defaultClient.setConnectTimeout(httpConnectionTimeout))
+    new BatchV1Api()
+  }
 }

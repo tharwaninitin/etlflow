@@ -1,88 +1,110 @@
 package etlflow.task
 
-import com.coralogix.zio.k8s.client.batch.v1.jobs.Jobs
-import com.coralogix.zio.k8s.client.model.K8sNamespace
-import com.coralogix.zio.k8s.model.batch.v1.{Job, JobSpec}
-import com.coralogix.zio.k8s.model.core.v1._
-import com.coralogix.zio.k8s.model.pkg.apis.meta.v1.ObjectMeta
 import etlflow.k8s._
+import io.kubernetes.client.openapi.models.V1Job
 import zio.{RIO, ZIO}
 
-/** Submit a job to kubernetes cluster using give job configuration
+/** Create a Job in a new Container for running an image.
+  *
   * @param name
-  *   kubernetes job name
+  *   Name of the Job
+  * @param container
+  *   Name of the Container
   * @param image
-  *   docker image name
-  * @param imagePullPolicy
-  *   docker image pull policy, default to 'IfNotPresent'
-  * @param envVars
-  *   Environment variables to pass to container, defaults to empty map
-  * @param secret
-  *   Secret which will get mounted to specified path, defaults to None
-  * @param podRestartPolicy
-  *   pod restart policy, defaults to 'OnFailure'
-  * @param command
-  *   entrypoint array, defaults to docker image's ENTRYPOINT
+  *   image descriptor
   * @param namespace
-  *   kubernetes cluster namespace, defaults to default namespace
+  *   namespace, optional. Defaults to 'default'
+  * @param envs
+  *   Environment Variables to set for the container. Optional
+  * @param volumeMounts
+  *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second the
+  *   path to mount inside the container. Optional
+  * @param command
+  *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
+  * @param podRestartPolicy
+  *   Restart policy for the container. One of Always, OnFailure, Never. Default to Never. More info:
+  *   https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy
+  * @param apiVersion
+  *   API Version, Optional, defaults to batch/v1
+  * @param debug
+  *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
+  * @param awaitCompletion
+  *   boolean flag which indicates whether control should await for the job's completion before returning
+  * @param pollingFrequencyInMillis
+  *   Duration(in milliseconds) to poll for status of the Job. Optional, only used when awaitCompletion is true or deletionPolicy
+  *   is not [[etlflow.k8s.DeletionPolicy.Never]]
+  * @param deletionPolicy
+  *   The deletion policy for this Job. One of: <ul> <li>[[etlflow.k8s.DeletionPolicy.OnComplete]]: Deletes the job when it
+  *   completes, regardless for status</li> <li>[[etlflow.k8s.DeletionPolicy.OnSuccess]]: Deletes the Job only if it ran
+  *   successfully</li> <li>[[etlflow.k8s.DeletionPolicy.OnFailure]]: Deletes the Job only if it failed</li>
+  *   <li>[[etlflow.k8s.DeletionPolicy.Never]]: Does not delete the job</li> </ul> if this is not
+  *   [[etlflow.k8s.DeletionPolicy.Never]], then control will wait for job completion, regardless of awaitCompletion
+  * @param deletionGraceInSeconds
+  *   The duration in seconds before the Job should be deleted. Value must be non-negative integer. The value zero indicates
+  *   delete immediately. Optional, defaults to 0
   */
-@SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 case class CreateKubeJobTask(
     name: String,
+    container: String,
     image: String,
     imagePullPolicy: String = "IfNotPresent",
-    envVars: Map[String, String] = Map.empty[String, String],
-    secret: Option[etlflow.k8s.Secret] = None,
+    envs: Map[String, String] = Map.empty[String, String],
+    volumeMounts: List[(String, String)] = List.empty[(String, String)],
     podRestartPolicy: String = "OnFailure",
-    command: Option[Vector[String]] = None,
-    namespace: K8sNamespace = K8sNamespace.default
-) extends EtlTask[K8S with Jobs, Job] {
+    command: List[String] = Nil,
+    namespace: String = "default",
+    apiVersion: String = "batch/v1",
+    debug: Boolean = false,
+    awaitCompletion: Boolean = false,
+    pollingFrequencyInMillis: Long = 10000,
+    deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
+    deletionGraceInSeconds: Int = 0
+) extends EtlTask[Jobs, V1Job] {
 
-  override protected def process: RIO[K8S with Jobs, Job] = {
-    logger.info("#" * 50)
-    logger.info(s"Creating K8S Job: $name")
+  override protected def process: RIO[Jobs, V1Job] = for {
+    _ <- ZIO.logInfo("#" * 50)
+    _ <- ZIO.logInfo(s"Creating K8S Job: $name")
 
-    val metadata = ObjectMeta(name = name)
-
-    val (volumeMounts, volumes) = if (secret.isDefined) {
-      val etlflow.k8s.Secret(secretName, mountPath) = secret.get
-      val serviceVolumeSource                       = SecretVolumeSource(secretName = secretName, optional = false)
-      val secretVolume                              = Volume(name = secretName, secret = serviceVolumeSource)
-      val volumeMounts: Option[Vector[VolumeMount]] = Some(
-        Vector(VolumeMount(mountPath = mountPath, name = secretName, readOnly = true))
+    job <- K8S
+      .createJob(
+        name,
+        container,
+        image,
+        namespace,
+        imagePullPolicy,
+        envs,
+        volumeMounts,
+        command,
+        podRestartPolicy,
+        apiVersion,
+        debug,
+        awaitCompletion,
+        pollingFrequencyInMillis,
+        deletionPolicy,
+        deletionGraceInSeconds
       )
-      val volumes: Option[Vector[Volume]] = Some(Vector(secretVolume))
-      (volumeMounts, volumes)
-    } else { (None, None) }
-
-    val container = Container(
-      name = name,
-      image = image,
-      imagePullPolicy = imagePullPolicy,
-      command = command,
-      env = envVars.map { case (key, value) => EnvVar(name = key, value = value) }.toVector,
-      volumeMounts = volumeMounts
-    )
-
-    val podSpec = PodSpec(containers = Some(Vector(container)), restartPolicy = Some(podRestartPolicy), volumes = volumes)
-
-    val podTemplateSpec = PodTemplateSpec(metadata = Some(metadata), spec = Some(podSpec))
-
-    K8S
-      .createJob(metadata, JobSpec(template = podTemplateSpec), namespace)
-      .tapError(e => ZIO.logError(e.getMessage))
-      .zipLeft(ZIO.logInfo(s"K8S Job $name submitted successfully"))
-      .zipLeft(ZIO.logInfo("#" * 50))
-  }
+      .tapBoth(
+        e => ZIO.logError(e.getMessage),
+        _ => ZIO.logInfo(s"K8S Job $name submitted successfully") *> ZIO.logInfo("#" * 50)
+      )
+  } yield job
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getTaskProperties: Map[String, String] = Map(
-    "name"             -> name,
-    "image"            -> image,
-    "imagePullPolicy"  -> imagePullPolicy,
-    "secrets"          -> secret.toString,
-    "envVars"          -> envVars.mkString(","),
-    "podRestartPolicy" -> podRestartPolicy,
-    "command"          -> command.toString
+    "name"                     -> name,
+    "container"                -> container,
+    "image"                    -> image,
+    "imagePullPolicy"          -> imagePullPolicy,
+    "envs"                     -> envs.toString,
+    "volumeMounts"             -> volumeMounts.mkString(", "),
+    "podRestartPolicy"         -> podRestartPolicy,
+    "command"                  -> command.mkString(" "),
+    "namespace"                -> namespace,
+    "apiVersion"               -> apiVersion,
+    "debug"                    -> debug.toString,
+    "awaitCompletion"          -> awaitCompletion.toString,
+    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString,
+    "deletionPolicy"           -> deletionPolicy.toString,
+    "deletionGraceInSeconds"   -> deletionGraceInSeconds.toString
   )
 }

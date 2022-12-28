@@ -15,6 +15,9 @@ trait TestHelper {
   lazy val dpNetworkTags: List[String]      = sys.env.get("DP_NETWORK_TAGS").map(_.split(",").toList).getOrElse(List.empty)
   lazy val dpServiceAccount: Option[String] = sys.env.get("DP_SERVICE_ACCOUNT")
 
+  lazy val bqDataset: String = sys.env("BQ_DATASET")
+  lazy val bqTable: String   = sys.env("BQ_TABLE")
+
   val canonicalPath: String   = new java.io.File(".").getCanonicalPath
   val filePathParquet: String = s"$canonicalPath/modules/core/src/test/resources/input/movies/ratings_parquet/ratings.parquet"
   val filePathCsv: String     = s"$canonicalPath/modules/core/src/test/resources/input/movies/ratings/ratings_1.csv"

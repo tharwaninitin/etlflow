@@ -38,11 +38,11 @@ object DPSparkJobTask {
     .zip(Config.listOf("args", Config.string))
     .zip(Config.string("mainClass"))
     .zip(Config.listOf("libs", Config.string))
-    // .zip(Config.table("conf", Config.string))
+    .zip(Config.table("conf", Config.string))
     .zip(Config.string("cluster"))
     .zip(Config.string("project"))
     .zip(Config.string("region"))
-    .map { case (host, args, mainClass, libs, cluster, project, region) =>
-      DPSparkJobTask(host, args, mainClass, libs, Map.empty, cluster, project, region)
+    .map { case (host, args, mainClass, libs, conf, cluster, project, region) =>
+      DPSparkJobTask(host, args, mainClass, libs, conf, cluster, project, region)
     }
 }

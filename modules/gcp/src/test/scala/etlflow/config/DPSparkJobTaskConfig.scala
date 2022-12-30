@@ -10,10 +10,11 @@ object DPSparkJobTaskConfig {
   val spec: Spec[Any, Any] =
     test("Execute DPSparkJobTaskConfig") {
       val map = Map(
-        "name" -> "test",
-        "args" -> "1,2,3",
-        "libs" -> "1,2,3",
-        // "conf"      -> "key1=value1,key2=value2",
+        "name"      -> "test",
+        "args"      -> "abc,xyz,3",
+        "libs"      -> "spark.jar,gcp.jar",
+        "conf.key1" -> "value1",
+        "conf.key2" -> "value2",
         "mainClass" -> "test",
         "cluster"   -> "test",
         "project"   -> "test",

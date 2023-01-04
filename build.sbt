@@ -84,9 +84,10 @@ lazy val etlflow = (project in file("."))
   )
   .aggregate(core.jvm, spark, jdbc, http, redis, email, aws, gcp, k8s)
 
-lazy val core = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("modules/core"))
-  .settings(commonSettings)
-  .settings(coreSettings)
+lazy val core =
+  (crossProject(JSPlatform, JVMPlatform).withoutSuffixFor(JVMPlatform).crossType(CrossType.Pure) in file("modules/core"))
+    .settings(commonSettings)
+    .settings(coreSettings)
 
 lazy val jdbc = (project in file("modules/jdbc"))
   .settings(commonSettings)

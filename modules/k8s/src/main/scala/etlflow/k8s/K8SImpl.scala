@@ -193,7 +193,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
 
   @SuppressWarnings(
     Array(
-      "org.wartremover.warts.OptionPartial"
+      "org.wartremover.warts.Throw"
     )
   )
   private def getPodName(jobName: String, namespace: String): Task[String] = ZIO.attempt {

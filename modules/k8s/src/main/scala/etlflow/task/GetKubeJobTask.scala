@@ -18,16 +18,9 @@ import zio.{RIO, ZIO}
   *   A Job, as an instance of V1Job
   */
 case class GetKubeJobTask(name: String, jobName: String, namespace: String = "default", debug: Boolean = false)
-    extends EtlTask[Jobs, V1Job] {
+    extends EtlTask[K8S, V1Job] {
 
-  override def getTaskProperties: Map[String, String] = Map(
-    "name"      -> name,
-    "jobName"   -> jobName,
-    "namespace" -> namespace,
-    "debug"     -> debug.toString
-  )
-
-  override protected def process: RIO[Jobs, V1Job] = for {
+  override protected def process: RIO[K8S, V1Job] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Getting Job Details for $jobName")
     job <- K8S
@@ -37,4 +30,11 @@ case class GetKubeJobTask(name: String, jobName: String, namespace: String = "de
         _ => ZIO.logInfo(s"Got Job Details for $jobName") *> ZIO.logInfo("#" * 50)
       )
   } yield job
+
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"      -> name,
+    "jobName"   -> jobName,
+    "namespace" -> namespace,
+    "debug"     -> debug.toString
+  )
 }

@@ -62,7 +62,7 @@ case class CreateKubeJobTask(
     pollingFrequencyInMillis: Long = 10000,
     deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
     deletionGraceInSeconds: Int = 0
-) extends EtlTask[Jobs, V1Job] {
+) extends EtlTask[K8S, V1Job] {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getTaskProperties: Map[String, String] = Map(
@@ -84,7 +84,7 @@ case class CreateKubeJobTask(
     "deletionGraceInSeconds"   -> deletionGraceInSeconds.toString
   )
 
-  override protected def process: RIO[Jobs, V1Job] = for {
+  override protected def process: RIO[K8S, V1Job] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Creating K8S Job: $jobName")
 

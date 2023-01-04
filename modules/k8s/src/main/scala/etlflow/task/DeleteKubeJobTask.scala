@@ -23,7 +23,7 @@ case class DeleteKubeJobTask(
     namespace: String = "default",
     gracePeriodInSeconds: Int = 0,
     debug: Boolean = false
-) extends EtlTask[Jobs, Unit] {
+) extends EtlTask[K8S, Unit] {
 
   override def getTaskProperties: Map[String, String] = Map(
     "name"                   -> name,
@@ -33,7 +33,7 @@ case class DeleteKubeJobTask(
     "deletionGraceInSeconds" -> gracePeriodInSeconds.toString
   )
 
-  override protected def process: RIO[Jobs, Unit] = for {
+  override protected def process: RIO[K8S, Unit] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Deleting Job $jobName")
     _ <- K8S

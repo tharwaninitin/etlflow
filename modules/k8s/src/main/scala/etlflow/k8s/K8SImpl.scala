@@ -4,11 +4,12 @@ import etlflow.k8s.DeletionPolicy._
 import etlflow.k8s.JobStatus._
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
+import io.kubernetes.client.PodLogs
 import io.kubernetes.client.openapi.ApiException
 import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
+import zio.stream.ZStream
 import zio.{Task, ZIO}
-
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
@@ -19,7 +20,7 @@ import scala.jdk.CollectionConverters._
     "org.wartremover.warts.ToString"
   )
 )
-case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
+case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
   private val secretKey = "secret"
 
   /** Create a Job in a new Container for running an image.
@@ -177,9 +178,9 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
   override def getJobStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
     _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
     jobStatus <- ZIO.attempt(batch.readNamespacedJobStatus(name, namespace, "false").getStatus)
-    podName   <- getPodName(name, namespace)
-    podStatus <- ZIO.attempt(core.readNamespacedPodStatus(podName, namespace, "false").getStatus)
-    status = s"$podName: ${podStatus.getPhase} [" +:
+    pod       <- getJobPod(name, namespace)
+    podStatus <- ZIO.attempt(core.readNamespacedPodStatus(pod.getMetadata.getName, namespace, "false").getStatus)
+    status = s"${pod.getMetadata.getName}: ${podStatus.getPhase} [" +:
       podStatus.getConditions.asScala.map { condition =>
         val explanations =
           List(Option(condition.getReason).fold("")("Reason: " + _), Option(condition.getMessage).fold("")("Message: " + _))
@@ -190,28 +191,25 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
         else
           s"\t${condition.getType}: ${condition.getStatus} ${explanations.mkString("(", ", ", ")")}"
       } :+ "]"
-    _ <- ZIO.foreach(status.toList)(x => ZIO.logInfo(x))
+    _ <- ZIO.foreachDiscard(status.toList)(x => ZIO.logInfo(x))
   } yield
     if (jobStatus.getActive != null) JobStatus.Running
     else if (jobStatus.getFailed == null) JobStatus.Succeed
     else JobStatus.Failure
 
-  @SuppressWarnings(
-    Array(
-      "org.wartremover.warts.Throw",
-      "org.wartremover.warts.MutableDataStructures"
-    )
-  )
-  private def getPodName(jobName: String, namespace: String): Task[String] = ZIO.attempt {
+  @SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.MutableDataStructures"))
+  private def getJobPod(jobName: String, namespace: String): Task[V1Pod] = ZIO.attempt {
     // noinspection ScalaStyle
     val pods = core
       .listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null)
       .getItems
       .asScala
-      .map(_.getMetadata.getName)
-    pods.find(_.startsWith(jobName)) match {
+    pods.find(p => p.getMetadata.getName.startsWith(jobName)) match {
       case Some(value) => value
-      case None        => throw new Exception(s"Cannot find $jobName in Pods ${pods.mkString(", ")} in $namespace namespace")
+      case None =>
+        throw new Exception(
+          s"Cannot find $jobName in Pods ${pods.map(_.getMetadata.getName).mkString(", ")} in $namespace namespace"
+        )
     }
   }
 
@@ -270,7 +268,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
 
   private def logJobs(namespace: String): Task[Unit] = for {
     jobs <- getJobs(namespace)
-    _    <- ZIO.foreachDiscard(jobs)(x => ZIO.logInfo(x))
+    _    <- ZIO.foreachDiscard(jobs.map(_.getMetadata.getName))(x => ZIO.logInfo(x))
   } yield ()
 
   /** Returns a list of all the job running in the provided namespace
@@ -280,13 +278,12 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
     * @return
     *   A list of Jobs, as instances of V1Job
     */
-  override def getJobs(namespace: String): Task[List[String]] = ZIO.attempt {
+  override def getJobs(namespace: String): Task[List[V1Job]] = ZIO.attempt {
     // noinspection ScalaStyle
     batch
       .listNamespacedJob(namespace, null, null, null, null, null, null, null, null, null, null)
       .getItems
       .asScala
-      .map(_.getMetadata.getName)
       .toList
   }
 
@@ -311,17 +308,23 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
     * @param jobName
     *   Name of the Job
     * @param namespace
-    *   Namespace, optional. defaults to 'default'
+    *   Namespace
+    * @param chunkSize
+    *   Chunk size for fetch logs(bytes) from K8S
     */
-  override def getPodLogs(jobName: String, namespace: String): Task[Unit] =
-    (for {
-       // noinspection ScalaStyle
-       podName <- getPodName(jobName, namespace)
-       logs    <- ZIO.attempt(core.readNamespacedPodLog(podName, namespace, null, null, null, null, null, null, null, null, null))
-       _       <- ZIO.foreach(logs.split("\n").toList)(x => ZIO.logInfo(x))
+  override def getPodLogs(jobName: String, namespace: String, chunkSize: Int): ZStream[Any, Throwable, Byte] = {
+    val byteStream = for {
+      // noinspection ScalaStyle
+      pod <- ZStream.fromZIO(getJobPod(jobName, namespace))
+      logs   = new PodLogs()
+      stream = logs.streamNamespacedPodLog(pod)
+      logByte <- ZStream.fromInputStream(stream, chunkSize)
+    } yield logByte
 
-     } yield ()).tapError {
-      case ex: ApiException => ZIO.logError(ex.getResponseBody)
-      case ex               => ZIO.logError(ex.getMessage)
-    }
+    byteStream
+      .tapError {
+        case ex: ApiException => ZIO.logError(ex.getResponseBody)
+        case ex               => ZIO.logError(ex.getMessage)
+      }
+  }
 }

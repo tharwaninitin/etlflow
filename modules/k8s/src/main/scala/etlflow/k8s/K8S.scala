@@ -1,14 +1,12 @@
 package etlflow.k8s
 
 import io.kubernetes.client.openapi.models.V1Job
+import zio.stream.ZStream
 import zio.{RIO, Task, TaskLayer, ZIO, ZLayer}
 
 /** API for managing resources on Kubernetes Cluster
-  *
-  * @tparam T
-  *   The Job Datatype
   */
-trait K8S[T] {
+trait K8S {
 
   /** Create a Job in a new Container for running an image.
     *
@@ -66,7 +64,7 @@ trait K8S[T] {
       pollingFrequencyInMillis: Long = 10000,
       deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
       deletionGraceInSeconds: Int = 0
-  ): Task[T]
+  ): Task[V1Job]
 
   /** Deletes the Job after specified time
     *
@@ -94,7 +92,7 @@ trait K8S[T] {
     * @return
     *   A list of Job names
     */
-  def getJobs(namespace: String = "default"): Task[List[String]]
+  def getJobs(namespace: String = "default"): Task[List[V1Job]]
 
   /** Returns the job running in the provided namespace
     *
@@ -111,7 +109,7 @@ trait K8S[T] {
       name: String,
       namespace: String = "default",
       debug: Boolean = false
-  ): Task[T]
+  ): Task[V1Job]
 
   /** @param name
     *   Name of the Job
@@ -127,18 +125,21 @@ trait K8S[T] {
       debug: Boolean = false
   ): Task[JobStatus]
 
-  /** Gets the logs from the pod where this job was submitted.
+  /** Gets the logs from the pod for the job.
     *
     * @param jobName
     *   Name of the Job
     * @param namespace
     *   Namespace, optional. defaults to 'default'
+    * @param chunkSize
+    *   Chunk size for fetch logs(bytes) from K8S
     * @return
     */
   def getPodLogs(
       jobName: String,
-      namespace: String = "default"
-  ): Task[Unit]
+      namespace: String = "default",
+      chunkSize: Int = 4096
+  ): ZStream[Any, Throwable, Byte]
 
   /** Poll the job for completion
     * @param name
@@ -160,7 +161,7 @@ object K8S {
     * @return
     *   TaskLayer[Jobs]
     */
-  def batchClient(httpConnectionTimeout: Int = 100000): TaskLayer[Jobs] = ZLayer.fromZIO {
+  def batchClient(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
     ZIO
       .attempt((K8SClient.batchClient(httpConnectionTimeout), K8SClient.coreClient(httpConnectionTimeout)))
       .map { case (batch, core) => K8SImpl(batch, core) }
@@ -183,8 +184,8 @@ object K8S {
       pollingFrequencyInMillis: Long = 10000,
       deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
       deletionGraceInSeconds: Int = 0
-  ): RIO[Jobs, V1Job] =
-    ZIO.environmentWithZIO[Jobs](
+  ): RIO[K8S, V1Job] =
+    ZIO.environmentWithZIO[K8S](
       _.get.createJob(
         name,
         container,
@@ -209,29 +210,29 @@ object K8S {
       namespace: String = "default",
       gracePeriodInSeconds: Int = 0,
       debug: Boolean = false
-  ): RIO[Jobs, Unit] =
-    ZIO.environmentWithZIO[Jobs](_.get.deleteJob(name, namespace, gracePeriodInSeconds, debug))
+  ): RIO[K8S, Unit] =
+    ZIO.environmentWithZIO[K8S](_.get.deleteJob(name, namespace, gracePeriodInSeconds, debug))
 
-  def getJobs(namespace: String = "default"): RIO[Jobs, List[String]] =
-    ZIO.environmentWithZIO[Jobs](_.get.getJobs(namespace))
+  def getJobs(namespace: String = "default"): RIO[K8S, List[V1Job]] =
+    ZIO.environmentWithZIO[K8S](_.get.getJobs(namespace))
 
   def getJob(
       name: String,
       namespace: String = "default",
       debug: Boolean = false
-  ): RIO[Jobs, V1Job] =
-    ZIO.environmentWithZIO[Jobs](_.get.getJob(name, namespace, debug))
+  ): RIO[K8S, V1Job] =
+    ZIO.environmentWithZIO[K8S](_.get.getJob(name, namespace, debug))
 
   def getStatus(
       name: String,
       namespace: String = "default",
       debug: Boolean = false
-  ): RIO[Jobs, JobStatus] =
-    ZIO.environmentWithZIO[Jobs](_.get.getJobStatus(name, namespace, debug))
+  ): RIO[K8S, JobStatus] =
+    ZIO.environmentWithZIO[K8S](_.get.getJobStatus(name, namespace, debug))
 
-  def poll(name: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000): RIO[Jobs, JobStatus] =
-    ZIO.environmentWithZIO[Jobs](_.get.poll(name, namespace, pollingFrequencyInMillis))
+  def poll(name: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000): RIO[K8S, JobStatus] =
+    ZIO.environmentWithZIO[K8S](_.get.poll(name, namespace, pollingFrequencyInMillis))
 
-  def getPodLogs(jobName: String, namespace: String): RIO[Jobs, Unit] =
-    ZIO.environmentWithZIO[Jobs](_.get.getPodLogs(jobName, namespace))
+  def getPodLogs(jobName: String, namespace: String, chunkSize: Int = 4096): ZStream[K8S, Throwable, Byte] =
+    ZStream.environmentWithStream[K8S](_.get.getPodLogs(jobName, namespace, chunkSize))
 }

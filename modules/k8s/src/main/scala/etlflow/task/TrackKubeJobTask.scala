@@ -16,16 +16,9 @@ import zio.{RIO, ZIO}
   * @return
   */
 case class TrackKubeJobTask(name: String, jobName: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000)
-    extends EtlTask[Jobs, JobStatus] {
+    extends EtlTask[K8S, JobStatus] {
 
-  override def getTaskProperties: Map[String, String] = Map(
-    "name"                     -> name,
-    "jobName"                  -> jobName,
-    "namespace"                -> namespace,
-    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString
-  )
-
-  override protected def process: RIO[Jobs, JobStatus] = for {
+  override protected def process: RIO[K8S, JobStatus] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Polling $jobName every $pollingFrequencyInMillis milliseconds")
     status <- K8S
@@ -34,6 +27,13 @@ case class TrackKubeJobTask(name: String, jobName: String, namespace: String = "
         ex => ZIO.logError(ex.getMessage),
         _ => ZIO.logInfo(s"Done Polling") *> ZIO.logInfo("#" * 50)
       )
-
   } yield status
+
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"                     -> name,
+    "jobName"                  -> jobName,
+    "namespace"                -> namespace,
+    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString
+  )
+
 }

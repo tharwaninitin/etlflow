@@ -1,6 +1,6 @@
 package etlflow.task
 
-import etlflow.k8s.{JobStatus, Jobs, K8S}
+import etlflow.k8s.{JobStatus, K8S}
 import zio.{RIO, ZIO}
 
 /** Get the status of the task
@@ -16,16 +16,9 @@ import zio.{RIO, ZIO}
   *   JobStatus
   */
 case class GetStatusTask(name: String, jobName: String, namespace: String = "default", debug: Boolean = false)
-    extends EtlTask[Jobs, JobStatus] {
+    extends EtlTask[K8S, JobStatus] {
 
-  override def getTaskProperties: Map[String, String] = Map(
-    "name"      -> name,
-    "jobName"   -> jobName,
-    "namespace" -> namespace,
-    "debug"     -> debug.toString
-  )
-
-  override protected def process: RIO[Jobs, JobStatus] = for {
+  override protected def process: RIO[K8S, JobStatus] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Getting status for $jobName")
     jobs <- K8S
@@ -35,4 +28,11 @@ case class GetStatusTask(name: String, jobName: String, namespace: String = "def
         _ => ZIO.logInfo(s"Got status for $namespace") *> ZIO.logInfo("#" * 50)
       )
   } yield jobs
+
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"      -> name,
+    "jobName"   -> jobName,
+    "namespace" -> namespace,
+    "debug"     -> debug.toString
+  )
 }

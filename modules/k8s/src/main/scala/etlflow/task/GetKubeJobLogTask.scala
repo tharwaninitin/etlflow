@@ -1,6 +1,7 @@
 package etlflow.task
 
-import etlflow.k8s.{Jobs, K8S}
+import etlflow.k8s.K8S
+import zio.stream.ZPipeline
 import zio.{RIO, ZIO}
 
 /** Gets the logs from the pod where this job was submitted.
@@ -13,21 +14,22 @@ import zio.{RIO, ZIO}
   *   Namespace, optional. defaults to 'default'
   * @return
   */
-case class GetKubeJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[Jobs, Unit] {
+case class GetKubeJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[K8S, Unit] {
+
+  override protected def process: RIO[K8S, Unit] = for {
+    _ <- ZIO.logInfo("#" * 50)
+    _ <- ZIO.logInfo(s"Logging Job $name")
+    _ <- K8S
+      .getPodLogs(jobName, namespace)
+      .via(ZPipeline.utf8Decode >>> ZPipeline.splitLines)
+      .mapZIO(line => ZIO.logInfo(line))
+      .tapError(ex => ZIO.logError(ex.getMessage))
+      .runDrain
+  } yield ()
+
   override def getTaskProperties: Map[String, String] = Map(
     "name"      -> name,
     "jobName"   -> jobName,
     "namespace" -> namespace
   )
-
-  override protected def process: RIO[Jobs, Unit] = for {
-    _ <- ZIO.logInfo("#" * 50)
-    _ <- ZIO.logInfo(s"Logging Job $name")
-    _ <- K8S
-      .getPodLogs(jobName, namespace)
-      .tapBoth(
-        ex => ZIO.logError(ex.getMessage),
-        _ => ZIO.logInfo(s"End of Logs for Job $name") *> ZIO.logInfo("#" * 50)
-      )
-  } yield ()
 }

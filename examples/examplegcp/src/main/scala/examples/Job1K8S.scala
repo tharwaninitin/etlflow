@@ -1,5 +1,6 @@
 package examples
 
+import etlflow.audit.Audit
 import etlflow.k8s._
 import etlflow.log.ApplicationLogger
 import etlflow.task._
@@ -13,7 +14,7 @@ object Job1K8S extends ZIOAppDefault with ApplicationLogger {
 
   private val jobName = s"hello-${UUID.randomUUID.toString.take(8)}"
 
-  private val program = for {
+  val program: RIO[Jobs with Audit, Unit] = for {
     _ <- CreateKubeJobTask(
       name = "CreateKubeJobTask",
       jobName = jobName,

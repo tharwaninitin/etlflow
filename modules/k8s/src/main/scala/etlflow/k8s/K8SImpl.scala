@@ -169,6 +169,11 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     * @return
     */
+  @SuppressWarnings(
+    Array(
+      "org.wartremover.warts.MutableDataStructures"
+    )
+  )
   override def getJobStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
     _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
     jobStatus <- ZIO.attempt(batch.readNamespacedJobStatus(name, namespace, "false").getStatus)
@@ -193,7 +198,8 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
 
   @SuppressWarnings(
     Array(
-      "org.wartremover.warts.Throw"
+      "org.wartremover.warts.Throw",
+      "org.wartremover.warts.MutableDataStructures"
     )
   )
   private def getPodName(jobName: String, namespace: String): Task[String] = ZIO.attempt {

@@ -5,6 +5,7 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio"               % ZioVersion,
+    "dev.zio" %% "zio-json"          % ZioJsonVersion,
     "dev.zio" %% "zio-logging-slf4j" % ZioLogVersion
   )
 

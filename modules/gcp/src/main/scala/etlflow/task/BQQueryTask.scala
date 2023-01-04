@@ -2,6 +2,7 @@ package etlflow.task
 
 import gcp4zio.bq._
 import zio.RIO
+import zio.json.{DeriveJsonCodec, JsonCodec}
 
 case class BQQueryTask(name: String, query: String) extends EtlTask[BQ, Unit] {
 
@@ -13,4 +14,8 @@ case class BQQueryTask(name: String, query: String) extends EtlTask[BQ, Unit] {
   }
 
   override def getTaskProperties: Map[String, String] = Map("query" -> query)
+}
+
+object BQQueryTask {
+  implicit val codec: JsonCodec[DPSparkJobTask] = DeriveJsonCodec.gen[DPSparkJobTask]
 }

@@ -8,6 +8,7 @@ object Versions {
 
   val ZioVersion                = "2.0.5"
   val ZioLogVersion             = "2.1.7"
+  val ZioJsonVersion            = "0.4.2"
   val ZioReactiveStreamsVersion = "2.0.0"
 
   val ScalaCollectionCompatVersion = "2.9.0"

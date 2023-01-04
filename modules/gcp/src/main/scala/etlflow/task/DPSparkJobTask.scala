@@ -2,7 +2,8 @@ package etlflow.task
 
 import com.google.cloud.dataproc.v1.Job
 import gcp4zio.dp._
-import zio.{Config, RIO}
+import zio.RIO
+import zio.json._
 
 case class DPSparkJobTask(
     name: String,
@@ -33,16 +34,5 @@ case class DPSparkJobTask(
 }
 
 object DPSparkJobTask {
-  val config: Config[DPSparkJobTask] = Config
-    .string("name")
-    .zip(Config.listOf("args", Config.string))
-    .zip(Config.string("mainClass"))
-    .zip(Config.listOf("libs", Config.string))
-    .zip(Config.table("conf", Config.string))
-    .zip(Config.string("cluster"))
-    .zip(Config.string("project"))
-    .zip(Config.string("region"))
-    .map { case (host, args, mainClass, libs, conf, cluster, project, region) =>
-      DPSparkJobTask(host, args, mainClass, libs, conf, cluster, project, region)
-    }
+  implicit val codec: JsonCodec[DPSparkJobTask] = DeriveJsonCodec.gen[DPSparkJobTask]
 }

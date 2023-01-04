@@ -98,8 +98,12 @@ trait K8S[T] {
 
   /** Returns the job running in the provided namespace
     *
+    * @param name
+    *   Name of the job
     * @param namespace
     *   namespace, optional. Defaults to 'default'
+    * @param debug
+    *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     * @return
     *   A Job, as an instance of T
     */
@@ -117,13 +121,35 @@ trait K8S[T] {
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     * @return
     */
-  def getStatus(
+  def getJobStatus(
       name: String,
       namespace: String = "default",
       debug: Boolean = false
   ): Task[JobStatus]
 
-  def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus]
+  /** Gets the logs from the pod where this job was submitted.
+    *
+    * @param jobName
+    *   Name of the Job
+    * @param namespace
+    *   Namespace, optional. defaults to 'default'
+    * @return
+    */
+  def getPodLogs(
+      jobName: String,
+      namespace: String = "default"
+  ): Task[Unit]
+
+  /** Poll the job for completion
+    * @param name
+    *   Job name
+    * @param namespace
+    *   Namespace, optional, defaulted to `default`
+    * @param pollingFrequencyInMillis
+    *   The time in Milliseconds to wait between polls. Optional, defaults to 10000
+    * @return
+    */
+  def poll(name: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000): Task[JobStatus]
 }
 
 object K8S {
@@ -136,8 +162,8 @@ object K8S {
     */
   def batchClient(httpConnectionTimeout: Int = 100000): TaskLayer[Jobs] = ZLayer.fromZIO {
     ZIO
-      .attempt(K8SClient.batchClient(httpConnectionTimeout))
-      .map(bc => K8SJobImpl(bc))
+      .attempt((K8SClient.batchClient(httpConnectionTimeout), K8SClient.coreClient(httpConnectionTimeout)))
+      .map { case (batch, core) => K8SImpl(batch, core) }
   }
 
   // noinspection ScalaStyle
@@ -201,8 +227,11 @@ object K8S {
       namespace: String = "default",
       debug: Boolean = false
   ): RIO[Jobs, JobStatus] =
-    ZIO.environmentWithZIO[Jobs](_.get.getStatus(name, namespace, debug))
+    ZIO.environmentWithZIO[Jobs](_.get.getJobStatus(name, namespace, debug))
 
-  def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): RIO[Jobs, JobStatus] =
+  def poll(name: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000): RIO[Jobs, JobStatus] =
     ZIO.environmentWithZIO[Jobs](_.get.poll(name, namespace, pollingFrequencyInMillis))
+
+  def getPodLogs(jobName: String, namespace: String): RIO[Jobs, Unit] =
+    ZIO.environmentWithZIO[Jobs](_.get.getPodLogs(jobName, namespace))
 }

@@ -9,7 +9,8 @@ import zio.test._
 object CreateKubeJobTestSuite {
   val spec: Spec[Jobs with Audit, Any] = test("Execute CreateKubeJobTask") {
     val task = CreateKubeJobTask(
-      name = jobName,
+      name = "name",
+      jobName = jobName,
       container = containerName,
       command = List("/bin/sh", "-c", "date; echo Hello from the Kubernetes cluster"),
       image = "alpine:latest",

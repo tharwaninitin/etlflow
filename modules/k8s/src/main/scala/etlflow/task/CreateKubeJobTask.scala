@@ -7,6 +7,8 @@ import zio.{RIO, ZIO}
 /** Create a Job in a new Container for running an image.
   *
   * @param name
+  *   Name of this Task
+  * @param jobName
   *   Name of the Job
   * @param container
   *   Name of the Container
@@ -45,6 +47,7 @@ import zio.{RIO, ZIO}
   */
 case class CreateKubeJobTask(
     name: String,
+    jobName: String,
     container: String,
     image: String,
     imagePullPolicy: String = "IfNotPresent",
@@ -61,13 +64,33 @@ case class CreateKubeJobTask(
     deletionGraceInSeconds: Int = 0
 ) extends EtlTask[Jobs, V1Job] {
 
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"                     -> name,
+    "jobName"                  -> jobName,
+    "container"                -> container,
+    "image"                    -> image,
+    "imagePullPolicy"          -> imagePullPolicy,
+    "envs"                     -> envs.toString,
+    "volumeMounts"             -> volumeMounts.mkString(", "),
+    "podRestartPolicy"         -> podRestartPolicy,
+    "command"                  -> command.mkString(" "),
+    "namespace"                -> namespace,
+    "apiVersion"               -> apiVersion,
+    "debug"                    -> debug.toString,
+    "awaitCompletion"          -> awaitCompletion.toString,
+    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString,
+    "deletionPolicy"           -> deletionPolicy.toString,
+    "deletionGraceInSeconds"   -> deletionGraceInSeconds.toString
+  )
+
   override protected def process: RIO[Jobs, V1Job] = for {
     _ <- ZIO.logInfo("#" * 50)
-    _ <- ZIO.logInfo(s"Creating K8S Job: $name")
+    _ <- ZIO.logInfo(s"Creating K8S Job: $jobName")
 
     job <- K8S
       .createJob(
-        name,
+        jobName,
         container,
         image,
         namespace,
@@ -85,26 +108,7 @@ case class CreateKubeJobTask(
       )
       .tapBoth(
         e => ZIO.logError(e.getMessage),
-        _ => ZIO.logInfo(s"K8S Job $name submitted successfully") *> ZIO.logInfo("#" * 50)
+        _ => ZIO.logInfo(s"K8S Job $jobName submitted successfully") *> ZIO.logInfo("#" * 50)
       )
   } yield job
-
-  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] = Map(
-    "name"                     -> name,
-    "container"                -> container,
-    "image"                    -> image,
-    "imagePullPolicy"          -> imagePullPolicy,
-    "envs"                     -> envs.toString,
-    "volumeMounts"             -> volumeMounts.mkString(", "),
-    "podRestartPolicy"         -> podRestartPolicy,
-    "command"                  -> command.mkString(" "),
-    "namespace"                -> namespace,
-    "apiVersion"               -> apiVersion,
-    "debug"                    -> debug.toString,
-    "awaitCompletion"          -> awaitCompletion.toString,
-    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString,
-    "deletionPolicy"           -> deletionPolicy.toString,
-    "deletionGraceInSeconds"   -> deletionGraceInSeconds.toString
-  )
 }

@@ -9,7 +9,7 @@ import zio.test._
 object DeleteKubeJobTestSuite {
   val spec: Spec[Jobs with Audit, Any] =
     test("Execute TrackKubeJobTask") {
-      val task = DeleteKubeJobTask(name = jobName, debug = true).execute
+      val task = DeleteKubeJobTask("DeleteKubeJobTask", jobName = jobName, debug = true).execute
       assertZIO(
         task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok"))
       )(equalTo("ok"))

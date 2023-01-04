@@ -7,11 +7,7 @@ package object k8s {
   type Jobs = K8S[V1Job]
 
   sealed trait DeletionPolicy {
-    override def toString: String = {
-      val clazz = getClass
-      val name  = clazz.getSimpleName
-      if (clazz.isSynthetic) name.init else name // init drop the last $
-    }
+    override def toString: String = getClass.getSimpleName.init // init drop the last $
   }
 
   sealed trait JobStatus {

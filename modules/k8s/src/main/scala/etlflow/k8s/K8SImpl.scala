@@ -5,9 +5,10 @@ import etlflow.k8s.JobStatus._
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
 import io.kubernetes.client.openapi.ApiException
-import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
 import zio.{Task, ZIO}
+
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
@@ -18,7 +19,7 @@ import scala.jdk.CollectionConverters._
     "org.wartremover.warts.ToString"
   )
 )
-case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
+case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S[V1Job] {
   private val secretKey = "secret"
 
   /** Create a Job in a new Container for running an image.
@@ -85,7 +86,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
     _ <- ZIO.logInfo(v1Job.toString).when(debug)
     _ <- logJobs(namespace).when(debug)
     job <- ZIO
-      .attempt(api.createNamespacedJob(namespace, v1Job, debug.toString, null, null, null))
+      .attempt(batch.createNamespacedJob(namespace, v1Job, debug.toString, null, null, null))
       .tapBoth(
         {
           case exception: ApiException => ZIO.logError(exception.getResponseBody) *> ZIO.fail(exception)
@@ -115,44 +116,11 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
       result <- poll(name, namespace, pollingFrequencyInMillis)
       _      <- ZIO.logInfo(s"Job $name finished with result: $result")
       _ <- (deletionPolicy, result) match {
-        case (OnComplete, _) | (OnSuccess, Succeed) | (OnFailure, Failure) =>
+        case (OnComplete, _) | (OnSuccess, Succeed) | (OnFailure, JobStatus.Failure) =>
           deleteJob(name, namespace, deletionGraceInSeconds, debug)
         case _ => ZIO.logInfo(s"Job $name will remain until manually deleted($deletionPolicy did not comply with $result)")
       }
     } yield ()
-
-  override def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus] = (
-    for {
-      status <- getStatus(name, namespace, debug = true)
-      _      <- ZIO.when(status == JobStatus.Running)(ZIO.fail(RetryException(s"$name is running. Polling again.")))
-      _      <- ZIO.logInfo(s"Job $name completed with status $status")
-    } yield status
-  ).retry(RetrySchedule.forever(pollingFrequencyInMillis.milliseconds))
-
-  /** @param name
-    *   Name of the Job
-    * @param namespace
-    *   namespace, optional. Defaults to 'default'
-    * @param debug
-    *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
-    * @return
-    */
-  override def getStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
-    _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
-    jobStatus <- ZIO.attempt(api.readNamespacedJobStatus(name, namespace, debug.toString).getStatus)
-    _ <- ZIO
-      .logInfo(
-        s"Active: ${sanitize(jobStatus.getActive)}, " +
-          s"FAILED: ${sanitize(jobStatus.getFailed)}, " +
-          s"PASSED: ${sanitize(jobStatus.getSucceeded)}"
-      )
-      .when(debug)
-  } yield
-    if (jobStatus.getActive != null) JobStatus.Running
-    else if (jobStatus.getFailed == null) JobStatus.Succeed
-    else JobStatus.Failure
-
-  private def sanitize(option: Int) = Option(option).getOrElse(0)
 
   /** Deletes the Job after specified time
     *
@@ -169,7 +137,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
   override def deleteJob(name: String, namespace: String, gracePeriodInSeconds: Int, debug: Boolean): Task[Unit] = ZIO
     .attempt {
       // noinspection ScalaStyle
-      val _ = api.deleteNamespacedJob(
+      val _ = batch.deleteNamespacedJob(
         name,
         namespace,
         debug.toString,
@@ -184,6 +152,62 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
       case exception: ApiException => ZIO.logError(exception.getResponseBody) *> ZIO.fail(exception)
       case exception               => ZIO.logError(exception.getMessage) *> ZIO.fail(exception)
     }
+
+  override def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus] = (
+    for {
+      status <- getJobStatus(name, namespace, debug = true)
+      _      <- ZIO.when(status == JobStatus.Running)(ZIO.fail(RetryException(s"$name is running. Polling again.")))
+      _      <- ZIO.logInfo(s"Job $name completed with status $status")
+    } yield status
+  ).retry(RetrySchedule.forever(pollingFrequencyInMillis.milliseconds))
+
+  /** @param name
+    *   Name of the Job
+    * @param namespace
+    *   namespace, optional. Defaults to 'default'
+    * @param debug
+    *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
+    * @return
+    */
+  override def getJobStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
+    _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
+    jobStatus <- ZIO.attempt(batch.readNamespacedJobStatus(name, namespace, "false").getStatus)
+    podName   <- getPodName(name, namespace)
+    podStatus <- ZIO.attempt(core.readNamespacedPodStatus(podName, namespace, "false").getStatus)
+    status = s"$podName: ${podStatus.getPhase} [" +:
+      podStatus.getConditions.asScala.map { condition =>
+        val explanations =
+          List(Option(condition.getReason).fold("")("Reason: " + _), Option(condition.getMessage).fold("")("Message: " + _))
+            .filter(_.nonEmpty)
+
+        if (explanations.isEmpty)
+          s"\t${condition.getType}: ${condition.getStatus}"
+        else
+          s"\t${condition.getType}: ${condition.getStatus} ${explanations.mkString("(", ", ", ")")}"
+      } :+ "]"
+    _ <- ZIO.foreach(status.toList)(x => ZIO.logInfo(x))
+  } yield
+    if (jobStatus.getActive != null) JobStatus.Running
+    else if (jobStatus.getFailed == null) JobStatus.Succeed
+    else JobStatus.Failure
+
+  @SuppressWarnings(
+    Array(
+      "org.wartremover.warts.OptionPartial"
+    )
+  )
+  private def getPodName(jobName: String, namespace: String): Task[String] = ZIO.attempt {
+    // noinspection ScalaStyle
+    val pods = core
+      .listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null)
+      .getItems
+      .asScala
+      .map(_.getMetadata.getName)
+    pods.find(_.startsWith(jobName)) match {
+      case Some(value) => value
+      case None        => throw new Exception(s"Cannot find $jobName in Pods ${pods.mkString(", ")} in $namespace namespace")
+    }
+  }
 
   private def createV1JobInstance(
       name: String,
@@ -252,7 +276,7 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
     */
   override def getJobs(namespace: String): Task[List[String]] = ZIO.attempt {
     // noinspection ScalaStyle
-    api
+    batch
       .listNamespacedJob(namespace, null, null, null, null, null, null, null, null, null, null)
       .getItems
       .asScala
@@ -269,10 +293,29 @@ case class K8SJobImpl(api: BatchV1Api) extends K8S[V1Job] {
     */
   override def getJob(name: String, namespace: String, debug: Boolean): Task[V1Job] = ZIO
     .attempt {
-      api.readNamespacedJobStatus(name, namespace, debug.toString)
+      batch.readNamespacedJobStatus(name, namespace, debug.toString)
     }
     .tapError {
       case exception: ApiException => ZIO.logError(exception.getResponseBody) *> ZIO.fail(exception)
       case exception               => ZIO.logError(exception.getMessage) *> ZIO.fail(exception)
+    }
+
+  /** Gets the logs from the pod where this job was submitted.
+    *
+    * @param jobName
+    *   Name of the Job
+    * @param namespace
+    *   Namespace, optional. defaults to 'default'
+    */
+  override def getPodLogs(jobName: String, namespace: String): Task[Unit] =
+    (for {
+       // noinspection ScalaStyle
+       podName <- getPodName(jobName, namespace)
+       logs    <- ZIO.attempt(core.readNamespacedPodLog(podName, namespace, null, null, null, null, null, null, null, null, null))
+       _       <- ZIO.foreach(logs.split("\n").toList)(x => ZIO.logInfo(x))
+
+     } yield ()).tapError {
+      case ex: ApiException => ZIO.logError(ex.getResponseBody)
+      case ex               => ZIO.logError(ex.getMessage)
     }
 }

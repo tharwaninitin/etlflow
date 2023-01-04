@@ -5,6 +5,8 @@ import zio.{RIO, ZIO}
 
 /** Returns a list of all the job running in the provided namespace
   *
+  * @param name
+  *   Name of this Task
   * @param namespace
   *   namespace, optional. Defaults to 'default'
   * @return
@@ -24,5 +26,8 @@ case class GetKubeJobsTask(name: String, namespace: String = "default") extends 
 
   } yield jobs
 
-  override def getTaskProperties: Map[String, String] = Map("namespace" -> namespace)
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"      -> name,
+    "namespace" -> namespace
+  )
 }

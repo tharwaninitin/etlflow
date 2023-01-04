@@ -5,22 +5,26 @@ import etlflow.log.ApplicationLogger
 import etlflow.task._
 import zio._
 
+import java.util.UUID
+
 object Job1K8S extends ZIOAppDefault with ApplicationLogger {
 
-  override val bootstrap = zioSlf4jLogger
+  override val bootstrap: ULayer[Unit] = zioSlf4jLogger
 
-  val jobName = "hello"
+  private val jobName = s"hello-${UUID.randomUUID.toString.take(8)}"
 
   private val program = for {
-    _ <- DeleteKubeJobTask(jobName).execute.ignore
     _ <- CreateKubeJobTask(
-      name = jobName,
+      name = "CreateKubeJobTask",
+      jobName = jobName,
       container = jobName,
       image = "busybox:1.28",
       command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster"),
-      volumeMounts = List(("secrets", "/etc/key"))
+      volumeMounts = List("secrets" -> "/etc/key")
     ).execute
-    _ <- TrackKubeJobTask(jobName).execute
+    _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).execute
+    _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).execute
+    _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
   } yield ()
 
   override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.batchClient() ++ etlflow.audit.test)

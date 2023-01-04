@@ -11,7 +11,7 @@ object GetKubeJobTestSuite {
 
   val spec: Spec[Jobs with Audit, Any] =
     test("Execute GetKubeJobTask") {
-      val task = GetKubeJobTask(name = jobName, debug = true).execute
+      val task = GetKubeJobTask("GetKubeJobTask", jobName = jobName, debug = true).execute
       assertZIO(
         task.foldZIO(ex => ZIO.fail(ex.getMessage), status => ZIO.logInfo(status.getStatus.toString) *> ZIO.succeed("ok"))
       )(equalTo("ok"))
@@ -19,7 +19,7 @@ object GetKubeJobTestSuite {
 
   val failing: Spec[Jobs with Audit, Any] =
     test("Execute GetKubeJobTask") {
-      val task = GetKubeJobTask(name = jobName, debug = true).execute
+      val task = GetKubeJobTask("GetKubeJobTask", jobName = jobName, debug = true).execute
       assertZIO(
         task.foldZIO(
           ex => ZIO.logInfo(ex.getMessage) *> ZIO.succeed("ok"),

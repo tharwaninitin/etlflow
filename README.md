@@ -96,7 +96,27 @@ __Maven__
 ```
 ## K8s
 ```scala
-// Todo
+import etlflow.task._
+import etlflow.k8s._
+import zio._
+import etlflow.audit.Audit
+
+val jobName: String = "hello"
+
+val program: RIO[K8S with Audit, Unit] = for {
+  _ <- CreateKubeJobTask(
+    name = "CreateKubeJobTask",
+    jobName = jobName,
+    container = jobName,
+    image = "busybox:1.28",
+    command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster")
+  ).execute
+  _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).execute
+  _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).execute
+  _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
+} yield ()
+
+program.provide(K8S.batchClient() ++ etlflow.audit.test)
 ```
 ## Http
 ```scala

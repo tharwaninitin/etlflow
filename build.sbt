@@ -18,6 +18,15 @@ lazy val commonSettings = Seq(
       case _             => Seq()
     }
   },
+  Compile / compile / wartremoverErrors ++= Warts.allBut(
+    Wart.Any,
+    Wart.DefaultArguments,
+    Wart.Nothing,
+    Wart.Equals,
+    Wart.FinalCaseClass,
+    Wart.Overloading,
+    Wart.StringPlusAny
+  ),
   Test / parallelExecution := false,
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )

@@ -15,7 +15,7 @@ import zio.{RIO, ZIO}
   * @return
   *   JobStatus
   */
-case class GetStatusTask(name: String, jobName: String, namespace: String = "default", debug: Boolean = false)
+case class GetKubeJobStatusTask(name: String, jobName: String, namespace: String = "default", debug: Boolean = false)
     extends EtlTask[K8S, JobStatus] {
 
   override protected def process: RIO[K8S, JobStatus] = for {

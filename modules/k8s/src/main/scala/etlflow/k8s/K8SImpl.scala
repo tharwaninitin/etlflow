@@ -177,7 +177,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
   )
   override def getJobStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
     _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
-    jobStatus <- ZIO.attempt(batch.readNamespacedJobStatus(name, namespace, "false").getStatus)
+    jobStatus <- getJob(name, namespace, debug).map(_.getStatus)
     pod       <- getJobPod(name, namespace)
     podStatus <- ZIO.attempt(core.readNamespacedPodStatus(pod.getMetadata.getName, namespace, "false").getStatus)
     status = s"${pod.getMetadata.getName}: ${podStatus.getPhase} [" +:

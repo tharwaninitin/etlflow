@@ -123,7 +123,8 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
         .via(ZPipeline.utf8Decode >>> ZPipeline.splitLines)
         .mapZIO(line => ZIO.logInfo(line))
         .tapError(ex => ZIO.logError(ex.getMessage))
-        .runDrain.when(showJobLogs)
+        .runDrain
+        .when(showJobLogs)
       _ <- (deletionPolicy, result) match {
         case (OnComplete, _) | (OnSuccess, Succeed) | (OnFailure, JobStatus.Failure) =>
           deleteJob(name, namespace, deletionGraceInSeconds, debug)

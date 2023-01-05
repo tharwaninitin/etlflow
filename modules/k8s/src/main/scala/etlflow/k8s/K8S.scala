@@ -36,7 +36,7 @@ trait K8S {
     *   boolean flag which indicates whether control should await for the job's completion before returning
     * @param showJobLogs
     *   boolean flag which shows the logs from the submitted job. Optional, only used when awaitCompletion is true or
-   *   deletionPolicy is not [[DeletionPolicy.Never]]
+    *   deletionPolicy is not [[DeletionPolicy.Never]]
     * @param pollingFrequencyInMillis
     *   Duration(in milliseconds) to poll for status of the Job. Optional, only used when awaitCompletion is true or
     *   deletionPolicy is not [[DeletionPolicy.Never]]

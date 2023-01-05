@@ -32,6 +32,9 @@ import zio.{RIO, ZIO}
   *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
   * @param awaitCompletion
   *   boolean flag which indicates whether control should await for the job's completion before returning
+  * @param showJobLogs
+  *   boolean flag which shows the logs from the submitted job.Optional, only used when awaitCompletion is true or deletionPolicy
+  *   is not [[etlflow.k8s.DeletionPolicy.Never]]
   * @param pollingFrequencyInMillis
   *   Duration(in milliseconds) to poll for status of the Job. Optional, only used when awaitCompletion is true or deletionPolicy
   *   is not [[etlflow.k8s.DeletionPolicy.Never]]
@@ -59,6 +62,7 @@ case class CreateKubeJobTask(
     apiVersion: String = "batch/v1",
     debug: Boolean = false,
     awaitCompletion: Boolean = false,
+    showJobLogs: Boolean = false,
     pollingFrequencyInMillis: Long = 10000,
     deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
     deletionGraceInSeconds: Int = 0
@@ -102,6 +106,7 @@ case class CreateKubeJobTask(
         apiVersion,
         debug,
         awaitCompletion,
+        showJobLogs,
         pollingFrequencyInMillis,
         deletionPolicy,
         deletionGraceInSeconds

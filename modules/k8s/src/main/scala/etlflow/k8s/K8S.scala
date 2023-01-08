@@ -165,7 +165,7 @@ object K8S {
     * @return
     *   TaskLayer[Jobs]
     */
-  def batchClient(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
+  def live(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
     ZIO
       .attempt((K8SClient.batchClient(httpConnectionTimeout), K8SClient.coreClient(httpConnectionTimeout)))
       .map { case (batch, core) => K8SImpl(batch, core) }

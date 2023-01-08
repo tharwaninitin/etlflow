@@ -2,28 +2,25 @@
 
 [![License](http://img.shields.io/:license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 [![EtlFlow CI](https://github.com/tharwaninitin/etlflow/actions/workflows/ci.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/ci.yml)
-[![Semantic Versioning Policy Check](https://github.com/tharwaninitin/etlflow/actions/workflows/semver.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/semver.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
 **EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different tasks, jobs on GCP and AWS.
 
 [//]: # (## Documentation)
-
 [//]: # ()
 [//]: # (__Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs)
-
 [//]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
 
 ## Examples
 * [Core Module](examples/examplecore):         
   In this example project, you can explore core features of etlflow, Task and Audit API.
-* [Spark Module (Spark tasks)](examples/examplespark):         
-  In this example project, you can explore different Apache Spark tasks.
 * [GCP Module (GCS, DataProc, BigQuery tasks)](examples/examplegcp):         
   In this example project, you can explore GCP tasks.
 * [K8S Module (K8S tasks)](examples/examplek8s):         
   In this example project, you can explore different Kubernetes tasks.
+* [Spark Module (Spark tasks)](examples/examplespark):         
+  In this example project, you can explore different Apache Spark tasks.
 
 ## Modules Dependency Graph
 
@@ -74,9 +71,10 @@ __Maven__
 <!-- TOC -->
 - [Etlflow Modules](#etlflow-modules)
   - [Core](#core)
-  - [Gcp](#gcp)
-  - [JDBC](#jdbc)
+  - [GCP](#gcp)
+    - [Dataproc](#dataproc)
   - [K8S](#k8s)
+  - [JDBC](#jdbc)
   - [Http](#http)
   - [Email](#email)
   - [Aws](#aws)
@@ -89,6 +87,11 @@ __Maven__
 // Todo
 ```
 ## GCP
+```shell
+# To run all below GCP examples set the GOOGLE_APPLICATION_CREDENTIALS environment variable to the location of the service account json key. 
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
+```
+### Dataproc
 ```scala mdoc:silent
 import etlflow.task._
 import gcp4zio.dp._
@@ -125,11 +128,7 @@ programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.test)
 ```
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
-## JDBC
-```scala mdoc:silent
-// Todo
-```
-## K8s
+## K8S
 ```scala mdoc:silent
 import etlflow.task._
 import etlflow.k8s._
@@ -155,7 +154,10 @@ val programK8S: RIO[K8S with Audit, Unit] = for {
 programK8S.provide(K8S.live() ++ audit.test)
 ```
 Check [this](examples/examplek8s/src/main/scala/examples/Job1K8S.scala) for complete example.
-
+## JDBC
+```scala mdoc:silent
+// Todo
+```
 ## Http
 ```scala mdoc:silent
 // Todo

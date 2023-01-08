@@ -91,7 +91,7 @@ lazy val etlflow = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core.jvm, spark, jdbc, http, redis, email, aws, gcp, k8s)
+  .aggregate(core.js, core.jvm, spark, jdbc, http, redis, email, aws, gcp, k8s)
 
 lazy val core =
   (crossProject(JSPlatform, JVMPlatform).withoutSuffixFor(JVMPlatform).crossType(CrossType.Pure) in file("modules/core"))

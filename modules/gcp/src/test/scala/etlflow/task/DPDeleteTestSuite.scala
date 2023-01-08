@@ -11,12 +11,7 @@ import zio.test._
 object DPDeleteTestSuite extends TestHelper {
   val spec: Spec[DPCluster with Audit, Any] =
     test("Execute DPDeleteTask") {
-      val task = DPDeleteTask(
-        name = "DPDeleteTaskExample",
-        dpCluster,
-        gcpProjectId.get,
-        gcpRegion.get
-      ).execute
+      val task = DPDeleteTask("DPDeleteTaskExample", dpCluster).execute
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

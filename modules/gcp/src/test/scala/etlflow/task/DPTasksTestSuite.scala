@@ -26,10 +26,7 @@ object DPTasksTestSuite extends TestHelper {
           args = List("1000"),
           mainClass = "org.apache.spark.examples.SparkPi",
           libs = libs,
-          conf,
-          dpCluster,
-          gcpProjectId.get,
-          gcpRegion.get
+          conf
         ).execute
         assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }

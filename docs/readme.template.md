@@ -19,9 +19,11 @@
 * [Core Module](examples/examplecore):         
   In this example project, you can explore core features of etlflow, Task and Audit API.
 * [Spark Module (Spark tasks)](examples/examplespark):         
-  In this example project, you can explore Apache Spark tasks.
-* [GCP/K8S Modules (GCS, DataProc, BigQuery tasks and K8S)](examples/examplegcp):         
+  In this example project, you can explore different Apache Spark tasks.
+* [GCP Module (GCS, DataProc, BigQuery tasks)](examples/examplegcp):         
   In this example project, you can explore GCP tasks.
+* [K8S Module (K8S tasks)](examples/examplek8s):         
+  In this example project, you can explore different Kubernetes tasks.
 
 ## Modules Dependency Graph
 
@@ -88,8 +90,41 @@ __Maven__
 ```
 ## GCP
 ```scala mdoc:silent
-// Todo
+import etlflow.task._
+import gcp4zio.dp._
+import etlflow.audit
+import etlflow.audit.Audit
+import zio._
+
+val gcpProject: String = "GCP_PROJECT"
+val gcpRegion: String  = "GCP_REGION"
+val dpCluster: String  = "DP_CLUSTER"
+val dpEndpoint: String = "DP_ENDPOINT"
+val dpBucket: String   = "DP_BUCKET"
+
+val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket)).execute
+val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster).execute
+
+val args      = List("1000")
+val mainClass = "org.apache.spark.examples.SparkPi"
+val libs      = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
+val conf      = Map("spark.executor.memory" -> "1g", "spark.driver.memory" -> "1g")
+
+val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf).execute
+
+val programGCP: RIO[DPJob with DPCluster with Audit, Unit] = for {
+  _ <- createCluster
+  _ <- sparkJob
+  _ <- deleteCluster
+} yield ()
+
+val dpJobLayer = DPJob.live(dpCluster, gcpProject, gcpRegion, dpEndpoint)
+val dpClusterLayer = DPCluster.live(gcpProject, gcpRegion, dpEndpoint)
+
+programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.test)
 ```
+Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
+
 ## JDBC
 ```scala mdoc:silent
 // Todo
@@ -98,12 +133,13 @@ __Maven__
 ```scala mdoc:silent
 import etlflow.task._
 import etlflow.k8s._
-import zio._
+import etlflow.audit
 import etlflow.audit.Audit
+import zio._
 
 val jobName: String = "hello"
 
-val program: RIO[K8S with Audit, Unit] = for {
+val programK8S: RIO[K8S with Audit, Unit] = for {
   _ <- CreateKubeJobTask(
     name = "CreateKubeJobTask",
     jobName = jobName,
@@ -116,8 +152,10 @@ val program: RIO[K8S with Audit, Unit] = for {
   _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
 } yield ()
 
-program.provide(K8S.batchClient() ++ etlflow.audit.test)
+programK8S.provide(K8S.live() ++ audit.test)
 ```
+Check [this](examples/examplek8s/src/main/scala/examples/Job1K8S.scala) for complete example.
+
 ## Http
 ```scala mdoc:silent
 // Todo

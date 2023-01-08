@@ -14,10 +14,7 @@ object DPTasksTestSuite extends TestHelper {
       test("Execute DPHiveJob task") {
         val task = DPHiveJobTask(
           name = "DPHiveJobTaskExample",
-          "SELECT 1 AS ONE",
-          dpCluster,
-          gcpProjectId.get,
-          gcpRegion.get
+          "SELECT 1 AS ONE"
         ).execute
         assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },

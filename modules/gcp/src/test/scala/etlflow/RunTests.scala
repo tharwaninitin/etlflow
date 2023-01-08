@@ -13,8 +13,11 @@ object RunTests extends ZIOSpecDefault with TestHelper with ApplicationLogger {
 
   override val bootstrap: ULayer[TestEnvironment] = testEnvironment ++ zioSlf4jLogger
 
-  private val env =
-    DPJob.live(dpEndpoint) ++ DPCluster.live(dpEndpoint) ++ BQ.live() ++ GCS.live() ++ audit.test ++ ZLayer.succeed(ClockLive)
+  private val dpJobEnv = DPJob.live(dpCluster, gcpProjectId.get, gcpRegion.get, dpEndpoint)
+
+  private val dpClusterEnv = DPCluster.live(gcpProjectId.get, gcpRegion.get, dpEndpoint)
+
+  private val env = dpJobEnv ++ dpClusterEnv ++ BQ.live() ++ GCS.live() ++ audit.test ++ ZLayer.succeed(ClockLive)
 
   override def spec: Spec[TestEnvironment, Any] = (suite("GCP Tasks")(
     BQTestSuite.spec,

@@ -12,5 +12,5 @@ case class BQQueryTask(name: String, query: String) extends EtlTask[BQ, Unit] {
     BQ.executeQuery(query)
   }
 
-  override def getTaskProperties: Map[String, String] = Map("query" -> query)
+  override def getTaskProperties: Map[String, String] = Map.empty // TODO Sanitize query before using this Map("query" -> query)
 }

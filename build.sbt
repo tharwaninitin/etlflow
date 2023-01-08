@@ -18,6 +18,15 @@ lazy val commonSettings = Seq(
       case _             => Seq()
     }
   },
+  Compile / compile / wartremoverErrors ++= Warts.allBut(
+    Wart.Any,
+    Wart.DefaultArguments,
+    Wart.Nothing,
+    Wart.Equals,
+    Wart.FinalCaseClass,
+    Wart.Overloading,
+    Wart.StringPlusAny
+  ),
   Test / parallelExecution := false,
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 )
@@ -82,55 +91,56 @@ lazy val etlflow = (project in file("."))
     crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
     publish / skip     := true
   )
-  .aggregate(core, spark, jdbc, http, redis, email, aws, gcp, k8s)
+  .aggregate(core.js, core.jvm, spark, jdbc, http, redis, email, aws, gcp, k8s)
 
-lazy val core = (project in file("modules/core"))
-  .settings(commonSettings)
-  .settings(coreSettings)
+lazy val core =
+  (crossProject(JSPlatform, JVMPlatform).withoutSuffixFor(JVMPlatform).crossType(CrossType.Pure) in file("modules/core"))
+    .settings(commonSettings)
+    .settings(coreSettings)
 
 lazy val jdbc = (project in file("modules/jdbc"))
   .settings(commonSettings)
   .settings(jdbcSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val spark = (project in file("modules/spark"))
   .settings(commonSettings)
   .settings(sparkSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val http = (project in file("modules/http"))
   .settings(commonSettings)
   .settings(httpSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val redis = (project in file("modules/redis"))
   .settings(commonSettings)
   .settings(redisSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val email = (project in file("modules/email"))
   .settings(commonSettings)
   .settings(emailSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val aws = (project in file("modules/aws"))
   .settings(commonSettings)
   .settings(awsSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val gcp = (project in file("modules/gcp"))
   .settings(commonSettings)
   .settings(gcpSettings)
-  .dependsOn(core)
+  .dependsOn(core.jvm)
 
 lazy val k8s = (project in file("modules/k8s"))
   .settings(commonSettings)
   .settings(k8sSettings)
-  .dependsOn(core, http)
+  .dependsOn(core.jvm, http)
 
 lazy val docs = project
   .in(file("modules/docs")) // important: it must not be docs/
-  .dependsOn(core, spark, jdbc, http, redis, email, aws, gcp, k8s)
+  .dependsOn(core.jvm, spark, jdbc, http, redis, email, aws, gcp, k8s)
   .settings(
     name           := "etlflow-docs",
     publish / skip := true,

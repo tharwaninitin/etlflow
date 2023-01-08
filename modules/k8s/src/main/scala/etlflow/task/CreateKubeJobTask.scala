@@ -7,6 +7,8 @@ import zio.{RIO, ZIO}
 /** Create a Job in a new Container for running an image.
   *
   * @param name
+  *   Name of this Task
+  * @param jobName
   *   Name of the Job
   * @param container
   *   Name of the Container
@@ -30,6 +32,9 @@ import zio.{RIO, ZIO}
   *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
   * @param awaitCompletion
   *   boolean flag which indicates whether control should await for the job's completion before returning
+  * @param showJobLogs
+  *   boolean flag which shows the logs from the submitted job.Optional, only used when awaitCompletion is true or deletionPolicy
+  *   is not [[etlflow.k8s.DeletionPolicy.Never]]
   * @param pollingFrequencyInMillis
   *   Duration(in milliseconds) to poll for status of the Job. Optional, only used when awaitCompletion is true or deletionPolicy
   *   is not [[etlflow.k8s.DeletionPolicy.Never]]
@@ -45,6 +50,7 @@ import zio.{RIO, ZIO}
   */
 case class CreateKubeJobTask(
     name: String,
+    jobName: String,
     container: String,
     image: String,
     imagePullPolicy: String = "IfNotPresent",
@@ -56,42 +62,16 @@ case class CreateKubeJobTask(
     apiVersion: String = "batch/v1",
     debug: Boolean = false,
     awaitCompletion: Boolean = false,
+    showJobLogs: Boolean = false,
     pollingFrequencyInMillis: Long = 10000,
     deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
     deletionGraceInSeconds: Int = 0
-) extends EtlTask[Jobs, V1Job] {
-
-  override protected def process: RIO[Jobs, V1Job] = for {
-    _ <- ZIO.logInfo("#" * 50)
-    _ <- ZIO.logInfo(s"Creating K8S Job: $name")
-
-    job <- K8S
-      .createJob(
-        name,
-        container,
-        image,
-        namespace,
-        imagePullPolicy,
-        envs,
-        volumeMounts,
-        command,
-        podRestartPolicy,
-        apiVersion,
-        debug,
-        awaitCompletion,
-        pollingFrequencyInMillis,
-        deletionPolicy,
-        deletionGraceInSeconds
-      )
-      .tapBoth(
-        e => ZIO.logError(e.getMessage),
-        _ => ZIO.logInfo(s"K8S Job $name submitted successfully") *> ZIO.logInfo("#" * 50)
-      )
-  } yield job
+) extends EtlTask[K8S, V1Job] {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getTaskProperties: Map[String, String] = Map(
     "name"                     -> name,
+    "jobName"                  -> jobName,
     "container"                -> container,
     "image"                    -> image,
     "imagePullPolicy"          -> imagePullPolicy,
@@ -107,4 +87,33 @@ case class CreateKubeJobTask(
     "deletionPolicy"           -> deletionPolicy.toString,
     "deletionGraceInSeconds"   -> deletionGraceInSeconds.toString
   )
+
+  override protected def process: RIO[K8S, V1Job] = for {
+    _ <- ZIO.logInfo("#" * 50)
+    _ <- ZIO.logInfo(s"Creating K8S Job: $jobName")
+
+    job <- K8S
+      .createJob(
+        jobName,
+        container,
+        image,
+        namespace,
+        imagePullPolicy,
+        envs,
+        volumeMounts,
+        command,
+        podRestartPolicy,
+        apiVersion,
+        debug,
+        awaitCompletion,
+        showJobLogs,
+        pollingFrequencyInMillis,
+        deletionPolicy,
+        deletionGraceInSeconds
+      )
+      .tapBoth(
+        e => ZIO.logError(e.getMessage),
+        _ => ZIO.logInfo(s"K8S Job $jobName submitted successfully") *> ZIO.logInfo("#" * 50)
+      )
+  } yield job
 }

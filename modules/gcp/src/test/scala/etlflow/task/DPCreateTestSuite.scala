@@ -17,7 +17,7 @@ object DPCreateTestSuite extends TestHelper {
         networkTags = dpNetworkTags,
         serviceAccount = dpServiceAccount
       )
-      val task = DPCreateTask("DPCreateTaskExample", dpCluster, gcpProjectId.get, gcpRegion.get, dpProps).execute
+      val task = DPCreateTask("DPCreateTaskExample", dpCluster, dpProps).execute
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
 }

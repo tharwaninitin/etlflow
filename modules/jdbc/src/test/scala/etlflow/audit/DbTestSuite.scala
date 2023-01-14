@@ -31,6 +31,14 @@ object DbTestSuite {
           .getTaskRuns("SELECT * FROM taskrun")
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
           .as(assertCompletes)
+      ),
+      zio.test.test("getTaskRuns Test")(
+        Audit
+          .fetchResults(
+            "SELECT job_name, COUNT(*) cnt_tasks FROM jobrun JOIN taskrun ON jobrun.job_run_id = taskrun.job_run_id GROUP BY job_name"
+          )
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
+          .as(assertCompletes)
       )
     ) @@ TestAspect.sequential
 }

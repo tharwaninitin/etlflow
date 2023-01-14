@@ -5,6 +5,7 @@ import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
 import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.MapToJson
+import scalikejdbc.WrappedResultSet
 import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
 
 object DB extends ApplicationLogger {
@@ -75,7 +76,8 @@ object DB extends ApplicationLogger {
       }
       .tapError(ex => ZIO.logError(ex.getMessage))
 
-    override def fetchResults[T](query: String): Task[Iterable[T]] = client.fetchResults(query)(???)
+    override type RS = WrappedResultSet
+    override def fetchResults(query: String): Task[Iterable[WrappedResultSet]] = client.fetchResults(query)(identity)
   }
 
   private[etlflow] def layer(jobRunId: String, fetchSize: Option[Int]): ZLayer[String, Throwable, Audit] =

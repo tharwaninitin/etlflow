@@ -16,7 +16,7 @@ object EtlFlowException {
     override def toString: String = s"$msg"
   }
 
-  final case class EtlJobNotFoundException(msg: String) extends EtlFlowException(msg) {
+  final case class JsonDecodeException(msg: String) extends EtlFlowException(msg) {
     override def toString: String = s"$msg"
   }
 }

@@ -6,7 +6,6 @@ import zio.{RIO, Task, UIO, URIO, ZIO}
 // format: off
 trait Audit {
   val jobRunId: String
-  type RS
 
   def logJobStart(jobName: String, props: Map[String,String]): UIO[Unit]
   def logJobEnd(jobName: String, props: Map[String,String], error: Option[Throwable]): UIO[Unit]
@@ -16,7 +15,7 @@ trait Audit {
   
   def getJobRuns(query: String): Task[Iterable[JobRun]]
   def getTaskRuns(query: String): Task[Iterable[TaskRun]]
-  def fetchResults(query: String): Task[Iterable[RS]]
+  def fetchResults(query: String): Task[Iterable[Any]]
 }
 
 object Audit {
@@ -32,6 +31,6 @@ object Audit {
 
   def getJobRuns(query: String): RIO[Audit ,Iterable[JobRun]] = ZIO.serviceWithZIO(_.getJobRuns(query))
   def getTaskRuns(query: String): RIO[Audit, Iterable[TaskRun]] = ZIO.serviceWithZIO(_.getTaskRuns(query))
-  def fetchResults(query: String): ZIO[Audit, Throwable, Iterable[Audit#RS]] = ZIO.serviceWithZIO[Audit](_.fetchResults(query))
+  def fetchResults(query: String): RIO[Audit, Iterable[Any]] = ZIO.serviceWithZIO[Audit](_.fetchResults(query))
 }
 // format: on

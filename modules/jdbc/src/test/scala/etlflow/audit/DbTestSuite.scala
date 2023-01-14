@@ -1,5 +1,6 @@
 package etlflow.audit
 
+import scalikejdbc.WrappedResultSet
 import zio.ZIO
 import zio.test._
 
@@ -37,7 +38,8 @@ object DbTestSuite {
           .fetchResults(
             "SELECT job_name, COUNT(*) cnt_tasks FROM jobrun JOIN taskrun ON jobrun.job_run_id = taskrun.job_run_id GROUP BY job_name"
           )
-          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
+          .map(rs => rs.asInstanceOf[Iterable[WrappedResultSet]])
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.string("job_name") + " " + i.int("cnt_tasks"))))
           .as(assertCompletes)
       )
     ) @@ TestAspect.sequential

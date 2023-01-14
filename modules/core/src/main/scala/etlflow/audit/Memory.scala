@@ -69,8 +69,7 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
 
   override def getTaskRuns(query: String): Task[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
 
-  override type RS = Any
-  override def fetchResults(query: String): Task[Iterable[RS]] = ZIO.succeed(List.empty)
+  override def fetchResults(query: String): Task[Iterable[Any]] = ZIO.succeed(List.empty)
 }
 
 object Memory {

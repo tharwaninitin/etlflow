@@ -28,9 +28,7 @@ package object audit {
       ): UIO[Unit] = ZIO.unit
       override def getJobRuns(query: String): UIO[Iterable[JobRun]]   = ZIO.succeed(List.empty[JobRun])
       override def getTaskRuns(query: String): UIO[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
-
-      override type RS = Any
-      override def fetchResults(query: String): Task[Iterable[RS]] = ZIO.succeed(List.empty)
+      override def fetchResults(query: String): Task[Iterable[Any]]   = ZIO.succeed(List.empty)
     }
   )
   val console: ULayer[Audit]                              = ZLayer.succeed(Console)

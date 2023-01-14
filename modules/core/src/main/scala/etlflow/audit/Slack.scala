@@ -109,6 +109,5 @@ case class Slack(jobRunId: String, slackUrl: String) extends Audit with Applicat
 
   override def getTaskRuns(query: String): Task[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
 
-  override type RS = Any
-  override def fetchResults(query: String): Task[Iterable[RS]] = ZIO.succeed(List.empty)
+  override def fetchResults(query: String): Task[Iterable[Any]] = ZIO.succeed(List.empty)
 }

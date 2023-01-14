@@ -76,7 +76,6 @@ object BQ extends ApplicationLogger {
       )
       .tapError(ex => ZIO.logError(ex.getMessage))
 
-    override type RS = FieldValueList
     override def fetchResults(query: String): Task[Iterable[FieldValueList]] = client.getData(query)(identity)
   }
 

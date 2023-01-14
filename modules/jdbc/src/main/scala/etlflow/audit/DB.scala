@@ -76,7 +76,6 @@ object DB extends ApplicationLogger {
       }
       .tapError(ex => ZIO.logError(ex.getMessage))
 
-    override type RS = WrappedResultSet
     override def fetchResults(query: String): Task[Iterable[WrappedResultSet]] = client.fetchResults(query)(identity)
   }
 

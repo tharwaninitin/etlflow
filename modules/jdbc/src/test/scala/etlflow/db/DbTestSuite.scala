@@ -20,14 +20,14 @@ object DbTestSuite {
           """.stripMargin
         assertZIO(DB.executeQuery(query).foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))
       },
-      test("executeQuerySingleOutput Test")(
+      test("fetchResult Test")(
         assertZIO(
           DB
             .fetchResult("""SELECT job_name FROM jobrun ORDER BY job_run_id LIMIT 1""")(rs => rs.string("job_name"))
             .foldZIO(ex => ZIO.fail(ex.getMessage), op => ZIO.succeed(op))
         )(equalTo("EtlJobDownload"))
       ),
-      test("executeQueryListOutput Test") {
+      test("fetchResults Test") {
         val res = DB
           .fetchResults[TestDb]("SELECT job_name FROM jobrun")(rs => TestDb(rs.string("job_name")))
           .foldZIO(_ => ZIO.fail(List.empty[TestDb]), op => ZIO.succeed(op))

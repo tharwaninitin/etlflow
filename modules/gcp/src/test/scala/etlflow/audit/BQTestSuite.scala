@@ -1,5 +1,6 @@
 package etlflow.audit
 
+import com.google.cloud.bigquery.FieldValueList
 import zio.ZIO
 import zio.test._
 
@@ -33,6 +34,12 @@ object BQTestSuite {
         Audit
           .getTaskRuns("SELECT * FROM etlflow.taskrun")
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
+          .as(assertCompletes)
+      ),
+      zio.test.test("fetchResults Test")(
+        Audit
+          .fetchResults("SELECT job_name FROM jobrun")(rs => rs.asInstanceOf[FieldValueList].get("job_name").getStringValue)
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))
           .as(assertCompletes)
       )
     ) @@ TestAspect.sequential

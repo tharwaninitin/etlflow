@@ -1,7 +1,6 @@
 package etlflow.audit
 
-import etlflow.model.{JobRun, TaskRun}
-import zio.{Task, UIO, ZIO}
+import zio.{UIO, ZIO}
 
 object Console extends Audit {
 
@@ -38,10 +37,4 @@ object Console extends Audit {
   } { ex =>
     ZIO.logError(s"Job completed with failure ${ex.getMessage}")
   }
-
-  override def getJobRuns(query: String): Task[Iterable[JobRun]] = ZIO.succeed(List.empty[JobRun])
-
-  override def getTaskRuns(query: String): Task[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
-
-  override def fetchResults(query: String): Task[Iterable[Any]] = ZIO.succeed(List.empty)
 }

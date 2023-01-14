@@ -76,7 +76,8 @@ object DB extends ApplicationLogger {
       }
       .tapError(ex => ZIO.logError(ex.getMessage))
 
-    override def fetchResults(query: String): Task[Iterable[WrappedResultSet]] = client.fetchResults(query)(identity)
+    override type RS = WrappedResultSet
+    override def fetchResults[T](query: String)(fn: WrappedResultSet => T): Task[Iterable[T]] = client.fetchResults(query)(fn)
   }
 
   private[etlflow] def layer(jobRunId: String, fetchSize: Option[Int]): ZLayer[String, Throwable, Audit] =

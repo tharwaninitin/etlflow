@@ -35,11 +35,8 @@ object DbTestSuite {
       ),
       zio.test.test("fetchResults Test")(
         Audit
-          .fetchResults(
-            "SELECT job_name FROM jobrun"
-          )
-          .map(rs => rs.asInstanceOf[Iterable[WrappedResultSet]])
-          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.string("job_name"))))
+          .fetchResults("SELECT job_name FROM jobrun")(rs => rs.asInstanceOf[WrappedResultSet].string("job_name"))
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))
           .as(assertCompletes)
       )
     ) @@ TestAspect.sequential

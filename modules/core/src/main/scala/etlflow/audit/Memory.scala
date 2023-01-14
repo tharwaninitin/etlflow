@@ -1,9 +1,8 @@
 package etlflow.audit
 
 import etlflow.log.ApplicationLogger
-import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.DateTimeApi
-import zio.{Ref, Task, UIO, ZIO}
+import zio.{Ref, UIO, ZIO}
 import scala.collection.mutable
 
 @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
@@ -64,12 +63,6 @@ case class Memory(jobRunId: String) extends Audit with ApplicationLogger {
         value.values.toList.sortBy(_.start_time).foreach(x => logger.info(x.toString()))
       }
     } yield ()
-
-  override def getJobRuns(query: String): Task[Iterable[JobRun]] = ZIO.succeed(List.empty[JobRun])
-
-  override def getTaskRuns(query: String): Task[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
-
-  override def fetchResults(query: String): Task[Iterable[Any]] = ZIO.succeed(List.empty)
 }
 
 object Memory {

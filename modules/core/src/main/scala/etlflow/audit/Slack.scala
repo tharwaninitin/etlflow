@@ -1,8 +1,7 @@
 package etlflow.audit
 
 import etlflow.log.ApplicationLogger
-import etlflow.model.{JobRun, TaskRun}
-import zio.{Task, UIO, ZIO}
+import zio.{UIO, ZIO}
 import java.io.{BufferedWriter, OutputStreamWriter}
 import java.net.{HttpURLConnection, URL}
 import scala.util.Try
@@ -104,10 +103,4 @@ case class Slack(jobRunId: String, slackUrl: String) extends Audit with Applicat
 
       sendSlackNotification(data)
     }.orDie
-
-  override def getJobRuns(query: String): Task[Iterable[JobRun]] = ZIO.succeed(List.empty[JobRun])
-
-  override def getTaskRuns(query: String): Task[Iterable[TaskRun]] = ZIO.succeed(List.empty[TaskRun])
-
-  override def fetchResults(query: String): Task[Iterable[Any]] = ZIO.succeed(List.empty)
 }

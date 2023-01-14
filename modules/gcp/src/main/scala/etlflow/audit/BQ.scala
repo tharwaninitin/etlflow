@@ -1,6 +1,5 @@
 package etlflow.audit
 
-import com.google.cloud.bigquery.FieldValueList
 import etlflow.log.ApplicationLogger
 import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.MapToJson
@@ -75,8 +74,6 @@ object BQ extends ApplicationLogger {
         )
       )
       .tapError(ex => ZIO.logError(ex.getMessage))
-
-    override def fetchResults(query: String): Task[Iterable[FieldValueList]] = client.getData(query)(identity)
   }
 
   def apply(jri: String, credentials: Option[String] = None): TaskLayer[Audit] =

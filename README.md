@@ -48,22 +48,22 @@ Add the below latest release as a dependency to your project
 
 __SBT__
 ```scala
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.5.0"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.5.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.6.0"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.6.0"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -124,7 +124,7 @@ val programGCP: RIO[DPJob with DPCluster with Audit, Unit] = for {
 val dpJobLayer = DPJob.live(dpCluster, gcpProject, gcpRegion, dpEndpoint)
 val dpClusterLayer = DPCluster.live(gcpProject, gcpRegion, dpEndpoint)
 
-programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.test)
+programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 ```
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
@@ -151,7 +151,7 @@ val programK8S: RIO[K8S with Audit, Unit] = for {
   _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
 } yield ()
 
-programK8S.provide(K8S.live() ++ audit.test)
+programK8S.provide(K8S.live() ++ audit.noop)
 ```
 Check [this](examples/examplek8s/src/main/scala/examples/Job1K8S.scala) for complete example.
 ## JDBC

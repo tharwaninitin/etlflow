@@ -7,7 +7,7 @@ import etlflow.task.{DBReadTask, GenericTask}
 import zio.{Chunk, RIO, ZLayer}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-object Job4EtlFlow extends JobApp {
+object Job3EtlFlow extends JobApp {
 
   case class EtlJobRun(job_name: String, job_run_id: String, state: String)
 
@@ -20,12 +20,12 @@ object Job4EtlFlow extends JobApp {
     query = "SELECT job_name,job_run_id,status FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("status")))
 
-  private def processData(ip: List[EtlJobRun]): Unit = {
+  private def processData(ip: Iterable[EtlJobRun]): Unit = {
     logger.info("Processing Data")
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def task2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
+  private def task2(ip: Iterable[EtlJobRun]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )

@@ -20,7 +20,7 @@ object EtlJobBqToJdbc extends zio.ZIOAppDefault with ApplicationLogger {
     outputType = RDB(JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))),
     outputLocation = "ratings",
     outputSaveMode = SaveMode.Overwrite
-  ).execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
+  ).execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noop)
 
   override def run: Task[Unit] = task1
 }

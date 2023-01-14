@@ -21,7 +21,7 @@ lazy val examplecore = (project in file("examples/examplecore"))
     name               := "examplecore",
     crossScalaVersions := AllScalaVersions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-jdbc"    % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-jdbc"    % version.value,
       "ch.qos.logback"            % "logback-classic" % LogbackVersion,
       "org.postgresql"            % "postgresql"      % PgVersion
     )
@@ -32,7 +32,7 @@ lazy val examplek8s = (project in file("examples/examplek8s"))
     name               := "examplek8s",
     crossScalaVersions := AllScalaVersions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-k8s"     % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-k8s"     % version.value,
       "ch.qos.logback"            % "logback-classic" % LogbackVersion
     )
   )
@@ -42,7 +42,7 @@ lazy val examplegcp = (project in file("examples/examplegcp"))
     name               := "examplegcp",
     crossScalaVersions := AllScalaVersions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-gcp"     % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-gcp"     % version.value,
       "ch.qos.logback"            % "logback-classic" % LogbackVersion
     )
   )
@@ -52,7 +52,7 @@ lazy val examplespark = (project in file("examples/examplespark"))
     name               := "examplespark",
     crossScalaVersions := Scala2Versions,
     libraryDependencies ++= List(
-      "com.github.tharwaninitin" %% "etlflow-spark" % EtlFlowVersion,
+      "com.github.tharwaninitin" %% "etlflow-spark" % version.value,
       ("org.apache.spark" %% "spark-sql"       % SparkVersion).excludeAll(ExclusionRule(organization = "org.scala-lang.modules")),
       "ch.qos.logback"     % "logback-classic" % LogbackVersion,
       "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion

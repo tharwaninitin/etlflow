@@ -124,7 +124,7 @@ val programGCP: RIO[DPJob with DPCluster with Audit, Unit] = for {
 val dpJobLayer = DPJob.live(dpCluster, gcpProject, gcpRegion, dpEndpoint)
 val dpClusterLayer = DPCluster.live(gcpProject, gcpRegion, dpEndpoint)
 
-programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.test)
+programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 ```
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
@@ -151,7 +151,7 @@ val programK8S: RIO[K8S with Audit, Unit] = for {
   _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
 } yield ()
 
-programK8S.provide(K8S.live() ++ audit.test)
+programK8S.provide(K8S.live() ++ audit.noop)
 ```
 Check [this](examples/examplek8s/src/main/scala/examples/Job1K8S.scala) for complete example.
 ## JDBC

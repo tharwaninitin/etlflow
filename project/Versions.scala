@@ -4,7 +4,6 @@ object Versions {
   val Scala3           = "3.2.1"
   val AllScalaVersions = List(Scala212, Scala213, Scala3)
   val Scala2Versions   = List(Scala212, Scala213)
-  val EtlFlowVersion   = "1.5.0"
 
   val ZioVersion                = "2.0.5"
   val ZioLogVersion             = "2.1.7"

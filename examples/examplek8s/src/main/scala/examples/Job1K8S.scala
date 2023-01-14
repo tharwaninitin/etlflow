@@ -1,7 +1,7 @@
 package examples
 
-import etlflow.audit.Audit
 import etlflow.audit
+import etlflow.audit.Audit
 import etlflow.k8s._
 import etlflow.log.ApplicationLogger
 import etlflow.task._
@@ -28,5 +28,5 @@ object Job1K8S extends ZIOAppDefault with ApplicationLogger {
     _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
   } yield ()
 
-  override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.live() ++ audit.test)
+  override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.live() ++ audit.noop)
 }

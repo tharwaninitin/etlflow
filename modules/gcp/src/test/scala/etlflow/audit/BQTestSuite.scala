@@ -38,7 +38,9 @@ object BQTestSuite {
       ),
       zio.test.test("fetchResults Test")(
         Audit
-          .fetchResults("SELECT job_name FROM jobrun")(rs => rs.asInstanceOf[FieldValueList].get("job_name").getStringValue)
+          .fetchResults("SELECT job_name FROM etlflow.jobrun")(rs =>
+            rs.asInstanceOf[FieldValueList].get("job_name").getStringValue
+          )
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))
           .as(assertCompletes)
       )

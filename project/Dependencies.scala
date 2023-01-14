@@ -66,7 +66,8 @@ object Dependencies {
 
   lazy val jdbcTestLibs = List(
     "org.postgresql" % "postgresql"           % PgVersion,
-    "mysql"          % "mysql-connector-java" % MySqlVersion
+    "mysql"          % "mysql-connector-java" % MySqlVersion,
+    "com.h2database" % "h2"                   % "2.1.+"
   ).map(_ % Test)
 
   lazy val sparkTestLibs = List(

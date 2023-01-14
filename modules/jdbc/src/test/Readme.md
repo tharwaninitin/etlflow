@@ -26,13 +26,30 @@ export DB_DRIVER=com.mysql.cj.jdbc.Driver
 export INIT=true
 ```
 
-#Run Sample Test Job
+#Set environment variables for H2
 ```shell
-sbt ";project db; Test/runMain etlflow.audit.CreateDB"
-sbt ";project db; Test/runMain etlflow.SampleJobWithDbLogging"
+export DB_URL=jdbc:h2:file:~/h2db/coordinator
+export DB_USER=etlflow
+export DB_PWD=etlflow
+export DB_DRIVER=org.h2.Driver
+export INIT=true
+
+rm -r ~/h2db # Cleanup directory before running
+```
+
+#Create DB Schema
+```shell
+sbt ";project jdbc; Test/runMain etlflow.audit.CreateDB"
 ```
 
 #Run Tests
 ```shell
-sbt ";project db; test"
+sbt ";project jdbc; test"
 ```
+
+#Run Sample Test Job
+```shell
+sbt ";project jdbc; Test/runMain etlflow.SampleJobWithDbLogging"
+```
+
+

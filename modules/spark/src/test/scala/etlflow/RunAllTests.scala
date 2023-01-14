@@ -2,8 +2,7 @@ package etlflow
 
 import etlflow.spark.SparkLive
 import etlflow.task._
-import zio.test._
-import zio.test.ZIOSpecDefault
+import zio.test.{ZIOSpecDefault, _}
 
 object RunAllTests extends ZIOSpecDefault with TestSparkSession {
   override def spec: Spec[TestEnvironment, Any] =
@@ -14,5 +13,5 @@ object RunAllTests extends ZIOSpecDefault with TestSparkSession {
       ParquetToJdbcGenericTestSuite.spec,
       TransformationTestSuite.spec
       // BQtoGCStoGCSTestSuite.spec @@ TestAspect.ignore
-    ).provideShared((SparkLive.live(spark) ++ audit.test).orDie) @@ TestAspect.sequential
+    ).provideShared((SparkLive.live(spark) ++ audit.noop).orDie) @@ TestAspect.sequential
 }

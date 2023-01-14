@@ -15,6 +15,7 @@ trait Audit {
   
   def getJobRuns(query: String): UIO[Iterable[JobRun]]
   def getTaskRuns(query: String): UIO[Iterable[TaskRun]]
+  def executeQuery[T](query: String): UIO[Iterable[T]] = ZIO.logInfo(query) *> ZIO.succeed(Iterable.empty[T])
 }
 
 object Audit {
@@ -30,5 +31,6 @@ object Audit {
 
   def getJobRuns(query: String): URIO[Audit ,Iterable[JobRun]] = ZIO.environmentWithZIO(_.get.getJobRuns(query))
   def getTaskRuns(query: String): URIO[Audit, Iterable[TaskRun]] = ZIO.environmentWithZIO(_.get.getTaskRuns(query))
+  def executeQuery[T](query: String): URIO[Audit, Iterable[T]] = ZIO.environmentWithZIO(_.get.executeQuery(query))
 }
 // format: on

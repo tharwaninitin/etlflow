@@ -90,5 +90,5 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
   override def spec: Spec[TestEnvironment, Any] =
     (suite("Http Tasks")(test("Execute Http tasks") {
       assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky).provideShared(audit.test)
+    }) @@ TestAspect.flaky).provideShared(audit.noop)
 }

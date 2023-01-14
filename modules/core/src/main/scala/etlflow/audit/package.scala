@@ -4,7 +4,7 @@ import etlflow.model.{JobRun, TaskRun}
 import zio.{UIO, ULayer, ZIO, ZLayer}
 
 package object audit {
-  val test: ULayer[Audit] = ZLayer.succeed(
+  val noop: ULayer[Audit] = ZLayer.succeed(
     new Audit {
       override val jobRunId: String                                                    = ""
       override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = ZIO.unit

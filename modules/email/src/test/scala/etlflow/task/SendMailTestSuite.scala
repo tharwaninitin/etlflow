@@ -4,10 +4,9 @@ import etlflow.audit
 import etlflow.model.Credential.SMTP
 import zio.ZIO
 import zio.test.Assertion._
-import zio.test._
+import zio.test.{ZIOSpecDefault, _}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import zio.test.ZIOSpecDefault
 
 object SendMailTestSuite extends ZIOSpecDefault {
 
@@ -57,5 +56,5 @@ object SendMailTestSuite extends ZIOSpecDefault {
         val props = task.getTaskProperties
         assertTrue(props == Map("subject" -> "SendMailTask Test Ran Successfully", "recipient_list" -> "abcd@abcd.com"))
       }
-    ).provideShared(audit.test)
+    ).provideShared(audit.noop)
 }

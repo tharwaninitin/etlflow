@@ -6,8 +6,10 @@ import etlflow.model.Credential.JDBC
 import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.MapToJson
 import scalikejdbc.WrappedResultSet
-import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
+import zio._
+import java.util.UUID
 
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object DB extends ApplicationLogger {
   private[etlflow] case class DBAudit(jobRunId: String, client: DBImpl) extends etlflow.audit.Audit {
     override def logTaskStart(
@@ -85,7 +87,7 @@ object DB extends ApplicationLogger {
 
   def apply(
       db: JDBC,
-      jobRunId: String,
+      jobRunId: String = UUID.randomUUID.toString,
       poolName: String = "EtlFlow-Audit-Pool",
       poolSize: Int = 2,
       fetchSize: Option[Int] = None

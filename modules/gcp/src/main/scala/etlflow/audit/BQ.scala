@@ -7,8 +7,9 @@ import etlflow.utils.MapToJson
 import gcp4zio.bq.{BQClient, BQImpl}
 import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
 import java.time.ZoneId
+import java.util.UUID
 
-@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Throw", "org.wartremover.warts.ToString"))
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object BQ extends ApplicationLogger {
 
   private[etlflow] case class BQAudit(jobRunId: String, client: BQImpl) extends etlflow.audit.Audit {
@@ -80,6 +81,6 @@ object BQ extends ApplicationLogger {
     override def fetchResults[T](query: String)(fn: FieldValueList => T): Task[Iterable[T]] = client.getData(query)(fn)
   }
 
-  def apply(jri: String, credentials: Option[String] = None): TaskLayer[Audit] =
+  def apply(jri: String = UUID.randomUUID.toString, credentials: Option[String] = None): TaskLayer[Audit] =
     ZLayer.fromZIO(BQClient(credentials).map(bq => BQAudit(jri, BQImpl(bq))))
 }

@@ -21,15 +21,15 @@ trait EtlTask[R, OP] extends ApplicationLogger {
     _   <- Audit.logTaskEnd(tri, name, getTaskProperties, taskType, None)
   } yield op
 
-  /** Experimental method map for EtlTask, don't use in production
+  /** Experimental map API for EtlTask, don't use in production
     */
   def map[B](f: OP => B): EtlTask[R, B] = EtlTask.map(this, f)
 
-  /** Experimental method flatMap for EtlTask to convert to EtlJob, don't use in production
+  /** Experimental flatMap API for EtlTask to convert to EtlJob, don't use in production
     */
   def flatMap[R1, OP1](fn: OP => EtlTask[R1, OP1]): EtlJob[R with R1, OP1] = EtlTask.flatMap[R, OP, R1, OP1](this, fn)
 
-  /** Experimental method *> (variant of flatMap that ignores the value produced by this effect) for EtlTask to convert to EtlJob,
+  /** Experimental *> API (variant of flatMap that ignores the value produced by this effect) for EtlTask to convert to EtlJob,
     * don't use in production
     */
   def *>[R1, OP1](that: EtlTask[R1, OP1]): EtlJob[R with R1, OP1] = EtlTask.flatMap[R, OP, R1, OP1](this, _ => that)
@@ -38,14 +38,14 @@ trait EtlTask[R, OP] extends ApplicationLogger {
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.AsInstanceOf"))
 object EtlTask {
 
-  /** Experimental method map for EtlTask, don't use in production
+  /** Experimental map API for EtlTask, don't use in production
     */
   def flatMap[R1, OP1, R2, OP2](currentTask: EtlTask[R1, OP1], fn: OP1 => EtlTask[R2, OP2]): EtlJob[R1 with R2, OP2] =
     new EtlJob[R1 with R2, OP2] {
       override protected def process: RIO[R1 with R2 with Audit, OP2] = currentTask.execute.flatMap(op => fn(op).execute)
     }
 
-  /** Experimental method flatMap for EtlTask to convert to EtlJob, don't use in production
+  /** Experimental flatMap API for EtlTask to convert to EtlJob, don't use in production
     */
   def map[R, A, OP](currentTask: EtlTask[R, A], fn: A => OP): EtlTask[R, OP] =
     new EtlTask[R, OP] {

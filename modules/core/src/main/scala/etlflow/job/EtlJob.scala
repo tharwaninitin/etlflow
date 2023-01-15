@@ -4,6 +4,8 @@ import etlflow.audit.Audit
 import etlflow.task.EtlTask
 import zio.RIO
 
+/** Experimental EtlJob API, don't use in production
+  */
 trait EtlJob[R, OP] {
 
   protected def process: RIO[R with Audit, OP]
@@ -14,14 +16,18 @@ trait EtlJob[R, OP] {
     _  <- Audit.logJobEnd(name, props, None)
   } yield op
 
+  /** Experimental flatMap API for EtlJob, don't use in production
+    */
   def flatMap[R1, OP1](fn: OP => EtlTask[R1, OP1]): EtlJob[R with R1, OP1] = EtlJob.flatMap[R, OP, R1, OP1](this, fn)
-  def *>[R1, OP1](that: EtlTask[R1, OP1]): EtlJob[R with R1, OP1]          = EtlJob.flatMap[R, OP, R1, OP1](this, _ => that)
+
+  /** Experimental *>(variant of flatMap that ignores the value produced by this effect) API for EtlJob, don't use in production
+    */
+  def *>[R1, OP1](that: EtlTask[R1, OP1]): EtlJob[R with R1, OP1] = EtlJob.flatMap[R, OP, R1, OP1](this, _ => that)
 }
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.AsInstanceOf"))
 object EtlJob {
 
-  /** Experimental method map for EtlJob, don't use in production
+  /** Experimental flatMap API for EtlJob, don't use in production
     */
   def flatMap[R1, OP1, R2, OP2](currentJob: EtlJob[R1, OP1], fn: OP1 => EtlTask[R2, OP2]): EtlJob[R1 with R2, OP2] =
     new EtlJob[R1 with R2, OP2] {

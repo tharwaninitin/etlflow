@@ -26,15 +26,15 @@ object Console extends Audit {
   }
 
   override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] =
-    ZIO.logInfo(s"Job started")
+    ZIO.logInfo(s"Job $jobName started")
 
   override def logJobEnd(
       jobName: String,
       props: Map[String, String],
       error: Option[Throwable]
   ): UIO[Unit] = error.fold {
-    ZIO.logInfo(s"Job completed with success")
+    ZIO.logInfo(s"Job $jobName completed with success")
   } { ex =>
-    ZIO.logError(s"Job completed with failure ${ex.getMessage}")
+    ZIO.logError(s"Job $jobName completed with failure ${ex.getMessage}")
   }
 }

@@ -20,11 +20,9 @@ object JSON {
   def convertToString[T](obj: T)(implicit decoder: JsonEncoder[T]): String       = obj.toJson
   def convertToStringPretty[T](obj: T)(implicit decoder: JsonEncoder[T]): String = obj.toJsonPretty
 
-  lazy val live: ULayer[JSON] = ZLayer.succeed(
-    new JSON {
-      override def convertToObject[T](str: String)(implicit decoder: JsonDecoder[T]): IO[JsonDecodeException, T] =
-        ZIO.fromEither(str.fromJson[T]).mapError(str => JsonDecodeException(str))
-      override def convertToString[T](obj: T)(implicit encoder: JsonEncoder[T]): UIO[String] = ZIO.succeed(obj.toJson)
-    }
-  )
+  private[json] val jsonImpl: JSON = new JSON {
+    override def convertToObject[T](str: String)(implicit decoder: JsonDecoder[T]): IO[JsonDecodeException, T] =
+      ZIO.fromEither(str.fromJson[T]).mapError(str => JsonDecodeException(str))
+    override def convertToString[T](obj: T)(implicit encoder: JsonEncoder[T]): UIO[String] = ZIO.succeed(obj.toJson)
+  }
 }

@@ -23,7 +23,7 @@ object EtlJobParquetToJdbc extends zio.ZIOAppDefault with ApplicationLogger {
     outputSaveMode = SaveMode.Overwrite
   )
 
-  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
+  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noop)
 
   override def run: Task[Unit] = job
 }

@@ -15,5 +15,5 @@ object Job1 extends zio.ZIOAppDefault with ApplicationLogger {
     function = executeTask()
   )
 
-  override def run: Task[Unit] = task1.execute.provideLayer(etlflow.audit.test)
+  override def run: Task[Unit] = task1.execute.provideLayer(etlflow.audit.noop)
 }

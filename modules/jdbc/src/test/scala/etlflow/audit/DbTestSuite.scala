@@ -1,5 +1,6 @@
 package etlflow.audit
 
+import scalikejdbc.WrappedResultSet
 import zio.ZIO
 import zio.test._
 
@@ -30,6 +31,12 @@ object DbTestSuite {
         Audit
           .getTaskRuns("SELECT * FROM taskrun")
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i.toString)))
+          .as(assertCompletes)
+      ),
+      zio.test.test("fetchResults Test")(
+        Audit
+          .fetchResults("SELECT job_name FROM jobrun")(rs => rs.asInstanceOf[WrappedResultSet].string("job_name"))
+          .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))
           .as(assertCompletes)
       )
     ) @@ TestAspect.sequential

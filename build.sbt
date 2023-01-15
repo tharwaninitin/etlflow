@@ -4,8 +4,6 @@ import Versions._
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / version := EtlFlowVersion
-
 lazy val commonSettings = Seq(
   scalaVersion               := Scala212,
   dependencyUpdatesFailBuild := true,

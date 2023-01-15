@@ -19,12 +19,12 @@ object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
-  private def processData(ip: List[EtlJobRun]): Unit = {
+  private def processData(ip: Iterable[EtlJobRun]): Unit = {
     logger.info("Processing Data")
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def task2(ip: List[EtlJobRun]): GenericTask[Unit] = GenericTask(
+  private def task2(ip: Iterable[EtlJobRun]): GenericTask[Unit] = GenericTask(
     name = "ProcessData",
     function = processData(ip)
   )
@@ -34,5 +34,5 @@ object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
     _  <- task2(op).execute
   } yield ()
 
-  override def run: Task[Unit] = job.provideLayer(etlflow.audit.test)
+  override def run: Task[Unit] = job.provideLayer(etlflow.audit.noop)
 }

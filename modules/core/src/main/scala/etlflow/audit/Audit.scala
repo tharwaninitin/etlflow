@@ -1,9 +1,10 @@
 package etlflow.audit
 
 import etlflow.model._
-import zio.{UIO, URIO, ZIO}
+import zio.{RIO, Task, UIO, URIO, ZIO}
 
 // format: off
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 trait Audit {
   val jobRunId: String
 
@@ -13,22 +14,26 @@ trait Audit {
   def logTaskStart(taskRunId: String, taskName: String, props: Map[String,String], taskType: String): UIO[Unit]
   def logTaskEnd(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, error: Option[Throwable]): UIO[Unit]
   
-  def getJobRuns(query: String): UIO[Iterable[JobRun]]
-  def getTaskRuns(query: String): UIO[Iterable[TaskRun]]
+  def getJobRuns(query: String): Task[Iterable[JobRun]] = ZIO.logInfo(query) *> ZIO.succeed(List.empty[JobRun])
+  def getTaskRuns(query: String): Task[Iterable[TaskRun]] = ZIO.logInfo(query) *> ZIO.succeed(List.empty[TaskRun])
+
+  type RS
+  def fetchResults[T](query: String)(fn: RS => T): Task[Iterable[T]] = ZIO.logInfo(query + fn.toString) *> ZIO.succeed(Iterable.empty)
 }
 
 object Audit {
   def logJobStart(jobName: String, props: Map[String,String]): URIO[Audit, Unit] =
-    ZIO.environmentWithZIO(_.get.logJobStart(jobName, props))
+    ZIO.serviceWithZIO(_.logJobStart(jobName, props))
   def logJobEnd(jobName: String, props: Map[String,String], error: Option[Throwable] = None): URIO[Audit, Unit] =
-    ZIO.environmentWithZIO(_.get.logJobEnd(jobName, props, error))
+    ZIO.serviceWithZIO(_.logJobEnd(jobName, props, error))
 
   def logTaskStart(taskRunId: String, taskName: String, props: Map[String,String], taskType: String): URIO[Audit, Unit] =
-    ZIO.environmentWithZIO(_.get.logTaskStart(taskRunId, taskName, props, taskType))
+    ZIO.serviceWithZIO(_.logTaskStart(taskRunId, taskName, props, taskType))
   def logTaskEnd(taskRunId: String, taskName: String, props: Map[String,String], taskType: String, error: Option[Throwable] = None): URIO[Audit, Unit] =
-    ZIO.environmentWithZIO(_.get.logTaskEnd(taskRunId, taskName, props, taskType, error))
+    ZIO.serviceWithZIO(_.logTaskEnd(taskRunId, taskName, props, taskType, error))
 
-  def getJobRuns(query: String): URIO[Audit ,Iterable[JobRun]] = ZIO.environmentWithZIO(_.get.getJobRuns(query))
-  def getTaskRuns(query: String): URIO[Audit, Iterable[TaskRun]] = ZIO.environmentWithZIO(_.get.getTaskRuns(query))
+  def getJobRuns(query: String): RIO[Audit ,Iterable[JobRun]] = ZIO.serviceWithZIO(_.getJobRuns(query))
+  def getTaskRuns(query: String): RIO[Audit, Iterable[TaskRun]] = ZIO.serviceWithZIO(_.getTaskRuns(query))
+  def fetchResults[T](query: String)(fn: Audit#RS => T): RIO[Audit, Iterable[T]] = ZIO.serviceWithZIO[Audit](_.fetchResults(query)(fn))
 }
 // format: on

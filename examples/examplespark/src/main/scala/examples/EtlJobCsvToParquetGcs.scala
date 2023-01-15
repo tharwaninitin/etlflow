@@ -73,5 +73,5 @@ object EtlJobCsvToParquetGcs extends zio.ZIOAppDefault with ApplicationLogger {
     _ <- task2.execute
   } yield ()
 
-  override def run: Task[Unit] = job.provideLayer(SparkLive.live(spark) ++ etlflow.audit.test)
+  override def run: Task[Unit] = job.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noop)
 }

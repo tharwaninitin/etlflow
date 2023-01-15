@@ -1,5 +1,6 @@
 package examples
 
+import etlflow.audit
 import etlflow.log.ApplicationLogger
 import etlflow.task._
 import gcp4zio.dp._
@@ -42,5 +43,5 @@ object Job1GCP extends ZIOAppDefault with ApplicationLogger {
 
   private val dpClusterLayer = DPCluster.live(gcpProject, gcpRegion, dpEndpoint)
 
-  override def run: Task[Unit] = program.provide(dpJobLayer ++ dpClusterLayer ++ etlflow.audit.test)
+  override def run: Task[Unit] = program.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 }

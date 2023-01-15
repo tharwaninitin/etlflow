@@ -5,7 +5,8 @@ object Dependencies {
 
   lazy val coreLibs = List(
     "dev.zio" %% "zio"               % ZioVersion,
-    "dev.zio" %% "zio-logging-slf4j" % ZioLogVersion
+    "dev.zio" %% "zio-logging-slf4j" % ZioLogVersion,
+    "dev.zio" %% "zio-json"          % ZioJsonVersion
   )
 
   lazy val awsLibs = List(
@@ -66,7 +67,8 @@ object Dependencies {
 
   lazy val jdbcTestLibs = List(
     "org.postgresql" % "postgresql"           % PgVersion,
-    "mysql"          % "mysql-connector-java" % MySqlVersion
+    "mysql"          % "mysql-connector-java" % MySqlVersion,
+    "com.h2database" % "h2"                   % "2.1.+"
   ).map(_ % Test)
 
   lazy val sparkTestLibs = List(

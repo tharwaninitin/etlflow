@@ -1,5 +1,6 @@
 package etlflow
 
+import etlflow.json.JsonTestSuite
 import etlflow.log.ApplicationLogger
 import etlflow.utils._
 import zio.test._
@@ -13,6 +14,8 @@ object RunTestSuites extends ZIOSpecDefault with ApplicationLogger {
     DateTimeAPITestSuite.spec,
     RetryTaskTestSuite.spec,
     GenericTaskTestSuite.spec,
-    ErrorHandlingTestSuite.spec
-  ) @@ TestAspect.sequential).provideShared(audit.test ++ Runtime.removeDefaultLoggers)
+    ErrorHandlingTestSuite.spec,
+    JsonTestSuite.spec,
+    EtlJobTestSuite.spec
+  ) @@ TestAspect.sequential).provideShared(audit.noop ++ Runtime.removeDefaultLoggers)
 }

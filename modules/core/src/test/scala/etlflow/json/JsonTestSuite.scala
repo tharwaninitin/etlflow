@@ -40,26 +40,26 @@ object JsonTestSuite extends Implicits {
   val op2 =
     """{"job_description":"","job_retry_delay_in_minutes":"0","job_retries":"0","job_schedule":"0 30 7 ? * *","job_max_active_runs":"10","job_deploy_mode":"dataproc","job_props_name":"etlflow.coretests.Schema$EtlJob4Props","job_name":"etlflow.coretests.jobs.Job3DBSteps","job_send_slack_notification":"false","job_notification_level":"info","job_enable_db_logging":"true"}""".stripMargin
 
-  val spec: Spec[JSON, Any] =
+  val spec: Spec[Any, Any] =
     suite("Json Test")(
       test("convertToObject: String to Student") {
-        val ip = JSON.convertToObjectM[Student](student1Json)
+        val ip = JSON.convertToObjectZIO[Student](student1Json)
         assertZIO(ip)(equalTo(Student("63", "John", Some("101"))))
       },
       test("convertToObject: String to Student") {
-        val ip = JSON.convertToObjectM[Student](student2Json)
+        val ip = JSON.convertToObjectZIO[Student](student2Json)
         assertZIO(ip)(equalTo(Student("63", "John", None)))
       },
       test("convertToObject: String to Map") {
-        val ip = JSON.convertToObjectM[Map[String, String]](student2Json)
+        val ip = JSON.convertToObjectZIO[Map[String, String]](student2Json)
         assertZIO(ip)(equalTo(Map("name" -> "John", "id" -> "63")))
       },
       test("convertToString: Case class to String") {
-        val ip = JSON.convertToStringM(ip1)
+        val ip = JSON.convertToStringZIO(ip1)
         assertZIO(ip)(equalTo(op1))
       },
       test("convertToString: Map to String") {
-        val ip = JSON.convertToStringM[Map[String, String]](ip2)
+        val ip = JSON.convertToStringZIO[Map[String, String]](ip2)
         assertZIO(ip)(equalTo(op2))
       }
     )

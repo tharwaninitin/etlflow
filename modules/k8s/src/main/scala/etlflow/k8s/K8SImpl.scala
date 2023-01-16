@@ -10,7 +10,6 @@ import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
 import zio.stream.{ZPipeline, ZStream}
 import zio.{Task, ZIO}
-
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
@@ -37,8 +36,8 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     * @param envs
     *   Environment Variables to set for the container. Optional
     * @param volumeMounts
-    *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second
-    *   the path to mount inside the container. Optional
+    *   Volumes to Mount into the Container. Optional. Map, with the first element identifying the path to mount inside the
+    *   container, and the second the volume name. Optional
     * @param command
     *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
     * @param podRestartPolicy
@@ -71,7 +70,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       namespace: String,
       imagePullPolicy: String,
       envs: Map[String, String],
-      volumeMounts: List[(String, String)],
+      volumeMounts: Map[String, String],
       command: List[String],
       podRestartPolicy: String,
       apiVersion: String,
@@ -269,7 +268,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       image: String,
       imagePullPolicy: String,
       envs: Map[String, String],
-      volumeMounts: List[(String, String)],
+      volumeMounts: Map[String, String],
       command: List[String],
       podRestartPolicy: String,
       apiVersion: String
@@ -278,11 +277,11 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     val containerItem = new V1Container().name(container).image(image).imagePullPolicy(imagePullPolicy)
     command.foreach(containerItem.addCommandItem)
     envs.foreach { case (key, value) => containerItem.addEnvItem(new V1EnvVar().name(key).value(value)) }
-    volumeMounts.zipWithIndex.foreach { case ((_, destination), i) =>
+    volumeMounts.zipWithIndex.foreach { case ((path, _), i) =>
       containerItem.addVolumeMountsItem(
         new V1VolumeMount()
           .name(s"$secretKey-$i")
-          .mountPath(destination)
+          .mountPath(path)
           .readOnly(true)
       )
     }
@@ -290,13 +289,13 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     val spec = new V1PodSpec()
       .restartPolicy(podRestartPolicy)
       .addContainersItem(containerItem)
-    volumeMounts.zipWithIndex.foreach { case ((source, _), i) =>
+    volumeMounts.zipWithIndex.foreach { case ((_, secretName), i) =>
       spec.addVolumesItem(
         new V1Volume()
           .name(s"$secretKey-$i")
           .secret(
             new V1SecretVolumeSource()
-              .secretName(source)
+              .secretName(secretName)
               .optional(false)
           )
       )

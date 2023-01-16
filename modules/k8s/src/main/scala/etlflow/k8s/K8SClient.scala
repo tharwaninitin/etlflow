@@ -7,27 +7,24 @@ import io.kubernetes.client.util.Config
 
 object K8SClient extends ApplicationLogger {
 
-  /** Method: batchClient - Provides BatchV1Api
+  /** Method: setConfig - Set configuration for K8S client
     * @param httpConnectionTimeout
     *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
+    */
+  def setConfig(httpConnectionTimeout: Int): Unit = {
+    logger.info(s"HTTP Connection timeout is set to $httpConnectionTimeout")
+    Configuration.setDefaultApiClient(Config.defaultClient.setConnectTimeout(httpConnectionTimeout))
+  }
+
+  /** Method: batchClient - Provides BatchV1Api
     * @return
     *   BatchV1Api
     */
-  def batchClient(httpConnectionTimeout: Int): BatchV1Api = {
-    logger.info(s"HTTP Connection timeout is set to $httpConnectionTimeout")
-    Configuration.setDefaultApiClient(Config.defaultClient.setConnectTimeout(httpConnectionTimeout))
-    new BatchV1Api()
-  }
+  def batchClient: BatchV1Api = new BatchV1Api()
 
   /** Method: coreClient - Provides CoreV1Api
-    * @param httpConnectionTimeout
-    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
     * @return
     *   CoreV1Api
     */
-  def coreClient(httpConnectionTimeout: Int): CoreV1Api = {
-    logger.info(s"HTTP Connection timeout is set to $httpConnectionTimeout")
-    Configuration.setDefaultApiClient(Config.defaultClient.setConnectTimeout(httpConnectionTimeout))
-    new CoreV1Api()
-  }
+  def coreClient: CoreV1Api = new CoreV1Api()
 }

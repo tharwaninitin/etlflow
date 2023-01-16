@@ -105,15 +105,15 @@ val dpCluster: String  = "DP_CLUSTER"
 val dpEndpoint: String = "DP_ENDPOINT"
 val dpBucket: String   = "DP_BUCKET"
 
-val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket)).execute
-val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster).execute
+val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket)).toZIO
+val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster).toZIO
 
 val args      = List("1000")
 val mainClass = "org.apache.spark.examples.SparkPi"
 val libs      = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
 val conf      = Map("spark.executor.memory" -> "1g", "spark.driver.memory" -> "1g")
 
-val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf).execute
+val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf).toZIO
 
 val programGCP: RIO[DPJob with DPCluster with Audit, Unit] = for {
   _ <- createCluster
@@ -145,10 +145,10 @@ val programK8S: RIO[K8S with Audit, Unit] = for {
     container = jobName,
     image = "busybox:1.28",
     command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster")
-  ).execute
-  _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).execute
-  _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).execute
-  _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
+  ).toZIO
+  _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).toZIO
+  _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).toZIO
+  _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).toZIO
 } yield ()
 
 programK8S.provide(K8S.live() ++ audit.noop)

@@ -31,7 +31,7 @@ object SampleJobWithDbLogging extends JobApp {
 
   def job(args: Chunk[String]): RIO[Audit, Unit] =
     for {
-      op1 <- task1.execute.provideSomeLayer[Audit](db.DB.live(cred))
-      _   <- task2(op1).execute
+      op1 <- task1.toZIO.provideSomeLayer[Audit](db.DB.live(cred))
+      _   <- task2(op1).toZIO
     } yield ()
 }

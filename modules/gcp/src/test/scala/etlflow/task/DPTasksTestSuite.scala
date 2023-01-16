@@ -15,7 +15,7 @@ object DPTasksTestSuite extends TestHelper {
         val task = DPHiveJobTask(
           name = "DPHiveJobTaskExample",
           "SELECT 1 AS ONE"
-        ).execute
+        ).toZIO
         assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute DPSparkJob task") {
@@ -27,7 +27,7 @@ object DPTasksTestSuite extends TestHelper {
           mainClass = "org.apache.spark.examples.SparkPi",
           libs = libs,
           conf
-        ).execute
+        ).toZIO
         assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       }
     ) @@ TestAspect.sequential

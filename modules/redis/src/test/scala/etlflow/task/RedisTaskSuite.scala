@@ -41,11 +41,11 @@ object RedisTaskSuite extends ZIOSpecDefault {
   )
 
   private val job = for {
-    _ <- task1.execute
-    _ <- task2.execute
-    _ <- task3.execute
-    _ <- task4.execute
-    _ <- task5.execute
+    _ <- task1.toZIO
+    _ <- task2.toZIO
+    _ <- task3.toZIO
+    _ <- task4.toZIO
+    _ <- task5.toZIO
   } yield ()
 
   override def spec: Spec[TestEnvironment, Any] =

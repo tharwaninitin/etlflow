@@ -77,14 +77,14 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
   )
 
   val job: RIO[Audit, Unit] = for {
-    _ <- getTask1.execute
-    _ <- getTask2.execute
-    _ <- getTask3.execute.tapError(e => ZIO.succeed(logger.error(s"${e.getMessage}"))).ignore
-    _ <- postTask1.execute
-    _ <- postTask2.execute
-    _ <- postTask3.execute
-    _ <- putTask1.execute
-    _ <- putTask2.execute
+    _ <- getTask1.toZIO
+    _ <- getTask2.toZIO
+    _ <- getTask3.toZIO.tapError(e => ZIO.succeed(logger.error(s"${e.getMessage}"))).ignore
+    _ <- postTask1.toZIO
+    _ <- postTask2.toZIO
+    _ <- postTask3.toZIO
+    _ <- putTask1.toZIO
+    _ <- putTask2.toZIO
   } yield ()
 
   override def spec: Spec[TestEnvironment, Any] =

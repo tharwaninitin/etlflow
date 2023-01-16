@@ -31,6 +31,6 @@ object EtlJob {
     */
   def flatMap[R1, OP1, R2, OP2](currentJob: EtlJob[R1, OP1], fn: OP1 => EtlTask[R2, OP2]): EtlJob[R1 with R2, OP2] =
     new EtlJob[R1 with R2, OP2] {
-      override protected def process: RIO[R1 with R2 with Audit, OP2] = currentJob.process.flatMap(op => fn(op).execute)
+      override protected def process: RIO[R1 with R2 with Audit, OP2] = currentJob.process.flatMap(op => fn(op).toZIO)
     }
 }

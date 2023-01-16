@@ -49,7 +49,7 @@ object SendMailTestSuite extends ZIOSpecDefault {
           sender = Some(sys.env.getOrElse("SMTP_SENDER", "...")),
           recipientList = List(sys.env.getOrElse("SMTP_RECIPIENT", "...")),
           credentials = smtp
-        ).execute
+        ).toZIO
         assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getTaskProperties") {

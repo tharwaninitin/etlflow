@@ -25,7 +25,7 @@ object EtlJobParquetToOrc extends zio.ZIOAppDefault with ApplicationLogger {
     outputFilename = Some("ratings.orc")
   )
 
-  private val job = task1.execute.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noop)
+  private val job = task1.toZIO.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noop)
 
   override def run: Task[Unit] = job
 }

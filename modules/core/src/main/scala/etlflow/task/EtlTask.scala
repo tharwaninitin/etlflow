@@ -14,7 +14,7 @@ trait EtlTask[R, OP] extends ApplicationLogger {
   protected def process: RIO[R, OP]
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  final def execute: RIO[R with Audit, OP] = for {
+  final def toZIO: RIO[R with Audit, OP] = for {
     tri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
     _   <- Audit.logTaskStart(tri, name, getTaskProperties, taskType)
     op  <- process.tapError(ex => Audit.logTaskEnd(tri, name, getTaskProperties, taskType, Some(ex)))
@@ -42,7 +42,7 @@ object EtlTask {
     */
   def flatMap[R1, OP1, R2, OP2](currentTask: EtlTask[R1, OP1], fn: OP1 => EtlTask[R2, OP2]): EtlJob[R1 with R2, OP2] =
     new EtlJob[R1 with R2, OP2] {
-      override protected def process: RIO[R1 with R2 with Audit, OP2] = currentTask.execute.flatMap(op => fn(op).execute)
+      override protected def process: RIO[R1 with R2 with Audit, OP2] = currentTask.toZIO.flatMap(op => fn(op).toZIO)
     }
 
   /** Experimental flatMap API for EtlTask to convert to EtlJob, don't use in production

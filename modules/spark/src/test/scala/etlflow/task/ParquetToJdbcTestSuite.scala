@@ -21,19 +21,19 @@ object ParquetToJdbcTestSuite extends ApplicationLogger with SparkTestSuiteHelpe
     outputType = jdbc,
     outputLocation = tableName,
     outputSaveMode = SaveMode.Overwrite
-  ).execute
+  ).toZIO
 
   val task2: RIO[SparkEnv with Audit, Dataset[Rating]] = SparkReadTask[Rating, Rating](
     name = "LoadRatingsParquet",
     inputLocation = List(inputPathParquet),
     inputType = PARQUET
-  ).execute
+  ).toZIO
 
   def task3(query: String): RIO[SparkEnv with Audit, Dataset[RatingsMetrics]] = SparkReadTask[RatingsMetrics, RatingsMetrics](
     name = "LoadRatingsDB",
     inputLocation = List(query),
     inputType = jdbc
-  ).execute
+  ).toZIO
 
   val job: RIO[SparkEnv with Audit, Boolean] = for {
     _     <- task1

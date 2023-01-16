@@ -103,9 +103,9 @@ object BQtoGCStoGCSTestSuite extends SparkUDF with SparkTestSuiteHelper {
   )
 
   val job: RIO[SparkEnv with Audit, Unit] = for {
-    _ <- task1.execute
-    _ <- task21.execute.zipPar(task22.execute)
-    _ <- task3.execute
+    _ <- task1.toZIO
+    _ <- task21.toZIO.zipPar(task22.toZIO)
+    _ <- task3.toZIO
   } yield ()
 
   val spec: Spec[TestEnvironment with SparkEnv with Audit, Any] =

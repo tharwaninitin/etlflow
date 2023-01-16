@@ -22,16 +22,16 @@ object Job1GCP extends ZIOAppDefault with ApplicationLogger {
   private val dpEndpoint: String = sys.env("DP_ENDPOINT")
   private val dpBucket: String   = sys.env("DP_BUCKET")
 
-  private val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket)).execute
+  private val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket)).toZIO
 
-  private val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster).execute
+  private val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster).toZIO
 
   private val args      = List("1000")
   private val mainClass = "org.apache.spark.examples.SparkPi"
   private val libs      = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
   private val conf      = Map("spark.executor.memory" -> "1g", "spark.driver.memory" -> "1g")
 
-  private val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf).execute
+  private val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf).toZIO
 
   private val program = for {
     _ <- createCluster

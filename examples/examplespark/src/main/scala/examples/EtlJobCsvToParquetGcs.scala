@@ -69,8 +69,8 @@ object EtlJobCsvToParquetGcs extends zio.ZIOAppDefault with ApplicationLogger {
   private val task2 = SparkTask(name = "GenerateFilePaths", transformFunction = addFilePaths())
 
   private val job = for {
-    _ <- task1.execute
-    _ <- task2.execute
+    _ <- task1.toZIO
+    _ <- task2.toZIO
   } yield ()
 
   override def run: Task[Unit] = job.provideLayer(SparkLive.live(spark) ++ etlflow.audit.noop)

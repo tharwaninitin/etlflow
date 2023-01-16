@@ -37,9 +37,9 @@ object Job2 extends zio.ZIOAppDefault with ApplicationLogger {
   )
 
   private val job = for {
-    _ <- task1.execute
-    _ <- task2.execute
-    _ <- task3.execute
+    _ <- task1.toZIO
+    _ <- task2.toZIO
+    _ <- task3.toZIO
   } yield ()
 
   override def run: Task[Unit] = job.provideLayer(etlflow.audit.noop)

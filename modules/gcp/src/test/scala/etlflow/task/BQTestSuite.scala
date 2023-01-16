@@ -28,7 +28,7 @@ object BQTestSuite extends TestHelper {
         outputProject = sys.env.get("GCP_PROJECT_ID"),
         outputDataset = outputDataset,
         outputTable = outputTable
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute BQLoad CSV task") {
@@ -41,7 +41,7 @@ object BQTestSuite extends TestHelper {
         outputDataset = outputDataset,
         outputTable = outputTable,
         schema = schema
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute BQExport CSV task") {
@@ -53,7 +53,7 @@ object BQTestSuite extends TestHelper {
         destinationPath = bqExportDestPath,
         destinationFileName = Some("sample.csv"),
         destinationFormat = CSV(",")
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute BQExport PARQUET task") {
@@ -66,7 +66,7 @@ object BQTestSuite extends TestHelper {
         destinationFileName = Some("sample.parquet"),
         destinationFormat = PARQUET,
         destinationCompressionType = "snappy"
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute BQSensorTask") {
@@ -76,7 +76,7 @@ object BQTestSuite extends TestHelper {
         name = "PollTask",
         query = s"SELECT count(*) FROM `$bqDataset.$bqTable`",
         sensor
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }
   ) @@ TestAspect.sequential

@@ -21,7 +21,7 @@ object GenericTaskTestSuite extends ApplicationLogger {
         val task: RIO[Audit, Unit] = GenericTask(
           name = "ProcessData",
           function = processDataFail()
-        ).execute
+        ).toZIO
         assertZIO(task.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(
           equalTo("Failed in processing data")
         )
@@ -30,7 +30,7 @@ object GenericTaskTestSuite extends ApplicationLogger {
         val task: RIO[Audit, Unit] = GenericTask(
           name = "ProcessData",
           function = processData()
-        ).execute
+        ).toZIO
         assertZIO(task.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.succeed("ok")))(
           equalTo("ok")
         )

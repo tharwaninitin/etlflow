@@ -25,6 +25,6 @@ object SparkDeDupTestSuite extends TestSparkSession {
 
   val spec: Spec[SparkEnv with Audit, Any] =
     test("Spark Streaming Deduplication task should execute successfully")(
-      assertZIO(task.execute.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      assertZIO(task.toZIO.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     )
 }

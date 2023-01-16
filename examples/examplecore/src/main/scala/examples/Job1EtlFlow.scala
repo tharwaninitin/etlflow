@@ -13,5 +13,5 @@ object Job1EtlFlow extends JobApp {
     function = executeTask()
   )
 
-  def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.execute
+  def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.toZIO
 }

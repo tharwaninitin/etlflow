@@ -32,7 +32,7 @@ object Job3EtlFlow extends JobApp {
 
   def job(args: Chunk[String]): RIO[Audit, Unit] =
     for {
-      op <- task1.execute.provideSomeLayer[Audit](etlflow.db.DB.live(cred))
-      _  <- task2(op).execute
+      op <- task1.toZIO.provideSomeLayer[Audit](etlflow.db.DB.live(cred))
+      _  <- task2(op).toZIO
     } yield ()
 }

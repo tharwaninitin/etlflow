@@ -22,10 +22,10 @@ object Job1K8S extends ZIOAppDefault with ApplicationLogger {
       image = "busybox:1.28",
       command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster")
       // volumeMounts = List("secrets" -> "/etc/key")
-    ).execute
-    _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).execute
-    _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).execute
-    _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).execute
+    ).toZIO
+    _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).toZIO
+    _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).toZIO
+    _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).toZIO
   } yield ()
 
   override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.live() ++ audit.noop)

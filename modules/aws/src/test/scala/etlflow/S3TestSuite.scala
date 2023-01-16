@@ -27,7 +27,7 @@ object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger
         key = s3Path,
         file = localFile,
         overwrite = true
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute S3Put task overwrite false") {
@@ -37,7 +37,7 @@ object S3TestSuite extends ZIOSpecDefault with TestHelper with ApplicationLogger
         key = s3Path,
         file = localFile,
         overwrite = false
-      ).execute
+      ).toZIO
       assertZIO(task.foldZIO(ex => ZIO.succeed(ex.getMessage), _ => ZIO.fail("ok")))(
         equalTo("File at path s3://test/temp/ratings.csv already exist")
       )

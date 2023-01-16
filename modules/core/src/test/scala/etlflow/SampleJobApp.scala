@@ -38,9 +38,9 @@ object SampleJobApp extends JobApp {
   )
 
   private val job = for {
-    _ <- task1.execute
-    _ <- task2.execute
-    _ <- task3.execute
+    _ <- task1.toZIO
+    _ <- task2.toZIO
+    _ <- task3.toZIO
   } yield ()
 
   override def job(args: Chunk[String]): RIO[Audit, Unit] = job

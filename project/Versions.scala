@@ -5,19 +5,19 @@ object Versions {
   val AllScalaVersions = List(Scala212, Scala213, Scala3)
   val Scala2Versions   = List(Scala212, Scala213)
 
-  val ZioVersion                = "2.0.5"
+  val ZioVersion                = "2.0.6"
   val ZioLogVersion             = "2.1.7"
   val ZioJsonVersion            = "0.4.2"
   val ZioReactiveStreamsVersion = "2.0.0"
 
   val ScalaCollectionCompatVersion = "2.9.0"
 
-  val SttpVersion          = "3.8.5"
+  val SttpVersion          = "3.8.8"
   val AwsS3Version         = "2.17.295"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
   val ScalaLikeJdbcVersion = "4.0.0"
-  val Gcp4ZioVersion       = "1.4.0"
+  val Gcp4ZioVersion       = "1.4.1"
   val K8SVersion           = "17.0.0"
 
   val SparkVersion     = "3.3.1"

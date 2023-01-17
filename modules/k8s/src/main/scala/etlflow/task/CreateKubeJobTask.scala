@@ -19,8 +19,8 @@ import zio.{RIO, ZIO}
   * @param envs
   *   Environment Variables to set for the container. Optional
   * @param volumeMounts
-  *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second the
-  *   path to mount inside the container. Optional
+  *   Volumes to Mount into the Container. Optional. Map, with the first element identifying the path to mount inside the
+  *   container, and the second the volume name. Optional
   * @param command
   *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
   * @param podRestartPolicy
@@ -55,7 +55,7 @@ case class CreateKubeJobTask(
     image: String,
     imagePullPolicy: String = "IfNotPresent",
     envs: Map[String, String] = Map.empty[String, String],
-    volumeMounts: List[(String, String)] = List.empty[(String, String)],
+    volumeMounts: Map[String, String] = Map.empty[String, String],
     podRestartPolicy: String = "OnFailure",
     command: List[String] = Nil,
     namespace: String = "default",

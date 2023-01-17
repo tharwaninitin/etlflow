@@ -21,8 +21,8 @@ trait K8S {
     * @param envs
     *   Environment Variables to set for the container. Optional
     * @param volumeMounts
-    *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second
-    *   the path to mount inside the container. Optional
+    *   Volumes to Mount into the Container. Optional. Map, with the first element identifying the path to mount inside the
+    *   container, and the second the volume name. Optional
     * @param command
     *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
     * @param podRestartPolicy
@@ -58,7 +58,7 @@ trait K8S {
       namespace: String = "default",
       imagePullPolicy: String = "IfNotPresent",
       envs: Map[String, String] = Map.empty[String, String],
-      volumeMounts: List[(String, String)] = Nil,
+      volumeMounts: Map[String, String] = Map.empty[String, String],
       command: List[String] = Nil,
       podRestartPolicy: String = "Never",
       apiVersion: String = "batch/v1",
@@ -159,18 +159,6 @@ trait K8S {
 
 object K8S {
 
-  /** Method: batchClient - Provides layer to execute K8S Job APIs
-    * @param httpConnectionTimeout
-    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
-    * @return
-    *   TaskLayer[Jobs]
-    */
-  def live(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
-    ZIO
-      .attempt((K8SClient.batchClient(httpConnectionTimeout), K8SClient.coreClient(httpConnectionTimeout)))
-      .map { case (batch, core) => K8SImpl(batch, core) }
-  }
-
   // noinspection ScalaStyle
   def createJob(
       name: String,
@@ -179,7 +167,7 @@ object K8S {
       namespace: String = "default",
       imagePullPolicy: String = "IfNotPresent",
       envs: Map[String, String] = Map.empty[String, String],
-      volumeMounts: List[(String, String)] = Nil,
+      volumeMounts: Map[String, String] = Map.empty[String, String],
       command: List[String] = Nil,
       podRestartPolicy: String = "Never",
       apiVersion: String = "batch/v1",
@@ -241,4 +229,18 @@ object K8S {
 
   def getPodLogs(jobName: String, namespace: String, chunkSize: Int = 4096): ZStream[K8S, Throwable, Byte] =
     ZStream.environmentWithStream[K8S](_.get.getPodLogs(jobName, namespace, chunkSize))
+
+  /** Method: live - Provides layer to execute K8S Job APIs
+    * @param httpConnectionTimeout
+    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
+    * @return
+    *   TaskLayer[Jobs]
+    */
+  def live(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
+    ZIO
+      .attempt {
+        K8SClient.setConfig(httpConnectionTimeout)
+        K8SImpl(K8SClient.batchClient, K8SClient.coreClient)
+      }
+  }
 }

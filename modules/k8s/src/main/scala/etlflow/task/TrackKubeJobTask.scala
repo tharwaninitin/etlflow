@@ -20,7 +20,7 @@ case class TrackKubeJobTask(name: String, jobName: String, namespace: String = "
 
   override protected def process: RIO[K8S, JobStatus] = for {
     _ <- ZIO.logInfo("#" * 50)
-    _ <- ZIO.logInfo(s"Polling $jobName every $pollingFrequencyInMillis milliseconds")
+    _ <- ZIO.logInfo(s"Polling job $jobName every $pollingFrequencyInMillis milliseconds")
     status <- K8S
       .poll(jobName, namespace, pollingFrequencyInMillis)
       .tapBoth(

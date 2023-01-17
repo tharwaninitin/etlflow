@@ -2,6 +2,7 @@ package etlflow.k8s
 
 import etlflow.k8s.DeletionPolicy._
 import etlflow.k8s.JobStatus._
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
 import io.kubernetes.client.PodLogs
@@ -10,18 +11,11 @@ import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
 import zio.stream.{ZPipeline, ZStream}
 import zio.{Task, ZIO}
-
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
-@SuppressWarnings(
-  Array(
-    "org.wartremover.warts.AutoUnboxing",
-    "org.wartremover.warts.Null",
-    "org.wartremover.warts.ToString"
-  )
-)
-case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
+@SuppressWarnings(Array("org.wartremover.warts.AutoUnboxing", "org.wartremover.warts.Null", "org.wartremover.warts.ToString"))
+case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with ApplicationLogger {
   private val secretKey = "secret"
 
   /** Create a Job in a new Container for running an image.
@@ -37,8 +31,8 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     * @param envs
     *   Environment Variables to set for the container. Optional
     * @param volumeMounts
-    *   Volumes to Mount into the Container. Optional. Tuple, with the first element identifying the volume name, and the second
-    *   the path to mount inside the container. Optional
+    *   Volumes to Mount into the Container. Optional. Map, with the first element identifying the path to mount inside the
+    *   container, and the second the volume name. Optional
     * @param command
     *   Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. Optional
     * @param podRestartPolicy
@@ -71,7 +65,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       namespace: String,
       imagePullPolicy: String,
       envs: Map[String, String],
-      volumeMounts: List[(String, String)],
+      volumeMounts: Map[String, String],
       command: List[String],
       podRestartPolicy: String,
       apiVersion: String,
@@ -163,6 +157,15 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       case exception               => ZIO.logError(exception.getMessage) *> ZIO.fail(exception)
     }
 
+  /** Poll the job for completion
+    * @param name
+    *   Job name
+    * @param namespace
+    *   Namespace, optional, defaulted to `default`
+    * @param pollingFrequencyInMillis
+    *   The time in Milliseconds to wait between polls. Optional, defaults to 10000
+    * @return
+    */
   override def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus] = (
     for {
       status <- getJobStatus(name, namespace, debug = true)
@@ -179,17 +182,12 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     * @return
     */
-  @SuppressWarnings(
-    Array(
-      "org.wartremover.warts.MutableDataStructures"
-    )
-  )
+  @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
   override def getJobStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
-    _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
     jobStatus <- getJob(name, namespace, debug).map(_.getStatus)
     pod       <- getJobPod(name, namespace)
     podStatus <- ZIO.attempt(core.readNamespacedPodStatus(pod.getMetadata.getName, namespace, "false").getStatus)
-    status = s"${pod.getMetadata.getName}: ${podStatus.getPhase} [" +:
+    status = s"Pod ${pod.getMetadata.getName}: ${podStatus.getPhase} [" +:
       podStatus.getConditions.asScala.map { condition =>
         val explanations =
           List(Option(condition.getReason).fold("")("Reason: " + _), Option(condition.getMessage).fold("")("Message: " + _))
@@ -237,6 +235,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       pod <- ZStream.fromZIO(getJobPod(jobName, namespace))
       logs   = new PodLogs()
       stream = logs.streamNamespacedPodLog(pod)
+      _      = logger.info(s"Streaming logs from pod ${pod.getMetadata.getName} for job $jobName")
       logByte <- ZStream.fromInputStream(stream, chunkSize)
     } yield logByte
 
@@ -255,7 +254,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       .getItems
       .asScala
     pods.find(p => p.getMetadata.getName.startsWith(jobName)) match {
-      case Some(value) => value
+      case Some(pod) => pod
       case None =>
         throw new Exception(
           s"Cannot find $jobName in Pods ${pods.map(_.getMetadata.getName).mkString(", ")} in $namespace namespace"
@@ -269,7 +268,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       image: String,
       imagePullPolicy: String,
       envs: Map[String, String],
-      volumeMounts: List[(String, String)],
+      volumeMounts: Map[String, String],
       command: List[String],
       podRestartPolicy: String,
       apiVersion: String
@@ -278,11 +277,11 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     val containerItem = new V1Container().name(container).image(image).imagePullPolicy(imagePullPolicy)
     command.foreach(containerItem.addCommandItem)
     envs.foreach { case (key, value) => containerItem.addEnvItem(new V1EnvVar().name(key).value(value)) }
-    volumeMounts.zipWithIndex.foreach { case ((_, destination), i) =>
+    volumeMounts.zipWithIndex.foreach { case ((path, _), i) =>
       containerItem.addVolumeMountsItem(
         new V1VolumeMount()
           .name(s"$secretKey-$i")
-          .mountPath(destination)
+          .mountPath(path)
           .readOnly(true)
       )
     }
@@ -290,13 +289,13 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     val spec = new V1PodSpec()
       .restartPolicy(podRestartPolicy)
       .addContainersItem(containerItem)
-    volumeMounts.zipWithIndex.foreach { case ((source, _), i) =>
+    volumeMounts.zipWithIndex.foreach { case ((_, secretName), i) =>
       spec.addVolumesItem(
         new V1Volume()
           .name(s"$secretKey-$i")
           .secret(
             new V1SecretVolumeSource()
-              .secretName(source)
+              .secretName(secretName)
               .optional(false)
           )
       )

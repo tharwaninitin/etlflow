@@ -14,7 +14,7 @@ object CreateKubeJobTestSuite {
       container = containerName,
       command = List("/bin/sh", "-c", "date; echo Hello from the Kubernetes cluster"),
       image = "alpine:latest",
-      volumeMounts = List("svc-wmt-cill-dev" -> "/etc/svc-wmt-cill-dev")
+      volumeMounts = Map("/etc/svc-wmt-cill-dev" -> "svc-wmt-cill-dev")
     ).toZIO
     assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
   }

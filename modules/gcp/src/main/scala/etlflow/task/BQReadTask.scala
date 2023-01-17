@@ -9,7 +9,7 @@ case class BQReadTask[T](name: String, query: String)(fn: FieldValueList => T) e
     _   <- ZIO.logInfo("#" * 100)
     _   <- ZIO.logInfo(s"Starting BQ Read Task: $name")
     _   <- ZIO.logInfo(s"Query: $query")
-    out <- BQ.getData[T](query)(fn)
+    out <- BQ.fetchResults[T](query)(fn)
   } yield out
   override def getTaskProperties: Map[String, String] = Map("query" -> query)
 }

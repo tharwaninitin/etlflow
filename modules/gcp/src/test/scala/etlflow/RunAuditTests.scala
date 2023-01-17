@@ -1,17 +1,19 @@
 package etlflow
 
 import etlflow.audit.CreateBQ.program
-import zio.ZIO
+import etlflow.log.ApplicationLogger
+import gcp4zio.bq.BQ
 import zio.test.Assertion.equalTo
 import zio.test._
+import zio.{ULayer, ZIO}
 
-object RunAuditTests extends ZIOSpecDefault with TestHelper {
+object RunAuditTests extends ZIOSpecDefault with ApplicationLogger {
 
-  private val jri = "a27a7415-57b2-4b53-8f9b-5254e847a3011"
+  override val bootstrap: ULayer[TestEnvironment] = testEnvironment ++ zioSlf4jLogger
 
-  private val env = audit.BQ(jri)
+  private val env = audit.BQ() ++ BQ.live()
 
-  val initBQ: Spec[Any, Any] =
+  val initBQ: Spec[BQ, Any] =
     suite("InitBQTest")(
       test("InitBQTest") {
         assertZIO(program.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("Done")))(equalTo("Done"))

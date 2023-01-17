@@ -40,7 +40,7 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
     } yield ()
   }
 
-  val program: Task[Unit] = execute(true).provideLayer(gcp4zio.bq.BQ.live())
+  val program: RIO[gcp4zio.bq.BQ, Unit] = execute(true)
 
-  override def run: Task[Unit] = program
+  override def run: Task[Unit] = program.provide(gcp4zio.bq.BQ.live())
 }

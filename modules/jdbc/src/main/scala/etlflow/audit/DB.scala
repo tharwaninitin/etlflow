@@ -80,6 +80,8 @@ object DB extends ApplicationLogger {
 
     override type RS = WrappedResultSet
     override def fetchResults[T](query: String)(fn: WrappedResultSet => T): Task[Iterable[T]] = client.fetchResults(query)(fn)
+
+    override def executeQuery(query: String): Task[Unit] = client.executeQuery(query)
   }
 
   private[etlflow] def layer(jobRunId: String, fetchSize: Option[Int]): ZLayer[String, Throwable, Audit] =

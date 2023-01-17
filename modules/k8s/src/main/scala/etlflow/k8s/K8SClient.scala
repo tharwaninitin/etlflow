@@ -12,7 +12,8 @@ object K8SClient extends ApplicationLogger {
     *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
     */
   def setConfig(httpConnectionTimeout: Int): Unit = {
-    logger.info(s"HTTP Connection timeout is set to $httpConnectionTimeout")
+    logger.info("Connecting to K8S")
+    logger.info(s"Setting K8S HTTP Connection timeout to $httpConnectionTimeout")
     Configuration.setDefaultApiClient(Config.defaultClient.setConnectTimeout(httpConnectionTimeout))
   }
 

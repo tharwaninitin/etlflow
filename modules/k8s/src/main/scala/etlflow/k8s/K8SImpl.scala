@@ -2,6 +2,7 @@ package etlflow.k8s
 
 import etlflow.k8s.DeletionPolicy._
 import etlflow.k8s.JobStatus._
+import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
 import io.kubernetes.client.PodLogs
@@ -13,14 +14,8 @@ import zio.{Task, ZIO}
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
-@SuppressWarnings(
-  Array(
-    "org.wartremover.warts.AutoUnboxing",
-    "org.wartremover.warts.Null",
-    "org.wartremover.warts.ToString"
-  )
-)
-case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
+@SuppressWarnings(Array("org.wartremover.warts.AutoUnboxing", "org.wartremover.warts.Null", "org.wartremover.warts.ToString"))
+case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with ApplicationLogger {
   private val secretKey = "secret"
 
   /** Create a Job in a new Container for running an image.
@@ -162,6 +157,15 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       case exception               => ZIO.logError(exception.getMessage) *> ZIO.fail(exception)
     }
 
+  /** Poll the job for completion
+    * @param name
+    *   Job name
+    * @param namespace
+    *   Namespace, optional, defaulted to `default`
+    * @param pollingFrequencyInMillis
+    *   The time in Milliseconds to wait between polls. Optional, defaults to 10000
+    * @return
+    */
   override def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus] = (
     for {
       status <- getJobStatus(name, namespace, debug = true)
@@ -178,17 +182,12 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     * @return
     */
-  @SuppressWarnings(
-    Array(
-      "org.wartremover.warts.MutableDataStructures"
-    )
-  )
+  @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
   override def getJobStatus(name: String, namespace: String, debug: Boolean): Task[JobStatus] = for {
-    _         <- ZIO.logInfo(s"Getting $name's Status'").when(debug)
     jobStatus <- getJob(name, namespace, debug).map(_.getStatus)
     pod       <- getJobPod(name, namespace)
     podStatus <- ZIO.attempt(core.readNamespacedPodStatus(pod.getMetadata.getName, namespace, "false").getStatus)
-    status = s"${pod.getMetadata.getName}: ${podStatus.getPhase} [" +:
+    status = s"Pod ${pod.getMetadata.getName}: ${podStatus.getPhase} [" +:
       podStatus.getConditions.asScala.map { condition =>
         val explanations =
           List(Option(condition.getReason).fold("")("Reason: " + _), Option(condition.getMessage).fold("")("Message: " + _))
@@ -236,6 +235,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       pod <- ZStream.fromZIO(getJobPod(jobName, namespace))
       logs   = new PodLogs()
       stream = logs.streamNamespacedPodLog(pod)
+      _      = logger.info(s"Streaming logs from pod ${pod.getMetadata.getName} for job $jobName")
       logByte <- ZStream.fromInputStream(stream, chunkSize)
     } yield logByte
 
@@ -254,7 +254,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S {
       .getItems
       .asScala
     pods.find(p => p.getMetadata.getName.startsWith(jobName)) match {
-      case Some(value) => value
+      case Some(pod) => pod
       case None =>
         throw new Exception(
           s"Cannot find $jobName in Pods ${pods.map(_.getMetadata.getName).mkString(", ")} in $namespace namespace"

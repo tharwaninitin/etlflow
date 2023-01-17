@@ -18,7 +18,6 @@ case class GetKubeJobLogTask(name: String, jobName: String, namespace: String = 
 
   override protected def process: RIO[K8S, Unit] = for {
     _ <- ZIO.logInfo("#" * 50)
-    _ <- ZIO.logInfo(s"Logging Job $name")
     _ <- K8S
       .getPodLogs(jobName, namespace)
       .via(ZPipeline.utf8Decode >>> ZPipeline.splitLines)

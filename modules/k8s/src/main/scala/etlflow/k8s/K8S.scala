@@ -159,20 +159,6 @@ trait K8S {
 
 object K8S {
 
-  /** Method: batchClient - Provides layer to execute K8S Job APIs
-    * @param httpConnectionTimeout
-    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
-    * @return
-    *   TaskLayer[Jobs]
-    */
-  def live(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
-    ZIO
-      .attempt {
-        K8SClient.setConfig(httpConnectionTimeout)
-        K8SImpl(K8SClient.batchClient, K8SClient.coreClient)
-      }
-  }
-
   // noinspection ScalaStyle
   def createJob(
       name: String,
@@ -243,4 +229,18 @@ object K8S {
 
   def getPodLogs(jobName: String, namespace: String, chunkSize: Int = 4096): ZStream[K8S, Throwable, Byte] =
     ZStream.environmentWithStream[K8S](_.get.getPodLogs(jobName, namespace, chunkSize))
+
+  /** Method: live - Provides layer to execute K8S Job APIs
+    * @param httpConnectionTimeout
+    *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
+    * @return
+    *   TaskLayer[Jobs]
+    */
+  def live(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
+    ZIO
+      .attempt {
+        K8SClient.setConfig(httpConnectionTimeout)
+        K8SImpl(K8SClient.batchClient, K8SClient.coreClient)
+      }
+  }
 }

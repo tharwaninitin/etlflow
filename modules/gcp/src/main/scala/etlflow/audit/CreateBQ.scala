@@ -5,7 +5,7 @@ import zio.{RIO, Task}
 
 object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
 
-  def execute(reset: Boolean = false): RIO[gcp4zio.bq.BQ, Unit] = {
+  def execute(reset: Boolean = false): RIO[Audit, Unit] = {
     def createTable(name: String): String =
       if (reset)
         s"""
@@ -35,12 +35,12 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
                      |);""".stripMargin
 
     for {
-      _ <- gcp4zio.bq.BQ.executeQuery(jobrun).as(logger.info(jobrun))
-      _ <- gcp4zio.bq.BQ.executeQuery(taskrun).as(logger.info(taskrun))
+      _ <- Audit.executeQuery(jobrun).as(logger.info(jobrun))
+      _ <- Audit.executeQuery(taskrun).as(logger.info(taskrun))
     } yield ()
   }
 
-  val program: RIO[gcp4zio.bq.BQ, Unit] = execute(true)
+  val program: RIO[Audit, Unit] = execute(true)
 
-  override def run: Task[Unit] = program.provide(gcp4zio.bq.BQ.live())
+  override def run: Task[Unit] = program.provide(BQ())
 }

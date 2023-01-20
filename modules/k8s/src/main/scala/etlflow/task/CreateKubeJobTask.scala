@@ -10,10 +10,10 @@ import zio.{RIO, ZIO}
   *   Name of this Task
   * @param jobName
   *   Name of the Job
-  * @param container
-  *   Name of the Container
   * @param image
   *   image descriptor
+  * @param container
+  *   Name of the Container, Optional, Defaults to Job Name
   * @param namespace
   *   namespace, optional. Defaults to 'default'
   * @param envs
@@ -51,41 +51,42 @@ import zio.{RIO, ZIO}
 case class CreateKubeJobTask(
     name: String,
     jobName: String,
-    container: String,
     image: String,
-    imagePullPolicy: String = "IfNotPresent",
-    envs: Map[String, String] = Map.empty[String, String],
-    volumeMounts: Map[String, String] = Map.empty[String, String],
-    podRestartPolicy: String = "OnFailure",
-    command: List[String] = Nil,
-    namespace: String = "default",
-    apiVersion: String = "batch/v1",
-    debug: Boolean = false,
-    awaitCompletion: Boolean = false,
-    showJobLogs: Boolean = false,
-    pollingFrequencyInMillis: Long = 10000,
-    deletionPolicy: DeletionPolicy = DeletionPolicy.Never,
-    deletionGraceInSeconds: Int = 0
+    container: Option[String] = None,
+    imagePullPolicy: Option[String] = None,
+    envs: Option[Map[String, String]] = None,
+    volumeMounts: Option[Map[String, String]] = None,
+    podRestartPolicy: Option[String] = None,
+    command: Option[List[String]] = None,
+    namespace: Option[String] = None,
+    apiVersion: Option[String] = None,
+    debug: Option[Boolean] = None,
+    awaitCompletion: Option[Boolean] = None,
+    showJobLogs: Option[Boolean] = None,
+    pollingFrequencyInMillis: Option[Long] = None,
+    deletionPolicy: Option[String] = None,
+    deletionGraceInSeconds: Option[Int] = None
 ) extends EtlTask[K8S, V1Job] {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   override def getTaskProperties: Map[String, String] = Map(
     "name"                     -> name,
     "jobName"                  -> jobName,
-    "container"                -> container,
+    "container"                -> container.getOrElse(jobName),
     "image"                    -> image,
-    "imagePullPolicy"          -> imagePullPolicy,
-    "envs"                     -> envs.toString,
-    "volumeMounts"             -> volumeMounts.mkString(", "),
-    "podRestartPolicy"         -> podRestartPolicy,
-    "command"                  -> command.mkString(" "),
-    "namespace"                -> namespace,
-    "apiVersion"               -> apiVersion,
-    "debug"                    -> debug.toString,
-    "awaitCompletion"          -> awaitCompletion.toString,
-    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.toString,
-    "deletionPolicy"           -> deletionPolicy.toString,
-    "deletionGraceInSeconds"   -> deletionGraceInSeconds.toString
+    "imagePullPolicy"          -> imagePullPolicy.getOrElse("IfNotPresent"),
+    "envs"                     -> envs.getOrElse(Map.empty[String, String]).toString,
+    "volumeMounts"             -> volumeMounts.getOrElse(Map.empty[String, String]).mkString(", "),
+    "podRestartPolicy"         -> podRestartPolicy.getOrElse("OnFailure"),
+    "command"                  -> command.getOrElse(Nil).mkString(" "),
+    "namespace"                -> namespace.getOrElse("default"),
+    "apiVersion"               -> apiVersion.getOrElse("batch/v1"),
+    "debug"                    -> debug.getOrElse(false).toString,
+    "awaitCompletion"          -> awaitCompletion.getOrElse(false).toString,
+    "showJobLogs"              -> showJobLogs.getOrElse(false).toString,
+    "pollingFrequencyInMillis" -> pollingFrequencyInMillis.getOrElse(10000L).toString,
+    "deletionPolicy"           -> deletionPolicy.getOrElse("Never"),
+    "deletionGraceInSeconds"   -> deletionGraceInSeconds.getOrElse(0).toString
   )
 
   override protected def process: RIO[K8S, V1Job] = for {
@@ -95,21 +96,21 @@ case class CreateKubeJobTask(
     job <- K8S
       .createJob(
         jobName,
-        container,
+        container.getOrElse(jobName),
         image,
-        namespace,
-        imagePullPolicy,
-        envs,
-        volumeMounts,
-        command,
-        podRestartPolicy,
-        apiVersion,
-        debug,
-        awaitCompletion,
-        showJobLogs,
-        pollingFrequencyInMillis,
-        deletionPolicy,
-        deletionGraceInSeconds
+        namespace.getOrElse("default"),
+        imagePullPolicy.getOrElse("IfNotPresent"),
+        envs.getOrElse(Map.empty[String, String]),
+        volumeMounts.getOrElse(Map.empty[String, String]),
+        command.getOrElse(Nil),
+        podRestartPolicy.getOrElse("OnFailure"),
+        apiVersion.getOrElse("batch/v1"),
+        debug.getOrElse(false),
+        awaitCompletion.getOrElse(false),
+        showJobLogs.getOrElse(false),
+        pollingFrequencyInMillis.getOrElse(10000),
+        DeletionPolicy.from(deletionPolicy.getOrElse("Never")),
+        deletionGraceInSeconds.getOrElse(0)
       )
       .tapBoth(
         e => ZIO.logError(e.getMessage),

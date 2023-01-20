@@ -6,27 +6,6 @@ import zio.{Task, ULayer, ZIO, ZLayer}
 
 package object k8s {
 
-  sealed trait DeletionPolicy {
-    override def toString: String = getClass.getSimpleName.init // init drop the last $
-  }
-
-  sealed trait JobStatus {
-    override def toString: String = getClass.getSimpleName.init // init drop the last $
-  }
-
-  object DeletionPolicy {
-    case object OnComplete extends DeletionPolicy
-    case object OnSuccess  extends DeletionPolicy
-    case object OnFailure  extends DeletionPolicy
-    case object Never      extends DeletionPolicy
-  }
-
-  object JobStatus {
-    case object Running extends JobStatus
-    case object Succeed extends JobStatus
-    case object Failure extends JobStatus
-  }
-
   val noop: ULayer[K8S] = ZLayer.succeed(new K8S {
     override def createJob(
         name: String,
@@ -59,4 +38,32 @@ package object k8s {
     override def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus] =
       ZIO.fail(new RuntimeException("Got noop K8S layer, use live layer for actual implementation"))
   })
+
+  sealed trait DeletionPolicy {
+    override def toString: String = getClass.getSimpleName.init // init drop the last $
+  }
+
+  sealed trait JobStatus {
+    override def toString: String = getClass.getSimpleName.init // init drop the last $
+  }
+
+  object DeletionPolicy {
+
+    def from(deletionPolicy: String): DeletionPolicy = deletionPolicy match {
+      case "OnComplete" => OnComplete
+      case "OnSuccess"  => OnSuccess
+      case "OnFailure"  => OnFailure
+      case "Never"      => Never
+    }
+    case object OnComplete extends DeletionPolicy
+    case object OnSuccess  extends DeletionPolicy
+    case object OnFailure  extends DeletionPolicy
+    case object Never      extends DeletionPolicy
+  }
+
+  object JobStatus {
+    case object Running extends JobStatus
+    case object Succeed extends JobStatus
+    case object Failure extends JobStatus
+  }
 }

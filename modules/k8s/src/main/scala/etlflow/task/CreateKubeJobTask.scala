@@ -2,6 +2,8 @@ package etlflow.task
 
 import etlflow.k8s._
 import io.kubernetes.client.openapi.models.V1Job
+import zio.config.ConfigDescriptor
+import zio.config.ConfigDescriptor._
 import zio.{RIO, ZIO}
 
 /** Create a Job in a new Container for running an image.
@@ -117,4 +119,26 @@ case class CreateKubeJobTask(
         _ => ZIO.logInfo(s"K8S Job $jobName submitted successfully") *> ZIO.logInfo("#" * 50)
       )
   } yield job
+}
+
+object CreateKubeJobTask {
+  val config: ConfigDescriptor[CreateKubeJobTask] =
+    string("name")
+      .zip(string("jobName"))
+      .zip(string("image"))
+      .zip(string("container").optional)
+      .zip(string("imagePullPolicy").optional)
+      .zip(map("envs")(string).optional)
+      .zip(map("volumeMounts")(string).optional)
+      .zip(string("podRestartPolicy").optional)
+      .zip(list("command")(string).optional)
+      .zip(string("namespace").optional)
+      .zip(string("apiVersion").optional)
+      .zip(boolean("debug").optional)
+      .zip(boolean("awaitCompletion").optional)
+      .zip(boolean("showJobLogs").optional)
+      .zip(long("pollingFrequencyInMillis").optional)
+      .zip(string("deletionPolicy").optional)
+      .zip(int("deletionGraceInSeconds").optional)
+      .to[CreateKubeJobTask]
 }

@@ -14,7 +14,7 @@ import zio.{RIO, ZIO}
   *   Namespace, optional. defaults to 'default'
   * @return
   */
-case class GetKubeJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[K8S, Unit] {
+case class K8SJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[K8S, Unit] {
 
   override def getTaskProperties: Map[String, String] = Map(
     "name"      -> name,

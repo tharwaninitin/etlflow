@@ -2,8 +2,8 @@ package etlflow.task
 
 import etlflow.k8s._
 import io.kubernetes.client.openapi.models.V1Job
-import zio.config.ConfigDescriptor
-import zio.config.ConfigDescriptor._
+import zio.config._
+import ConfigDescriptor._
 import zio.{RIO, ZIO}
 
 /** Create a Job in a new Container for running an image.
@@ -50,7 +50,7 @@ import zio.{RIO, ZIO}
   *   The duration in seconds before the Job should be deleted. Value must be non-negative integer. The value zero indicates
   *   delete immediately. Optional, defaults to 0
   */
-case class CreateKubeJobTask(
+case class K8SJobTask(
     name: String,
     jobName: String,
     image: String,
@@ -121,8 +121,8 @@ case class CreateKubeJobTask(
   } yield job
 }
 
-object CreateKubeJobTask {
-  val config: ConfigDescriptor[CreateKubeJobTask] =
+object K8SJobTask {
+  val config: ConfigDescriptor[K8SJobTask] =
     string("name")
       .zip(string("jobName"))
       .zip(string("image"))
@@ -140,5 +140,5 @@ object CreateKubeJobTask {
       .zip(long("pollingFrequencyInMillis").optional)
       .zip(string("deletionPolicy").optional)
       .zip(int("deletionGraceInSeconds").optional)
-      .to[CreateKubeJobTask]
+      .to[K8SJobTask]
 }

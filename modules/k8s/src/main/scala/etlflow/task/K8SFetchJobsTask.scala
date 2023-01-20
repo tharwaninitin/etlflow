@@ -12,7 +12,7 @@ import zio.{RIO, ZIO}
   * @return
   *   A list of Job names
   */
-case class GetKubeJobsTask(name: String, namespace: String = "default") extends EtlTask[K8S, List[String]] {
+case class K8SFetchJobsTask(name: String, namespace: String = "default") extends EtlTask[K8S, List[String]] {
 
   override def process: RIO[K8S, List[String]] = for {
     _ <- ZIO.logInfo("#" * 50)

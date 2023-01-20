@@ -15,7 +15,7 @@ import zio.{RIO, ZIO}
   *   The time in Milliseconds to wait between polls. Optional, defaults to 10000
   * @return
   */
-case class TrackKubeJobTask(name: String, jobName: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000)
+case class K8STrackJobTask(name: String, jobName: String, namespace: String = "default", pollingFrequencyInMillis: Long = 10000)
     extends EtlTask[K8S, JobStatus] {
 
   override protected def process: RIO[K8S, JobStatus] = for {

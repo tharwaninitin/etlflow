@@ -17,7 +17,7 @@ import zio.{RIO, ZIO}
   * @param debug
   *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
   */
-case class DeleteKubeJobTask(
+case class K8SDeleteJobTask(
     name: String,
     jobName: String,
     namespace: String = "default",

@@ -11,9 +11,9 @@ object RunTests extends ZIOSpecDefault {
   private val env: TaskLayer[K8S with Audit] = K8S.live() ++ audit.noop
 
   override def spec: Spec[TestEnvironment, Any] = (suite("Kube Tasks")(
-    CreateKubeJobTestSuite.spec,
-    GetKubeJobTestSuite.spec,
-    DeleteKubeJobTestSuite.spec,
-    GetKubeJobTestSuite.failing
+    K8SJobTestSuite.spec,
+    K8SGetJobTestSuite.spec,
+    K8SDeleteJobTestSuite.spec,
+    K8SGetJobTestSuite.failing
   ) @@ TestAspect.sequential).provide(env.orDie)
 }

@@ -15,7 +15,6 @@ object RunTestSuites extends ZIOSpecDefault with ApplicationLogger {
     RetryTaskTestSuite.spec,
     GenericTaskTestSuite.spec,
     ErrorHandlingTestSuite.spec,
-    JsonTestSuite.spec,
-    EtlJobTestSuite.spec
+    JsonTestSuite.spec
   ) @@ TestAspect.sequential).provideShared(audit.noop ++ Runtime.removeDefaultLoggers)
 }

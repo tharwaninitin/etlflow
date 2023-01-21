@@ -79,9 +79,11 @@ object BQ {
       .tapError(ex => ZIO.logError(ex.getMessage))
 
     override type RS = FieldValueList
-    override def fetchResults[T](query: String)(fn: FieldValueList => T): Task[Iterable[T]] = client.fetchResults(query)(fn)
+    override def fetchResults[T](query: String)(fn: FieldValueList => T): Task[Iterable[T]] =
+      client.fetchResults(query)(fn).tapError(ex => ZIO.logError(ex.getMessage))
 
-    override def executeQuery(query: String): Task[Unit] = client.executeQuery(query).unit
+    override def executeQuery(query: String): Task[Unit] =
+      client.executeQuery(query).tapError(ex => ZIO.logError(ex.getMessage)).unit
   }
 
   def apply(jri: String = UUID.randomUUID.toString, credentials: Option[String] = None): TaskLayer[Audit] =

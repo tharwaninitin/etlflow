@@ -4,7 +4,7 @@ import etlflow.audit.Audit
 import etlflow.log.ApplicationLogger
 import zio.{RIO, ZIO}
 
-trait EtlTask[-R, OP] extends ApplicationLogger {
+trait EtlTask[-R, +OP] extends ApplicationLogger {
   val name: String
   val taskType: String = this.getClass.getSimpleName
 

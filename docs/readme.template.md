@@ -5,7 +5,17 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
-**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different tasks, jobs on GCP and AWS.
+**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different **auditable** tasks on GCP and AWS, below are some salient features of this library.
+
+- **High-performance**. Build scalable applications with 100x the performance of Scala's `Future`.
+- **Fibers**. Built on non-blocking fibers that never waste or leak resources, which lets you build scalable, resilient, and reactive applications
+- **Type-safe**. Use the full power of the Scala compiler to catch bugs at compile time.
+- **Concurrent**. Easily build concurrent apps without deadlocks, race conditions, or complexity.
+- **Asynchronous**. Write sequential code that looks the same whether it's asynchronous or synchronous.
+- **Resource-safe**. Build apps that never leak resources (including threads!), even when they fail.
+- **Testable**. Inject test services into your app for fast, deterministic, and type-safe testing.
+- **Resilient**. Build apps that never lose errors, and which respond to failure locally and flexibly.
+- **Functional**. Rapidly compose solutions to complex problems from simple building blocks.
 
 [//]: # (## Documentation)
 [//]: # ()

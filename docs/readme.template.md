@@ -5,7 +5,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
-**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for running **_Auditable_** tasks on GCP, AWS, Kubernetes, Databases and more.
+**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for running complex **_Auditable_** workflows which can interact with GCP, AWS, Kubernetes, Databases and more.
 
 Below are some salient features of this library.
 

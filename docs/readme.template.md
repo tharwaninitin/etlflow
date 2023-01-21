@@ -5,17 +5,18 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
-**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for writing various different **auditable** tasks on GCP and AWS, below are some salient features of this library.
+**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for running various different **_Auditable_** tasks on GCP, AWS, Kubernetes, Databases and more.
 
-- **High-performance**. Build scalable applications with 100x the performance of Scala's `Future`.
+Below are some salient features of this library.
+
+- **Functional**. Rapidly compose solutions to complex problems from simple building blocks.
 - **Fibers**. Built on non-blocking fibers that never waste or leak resources, which lets you build scalable, resilient, and reactive applications
-- **Type-safe**. Use the full power of the Scala compiler to catch bugs at compile time.
+- **Resource-safe**. Build apps that never leak resources (including threads!), even when they fail.
 - **Concurrent**. Easily build concurrent apps without deadlocks, race conditions, or complexity.
 - **Asynchronous**. Write sequential code that looks the same whether it's asynchronous or synchronous.
-- **Resource-safe**. Build apps that never leak resources (including threads!), even when they fail.
+- **Type-safe**. Use the full power of the Scala compiler to catch bugs at compile time.
 - **Testable**. Inject test services into your app for fast, deterministic, and type-safe testing.
 - **Resilient**. Build apps that never lose errors, and which respond to failure locally and flexibly.
-- **Functional**. Rapidly compose solutions to complex problems from simple building blocks.
 
 [//]: # (## Documentation)
 [//]: # ()

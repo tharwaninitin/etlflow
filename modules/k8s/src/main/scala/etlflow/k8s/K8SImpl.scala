@@ -148,7 +148,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with Applicat
         null,
         gracePeriodInSeconds,
         null,
-        null,
+        "Foreground",
         new V1DeleteOptions()
       )
     }

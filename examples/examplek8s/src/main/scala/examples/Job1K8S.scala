@@ -14,17 +14,16 @@ object Job1K8S extends ZIOAppDefault with ApplicationLogger {
   private val jobName = s"hello-busybox"
 
   val program: RIO[K8S with Audit, Unit] = for {
-    _ <- CreateKubeJobTask(
+    _ <- K8SJobTask(
       name = "CreateKubeJobTask",
       jobName = jobName,
-      container = jobName,
       image = "busybox:1.28",
-      command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster")
-      // volumeMounts = List("secrets" -> "/etc/key")
+      command = Some(List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster"))
+      // volumeMounts = Some(List("/etc/key" -> "secrets"))
     ).toZIO
-    _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).toZIO
-    _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).toZIO
-    _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).toZIO
+    _ <- K8STrackJobTask("TrackKubeJobTask", jobName).toZIO
+    _ <- K8SJobLogTask("GetKubeJobLogTask", jobName).toZIO
+    _ <- K8SDeleteJobTask("DeleteKubeJobTask", jobName).toZIO
   } yield ()
 
   override def run: Task[Unit] = ZIO.logInfo("Starting Job1K8S") *> program.provide(K8S.live() ++ audit.noop)

@@ -139,16 +139,15 @@ import zio._
 val jobName: String = "hello"
 
 val programK8S: RIO[K8S with Audit, Unit] = for {
-  _ <- CreateKubeJobTask(
+  _ <- K8SJobTask(
     name = "CreateKubeJobTask",
     jobName = jobName,
-    container = jobName,
     image = "busybox:1.28",
-    command = List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster")
+    command = Some(List("/bin/sh", "-c", "sleep 5; ls /etc/key; date; echo Hello from the Kubernetes cluster"))
   ).toZIO
-  _ <- TrackKubeJobTask("TrackKubeJobTask", jobName).toZIO
-  _ <- GetKubeJobLogTask("GetKubeJobLogTask", jobName).toZIO
-  _ <- DeleteKubeJobTask("DeleteKubeJobTask", jobName).toZIO
+  _ <- K8STrackJobTask("TrackKubeJobTask", jobName).toZIO
+  _ <- K8SJobLogTask("GetKubeJobLogTask", jobName).toZIO
+  _ <- K8SDeleteJobTask("DeleteKubeJobTask", jobName).toZIO
 } yield ()
 
 programK8S.provide(K8S.live() ++ audit.noop)

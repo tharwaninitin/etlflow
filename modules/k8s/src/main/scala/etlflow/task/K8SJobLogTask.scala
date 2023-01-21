@@ -14,7 +14,13 @@ import zio.{RIO, ZIO}
   *   Namespace, optional. defaults to 'default'
   * @return
   */
-case class GetKubeJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[K8S, Unit] {
+case class K8SJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[K8S, Unit] {
+
+  override def getTaskProperties: Map[String, String] = Map(
+    "name"      -> name,
+    "jobName"   -> jobName,
+    "namespace" -> namespace
+  )
 
   override protected def process: RIO[K8S, Unit] = for {
     _ <- ZIO.logInfo("#" * 50)
@@ -24,11 +30,9 @@ case class GetKubeJobLogTask(name: String, jobName: String, namespace: String = 
       .mapZIO(line => ZIO.logInfo(line))
       .tapError(ex => ZIO.logError(ex.getMessage))
       .runDrain
+      .tapBoth(
+        ex => ZIO.logError(ex.getMessage),
+        _ => ZIO.logInfo(s"End of Logs for Job $name") *> ZIO.logInfo("#" * 50)
+      )
   } yield ()
-
-  override def getTaskProperties: Map[String, String] = Map(
-    "name"      -> name,
-    "jobName"   -> jobName,
-    "namespace" -> namespace
-  )
 }

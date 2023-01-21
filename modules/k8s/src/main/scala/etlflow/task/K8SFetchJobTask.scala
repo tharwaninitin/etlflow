@@ -17,7 +17,7 @@ import zio.{RIO, ZIO}
   * @return
   *   A Job, as an instance of V1Job
   */
-case class GetKubeJobTask(name: String, jobName: String, namespace: String = "default", debug: Boolean = false)
+case class K8SFetchJobTask(name: String, jobName: String, namespace: String = "default", debug: Boolean = false)
     extends EtlTask[K8S, V1Job] {
 
   override protected def process: RIO[K8S, V1Job] = for {

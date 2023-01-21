@@ -6,9 +6,10 @@ object Versions {
   val Scala2Versions   = List(Scala212, Scala213)
 
   val ZioVersion                = "2.0.6"
-  val ZioLogVersion             = "2.1.7"
+  val ZioLogVersion             = "2.1.8"
   val ZioJsonVersion            = "0.4.2"
   val ZioReactiveStreamsVersion = "2.0.0"
+  val zioConfigVersion          = "3.0.7"
 
   val ScalaCollectionCompatVersion = "2.9.0"
 
@@ -26,7 +27,7 @@ object Versions {
   val HadoopS3Version  = "3.3.2"
 
   val PgVersion    = "42.5.1"
-  val MySqlVersion = "8.0.31"
+  val MySqlVersion = "8.0.32"
 
   val Sl4jVersion    = "1.7.36"
   val LogbackVersion = "1.4.5"

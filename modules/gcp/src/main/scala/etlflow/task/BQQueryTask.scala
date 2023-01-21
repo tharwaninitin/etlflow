@@ -2,16 +2,24 @@ package etlflow.task
 
 import com.google.cloud.bigquery.Job
 import gcp4zio.bq._
-import zio.RIO
+import zio.config.ConfigDescriptor
+import zio.config.ConfigDescriptor._
+import zio.{RIO, ZIO}
 
-case class BQQueryTask(name: String, query: String) extends EtlTask[BQ, Job] {
+case class BQQueryTask(name: String, queries: List[String]) extends EtlTask[BQ, List[Job]] {
 
-  override def getTaskProperties: Map[String, String] = Map("query" -> query.replace('\'', '`'))
-
-  override protected def process: RIO[BQ, Job] = {
+  override protected def process: RIO[BQ, List[Job]] = {
     logger.info("#" * 100)
     logger.info(s"Starting BQ Query Task: $name")
-    logger.info(s"Query: $query")
-    BQ.executeQuery(query)
+    ZIO.foreach(queries)(BQ.executeQuery)
   }
+
+  override def getTaskProperties: Map[String, String] = Map.empty
+}
+
+object BQQueryTask {
+  val config: ConfigDescriptor[BQQueryTask] =
+    string("name")
+      .zip(list("queries")(string))
+      .to[BQQueryTask]
 }

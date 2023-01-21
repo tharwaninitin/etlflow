@@ -1,7 +1,7 @@
 package etlflow.audit
 
 import com.google.cloud.bigquery.FieldValueList
-import etlflow.gcp.logs
+import etlflow.gcp.logBQJobs
 import etlflow.model.{JobRun, TaskRun}
 import etlflow.utils.MapToJson
 import gcp4zio.bq.{BQClient, BQImpl}
@@ -19,7 +19,7 @@ object BQ {
         taskName: String,
         props: Map[String, String],
         taskType: String
-    ): UIO[Unit] = logs(client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId)))
+    ): UIO[Unit] = logBQJobs(client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId)))
 
     override def logTaskEnd(
         taskRunId: String,
@@ -27,14 +27,14 @@ object BQ {
         props: Map[String, String],
         taskType: String,
         error: Option[Throwable]
-    ): UIO[Unit] = logs(
+    ): UIO[Unit] = logBQJobs(
       client
         .executeQuery(
           Sql.updateTaskRun(taskRunId, MapToJson(props), error.fold("pass")(ex => s"failed with error: ${ex.getMessage}"))
         )
     )
 
-    override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = logs(
+    override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = logBQJobs(
       client
         .executeQuery(Sql.insertJobRun(jobRunId, jobName, MapToJson(props)))
     )
@@ -43,7 +43,7 @@ object BQ {
         jobName: String,
         props: Map[String, String],
         error: Option[Throwable]
-    ): UIO[Unit] = logs(
+    ): UIO[Unit] = logBQJobs(
       client
         .executeQuery(
           Sql.updateJobRun(jobRunId, error.fold("pass")(ex => s"failed with error: ${ex.getMessage}"), MapToJson(props))

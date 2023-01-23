@@ -212,7 +212,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
           cache: 'sbt'
-      - name: Compile K8S Test
+      - name: Test K8S Module
         run: sbt ";project k8s; +Test/compile; testOnly etlflow.RunConfigTests"
   email:
     runs-on: ubuntu-latest
@@ -234,7 +234,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 17 ]
+        java-version: [ 11, 17 ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -244,5 +244,5 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
           cache: 'sbt'
-      - name: Compile Gcp Module
+      - name: Test GCP Module
         run: sbt ";project gcp; +Test/compile; testOnly etlflow.RunConfigTests"

@@ -20,6 +20,9 @@ object RunTests extends ZIOSpecDefault with TestHelper with ApplicationLogger {
   private val env = dpJobEnv ++ dpClusterEnv ++ BQ.live() ++ GCS.live() ++ audit.noop ++ ZLayer.succeed(ClockLive)
 
   override def spec: Spec[TestEnvironment, Any] = (suite("GCP Tasks")(
+    GCSCopyTaskTestSuite.parseSpec,
+    BQQueryTaskTestSuite.parseSpec,
+    DPSparkJobTaskTestSuite.parseSpec,
     BQTestSuite.spec,
     GCSTasksTestSuite.spec,
     DPCreateTestSuite.spec,

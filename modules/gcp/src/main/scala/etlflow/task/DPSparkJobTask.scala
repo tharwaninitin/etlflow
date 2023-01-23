@@ -3,8 +3,8 @@ package etlflow.task
 import com.google.cloud.dataproc.v1.Job
 import gcp4zio.dp._
 import zio.RIO
-import zio.config.ConfigDescriptor
-import zio.config.ConfigDescriptor._
+import zio.config._
+import ConfigDescriptor._
 
 case class DPSparkJobTask(name: String, args: List[String], mainClass: String, libs: List[String], conf: Map[String, String])
     extends EtlTask[DPJob, Job] {

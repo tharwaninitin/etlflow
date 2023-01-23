@@ -61,9 +61,10 @@ object Dependencies {
   )
 
   lazy val coreTestLibs = List(
-    "ch.qos.logback" % "logback-classic" % LogbackVersion,
-    "dev.zio"       %% "zio-test"        % ZioVersion,
-    "dev.zio"       %% "zio-test-sbt"    % ZioVersion
+    "ch.qos.logback" % "logback-classic"     % LogbackVersion,
+    "dev.zio"       %% "zio-test"            % ZioVersion,
+    "dev.zio"       %% "zio-test-sbt"        % ZioVersion,
+    "dev.zio"       %% "zio-config-typesafe" % zioConfigVersion
   ).map(_ % Test)
 
   lazy val jdbcTestLibs = List(
@@ -74,9 +75,5 @@ object Dependencies {
 
   lazy val sparkTestLibs = List(
     "org.apache.spark" %% "spark-sql" % SparkVersion
-//    "com.google.cloud.bigdataoss" % "gcs-connector" % HadoopGCSVersion,
-//    "org.apache.hadoop"           % "hadoop-aws"    % HadoopS3Version,
-//    "org.apache.hadoop"           % "hadoop-common" % HadoopS3Version
-//    "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
   ).map(_ % Test)
 }

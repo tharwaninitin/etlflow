@@ -1,12 +1,13 @@
-package etlflow.task
+package etlflow.config
 
 import etlflow.gcp.Location
-import zio.config._
+import etlflow.task.GCSCopyTask
+import zio.config.read
 import zio.config.typesafe.TypesafeConfigSource
-import zio.test.Assertion._
-import zio.test._
+import zio.test.Assertion.equalTo
+import zio.test.{assertZIO, test, Spec}
 
-object GCSCopyTaskTestSuite {
+object GCSTestSuite {
 
   private lazy val json =
     """

@@ -1,11 +1,12 @@
-package etlflow.task
+package etlflow.config
 
-import zio.config._
+import etlflow.task.BQQueryTask
+import zio.config.read
 import zio.config.typesafe.TypesafeConfigSource
-import zio.test.Assertion._
-import zio.test._
+import zio.test.Assertion.equalTo
+import zio.test.{assertZIO, test, Spec}
 
-object BQQueryTaskTestSuite {
+object BQTestSuite {
 
   private lazy val config = BQQueryTask(
     name = "Test",

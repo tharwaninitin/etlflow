@@ -213,7 +213,7 @@ jobs:
           distribution: 'adopt'
           cache: 'sbt'
       - name: Compile K8S Test
-        run: sbt ";project k8s; +Test/compile"
+        run: sbt ";project k8s; +Test/compile; testOnly etlflow.RunConfigTests"
   email:
     runs-on: ubuntu-latest
     strategy:
@@ -245,4 +245,4 @@ jobs:
           distribution: 'adopt'
           cache: 'sbt'
       - name: Compile Gcp Module
-        run: sbt ";project gcp; +Test/compile"
+        run: sbt ";project gcp; +Test/compile; testOnly etlflow.RunConfigTests"

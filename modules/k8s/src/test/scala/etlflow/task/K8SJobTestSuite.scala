@@ -7,6 +7,7 @@ import zio.test.Assertion.equalTo
 import zio.test._
 
 object K8SJobTestSuite {
+
   val spec: Spec[K8S with Audit, Any] = test("Execute CreateKubeJobTask") {
     val task = K8SJobTask(
       name = "name",

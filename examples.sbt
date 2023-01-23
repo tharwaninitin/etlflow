@@ -14,7 +14,7 @@ lazy val examples = (project in file("examples"))
       }
     }
   )
-  .aggregate(examplecore, examplek8s, examplespark)
+  .aggregate(examplecore, examplek8s, examplegcp, examplespark)
 
 lazy val examplecore = (project in file("examples/examplecore"))
   .settings(

@@ -2,8 +2,8 @@ package etlflow.task
 
 import com.google.cloud.bigquery.Job
 import gcp4zio.bq._
-import zio.config.ConfigDescriptor
-import zio.config.ConfigDescriptor._
+import zio.config._
+import ConfigDescriptor._
 import zio.{RIO, ZIO}
 
 case class BQQueryTask(name: String, queries: List[String]) extends EtlTask[BQ, List[Job]] {

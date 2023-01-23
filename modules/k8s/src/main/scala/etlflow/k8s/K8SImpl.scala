@@ -11,6 +11,7 @@ import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
 import zio.stream.{ZPipeline, ZStream}
 import zio.{Task, ZIO}
+
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
@@ -138,24 +139,43 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with Applicat
     * @param debug
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     */
-  override def deleteJob(name: String, namespace: String, gracePeriodInSeconds: Int, debug: Boolean): Task[Unit] = ZIO
-    .attempt {
-      // noinspection ScalaStyle
-      val _ = batch.deleteNamespacedJob(
-        name,
-        namespace,
-        debug.toString,
-        null,
-        gracePeriodInSeconds,
-        null,
-        "Foreground",
-        new V1DeleteOptions()
-      )
-    }
-    .tapError {
-      case exception: ApiException => ZIO.logError(exception.getResponseBody) *> ZIO.fail(exception)
-      case exception               => ZIO.logError(exception.getMessage) *> ZIO.fail(exception)
-    }
+  override def deleteJob(name: String, namespace: String, gracePeriodInSeconds: Int, debug: Boolean): Task[Unit] = {
+    for {
+      _ <- ZIO.logInfo(s"Deleting Job $name in $namespace namespace")
+      _ <- ZIO
+        .attempt {
+          // noinspection ScalaStyle
+          batch.deleteNamespacedJob(
+            name,
+            namespace,
+            debug.toString,
+            null,
+            gracePeriodInSeconds,
+            null,
+            null,
+            new V1DeleteOptions()
+          )
+        }
+      pod <- getJobPod(name, namespace).map(_.getMetadata.getName)
+      _   <- ZIO.logInfo(s"Deleting Pod $pod in $namespace namespace")
+      _ <- ZIO.attempt {
+        // noinspection ScalaStyle
+        core.deleteNamespacedPod(
+          pod,
+          namespace,
+          debug.toString,
+          null,
+          gracePeriodInSeconds,
+          null,
+          null,
+          new V1DeleteOptions()
+        )
+      }
+    } yield ()
+  }.tapError {
+    case exception: ApiException => ZIO.logError(exception.getResponseBody) *> ZIO.fail(exception)
+    case exception               => ZIO.logError(exception.getMessage) *> ZIO.fail(exception)
+  }
 
   /** Poll the job for completion
     * @param name

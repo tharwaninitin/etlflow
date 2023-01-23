@@ -154,18 +154,14 @@ jobs:
         java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
       fail-fast: false
     services:
-      # Label used to access the service container
       redis:
-        # Docker Hub image
         image: redis
-        # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          # Maps tcp port 5432 on service container to the host
           - 6379:6379
     steps:
       - uses: actions/checkout@v3
@@ -216,8 +212,8 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
           cache: 'sbt'
-      - name: Compile K8S Test
-        run: sbt ";project k8s; +Test/compile"
+      - name: Test K8S Module
+        run: sbt ";project k8s; +Test/compile; testOnly etlflow.RunConfigTests"
   email:
     runs-on: ubuntu-latest
     strategy:
@@ -238,7 +234,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11, 17 ]
+        java-version: [ 11, 17 ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -248,5 +244,5 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
           cache: 'sbt'
-      - name: Compile Gcp Module
-        run: sbt ";project gcp; +Test/compile"
+      - name: Test GCP Module
+        run: sbt ";project gcp; +Test/compile; testOnly etlflow.RunConfigTests"

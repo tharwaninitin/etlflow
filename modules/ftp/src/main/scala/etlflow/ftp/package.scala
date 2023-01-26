@@ -1,4 +1,4 @@
-package etlflow.ftp
+package etlflow
 
 import zio.ftp.SecureFtp.Client
 import zio.ftp._
@@ -7,7 +7,7 @@ import zio.{Scope, TaskLayer, ZIO, ZLayer}
 import java.io.IOException
 import java.nio.file.Paths
 
-object FTP {
+package object ftp {
   val noop: TaskLayer[SFtp] = ZLayer.succeed {
     new FtpAccessors[Client] {
       override def execute[T](f: Client => T): ZIO[Any, IOException, T] =
@@ -38,16 +38,17 @@ object FTP {
         ZIO.fail(new IOException(error))
     }
   }
+
   private val error = "FTP Actions Detected in your ETL Flow, but no Connection was provided!"
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def live(
       host: String,
-      port: Int = 22,
       username: String,
-      password: Option[String],
-      privateKeyFilePath: Option[String]
-  ): ZLayer[Scope, ConnectionError, SFtp] = secure {
+      port: Int = 22,
+      password: Option[String] = None,
+      privateKeyFilePath: Option[String] = None
+  ): ZLayer[Any, ConnectionError, SFtp] = ZLayer.scoped(SecureFtp.connect {
     privateKeyFilePath match {
       case Some(path) =>
         // noinspection ScalaStyle
@@ -57,5 +58,5 @@ object FTP {
         val pass = password.getOrElse(throw new Exception("Neither Password, nor private key file path was provided!"))
         SecureFtpSettings(host, port, FtpCredentials(username, pass))
     }
-  }
+  })
 }

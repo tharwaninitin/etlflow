@@ -60,6 +60,11 @@ object Dependencies {
     "io.kubernetes"           % "client-java"             % K8SVersion
   )
 
+  lazy val ftpLibs = List(
+    "dev.zio" %% "zio"     % ZioVersion,
+    "dev.zio" %% "zio-ftp" % ZioFtpVersion
+  )
+
   lazy val coreTestLibs = List(
     "ch.qos.logback" % "logback-classic"     % LogbackVersion,
     "dev.zio"       %% "zio-test"            % ZioVersion,

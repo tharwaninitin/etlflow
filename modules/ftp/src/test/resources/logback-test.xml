@@ -1,7 +1,7 @@
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss,SSS"} [%thread] %highlight(%-5level) %cyan(%logger{50}) - %msg %n</pattern>
+      <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss,SSS"} %highlight(%-5level) %cyan(%logger{50}) - %msg %n</pattern>
     </encoder>
   </appender>
   <root level="INFO">

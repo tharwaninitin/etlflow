@@ -3,7 +3,7 @@ package etlflow
 import zio.ftp.SecureFtp.Client
 import zio.ftp._
 import zio.stream.ZStream
-import zio.{Scope, TaskLayer, ZIO, ZLayer}
+import zio.{Layer, Scope, TaskLayer, ZIO, ZLayer}
 import java.io.IOException
 import java.nio.file.Paths
 
@@ -48,7 +48,7 @@ package object ftp {
       port: Int = 22,
       password: Option[String] = None,
       privateKeyFilePath: Option[String] = None
-  ): ZLayer[Any, ConnectionError, SFtp] = ZLayer.scoped(SecureFtp.connect {
+  ): Layer[ConnectionError, SFtp] = ZLayer.scoped(SecureFtp.connect {
     privateKeyFilePath match {
       case Some(path) =>
         // noinspection ScalaStyle

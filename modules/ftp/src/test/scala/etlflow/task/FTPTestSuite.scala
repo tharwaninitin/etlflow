@@ -14,7 +14,7 @@ object FTPTestSuite extends ZIOSpecDefault with ApplicationLogger {
   def spec: Spec[TestEnvironment, Any] = (suite("FTPTestSuite")(
     test("Execute File Upload") {
       val data = ZStream.fromChunks(Chunk.fromArray("Hello World".getBytes))
-      val task = SFtp.upload("/sample.txt", data).provideSome[SFtp](Scope.default)
+      val task = SFtp.upload("/upload/sample.txt", data).provideSome[SFtp](Scope.default)
       assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
     test("Execute LS") {
@@ -24,7 +24,14 @@ object FTPTestSuite extends ZIOSpecDefault with ApplicationLogger {
     test("Execute FTPDeleteFileTask") {
       val task = FTPDeleteFileTask(
         name = "DeleteFile",
-        path = "/sample.txt"
+        filePath = "/upload/sample.txt"
+      )
+      assertZIO(task.toZIO.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    },
+    test("Execute FTPDeleteFolderTask") {
+      val task = FTPDeleteFolderTask(
+        name = "DeleteFile",
+        folderPath = "/upload"
       )
       assertZIO(task.toZIO.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

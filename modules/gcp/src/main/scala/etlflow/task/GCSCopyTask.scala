@@ -41,11 +41,12 @@ case class GCSCopyTask(
         ZIO.attempt(throw new RuntimeException(s"Copying data between source $src to target $tgt is not implemented yet"))
     }
     val runnable = for {
-      _     <- ZIO.succeed(logger.info("#" * 100))
-      _     <- ZIO.succeed(logger.info(s"Source Filesystem $input"))
-      _     <- ZIO.succeed(logger.info(s"Target Filesystem $output"))
+      _     <- ZIO.logInfo("#" * 100)
+      _     <- ZIO.logInfo(s"Source Filesystem $input")
+      _     <- ZIO.logInfo(s"Target Filesystem $output")
       count <- program.tapError(ex => ZIO.succeed(logger.error(ex.getMessage)))
-      _     <- ZIO.succeed(logger.info(s"Successfully copied objects" + "\n" + "#" * 100))
+      _     <- ZIO.logInfo(s"Successfully copied objects")
+      _     <- ZIO.logInfo("#" * 100)
     } yield count
     runnable
   }

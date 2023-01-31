@@ -1,6 +1,6 @@
 package etlflow.task
 
-import etlflow.http.{HttpApi, HttpMethod}
+import etlflow.http.{Http, HttpMethod}
 import sttp.client3.Response
 import zio._
 
@@ -40,17 +40,18 @@ case class HttpRequestTask(
     connectionTimeout: Long = 10000,
     readTimeout: Long = 150000,
     allowUnsafeSSL: Boolean = false
-) extends EtlTask[Any, Response[String]] {
+) extends EtlTask[Http, Response[String]] {
 
-  override protected def process: Task[Response[String]] = {
-    logger.info("#" * 50)
-    logger.info(s"Starting HttpRequestTask: $name")
-    logger.info(s"URL: $url")
-    logger.info(s"ConnectionTimeOut: $connectionTimeout")
-    logger.info(s"ReadTimeOut: $readTimeout")
-    logger.info(s"AllowUnsafeSSL: $allowUnsafeSSL")
-    HttpApi.execute(method, url, params, headers, log, connectionTimeout, readTimeout, allowUnsafeSSL)
-  }
+  override protected def process: RIO[Http, Response[String]] = for {
+    _ <- ZIO.logInfo("#" * 50)
+    _ <- ZIO.logInfo(s"Starting HttpRequestTask: $name")
+    _ <- ZIO.logInfo(s"URL: $url")
+    _ <- ZIO.logInfo(s"ConnectionTimeOut: $connectionTimeout")
+    _ <- ZIO.logInfo(s"ReadTimeOut: $readTimeout")
+    _ <- ZIO.logInfo(s"AllowUnsafeSSL: $allowUnsafeSSL")
+    response <- Http
+      .execute(method, url, params, headers, log, connectionTimeout, readTimeout, allowUnsafeSSL)
+  } yield response
 
   override def getTaskProperties: Map[String, String] = Map("url" -> url, "http_method" -> method.toString)
 }

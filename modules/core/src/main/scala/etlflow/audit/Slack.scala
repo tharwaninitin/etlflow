@@ -55,23 +55,17 @@ case class Slack(jobRunId: String, slackUrl: String) extends Audit with Applicat
   override def logTaskStart(
       taskRunId: String,
       taskName: String,
-      props: Map[String, String],
+      props: String,
       taskType: String
   ): UIO[Unit] = ZIO.unit
 
-  override def logTaskEnd(
-      taskRunId: String,
-      taskName: String,
-      props: Map[String, String],
-      taskType: String,
-      error: Option[Throwable]
-  ): UIO[Unit] = ZIO.succeed {
+  override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = ZIO.succeed {
     var slackMessageForTasks = ""
 
     val taskIcon = if (error.isEmpty) "\n :small_blue_diamond:" else "\n :small_orange_diamond:"
 
     // Update the slackMessageForTasks variable and get the information of task name and its execution time
-    slackMessageForTasks = taskIcon + "*" + taskName + "*"
+    slackMessageForTasks = taskIcon + "*" + taskRunId + "*"
 
     // Update the slackMessageForTasks variable and get the information of etl tasks properties
     val errorMessage = error.map(msg => f"error -> ${msg.getMessage}").getOrElse("")
@@ -85,17 +79,13 @@ case class Slack(jobRunId: String, slackUrl: String) extends Audit with Applicat
     finalTaskMessage = finalTaskMessage.concat(slackMessageForTasks)
   }
 
-  override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = ZIO.unit
+  override def logJobStart(jobName: String, props: String): UIO[Unit] = ZIO.unit
 
-  override def logJobEnd(
-      jobName: String,
-      props: Map[String, String],
-      error: Option[Throwable]
-  ): UIO[Unit] =
+  override def logJobEnd(error: Option[Throwable]): UIO[Unit] =
     ZIO.fromTry {
 
       val data = finalMessageTemplate(
-        jobName,
+        jobRunId,
         finalTaskMessage,
         jobRunId,
         error

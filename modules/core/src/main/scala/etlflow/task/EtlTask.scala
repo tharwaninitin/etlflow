@@ -1,6 +1,7 @@
 package etlflow.task
 
 import etlflow.audit.Audit
+import etlflow.json.JSON
 import etlflow.log.ApplicationLogger
 import zio.{RIO, ZIO}
 
@@ -10,10 +11,11 @@ trait EtlTask[-R, +OP] extends ApplicationLogger {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   final def toZIO: RIO[R with Audit, OP] = for {
-    tri <- ZIO.succeed(java.util.UUID.randomUUID.toString)
-    _   <- Audit.logTaskStart(tri, name, getTaskProperties, taskType)
-    op  <- process.tapError(ex => Audit.logTaskEnd(tri, name, getTaskProperties, taskType, Some(ex)))
-    _   <- Audit.logTaskEnd(tri, name, getTaskProperties, taskType, None)
+    tri   <- ZIO.succeed(java.util.UUID.randomUUID.toString)
+    props <- JSON.convertToStringZIO(getTaskProperties)
+    _     <- Audit.logTaskStart(tri, name, props, taskType)
+    op    <- process.tapError(ex => Audit.logTaskEnd(tri, Some(ex)))
+    _     <- Audit.logTaskEnd(tri, None)
   } yield op
 
   def getTaskProperties: Map[String, String] = Map.empty[String, String]

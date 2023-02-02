@@ -10,16 +10,16 @@ object DbTestSuite {
   val spec: Spec[Audit, Any] =
     suite("Audit DB Suite")(
       zio.test.test("logJobStart Test")(
-        Audit.logJobStart("Job1", Map.empty).as(assertCompletes)
+        Audit.logJobStart("Job1", "").as(assertCompletes)
       ),
       zio.test.test("logTaskStart Test")(
-        Audit.logTaskStart(sri, "Task1", Map.empty, "GenericTask").as(assertCompletes)
+        Audit.logTaskStart(sri, "Task1", "", "GenericTask").as(assertCompletes)
       ),
       zio.test.test("logTaskEnd Test")(
-        Audit.logTaskEnd(sri, "Task1", Map.empty, "GenericTask").as(assertCompletes)
+        Audit.logTaskEnd(sri).as(assertCompletes)
       ),
       zio.test.test("logJobEnd Test")(
-        Audit.logJobEnd("Job1", Map.empty).as(assertCompletes)
+        Audit.logJobEnd().as(assertCompletes)
       ),
       zio.test.test("getJobRuns Test")(
         Audit

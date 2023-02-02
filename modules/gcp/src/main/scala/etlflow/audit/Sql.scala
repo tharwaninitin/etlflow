@@ -1,10 +1,9 @@
 package etlflow.audit
 
 object Sql {
-  def updateTaskRun(taskRunId: String, props: String, status: String): String =
+  def updateTaskRun(taskRunId: String, status: String): String =
     s"""UPDATE etlflow.taskrun
             SET status = "$status",
-                props = JSON '$props',
                 updated_at = CURRENT_TIMESTAMP()
           WHERE task_run_id = "$taskRunId""""
 
@@ -27,10 +26,9 @@ object Sql {
            )
          VALUES ("$taskRunId", "$jobRunId", "$name", "$taskType", JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
-  def updateJobRun(jobRunId: String, status: String, props: String): String =
+  def updateJobRun(jobRunId: String, status: String): String =
     s"""UPDATE etlflow.jobrun
               SET status = "$status",
-                  props = JSON '$props',
                   updated_at = CURRENT_TIMESTAMP()
            WHERE job_run_id = "$jobRunId""""
 

@@ -4,10 +4,9 @@ import scalikejdbc._
 
 private[etlflow] object Sql {
 
-  def updateTaskRun(taskRunId: String, props: String, status: String): SQL[Nothing, NoExtractor] =
+  def updateTaskRun(taskRunId: String, status: String): SQL[Nothing, NoExtractor] =
     sql"""UPDATE taskrun
             SET status = $status,
-                props = CAST($props as JSON),
                 updated_at = CURRENT_TIMESTAMP(6)
           WHERE task_run_id = $taskRunId"""
 
@@ -30,10 +29,9 @@ private[etlflow] object Sql {
            )
          VALUES ($taskRunId, $jobRunId, $name, $taskType, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
 
-  def updateJobRun(jobRunId: String, status: String, props: String): SQL[Nothing, NoExtractor] =
+  def updateJobRun(jobRunId: String, status: String): SQL[Nothing, NoExtractor] =
     sql"""UPDATE jobrun
               SET status = $status,
-                  props = CAST($props as JSON),
                   updated_at = CURRENT_TIMESTAMP(6)
            WHERE job_run_id = $jobRunId"""
 

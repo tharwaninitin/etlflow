@@ -14,20 +14,20 @@ object Versions {
 
   val ScalaCollectionCompatVersion = "2.9.0"
 
-  val SttpVersion          = "3.8.8"
+  val SttpVersion          = "3.8.10"
   val AwsS3Version         = "2.17.295"
   val RedisVersion         = "3.42"
   val MailVersion          = "1.6.2"
   val ScalaLikeJdbcVersion = "4.0.0"
   val Gcp4ZioVersion       = "1.4.1"
-  val K8SVersion           = "17.0.0"
+  val K8SVersion           = "17.0.1"
 
   val SparkVersion     = "3.3.1"
   val SparkBQVersion   = "0.23.1"
   val HadoopGCSVersion = "hadoop3-2.2.5"
   val HadoopS3Version  = "3.3.2"
 
-  val PgVersion    = "42.5.1"
+  val PgVersion    = "42.5.2"
   val MySqlVersion = "8.0.32"
 
   val Sl4jVersion    = "1.7.36"

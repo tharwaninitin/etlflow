@@ -3,7 +3,6 @@ package etlflow.audit
 import com.google.cloud.bigquery.FieldValueList
 import etlflow.gcp.logBQJobs
 import etlflow.model.{JobRun, TaskRun}
-import etlflow.utils.MapToJson
 import gcp4zio.bq.{BQClient, BQImpl}
 import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
 import java.time.ZoneId
@@ -14,40 +13,20 @@ object BQ {
 
   private[etlflow] case class BQAudit(jobRunId: String, client: BQImpl) extends etlflow.audit.Audit {
 
-    override def logTaskStart(
-        taskRunId: String,
-        taskName: String,
-        props: Map[String, String],
-        taskType: String
-    ): UIO[Unit] = logBQJobs(client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId)))
-
-    override def logTaskEnd(
-        taskRunId: String,
-        taskName: String,
-        props: Map[String, String],
-        taskType: String,
-        error: Option[Throwable]
-    ): UIO[Unit] = logBQJobs(
-      client
-        .executeQuery(
-          Sql.updateTaskRun(taskRunId, MapToJson(props), error.fold("pass")(ex => s"failed with error: ${ex.getMessage}"))
-        )
+    override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = logBQJobs(
+      client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId))
     )
 
-    override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = logBQJobs(
-      client
-        .executeQuery(Sql.insertJobRun(jobRunId, jobName, MapToJson(props)))
+    override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = logBQJobs(
+      client.executeQuery(Sql.updateTaskRun(taskRunId, error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")))
     )
 
-    override def logJobEnd(
-        jobName: String,
-        props: Map[String, String],
-        error: Option[Throwable]
-    ): UIO[Unit] = logBQJobs(
-      client
-        .executeQuery(
-          Sql.updateJobRun(jobRunId, error.fold("pass")(ex => s"failed with error: ${ex.getMessage}"), MapToJson(props))
-        )
+    override def logJobStart(jobName: String, props: String): UIO[Unit] = logBQJobs(
+      client.executeQuery(Sql.insertJobRun(jobRunId, jobName, props))
+    )
+
+    override def logJobEnd(error: Option[Throwable]): UIO[Unit] = logBQJobs(
+      client.executeQuery(Sql.updateJobRun(jobRunId, error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")))
     )
 
     override def getJobRuns(query: String): Task[Iterable[JobRun]] = client

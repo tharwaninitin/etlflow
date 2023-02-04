@@ -28,10 +28,14 @@ object FTPTestSuite extends ZIOSpecDefault with ApplicationLogger {
       )
       assertZIO(task.toZIO.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     },
+    test("Execute mkdir") {
+      val task = SFtp.mkdir("/upload/test")
+      assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+    },
     test("Execute FTPDeleteFolderTask") {
       val task = FTPDeleteFolderTask(
         name = "DeleteFile",
-        folderPath = "/upload"
+        folderPath = "/upload/test"
       )
       assertZIO(task.toZIO.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
     }

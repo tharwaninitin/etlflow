@@ -5,7 +5,7 @@ services:
     ports:
       - "2222:22"
     volumes:
-      - ./resources/sftp/home/foo:/home/foo
+      - ./resources/sftp/home/foo:/home/foo/upload
     command: foo:foo:1001:1002
 
   sftp-sshkey:

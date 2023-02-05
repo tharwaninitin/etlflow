@@ -27,7 +27,7 @@ object Versions {
   val HadoopGCSVersion = "hadoop3-2.2.5"
   val HadoopS3Version  = "3.3.2"
 
-  val PgVersion    = "42.5.2"
+  val PgVersion    = "42.5.3"
   val MySqlVersion = "8.0.32"
 
   val Sl4jVersion    = "1.7.36"

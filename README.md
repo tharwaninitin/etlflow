@@ -46,6 +46,7 @@ Below are some salient features of this library.
 | K8S    | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-k8s_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-k8s)     |           [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-k8s_3/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-k8s_3) | [![etlflow-k8s Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-k8s/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-k8s)       | Java 8 +     |
 | Email  | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-email_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-email) |       [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-email_3/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-email_3) | [![etlflow-email Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-email/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-email) | Java 8 +     |
 | AWS    | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-aws_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-aws)     |           [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-aws_3/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-aws_3) | [![etlflow-aws Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-aws/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-aws)       | Java 8 +     |
+| FTP    | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-ftp_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-ftp)     |           [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-ftp_3/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-ftp_3) | [![etlflow-ftp Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-ftp/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-ftp)       | Java 8 +     |
 | Redis  | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-redis_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-redis) | [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-redis_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-redis_2.12) | [![etlflow-redis Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-redis/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-redis) | Java 8 +     |
 | Spark  | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-spark_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-spark) | [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-spark_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-spark_2.12) | [![etlflow-spark Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-spark/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-spark) | Java 8 +     |
 
@@ -59,22 +60,23 @@ Add the below latest release as a dependency to your project
 
 __SBT__
 ```scala
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.7.1"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.7.1"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-ftp" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.7.2"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 

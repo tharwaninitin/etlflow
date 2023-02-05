@@ -198,6 +198,27 @@ jobs:
           cache: 'sbt'
       - name: Run AWS Tests
         run: sbt ";project aws; +test"
+  ftp:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 11, 17 ] # removed version 8 temporarily to avoid sbt-updates failing because of the latest version of LogbackVersion
+      fail-fast: false
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup ftp
+        run: |
+          docker run -d -p 2222:22 --name ftp \
+                        atmoz/sftp foo:foo:::upload
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
+          cache: 'sbt'
+      - name: Run FTP Tests
+        run: sbt ";project ftp; +test"
   k8s:
     runs-on: ubuntu-latest
     strategy:

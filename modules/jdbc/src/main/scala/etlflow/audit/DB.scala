@@ -4,7 +4,6 @@ import etlflow.db.DBImpl
 import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
 import etlflow.model.{JobRun, TaskRun}
-import etlflow.utils.MapToJson
 import scalikejdbc.WrappedResultSet
 import zio._
 import java.util.UUID
@@ -12,43 +11,21 @@ import java.util.UUID
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object DB extends ApplicationLogger {
   private[etlflow] case class DBAudit(jobRunId: String, client: DBImpl) extends etlflow.audit.Audit {
-    override def logTaskStart(
-        taskRunId: String,
-        taskName: String,
-        props: Map[String, String],
-        taskType: String
-    ): UIO[Unit] =
-      client
-        .executeQuery(Sql.insertTaskRun(taskRunId, taskName, MapToJson(props), taskType, jobRunId))
-        .fold(e => logger.error(e.getMessage), _ => ())
+    override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = client
+      .executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId))
+      .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logTaskEnd(
-        taskRunId: String,
-        taskName: String,
-        props: Map[String, String],
-        taskType: String,
-        error: Option[Throwable]
-    ): UIO[Unit] = {
-      val status = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
-      client
-        .executeQuery(Sql.updateTaskRun(taskRunId, MapToJson(props), status))
-        .fold(e => logger.error(e.getMessage), _ => ())
-    }
+    override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = client
+      .executeQuery(Sql.updateTaskRun(taskRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
+      .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logJobStart(jobName: String, props: Map[String, String]): UIO[Unit] = {
-      val properties = MapToJson(props)
-      client
-        .executeQuery(Sql.insertJobRun(jobRunId, jobName, properties))
-        .fold(e => logger.error(e.getMessage), _ => ())
-    }
+    override def logJobStart(jobName: String, props: String): UIO[Unit] = client
+      .executeQuery(Sql.insertJobRun(jobRunId, jobName, props))
+      .fold(e => logger.error(e.getMessage), _ => ())
 
-    override def logJobEnd(jobName: String, props: Map[String, String], error: Option[Throwable]): UIO[Unit] = {
-      val status     = error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")
-      val properties = MapToJson(props)
-      client
-        .executeQuery(Sql.updateJobRun(jobRunId, status, properties))
-        .fold(e => logger.error(e.getMessage), _ => ())
-    }
+    override def logJobEnd(error: Option[Throwable]): UIO[Unit] = client
+      .executeQuery(Sql.updateJobRun(jobRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
+      .fold(e => logger.error(e.getMessage), _ => ())
 
     override def getJobRuns(query: String): Task[Iterable[JobRun]] = client
       .fetchResults(query) { rs =>

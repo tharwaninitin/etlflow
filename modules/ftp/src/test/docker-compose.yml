@@ -1,0 +1,17 @@
+version: "3.3"
+services:
+  sftp:
+    image: atmoz/sftp:latest
+    ports:
+      - "2222:22"
+    volumes:
+      - ./resources/sftp/home/foo:/home/foo/upload
+    command: foo:foo:1001:1002
+
+  sftp-sshkey:
+    image: atmoz/sftp:latest
+    ports:
+      - "3333:22"
+    volumes:
+      - ./resources/ssh_host_rsa_key.pub:/home/fooz/.ssh/keys/id_rsa.pub:ro
+    command: fooz::1001

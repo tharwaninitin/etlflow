@@ -1,14 +1,17 @@
 package etlflow.audit
 
 import com.google.cloud.bigquery.FieldValueList
+import etlflow.json.JSON
 import zio.ZIO
 import zio.test._
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object BQTestSuite {
-  private val sri       = "a27a7415-57b2-4b53-8f9b-5254e847a4123"
-  private val jobProps  = Map("key1" -> "value1", "key2" -> "value2")
-  private val taskProps = Map("key3" -> "value3", "key4" -> "value4")
+  private val sri = "a27a7415-57b2-4b53-8f9b-5254e847a4123"
+
+  private val jobProps = JSON.convertToString(Map("key1" -> "value1", "key2" -> "value2"))
+
+  private val taskProps = JSON.convertToString(Map("key3" -> "value3", "key4" -> "value4"))
 
   val spec: Spec[Audit, Any] =
     suite("Audit BQ Suite")(
@@ -19,10 +22,10 @@ object BQTestSuite {
         Audit.logTaskStart(sri, "Task1", taskProps, "GenericTask").as(assertCompletes)
       ),
       zio.test.test("logTaskEnd Test")(
-        Audit.logTaskEnd(sri, "Task1", taskProps, "GenericTask").as(assertCompletes)
+        Audit.logTaskEnd(sri).as(assertCompletes)
       ),
       zio.test.test("logJobEnd Test")(
-        Audit.logJobEnd("Job1", jobProps).as(assertCompletes)
+        Audit.logJobEnd().as(assertCompletes)
       ),
       zio.test.test("getJobRuns Test")(
         Audit

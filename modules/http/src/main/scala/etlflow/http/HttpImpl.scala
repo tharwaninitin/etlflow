@@ -1,5 +1,4 @@
 package etlflow.http
-
 import etlflow.log.ApplicationLogger
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
@@ -15,9 +14,14 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.{SSLContext, TrustManager, X509TrustManager}
 import scala.concurrent.duration._
 
-private[etlflow] object HttpApi extends ApplicationLogger {
+object HttpImpl extends Http with ApplicationLogger {
+
   type EtlFlowSttpBackend = SttpBackend[Task, ZioStreams with capabilities.WebSockets]
 
+  /** @param backend
+    * @param logDetails
+    * @return
+    */
   def logBackend(backend: EtlFlowSttpBackend, logDetails: Boolean): EtlFlowSttpBackend = Slf4jLoggingBackend(
     backend,
     logRequestBody = logDetails,
@@ -45,10 +49,16 @@ private[etlflow] object HttpApi extends ApplicationLogger {
     ZIO.acquireRelease(ZIO.attempt(backend))(a => a.close().ignore)
   }
 
-  @SuppressWarnings(Array("org.wartremover.warts.Null", "org.wartremover.warts.NonUnitStatements"))
-  def getBackend(connectionTimeout: Long, allowUnsafeSSL: Boolean = false): ZIO[Scope, Throwable, EtlFlowSttpBackend] =
+  /** @param connectionTimeout
+    * @param allowUnsafeSSL
+    * @return
+    */
+  // noinspection ScalaStyle
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
+  def getBackend(connectionTimeout: Long, allowUnsafeSSL: Boolean): ZIO[Scope, Throwable, EtlFlowSttpBackend] =
     if (allowUnsafeSSL) {
       val trustAllCerts = Array[TrustManager](new X509TrustManager() {
+        // noinspection ScalaStyle
         override def getAcceptedIssuers: Array[X509Certificate]                                = null
         override def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
         override def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
@@ -63,6 +73,12 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       HttpClientZioBackend.scoped(options)
     }
 
+  /** @param req
+    * @param logDetails
+    * @param connectionTimeout
+    * @param allowUnsafeSsl
+    * @return
+    */
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def logAndParseResponse(
       req: RequestT[Identity, String, Any],
@@ -81,12 +97,21 @@ private[etlflow] object HttpApi extends ApplicationLogger {
           throw new RuntimeException(s"Failed with Response code: ${res.code}")
         }
       }
-
   implicit private val stringAsJson: BodySerializer[String] = { (p: String) =>
     StringBody(p, "UTF-8", MediaType.ApplicationJson)
   }
 
-  def execute(
+  /** @param method
+    * @param url
+    * @param params
+    * @param headers
+    * @param logDetails
+    * @param connectionTimeout
+    * @param readTimeout
+    * @param allowUnsafeSsl
+    * @return
+    */
+  override def execute(
       method: HttpMethod,
       url: String,
       params: Either[String, Map[String, String]],
@@ -94,7 +119,7 @@ private[etlflow] object HttpApi extends ApplicationLogger {
       logDetails: Boolean,
       connectionTimeout: Long,
       readTimeout: Long,
-      allowUnsafeSsl: Boolean = false
+      allowUnsafeSsl: Boolean
   ): Task[Response[String]] = {
     val hdrs = headers -- List("content-type", "Content-Type")
 

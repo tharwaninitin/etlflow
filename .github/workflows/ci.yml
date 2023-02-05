@@ -210,7 +210,6 @@ jobs:
       - name: Setup ftp
         run: |
           docker run -d -p 2222:22 --name ftp \
-                        -v /tmp/sftp-in:/home/foo/upload \
                         atmoz/sftp foo:foo:::upload
       - name: Set up JDK
         uses: actions/setup-java@v3

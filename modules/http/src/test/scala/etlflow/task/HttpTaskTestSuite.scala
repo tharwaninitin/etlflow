@@ -7,11 +7,13 @@ import etlflow.log.ApplicationLogger
 import sttp.client3.Response
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, TaskLayer, ZIO}
+import zio.{RIO, TaskLayer, ULayer, ZIO}
 
 object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
 
-  private val env: TaskLayer[Http with Audit] = Http.live() ++ audit.noop
+  override val bootstrap: ULayer[TestEnvironment] = testEnvironment ++ zioSlf4jLogger
+
+  private val env: TaskLayer[Http with Audit] = Http.live ++ audit.noop
 
   private val getTask1: RIO[Http with Audit, Response[String]] = HttpRequestTask(
     name = "HttpGetSimple",

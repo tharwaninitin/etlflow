@@ -1,8 +1,6 @@
 package etlflow.http
 
-import sttp.capabilities
-import sttp.capabilities.zio.ZioStreams
-import sttp.client3.{Response, SttpBackend}
+import sttp.client3.Response
 import zio.{RIO, Task, TaskLayer, ZIO, ZLayer}
 
 trait Http {
@@ -30,8 +28,6 @@ trait Http {
 }
 object Http {
 
-  type EtlFlowSttpBackend = SttpBackend[Task, ZioStreams with capabilities.WebSockets]
-
   /** @param method
     * @param url
     * @param params
@@ -55,7 +51,5 @@ object Http {
     _.get.execute(method, url, params, headers, logDetails, connectionTimeout, readTimeout, allowUnsafeSsl)
   )
 
-  /** @return
-    */
-  def live(): TaskLayer[Http] = ZLayer.succeed(HttpImpl)
+  val live: TaskLayer[Http] = ZLayer.succeed(HttpImpl)
 }

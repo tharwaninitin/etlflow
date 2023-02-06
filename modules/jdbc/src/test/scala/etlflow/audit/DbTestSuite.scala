@@ -35,7 +35,7 @@ object DbTestSuite {
       ),
       zio.test.test("fetchResults Test")(
         Audit
-          .fetchResults("SELECT job_name FROM jobrun") { case rs: WrappedResultSet =>
+          .fetchResults("SELECT job_name FROM jobrun") { rs: WrappedResultSet =>
             rs.string("job_name")
           }
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))

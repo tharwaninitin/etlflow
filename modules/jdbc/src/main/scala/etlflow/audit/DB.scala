@@ -8,7 +8,7 @@ import scalikejdbc.WrappedResultSet
 import zio._
 import java.util.UUID
 
-@SuppressWarnings(Array("org.wartremover.warts.ToString"))
+@SuppressWarnings(Array("org.wartremover.warts.ToString", "org.wartremover.warts.AsInstanceOf"))
 object DB extends ApplicationLogger {
   private[etlflow] case class DBAudit(jobRunId: String, client: DBImpl) extends etlflow.audit.Audit {
     override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = client
@@ -55,8 +55,8 @@ object DB extends ApplicationLogger {
       }
       .tapError(ex => ZIO.logError(ex.getMessage))
 
-    override type RS = WrappedResultSet
-    override def fetchResults[T](query: String)(fn: WrappedResultSet => T): Task[Iterable[T]] = client.fetchResults(query)(fn)
+    override def fetchResults[RS, T](query: String)(fn: RS => T): Task[Iterable[T]] =
+      client.fetchResults(query)(fn.asInstanceOf[WrappedResultSet => T])
 
     override def executeQuery(query: String): Task[Unit] = client.executeQuery(query)
   }

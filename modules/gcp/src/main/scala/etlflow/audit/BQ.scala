@@ -8,7 +8,7 @@ import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
 import java.time.ZoneId
 import java.util.UUID
 
-@SuppressWarnings(Array("org.wartremover.warts.ToString"))
+@SuppressWarnings(Array("org.wartremover.warts.ToString", "org.wartremover.warts.AsInstanceOf"))
 object BQ {
 
   private[etlflow] case class BQAudit(jobRunId: String, client: BQImpl) extends etlflow.audit.Audit {
@@ -57,9 +57,8 @@ object BQ {
       )
       .tapError(ex => ZIO.logError(ex.getMessage))
 
-    override type RS = FieldValueList
-    override def fetchResults[T](query: String)(fn: FieldValueList => T): Task[Iterable[T]] =
-      client.fetchResults(query)(fn).tapError(ex => ZIO.logError(ex.getMessage))
+    override def fetchResults[RS, T](query: String)(fn: RS => T): Task[Iterable[T]] =
+      client.fetchResults(query)(fn.asInstanceOf[FieldValueList => T]).tapError(ex => ZIO.logError(ex.getMessage))
 
     override def executeQuery(query: String): Task[Unit] =
       client.executeQuery(query).tapError(ex => ZIO.logError(ex.getMessage)).unit

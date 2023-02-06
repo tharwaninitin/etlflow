@@ -41,7 +41,7 @@ object BQTestSuite {
       ),
       zio.test.test("fetchResults Test")(
         Audit
-          .fetchResults("SELECT job_name FROM etlflow.jobrun") { case rs: FieldValueList =>
+          .fetchResults("SELECT job_name FROM etlflow.jobrun") { rs: FieldValueList =>
             rs.get("job_name").getStringValue
           }
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))

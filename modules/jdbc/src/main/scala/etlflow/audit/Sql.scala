@@ -15,7 +15,8 @@ private[etlflow] object Sql {
       name: String,
       props: String,
       taskType: String,
-      jobRunId: String
+      jobRunId: String,
+      status: String
   ): SQL[Nothing, NoExtractor] =
     sql"""INSERT INTO taskrun (
            task_run_id,
@@ -27,7 +28,7 @@ private[etlflow] object Sql {
            created_at,
            updated_at
            )
-         VALUES ($taskRunId, $jobRunId, $name, $taskType, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
+         VALUES ($taskRunId, $jobRunId, $name, $taskType, CAST($props as JSON), $status, CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
 
   def updateJobRun(jobRunId: String, status: String): SQL[Nothing, NoExtractor] =
     sql"""UPDATE jobrun
@@ -35,7 +36,7 @@ private[etlflow] object Sql {
                   updated_at = CURRENT_TIMESTAMP(6)
            WHERE job_run_id = $jobRunId"""
 
-  def insertJobRun(jobRunId: String, name: String, props: String): SQL[Nothing, NoExtractor] =
+  def insertJobRun(jobRunId: String, name: String, props: String, status: String): SQL[Nothing, NoExtractor] =
     sql"""INSERT INTO jobrun(
             job_run_id,
             job_name,
@@ -44,6 +45,6 @@ private[etlflow] object Sql {
             created_at,
             updated_at
             )
-         VALUES ($jobRunId, $name, CAST($props as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
+         VALUES ($jobRunId, $name, CAST($props as JSON), $status, CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
 
 }

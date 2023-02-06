@@ -12,7 +12,7 @@ object SqlTestSuite extends DbSuiteHelper {
         assertTrue(ip == op)
       },
       zio.test.test("insertJobRun Sql") {
-        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "").statement
+        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "", "started").statement
         val op = """INSERT INTO jobrun(
             job_run_id,
             job_name,
@@ -25,7 +25,7 @@ object SqlTestSuite extends DbSuiteHelper {
         assertTrue(ip == op)
       },
       zio.test.test("insertTaskRun Sql") {
-        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123").statement
+        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "gcp", "123", "started").statement
         val op = """INSERT INTO taskrun (
            task_run_id,
            job_run_id,

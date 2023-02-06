@@ -12,7 +12,7 @@ object SqlTestSuite {
         assertTrue(ip == op)
       },
       zio.test.test("insertJobRun Sql") {
-        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "{}")
+        val ip = Sql.insertJobRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Job5", "{}", "started")
         val op = """INSERT INTO etlflow.jobrun(
             job_run_id,
             job_name,
@@ -25,7 +25,7 @@ object SqlTestSuite {
         assertTrue(ip == op)
       },
       zio.test.test("insertTaskRun Sql") {
-        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "BQQuery", "123")
+        val ip = Sql.insertTaskRun("a27a7415-57b2-4b53-8f9b-5254e847a30123", "Generic", "{}", "BQQuery", "123", "started")
         val op = """INSERT INTO etlflow.taskrun (
            task_run_id,
            job_run_id,

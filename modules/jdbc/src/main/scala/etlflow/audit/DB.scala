@@ -10,20 +10,18 @@ import java.util.UUID
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString", "org.wartremover.warts.AsInstanceOf"))
 object DB extends ApplicationLogger {
-  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
-  def log[R](effect: RIO[R, Unit]): URIO[R, Unit] =
-    effect.fold(
-      e => {
-        logger.error(e.getMessage)
-        e.getStackTrace.foreach(st => logger.error(st.toString))
-      },
-      _ => ()
-    )
 
-  private[etlflow] case class DBAudit(jobRunId: String, client: DBImpl) extends etlflow.audit.Audit {
+  private[etlflow] case class DBAudit(jobRunId: String, logStackTrace: Boolean, client: DBImpl) extends etlflow.audit.Audit {
+
+    def log[R](effect: RIO[R, Unit]): URIO[R, Unit] =
+      if (logStackTrace)
+        effect.fold(e => e.getStackTrace.foreach(st => logger.error(st.toString)), _ => ())
+      else
+        effect.fold(_ => (), _ => ())
+
     override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = log(
       client
-        .executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId))
+        .executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId, "started"))
     )
 
     override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = log(
@@ -33,7 +31,7 @@ object DB extends ApplicationLogger {
 
     override def logJobStart(jobName: String, props: String): UIO[Unit] = log(
       client
-        .executeQuery(Sql.insertJobRun(jobRunId, jobName, props))
+        .executeQuery(Sql.insertJobRun(jobRunId, jobName, props, "started"))
     )
 
     override def logJobEnd(error: Option[Throwable]): UIO[Unit] = log(
@@ -52,7 +50,6 @@ object DB extends ApplicationLogger {
           rs.zonedDateTime("updated_at")
         )
       }
-      .tapError(ex => ZIO.logError(ex.getMessage))
 
     override def getTaskRuns(query: String): Task[Iterable[TaskRun]] = client
       .fetchResults(query) { rs =>
@@ -67,7 +64,6 @@ object DB extends ApplicationLogger {
           rs.zonedDateTime("updated_at")
         )
       }
-      .tapError(ex => ZIO.logError(ex.getMessage))
 
     override def fetchResults[RS, T](query: String)(fn: RS => T): Task[Iterable[T]] =
       client.fetchResults(query)(fn.asInstanceOf[WrappedResultSet => T])
@@ -75,15 +71,16 @@ object DB extends ApplicationLogger {
     override def executeQuery(query: String): Task[Unit] = client.executeQuery(query)
   }
 
-  private[etlflow] def layer(jobRunId: String, fetchSize: Option[Int]): ZLayer[String, Throwable, Audit] =
-    ZLayer(ZIO.service[String].map(pool => DBAudit(jobRunId, DBImpl(pool, fetchSize))))
+  private[etlflow] def layer(jobRunId: String, fetchSize: Option[Int], logStackTrace: Boolean): ZLayer[String, Throwable, Audit] =
+    ZLayer(ZIO.service[String].map(pool => DBAudit(jobRunId, logStackTrace, DBImpl(pool, fetchSize))))
 
   def apply(
       db: JDBC,
       jobRunId: String = UUID.randomUUID.toString,
       poolName: String = "EtlFlow-Audit-Pool",
       poolSize: Int = 2,
-      fetchSize: Option[Int] = None
+      fetchSize: Option[Int] = None,
+      logStackTrace: Boolean = false
   ): TaskLayer[Audit] =
-    etlflow.db.CP.layer(db, poolName, poolSize) >>> layer(jobRunId, fetchSize)
+    etlflow.db.CP.layer(db, poolName, poolSize) >>> layer(jobRunId, fetchSize, logStackTrace)
 }

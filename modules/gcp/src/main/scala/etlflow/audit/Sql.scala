@@ -12,7 +12,8 @@ object Sql {
       name: String,
       props: String,
       taskType: String,
-      jobRunId: String
+      jobRunId: String,
+      status: String
   ): String =
     s"""INSERT INTO etlflow.taskrun (
            task_run_id,
@@ -24,7 +25,7 @@ object Sql {
            created_at,
            updated_at
            )
-         VALUES ("$taskRunId", "$jobRunId", "$name", "$taskType", JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ("$taskRunId", "$jobRunId", "$name", "$taskType", JSON '$props', $status, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
   def updateJobRun(jobRunId: String, status: String): String =
     s"""UPDATE etlflow.jobrun
@@ -32,7 +33,7 @@ object Sql {
                   updated_at = CURRENT_TIMESTAMP()
            WHERE job_run_id = "$jobRunId""""
 
-  def insertJobRun(jobRunId: String, name: String, props: String): String =
+  def insertJobRun(jobRunId: String, name: String, props: String, status: String): String =
     s"""INSERT INTO etlflow.jobrun(
             job_run_id,
             job_name,
@@ -41,6 +42,6 @@ object Sql {
             created_at,
             updated_at
             )
-         VALUES ("$jobRunId", "$name", JSON '$props', "started", CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
+         VALUES ("$jobRunId", "$name", JSON '$props', $status, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"""
 
 }

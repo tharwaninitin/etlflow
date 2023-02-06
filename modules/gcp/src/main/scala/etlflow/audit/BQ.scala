@@ -1,32 +1,45 @@
 package etlflow.audit
 
+import com.google.cloud.bigquery
 import com.google.cloud.bigquery.FieldValueList
-import etlflow.gcp.logBQJobs
+import com.google.cloud.bigquery.JobStatistics.QueryStatistics
 import etlflow.model.{JobRun, TaskRun}
 import gcp4zio.bq.{BQClient, BQImpl}
-import zio.{Task, TaskLayer, UIO, ZIO, ZLayer}
+import zio.{RIO, Task, TaskLayer, UIO, URIO, ZIO, ZLayer}
 import java.time.ZoneId
 import java.util.UUID
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString", "org.wartremover.warts.AsInstanceOf"))
 object BQ {
 
-  private[etlflow] case class BQAudit(jobRunId: String, client: BQImpl) extends etlflow.audit.Audit {
+  private[etlflow] case class BQAudit(jobRunId: String, logStackTrace: Boolean, client: BQImpl) extends etlflow.audit.Audit {
+
+    def logBQJobs[R](effect: RIO[R, bigquery.Job]): URIO[R, Unit] =
+      effect.foldZIO(
+        e =>
+          if (logStackTrace) ZIO.logError(e.getMessage) *> ZIO.foreachDiscard(e.getStackTrace)(st => ZIO.logError(st.toString))
+          else ZIO.logError(e.getMessage),
+        op => {
+          // logger.info(s"EmailId: ${op.getUserEmail}")
+          val stats = op.getStatistics.asInstanceOf[QueryStatistics]
+          ZIO.logInfo(s"${stats.getDmlStats}")
+        }
+      )
 
     override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = logBQJobs(
-      client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId))
+      client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId, "started"))
     )
 
     override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = logBQJobs(
-      client.executeQuery(Sql.updateTaskRun(taskRunId, error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")))
+      client.executeQuery(Sql.updateTaskRun(taskRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
     )
 
     override def logJobStart(jobName: String, props: String): UIO[Unit] = logBQJobs(
-      client.executeQuery(Sql.insertJobRun(jobRunId, jobName, props))
+      client.executeQuery(Sql.insertJobRun(jobRunId, jobName, props, "started"))
     )
 
     override def logJobEnd(error: Option[Throwable]): UIO[Unit] = logBQJobs(
-      client.executeQuery(Sql.updateJobRun(jobRunId, error.fold("pass")(ex => s"failed with error: ${ex.getMessage}")))
+      client.executeQuery(Sql.updateJobRun(jobRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
     )
 
     override def getJobRuns(query: String): Task[Iterable[JobRun]] = client
@@ -64,6 +77,10 @@ object BQ {
       client.executeQuery(query).tapError(ex => ZIO.logError(ex.getMessage)).unit
   }
 
-  def apply(jri: String = UUID.randomUUID.toString, credentials: Option[String] = None): TaskLayer[Audit] =
-    ZLayer.fromZIO(BQClient(credentials).map(bq => BQAudit(jri, BQImpl(bq))))
+  def apply(
+      jri: String = UUID.randomUUID.toString,
+      credentials: Option[String] = None,
+      logStackTrace: Boolean = false
+  ): TaskLayer[Audit] =
+    ZLayer.fromZIO(BQClient(credentials).map(bq => BQAudit(jri, logStackTrace, BQImpl(bq))))
 }

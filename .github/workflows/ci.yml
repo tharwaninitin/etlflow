@@ -75,7 +75,7 @@ jobs:
           distribution: 'adopt'
           cache: 'sbt'
       - name: Run JDBC Tests
-        run: sbt ";project jdbc; test; Test/runMain etlflow.SampleJobWithDbLogging"
+        run: sbt ";project jdbc; +test; Test/runMain etlflow.SampleJobWithDbLogging"
         env:
           DB_URL: jdbc:mysql://localhost:3306/etlflow?allowMultiQueries=true
           DB_USER: etlflow
@@ -92,9 +92,9 @@ jobs:
           distribution: 'adopt'
           cache: 'sbt'
       - name: Run JDBC Tests
-        run: sbt ";project jdbc; test; Test/runMain etlflow.SampleJobWithDbLogging"
+        run: sbt ";project jdbc; +test; Test/runMain etlflow.SampleJobWithDbLogging"
         env:
-          DB_URL: jdbc:h2:file:~/h2db/coordinator
+          DB_URL: jdbc:h2:file:~/h2db/etlflow
           DB_USER: etlflow
           DB_PWD: etlflow
           DB_DRIVER: org.h2.Driver

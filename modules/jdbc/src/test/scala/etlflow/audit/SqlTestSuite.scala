@@ -21,7 +21,7 @@ object SqlTestSuite extends DbSuiteHelper {
             created_at,
             updated_at
             )
-         VALUES (?, ?, CAST(? as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
+         VALUES (?, ?, CAST(? as JSON), ?, CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
         assertTrue(ip == op)
       },
       zio.test.test("insertTaskRun Sql") {
@@ -36,7 +36,7 @@ object SqlTestSuite extends DbSuiteHelper {
            created_at,
            updated_at
            )
-         VALUES (?, ?, ?, ?, CAST(? as JSON), 'started', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
+         VALUES (?, ?, ?, ?, CAST(? as JSON), ?, CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))"""
         assertTrue(ip == op)
       },
       zio.test.test("updateTaskRun Sql") {

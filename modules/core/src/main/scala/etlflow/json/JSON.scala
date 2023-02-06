@@ -6,7 +6,8 @@ import zio.json._
 
 object JSON {
 
-  def convertToObject[T](str: String)(implicit decoder: JsonDecoder[T]): Either[String, T] = str.fromJson[T]
+  def convertToObject[T](str: String)(implicit decoder: JsonDecoder[T]): Either[String, T] =
+    if (str == null) Left("Cannot decode null value to object") else str.fromJson[T]
 
   def convertToString[T](obj: T)(implicit decoder: JsonEncoder[T]): String = obj.toJson
 

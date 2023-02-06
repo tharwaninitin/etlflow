@@ -10,22 +10,36 @@ import java.util.UUID
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString", "org.wartremover.warts.AsInstanceOf"))
 object DB extends ApplicationLogger {
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  def log[R](effect: RIO[R, Unit]): URIO[R, Unit] =
+    effect.fold(
+      e => {
+        logger.error(e.getMessage)
+        e.getStackTrace.foreach(st => logger.error(st.toString))
+      },
+      _ => ()
+    )
+
   private[etlflow] case class DBAudit(jobRunId: String, client: DBImpl) extends etlflow.audit.Audit {
-    override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = client
-      .executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId))
-      .fold(e => logger.error(e.getMessage), _ => ())
+    override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = log(
+      client
+        .executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId))
+    )
 
-    override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = client
-      .executeQuery(Sql.updateTaskRun(taskRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
-      .fold(e => logger.error(e.getMessage), _ => ())
+    override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = log(
+      client
+        .executeQuery(Sql.updateTaskRun(taskRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
+    )
 
-    override def logJobStart(jobName: String, props: String): UIO[Unit] = client
-      .executeQuery(Sql.insertJobRun(jobRunId, jobName, props))
-      .fold(e => logger.error(e.getMessage), _ => ())
+    override def logJobStart(jobName: String, props: String): UIO[Unit] = log(
+      client
+        .executeQuery(Sql.insertJobRun(jobRunId, jobName, props))
+    )
 
-    override def logJobEnd(error: Option[Throwable]): UIO[Unit] = client
-      .executeQuery(Sql.updateJobRun(jobRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
-      .fold(e => logger.error(e.getMessage), _ => ())
+    override def logJobEnd(error: Option[Throwable]): UIO[Unit] = log(
+      client
+        .executeQuery(Sql.updateJobRun(jobRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
+    )
 
     override def getJobRuns(query: String): Task[Iterable[JobRun]] = client
       .fetchResults(query) { rs =>

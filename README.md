@@ -60,23 +60,23 @@ Add the below latest release as a dependency to your project
 
 __SBT__
 ```scala
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-ftp" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.7.2"
-libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.7.2"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-gcp" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-spark" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-k8s" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-http" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-ftp" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-redis" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-aws" % "1.7.3"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-email" % "1.7.3"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>etlflow-core_2.12</artifactId>
-    <version>1.7.2</version>
+    <version>1.7.3</version>
 </dependency>
 ```
 
@@ -162,6 +162,7 @@ programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
 ## K8S
+This module depends on kubernetes official Java client library version 17.0.1
 ```scala
 import etlflow.task._
 import etlflow.k8s._

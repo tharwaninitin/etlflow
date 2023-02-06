@@ -153,8 +153,14 @@ lazy val docs = project
   .settings(
     name           := "etlflow-docs",
     publish / skip := true,
-    mdocVariables  := Map("VERSION" -> version.value, "Scala212" -> Scala212, "Scala213" -> Scala213, "Scala3" -> Scala3),
-    mdocIn         := new File("docs/readme.template.md"),
-    mdocOut        := new File("README.md")
+    mdocVariables := Map(
+      "VERSION"  -> version.value,
+      "Scala212" -> Scala212,
+      "Scala213" -> Scala213,
+      "Scala3"   -> Scala3,
+      "k8s"      -> K8SVersion
+    ),
+    mdocIn  := new File("docs/readme.template.md"),
+    mdocOut := new File("README.md")
   )
   .enablePlugins(MdocPlugin)

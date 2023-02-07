@@ -7,6 +7,8 @@ import zio.{RIO, Task, UIO, URIO, ZIO}
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 trait Audit {
   val jobRunId: String
+  
+  def backend: UIO[String] = ZIO.succeed(this.getClass.getSimpleName)
 
   def logJobStart(jobName: String, props: String): UIO[Unit]
   def logJobEnd(error: Option[Throwable]): UIO[Unit]
@@ -22,6 +24,8 @@ trait Audit {
 }
 
 object Audit {
+  def backend: RIO[Audit, String] = ZIO.serviceWithZIO(_.backend)
+  
   def logJobStart(jobName: String, props: String): URIO[Audit, Unit] = ZIO.serviceWithZIO(_.logJobStart(jobName, props))
   def logJobEnd(error: Option[Throwable] = None): URIO[Audit, Unit] = ZIO.serviceWithZIO(_.logJobEnd(error))
 

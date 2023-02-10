@@ -94,6 +94,7 @@ case class K8SJobTask(
   override protected def process: RIO[K8S, V1Job] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Creating K8S Job: $jobName")
+    _ <- ZIO.logInfo(s"Image: $image")
 
     job <- K8S
       .createJob(

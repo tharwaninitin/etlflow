@@ -47,7 +47,6 @@ object K8SClient extends ApplicationLogger {
 
   def setApiClient(client: ApiClient): ApiClient = {
     Configuration.setDefaultApiClient(client)
-    ClientBuilder.defaultClient()
     client
   }
 

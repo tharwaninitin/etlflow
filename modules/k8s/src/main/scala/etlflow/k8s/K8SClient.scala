@@ -9,7 +9,7 @@ import java.io.FileReader
 
 object K8SClient extends ApplicationLogger {
 
-  /** Method: createApiClient - Creates K8S ApiClient using either KUBECONFIG or $HOME/.kube/config as the location for
+  /** Method: createApiClient - Creates K8S ApiClient using either KUBECONFIG or HOME environment variable as the location for
     * configuration in this order <ul> <li>Config file defined by KUBECONFIG environment variable</li> <li>$HOME/.kube/config
     * file</li> </ul>
     * @param httpConnectionTimeout
@@ -49,7 +49,10 @@ object K8SClient extends ApplicationLogger {
     }.orDie
   )
 
-  def setApiClient(client: ApiClient): Unit = Configuration.setDefaultApiClient(client)
+  def setApiClient(client: ApiClient): ApiClient = {
+    Configuration.setDefaultApiClient(client)
+    client
+  }
 
   /** Method: batchClient - Provides BatchV1Api
     * @return

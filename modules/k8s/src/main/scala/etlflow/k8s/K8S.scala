@@ -1,6 +1,7 @@
 package etlflow.k8s
 
 import io.kubernetes.client.openapi.ApiClient
+import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models.V1Job
 import zio.stream.ZStream
 import zio.{RIO, Scope, Task, TaskLayer, ZIO, ZLayer}
@@ -71,6 +72,12 @@ trait K8S {
       deletionGraceInSeconds: Int = 0
   ): Task[V1Job]
 
+  def executeCoreApiTask[T](f: CoreV1Api => T): Task[T]
+
+  def executeBatchApiTask[T](f: BatchV1Api => T): Task[T]
+
+  def getApiClient[T]: Task[ApiClient]
+
   /** Deletes the Job after specified time
     *
     * @param name
@@ -83,12 +90,7 @@ trait K8S {
     * @param debug
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     */
-  def deleteJob(
-      name: String,
-      namespace: String = "default",
-      gracePeriodInSeconds: Int = 0,
-      debug: Boolean = false
-  ): Task[Unit]
+  def deleteJob(name: String, namespace: String = "default", gracePeriodInSeconds: Int = 0, debug: Boolean = false): Task[Unit]
 
   /** Returns a list of all the job running in the provided namespace
     *
@@ -110,11 +112,7 @@ trait K8S {
     * @return
     *   A Job, as an instance of T
     */
-  def getJob(
-      name: String,
-      namespace: String = "default",
-      debug: Boolean = false
-  ): Task[V1Job]
+  def getJob(name: String, namespace: String = "default", debug: Boolean = false): Task[V1Job]
 
   /** @param name
     *   Name of the Job
@@ -124,11 +122,7 @@ trait K8S {
     *   boolean flag which logs more details on some intermediary objects. Optional, defaults to false
     * @return
     */
-  def getJobStatus(
-      name: String,
-      namespace: String = "default",
-      debug: Boolean = false
-  ): Task[JobStatus]
+  def getJobStatus(name: String, namespace: String = "default", debug: Boolean = false): Task[JobStatus]
 
   /** Gets the logs from the pod for the job.
     *
@@ -140,11 +134,7 @@ trait K8S {
     *   Chunk size for fetch logs(bytes) from K8S
     * @return
     */
-  def getPodLogs(
-      jobName: String,
-      namespace: String = "default",
-      chunkSize: Int = 4096
-  ): ZStream[Any, Throwable, Byte]
+  def getPodLogs(jobName: String, namespace: String = "default", chunkSize: Int = 4096): ZStream[Any, Throwable, Byte]
 
   /** Poll the job for completion
     * @param name
@@ -200,6 +190,12 @@ object K8S {
       )
     )
 
+  def executeCoreApiTask[T](f: CoreV1Api => T): RIO[K8S, T] = ZIO.serviceWithZIO[K8S](_.executeCoreApiTask(f))
+
+  def executeBatchApiTask[T](f: BatchV1Api => T): RIO[K8S, T] = ZIO.serviceWithZIO[K8S](_.executeBatchApiTask(f))
+
+  def getApiClient[T]: RIO[K8S, ApiClient] = ZIO.serviceWithZIO[K8S](_.getApiClient)
+
   def deleteJob(
       name: String,
       namespace: String = "default",
@@ -244,6 +240,6 @@ object K8S {
       case Some(apiClient) => ZIO.succeed(apiClient)
       case None            => K8SClient.createApiClient(httpConnectionTimeout)
     }
-    client.map(K8SClient.setApiClient).as(K8SImpl(K8SClient.createCoreClient, K8SClient.createBatchClient))
+    client.map(K8SClient.setApiClient).map(client => K8SImpl(K8SClient.createCoreClient, K8SClient.createBatchClient, client))
   }
 }

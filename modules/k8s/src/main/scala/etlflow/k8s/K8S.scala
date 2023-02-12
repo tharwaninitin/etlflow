@@ -240,6 +240,8 @@ object K8S {
       case Some(apiClient) => ZIO.succeed(apiClient)
       case None            => K8SClient.createApiClient(httpConnectionTimeout)
     }
-    client.map(K8SClient.setApiClient).map(client => K8SImpl(K8SClient.createCoreClient, K8SClient.createBatchClient, client))
+    client
+      .map(K8SClient.setDefaultApiClient)
+      .map(client => K8SImpl(K8SClient.createCoreClient(client), K8SClient.createBatchClient(client), client))
   }
 }

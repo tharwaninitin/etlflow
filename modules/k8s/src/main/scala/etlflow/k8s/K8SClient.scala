@@ -45,7 +45,7 @@ object K8SClient extends ApplicationLogger {
     }.orDie
   )
 
-  def setApiClient(client: ApiClient): ApiClient = {
+  def setDefaultApiClient(client: ApiClient): ApiClient = {
     Configuration.setDefaultApiClient(client)
     client
   }
@@ -54,11 +54,11 @@ object K8SClient extends ApplicationLogger {
     * @return
     *   BatchV1Api
     */
-  def createBatchClient: BatchV1Api = new BatchV1Api()
+  def createBatchClient(client: ApiClient): BatchV1Api = new BatchV1Api(client)
 
   /** Method: coreClient - Provides CoreV1Api
     * @return
     *   CoreV1Api
     */
-  def createCoreClient: CoreV1Api = new CoreV1Api()
+  def createCoreClient(client: ApiClient): CoreV1Api = new CoreV1Api(client)
 }

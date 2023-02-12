@@ -11,12 +11,11 @@ import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
 import zio.stream.{ZPipeline, ZStream}
 import zio.{Task, ZIO}
-
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
 @SuppressWarnings(Array("org.wartremover.warts.AutoUnboxing", "org.wartremover.warts.Null", "org.wartremover.warts.ToString"))
-case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with ApplicationLogger {
+case class K8SImpl(core: CoreV1Api, batch: BatchV1Api) extends K8S with ApplicationLogger {
   private val secretKey = "secret"
 
   /** Create a Job in a new Container for running an image.

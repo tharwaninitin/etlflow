@@ -1,8 +1,9 @@
 package etlflow.k8s
 
+import io.kubernetes.client.openapi.ApiClient
 import io.kubernetes.client.openapi.models.V1Job
 import zio.stream.ZStream
-import zio.{RIO, Task, TaskLayer, ZIO, ZLayer}
+import zio.{RIO, Scope, Task, TaskLayer, ZIO, ZLayer}
 
 /** API for managing resources on Kubernetes Cluster
   */
@@ -236,11 +237,11 @@ object K8S {
     * @return
     *   TaskLayer[Jobs]
     */
-  def live(httpConnectionTimeout: Int = 100000): TaskLayer[K8S] = ZLayer.fromZIO {
-    ZIO
-      .attempt {
-        K8SClient.setConfig(httpConnectionTimeout)
-        K8SImpl(K8SClient.batchClient, K8SClient.coreClient)
-      }
+  def live(httpConnectionTimeout: Int = 100000, apiClient: Option[ApiClient] = None): TaskLayer[K8S] = ZLayer.scoped {
+    val client: ZIO[Scope, Throwable, ApiClient] = apiClient match {
+      case Some(apiClient) => ZIO.succeed(apiClient)
+      case None            => K8SClient.createApiClient(httpConnectionTimeout)
+    }
+    client.map(K8SClient.setApiClient).as(K8SImpl(K8SClient.createCoreClient, K8SClient.createBatchClient))
   }
 }

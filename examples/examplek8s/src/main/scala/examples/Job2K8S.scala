@@ -7,7 +7,7 @@ import etlflow.log.ApplicationLogger
 import etlflow.task._
 import zio._
 
-object Job1K8S extends ZIOAppDefault with ApplicationLogger {
+object Job2K8S extends ZIOAppDefault with ApplicationLogger {
 
   override val bootstrap: ULayer[Unit] = zioSlf4jLogger
 

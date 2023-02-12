@@ -164,3 +164,43 @@ lazy val docs = project
     mdocOut := new File("README.md")
   )
   .enablePlugins(MdocPlugin)
+
+lazy val examplecore = (project in file("examples/examplecore"))
+  .settings(
+    name               := "examplecore",
+    crossScalaVersions := AllScalaVersions,
+    libraryDependencies ++= List(
+      "ch.qos.logback" % "logback-classic" % LogbackVersion,
+      "org.postgresql" % "postgresql"      % PgVersion
+    )
+  )
+  .dependsOn(jdbc)
+
+lazy val examplek8s = (project in file("examples/examplek8s"))
+  .settings(
+    name               := "examplek8s",
+    crossScalaVersions := AllScalaVersions,
+    libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % LogbackVersion)
+  )
+  .dependsOn(k8s)
+
+lazy val examplegcp = (project in file("examples/examplegcp"))
+  .settings(
+    name               := "examplegcp",
+    crossScalaVersions := AllScalaVersions,
+    libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % LogbackVersion)
+  )
+  .dependsOn(gcp)
+
+lazy val examplespark = (project in file("examples/examplespark"))
+  .settings(
+    name               := "examplespark",
+    crossScalaVersions := Scala2Versions,
+    libraryDependencies ++= List(
+      "org.apache.spark"           %% "spark-sql"       % SparkVersion,
+      "ch.qos.logback"              % "logback-classic" % LogbackVersion,
+      "com.google.cloud.bigdataoss" % "gcs-connector"   % HadoopGCSVersion
+      // "com.google.cloud.spark" %% "spark-bigquery-with-dependencies" % SparkBQVersion
+    )
+  )
+  .dependsOn(spark)

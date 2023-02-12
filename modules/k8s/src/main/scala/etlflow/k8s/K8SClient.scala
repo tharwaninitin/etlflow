@@ -10,8 +10,8 @@ import java.io.FileReader
 object K8SClient extends ApplicationLogger {
 
   /** Method: createApiClient - Creates K8S ApiClient using either KUBECONFIG or HOME environment variable as the location for
-    * configuration in this order <ul> <li>Config file defined by KUBECONFIG environment variable</li> <li>$HOME/.kube/config
-    * file</li> </ul>
+    * configuration in this order <ul> <li>Config file defined by KUBECONFIG environment variable</li> <li>Config file defined by
+    * HOME/.kube/config file</li> </ul>
     * @param httpConnectionTimeout
     *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
     */
@@ -32,12 +32,8 @@ object K8SClient extends ApplicationLogger {
     logger.info(s"Config.Server => ${config.getServer}")
 
     val apiClient: ApiClient = ClientBuilder.kubeconfig(config).build().setConnectTimeout(httpConnectionTimeout)
-    logger.info(s"ApiClient.BasePath => ${apiClient.getBasePath}")
     logger.info(s"ApiClient.HTTPConnectionTimeout => ${apiClient.getConnectTimeout} millis")
 
-    val httpClient = apiClient.getHttpClient
-    logger.info(s"HttpClient.ConnectionCount => ${httpClient.connectionPool.connectionCount}")
-    logger.info(s"HttpClient.IdleConnectionCount => ${httpClient.connectionPool.idleConnectionCount}")
     apiClient
   })(c =>
     ZIO.attempt {
@@ -51,6 +47,7 @@ object K8SClient extends ApplicationLogger {
 
   def setApiClient(client: ApiClient): ApiClient = {
     Configuration.setDefaultApiClient(client)
+    ClientBuilder.defaultClient()
     client
   }
 

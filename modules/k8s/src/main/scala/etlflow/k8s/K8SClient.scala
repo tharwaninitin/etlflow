@@ -9,9 +9,9 @@ import java.io.FileReader
 
 object K8SClient extends ApplicationLogger {
 
-  /** Method: getApiClient - Creates K8S ApiClient using the EITHER KUBECONFIG or $HOME/.kube/config to locate the configuration
-    * by following below steps in order <ul> <li>Config file defined by KUBECONFIG environment variable</li>
-    * <li>$HOME/.kube/config file</li> </ul>
+  /** Method: createApiClient - Creates K8S ApiClient using either KUBECONFIG or $HOME/.kube/config as the location for
+    * configuration in this order <ul> <li>Config file defined by KUBECONFIG environment variable</li> <li>$HOME/.kube/config
+    * file</li> </ul>
     * @param httpConnectionTimeout
     *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
     */

@@ -234,8 +234,10 @@ object K8S {
   /** Method: live - Provides layer to execute K8S Job APIs
     * @param httpConnectionTimeout
     *   Http request connection timeout in MILLISECONDS, A value of 0 means no timeout
+    * @param apiClient
+    *   If provided it will be used or ApiClient will be created
     * @return
-    *   TaskLayer[Jobs]
+    *   TaskLayer[K8S]
     */
   def live(httpConnectionTimeout: Int = 100000, apiClient: Option[ApiClient] = None): TaskLayer[K8S] = ZLayer.scoped {
     val client: ZIO[Scope, Throwable, ApiClient] = apiClient match {

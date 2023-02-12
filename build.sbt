@@ -165,6 +165,21 @@ lazy val docs = project
   )
   .enablePlugins(MdocPlugin)
 
+lazy val examples = (project in file("examples"))
+  .settings(
+    crossScalaVersions := Nil, // crossScalaVersions must be set to Nil on the aggregating project
+    publish / skip     := true,
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 12)) => s2copts ++ s212copts
+        case Some((2, 13)) => s2copts
+        case Some((3, _))  => s3copts
+        case _             => Seq()
+      }
+    }
+  )
+  .aggregate(examplecore, examplek8s, examplegcp, examplespark)
+
 lazy val examplecore = (project in file("examples/examplecore"))
   .settings(
     name               := "examplecore",

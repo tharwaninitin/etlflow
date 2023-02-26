@@ -15,16 +15,16 @@ object BQ {
   private[etlflow] case class BQAudit(jobRunId: String, logStackTrace: Boolean, client: BQImpl) extends etlflow.audit.Audit {
 
     def logBQJobs[R](effect: RIO[R, bigquery.Job]): URIO[R, Unit] =
-      effect.foldZIO(
-        e =>
-          if (logStackTrace) ZIO.logError(e.getMessage) *> ZIO.foreachDiscard(e.getStackTrace)(st => ZIO.logError(st.toString))
-          else ZIO.logError(e.getMessage),
-        op => {
-          // logger.info(s"EmailId: ${op.getUserEmail}")
-          val stats = op.getStatistics.asInstanceOf[QueryStatistics]
-          ZIO.logInfo(s"${stats.getDmlStats}")
-        }
-      )
+      effect.timed
+        .foldZIO(
+          e =>
+            if (logStackTrace) ZIO.logError(e.getMessage) *> ZIO.foreachDiscard(e.getStackTrace)(st => ZIO.logError(st.toString))
+            else ZIO.logError(e.getMessage),
+          op => {
+            val stats = op._2.getStatistics.asInstanceOf[QueryStatistics]
+            ZIO.logInfo(s"Duration: ${op._1.toString}} Stats: ${stats.getDmlStats}")
+          }
+        )
 
     override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = logBQJobs(
       client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId, "started"))

@@ -1,12 +1,11 @@
 package etlflow.spark
 
 import etlflow.log.ApplicationLogger
-import etlflow.spark.IOType._
 import etlflow.model.EtlFlowException.EtlJobException
+import etlflow.spark.IOType._
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions.col
-
 import scala.reflect.runtime.universe.TypeTag
 
 @SuppressWarnings(
@@ -54,13 +53,21 @@ object WriteApi extends ApplicationLogger {
     logger.info("#" * 20 + " Provided Output Case Class Schema " + "#" * 20)
     mapping.schema.printTreeString()
 
-    val dfWriter = partitionBy match {
+    val dfWriter: DataFrameWriter[T] = partitionBy match {
       case partition if partition.nonEmpty && repartition =>
         logger.info(s"Will generate $repartitionNo repartitioned output files inside partitions $partitionBy")
         input
           .select(mapping.schema.map(x => col(x.name)): _*)
           .as[T](mapping)
           .repartition(repartitionNo, partition.map(c => col(c)): _*)
+          .write
+          .option("compression", compression)
+      case partition if partition.nonEmpty && !repartition =>
+        logger.info(s"Will generate output files inside partitions $partitionBy")
+        input
+          .select(mapping.schema.map(x => col(x.name)): _*)
+          .as[T](mapping)
+          .repartition(partition.map(c => col(c)): _*)
           .write
           .option("compression", compression)
       case partition if partition.isEmpty && repartition =>
@@ -72,10 +79,14 @@ object WriteApi extends ApplicationLogger {
           .write
           .option("compression", compression)
       case _ =>
-        input.select(mapping.schema.map(x => col(x.name)): _*).as[T](mapping).write.option("compression", compression)
+        input
+          .select(mapping.schema.map(x => col(x.name)): _*)
+          .as[T](mapping)
+          .write
+          .option("compression", compression)
     }
 
-    val dfWriterOptions = outputType match {
+    val dfWriterOptions: DataFrameWriter[T] = outputType match {
       case CSV(delimiter, header_present, _, quotechar) =>
         dfWriter
           .format("csv")

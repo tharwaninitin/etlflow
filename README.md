@@ -51,7 +51,7 @@ Below are some salient features of this library.
 | Spark  | [![Latest Version](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-spark_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-spark) | [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-spark_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-spark_2.12) | [![etlflow-spark Scala version support](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-spark/latest-by-scala-version.svg)](https://index.scala-lang.org/tharwaninitin/etlflow/etlflow-spark) | Java 8 +     |
 
 ## Requirements and Installation
-This project is compiled with scala versions 2.12.17, 2.13.10, 3.2.1
+This project is compiled with scala versions 2.12.17, 2.13.10, 3.3.0
 
 Available via [maven central](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core).
 Add the below latest release as a dependency to your project
@@ -162,7 +162,7 @@ programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
 ## K8S
-This module depends on kubernetes official Java client library version 17.0.1
+This module depends on kubernetes official Java client library version 18.0.0
 ```scala
 import etlflow.task._
 import etlflow.k8s._

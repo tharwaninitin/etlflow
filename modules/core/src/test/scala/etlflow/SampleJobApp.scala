@@ -7,7 +7,7 @@ import zio.{Chunk, Layer, RIO}
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object SampleJobApp extends JobApp {
 
-  override val auditLayer: Layer[Throwable, Audit] = audit.memory(java.util.UUID.randomUUID.toString)
+  override val auditLayer: Layer[Throwable, Audit] = audit.console
 
   def processData1(): String = {
     logger.info("Hello World")

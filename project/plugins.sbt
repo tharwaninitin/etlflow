@@ -1,5 +1,5 @@
 // Code Quality Plugins
-addSbtPlugin("org.wartremover" % "sbt-wartremover"       % "3.0.6")
+addSbtPlugin("org.wartremover" % "sbt-wartremover"       % "3.1.3")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
 addSbtPlugin("org.scalameta"   % "sbt-scalafmt"          % "2.4.6")
 

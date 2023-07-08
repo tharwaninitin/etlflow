@@ -31,7 +31,7 @@ case class SparkDeDupTask[I <: Product: TypeTag](
         .writeStream
         .format("console")
         .outputMode("append")
-        .trigger(Trigger.Once())
+        .trigger(Trigger.AvailableNow())
         .option("checkpointLocation", checkpointLocation)
         .start()
         .awaitTermination()

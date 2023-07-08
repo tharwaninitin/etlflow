@@ -7,7 +7,7 @@ object Dependencies {
     "dev.zio" %% "zio"               % ZioVersion,
     "dev.zio" %% "zio-logging-slf4j" % ZioLogVersion,
     "dev.zio" %% "zio-json"          % ZioJsonVersion,
-    "dev.zio" %% "zio-config"        % zioConfigVersion
+    "dev.zio" %% "zio-config"        % ZioConfigVersion
   )
 
   lazy val awsLibs = List(
@@ -69,13 +69,13 @@ object Dependencies {
     "ch.qos.logback" % "logback-classic"     % LogbackVersion,
     "dev.zio"       %% "zio-test"            % ZioVersion,
     "dev.zio"       %% "zio-test-sbt"        % ZioVersion,
-    "dev.zio"       %% "zio-config-typesafe" % zioConfigVersion
+    "dev.zio"       %% "zio-config-typesafe" % ZioConfigVersion
   ).map(_ % Test)
 
   lazy val jdbcTestLibs = List(
     "org.postgresql" % "postgresql"           % PgVersion,
     "mysql"          % "mysql-connector-java" % MySqlVersion,
-    "com.h2database" % "h2"                   % "2.1.+"
+    "com.h2database" % "h2"                   % H2Version
   ).map(_ % Test)
 
   lazy val sparkTestLibs = List(

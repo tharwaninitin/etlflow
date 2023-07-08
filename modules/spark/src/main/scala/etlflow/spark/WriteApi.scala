@@ -127,7 +127,7 @@ object WriteApi extends ApplicationLogger {
       val path       = s"$outputLocation/"
       val fs         = FileSystem.get(new java.net.URI(path), spark.sparkContext.hadoopConfiguration)
       val fileStatus = fs.globStatus(new Path(path + "part*"))
-      if (fileStatus.size > 1) {
+      if (fileStatus.length > 1) {
         logger.error("multiple output files found, expected single file")
         throw new RuntimeException("multiple output files found, expected single file")
       }

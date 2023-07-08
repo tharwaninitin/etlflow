@@ -287,6 +287,7 @@ case class K8SImpl(core: CoreV1Api, batch: BatchV1Api, client: ApiClient) extend
     }
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.ForeachEntry"))
   private def createV1JobInstance(
       name: String,
       container: String,

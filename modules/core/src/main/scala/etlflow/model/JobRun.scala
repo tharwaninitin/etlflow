@@ -12,6 +12,7 @@ case class JobRun(
     modifiedAt: ZonedDateTime
 )
 
+@SuppressWarnings(Array("org.wartremover.warts.SeqApply"))
 object JobRun {
   implicit val codecJR: JsonCodec[JobRun] = DeriveJsonCodec.gen[JobRun]
 }

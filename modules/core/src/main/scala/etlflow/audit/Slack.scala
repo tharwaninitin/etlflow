@@ -38,7 +38,7 @@ case class Slack(jobRunId: String, slackUrl: String) extends Audit with Applicat
 
   private def sendSlackNotification(data: String): Try[Unit] =
     Try {
-      @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+      @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.JavaNetURLConstructors"))
       val conn = new URL(slackUrl).openConnection().asInstanceOf[HttpURLConnection]
       conn.setRequestMethod("POST")
       conn.setRequestProperty("Content-Type", "application/json")

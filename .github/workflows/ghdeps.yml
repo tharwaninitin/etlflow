@@ -1,4 +1,4 @@
-name: SBT Dependency Update to Github
+name: SBT Github Update Dependency Graph
 on: [push]
 jobs:
   dependency-graph:

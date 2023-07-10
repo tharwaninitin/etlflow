@@ -86,7 +86,7 @@ lazy val k8sSettings = Seq(
 
 lazy val ftpSettings = Seq(
   name               := "etlflow-ftp",
-  crossScalaVersions := Scala2Versions,
+  crossScalaVersions := AllScalaVersions,
   libraryDependencies ++= ftpLibs ++ coreTestLibs
 )
 

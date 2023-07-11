@@ -6,7 +6,7 @@ import etlflow.model.EtlFlowException.RetryException
 import etlflow.task.GenericTask
 import zio.test.Assertion.equalTo
 import zio.test._
-import zio.{RIO, Task, ZIO, Duration => ZDuration}
+import zio.{Duration => ZDuration, RIO, Task, ZIO}
 
 import scala.concurrent.duration._
 

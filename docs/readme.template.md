@@ -101,8 +101,11 @@ __Maven__
 ## Core
 Core module provides **Task** and **Audit** APIs which is used by all tasks in different modules. It additionally provides **Job** API which facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at Job level  
 ### Task API
-Below example is the simplest example of creating and running a Task using EtlFlow.
+Below is the simplest example of creating and running a Task using EtlFlow.
 This example uses noop audit backend which does nothing, This is useful when you want to test a task that require a audit backend to be passed in.
+```scala
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "@VERSION@"
+```
 
 ```scala mdoc:silent
 import etlflow.task.GenericTask
@@ -121,9 +124,40 @@ object Job1 extends ZIOAppDefault {
 }
 ```
 ### Audit API
-EtlFlow provides an auditing mechanism that can be used to track the execution of tasks and job (collection of tasks). The auditing mechanism can be used to record the start and end of tasks, as well as the metadata that is processed by each task.
+EtlFlow provides an auditing interface that can be used to track the execution of tasks and job (collection of tasks).
+Audit interface is integrated with Task Interface, each task uses this interface to maintain state of all tasks in workflow in the backend of choice for end-to-end auditability. 
+Currently, there are audit backend implementations available for BigQuery, MySQL, Postgres etc.
+Audit has a simple and concise interface which makes it quite easy to add any new backend.
+```scala
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "@VERSION@"
+libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "@VERSION@"
+```
 ```scala mdoc:silent
-// Todo
+import etlflow.task.{GenericTask, DBQueryTask}
+import etlflow.model.Credential.JDBC
+import zio._
+
+object Job2 extends ZIOAppDefault {
+  
+  private val task1 = GenericTask(
+    name = "Generic Task 1",
+    task = ZIO.logInfo(s"Workflow 1")
+  )
+
+  private val task2 = GenericTask(
+    name = "Generic Task 2",
+    task = ZIO.logInfo(s"Workflow 2")
+  )
+
+  val job = for {
+    _ <- task1.toZIO
+    _ <- task2.toZIO
+  } yield ()
+
+  private val cred = JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))
+
+  override def run: Task[Unit] = job.provide(etlflow.audit.DB(cred))
+}
 ```
 ### Job API
 

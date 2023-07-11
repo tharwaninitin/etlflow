@@ -1,16 +1,12 @@
 package etlflow.task
 
-import zio.{Task, ZIO}
+import zio.{RIO, ZIO}
 
-class GenericTask[OP](val name: String, function: => OP) extends EtlTask[Any, OP] {
+case class GenericTask[-R, +OP](name: String, task: RIO[R,OP]) extends EtlTask[R, OP] {
 
-  override protected def process: Task[OP] = for {
+  override protected def process: RIO[R,OP] = for {
     _  <- ZIO.logInfo("#" * 50) *> ZIO.logInfo(s"Starting Generic ETL Task: $name")
-    op <- ZIO.attempt(function)
+    op <- task
     _  <- ZIO.logInfo("#" * 50)
   } yield op
-}
-
-object GenericTask {
-  def apply[OP](name: String, function: => OP): GenericTask[OP] = new GenericTask(name, function)
 }

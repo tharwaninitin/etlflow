@@ -9,7 +9,7 @@ import etlflow.spark.{ReadApi, SparkEnv, SparkUDF, WriteApi}
 import org.apache.spark.sql.functions.{col, from_unixtime}
 import org.apache.spark.sql.types.{DateType, IntegerType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import zio.ZIO
+import zio.{Task, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
 
@@ -34,14 +34,14 @@ object ParquetToJdbcGenericTestSuite extends SparkUDF with ApplicationLogger wit
     transformFunction = getYearMonthData
   )
 
-  def processData(ip: Array[String]): Unit = {
+  def processData(ip: Array[String]): Task[Unit] = ZIO.attempt {
     logger.info("Processing Data")
     logger.info(ip.toList.toString())
   }
 
-  def task2(ip: Array[String]): GenericTask[Unit] = GenericTask(
+  def task2(ip: Array[String]): GenericTask[Any, Unit] = GenericTask(
     name = "ProcessData",
-    function = processData(ip)
+    task = processData(ip)
   )
 
   val job: ZIO[SparkEnv with Audit, Throwable, Unit] = for {

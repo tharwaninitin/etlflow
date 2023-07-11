@@ -4,7 +4,7 @@ import etlflow.audit.Audit
 import etlflow.log.ApplicationLogger
 import etlflow.model.Credential.JDBC
 import etlflow.task.{DBReadTask, GenericTask}
-import zio.Task
+import zio.{Task, ZIO}
 
 object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
 
@@ -19,14 +19,14 @@ object Job3 extends zio.ZIOAppDefault with ApplicationLogger {
     query = "SELECT job_name,job_run_id,state FROM jobrun LIMIT 10"
   )(rs => EtlJobRun(rs.string("job_name"), rs.string("job_run_id"), rs.string("state")))
 
-  private def processData(ip: Iterable[EtlJobRun]): Unit = {
+  private def processData(ip: Iterable[EtlJobRun]): Task[Unit] = ZIO.attempt {
     logger.info("Processing Data")
     ip.foreach(jr => logger.info(s"$jr"))
   }
 
-  private def task2(ip: Iterable[EtlJobRun]): GenericTask[Unit] = GenericTask(
+  private def task2(ip: Iterable[EtlJobRun]): GenericTask[Any, Unit] = GenericTask(
     name = "ProcessData",
-    function = processData(ip)
+    task = processData(ip)
   )
 
   private val job = for {

@@ -6,11 +6,11 @@ import zio._
 
 object Job1EtlFlow extends JobApp {
 
-  def executeTask(): Unit = logger.info(s"Hello EtlFlow Task")
+  def executeTask(): Task[Unit] = ZIO.logInfo(s"Hello EtlFlow Task")
 
-  val task1: GenericTask[Unit] = GenericTask(
+  val task1: GenericTask[Any, Unit] = GenericTask(
     name = "Task_1",
-    function = executeTask()
+    task = executeTask()
   )
 
   def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.toZIO

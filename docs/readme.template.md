@@ -87,7 +87,6 @@ __Maven__
     - [Task](#task)
     - [Audit](#audit)
     - [Config](#config)
-    - [Json](#json)
   - [GCP](#gcp)
     - [Dataproc](#dataproc)
   - [K8S](#k8s)
@@ -100,14 +99,32 @@ __Maven__
 <!-- /TOC -->
 
 ## Core
-```scala mdoc:silent
-// Todo
-```
+Core module provides **Task** and **Audit** APIs which is used by all tasks in different modules. It additionally provides **Job** API which facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at Job level  
 ### Task
+Below example is the simplest example of creating and running a Task using EtlFlow.
+This example uses noop audit backend which does nothing, This is useful when you want to test a task that require a audit backend to be passed in.
+
 ```scala mdoc:silent
-// Todo
+
+import etlflow.task.GenericTask
+import zio._
+
+object Job1 extends zio.ZIOAppDefault {
+
+  def executeTask(): Task[Unit] = ZIO.logInfo(s"Hello EtlFlow Task")
+
+  private val task1 = GenericTask(
+    name = "Task_1",
+    task = executeTask()
+  )
+
+  override def run: Task[Unit] = task1.toZIO.provide(etlflow.audit.noop)
+}
 ```
 ### Audit
+EtlFlow provides an auditing mechanism that can be used to track the execution of workflows(Collection of tasks). The auditing mechanism can be used to record the start and end of tasks, as well as the metadata that is processed by each task.
+
+
 ```scala mdoc:silent
 // Todo
 ```

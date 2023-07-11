@@ -1,9 +1,12 @@
 package examples
 
+import etlflow.log.ApplicationLogger
 import etlflow.task.GenericTask
 import zio._
 
-object Job1 extends zio.ZIOAppDefault {
+object Job1Logger extends zio.ZIOAppDefault with ApplicationLogger {
+
+  override val bootstrap = zioSlf4jLogger
 
   def executeTask(): Task[Unit] = ZIO.logInfo(s"Hello EtlFlow Task")
 

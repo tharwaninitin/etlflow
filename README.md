@@ -162,7 +162,7 @@ programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
 ## K8S
-This module depends on kubernetes official Java client library version 18.0.0
+This module depends on kubernetes official Java client library version 18.0.1
 ```scala
 import etlflow.task._
 import etlflow.k8s._

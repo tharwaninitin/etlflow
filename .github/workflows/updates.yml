@@ -27,3 +27,5 @@ jobs:
         run: sbt redis/dependencyUpdates
       - name: Check Dependency Updates for spark
         run: sbt spark/dependencyUpdates
+      - name: Check Dependency Updates for FTP
+        run: sbt ftp/dependencyUpdates

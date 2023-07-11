@@ -43,5 +43,5 @@ case class BQSensorTask(
     } yield ()
   }
 
-  override def getTaskProperties: Map[String, String] = Map("query" -> query)
+  override def getMetaData: Map[String, String] = Map("query" -> query)
 }

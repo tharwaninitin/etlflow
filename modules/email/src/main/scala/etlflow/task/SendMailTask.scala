@@ -19,5 +19,5 @@ case class SendMailTask(
     MailClientApi.sendMail(sender, recipientList, body, subject, credentials)
   }
 
-  override def getTaskProperties: Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipientList.mkString(","))
+  override def getMetaData: Map[String, String] = Map("subject" -> subject, "recipient_list" -> recipientList.mkString(","))
 }

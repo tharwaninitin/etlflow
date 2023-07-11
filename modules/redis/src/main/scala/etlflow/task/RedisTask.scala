@@ -22,7 +22,7 @@ case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extend
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] = Map("operation_type" -> command.toString)
+  override def getMetaData: Map[String, String] = Map("operation_type" -> command.toString)
 }
 
 object RedisTask {

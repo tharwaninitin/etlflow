@@ -53,5 +53,5 @@ case class HttpRequestTask(
       .execute(method, url, params, headers, log, connectionTimeout, readTimeout, allowUnsafeSSL)
   } yield response
 
-  override def getTaskProperties: Map[String, String] = Map("url" -> url, "method" -> method.toString)
+  override def getMetaData: Map[String, String] = Map("url" -> url, "method" -> method.toString)
 }

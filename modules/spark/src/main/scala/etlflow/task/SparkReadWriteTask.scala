@@ -94,7 +94,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
       _ = sparkRuntimeConf = SparkRuntimeConf(spark)
     } yield op
 
-  override def getTaskProperties: Map[String, String] = {
+  override def getMetaData: Map[String, String] = {
     val inMap = ReadApi.dSProps[I](inputLocation, inputType)
     val outMap = WriteApi.dSProps[O](
       outputType,

@@ -29,7 +29,7 @@ case class K8STrackJobTask(name: String, jobName: String, namespace: String = "d
       )
   } yield status
 
-  override def getTaskProperties: Map[String, String] = Map(
+  override def getMetaData: Map[String, String] = Map(
     "name"                     -> name,
     "jobName"                  -> jobName,
     "namespace"                -> namespace,

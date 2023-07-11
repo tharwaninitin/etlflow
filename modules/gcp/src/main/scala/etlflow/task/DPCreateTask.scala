@@ -13,7 +13,7 @@ case class DPCreateTask(name: String, cluster: String, props: ClusterProps) exte
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] = Map(
+  override def getMetaData: Map[String, String] = Map(
     "cluster"    -> cluster,
     "properties" -> props.toString
   )

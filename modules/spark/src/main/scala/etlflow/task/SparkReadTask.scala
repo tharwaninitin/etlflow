@@ -44,7 +44,7 @@ case class SparkReadTask[I <: Product: TypeTag, O <: Product: TypeTag](
       _ = sparkRuntimeConf = SparkRuntimeConf(spark)
     } yield op
 
-  override def getTaskProperties: Map[String, String] =
+  override def getMetaData: Map[String, String] =
     ReadApi.dSProps[I](inputLocation, inputType).toList.toMap ++ sparkRuntimeConf ++ Map(
       "Number of records written" -> recordsWrittenCount.toString,
       "Number of records read"    -> recordsReadCount.toString

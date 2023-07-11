@@ -71,7 +71,7 @@ case class K8SJobTask(
 ) extends EtlTask[K8S, V1Job] {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] = Map(
+  override def getMetaData: Map[String, String] = Map(
     "name"                     -> name,
     "jobName"                  -> jobName,
     "container"                -> container.getOrElse(jobName),

@@ -14,7 +14,7 @@ case class BQQueryTask(name: String, queries: List[String]) extends EtlTask[BQ, 
     ZIO.foreach(queries)(BQ.executeQuery)
   }
 
-  override def getTaskProperties: Map[String, String] = Map.empty
+  override def getMetaData: Map[String, String] = Map.empty
 }
 
 object BQQueryTask {

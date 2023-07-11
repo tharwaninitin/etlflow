@@ -84,13 +84,13 @@ __Maven__
 <!-- TOC -->
 - [Etlflow Modules](#etlflow-modules)
   - [Core](#core)
-    - [Task](#task)
-    - [Audit](#audit)
-    - [Config](#config)
+    - [Task API](#task-api)
+    - [Audit API](#audit-api)
+    - [Job API](#job-api)
   - [GCP](#gcp)
     - [Dataproc](#dataproc)
-  - [K8S](#k8s)
   - [JDBC](#jdbc)
+  - [K8S](#k8s)
   - [Http](#http)
   - [Email](#email)
   - [Aws](#aws)
@@ -100,39 +100,33 @@ __Maven__
 
 ## Core
 Core module provides **Task** and **Audit** APIs which is used by all tasks in different modules. It additionally provides **Job** API which facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at Job level  
-### Task
+### Task API
 Below example is the simplest example of creating and running a Task using EtlFlow.
 This example uses noop audit backend which does nothing, This is useful when you want to test a task that require a audit backend to be passed in.
 
 ```scala
-
 import etlflow.task.GenericTask
 import zio._
 
-object Job1 extends zio.ZIOAppDefault {
+object Job1 extends ZIOAppDefault {
 
   def executeTask(): Task[Unit] = ZIO.logInfo(s"Hello EtlFlow Task")
 
   private val task1 = GenericTask(
-    name = "Task_1",
+    name = "Generic Task",
     task = executeTask()
   )
 
   override def run: Task[Unit] = task1.toZIO.provide(etlflow.audit.noop)
 }
 ```
-### Audit
-EtlFlow provides an auditing mechanism that can be used to track the execution of workflows(Collection of tasks). The auditing mechanism can be used to record the start and end of tasks, as well as the metadata that is processed by each task.
-
-
+### Audit API
+EtlFlow provides an auditing mechanism that can be used to track the execution of tasks and job (collection of tasks). The auditing mechanism can be used to record the start and end of tasks, as well as the metadata that is processed by each task.
 ```scala
 // Todo
 ```
-### Config
-```scala
-// Todo
-```
-### Json
+### Job API
+
 ```scala
 // Todo
 ```
@@ -178,6 +172,11 @@ programGCP.provide(dpJobLayer ++ dpClusterLayer ++ audit.noop)
 ```
 Check [this](examples/examplegcp/src/main/scala/examples/Job1GCP.scala) for complete example.
 
+## JDBC
+```scala
+// Todo
+```
+
 ## K8S
 This module depends on kubernetes official Java client library version 18.0.1
 ```scala
@@ -204,10 +203,6 @@ val programK8S: RIO[K8S with Audit, Unit] = for {
 programK8S.provide(K8S.live() ++ audit.noop)
 ```
 Check [this](examples/examplek8s/src/main/scala/examples/Job1K8S.scala) for complete example.
-## JDBC
-```scala
-// Todo
-```
 ## Http
 ```scala
 // Todo

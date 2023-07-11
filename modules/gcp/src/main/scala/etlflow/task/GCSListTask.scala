@@ -12,6 +12,6 @@ case class GCSListTask(name: String, bucket: String, prefix: Option[String], rec
     GCS.listObjects(bucket, prefix, recursive).runCollect
   }
 
-  override def getTaskProperties: Map[String, String] =
+  override def getMetaData: Map[String, String] =
     Map("bucket" -> bucket, "prefix" -> prefix.getOrElse(""), "recursive" -> recursive.toString)
 }

@@ -26,7 +26,7 @@ case class K8SFetchJobsTask(name: String, namespace: String = "default") extends
       )
   } yield jobs
 
-  override def getTaskProperties: Map[String, String] = Map(
+  override def getMetaData: Map[String, String] = Map(
     "name"      -> name,
     "namespace" -> namespace
   )

@@ -99,10 +99,11 @@ __Maven__
 <!-- /TOC -->
 
 ## Core
-Core module provides **Task** and **Audit** APIs which is used by all tasks in different modules. It additionally provides **Job** API which facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at Job level  
+The core module provides **Task** and **Audit** APIs, which are used by all tasks in different modules. It also provides a **Job** API that facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at the job level.
 ### Task API
-Below is the simplest example of creating and running a Task using EtlFlow.
-This example uses noop audit backend which does nothing, This is useful when you want to test a task that require a audit backend to be passed in.
+Below is the simplest example of **creating** a **Task** and **running** it using EtlFlow.
+This example uses the noop audit backend, which does nothing. This is useful when you want to test a task that requires an audit backend to be passed in.
+
 ```scala
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "@VERSION@"
 ```
@@ -124,10 +125,11 @@ object Job1 extends ZIOAppDefault {
 }
 ```
 ### Audit API
-EtlFlow provides an auditing interface that can be used to track the execution of tasks and job (collection of tasks).
-Audit interface is integrated with Task Interface, each task uses this interface to maintain state of all tasks in workflow in the backend of choice for end-to-end auditability. 
-Currently, there are audit backend implementations available for BigQuery, MySQL, Postgres etc.
-Audit has a simple and concise interface which makes it quite easy to add any new backend.
+EtlFlow provides an auditing interface that can be used to track the execution of tasks and jobs (collections of tasks). 
+The auditing interface is integrated with the Task Interface. 
+Each task uses this interface to maintain the state of all tasks in the workflow in the backend of choice for end-to-end auditability. 
+Currently, there are audit backend implementations available for BigQuery, MySQL, and Postgres. 
+Audit has a simple and concise interface, which makes it quite easy to add any new backend.
 ```scala
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "@VERSION@"
 libraryDependencies += "com.github.tharwaninitin" %% "etlflow-jdbc" % "@VERSION@"

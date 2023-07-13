@@ -5,18 +5,19 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/etlflow-core_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/etlflow-core)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/etlflow-core_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/etlflow-core_2.12)
 
-**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for running complex **_Auditable_** workflows which can interact with Google Cloud Platform, AWS, Kubernetes, Databases and more.
+**EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for running complex **_Auditable_** jobs/workflows which can interact with Google Cloud Platform, AWS, Kubernetes, Databases and more.
 
-Below are some salient features of this library.
+Below are some salient features of this library (most of these features are inherited by ZIO).
 
-- **Functional**. Rapidly compose complex **workflows** from simple tasks.
+- **Functional**. Rapidly compose complex **jobs/workflows** from simple tasks.
+- **Auditable**. Build jobs/workflows that provides auditability by default for multiple backends.
 - **Fibers**. Built on non-blocking fibers that never waste or leak resources, which lets you build scalable, resilient, and reactive applications
-- **Resource-safe**. Build workflows that never leak resources (including threads!), even when they fail.
-- **Concurrent**. Easily build concurrent workflows without deadlocks, race conditions, or complexity.
-- **Asynchronous**. Write sequential code that looks the same whether it's asynchronous or synchronous.
+- **Resource-safe**. Build jobs/workflows that never leak resources (including threads!), even when they fail.
+- **Compile Time DI**. Build jobs/workflows that allows resolving dependencies at compile time.
+- **Concurrent and Asynchronous**. Easily build concurrent asynchronous or synchronous jobs/workflows without deadlocks, race conditions, or complexity.
 - **Type-safe**. Use the full power of the Scala compiler to catch bugs at compile time.
-- **Testable**. Inject test services into your workflow for fast, deterministic, and type-safe testing.
-- **Resilient**. Build workflows that never lose errors, and which respond to failure locally and flexibly.
+- **Testable**. Inject test services into your job/workflow for fast, deterministic, and type-safe testing.
+- **Resilient**. Build jobs/workflows that never lose errors, and which respond to failure locally and flexibly.
 
 [//]: # (## Documentation)
 [//]: # ()
@@ -127,7 +128,7 @@ object Job1 extends ZIOAppDefault {
 ### Audit API
 EtlFlow provides an auditing interface that can be used to track the execution of tasks and jobs (collections of tasks). 
 The auditing interface is integrated with the Task Interface. 
-Each task uses this interface to maintain the state of all tasks in the workflow in the backend of choice for end-to-end auditability. 
+Each task uses this interface to maintain the state of all tasks in the job/workflow in the backend of choice for end-to-end auditability. 
 Currently, there are audit backend implementations available for BigQuery, MySQL, and Postgres. 
 Audit has a simple and concise interface, which makes it quite easy to add any new backend.
 ```scala
@@ -143,12 +144,12 @@ object Job2 extends ZIOAppDefault {
   
   private val task1 = GenericTask(
     name = "Generic Task 1",
-    task = ZIO.logInfo(s"Workflow 1")
+    task = ZIO.logInfo(s"Task 1")
   )
 
   private val task2 = GenericTask(
     name = "Generic Task 2",
-    task = ZIO.logInfo(s"Workflow 2")
+    task = ZIO.logInfo(s"Task 2")
   )
 
   val job = for {

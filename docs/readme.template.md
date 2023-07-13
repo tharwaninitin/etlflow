@@ -170,13 +170,19 @@ Here's a snapshot of data for the `task_run` table after this job has run:
 | 2           | 100        | Task 2    | GenericTask | {}    | RUNNING | 2023-07-13 12:00:00 UTC | 2023-07-13 13:00:00 UTC |
 
 ### Job API
-Job API enables grouping multiple tasks together for auditing capabilities at the job level, below is the example of creating a JobApp and running it using EtlFlow
+Job API enables grouping multiple tasks together for auditing capabilities at the job level, below is the example of creating a JobApp and running it using EtlFlow.
+By default, it uses noop audit layer but here we are using JDBC layer to persist auditing information in database.
 ```scala mdoc:silent
 import etlflow._
+import etlflow.audit.Audit
 import etlflow.task._
 import zio._
 
 object MyJobApp extends JobApp {
+
+  private val cred = JDBC(sys.env("DB_URL"), sys.env("DB_USER"), sys.env("DB_PWD"), sys.env("DB_DRIVER"))
+  
+  override val auditLayer: Layer[Throwable, Audit] = etlflow.audit.DB(cred)
 
   private val task1 = GenericTask(
     name = "Task_1",

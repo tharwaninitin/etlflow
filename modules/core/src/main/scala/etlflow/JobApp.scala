@@ -27,7 +27,7 @@ trait JobApp extends ZIOAppDefault with ApplicationLogger {
 
   def job(args: Chunk[String]): RIO[Audit, Unit]
 
-  val auditLayer: ZLayer[Any, Throwable, Audit] = audit.console
+  val auditLayer: ZLayer[Any, Throwable, Audit] = audit.noop
 
   override val bootstrap = zioSlf4jLogger
 

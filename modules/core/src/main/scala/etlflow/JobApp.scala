@@ -14,14 +14,12 @@ import zio._
   *
   * object MyJobApp extends JobApp {
   *
-  *   def executeTask(): Unit = logger.info(s"Hello EtlFlow Task")
-  *
-  *   val task1: GenericTask[Unit] = GenericTask(
+  *   private val task1 = GenericTask(
   *       name = "Task_1",
-  *       function = executeTask()
+  *       task = ZIO.logInfo(s"Hello EtlFlow Task")
   *   )
   *
-  *   def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.execute
+  *   def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.toZIO
   * }
   * }}}
   */

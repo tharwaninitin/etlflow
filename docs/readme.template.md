@@ -100,7 +100,7 @@ __Maven__
 <!-- /TOC -->
 
 ## Core
-The core module provides **Task** and **Audit** APIs, which are used by all tasks in different modules. It also provides a **Job** API that facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at the job level.
+The core module provides **Task** and **Audit** APIs, which are used by all tasks in different modules. It also provides a **Job** API that facilitates grouping multiple tasks together to leverage **auditing** and **logging** capabilities at the job/workflow level.
 ### Task API
 Below is the simplest example of **creating** a **Task** and **running** it using EtlFlow.
 This example uses the noop audit backend, which does nothing. This is useful when you want to test a task that requires an audit backend to be passed in.
@@ -162,11 +162,45 @@ object Job2 extends ZIOAppDefault {
   override def run: Task[Unit] = job.provide(etlflow.audit.DB(cred))
 }
 ```
-### Job API
+Here's a snapshot of data for the `task_run` table after this job has run:
 
+| task_run_id | job_run_id | task_name | task_type   | props | status  | created_at              | modified_at             |
+|-------------|------------|-----------|-------------|-------|---------|-------------------------|-------------------------|
+| 1           | 100        | Task 1    | GenericTask | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
+| 2           | 100        | Task 2    | GenericTask | {}    | RUNNING | 2023-07-13 12:00:00 UTC | 2023-07-13 13:00:00 UTC |
+
+### Job API
+EtlFlow provides a Job API that enables grouping multiple tasks together for auditing capabilities at the job level
 ```scala mdoc:silent
-// Todo
+import etlflow._
+import etlflow.task._
+import zio._
+
+object MyJobApp extends JobApp {
+
+  private val task1 = GenericTask(
+    name = "Task_1",
+    task = ZIO.logInfo(s"Hello EtlFlow Task")
+  )
+
+  def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.toZIO
+}
 ```
+
+Here's a snapshot of data for the `job_run` and `task_run` table after this job has run:
+
+| job_run_id | job_name | props | status  | created_at              | modified_at             |
+|------------|----------|-------|---------|-------------------------|-------------------------|
+| 1          | MyJobApp | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
+
+
+| task_run_id | job_run_id | task_name | task_type   | props | status  | created_at              | modified_at             |
+|-------------|------------|-----------|-------------|-------|---------|-------------------------|-------------------------|
+| 1           | 1          | Task 1    | GenericTask | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
+
+
+
+This table represents three sample rows of data for the `job_run` table. Each row corresponds to an instance of the `JobRun` class and contains values for each column. The `created_at` and `modified_at` columns are represented as timestamps in UTC format.
 ## GCP
 ```shell
 # To run all below GCP examples set the GOOGLE_APPLICATION_CREDENTIALS environment variable to the location of the service account json key. 

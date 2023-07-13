@@ -72,7 +72,7 @@ object DB extends ApplicationLogger {
   }
 
   private[etlflow] def layer(jobRunId: String, fetchSize: Option[Int], logStackTrace: Boolean): ZLayer[String, Throwable, Audit] =
-    ZLayer(ZIO.service[String].map(pool => DBAudit(jobRunId, logStackTrace, DBImpl(pool, fetchSize))))
+    ZLayer(ZIO.serviceWith[String](pool => DBAudit(jobRunId, logStackTrace, DBImpl(pool, fetchSize))))
 
   def apply(
       db: JDBC,

@@ -5,36 +5,43 @@ import etlflow.json.JSON
 import etlflow.log.ApplicationLogger
 import zio.{RIO, ZIO}
 
-/** @tparam R
-  *   ZIO Environment Type
-  * @tparam OP
-  *   Task Output Type A
+/** EtlTask provides an interface that defines a unit of work that can be executed. This interface has a `toZIO` method that
+  * converts the EtlTask object to a ZIO effect by wrapping the [[etlflow.audit.Audit]] API around it.
   *
-  * EtlTask provides interface which defines a unit of Task that can be executed. This interface has a toZIO method that converts
-  * the EtlTask object to ZIO effect by wrapping [[etlflow.audit.Audit]] API around it.
+  * @tparam R
+  *   The ZIO environment type.
+  * @tparam OP
+  *   The task output type.
   */
 trait EtlTask[-R, +OP] extends ApplicationLogger {
+
+  /** The name of the task.
+    */
   val name: String
+
+  /** The task type.
+    */
   val taskType: String = this.getClass.getSimpleName
 
-  /** @return
-    *   RIO[R, OP]
+  /** The abstract method that needs to be implemented by classes extending EtlTask to define the ZIO effect.
     *
-    * This is the abstract method which has to be implemented by Class extending EtlTask to define the ZIO effect.
+    * @return
+    *   The ZIO effect representing the task execution.
     */
   protected def process: RIO[R, OP]
 
-  /** @return
-    *   Map[String, String]
+  /** Get metadata associated with the task.
     *
-    * This is the abstract method which has to be implemented by Class extending EtlTask to define Metadata.
+    * @return
+    *   A map of metadata key-value pairs.
     */
   def getMetaData: Map[String, String] = Map.empty[String, String]
 
-  /** @return
-    *   RIO[R with Audit, OP]
+  /** Convert the EtlTask to a ZIO effect, tracking the execution progress using the [[etlflow.audit.Audit]] API's task start and
+    * task end methods.
     *
-    * This method uses [[etlflow.audit.Audit]] API task start and task end methods to track execution progress of EtlTask.
+    * @return
+    *   The ZIO effect representing the task execution with audit logging.
     */
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   final def toZIO: RIO[R with Audit, OP] = for {

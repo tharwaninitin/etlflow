@@ -133,6 +133,7 @@ jobs:
         run: sbt ";project spark; +test"
   http:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         java-version: [ 11, 17 ]

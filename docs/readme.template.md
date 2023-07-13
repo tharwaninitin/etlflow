@@ -7,13 +7,14 @@
 
 **EtlFlow** is an ecosystem of functional libraries in Scala based on ZIO for running complex **_Auditable_** jobs/workflows which can interact with Google Cloud Platform, AWS, Kubernetes, Databases and more.
 
-Below are some salient features of this library (most of these features are inherited by ZIO).
+Below are some important features of this library, some of which come from ZIO.
 
+- **Universal**. It provides a consistent way to interact with different services/products across cloud platforms like GCP, AWS, Azure, and On-Premises systems.
 - **Functional**. Rapidly compose complex **jobs/workflows** from simple tasks.
 - **Auditable**. Build jobs/workflows that provides auditability by default for multiple backends.
-- **Fibers**. Built on non-blocking fibers that never waste or leak resources, which lets you build scalable, resilient, and reactive applications
 - **Resource-safe**. Build jobs/workflows that never leak resources (including threads!), even when they fail.
 - **Compile Time DI**. Build jobs/workflows that allows resolving dependencies at compile time.
+- **Fibers**. Built on non-blocking fibers that never waste or leak resources, which lets you build scalable, resilient, and reactive applications
 - **Concurrent and Asynchronous**. Easily build concurrent asynchronous or synchronous jobs/workflows without deadlocks, race conditions, or complexity.
 - **Type-safe**. Use the full power of the Scala compiler to catch bugs at compile time.
 - **Testable**. Inject test services into your job/workflow for fast, deterministic, and type-safe testing.

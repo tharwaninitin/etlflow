@@ -170,7 +170,7 @@ Here's a snapshot of data for the `task_run` table after this job has run:
 | 2           | 100        | Task 2    | GenericTask | {}    | RUNNING | 2023-07-13 12:00:00 UTC | 2023-07-13 13:00:00 UTC |
 
 ### Job API
-EtlFlow provides a Job API that enables grouping multiple tasks together for auditing capabilities at the job level
+Job API enables grouping multiple tasks together for auditing capabilities at the job level, below is the example of creating a JobApp and running it using EtlFlow
 ```scala mdoc:silent
 import etlflow._
 import etlflow.task._
@@ -198,9 +198,6 @@ Here's a snapshot of data for the `job_run` and `task_run` table after this job 
 |-------------|------------|-----------|-------------|-------|---------|-------------------------|-------------------------|
 | 1           | 1          | Task 1    | GenericTask | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
 
-
-
-This table represents three sample rows of data for the `job_run` table. Each row corresponds to an instance of the `JobRun` class and contains values for each column. The `created_at` and `modified_at` columns are represented as timestamps in UTC format.
 ## GCP
 ```shell
 # To run all below GCP examples set the GOOGLE_APPLICATION_CREDENTIALS environment variable to the location of the service account json key. 

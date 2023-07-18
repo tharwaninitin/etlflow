@@ -109,6 +109,7 @@ libraryDependencies += "com.github.tharwaninitin" %% "etlflow-core" % "@VERSION@
 ```
 
 ```scala mdoc:silent
+import etlflow.audit.Audit
 import etlflow.task.GenericTask
 import zio._
 
@@ -116,12 +117,14 @@ object Job1 extends ZIOAppDefault {
 
   def executeTask(): Task[Unit] = ZIO.logInfo(s"Hello EtlFlow Task")
 
-  private val task1 = GenericTask(
+  val genericTask1: GenericTask[Any, Unit] = GenericTask(
     name = "Generic Task",
     task = executeTask()
   )
 
-  override def run: Task[Unit] = task1.toZIO.provide(etlflow.audit.noop)
+  val task1: RIO[Audit, Unit] = genericTask1.toZIO
+
+  override def run: Task[Unit] = task1.provide(etlflow.audit.noop)
 }
 ```
 ### Audit API
@@ -222,20 +225,20 @@ val dpCluster: String  = "DP_CLUSTER"
 val dpEndpoint: String = "DP_ENDPOINT"
 val dpBucket: String   = "DP_BUCKET"
 
-val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket)).toZIO
-val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster).toZIO
+val createCluster = DPCreateTask("DPCreateTask", dpCluster, ClusterProps(dpBucket))
+val deleteCluster = DPDeleteTask("DPDeleteTask", dpCluster)
 
 val args      = List("1000")
 val mainClass = "org.apache.spark.examples.SparkPi"
 val libs      = List("file:///usr/lib/spark/examples/jars/spark-examples.jar")
 val conf      = Map("spark.executor.memory" -> "1g", "spark.driver.memory" -> "1g")
 
-val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf).toZIO
+val sparkJob = DPSparkJobTask("DPSparkJobTask", args, mainClass, libs, conf)
 
 val programGCP: RIO[DPJob with DPCluster with Audit, Unit] = for {
-  _ <- createCluster
-  _ <- sparkJob
-  _ <- deleteCluster
+  _ <- createCluster.toZIO
+  _ <- sparkJob.toZIO
+  _ <- deleteCluster.toZIO
 } yield ()
 
 val dpJobLayer = DPJob.live(dpCluster, gcpProject, gcpRegion, dpEndpoint)

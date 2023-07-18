@@ -13,11 +13,15 @@ import zio.{RIO, ZIO}
   * @tparam OP
   *   The task output type.
   */
-trait EtlTask[-R, +OP] extends ApplicationLogger {
+trait EtlTask[-R, +OP] extends Product with ApplicationLogger {
 
   /** The name of the task.
     */
   val name: String
+
+  /** Metadata associated with the task (A map of metadata key-value pairs)
+    */
+  val metadata: Map[String, String] = Map.empty[String, String]
 
   /** The task type.
     */
@@ -30,13 +34,6 @@ trait EtlTask[-R, +OP] extends ApplicationLogger {
     */
   protected def process: RIO[R, OP]
 
-  /** Get metadata associated with the task.
-    *
-    * @return
-    *   A map of metadata key-value pairs.
-    */
-  def getMetaData: Map[String, String] = Map.empty[String, String]
-
   /** Convert the EtlTask to a ZIO effect, tracking the execution progress using the [[etlflow.audit.Audit]] API's task start and
     * task end methods.
     *
@@ -45,10 +42,10 @@ trait EtlTask[-R, +OP] extends ApplicationLogger {
     */
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   final def toZIO: RIO[R with Audit, OP] = for {
-    tri   <- ZIO.succeed(java.util.UUID.randomUUID.toString)
-    props <- JSON.convertToStringZIO(getMetaData)
-    _     <- Audit.logTaskStart(tri, name, props, taskType)
-    op    <- process.tapError(ex => Audit.logTaskEnd(tri, Some(ex)))
-    _     <- Audit.logTaskEnd(tri, None)
+    tri      <- ZIO.succeed(java.util.UUID.randomUUID.toString)
+    metadata <- JSON.convertToStringZIO(metadata)
+    _        <- Audit.logTaskStart(tri, name, metadata, taskType)
+    op       <- process.tapError(ex => Audit.logTaskEnd(tri, Some(ex)))
+    _        <- Audit.logTaskEnd(tri, None)
   } yield op
 }

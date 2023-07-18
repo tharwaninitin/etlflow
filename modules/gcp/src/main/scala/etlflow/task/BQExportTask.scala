@@ -29,7 +29,7 @@ case class BQExportTask(
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getMetaData: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "input_project"   -> sourceProject.getOrElse(""),
     "input_dataset"   -> sourceDataset,
     "input_table"     -> sourceTable,

@@ -16,7 +16,7 @@ import zio.{RIO, ZIO}
   */
 case class K8SJobLogTask(name: String, jobName: String, namespace: String = "default") extends EtlTask[K8S, Unit] {
 
-  override def getMetaData: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "name"      -> name,
     "jobName"   -> jobName,
     "namespace" -> namespace

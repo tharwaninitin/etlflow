@@ -16,7 +16,7 @@ case class GCSCopyTask(
     overwrite: Option[Boolean] = None
 ) extends EtlTask[GCS, Long] {
 
-  override def getMetaData: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "input"       -> input.toString,
     "output"      -> output.toString,
     "parallelism" -> parallelism.toString,

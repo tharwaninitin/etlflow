@@ -44,11 +44,7 @@ case class SparkReadTask[I <: Product: TypeTag, O <: Product: TypeTag](
       _ = sparkRuntimeConf = SparkRuntimeConf(spark)
     } yield op
 
-  override def getMetaData: Map[String, String] =
-    ReadApi.dSProps[I](inputLocation, inputType).toList.toMap ++ sparkRuntimeConf ++ Map(
-      "Number of records written" -> recordsWrittenCount.toString,
-      "Number of records read"    -> recordsReadCount.toString
-    )
+  override val metadata: Map[String, String] = ReadApi.dSProps[I](inputLocation, inputType).toList.toMap ++ sparkRuntimeConf
 
   def showCorruptedData(numRows: Int = 100): RIO[SparkEnv, Unit] = {
     logger.info(s"Corrupted data for job $name:")

@@ -27,6 +27,6 @@ case class GCSSensorTask(name: String, bucket: String, prefix: String, retry: In
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getMetaData: Map[String, String] =
+  override val metadata: Map[String, String] =
     Map("bucket" -> bucket, "prefix" -> prefix, "retry" -> retry.toString, "spaced" -> spaced.toString)
 }

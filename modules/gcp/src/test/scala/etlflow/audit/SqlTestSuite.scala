@@ -16,7 +16,7 @@ object SqlTestSuite {
         val op = """INSERT INTO etlflow.jobrun(
             job_run_id,
             job_name,
-            props,
+            metadata,
             status,
             created_at,
             updated_at
@@ -31,7 +31,7 @@ object SqlTestSuite {
            job_run_id,
            task_name,
            task_type,
-           props,
+           metadata,
            status,
            created_at,
            updated_at

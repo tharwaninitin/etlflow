@@ -17,7 +17,7 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
                     |${createTable("jobrun")} (
                     |    job_run_id STRING(100) NOT NULL,
                     |    job_name STRING NOT NULL,
-                    |    props JSON NOT NULL,
+                    |    metadata JSON NOT NULL,
                     |    status STRING NOT NULL,
                     |    created_at TIMESTAMP NOT NULL,
                     |    updated_at TIMESTAMP NOT NULL
@@ -28,7 +28,7 @@ object CreateBQ extends ApplicationLogger with zio.ZIOAppDefault {
                      |    job_run_id STRING(100) NOT NULL,
                      |    task_name STRING NOT NULL,
                      |    task_type STRING(100) NOT NULL,
-                     |    props JSON NOT NULL,
+                     |    metadata JSON NOT NULL,
                      |    status STRING NOT NULL,
                      |    created_at TIMESTAMP NOT NULL,
                      |    updated_at TIMESTAMP NOT NULL

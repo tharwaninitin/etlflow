@@ -8,11 +8,11 @@ package object audit {
     new Audit {
       override val jobRunId: String = ""
 
-      override def logJobStart(jobName: String, props: String): UIO[Unit] = ZIO.unit
+      override def logJobStart(jobName: String, metadata: String): UIO[Unit] = ZIO.unit
 
       override def logJobEnd(error: Option[Throwable]): UIO[Unit] = ZIO.unit
 
-      override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = ZIO.unit
+      override def logTaskStart(taskRunId: String, taskName: String, metadata: String, taskType: String): UIO[Unit] = ZIO.unit
 
       override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = ZIO.unit
 

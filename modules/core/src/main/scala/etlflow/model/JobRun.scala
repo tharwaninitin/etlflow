@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
 case class JobRun(
     id: String,
     name: String,
-    props: String,
+    metadata: String,
     status: String,
     createdAt: ZonedDateTime,
     modifiedAt: ZonedDateTime

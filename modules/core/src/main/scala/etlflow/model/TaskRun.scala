@@ -8,7 +8,7 @@ case class TaskRun(
     jobRunId: String,
     name: String,
     taskType: String,
-    props: String,
+    metadata: String,
     status: String,
     createdAt: ZonedDateTime,
     modifiedAt: ZonedDateTime

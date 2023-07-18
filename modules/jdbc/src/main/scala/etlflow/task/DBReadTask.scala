@@ -11,5 +11,6 @@ case class DBReadTask[T](name: String, query: String)(fn: WrappedResultSet => T)
     _   <- ZIO.logInfo(s"Query: $query")
     out <- DB.fetchResults[T](query)(fn)
   } yield out
-  override def getMetaData: Map[String, String] = Map("query" -> query)
+
+  override val metadata: Map[String, String] = Map("query" -> query)
 }

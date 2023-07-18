@@ -7,14 +7,11 @@ import ConfigDescriptor._
 import zio.{RIO, ZIO}
 
 case class BQQueryTask(name: String, queries: List[String]) extends EtlTask[BQ, List[Job]] {
-
   override protected def process: RIO[BQ, List[Job]] = {
     logger.info("#" * 100)
     logger.info(s"Starting BQ Query Task: $name")
     ZIO.foreach(queries)(BQ.executeQuery)
   }
-
-  override def getMetaData: Map[String, String] = Map.empty
 }
 
 object BQQueryTask {

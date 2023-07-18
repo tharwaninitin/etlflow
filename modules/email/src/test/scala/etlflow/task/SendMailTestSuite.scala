@@ -53,7 +53,7 @@ object SendMailTestSuite extends ZIOSpecDefault {
         assertZIO(task.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
       },
       test("Execute getTaskProperties") {
-        val props = task.getMetaData
+        val props = task.metadata
         assertTrue(props == Map("subject" -> "SendMailTask Test Ran Successfully", "recipient_list" -> "abcd@abcd.com"))
       }
     ).provideShared(audit.noop)

@@ -166,10 +166,10 @@ object Job2 extends ZIOAppDefault {
 ```
 Here's a snapshot of data for the `task_run` table after this job has run:
 
-| task_run_id | job_run_id | task_name | task_type   | props | status  | created_at              | modified_at             |
-|-------------|------------|-----------|-------------|-------|---------|-------------------------|-------------------------|
-| 1           | 100        | Task 1    | GenericTask | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
-| 2           | 100        | Task 2    | GenericTask | {}    | RUNNING | 2023-07-13 12:00:00 UTC | 2023-07-13 13:00:00 UTC |
+| task_run_id | job_run_id | task_name | task_type   | metadata | status  | created_at              | modified_at             |
+|-------------|------------|-----------|-------------|----------|---------|-------------------------|-------------------------|
+| 1           | 100        | Task 1    | GenericTask | {}       | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
+| 2           | 100        | Task 2    | GenericTask | {}       | RUNNING | 2023-07-13 12:00:00 UTC | 2023-07-13 13:00:00 UTC |
 
 ### Job API
 Job API enables grouping multiple tasks together for auditing capabilities at the job level, below is the example of creating a JobApp and running it using EtlFlow.
@@ -197,14 +197,14 @@ object MyJobApp extends JobApp {
 
 Here's a snapshot of data for the `job_run` and `task_run` table after this job has run:
 
-| job_run_id | job_name | props | status  | created_at              | modified_at             |
-|------------|----------|-------|---------|-------------------------|-------------------------|
-| 1          | MyJobApp | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
+| job_run_id | job_name | metadata | status  | created_at              | modified_at             |
+|------------|----------|----------|---------|-------------------------|-------------------------|
+| 1          | MyJobApp | {}       | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
 
 
-| task_run_id | job_run_id | task_name | task_type   | props | status  | created_at              | modified_at             |
-|-------------|------------|-----------|-------------|-------|---------|-------------------------|-------------------------|
-| 1           | 1          | Task 1    | GenericTask | {}    | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
+| task_run_id | job_run_id | task_name | task_type   | metadata | status  | created_at              | modified_at             |
+|-------------|------------|-----------|-------------|----------|---------|-------------------------|-------------------------|
+| 1           | 1          | Task 1    | GenericTask | {}       | SUCCESS | 2023-07-13 10:00:00 UTC | 2023-07-13 11:00:00 UTC |
 
 ## GCP
 ```shell

@@ -19,9 +19,9 @@ object DB extends ApplicationLogger {
       else
         effect.fold(_ => (), _ => ())
 
-    override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = log(
+    override def logTaskStart(taskRunId: String, taskName: String, metadata: String, taskType: String): UIO[Unit] = log(
       client
-        .executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId, "started"))
+        .executeQuery(Sql.insertTaskRun(taskRunId, taskName, metadata, taskType, jobRunId, "started"))
     )
 
     override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = log(
@@ -29,9 +29,9 @@ object DB extends ApplicationLogger {
         .executeQuery(Sql.updateTaskRun(taskRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
     )
 
-    override def logJobStart(jobName: String, props: String): UIO[Unit] = log(
+    override def logJobStart(jobName: String, metadata: String): UIO[Unit] = log(
       client
-        .executeQuery(Sql.insertJobRun(jobRunId, jobName, props, "started"))
+        .executeQuery(Sql.insertJobRun(jobRunId, jobName, metadata, "started"))
     )
 
     override def logJobEnd(error: Option[Throwable]): UIO[Unit] = log(
@@ -44,7 +44,7 @@ object DB extends ApplicationLogger {
         JobRun(
           rs.string("job_run_id"),
           rs.string("job_name"),
-          rs.string("props"),
+          rs.string("metadata"),
           rs.string("status"),
           rs.zonedDateTime("created_at"),
           rs.zonedDateTime("updated_at")
@@ -58,7 +58,7 @@ object DB extends ApplicationLogger {
           rs.string("job_run_id"),
           rs.string("task_name"),
           rs.string("task_type"),
-          rs.string("props"),
+          rs.string("metadata"),
           rs.string("status"),
           rs.zonedDateTime("created_at"),
           rs.zonedDateTime("updated_at")

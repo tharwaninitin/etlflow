@@ -11,5 +11,5 @@ case class DPDeleteTask(name: String, cluster: String) extends EtlTask[DPCluster
     DPCluster.deleteDataproc(cluster)
   }
 
-  override def getMetaData: Map[String, String] = Map("cluster" -> cluster)
+  override val metadata: Map[String, String] = Map("cluster" -> cluster)
 }

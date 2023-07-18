@@ -26,16 +26,16 @@ object BQ {
           }
         )
 
-    override def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit] = logBQJobs(
-      client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, props, taskType, jobRunId, "started"))
+    override def logTaskStart(taskRunId: String, taskName: String, metadata: String, taskType: String): UIO[Unit] = logBQJobs(
+      client.executeQuery(Sql.insertTaskRun(taskRunId, taskName, metadata, taskType, jobRunId, "started"))
     )
 
     override def logTaskEnd(taskRunId: String, error: Option[Throwable]): UIO[Unit] = logBQJobs(
       client.executeQuery(Sql.updateTaskRun(taskRunId, error.fold("success")(ex => s"failed with error: ${ex.getMessage}")))
     )
 
-    override def logJobStart(jobName: String, props: String): UIO[Unit] = logBQJobs(
-      client.executeQuery(Sql.insertJobRun(jobRunId, jobName, props, "started"))
+    override def logJobStart(jobName: String, metadata: String): UIO[Unit] = logBQJobs(
+      client.executeQuery(Sql.insertJobRun(jobRunId, jobName, metadata, "started"))
     )
 
     override def logJobEnd(error: Option[Throwable]): UIO[Unit] = logBQJobs(
@@ -47,7 +47,7 @@ object BQ {
         JobRun(
           fl.get("job_run_id").getStringValue,
           fl.get("job_name").getStringValue,
-          fl.get("props").getStringValue,
+          fl.get("metadata").getStringValue,
           fl.get("status").getStringValue,
           fl.get("created_at").getTimestampInstant.atZone(ZoneId.systemDefault()),
           fl.get("updated_at").getTimestampInstant.atZone(ZoneId.systemDefault())
@@ -62,7 +62,7 @@ object BQ {
           fl.get("job_run_id").getStringValue,
           fl.get("task_name").getStringValue,
           fl.get("task_type").getStringValue,
-          fl.get("props").getStringValue,
+          fl.get("metadata").getStringValue,
           fl.get("status").getStringValue,
           fl.get("created_at").getTimestampInstant.atZone(ZoneId.systemDefault()),
           fl.get("updated_at").getTimestampInstant.atZone(ZoneId.systemDefault())

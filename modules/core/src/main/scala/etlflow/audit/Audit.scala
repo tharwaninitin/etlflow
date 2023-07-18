@@ -22,10 +22,10 @@ trait Audit {
     *
     * @param jobName
     *   The name of the job.
-    * @param props
-    *   The properties associated with the job.
+    * @param metadata
+    *   The metadata associated with the job.
     */
-  def logJobStart(jobName: String, props: String): UIO[Unit]
+  def logJobStart(jobName: String, metadata: String): UIO[Unit]
 
   /** Log the end of a job, with an optional error.
     *
@@ -40,12 +40,12 @@ trait Audit {
     *   The ID of the task run.
     * @param taskName
     *   The name of the task.
-    * @param props
-    *   The properties associated with the task.
+    * @param metadata
+    *   The metadata associated with the task.
     * @param taskType
     *   The type of the task.
     */
-  def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): UIO[Unit]
+  def logTaskStart(taskRunId: String, taskName: String, metadata: String, taskType: String): UIO[Unit]
 
   /** Log the end of a task, with an optional error.
     *
@@ -111,10 +111,10 @@ object Audit {
     *
     * @param jobName
     *   The name of the job.
-    * @param props
-    *   The properties associated with the job.
+    * @param metadata
+    *   The metadata associated with the job.
     */
-  def logJobStart(jobName: String, props: String): URIO[Audit, Unit] = ZIO.serviceWithZIO(_.logJobStart(jobName, props))
+  def logJobStart(jobName: String, metadata: String): URIO[Audit, Unit] = ZIO.serviceWithZIO(_.logJobStart(jobName, metadata))
 
   /** Log the end of a job, with an optional error.
     *
@@ -129,13 +129,13 @@ object Audit {
     *   The ID of the task run.
     * @param taskName
     *   The name of the task.
-    * @param props
-    *   The properties associated with the task.
+    * @param metadata
+    *   The metadata associated with the task.
     * @param taskType
     *   The type of the task.
     */
-  def logTaskStart(taskRunId: String, taskName: String, props: String, taskType: String): URIO[Audit, Unit] =
-    ZIO.serviceWithZIO(_.logTaskStart(taskRunId, taskName, props, taskType))
+  def logTaskStart(taskRunId: String, taskName: String, metadata: String, taskType: String): URIO[Audit, Unit] =
+    ZIO.serviceWithZIO(_.logTaskStart(taskRunId, taskName, metadata, taskType))
 
   /** Log the end of a task, with an optional error.
     *

@@ -20,8 +20,6 @@ Below are some important features of this library, some of which come from ZIO.
 - **Testable**. Inject test services into your job/workflow for fast, deterministic, and type-safe testing.
 - **Resilient**. Build jobs/workflows that never lose errors, and which respond to failure locally and flexibly.
 
-[//]: # (## Documentation)
-[//]: # ()
 [//]: # (__Library Documentation__  https://tharwaninitin.github.io/etlflow/site/docs)
 [//]: <> (__Scala Test Coverage Report__  https://tharwaninitin.github.io/etlflow/testcovrep/)
 

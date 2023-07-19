@@ -12,5 +12,5 @@ case class DPHiveJobTask(name: String, query: String) extends EtlTask[DPJob, Job
     DPJob.executeHiveJob(query)
   }
 
-  override def getTaskProperties: Map[String, String] = Map("query" -> query)
+  override val metadata: Map[String, String] = Map("query" -> query)
 }

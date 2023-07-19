@@ -14,14 +14,12 @@ import zio._
   *
   * object MyJobApp extends JobApp {
   *
-  *   def executeTask(): Unit = logger.info(s"Hello EtlFlow Task")
-  *
-  *   val task1: GenericTask[Unit] = GenericTask(
+  *   private val task1 = GenericTask(
   *       name = "Task_1",
-  *       function = executeTask()
+  *       task = ZIO.logInfo(s"Hello EtlFlow Task")
   *   )
   *
-  *   def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.execute
+  *   def job(args: Chunk[String]): RIO[audit.Audit, Unit] = task1.toZIO
   * }
   * }}}
   */
@@ -29,7 +27,7 @@ trait JobApp extends ZIOAppDefault with ApplicationLogger {
 
   def job(args: Chunk[String]): RIO[Audit, Unit]
 
-  val auditLayer: ZLayer[Any, Throwable, Audit] = audit.console
+  val auditLayer: ZLayer[Any, Throwable, Audit] = audit.noop
 
   override val bootstrap = zioSlf4jLogger
 
@@ -45,11 +43,11 @@ trait JobApp extends ZIOAppDefault with ApplicationLogger {
     */
   final def execute(cliArgs: Chunk[String]): RIO[Audit, Unit] =
     for {
-      args  <- ZIO.succeed(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap)
-      props <- JSON.convertToStringZIO(args)
-      _     <- Audit.logJobStart(name, props)
-      _     <- job(cliArgs).tapError(ex => Audit.logJobEnd(Some(ex)))
-      _     <- Audit.logJobEnd(None)
+      args     <- ZIO.succeed(cliArgs.zipWithIndex.map(t => (t._2.toString, t._1)).toMap)
+      metadata <- JSON.convertToStringZIO(args)
+      _        <- Audit.logJobStart(name, metadata)
+      _        <- job(cliArgs).tapError(ex => Audit.logJobEnd(Some(ex)))
+      _        <- Audit.logJobEnd(None)
     } yield ()
 
   /** This is just a wrapper around default run method available with ZIOAppDefault to call [[execute execute(Chunk[String])]]

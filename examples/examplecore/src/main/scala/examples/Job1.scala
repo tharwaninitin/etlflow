@@ -1,19 +1,19 @@
 package examples
 
-import etlflow.log.ApplicationLogger
+import etlflow.audit.Audit
 import etlflow.task.GenericTask
 import zio._
 
-object Job1 extends zio.ZIOAppDefault with ApplicationLogger {
+object Job1 extends ZIOAppDefault {
 
-  override val bootstrap = zioSlf4jLogger
+  def executeTask(): Task[Unit] = ZIO.logInfo(s"Hello EtlFlow Task")
 
-  def executeTask(): Unit = logger.info(s"Hello EtlFlow Task")
-
-  private val task1 = GenericTask(
-    name = "Task_1",
-    function = executeTask()
+  val genericTask1: GenericTask[Any, Unit] = GenericTask(
+    name = "Generic Task",
+    task = executeTask()
   )
 
-  override def run: Task[Unit] = task1.toZIO.provideLayer(etlflow.audit.noop)
+  val task1: RIO[Audit, Unit] = genericTask1.toZIO
+
+  override def run: Task[Unit] = task1.provide(etlflow.audit.noop)
 }

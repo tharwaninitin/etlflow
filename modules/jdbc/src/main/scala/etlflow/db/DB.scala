@@ -33,7 +33,8 @@ object DB {
       jobRunId: String,
       poolName: String = "EtlFlow-DB-Audit-Pool",
       poolSize: Int = 2,
-      fetchSize: Option[Int] = None
+      fetchSize: Option[Int] = None,
+      logStackTrace: Boolean = false
   ): TaskLayer[DB with Audit] =
-    CP.layer(db, poolName, poolSize) >>> (DB.layer(fetchSize) ++ etlflow.audit.DB.layer(jobRunId, fetchSize))
+    CP.layer(db, poolName, poolSize) >>> (DB.layer(fetchSize) ++ etlflow.audit.DB.layer(jobRunId, fetchSize, logStackTrace))
 }

@@ -8,12 +8,13 @@ case class TaskRun(
     jobRunId: String,
     name: String,
     taskType: String,
-    props: String,
+    metadata: String,
     status: String,
     createdAt: ZonedDateTime,
     modifiedAt: ZonedDateTime
 )
 
+@SuppressWarnings(Array("org.wartremover.warts.SeqApply"))
 object TaskRun {
   implicit val codecTR: JsonCodec[TaskRun] = DeriveJsonCodec.gen[TaskRun]
 }

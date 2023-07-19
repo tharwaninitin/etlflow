@@ -71,7 +71,7 @@ case class K8SJobTask(
 ) extends EtlTask[K8S, V1Job] {
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "name"                     -> name,
     "jobName"                  -> jobName,
     "container"                -> container.getOrElse(jobName),
@@ -94,6 +94,7 @@ case class K8SJobTask(
   override protected def process: RIO[K8S, V1Job] = for {
     _ <- ZIO.logInfo("#" * 50)
     _ <- ZIO.logInfo(s"Creating K8S Job: $jobName")
+    _ <- ZIO.logInfo(s"Image: $image")
 
     job <- K8S
       .createJob(

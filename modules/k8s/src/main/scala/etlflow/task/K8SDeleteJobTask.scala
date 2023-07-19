@@ -27,7 +27,7 @@ case class K8SDeleteJobTask(
     debug: Option[Boolean] = None
 ) extends EtlTask[K8S, Unit] {
 
-  override def getTaskProperties: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "name"                   -> name,
     "jobName"                -> jobName,
     "namespace"              -> namespace.getOrElse("default"),

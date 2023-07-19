@@ -81,19 +81,31 @@ object HttpTaskTestSuite extends ZIOSpecDefault with ApplicationLogger {
     params = Right(Map("param1" -> "value1"))
   ).toZIO
 
-  val job: RIO[Http with Audit, Unit] = for {
-    _ <- getTask1
-    _ <- getTask2
-    _ <- getTask3.tapError(e => ZIO.succeed(logger.error(s"${e.getMessage}"))).ignore
-    _ <- postTask1
-    _ <- postTask2
-    _ <- postTask3
-    _ <- putTask1
-    _ <- putTask2
-  } yield ()
-
   override def spec: Spec[TestEnvironment, Any] =
-    (suite("Http Tasks")(test("Execute Http tasks") {
-      assertZIO(job.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
-    }) @@ TestAspect.flaky).provideShared(env.orDie)
+    (suite("Http Tasks")(
+      test("Get Request 1") {
+        assertZIO(getTask1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Get Request 2") {
+        assertZIO(getTask2.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Get Request 3") {
+        assertZIO(getTask3.foldZIO(_ => ZIO.succeed("ok"), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Post Request 1") {
+        assertZIO(postTask1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Post Request 2") {
+        assertZIO(postTask2.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Post Request 3") {
+        assertZIO(postTask3.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Put Request 1") {
+        assertZIO(putTask1.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      },
+      test("Put Request 2") {
+        assertZIO(putTask2.foldZIO(ex => ZIO.fail(ex.getMessage), _ => ZIO.succeed("ok")))(equalTo("ok"))
+      }
+    ) @@ TestAspect.flaky @@ TestAspect.retries(5)).provideShared(env.orDie)
 }

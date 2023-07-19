@@ -59,7 +59,7 @@ case class BQLoadTask(
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "input_type" -> inputType.toString,
     "input_location" -> inputLocation.fold(
       source_path => source_path,
@@ -69,9 +69,8 @@ case class BQLoadTask(
     "output_table"                    -> outputTable,
     "output_table_write_disposition"  -> outputWriteDisposition.toString,
     "output_table_create_disposition" -> outputCreateDisposition.toString
-    // ,"output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
+    // "output_rows" -> row_count.foldLeft(0L)((a, b) => a + b._2).toString
     // "output_size" -> destinationTable.map(x => s"${x.getNumBytes / 1000000.0} MB").getOrElse("error in getting size")
-    ,
-    "output_rows" -> rowCount.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
+    // "output_rows" -> rowCount.map(x => x._1 + "<==>" + x._2.toString).mkString(",")
   )
 }

@@ -1,5 +1,7 @@
 package etlflow
 
+import io.kubernetes.client.openapi.ApiClient
+import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models.V1Job
 import zio.stream.ZStream
 import zio.{Task, ULayer, ZIO, ZLayer}
@@ -36,6 +38,12 @@ package object k8s {
     override def getPodLogs(jobName: String, namespace: String, chunkSize: Int): ZStream[Any, Throwable, Byte] =
       ZStream.fail(new RuntimeException("Got noop K8S layer, use live layer for actual implementation"))
     override def poll(name: String, namespace: String, pollingFrequencyInMillis: Long): Task[JobStatus] =
+      ZIO.fail(new RuntimeException("Got noop K8S layer, use live layer for actual implementation"))
+    override def executeCoreApiTask[T](f: CoreV1Api => T): Task[T] =
+      ZIO.fail(new RuntimeException("Got noop K8S layer, use live layer for actual implementation"))
+    override def executeBatchApiTask[T](f: BatchV1Api => T): Task[T] =
+      ZIO.fail(new RuntimeException("Got noop K8S layer, use live layer for actual implementation"))
+    override def getApiClient[T]: Task[ApiClient] =
       ZIO.fail(new RuntimeException("Got noop K8S layer, use live layer for actual implementation"))
   })
 

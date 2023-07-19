@@ -94,7 +94,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
       _ = sparkRuntimeConf = SparkRuntimeConf(spark)
     } yield op
 
-  override def getTaskProperties: Map[String, String] = {
+  override val metadata: Map[String, String] = {
     val inMap = ReadApi.dSProps[I](inputLocation, inputType)
     val outMap = WriteApi.dSProps[O](
       outputType,
@@ -106,10 +106,7 @@ case class SparkReadWriteTask[I <: Product: TypeTag, O <: Product: TypeTag](
       outputRepartitioning,
       outputRepartitioningNum
     )
-    inMap ++ outMap ++ sparkRuntimeConf ++ Map(
-      "Number of records written" -> recordsWrittenCount.toString,
-      "Number of records read"    -> recordsReadCount.toString
-    )
+    inMap ++ outMap ++ sparkRuntimeConf
   }
 
   def showCorruptedData(numRows: Int = 100): RIO[SparkEnv, Unit] = {

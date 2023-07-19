@@ -10,10 +10,10 @@ object DbTestSuite {
   val spec: Spec[Audit, Any] =
     suite("Audit DB Suite")(
       zio.test.test("logJobStart Test")(
-        Audit.logJobStart("Job1", "").as(assertCompletes)
+        Audit.logJobStart("Job1", "{}").as(assertCompletes)
       ),
       zio.test.test("logTaskStart Test")(
-        Audit.logTaskStart(sri, "Task1", "", "GenericTask").as(assertCompletes)
+        Audit.logTaskStart(sri, "Task1", "{}", "GenericTask").as(assertCompletes)
       ),
       zio.test.test("logTaskEnd Test")(
         Audit.logTaskEnd(sri).as(assertCompletes)
@@ -35,7 +35,7 @@ object DbTestSuite {
       ),
       zio.test.test("fetchResults Test")(
         Audit
-          .fetchResults("SELECT job_name FROM jobrun") { case rs: WrappedResultSet =>
+          .fetchResults[WrappedResultSet, String]("SELECT job_name FROM jobrun") { rs =>
             rs.string("job_name")
           }
           .tap(op => ZIO.foreach(op)(i => ZIO.logInfo(i)))

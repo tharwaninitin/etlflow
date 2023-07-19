@@ -1,0 +1,11 @@
+name: SBT Github Update Dependency Graph
+on: [push]
+jobs:
+  dependency-graph:
+    name: Update Dependency Graph
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: scalacenter/sbt-dependency-submission@v2
+        with:
+          modules-ignore: etlflow_2.12 etlflow-docs_2.12 examples_2.12 etlflow-redis_2.12 etlflow-redis_2.13 examplespark_2.12 examplespark_2.13 etlflow-spark_2.12 etlflow-spark_2.13

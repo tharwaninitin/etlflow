@@ -10,5 +10,5 @@ case class GCSDeleteTask(name: String, bucket: String, prefix: String) extends E
     GCS.deleteObject(bucket, prefix).unit
   }
 
-  override def getTaskProperties: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix)
+  override val metadata: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix)
 }

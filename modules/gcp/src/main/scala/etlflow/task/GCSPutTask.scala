@@ -18,5 +18,5 @@ case class GCSPutTask(name: String, bucket: String, prefix: String, file: String
     _ <- ZIO.succeed(logger.info("#" * 100))
   } yield ()
 
-  override def getTaskProperties: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix, "file" -> file)
+  override val metadata: Map[String, String] = Map("bucket" -> bucket, "prefix" -> prefix, "file" -> file)
 }

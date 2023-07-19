@@ -18,7 +18,7 @@ object CreateDB extends ApplicationLogger with zio.ZIOAppDefault {
                     |${createTable("jobrun")} (
                     |    job_run_id varchar(100) PRIMARY KEY,
                     |    job_name text NOT NULL,
-                    |    props json NOT NULL,
+                    |    metadata json NOT NULL,
                     |    status text NOT NULL,
                     |    created_at timestamp(6) NOT NULL,
                     |    updated_at timestamp(6) NOT NULL
@@ -29,7 +29,7 @@ object CreateDB extends ApplicationLogger with zio.ZIOAppDefault {
                      |    job_run_id varchar(100) NOT NULL,
                      |    task_name text NOT NULL,
                      |    task_type varchar(100) NOT NULL,
-                     |    props json NOT NULL,
+                     |    metadata json NOT NULL,
                      |    status text NOT NULL,
                      |    created_at timestamp(6) NOT NULL,
                      |    updated_at timestamp(6) NOT NULL,

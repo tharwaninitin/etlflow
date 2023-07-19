@@ -50,6 +50,6 @@ case class CMPSSensorTask(name: String, project: String, subscription: String, i
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-  override def getTaskProperties: Map[String, String] =
+  override val metadata: Map[String, String] =
     Map("project" -> project, "subscription" -> subscription, "interval" -> interval.toString, "spaced" -> spaced.toString)
 }

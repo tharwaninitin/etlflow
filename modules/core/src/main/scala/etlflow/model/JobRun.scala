@@ -6,12 +6,13 @@ import java.time.ZonedDateTime
 case class JobRun(
     id: String,
     name: String,
-    props: String,
+    metadata: String,
     status: String,
     createdAt: ZonedDateTime,
     modifiedAt: ZonedDateTime
 )
 
+@SuppressWarnings(Array("org.wartremover.warts.SeqApply"))
 object JobRun {
   implicit val codecJR: JsonCodec[JobRun] = DeriveJsonCodec.gen[JobRun]
 }

@@ -2,39 +2,36 @@ package etlflow
 
 import etlflow.audit.Audit
 import etlflow.task.GenericTask
-import zio.{Chunk, Layer, RIO}
+import zio.{Chunk, Layer, RIO, Task, UIO, ZIO}
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString"))
 object SampleJobApp extends JobApp {
 
-  override val auditLayer: Layer[Throwable, Audit] = audit.memory(java.util.UUID.randomUUID.toString)
+  override val auditLayer: Layer[Throwable, Audit] = audit.console
 
-  def processData1(): String = {
+  def processData1(): Task[String] = ZIO.succeed {
     logger.info("Hello World")
     // Thread.sleep(2000)
-    "Hello World"
+    "Hello World 1"
   }
 
   private val task1 = GenericTask(
     name = "Task_1",
-    function = processData1()
+    task = processData1()
   )
 
-  def processData2(): Unit =
-    logger.info("Hello World")
+  def processData2(): UIO[Unit] = ZIO.logInfo("Hello World 2")
 
   private val task2 = GenericTask(
     name = "Task_2",
-    function = processData2()
+    task = processData2()
   )
 
-  def processData3(): Unit =
-    logger.info("Hello World")
-  // throw new RuntimeException("Error123")
+  def processData3(): UIO[Unit] = ZIO.logInfo("Hello World 3")
 
   private val task3 = GenericTask(
     name = "Task_3",
-    function = processData3()
+    task = processData3()
   )
 
   private val job = for {

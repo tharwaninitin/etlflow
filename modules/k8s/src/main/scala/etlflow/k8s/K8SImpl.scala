@@ -6,17 +6,16 @@ import etlflow.log.ApplicationLogger
 import etlflow.model.EtlFlowException.RetryException
 import etlflow.utils.RetrySchedule
 import io.kubernetes.client.PodLogs
-import io.kubernetes.client.openapi.ApiException
 import io.kubernetes.client.openapi.apis.{BatchV1Api, CoreV1Api}
 import io.kubernetes.client.openapi.models._
+import io.kubernetes.client.openapi.{ApiClient, ApiException}
 import zio.stream.{ZPipeline, ZStream}
 import zio.{Task, ZIO}
-
 import scala.concurrent.duration.DurationLong
 import scala.jdk.CollectionConverters._
 
 @SuppressWarnings(Array("org.wartremover.warts.AutoUnboxing", "org.wartremover.warts.Null", "org.wartremover.warts.ToString"))
-case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with ApplicationLogger {
+case class K8SImpl(core: CoreV1Api, batch: BatchV1Api, client: ApiClient) extends K8S with ApplicationLogger {
   private val secretKey = "secret"
 
   /** Create a Job in a new Container for running an image.
@@ -101,6 +100,12 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with Applicat
     _ <- logJobs(namespace).when(debug)
 
   } yield job
+
+  override def executeCoreApiTask[T](f: CoreV1Api => T): Task[T] = ZIO.attempt(f(core))
+
+  override def executeBatchApiTask[T](f: BatchV1Api => T): Task[T] = ZIO.attempt(f(batch))
+
+  override def getApiClient[T]: Task[ApiClient] = ZIO.attempt(client)
 
   private def poll(
       name: String,
@@ -282,6 +287,7 @@ case class K8SImpl(batch: BatchV1Api, core: CoreV1Api) extends K8S with Applicat
     }
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.ForeachEntry"))
   private def createV1JobInstance(
       name: String,
       container: String,

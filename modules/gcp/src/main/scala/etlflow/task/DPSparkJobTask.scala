@@ -9,7 +9,7 @@ import ConfigDescriptor._
 case class DPSparkJobTask(name: String, args: List[String], mainClass: String, libs: List[String], conf: Map[String, String])
     extends EtlTask[DPJob, Job] {
 
-  override def getTaskProperties: Map[String, String] = Map(
+  override val metadata: Map[String, String] = Map(
     "args"      -> args.mkString(" "),
     "mainClass" -> mainClass,
     "libs"      -> libs.mkString(","),

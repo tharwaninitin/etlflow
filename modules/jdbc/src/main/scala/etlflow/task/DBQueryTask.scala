@@ -10,5 +10,6 @@ case class DBQueryTask(name: String, query: String) extends EtlTask[DB, Unit] {
     _ <- ZIO.logInfo(s"Query: $query")
     _ <- DB.executeQuery(query)
   } yield ()
-  override def getTaskProperties: Map[String, String] = Map("query" -> query)
+
+  override val metadata: Map[String, String] = Map("query" -> query)
 }

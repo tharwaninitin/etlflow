@@ -89,8 +89,8 @@ object HttpImpl extends Http with ApplicationLogger {
     getBackend(connectionTimeout, allowUnsafeSsl)
       .flatMap(backend => if (logDetails) req.send(logBackend(backend, logDetails)) else req.send(backend))
       .map { res =>
-        logger.info("#" * 50)
         if (res.code.code == 204 || res.code.code == 200 || res.code.code == 201) {
+          logger.info(s"Response code: ${res.code}")
           res
         } else {
           logger.error(s"Failed with Response code: ${res.code}")

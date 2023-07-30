@@ -17,7 +17,7 @@ object S3Client extends ApplicationLogger {
       case Some(creds) =>
         logger.info("Using AWS credentials from credentials passed in function")
         val credentials =
-          StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.access_key, creds.secret_key))
+          StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.accessKey, creds.secretKey))
         S3AsyncClient.builder.region(region).credentialsProvider(credentials)
       case None =>
         (accessKey, secretKey) match {

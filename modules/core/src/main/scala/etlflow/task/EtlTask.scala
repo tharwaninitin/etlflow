@@ -13,7 +13,7 @@ import zio.{RIO, ZIO}
   * @tparam OP
   *   The task output type.
   */
-trait EtlTask[-R, +OP] extends Product with ApplicationLogger {
+trait EtlTask[-R, +OP] extends Product with Serializable with ApplicationLogger {
 
   /** The name of the task.
     */

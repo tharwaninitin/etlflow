@@ -2,20 +2,20 @@ package etlflow.model
 
 sealed trait Credential
 object Credential {
-  final case class GCP(service_account_key_path: String) extends Credential {
-    override def toString: String = "****service_account_key_path****"
+  final case class GCP(serviceAccountPath: String) extends Credential {
+    override def toString: String = "****serviceAccountPath****"
   }
 
-  final case class AWS(access_key: String, secret_key: String) extends Credential {
-    override def toString: String = "****access_key****secret_key****"
+  final case class AWS(accessKey: String, secretKey: String) extends Credential {
+    override def toString: String = "****accessKey****secretKey****"
   }
 
   final case class JDBC(url: String, user: String, password: String, driver: String) extends Credential {
     override def toString: String = s"JDBC with url => $url"
   }
 
-  final case class REDIS(host_name: String, password: Option[String] = None, port: Int = 6379) extends Credential {
-    override def toString: String = s"REDIS with url $host_name and port $port"
+  final case class REDIS(hostName: String, password: Option[String] = None, port: Int = 6379) extends Credential {
+    override def toString: String = s"REDIS with url $hostName and port $port"
   }
 
   final case class SMTP(

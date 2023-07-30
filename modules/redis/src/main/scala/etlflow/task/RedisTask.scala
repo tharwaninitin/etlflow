@@ -11,7 +11,7 @@ case class RedisTask(name: String, command: RedisCmd, credentials: REDIS) extend
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   override protected def process: Task[Unit] = ZIO.attempt {
     logger.info("#" * 100)
-    val redisClient = new RedisClient(credentials.host_name, credentials.port, secret = credentials.password)
+    val redisClient = new RedisClient(credentials.hostName, credentials.port, secret = credentials.password)
     logger.info(s"Starting Redis Query Task: $name")
     logger.info(s"Query to perform: $command")
     command match {

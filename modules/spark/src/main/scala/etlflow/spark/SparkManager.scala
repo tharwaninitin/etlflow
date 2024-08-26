@@ -39,6 +39,7 @@ object SparkManager extends ApplicationLogger {
 
       env.foreach {
         case GCP(service_account_key_path, project_id) =>
+          // https://github.com/GoogleCloudDataproc/hadoop-connectors/blob/master/gcs/CONFIGURATION.md
           sparkBuilder = sparkBuilder
             .config("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
             .config("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
